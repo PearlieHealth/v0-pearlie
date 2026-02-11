@@ -40,7 +40,7 @@ export async function updateSession(request: NextRequest) {
     "profile", "leads", "inbox", "appointments", "bookings",
     "insights", "settings", "team", "providers"
   ]
-  const AUTH_SEGMENTS = ["login", "demo", "accept-invite", "forgot-password", "reset-password"]
+  const AUTH_SEGMENTS = ["login", "demo", "accept-invite", "forgot-password", "reset-password", "set-password"]
 
   const isUnderClinic = request.nextUrl.pathname.startsWith("/clinic/") || request.nextUrl.pathname === "/clinic"
   const isPublicClinicsRoute = request.nextUrl.pathname.startsWith("/clinics") // Public clinic profiles with 's'
@@ -61,9 +61,11 @@ export async function updateSession(request: NextRequest) {
   }
 
   // If logged in user tries to access login page, redirect to dashboard
+  // (but not if they still need to set their password)
   if (request.nextUrl.pathname === "/clinic/login" && user) {
+    const mustChangePassword = user.user_metadata?.must_change_password
     const url = request.nextUrl.clone()
-    url.pathname = "/clinic"
+    url.pathname = mustChangePassword ? "/clinic/set-password" : "/clinic"
     return NextResponse.redirect(url)
   }
 

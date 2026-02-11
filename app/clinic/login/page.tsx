@@ -57,6 +57,12 @@ export default function ClinicLoginPage() {
           return
         }
 
+        // Check if admin-created account needs to set their own password
+        if (data.session.user.user_metadata?.must_change_password) {
+          window.location.href = "/clinic/set-password"
+          return
+        }
+
         // Login successful - use full page reload to ensure cookies are sent
         window.location.href = "/clinic"
       }
