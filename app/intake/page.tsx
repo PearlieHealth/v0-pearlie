@@ -13,6 +13,7 @@ import { PostcodeInput } from "@/components/postcode-input"
 import { trackEvent } from "@/lib/analytics"
 import { slideVariants, slideTransition } from "@/lib/slide-variants"
 import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap } from "lucide-react"
+import { GoogleSignInButton } from "@/components/google-sign-in-button"
 import {
   FORM_VERSION,
   SCHEMA_VERSION,
@@ -233,6 +234,10 @@ export default function IntakePage() {
   const handleSingleSelect = (field: string, value: string, nextStep: number) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     setTimeout(() => handleStepForward(step, nextStep), 300)
+  }
+
+  const saveFormToSession = () => {
+    sessionStorage.setItem("pearlie_intake_form", JSON.stringify(formData))
   }
 
   const handleSubmit = async () => {
@@ -1064,6 +1069,24 @@ export default function IntakePage() {
                     >
                       {isSubmitting ? "Finding your matches..." : "Get my clinic matches"}
                     </Button>
+                  </motion.div>
+
+                  {/* Google sign-in divider and button */}
+                  <motion.div {...fadeUp(0.6)} className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1 h-px bg-border" />
+                      <span className="text-sm text-[#323141]/50 font-medium">or</span>
+                      <div className="flex-1 h-px bg-border" />
+                    </div>
+
+                    <GoogleSignInButton
+                      redirectTo={`${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=/intake/google-complete`}
+                      onBeforeSignIn={saveFormToSession}
+                    />
+
+                    <p className="text-center text-xs text-[#323141]/40">
+                      We will use your Google email to verify your identity. No OTP needed.
+                    </p>
                   </motion.div>
 
                   {/* Trust indicators */}
