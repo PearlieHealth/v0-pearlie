@@ -1,0 +1,99 @@
+import { NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+export async function POST(request: Request) {
+  try {
+    const { token, action, declineReason } = await request.json()
+
+    if (!token || !action) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
+
+    if (!["confirm", "decline"].includes(action)) {
+      return NextResponse.json({ error: "Invalid action" }, { status: 400 })
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+    // Find lead by booking token
+    const { data: lead, error: leadError } = await supabase
+      .from("leads")
+      .select("*, clinics:booking_clinic_id(*)")
+      .eq("booking_token", token)
+      .single()
+
+    if (leadError || !lead) {
+      return NextResponse.json({ error: "Invalid or expired booking token" }, { status: 404 })
+    }
+
+    // Check if already responded
+    if (lead.booking_status === "confirmed" || lead.booking_status === "declined") {
+      return NextResponse.json({ 
+        error: "This booking has already been responded to",
+        currentStatus: lead.booking_status 
+      }, { status: 400 })
+    }
+
+    // Update lead status
+    const updateData: Record<string, any> = {
+      booking_status: action === "confirm" ? "confirmed" : "declined",
+    }
+
+    if (action === "confirm") {
+      updateData.booking_confirmed_at = new Date().toISOString()
+    } else {
+      updateData.booking_declined_at = new Date().toISOString()
+      if (declineReason) {
+        updateData.booking_decline_reason = declineReason
+      }
+    }
+
+    const { error: updateError } = await supabase
+      .from("leads")
+      .update(updateData)
+      .eq("id", lead.id)
+
+    if (updateError) {
+      console.error("[clinic-response] Error updating lead:", updateError)
+      return NextResponse.json({ error: "Failed to update booking status" }, { status: 500 })
+    }
+
+    // Track the event
+    await supabase.from("analytics_events").insert({
+      event_name: action === "confirm" ? "booking_confirmed" : "booking_declined",
+      lead_id: lead.id,
+      clinic_id: lead.booking_clinic_id,
+      session_id: lead.session_id || "00000000-0000-0000-0000-000000000000",
+      metadata: { 
+        action,
+        decline_reason: declineReason || null,
+        booking_date: lead.booking_date,
+        booking_time: lead.booking_time,
+      },
+    })
+
+    return NextResponse.json({ 
+      success: true, 
+      action,
+      lead: {
+        id: lead.id,
+        firstName: lead.first_name,
+        lastName: lead.last_name,
+        email: lead.email,
+        phone: lead.phone,
+        bookingDate: lead.booking_date,
+        bookingTime: lead.booking_time,
+      },
+      clinic: lead.clinics ? {
+        id: lead.clinics.id,
+        name: lead.clinics.name,
+      } : null
+    })
+  } catch (error) {
+    console.error("[clinic-response] Error:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}

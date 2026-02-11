@@ -1,0 +1,221 @@
+"use client"
+
+import { useEffect, useState, useCallback } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react"
+import Image from "next/image"
+import { createClient } from "@/lib/supabase/client"
+
+interface ClinicImage {
+  src: string
+  alt: string
+  name: string
+  location: string
+  rating: number
+}
+
+// Fallback images in case database fetch fails
+const fallbackImages: ClinicImage[] = [
+  {
+    src: "/clinic-reception-modern-dental.jpg",
+    alt: "Modern dental clinic reception",
+    name: "Smile Dental London",
+    location: "Kensington, London",
+    rating: 4.9,
+  },
+  {
+    src: "/dental-treatment-room-premium.jpg",
+    alt: "Premium dental treatment room",
+    name: "Manchester Dental Care",
+    location: "Manchester City Centre",
+    rating: 4.8,
+  },
+]
+
+export default function ClinicCarousel() {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [direction, setDirection] = useState(0)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+  const [clinicImages, setClinicImages] = useState<ClinicImage[]>(fallbackImages)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Fetch clinics with images from database
+  useEffect(() => {
+    const fetchClinics = async () => {
+      try {
+        const supabase = createClient()
+        const { data: clinics, error } = await supabase
+          .from("clinics")
+          .select("id, name, city, images, rating")
+          .eq("is_archived", false)
+          .eq("verified", true)
+          .not("images", "is", null)
+          .limit(10)
+
+        if (error) {
+          console.error("Error fetching clinics for carousel:", error)
+          return
+        }
+
+        // Filter clinics that have at least one image
+        const clinicsWithImages = clinics?.filter(
+          (c) => c.images && Array.isArray(c.images) && c.images.length > 0
+        ) || []
+
+        if (clinicsWithImages.length > 0) {
+          // Custom sort: Ziha Dental first, Watford Smile Clinic last
+          const sortedClinics = [...clinicsWithImages].sort((a, b) => {
+            const nameA = a.name?.toLowerCase() || ""
+            const nameB = b.name?.toLowerCase() || ""
+            
+            // Ziha Dental should be first
+            if (nameA.includes("ziha")) return -1
+            if (nameB.includes("ziha")) return 1
+            
+            // Watford Smile Clinic should be last
+            if (nameA.includes("watford")) return 1
+            if (nameB.includes("watford")) return -1
+            
+            return 0
+          })
+
+          const carouselData: ClinicImage[] = sortedClinics.map((clinic) => ({
+            src: clinic.images[0],
+            alt: `${clinic.name} dental clinic`,
+            name: clinic.name,
+            location: clinic.city || "UK",
+            rating: clinic.rating || 4.8,
+          }))
+          setClinicImages(carouselData)
+        }
+      } catch (err) {
+        console.error("Failed to fetch clinics:", err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchClinics()
+  }, [])
+
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 300 : -300,
+      opacity: 0,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 300 : -300,
+      opacity: 0,
+    }),
+  }
+
+  const paginate = useCallback((newDirection: number) => {
+    setDirection(newDirection)
+    setCurrentIndex((prev) => (prev + newDirection + clinicImages.length) % clinicImages.length)
+  }, [clinicImages.length])
+
+  const goToSlide = (index: number) => {
+    setDirection(index > currentIndex ? 1 : -1)
+    setCurrentIndex(index)
+    setIsAutoPlaying(false)
+  }
+
+  // Auto-advance carousel
+  useEffect(() => {
+    if (!isAutoPlaying) return
+    const timer = setInterval(() => {
+      paginate(1)
+    }, 4000)
+    return () => clearInterval(timer)
+  }, [isAutoPlaying, paginate])
+
+  return (
+    <div 
+      className="relative w-full max-w-md mx-auto"
+      onMouseEnter={() => setIsAutoPlaying(false)}
+      onMouseLeave={() => setIsAutoPlaying(true)}
+    >
+      {/* Main carousel */}
+      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-xl bg-secondary/20">
+        <AnimatePresence initial={false} custom={direction}>
+          <motion.div
+            key={currentIndex}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{
+              x: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.2 },
+            }}
+            className="absolute inset-0"
+          >
+            <Image
+              src={clinicImages[currentIndex].src || "/placeholder.svg"}
+              alt={clinicImages[currentIndex].alt}
+              fill
+              className="object-cover"
+              priority={currentIndex === 0}
+            />
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            
+            {/* Clinic info */}
+            <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+              <h3 className="font-semibold text-lg">{clinicImages[currentIndex].name}</h3>
+              <div className="flex items-center justify-between mt-1">
+                <div className="flex items-center gap-1.5 text-sm text-white/90">
+                  <MapPin className="w-3.5 h-3.5" />
+                  {clinicImages[currentIndex].location}
+                </div>
+                <div className="flex items-center gap-1 text-sm">
+                  <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                  <span className="font-medium">{clinicImages[currentIndex].rating}</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Navigation arrows */}
+        <button
+          onClick={() => { paginate(-1); setIsAutoPlaying(false); }}
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-white transition-colors z-10"
+          aria-label="Previous clinic"
+        >
+          <ChevronLeft className="w-5 h-5 text-foreground" />
+        </button>
+        <button
+          onClick={() => { paginate(1); setIsAutoPlaying(false); }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-white transition-colors z-10"
+          aria-label="Next clinic"
+        >
+          <ChevronRight className="w-5 h-5 text-foreground" />
+        </button>
+      </div>
+
+      {/* Dot indicators */}
+      <div className="flex items-center justify-center gap-2 mt-4">
+        {clinicImages.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => goToSlide(index)}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              index === currentIndex 
+                ? "bg-primary w-6" 
+                : "bg-primary/30 hover:bg-primary/50"
+            }`}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}

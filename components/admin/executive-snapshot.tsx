@@ -1,0 +1,114 @@
+"use client"
+
+import { Card } from "@/components/ui/card"
+import { Users, Eye, MousePointer, TrendingUp, Activity, CheckCircle2, Calendar } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+
+interface ExecutiveSnapshotProps {
+  totalLeads?: number
+  matchesShown?: number
+  clinicClicks?: number
+  bookingClicks?: number
+  bookingsConfirmed?: number
+  bookingsPending?: number
+  bookingsDeclined?: number
+  revenueMin?: number
+  avgClinicsViewed?: number
+}
+
+export function ExecutiveSnapshot({
+  totalLeads = 0,
+  matchesShown = 0,
+  clinicClicks = 0,
+  bookingClicks = 0,
+  bookingsConfirmed = 0,
+  bookingsPending = 0,
+  bookingsDeclined = 0,
+  revenueMin = 0,
+  avgClinicsViewed = 0,
+}: ExecutiveSnapshotProps) {
+  // Calculate conversion rate: booked / leads
+  const conversionRate = totalLeads > 0 ? (bookingClicks / totalLeads) * 100 : 0
+  // Calculate confirmation rate: confirmed / booking requests
+  const confirmationRate = bookingClicks > 0 ? (bookingsConfirmed / bookingClicks) * 100 : 0
+
+  const metrics = [
+    {
+      label: "Total Leads",
+      value: (totalLeads ?? 0).toLocaleString(),
+      icon: Users,
+      color: "text-blue-600",
+      tooltip: "Total patients who completed the matching questionnaire",
+    },
+    {
+      label: "Matches Shown",
+      value: (matchesShown ?? 0).toLocaleString(),
+      icon: Eye,
+      color: "text-purple-600",
+      tooltip: "Unique patients who were shown clinic matches",
+    },
+    {
+      label: "Booking Requests",
+      value: (bookingClicks ?? 0).toLocaleString(),
+      subtext: bookingsPending > 0 ? `${bookingsPending} pending` : undefined,
+      icon: Calendar,
+      color: "text-amber-600",
+      tooltip: "Total appointment requests submitted by patients",
+    },
+    {
+      label: "Confirmed Bookings",
+      value: (bookingsConfirmed ?? 0).toLocaleString(),
+      subtext: confirmationRate > 0 ? `${confirmationRate.toFixed(0)}% confirmed` : undefined,
+      icon: CheckCircle2,
+      color: "text-green-600",
+      tooltip: `Appointments confirmed by clinics${bookingsDeclined > 0 ? ` (${bookingsDeclined} declined)` : ""}`,
+    },
+    {
+      label: "Revenue Opportunity",
+      value: `£${Math.round(revenueMin ?? 0).toLocaleString()}`,
+      subtext: "(min)",
+      icon: TrendingUp,
+      color: "text-emerald-600",
+      tooltip: "Minimum revenue based on confirmed bookings",
+    },
+  ]
+
+  return (
+    <TooltipProvider>
+      <div className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-[#1a2332]">Executive Snapshot</h2>
+          <p className="text-xs md:text-sm text-muted-foreground">
+            High-intent patient demand and conversion signals — updated in real time
+          </p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+          {metrics.map((metric) => {
+            const Icon = metric.icon
+            return (
+              <Tooltip key={metric.label}>
+                <TooltipTrigger asChild>
+                  <Card className="p-3 md:p-5 cursor-help">
+                    <div className="flex items-start justify-between mb-1 md:mb-2">
+                      <div className="text-xs md:text-sm font-medium text-muted-foreground">{metric.label}</div>
+                      <Icon className={`h-3 w-3 md:h-4 md:w-4 ${metric.color}`} />
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-lg md:text-2xl font-bold text-[#1a2332]">{metric.value}</span>
+                      {metric.subtext && (
+                        <span className="text-xs text-muted-foreground">{metric.subtext}</span>
+                      )}
+                    </div>
+                  </Card>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-xs">{metric.tooltip}</p>
+                </TooltipContent>
+              </Tooltip>
+            )
+          })}
+        </div>
+      </div>
+    </TooltipProvider>
+  )
+}

@@ -1,0 +1,41 @@
+import { type NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ leadId: string }> }
+) {
+  try {
+    const { leadId } = await params
+
+    if (!leadId) {
+      return NextResponse.json({ error: "Lead ID is required" }, { status: 400 })
+    }
+
+    const supabase = await createClient()
+
+    const { data: lead, error } = await supabase
+      .from("leads")
+      .select("id, is_verified, email, first_name, last_name")
+      .eq("id", leadId)
+      .single()
+
+    if (error || !lead) {
+      return NextResponse.json({ error: "Lead not found" }, { status: 404 })
+    }
+
+    return NextResponse.json({
+      leadId: lead.id,
+      isVerified: lead.is_verified ?? false,
+      email: lead.email,
+      firstName: lead.first_name,
+      lastName: lead.last_name,
+    })
+  } catch (error) {
+    console.error("[LeadStatus] Unexpected error:", error)
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 }
+    )
+  }
+}
