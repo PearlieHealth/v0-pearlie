@@ -67,5 +67,20 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Protect patient dashboard routes
+  const isPatientDashboard = request.nextUrl.pathname.startsWith("/patient/dashboard")
+  if (isPatientDashboard && !user) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/patient/login"
+    return NextResponse.redirect(url)
+  }
+
+  // If logged-in patient tries to access patient login, redirect to dashboard
+  if (request.nextUrl.pathname === "/patient/login" && user) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/patient/dashboard"
+    return NextResponse.redirect(url)
+  }
+
   return supabaseResponse
 }

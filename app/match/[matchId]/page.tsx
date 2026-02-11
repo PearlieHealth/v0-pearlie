@@ -30,7 +30,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { trackEvent, setMatchContext, setMatchId } from "@/lib/analytics"
 import { MatchFiltersPanel } from "@/components/match-filters-panel"
 import { OTPVerification } from "@/components/otp-verification"
-import { getChipData } from "@/lib/chipData" // Import getChipData
+import { GoogleSignInButton } from "@/components/google-sign-in-button"
+import { createClient } from "@/lib/supabase/client"
+import { getChipData } from "@/lib/chipData"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 
 const ClinicsMap = lazy(() => import("@/components/clinics-map").then((mod) => ({ default: mod.ClinicsMap })))
@@ -427,6 +429,39 @@ export default function MatchPage() {
     trackEvent("email_verified", { leadId, matchId })
   }
 
+  // Check for existing Supabase auth session (e.g. returning from Google OAuth)
+  // If the user is authenticated via Google, auto-verify the lead
+  const [googleVerifying, setGoogleVerifying] = useState(false)
+
+  useEffect(() => {
+    if (isVerified !== false || !leadId || !leadEmail || googleVerifying) return
+
+    async function checkGoogleSession() {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user?.email) return
+        if (user.email.toLowerCase() !== leadEmail?.toLowerCase()) return
+
+        // Google user email matches lead email - auto-verify
+        setGoogleVerifying(true)
+        const res = await fetch(`/api/leads/${leadId}/verify-google`, { method: "POST" })
+
+        if (res.ok) {
+          setIsVerified(true)
+          trackEvent("email_verified", { leadId, matchId, meta: { method: "google" } })
+        }
+      } catch {
+        // Silently fail - user can still use OTP
+      } finally {
+        setGoogleVerifying(false)
+      }
+    }
+
+    checkGoogleSession()
+  }, [isVerified, leadId, leadEmail, matchId])
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f8f7f4]">
@@ -464,6 +499,18 @@ export default function MatchPage() {
   }
 
   if (isVerified === false && leadId && leadEmail) {
+    // Show loading if Google auto-verify is in progress
+    if (googleVerifying) {
+      return (
+        <div className="min-h-screen bg-[#f8f7f4] flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary mb-4" />
+            <p className="text-muted-foreground">Verifying your Google account...</p>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="min-h-screen bg-[#f8f7f4]">
         <div className="max-w-lg mx-auto px-4 py-12">
@@ -479,6 +526,21 @@ export default function MatchPage() {
               We found clinics that match your needs. Verify your email to view your personalised results.
             </p>
           </div>
+
+          {/* Google sign-in option */}
+          <div className="mb-6">
+            <GoogleSignInButton
+              redirectTo={`${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=/match/${matchId}`}
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-sm text-muted-foreground font-medium">or verify with email code</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
           <OTPVerification leadId={leadId} email={leadEmail} onVerified={handleVerificationSuccess} />
           <p className="text-center text-sm text-muted-foreground mt-6">
             This helps us ensure you receive accurate information and protects your privacy.

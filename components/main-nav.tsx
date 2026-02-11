@@ -101,8 +101,14 @@ export function MainNav() {
             ))}
           </nav>
 
-          {/* CTA Button - Right */}
-          <div className="hidden md:flex items-center">
+          {/* CTA Buttons - Right */}
+          <div className="hidden md:flex items-center gap-3">
+            <Link
+              href="/patient/login"
+              className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
+            >
+              My account
+            </Link>
             <Button
               size="lg"
               className="text-sm px-6 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white rounded-full shadow-lg hover:shadow-xl transition-all border-0"
