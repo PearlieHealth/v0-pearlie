@@ -334,9 +334,10 @@ export default function IntakePage() {
       if (!matchId) throw new Error("No match ID returned")
 
       router.push(`/match/${matchId}`)
-    } catch (error) {
-      console.error("[v0] Submit error:", error)
-      toast({ title: "Something went wrong", description: "Please try again or contact support.", variant: "destructive" })
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : "Unknown error"
+      console.error("Intake submit error:", errMsg)
+      toast({ title: "Something went wrong", description: `Please try again or contact support. (${errMsg})`, variant: "destructive" })
     } finally {
       setIsSubmitting(false)
     }
