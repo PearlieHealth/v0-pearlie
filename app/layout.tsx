@@ -14,7 +14,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Pearlie - Find the Right Dental Clinic for You",
   description:
-    "Connect with trusted dental clinics in your area. Complete our simple intake form and get matched with the right clinic for your needs.",
+    "Connect with trusted dental clinics in your area. Complete our simple form and get matched with the right clinic for your needs.",
   generator: "Pearlie",
   icons: {
     icon: [
