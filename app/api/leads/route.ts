@@ -186,6 +186,7 @@ export async function POST(request: Request) {
         contact_method: contactMethod,
         schema_version: validatedData.schemaVersion,
         raw_answers: rawAnswers,
+        source: body.source || "match",
         // Google-authenticated users are pre-verified (email verified by Google)
         ...(isGoogleAuth && {
           is_verified: true,

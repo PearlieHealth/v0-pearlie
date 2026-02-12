@@ -34,6 +34,7 @@ import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
 
 interface Clinic {
   id: string
+  slug?: string
   name: string
   address: string
   postcode: string
@@ -230,6 +231,7 @@ export default function ClinicDetailPage() {
   const [showChat, setShowChat] = useState(false)
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [showMobilePicker, setShowMobilePicker] = useState(false)
+  const [directLeadId, setDirectLeadId] = useState<string | null>(null)
 
   // Generate FAQs
   const faqs = [
@@ -287,6 +289,15 @@ export default function ClinicDetailPage() {
         const resolvedId = resolvedClinic.id // Always use the real UUID for subsequent calls
         setClinic(resolvedClinic)
         setUniqueFeature(getUniqueFeature(resolvedClinic))
+
+        // Canonical redirect: if visited via UUID but clinic has a slug, replace URL for SEO
+        if (resolvedClinic.slug && clinicId !== resolvedClinic.slug) {
+          const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clinicId as string)
+          if (isUUID) {
+            const queryString = searchParams?.toString()
+            router.replace(`/clinic/${resolvedClinic.slug}${queryString ? `?${queryString}` : ""}`, { scroll: false })
+          }
+        }
 
         // Fetch providers using the resolved UUID
         try {
@@ -952,23 +963,24 @@ export default function ClinicDetailPage() {
                     />
                   </div>
 
-                  {/* Message Clinic button */}
+                  {/* Message / Enquire button */}
                   <Button
                     size="lg"
                     className="w-full bg-[#1a1a1a] hover:bg-[#333] text-white"
                     onClick={() => setShowChat(!showChat)}
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
-                    Message Clinic
+                    {(lead?.id || leadIdParam || directLeadId) ? "Message Clinic" : "Enquire now"}
                   </Button>
 
-                  {/* Inline chat panel */}
+                  {/* Inline chat panel / direct enquiry form */}
                   <EmbeddedClinicChat
-                    leadId={lead?.id || leadIdParam || null}
+                    leadId={lead?.id || leadIdParam || directLeadId || null}
                     clinicId={clinic.id}
                     clinicName={clinic.name}
                     isOpen={showChat}
                     onToggle={() => setShowChat(false)}
+                    onLeadCreated={(newLeadId) => setDirectLeadId(newLeadId)}
                   />
 
                   {/* Trust indicators */}
@@ -1027,12 +1039,13 @@ export default function ClinicDetailPage() {
             </div>
             <div className="flex-1 min-h-0">
               <EmbeddedClinicChat
-                leadId={lead?.id || leadIdParam || null}
+                leadId={lead?.id || leadIdParam || directLeadId || null}
                 clinicId={clinic.id}
                 clinicName={clinic.name}
                 isOpen={true}
                 onToggle={() => setShowMobileChat(false)}
                 hideHeader
+                onLeadCreated={(newLeadId) => setDirectLeadId(newLeadId)}
               />
             </div>
           </div>
@@ -1086,7 +1099,7 @@ export default function ClinicDetailPage() {
             onClick={() => setShowMobileChat(true)}
           >
             <MessageCircle className="h-4 w-4 mr-2" />
-            Message
+            {(lead?.id || leadIdParam || directLeadId) ? "Message" : "Enquire"}
           </Button>
           <Button
             size="lg"

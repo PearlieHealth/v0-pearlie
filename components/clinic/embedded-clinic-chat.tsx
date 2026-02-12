@@ -4,6 +4,7 @@ import React from "react"
 
 import { useState, useEffect, useRef } from "react"
 import { MessageCircle, Send, ChevronDown, Heart } from "lucide-react"
+import { DirectEnquiryForm } from "@/components/clinic/direct-enquiry-form"
 
 interface Message {
   id: string
@@ -19,6 +20,7 @@ interface EmbeddedClinicChatProps {
   isOpen: boolean
   onToggle: () => void
   hideHeader?: boolean
+  onLeadCreated?: (leadId: string) => void
 }
 
 export function EmbeddedClinicChat({
@@ -28,6 +30,7 @@ export function EmbeddedClinicChat({
   isOpen,
   onToggle,
   hideHeader = false,
+  onLeadCreated,
 }: EmbeddedClinicChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
@@ -164,7 +167,19 @@ export function EmbeddedClinicChat({
         </div>
       )}
 
-      {/* Messages area */}
+      {/* Direct enquiry form for visitors without a leadId */}
+      {!leadId && (
+        <div className={`overflow-y-auto bg-[#fafafa] ${hideHeader ? "flex-1 min-h-0" : "max-h-[400px]"}`}>
+          <DirectEnquiryForm
+            clinicId={clinicId}
+            clinicName={clinicName}
+            onLeadCreated={(newLeadId) => onLeadCreated?.(newLeadId)}
+          />
+        </div>
+      )}
+
+      {/* Messages area - only shown when we have a leadId */}
+      {leadId && (
       <div
         ref={scrollRef}
         className={`overflow-y-auto p-3 space-y-3 bg-[#fafafa] ${hideHeader ? "flex-1 min-h-0" : "h-[280px]"}`}
@@ -231,66 +246,64 @@ export function EmbeddedClinicChat({
           ))
         )}
       </div>
-
-      {/* Typing indicator */}
-      {clinicTyping && (
-        <div className="px-3 py-1.5">
-          <div className="flex items-center gap-2 text-[11px] text-[#999]">
-            <span className="flex gap-0.5">
-              <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-              <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-              <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-            </span>
-            {clinicName} is typing...
-          </div>
-        </div>
       )}
 
-      {/* Error message */}
-      {error && (
-        <div className="px-3 py-2 bg-red-50 border-t border-red-100">
-          <p className="text-xs text-red-600">{error}</p>
-        </div>
-      )}
+      {/* Typing indicator, error, and input - only shown when we have a leadId */}
+      {leadId && (
+        <>
+          {clinicTyping && (
+            <div className="px-3 py-1.5">
+              <div className="flex items-center gap-2 text-[11px] text-[#999]">
+                <span className="flex gap-0.5">
+                  <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                </span>
+                {clinicName} is typing...
+              </div>
+            </div>
+          )}
 
-      {/* Input area */}
-      <form onSubmit={handleSend} className="border-t border-[#e5e5e5] p-3">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => {
-              setNewMessage(e.target.value)
-              if (error) setError(null)
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault()
-                handleSend()
-              }
-            }}
-            placeholder="Type a message..."
-            className="flex-1 text-sm border border-[#ddd] rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
-            disabled={isSending}
-          />
-          <button
-            type="submit"
-            disabled={!newMessage.trim() || isSending}
-            className="flex-shrink-0 h-9 w-9 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#333] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {isSending ? (
-              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-        {!leadId && (
-          <p className="text-[10px] text-[#999] mt-2 text-center">
-            Start a dental search to message this clinic directly
-          </p>
-        )}
-      </form>
+          {error && (
+            <div className="px-3 py-2 bg-red-50 border-t border-red-100">
+              <p className="text-xs text-red-600">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSend} className="border-t border-[#e5e5e5] p-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => {
+                  setNewMessage(e.target.value)
+                  if (error) setError(null)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSend()
+                  }
+                }}
+                placeholder="Type a message..."
+                className="flex-1 text-sm border border-[#ddd] rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
+                disabled={isSending}
+              />
+              <button
+                type="submit"
+                disabled={!newMessage.trim() || isSending}
+                className="flex-shrink-0 h-9 w-9 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#333] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isSending ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          </form>
+        </>
+      )}
     </div>
   )
 }

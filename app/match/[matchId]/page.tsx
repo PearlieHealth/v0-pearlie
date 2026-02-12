@@ -39,6 +39,7 @@ const ClinicsMap = lazy(() => import("@/components/clinics-map").then((mod) => (
 
 interface Clinic {
   id: string
+  slug?: string
   name: string
   address: string
   postcode: string
@@ -342,8 +343,9 @@ export default function MatchPage() {
       },
     })
 
-    // Navigate to clinic detail page within Pearlie
-    window.location.href = `/clinic/${clinicId}?matchId=${matchId}&leadId=${leadId || ''}`
+    // Navigate to clinic detail page within Pearlie (prefer slug for clean URLs)
+    const clinicSlug = clinic?.slug || clinicId
+    window.location.href = `/clinic/${clinicSlug}?matchId=${matchId}&leadId=${leadId || ''}`
   }
 
   async function handleClinicAction(
@@ -976,7 +978,7 @@ const categoryLabels: Record<string, string> = {
                                     className="flex-1 bg-transparent"
                                     asChild
                                   >
-                                    <Link href={`/clinic/${clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}>
+                                    <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}>
                                       View Profile
                                     </Link>
                                   </Button>
