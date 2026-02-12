@@ -213,6 +213,18 @@ export default function MatchPage() {
         leadId: data.match.lead_id,
         matchCount: data.clinics.length,
       })
+
+      // Save match info to localStorage so landing page can offer "return to matches"
+      if (data.lead?.isVerified) {
+        try {
+          localStorage.setItem("pearlie_last_match", JSON.stringify({
+            matchId: data.match.id,
+            clinicCount: data.clinics.length,
+            treatment: data.lead?.treatmentInterest || "",
+            createdAt: new Date().toISOString(),
+          }))
+        } catch {}
+      }
     } catch (err) {
       console.error("[v0] Error fetching initial matches:", err)
       setError(err instanceof Error ? err.message : "Failed to load matches")
@@ -427,6 +439,15 @@ export default function MatchPage() {
   const handleVerificationSuccess = () => {
     setIsVerified(true)
     trackEvent("email_verified", { leadId, matchId })
+    // Save match for "return to matches" on landing page
+    try {
+      localStorage.setItem("pearlie_last_match", JSON.stringify({
+        matchId,
+        clinicCount: allClinicsData.length,
+        treatment: "",
+        createdAt: new Date().toISOString(),
+      }))
+    } catch {}
   }
 
   // Check for existing Supabase auth session (e.g. returning from Google OAuth)
