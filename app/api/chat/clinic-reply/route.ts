@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getBotClinicReplied } from "@/lib/chat-bot"
+import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,11 +14,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await createClient()
-    
-    // Verify user is logged in via Supabase Auth
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const user = await getAuthUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

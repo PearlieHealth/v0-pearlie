@@ -13,6 +13,17 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { MessageCircle, Send, Loader2, ArrowLeft, User, Clock, Bell, Heart } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
+import { createBrowserClient } from "@/lib/supabase/client"
+
+async function getAccessToken(): Promise<string | null> {
+  const supabase = createBrowserClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.access_token || null
+}
+
+function authHeaders(token: string | null): HeadersInit {
+  return token ? { "Authorization": `Bearer ${token}` } : {}
+}
 
 interface Conversation {
   id: string
@@ -60,8 +71,10 @@ export default function ClinicInboxPage() {
     const fetchWithAbort = async () => {
       if (!isMounted) return
       try {
+        const token = await getAccessToken()
         const response = await fetch("/api/clinic/conversations", {
-          signal: abortController.signal
+          signal: abortController.signal,
+          headers: authHeaders(token),
         })
         if (!isMounted) return
         if (response.ok) {
@@ -119,9 +132,10 @@ export default function ClinicInboxPage() {
     const fetchMessages = async () => {
       if (!isMounted) return
       try {
+        const token = await getAccessToken()
         const response = await fetch(
           `/api/clinic/conversations/${selectedConversation.id}/messages`,
-          { signal: abortController.signal }
+          { signal: abortController.signal, headers: authHeaders(token) }
         )
         if (!isMounted) return
         if (response.ok) {
@@ -162,8 +176,10 @@ export default function ClinicInboxPage() {
     setIsLoadingMessages(true)
 
     try {
+      const token = await getAccessToken()
       const response = await fetch(
-        `/api/clinic/conversations/${conversation.id}/messages`
+        `/api/clinic/conversations/${conversation.id}/messages`,
+        { headers: authHeaders(token) }
       )
       if (response.ok) {
         const data = await response.json()
@@ -188,9 +204,10 @@ export default function ClinicInboxPage() {
 
     setIsSending(true)
     try {
+      const token = await getAccessToken()
       const response = await fetch("/api/chat/clinic-reply", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders(token) },
         body: JSON.stringify({
           conversationId: selectedConversation.id,
           content: newMessage.trim(),

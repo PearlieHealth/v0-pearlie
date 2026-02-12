@@ -1,34 +1,10 @@
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { headers } from "next/headers"
+import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 
 export async function GET() {
   try {
-    // 1. Try cookie-based auth first, fall back to Authorization header
-    let user = null
-    
-    const supabase = await createClient()
-    const { data: { user: cookieUser } } = await supabase.auth.getUser()
-    user = cookieUser
-
-    if (!user) {
-      // Fall back to Authorization header (sent by ClinicShell)
-      const headersList = await headers()
-      const authHeader = headersList.get("authorization")
-      if (authHeader?.startsWith("Bearer ")) {
-        const token = authHeader.replace("Bearer ", "")
-        const supabaseWithToken = createServerClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          { cookies: { getAll: () => [], setAll: () => {} } },
-        )
-        const { data: { user: tokenUser } } = await supabaseWithToken.auth.getUser(token)
-        user = tokenUser
-      }
-    }
-
+    const user = await getAuthUser()
     if (!user) {
       return NextResponse.json({ error: "Not logged in" }, { status: 401 })
     }

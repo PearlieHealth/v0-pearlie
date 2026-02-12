@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
+import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 
 export async function GET(request: Request) {
   try {
@@ -26,8 +26,7 @@ export async function GET(request: Request) {
     }
 
     // Authenticated fetch for clinic dashboard (own providers)
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
