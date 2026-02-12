@@ -5,6 +5,7 @@ import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthUser()
+    console.log("[v0] conversations API - user:", user?.id || "NO USER")
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -16,6 +17,8 @@ export async function GET(request: NextRequest) {
       .select("clinic_id")
       .eq("user_id", user.id)
       .single()
+
+    console.log("[v0] conversations API - clinicUser:", clinicUser?.clinic_id || "NO CLINIC USER")
 
     if (!clinicUser) {
       return NextResponse.json({ error: "No clinic found" }, { status: 404 })
@@ -34,6 +37,8 @@ export async function GET(request: NextRequest) {
       `)
       .eq("clinic_id", clinicUser.clinic_id)
       .order("last_message_at", { ascending: false })
+
+    console.log("[v0] conversations API - found:", conversations?.length, "conversations for clinic", clinicUser.clinic_id, "error:", error?.message)
 
     if (error) {
       console.error("[Conversations] Failed to fetch:", error)
