@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { Resend } from "resend"
+import { getBotGreeting, getBotSuggestions } from "@/lib/chat-bot"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -66,12 +67,12 @@ export async function POST(request: NextRequest) {
     // Get or create conversation using limit instead of single to avoid errors
     const { data: conversations } = await supabase
       .from("conversations")
-      .select("id")
+      .select("id, bot_greeted")
       .eq("lead_id", leadId)
       .eq("clinic_id", clinicId)
       .limit(1)
 
-    let conversation = conversations?.[0]
+    let conversation = conversations?.[0] as { id: string; bot_greeted?: boolean } | undefined
 
     if (!conversation) {
       // Create new conversation with unread flags
@@ -186,9 +187,55 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Bot auto-responder: send greeting + suggestions on first patient message
+    const botMessages: any[] = []
+    if (senderType === "patient" && !conversation.bot_greeted) {
+      try {
+        // Insert bot greeting (slight delay so it appears after patient message)
+        const greetingContent = getBotGreeting(lead.first_name || "", clinic.name)
+        const { data: greetingMsg } = await supabase
+          .from("messages")
+          .insert({
+            conversation_id: conversation.id,
+            sender_type: "bot",
+            content: greetingContent,
+            sent_via: "chat",
+          })
+          .select("*")
+          .single()
+
+        if (greetingMsg) botMessages.push(greetingMsg)
+
+        // Insert suggestions message
+        const suggestionsContent = getBotSuggestions(clinic.name)
+        const { data: suggestionsMsg } = await supabase
+          .from("messages")
+          .insert({
+            conversation_id: conversation.id,
+            sender_type: "bot",
+            content: suggestionsContent,
+            sent_via: "chat",
+          })
+          .select("*")
+          .single()
+
+        if (suggestionsMsg) botMessages.push(suggestionsMsg)
+
+        // Mark conversation as bot-greeted
+        await supabase
+          .from("conversations")
+          .update({ bot_greeted: true })
+          .eq("id", conversation.id)
+      } catch (botError) {
+        // Don't fail the message send if bot fails
+        console.error("[Chat] Bot auto-responder error:", botError)
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message,
+      botMessages,
       conversationId: conversation.id,
     })
   } catch (error) {

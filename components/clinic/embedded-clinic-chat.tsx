@@ -3,12 +3,12 @@
 import React from "react"
 
 import { useState, useEffect, useRef } from "react"
-import { MessageCircle, Send, ChevronDown } from "lucide-react"
+import { MessageCircle, Send, ChevronDown, Heart } from "lucide-react"
 
 interface Message {
   id: string
   content: string
-  sender_type: "patient" | "clinic"
+  sender_type: "patient" | "clinic" | "bot"
   created_at: string
 }
 
@@ -35,6 +35,7 @@ export function EmbeddedClinicChat({
   const [isLoading, setIsLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [clinicTyping, setClinicTyping] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   // Fetch messages when chat opens and we have both IDs
@@ -69,6 +70,7 @@ export function EmbeddedClinicChat({
         const data = await response.json()
         setMessages(data.messages || [])
         setConversationId(data.conversationId || null)
+        setClinicTyping(data.clinicTyping || false)
       }
     } catch {
       // Silently fail on fetch
@@ -102,7 +104,8 @@ export function EmbeddedClinicChat({
 
       if (response.ok) {
         const data = await response.json()
-        setMessages((prev) => [...prev, data.message])
+        const newMessages = [data.message, ...(data.botMessages || [])]
+        setMessages((prev) => [...prev, ...newMessages])
         setConversationId(data.conversationId)
         setNewMessage("")
         setError(null)
@@ -190,24 +193,37 @@ export function EmbeddedClinicChat({
                 {dateMessages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`flex ${msg.sender_type === "patient" ? "justify-end" : "justify-start"}`}
+                    className={`flex ${
+                      msg.sender_type === "patient"
+                        ? "justify-end"
+                        : msg.sender_type === "bot"
+                        ? "justify-center"
+                        : "justify-start"
+                    }`}
                   >
-                    <div
-                      className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
-                        msg.sender_type === "patient"
-                          ? "bg-[#1a1a1a] text-white rounded-br-md"
-                          : "bg-white border border-[#e5e5e5] text-[#333] rounded-bl-md"
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
-                      <p
-                        className={`text-[10px] mt-1 ${
-                          msg.sender_type === "patient" ? "text-[#999]" : "text-[#aaa]"
+                    {msg.sender_type === "bot" ? (
+                      <div className="max-w-[90%] flex items-start gap-2 bg-gradient-to-r from-purple-50 to-teal-50 border border-purple-100/50 rounded-xl px-3 py-2">
+                        <Heart className="w-3 h-3 text-purple-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-[11px] text-[#555] whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    ) : (
+                      <div
+                        className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
+                          msg.sender_type === "patient"
+                            ? "bg-[#1a1a1a] text-white rounded-br-md"
+                            : "bg-white border border-[#e5e5e5] text-[#333] rounded-bl-md"
                         }`}
                       >
-                        {formatTime(msg.created_at)}
-                      </p>
-                    </div>
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                        <p
+                          className={`text-[10px] mt-1 ${
+                            msg.sender_type === "patient" ? "text-[#999]" : "text-[#aaa]"
+                          }`}
+                        >
+                          {formatTime(msg.created_at)}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -215,6 +231,20 @@ export function EmbeddedClinicChat({
           ))
         )}
       </div>
+
+      {/* Typing indicator */}
+      {clinicTyping && (
+        <div className="px-3 py-1.5">
+          <div className="flex items-center gap-2 text-[11px] text-[#999]">
+            <span className="flex gap-0.5">
+              <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+              <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+              <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+            </span>
+            {clinicName} is typing...
+          </div>
+        </div>
+      )}
 
       {/* Error message */}
       {error && (
