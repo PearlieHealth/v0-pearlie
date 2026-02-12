@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users } from "lucide-react"
+import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, X } from "lucide-react"
 import Link from "next/link"
 import { CookieSettingsButton } from "@/components/cookie-settings-button"
 import { MainNav } from "@/components/main-nav"
@@ -16,11 +16,36 @@ import ClinicCarousel from "@/components/clinic-carousel" // Import the ClinicCa
 
 const dynamicWords = ["perfect", "right", "trusted", "ideal"]
 
+interface LastMatch {
+  matchId: string
+  clinicCount: number
+  treatment: string
+  createdAt: string
+}
+
 export default function Home() {
   const [showLoading, setShowLoading] = useState(true)
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const [lastMatch, setLastMatch] = useState<LastMatch | null>(null)
+  const [showReturnBanner, setShowReturnBanner] = useState(false)
   const treatments = ["Invisalign", "Composite bonding", "Veneers", "Whitening", "Implants", "General check-up"]
+
+  // Check for previous match results in localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("pearlie_last_match")
+      if (stored) {
+        const data = JSON.parse(stored) as LastMatch
+        // Only show if the match is less than 30 days old
+        const age = Date.now() - new Date(data.createdAt).getTime()
+        if (age < 30 * 24 * 60 * 60 * 1000) {
+          setLastMatch(data)
+          setShowReturnBanner(true)
+        }
+      }
+    } catch {}
+  }, [])
 
   // Check for reduced motion preference
   useEffect(() => {
@@ -56,6 +81,55 @@ export default function Home() {
       {/* Content is always rendered underneath - loading screen slides up like a curtain to reveal it */}
       <div className={`min-h-screen ${showLoading ? 'invisible' : 'visible'}`}>
           <MainNav />
+
+          {/* Return to matches banner - only shown if patient has previous results */}
+          <AnimatePresence>
+            {showReturnBanner && lastMatch && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="fixed top-16 left-0 right-0 z-40 overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-[#907EFF]/10 to-[#ED64A6]/10 border-b border-[#907EFF]/20 backdrop-blur-sm">
+                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="rounded-full bg-[#907EFF]/15 p-1.5 flex-shrink-0">
+                        <Sparkles className="w-4 h-4 text-[#907EFF]" />
+                      </div>
+                      <p className="text-sm text-[#323141] truncate">
+                        <span className="font-medium">Welcome back!</span>{" "}
+                        <span className="hidden sm:inline">
+                          You have {lastMatch.clinicCount} clinic{lastMatch.clinicCount !== 1 ? "s" : ""} matched to you.
+                        </span>
+                        <span className="sm:hidden">Your matches are ready.</span>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Button
+                        size="sm"
+                        className="bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white rounded-full text-xs px-4 border-0 h-8"
+                        asChild
+                      >
+                        <Link href={`/match/${lastMatch.matchId}`}>
+                          View my matches
+                          <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
+                        </Link>
+                      </Button>
+                      <button
+                        onClick={() => setShowReturnBanner(false)}
+                        className="p-1 rounded-full hover:bg-black/5 transition-colors text-[#323141]/50"
+                        aria-label="Dismiss"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Hero section - Purple/Pink design */}
           <section 

@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getBotClinicReplied } from "@/lib/chat-bot"
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     // Verify conversation belongs to this clinic
     const { data: conversation, error: convError } = await supabaseAdmin
       .from("conversations")
-      .select("id, clinic_id")
+      .select("id, clinic_id, clinic_first_reply_at")
       .eq("id", conversationId)
       .single()
 
@@ -69,15 +70,50 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update conversation
+    // Update conversation - mark first reply timestamp if this is the first
+    const updateData: Record<string, any> = {
+      last_message_at: new Date().toISOString(),
+      unread_by_patient: true,
+      unread_by_clinic: false,
+      clinic_typing_at: null, // Clear typing indicator on send
+    }
+
+    const isFirstClinicReply = !conversation.clinic_first_reply_at
+    if (isFirstClinicReply) {
+      updateData.clinic_first_reply_at = new Date().toISOString()
+    }
+
     await supabaseAdmin
       .from("conversations")
-      .update({
-        last_message_at: new Date().toISOString(),
-        unread_by_patient: true,
-        unread_by_clinic: false,
-      })
+      .update(updateData)
       .eq("id", conversationId)
+
+    // Insert bot "clinic has replied" message before the first clinic reply
+    if (isFirstClinicReply) {
+      try {
+        // Get clinic name
+        const { data: clinic } = await supabaseAdmin
+          .from("clinics")
+          .select("name")
+          .eq("id", clinicUser.clinic_id)
+          .single()
+
+        if (clinic) {
+          await supabaseAdmin
+            .from("messages")
+            .insert({
+              conversation_id: conversationId,
+              sender_type: "bot",
+              content: getBotClinicReplied(clinic.name),
+              sent_via: "chat",
+              // Set created_at slightly before the clinic message so it appears above
+              created_at: new Date(Date.now() - 1000).toISOString(),
+            })
+        }
+      } catch (botError) {
+        console.error("[Chat] Bot clinic-replied message error:", botError)
+      }
+    }
 
     return NextResponse.json({
       success: true,

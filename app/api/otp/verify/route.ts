@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyOTPHash, isOTPExpired } from "@/lib/otp/generate"
 
 const OTP_SECRET = process.env.SUPABASE_JWT_SECRET || "fallback-secret-key"
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
     // Get lead with OTP data
     const { data: lead, error: leadError } = await supabase
       .from("leads")
-      .select("id, otp_hash, verification_sent_at, verification_attempts, is_verified")
+      .select("id, email, first_name, last_name, otp_hash, verification_sent_at, verification_attempts, is_verified, user_id")
       .eq("id", leadId)
       .single()
 
@@ -85,14 +86,55 @@ export async function POST(request: NextRequest) {
     }
 
     // OTP is valid - mark as verified
+    const updateData: Record<string, any> = {
+      is_verified: true,
+      verified_at: new Date().toISOString(),
+      otp_hash: null, // Clear OTP after successful verification
+      verification_attempts: 0,
+    }
+
+    // Auto-create a Supabase auth user for the patient (if they don't have one yet)
+    if (!lead.user_id && lead.email) {
+      try {
+        const admin = createAdminClient()
+        // Check if a user with this email already exists
+        const { data: existingUsers } = await admin.auth.admin.listUsers()
+        const existingUser = existingUsers?.users?.find(
+          (u) => u.email?.toLowerCase() === lead.email?.toLowerCase()
+        )
+
+        if (existingUser) {
+          // Link existing user to this lead
+          updateData.user_id = existingUser.id
+        } else {
+          // Create a new auth user for this patient
+          const { data: newUser, error: createError } = await admin.auth.admin.createUser({
+            email: lead.email,
+            email_confirm: true, // Already verified via OTP
+            user_metadata: {
+              full_name: `${lead.first_name || ""} ${lead.last_name || ""}`.trim(),
+              first_name: lead.first_name,
+              last_name: lead.last_name,
+              role: "patient",
+            },
+          })
+
+          if (!createError && newUser?.user) {
+            updateData.user_id = newUser.user.id
+          } else {
+            console.error("[OTP] Failed to create auth user:", createError)
+            // Don't block verification if account creation fails
+          }
+        }
+      } catch (accountError) {
+        console.error("[OTP] Error creating patient account:", accountError)
+        // Don't block verification if account creation fails
+      }
+    }
+
     const { error: updateError } = await supabase
       .from("leads")
-      .update({
-        is_verified: true,
-        verified_at: new Date().toISOString(),
-        otp_hash: null, // Clear OTP after successful verification
-        verification_attempts: 0,
-      })
+      .update(updateData)
       .eq("id", leadId)
 
     if (updateError) {

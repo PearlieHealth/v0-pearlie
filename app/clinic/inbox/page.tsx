@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { MessageCircle, Send, Loader2, ArrowLeft, User, Clock, Bell } from "lucide-react"
+import { MessageCircle, Send, Loader2, ArrowLeft, User, Clock, Bell, Heart } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 
@@ -33,7 +33,7 @@ interface Conversation {
 interface Message {
   id: string
   content: string
-  sender_type: "patient" | "clinic"
+  sender_type: "patient" | "clinic" | "bot"
   created_at: string
   read_at?: string
 }
@@ -50,6 +50,7 @@ export default function ClinicInboxPage() {
   const [isSending, setIsSending] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const prevUnreadCountRef = useRef<number>(0)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Fetch conversations with faster polling (10s instead of 30s)
   useEffect(() => {
@@ -142,6 +143,19 @@ export default function ClinicInboxPage() {
   }, [selectedConversation])
 
 
+
+  // Signal typing to patient (debounced - sends at most once per 5 seconds)
+  const signalTyping = () => {
+    if (!selectedConversation || typingTimeoutRef.current) return
+    fetch("/api/chat/typing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversationId: selectedConversation.id }),
+    }).catch(() => {}) // Fire and forget
+    typingTimeoutRef.current = setTimeout(() => {
+      typingTimeoutRef.current = null
+    }, 5000)
+  }
 
   const selectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation)
@@ -367,37 +381,46 @@ export default function ClinicInboxPage() {
                             "flex",
                             message.sender_type === "clinic"
                               ? "justify-end"
+                              : message.sender_type === "bot"
+                              ? "justify-center"
                               : "justify-start"
                           )}
                         >
-                          <div
-                            className={cn(
-                              "max-w-[70%] rounded-2xl px-4 py-2",
-                              message.sender_type === "clinic"
-                                ? "bg-teal-600 text-white rounded-br-md"
-                                : "bg-neutral-100 text-neutral-900 rounded-bl-md"
-                            )}
-                          >
-                            <p className="text-sm whitespace-pre-wrap">
-                              {message.content}
-                            </p>
+                          {message.sender_type === "bot" ? (
+                            <div className="max-w-[80%] flex items-start gap-2 bg-gradient-to-r from-purple-50 to-teal-50 border border-purple-100/50 rounded-xl px-3 py-2">
+                              <Heart className="w-3.5 h-3.5 text-purple-400 mt-0.5 flex-shrink-0" />
+                              <p className="text-xs text-neutral-500 whitespace-pre-wrap">{message.content}</p>
+                            </div>
+                          ) : (
                             <div
                               className={cn(
-                                "flex items-center gap-1 mt-1",
+                                "max-w-[70%] rounded-2xl px-4 py-2",
                                 message.sender_type === "clinic"
-                                  ? "text-teal-100"
-                                  : "text-neutral-400"
+                                  ? "bg-teal-600 text-white rounded-br-md"
+                                  : "bg-neutral-100 text-neutral-900 rounded-bl-md"
                               )}
                             >
-                              <Clock className="h-3 w-3" />
-                              <span className="text-xs">
-                                {new Date(message.created_at).toLocaleTimeString(
-                                  "en-GB",
-                                  { hour: "2-digit", minute: "2-digit" }
+                              <p className="text-sm whitespace-pre-wrap">
+                                {message.content}
+                              </p>
+                              <div
+                                className={cn(
+                                  "flex items-center gap-1 mt-1",
+                                  message.sender_type === "clinic"
+                                    ? "text-teal-100"
+                                    : "text-neutral-400"
                                 )}
-                              </span>
+                              >
+                                <Clock className="h-3 w-3" />
+                                <span className="text-xs">
+                                  {new Date(message.created_at).toLocaleTimeString(
+                                    "en-GB",
+                                    { hour: "2-digit", minute: "2-digit" }
+                                  )}
+                                </span>
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -410,7 +433,10 @@ export default function ClinicInboxPage() {
                 <form onSubmit={sendReply} className="flex gap-2">
                   <Input
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={(e) => {
+                      setNewMessage(e.target.value)
+                      signalTyping()
+                    }}
                     placeholder="Type your reply..."
                     className="flex-1"
                     disabled={isSending}

@@ -86,7 +86,10 @@ export async function POST(request: NextRequest) {
       // User exists - update their password and link to clinic
       const { error: updateError } = await supabase.auth.admin.updateUserById(
         existingUser.id,
-        { password }
+        {
+          password,
+          user_metadata: { ...existingUser.user_metadata, must_change_password: true },
+        }
       )
       
       if (updateError) {
@@ -122,6 +125,7 @@ export async function POST(request: NextRequest) {
       email: email.toLowerCase(),
       password,
       email_confirm: true,
+      user_metadata: { must_change_password: true },
     })
 
     if (authError) {

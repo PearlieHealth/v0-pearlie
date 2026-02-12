@@ -6,13 +6,13 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { MessageCircle, X, Send, Loader2 } from "lucide-react"
+import { MessageCircle, X, Send, Loader2, Heart } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface Message {
   id: string
   content: string
-  sender_type: "patient" | "clinic"
+  sender_type: "patient" | "clinic" | "bot"
   created_at: string
   read_at?: string
 }
@@ -42,6 +42,7 @@ export function ClinicChatWidget({
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const [showVerifyPrompt, setShowVerifyPrompt] = useState(false)
+  const [clinicTyping, setClinicTyping] = useState(false)
   const [leadInfo, setLeadInfo] = useState<{ name: string; email: string } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -101,6 +102,7 @@ export function ClinicChatWidget({
         const data = await response.json()
         setMessages(data.messages || [])
         setConversationId(data.conversationId)
+        setClinicTyping(data.clinicTyping || false)
         setUnreadCount(0) // Mark as read when opened
       }
     } catch (error) {
@@ -129,7 +131,8 @@ export function ClinicChatWidget({
 
       if (response.ok) {
         const data = await response.json()
-        setMessages((prev) => [...prev, data.message])
+        const newMessages = [data.message, ...(data.botMessages || [])]
+        setMessages((prev) => [...prev, ...newMessages])
         setNewMessage("")
         setConversationId(data.conversationId)
       }
@@ -279,29 +282,38 @@ export function ClinicChatWidget({
                             "flex",
                             message.sender_type === "patient"
                               ? "justify-end"
+                              : message.sender_type === "bot"
+                              ? "justify-center"
                               : "justify-start"
                           )}
                         >
-                          <div
-                            className={cn(
-                              "max-w-[80%] rounded-2xl px-4 py-2",
-                              message.sender_type === "patient"
-                                ? "bg-teal-600 text-white rounded-br-md"
-                                : "bg-neutral-100 text-neutral-900 rounded-bl-md"
-                            )}
-                          >
-                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                            <p
+                          {message.sender_type === "bot" ? (
+                            <div className="max-w-[90%] flex items-start gap-2 bg-gradient-to-r from-purple-50 to-teal-50 border border-purple-100/50 rounded-xl px-3 py-2">
+                              <Heart className="w-3.5 h-3.5 text-purple-400 mt-0.5 flex-shrink-0" />
+                              <p className="text-xs text-neutral-600 whitespace-pre-wrap">{message.content}</p>
+                            </div>
+                          ) : (
+                            <div
                               className={cn(
-                                "text-xs mt-1",
+                                "max-w-[80%] rounded-2xl px-4 py-2",
                                 message.sender_type === "patient"
-                                  ? "text-teal-100"
-                                  : "text-neutral-400"
+                                  ? "bg-teal-600 text-white rounded-br-md"
+                                  : "bg-neutral-100 text-neutral-900 rounded-bl-md"
                               )}
                             >
-                              {formatTime(message.created_at)}
-                            </p>
-                          </div>
+                              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                              <p
+                                className={cn(
+                                  "text-xs mt-1",
+                                  message.sender_type === "patient"
+                                    ? "text-teal-100"
+                                    : "text-neutral-400"
+                                )}
+                              >
+                                {formatTime(message.created_at)}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -310,6 +322,20 @@ export function ClinicChatWidget({
               </div>
             )}
           </ScrollArea>
+
+          {/* Typing indicator */}
+          {clinicTyping && (
+            <div className="px-4 py-2">
+              <div className="flex items-center gap-2 text-xs text-neutral-400">
+                <span className="flex gap-0.5">
+                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                </span>
+                {clinicName} is typing...
+              </div>
+            </div>
+          )}
 
           {/* Input */}
           <form onSubmit={sendMessage} className="border-t border-neutral-200 p-3">

@@ -8,23 +8,29 @@ export async function GET(request: Request) {
   const error = searchParams.get("error")
   const errorDescription = searchParams.get("error_description")
 
+  // Determine if this is an intake/patient flow based on the next parameter
+  const isIntakeFlow = next.startsWith("/intake")
+  const errorRedirect = isIntakeFlow
+    ? `${origin}/intake?error=${encodeURIComponent(errorDescription || error || "auth_failed")}`
+    : `${origin}/clinic/login?error=${encodeURIComponent(errorDescription || error || "auth_failed")}`
+
   // Handle errors from Supabase
   if (error) {
     console.error("[Auth Callback] Error:", error, errorDescription)
-    return NextResponse.redirect(`${origin}/clinic/login?error=${encodeURIComponent(errorDescription || error)}`)
+    return NextResponse.redirect(errorRedirect)
   }
 
   if (code) {
     const supabase = await createClient()
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-    
+
     if (!exchangeError) {
       return NextResponse.redirect(`${origin}${next}`)
     }
-    
+
     console.error("[Auth Callback] Code exchange error:", exchangeError)
   }
 
-  // Return to clinic login with error if something went wrong
-  return NextResponse.redirect(`${origin}/clinic/login?error=auth_failed`)
+  // Return to appropriate page with error
+  return NextResponse.redirect(errorRedirect)
 }
