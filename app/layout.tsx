@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: "Pearlie - Find the Right Dental Clinic for You",
   description:
     "Connect with trusted dental clinics in your area. Complete our simple intake form and get matched with the right clinic for your needs.",
-  generator: "v0.app",
+  generator: "v0.dev",
   icons: {
     icon: [
       {
