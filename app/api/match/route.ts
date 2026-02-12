@@ -290,15 +290,28 @@ export async function POST(request: Request) {
       .single()
 
     if (matchError) {
-      console.error("[v0] Error creating match:", matchError)
+      console.error("Error creating match:", matchError)
       throw matchError
     }
 
-    console.log("[v0] Match created:", match.id, "with", clinicIds.length, "clinics")
-    console.log(
-      "[v0] Top 2 scores:",
-      topClinics.map((c) => ({ name: c.name, score: c.score })),
-    )
+    // 10. Save individual match_results for each clinic (feeds clinic dashboards)
+    const matchResultRows = rankedClinics.map((c, index) => ({
+      lead_id: leadId,
+      clinic_id: c.id,
+      score: c.score,
+      reasons: c.whyMatched || [],
+      match_run_id: match.id,
+      rank: index + 1,
+    }))
+
+    const { error: resultsError } = await supabase
+      .from("match_results")
+      .insert(matchResultRows)
+
+    if (resultsError) {
+      console.error("Error saving match_results:", resultsError)
+      // Don't throw -- the match was created, results are non-critical
+    }
 
     return NextResponse.json(
       {
