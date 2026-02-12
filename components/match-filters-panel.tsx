@@ -113,8 +113,11 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
             </div>
             {/* Prioritise toggle */}
             <div className="mt-4 pt-3 border-t border-border/60">
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => updateFilter("prioritiseDistance", !filters.prioritiseDistance)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") updateFilter("prioritiseDistance", !filters.prioritiseDistance) }}
                 className="w-full flex items-center justify-between py-3 cursor-pointer"
               >
                 <span className="text-sm text-foreground">Prioritise closer clinics</span>
@@ -123,7 +126,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
                   onCheckedChange={(checked) => updateFilter("prioritiseDistance", checked)}
                   onClick={(e) => e.stopPropagation()}
                 />
-              </button>
+              </div>
             </div>
           </div>
 
