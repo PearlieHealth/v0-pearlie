@@ -58,14 +58,11 @@ export function ClinicShell({ children }: ClinicShellProps) {
       // Try getSession first, fall back to getUser for fresh token
       let accessToken: string | null = null
       const { data: { session } } = await supabaseAuth.auth.getSession()
-      console.log("[v0] ClinicShell session check:", { hasSession: !!session, userId: session?.user?.id })
       
       if (session) {
         accessToken = session.access_token
       } else {
-        // getSession can miss cached sessions, try getUser which validates server-side
         const { data: { user } } = await supabaseAuth.auth.getUser()
-        console.log("[v0] ClinicShell getUser fallback:", { hasUser: !!user, userId: user?.id })
         if (user) {
           // Re-fetch session after getUser refreshes it
           const { data: { session: refreshedSession } } = await supabaseAuth.auth.getSession()
@@ -74,7 +71,6 @@ export function ClinicShell({ children }: ClinicShellProps) {
       }
       
       if (!accessToken) {
-        console.log("[v0] ClinicShell no token, redirecting to login")
         router.push("/clinic/login")
         setIsLoading(false)
         return
@@ -83,18 +79,14 @@ export function ClinicShell({ children }: ClinicShellProps) {
       const response = await fetch("/api/clinic/me", {
         headers: { "Authorization": `Bearer ${accessToken}` },
       })
-      console.log("[v0] ClinicShell /api/clinic/me status:", response.status)
       
       if (!response.ok) {
-        const errText = await response.text()
-        console.log("[v0] ClinicShell /api/clinic/me error:", errText)
         router.push("/clinic/login")
         setIsLoading(false)
         return
       }
 
       const data = await response.json()
-      console.log("[v0] ClinicShell loaded clinic:", data.clinic?.name)
       
       if (!data.clinic) {
         router.push("/clinic/login?error=no_clinic")
