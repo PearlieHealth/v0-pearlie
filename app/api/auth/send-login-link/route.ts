@@ -18,15 +18,36 @@ export async function POST(request: Request) {
     }
 
     const supabase = createAdminClient()
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+    const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+    const redirectTo = `${appUrl}/auth/callback?next=/patient/dashboard`
+
+    // Check if user exists in Supabase auth; if not, create them first
+    const { data: existingUsers } = await supabase.auth.admin.listUsers()
+    const userExists = existingUsers?.users?.some(
+      (u) => u.email?.toLowerCase() === email.toLowerCase()
+    )
+
+    if (!userExists) {
+      const { error: createError } = await supabase.auth.admin.createUser({
+        email,
+        email_confirm: true,
+        user_metadata: { role: "patient" },
+      })
+
+      if (createError) {
+        console.error("[LoginLink] Error creating user:", createError)
+        return NextResponse.json(
+          { error: "We couldn't find an account with that email. Please complete the intake form first." },
+          { status: 404 }
+        )
+      }
+    }
 
     // Generate a magic link server-side (does NOT send an email)
     const { data, error: linkError } = await supabase.auth.admin.generateLink({
       type: "magiclink",
       email,
-      options: {
-        redirectTo: `${appUrl}/auth/callback?next=/patient/dashboard`,
-      },
+      options: { redirectTo },
     })
 
     if (linkError) {
@@ -34,23 +55,40 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to generate login link" }, { status: 500 })
     }
 
-    // The action_link from Supabase points to their auth server.
-    // We need to ensure the redirect_to parameter uses our production URL.
     let magicLink = data.properties?.action_link
     if (!magicLink) {
       return NextResponse.json({ error: "Failed to generate login link" }, { status: 500 })
     }
 
-    // Replace any localhost redirect_to with our production URL
+    // Ensure the redirect_to in the magic link points to our production URL
+    // (Supabase may use whatever Site URL is configured in the project settings)
     try {
       const linkUrl = new URL(magicLink)
       const currentRedirect = linkUrl.searchParams.get("redirect_to")
-      if (currentRedirect && currentRedirect.includes("localhost")) {
-        linkUrl.searchParams.set("redirect_to", `${appUrl}/auth/callback?next=/patient/dashboard`)
-        magicLink = linkUrl.toString()
+      if (currentRedirect) {
+        const redirectHost = new URL(currentRedirect).hostname
+        const appHost = new URL(appUrl).hostname
+        if (redirectHost !== appHost) {
+          linkUrl.searchParams.set("redirect_to", redirectTo)
+          magicLink = linkUrl.toString()
+        }
       }
     } catch {
       // If URL parsing fails, use the link as-is
+    }
+
+    // Look up the patient's name from their lead for personalization
+    let greeting = "Hi there"
+    const { data: lead } = await supabase
+      .from("leads")
+      .select("first_name")
+      .eq("email", email)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single()
+
+    if (lead?.first_name) {
+      greeting = `Hi ${lead.first_name}`
     }
 
     // Send branded email via Resend
@@ -72,7 +110,7 @@ export async function POST(request: Request) {
             </div>
 
             <p style="font-size: 16px; color: #4a4a4a; line-height: 1.6; margin-bottom: 8px;">
-              Hi there,
+              ${greeting},
             </p>
 
             <p style="font-size: 16px; color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">

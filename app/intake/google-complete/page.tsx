@@ -40,12 +40,18 @@ export default function GoogleCompletePage() {
         const formData = JSON.parse(saved)
         localStorage.removeItem("pearlie_intake_form")
 
+        // Verify consent was given before the OAuth redirect
+        if (formData.consentContact !== true) {
+          setError("Please agree to the contact terms before continuing. Go back and check the consent box.")
+          return
+        }
+
         // Use Google email, override any email entered in the form
         const googleEmail = user.email
         const firstName = formData.firstName || user.user_metadata?.given_name || ""
         const lastName = formData.lastName || user.user_metadata?.family_name || ""
 
-        const isEmergency = formData.treatments?.includes(EMERGENCY_TREATMENT)
+        const isEmergency = formData.treatments?.includes(EMERGENCY_TREATMENT) === true
         const blockerCode = formData.conversionBlockerCode || ""
         const blockerOption = BLOCKER_OPTIONS.find((o) => o.code === blockerCode)
 
@@ -72,8 +78,8 @@ export default function GoogleCompletePage() {
             email: googleEmail,
             phone: formData.phone || null,
             city: null,
-            consentContact: formData.consentContact ?? true,
-            consentTerms: formData.consentContact ?? true,
+            consentContact: formData.consentContact === true,
+            consentTerms: formData.consentContact === true,
             decisionValues: isEmergency ? [] : (formData.decisionValues || []),
             conversionBlocker: isEmergency ? "" : (blockerOption?.label || ""),
             conversionBlockerCode: isEmergency ? "" : blockerCode,
