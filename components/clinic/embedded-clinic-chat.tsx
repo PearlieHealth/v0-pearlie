@@ -37,18 +37,48 @@ export function EmbeddedClinicChat({
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
   const [isSending, setIsSending] = useState(false)
+  const [botTyping, setBotTyping] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const botTypingTimers = useRef<NodeJS.Timeout[]>([])
+
+  // ── Helper: drip-feed bot messages with typing delay ───────────
+  const queueBotMessages = useCallback((botMsgs: Message[]) => {
+    if (!botMsgs.length) return
+    setBotTyping(true)
+    botMsgs.forEach((msg, i) => {
+      const delay = (i + 1) * 1500 // 1.5s per message
+      const timer = setTimeout(() => {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev
+          return [...prev, msg]
+        })
+        if (i === botMsgs.length - 1) setBotTyping(false)
+      }, delay)
+      botTypingTimers.current.push(timer)
+    })
+  }, [])
+
+  // Clean up bot typing timers on unmount
+  useEffect(() => {
+    return () => {
+      botTypingTimers.current.forEach(clearTimeout)
+    }
+  }, [])
 
   // ── Realtime: instant messages + typing via Broadcast ──────────
   const handleNewMessage = useCallback((msg: RealtimeMessage) => {
+    if (msg.sender_type === "bot") {
+      queueBotMessages([msg as unknown as Message])
+      return
+    }
     setMessages((prev) => {
       if (prev.some((m) => m.id === msg.id)) return prev
       return [...prev, msg]
     })
-  }, [])
+  }, [queueBotMessages])
 
   const handleStatusChange = useCallback((msgId: string, status: string) => {
     setMessages((prev) =>
@@ -78,12 +108,12 @@ export function EmbeddedClinicChat({
     }
   }, [isOpen, leadId, clinicId])
 
-  // Scroll to bottom when new messages arrive
+  // Scroll to bottom when new messages arrive or bot starts typing
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [messages])
+  }, [messages, botTyping])
 
   const fetchMessages = async () => {
     if (!leadId) return
@@ -129,11 +159,15 @@ export function EmbeddedClinicChat({
 
       if (response.ok) {
         const data = await response.json()
-        const newMessages = [data.message, ...(data.botMessages || [])]
-        setMessages((prev) => [...prev, ...newMessages])
+        // Add the patient message immediately
+        setMessages((prev) => [...prev, data.message])
         setConversationId(data.conversationId)
         setNewMessage("")
         setError(null)
+        // Drip-feed bot messages with typing delay
+        if (data.botMessages?.length) {
+          queueBotMessages(data.botMessages)
+        }
       } else if (response.status === 403) {
         setError("Please verify your email before sending messages. Check your inbox for the verification link.")
       } else {
@@ -287,7 +321,7 @@ export function EmbeddedClinicChat({
       {/* Typing indicator, error, and input - only shown when we have a leadId */}
       {leadId && (
         <>
-          {clinicTyping && (
+          {(clinicTyping || botTyping) && (
             <div className="px-3 py-1.5">
               <div className="flex items-center gap-2 text-[11px] text-[#999]">
                 <span className="flex gap-0.5">
@@ -295,7 +329,7 @@ export function EmbeddedClinicChat({
                   <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
                   <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                 </span>
-                {clinicName} is typing...
+                {botTyping ? "Pearlie is typing..." : `${clinicName} is typing...`}
               </div>
             </div>
           )}

@@ -41,20 +41,52 @@ export function ClinicChatWidget({
   const [newMessage, setNewMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [botTyping, setBotTyping] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const [showVerifyPrompt, setShowVerifyPrompt] = useState(false)
   const [leadInfo, setLeadInfo] = useState<{ name: string; email: string } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const botTypingTimers = useRef<NodeJS.Timeout[]>([])
+
+  // ── Helper: drip-feed bot messages with typing delay ───────────
+  const queueBotMessages = useCallback((botMsgs: Message[]) => {
+    if (!botMsgs.length) return
+    setBotTyping(true)
+    botMsgs.forEach((msg, i) => {
+      const delay = (i + 1) * 1500 // 1.5s per message
+      const timer = setTimeout(() => {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev
+          return [...prev, msg]
+        })
+        // Hide typing after the last message
+        if (i === botMsgs.length - 1) setBotTyping(false)
+      }, delay)
+      botTypingTimers.current.push(timer)
+    })
+  }, [])
+
+  // Clean up bot typing timers on unmount
+  useEffect(() => {
+    return () => {
+      botTypingTimers.current.forEach(clearTimeout)
+    }
+  }, [])
 
   // ── Realtime: instant messages + typing via Broadcast ──────────
   const handleNewMessage = useCallback((msg: RealtimeMessage) => {
+    // Delay bot messages from realtime too
+    if (msg.sender_type === "bot") {
+      queueBotMessages([msg as unknown as Message])
+      return
+    }
     setMessages((prev) => {
       if (prev.some((m) => m.id === msg.id)) return prev
       return [...prev, msg]
     })
     if (!isOpen) setUnreadCount((c) => c + 1)
-  }, [isOpen])
+  }, [isOpen, queueBotMessages])
 
   const handleStatusChange = useCallback((msgId: string, status: string) => {
     setMessages((prev) =>
@@ -91,12 +123,12 @@ export function ClinicChatWidget({
     }
   }, [isOpen, leadId, clinicId])
 
-  // Scroll to bottom when new messages arrive
+  // Scroll to bottom when new messages arrive or bot starts typing
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [messages])
+  }, [messages, botTyping])
 
   const fetchLeadInfo = async () => {
     try {
@@ -153,10 +185,14 @@ export function ClinicChatWidget({
 
       if (response.ok) {
         const data = await response.json()
-        const newMessages = [data.message, ...(data.botMessages || [])]
-        setMessages((prev) => [...prev, ...newMessages])
+        // Add the patient message immediately
+        setMessages((prev) => [...prev, data.message])
         setNewMessage("")
         setConversationId(data.conversationId)
+        // Drip-feed bot messages with typing delay
+        if (data.botMessages?.length) {
+          queueBotMessages(data.botMessages)
+        }
       }
     } catch (error) {
       console.error("[Chat] Failed to send message:", error)
@@ -359,7 +395,7 @@ export function ClinicChatWidget({
           </ScrollArea>
 
           {/* Typing indicator */}
-          {clinicTyping && (
+          {(clinicTyping || botTyping) && (
             <div className="px-4 py-2">
               <div className="flex items-center gap-2 text-xs text-neutral-400">
                 <span className="flex gap-0.5">
@@ -367,7 +403,7 @@ export function ClinicChatWidget({
                   <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
                   <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                 </span>
-                {clinicName} is typing...
+                {botTyping ? "Pearlie is typing..." : `${clinicName} is typing...`}
               </div>
             </div>
           )}
