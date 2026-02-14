@@ -26,6 +26,7 @@ import {
   UserRound,
   MessageCircle,
   X,
+  PoundSterling,
 } from "lucide-react"
 import { generateMatchReasons, calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
@@ -59,6 +60,11 @@ interface Clinic {
   accepts_nhs?: boolean
   is_archived: boolean
   tags?: string[]
+  show_treatment_prices?: boolean
+  treatment_prices?: {
+    category: string
+    treatments: { name: string; price: string; description: string }[]
+  }[]
 }
 
 interface Lead {
@@ -660,6 +666,70 @@ export default function ClinicDetailPage() {
 
             {/* Divider */}
             <div className="border-t border-[#e5e5e5]" />
+
+            {/* TREATMENT PRICING */}
+            {clinic.show_treatment_prices && clinic.treatment_prices && clinic.treatment_prices.length > 0 && (() => {
+              // Filter to only categories that have at least one treatment with a price
+              const pricedCategories = clinic.treatment_prices
+                .map((cat) => ({
+                  ...cat,
+                  treatments: cat.treatments.filter((t) => t.price && t.price.trim() !== ""),
+                }))
+                .filter((cat) => cat.treatments.length > 0)
+
+              if (pricedCategories.length === 0) return null
+
+              return (
+                <>
+                  <section>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-[#f5f0ff] flex items-center justify-center">
+                        <PoundSterling className="h-5 w-5 text-[#7c3aed]" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-[#1a1a1a]">Treatment Prices</h2>
+                        <p className="text-sm text-[#666]">Prices are a guide. Your dentist will confirm costs before treatment.</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      {pricedCategories.map((category, catIdx) => (
+                        <div key={catIdx}>
+                          <h3 className="text-lg font-semibold text-[#1a1a1a] mb-3 pb-2 border-b border-[#e5e5e5]">
+                            {category.category}
+                          </h3>
+                          <div className="space-y-0">
+                            {category.treatments.map((treatment, treatIdx) => (
+                              <div
+                                key={treatIdx}
+                                className="flex items-start justify-between py-3 border-b border-[#f0f0f0] last:border-b-0"
+                              >
+                                <div className="flex-1 min-w-0 pr-4">
+                                  <p className="font-medium text-[#1a1a1a]">{treatment.name}</p>
+                                  {treatment.description && (
+                                    <p className="text-sm text-[#666] mt-0.5">{treatment.description}</p>
+                                  )}
+                                </div>
+                                <span className="font-semibold text-[#1a1a1a] whitespace-nowrap">
+                                  {treatment.price.startsWith("£") ? treatment.price : `£${treatment.price}`}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <p className="text-xs text-[#999] mt-6">
+                      Prices shown are indicative and may vary depending on individual treatment needs. A full treatment plan with confirmed costs will be provided following your consultation.
+                    </p>
+                  </section>
+
+                  {/* Divider */}
+                  <div className="border-t border-[#e5e5e5]" />
+                </>
+              )
+            })()}
 
             {/* 7. INSURANCE & PAYMENT */}
             <section>

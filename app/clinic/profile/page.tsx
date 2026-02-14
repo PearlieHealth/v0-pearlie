@@ -36,9 +36,11 @@ import {
   AlertTriangle,
   Loader2,
   Trash2,
+  PoundSterling,
 } from "lucide-react"
 import { toast } from "sonner"
 import { HIGHLIGHT_CATEGORIES, getHighlightLabel } from "@/lib/clinic-highlights-config"
+import { DEFAULT_TREATMENT_CATEGORIES, type TreatmentCategory, type TreatmentItem } from "@/lib/treatment-pricing-config"
 
 interface BeforeAfterImage {
   before_url: string
@@ -73,6 +75,8 @@ interface ClinicProfile {
   highlight_chips: string[]
   images: string[]
   before_after_images: BeforeAfterImage[]
+  show_treatment_prices: boolean
+  treatment_prices: TreatmentCategory[]
   google_rating?: number
   google_review_count?: number
   latitude?: number
@@ -386,6 +390,8 @@ export default function ClinicProfilePage() {
           highlight_chips: clinic.highlight_chips || [],
           images: clinic.images || [],
           before_after_images: clinic.before_after_images || [],
+          show_treatment_prices: clinic.show_treatment_prices || false,
+          treatment_prices: clinic.treatment_prices || [],
           google_rating: clinic.google_rating,
           google_review_count: clinic.google_review_count,
           latitude: clinic.latitude,
@@ -437,6 +443,8 @@ export default function ClinicProfilePage() {
           highlight_chips: profile.highlight_chips,
           images: profile.images,
           before_after_images: profile.before_after_images,
+          show_treatment_prices: profile.show_treatment_prices,
+          treatment_prices: profile.treatment_prices,
         }),
       })
       if (response.ok) {
@@ -1038,6 +1046,180 @@ export default function ClinicProfilePage() {
                 onRemove={(tag) => removeTag("treatments", tag)}
                 placeholder="Add treatment..."
               />
+            </CardContent>
+          </Card>
+
+          {/* Treatment Pricing */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <PoundSterling className="h-4 w-4" />
+                  Treatment Pricing
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {profile.show_treatment_prices ? "Visible on profile" : "Hidden from profile"}
+                  </span>
+                  <Switch
+                    checked={profile.show_treatment_prices}
+                    onCheckedChange={(checked) => setProfile({ ...profile, show_treatment_prices: checked })}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Add your treatment prices. Only treatments with a price will appear on your public profile. Leave price blank to hide a treatment.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Initialise from defaults button */}
+              {profile.treatment_prices.length === 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full bg-transparent"
+                  onClick={() => setProfile({ ...profile, treatment_prices: DEFAULT_TREATMENT_CATEGORIES })}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1.5" />
+                  Load Default Treatment Categories
+                </Button>
+              )}
+
+              {profile.treatment_prices.map((category, catIndex) => (
+                <div key={catIndex} className="border rounded-lg overflow-hidden">
+                  {/* Category header */}
+                  <div className="flex items-center justify-between bg-muted/50 px-3 py-2">
+                    <Input
+                      value={category.category}
+                      onChange={(e) => {
+                        const updated = [...profile.treatment_prices]
+                        updated[catIndex] = { ...updated[catIndex], category: e.target.value }
+                        setProfile({ ...profile, treatment_prices: updated })
+                      }}
+                      className="h-7 text-sm font-semibold border-0 bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      placeholder="Category name"
+                    />
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => {
+                          const updated = [...profile.treatment_prices]
+                          updated[catIndex] = {
+                            ...updated[catIndex],
+                            treatments: [...updated[catIndex].treatments, { name: "", price: "", description: "" }],
+                          }
+                          setProfile({ ...profile, treatment_prices: updated })
+                        }}
+                        title="Add treatment to this category"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => {
+                          const updated = profile.treatment_prices.filter((_, i) => i !== catIndex)
+                          setProfile({ ...profile, treatment_prices: updated })
+                        }}
+                        title="Remove category"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Treatments in category */}
+                  <div className="divide-y divide-border/50">
+                    {category.treatments.map((treatment, treatIndex) => (
+                      <div key={treatIndex} className="px-3 py-2 flex items-start gap-2">
+                        <div className="flex-1 space-y-1.5">
+                          <div className="flex gap-2">
+                            <Input
+                              value={treatment.name}
+                              onChange={(e) => {
+                                const updated = [...profile.treatment_prices]
+                                const treatments = [...updated[catIndex].treatments]
+                                treatments[treatIndex] = { ...treatments[treatIndex], name: e.target.value }
+                                updated[catIndex] = { ...updated[catIndex], treatments }
+                                setProfile({ ...profile, treatment_prices: updated })
+                              }}
+                              placeholder="Treatment name"
+                              className="h-7 text-sm flex-1"
+                            />
+                            <div className="relative w-28">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">£</span>
+                              <Input
+                                value={treatment.price}
+                                onChange={(e) => {
+                                  const updated = [...profile.treatment_prices]
+                                  const treatments = [...updated[catIndex].treatments]
+                                  treatments[treatIndex] = { ...treatments[treatIndex], price: e.target.value }
+                                  updated[catIndex] = { ...updated[catIndex], treatments }
+                                  setProfile({ ...profile, treatment_prices: updated })
+                                }}
+                                placeholder="Price"
+                                className="h-7 text-sm pl-5"
+                              />
+                            </div>
+                          </div>
+                          <Input
+                            value={treatment.description}
+                            onChange={(e) => {
+                              const updated = [...profile.treatment_prices]
+                              const treatments = [...updated[catIndex].treatments]
+                              treatments[treatIndex] = { ...treatments[treatIndex], description: e.target.value }
+                              updated[catIndex] = { ...updated[catIndex], treatments }
+                              setProfile({ ...profile, treatment_prices: updated })
+                            }}
+                            placeholder="Brief description (optional)"
+                            className="h-7 text-xs text-muted-foreground"
+                          />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 mt-0.5 text-muted-foreground hover:text-destructive flex-shrink-0"
+                          onClick={() => {
+                            const updated = [...profile.treatment_prices]
+                            const treatments = updated[catIndex].treatments.filter((_, i) => i !== treatIndex)
+                            updated[catIndex] = { ...updated[catIndex], treatments }
+                            setProfile({ ...profile, treatment_prices: updated })
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                    {category.treatments.length === 0 && (
+                      <p className="px-3 py-2 text-xs text-muted-foreground italic">No treatments in this category</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* Add category button */}
+              {profile.treatment_prices.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full bg-transparent"
+                  onClick={() => {
+                    setProfile({
+                      ...profile,
+                      treatment_prices: [
+                        ...profile.treatment_prices,
+                        { category: "", treatments: [{ name: "", price: "", description: "" }] },
+                      ],
+                    })
+                  }}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1.5" />
+                  Add Category
+                </Button>
+              )}
             </CardContent>
           </Card>
 

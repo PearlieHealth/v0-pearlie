@@ -13,7 +13,8 @@ const PUBLIC_CLINIC_FIELDS = `
   facilities, opening_hours, images, verified, accepts_nhs,
   parking_available, wheelchair_accessible, tags, available_days,
   available_hours, accepts_same_day, highlight_chips, price_range,
-  featured, featured_review, is_live
+  featured, featured_review, is_live,
+  show_treatment_prices, treatment_prices
 `.replace(/\s+/g, " ").trim()
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ clinicId: string }> }) {
@@ -68,6 +69,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Strip internal status fields from the response
     const { is_live, ...publicClinic } = clinicData
+
+    // Only include treatment_prices if the clinic has enabled it
+    if (!publicClinic.show_treatment_prices) {
+      publicClinic.treatment_prices = []
+    }
 
     return NextResponse.json({ clinic: publicClinic })
   } catch (error) {
