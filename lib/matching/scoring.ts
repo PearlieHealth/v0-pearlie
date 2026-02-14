@@ -53,6 +53,8 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
     categories.push(prioritiesScore)
     totalScore += prioritiesScore.points
     maxPossible += prioritiesScore.maxPoints
+  } else {
+    console.log(`[scoring] Skipped priorities for clinic ${clinic.name}: lead has no priorities`)
   }
 
   // 4. Q5: Blockers — informational only (no scoring)
@@ -65,6 +67,8 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
     categories.push(anxietyScore)
     totalScore += anxietyScore.points
     maxPossible += anxietyScore.maxPoints
+  } else {
+    console.log(`[scoring] Skipped anxiety for clinic ${clinic.name}: level="${lead.anxietyLevel || "not set"}"`)
   }
 
   // 6. Q8: Cost Approach Match (cost_approach → TAG_* keys)
@@ -73,6 +77,8 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
     categories.push(costScore)
     totalScore += costScore.points
     maxPossible += costScore.maxPoints
+  } else {
+    console.log(`[scoring] Skipped cost for clinic ${clinic.name}: approach="${lead.costApproach || "not set"}"`)
   }
 
   // 7. Availability Match (preferred_times + urgency)
@@ -81,6 +87,8 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
     categories.push(availabilityScore)
     totalScore += availabilityScore.points
     maxPossible += availabilityScore.maxPoints
+  } else {
+    console.log(`[scoring] Skipped availability for clinic ${clinic.name}: no preferred_times`)
   }
 
   // Complex case penalty: -15 if patient selected WORRIED_COMPLEX and clinic lacks TAG_COMPLEX_CASES_WELCOME

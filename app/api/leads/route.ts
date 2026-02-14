@@ -60,6 +60,7 @@ function validateLeadData(body: Record<string, unknown>): { valid: true; data: R
       city: body.city || "",
       consentContact: Boolean(body.consentContact),
       consentTerms: Boolean(body.consentTerms),
+      consentMarketing: Boolean(body.consentMarketing),
       decisionValues: Array.isArray(body.decisionValues) ? body.decisionValues : [],
       conversionBlocker: body.conversionBlocker || "",
       conversionBlockerCode: body.conversionBlockerCode || "",
@@ -139,6 +140,7 @@ export async function POST(request: Request) {
       city: validatedData.city || "",
       consent_contact: validatedData.consentContact,
       consent_terms: validatedData.consentTerms,
+      consent_marketing: validatedData.consentMarketing,
       form_version: validatedData.formVersion,
       submitted_at: new Date().toISOString(),
     }
@@ -184,6 +186,7 @@ export async function POST(request: Request) {
         city: validatedData.city || "",
         consent_contact: validatedData.consentContact,
         consent_terms: validatedData.consentTerms,
+        consent_marketing: validatedData.consentMarketing,
         contact_method: contactMethod,
         form_version: validatedData.formVersion,
         schema_version: validatedData.schemaVersion,

@@ -370,9 +370,9 @@ export function rankClinics(
     if (a.isPinned) return -1
     if (b.isPinned) return 1
 
-    // Primary: total score
-    if (b.score.totalScore !== a.score.totalScore) {
-      return b.score.totalScore - a.score.totalScore
+    // Primary: match percentage (quality of match relative to what was scored)
+    if (b.score.percent !== a.score.percent) {
+      return b.score.percent - a.score.percent
     }
 
     // Tie-breaker 1: distance (closer is better)
@@ -415,10 +415,10 @@ export function rankClinics(
       }
     })
     
-    // Sort unverified by score
+    // Sort unverified by score (percentage first)
     scoredUnverified.sort((a, b) => {
-      if (b.score.totalScore !== a.score.totalScore) {
-        return b.score.totalScore - a.score.totalScore
+      if (b.score.percent !== a.score.percent) {
+        return b.score.percent - a.score.percent
       }
       const distA = a.score.distanceMiles ?? 999
       const distB = b.score.distanceMiles ?? 999
