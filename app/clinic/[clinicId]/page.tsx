@@ -27,7 +27,7 @@ import {
   MessageCircle,
   X,
 } from "lucide-react"
-import { generateMatchReasons, calculateDistance } from "@/lib/matching/reasons"
+import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
@@ -340,15 +340,8 @@ export default function ClinicDetailPage() {
               // Use pre-computed reasons from the match API for continuity with the results card
               const matchedClinic = (matchData.clinics || []).find((c: any) => c.id === resolvedId)
               const preComputedReasons = matchedClinic?.match_reasons_composed || matchedClinic?.match_reasons || []
-
-              if (preComputedReasons.length > 0) {
-                const maxReasons = matchedClinic?.is_emergency ? 2 : 3
-                setMatchReasons(preComputedReasons.slice(0, maxReasons))
-              } else {
-                // Fallback to old generator only if API didn't return reasons
-                const reasons = generateMatchReasons(matchData.lead, clinicData.clinic, distance).slice(0, 3)
-                setMatchReasons(reasons)
-              }
+              const maxReasons = matchedClinic?.is_emergency ? 2 : 3
+              setMatchReasons(preComputedReasons.slice(0, maxReasons))
             }
           }
         }
