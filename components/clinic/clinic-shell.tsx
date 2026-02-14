@@ -35,17 +35,21 @@ export function ClinicShell({ children }: ClinicShellProps) {
   const pathname = usePathname()
 
   const fetchData = async () => {
-    // Known dashboard and auth path segments -- everything else under /clinic/[x] is a public profile
+    // Auth pages (login, forgot-password, etc.) should render directly — no auth check needed
+    const AUTH_SEGMENTS = ["login", "demo", "accept-invite", "forgot-password", "reset-password", "set-password"]
+    const pathSegment = pathname?.split("/")[2] // e.g. "/clinic/leads" -> "leads"
+    const isAuthPage = !!pathSegment && AUTH_SEGMENTS.includes(pathSegment)
+
+    // Public clinic profile pages (UUID or slug under /clinic/[x])
     const DASHBOARD_SEGMENTS = [
-      "login", "demo", "accept-invite", "forgot-password", "reset-password",
+      ...AUTH_SEGMENTS,
       "profile", "leads", "inbox", "appointments", "bookings",
       "insights", "settings", "team", "providers"
     ]
-    const pathSegment = pathname?.split("/")[2] // e.g. "/clinic/leads" -> "leads"
     const isDashboardPage = !pathSegment || DASHBOARD_SEGMENTS.includes(pathSegment)
-    const publicPageCheck = pathname?.startsWith("/clinic/") && !isDashboardPage
-    
-    if (publicPageCheck) {
+    const isPublicProfilePage = pathname?.startsWith("/clinic/") && !isDashboardPage
+
+    if (isAuthPage || isPublicProfilePage) {
       setIsLoading(false)
       return
     }
@@ -127,18 +131,18 @@ export function ClinicShell({ children }: ClinicShellProps) {
     fetchData()
   }, [])
 
-  // Check public pages FIRST - must be before any loading state to prevent flicker/redirect race
-  // Uses the same dashboard whitelist logic: anything under /clinic/[x] that isn't a known dashboard segment is public
+  // Auth pages and public profile pages render children directly — no auth shell needed
+  const AUTH_SEGMENTS_RENDER = ["login", "demo", "accept-invite", "forgot-password", "reset-password", "set-password"]
   const DASHBOARD_SEGMENTS_RENDER = [
-    "login", "demo", "accept-invite", "forgot-password", "reset-password",
+    ...AUTH_SEGMENTS_RENDER,
     "profile", "leads", "inbox", "appointments", "bookings",
     "insights", "settings", "team", "providers"
   ]
   const renderSegment = pathname?.split("/")[2]
+  const isAuthPageRender = !!renderSegment && AUTH_SEGMENTS_RENDER.includes(renderSegment)
   const isPublicPage = pathname?.startsWith("/clinic/") && !!renderSegment && !DASHBOARD_SEGMENTS_RENDER.includes(renderSegment)
-  
-  // For public pages, render children immediately without any auth check or loading
-  if (isPublicPage) {
+
+  if (isAuthPageRender || isPublicPage) {
     return <>{children}</>
   }
 
