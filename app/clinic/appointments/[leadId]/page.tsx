@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { format, formatDistanceToNow } from "date-fns"
+import { format } from "date-fns"
 import {
   ArrowLeft,
   Mail,
@@ -33,7 +33,6 @@ import {
   MessageSquare,
   StickyNote,
   Plus,
-  User,
   Star,
   Heart,
   AlertTriangle,
@@ -111,6 +110,7 @@ const STATUS_OPTIONS = [
   { value: "IN_PROGRESS", label: "In Progress" },
   { value: "BOOKED_PENDING", label: "Booked - Pending" },
   { value: "BOOKED_CONFIRMED", label: "Booked - Confirmed" },
+  { value: "ATTENDED", label: "Attended" },
   { value: "NOT_SUITABLE", label: "Not Suitable" },
   { value: "NO_RESPONSE", label: "No Response" },
   { value: "CLOSED", label: "Closed" },
@@ -129,23 +129,6 @@ const TREATMENT_LABELS: Record<string, string> = {
   dentures: "Dentures",
 }
 
-const FORM_FIELD_LABELS: Record<string, string> = {
-  treatment: "Treatment Interest",
-  urgency: "Urgency / Timeline",
-  blocker: "Concerns / Barriers",
-  budget: "Budget Range",
-  location: "Preferred Location",
-  insurance: "Insurance",
-  age: "Age Range",
-  preferred_contact: "Contact Preference",
-  availability: "Availability",
-  previous_dentist: "Previous Dentist",
-  dental_anxiety: "Dental Anxiety",
-  special_requirements: "Special Requirements",
-  payment_preference: "Payment Preference",
-  language_preference: "Language Preference",
-}
-
 // Progress stepper steps
 const PROGRESS_STEPS = [
   { key: "new", label: "New Request" },
@@ -154,7 +137,7 @@ const PROGRESS_STEPS = [
 ]
 
 function getProgressIndex(status: string, hasBooking: boolean) {
-  if (status === "CLOSED" || status === "BOOKED_CONFIRMED") return 2
+  if (status === "ATTENDED" || status === "CLOSED" || status === "BOOKED_CONFIRMED") return 2
   if (
     status === "BOOKED_PENDING" ||
     hasBooking ||
@@ -503,6 +486,8 @@ export default function AppointmentDetailPage() {
               const hasBleeding = ra.has_bleeding === true
               const outcomePriority = ra.outcome_priority as string | undefined
               const isEmergency = ra.is_emergency as boolean | undefined
+              const preferredTimes = ra.preferred_times as string[] | undefined
+              const locationPref = ra.location_preference as string | undefined
 
               // Determine treatment display
               const treatmentDisplay = treatmentsSelected?.length
@@ -512,7 +497,7 @@ export default function AppointmentDetailPage() {
                   : null
 
               const hasMedicalFlags = (painScore !== undefined && painScore > 0) || hasSwelling || hasBleeding
-              const hasIntent = treatmentDisplay || anxietyLevel || costApproach || budgetRange || urgency || decisionValues?.length || blockers?.length || hasMedicalFlags || outcomePriority
+              const hasIntent = treatmentDisplay || anxietyLevel || costApproach || budgetRange || urgency || decisionValues?.length || blockers?.length || hasMedicalFlags || outcomePriority || preferredTimes?.length || locationPref
 
               if (!hasIntent) return null
 
@@ -692,6 +677,32 @@ export default function AppointmentDetailPage() {
                         </div>
                       </div>
                     )}
+
+                    {/* Preferred Times */}
+                    {preferredTimes && preferredTimes.length > 0 && (
+                      <div className="flex items-start gap-2">
+                        <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Preferred Times</p>
+                          <div className="flex flex-wrap gap-1 mt-0.5">
+                            {preferredTimes.map((t, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs capitalize">{t}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Location Preference */}
+                    {locationPref && (
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Location Preference</p>
+                          <p className="text-sm capitalize">{locationPref.replace(/_/g, " ")}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )
@@ -772,45 +783,6 @@ export default function AppointmentDetailPage() {
               </div>
             )}
 
-            <Separator />
-
-            {/* Request Details - Form Answers */}
-            <div>
-              <h3 className="font-semibold text-sm mb-3">All Form Answers</h3>
-              <div className="space-y-4">
-                {Object.entries(lead.raw_answers || {}).map(([key, value]) => {
-                  if (!value || key === "step") return null
-                  // Skip fields already shown in Patient Intent
-                  if (["anxiety_level", "cost_approach", "budget_range", "values", "blocker", "blocker_labels", "pain_score", "has_swelling", "has_bleeding", "outcome_priority", "outcome_priority_key", "is_emergency", "treatments_selected"].includes(key)) return null
-                  const label = FORM_FIELD_LABELS[key] || key.replace(/_/g, " ")
-                  let displayValue: string
-
-                  if (Array.isArray(value)) {
-                    displayValue = value
-                      .map((v) =>
-                        typeof v === "string" ? v.replace(/_/g, " ") : String(v)
-                      )
-                      .join(", ")
-                  } else if (typeof value === "string") {
-                    displayValue =
-                      TREATMENT_LABELS[value] || value.replace(/_/g, " ")
-                  } else if (typeof value === "boolean") {
-                    displayValue = value ? "Yes" : "No"
-                  } else {
-                    displayValue = String(value)
-                  }
-
-                  return (
-                    <div key={key}>
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        {label}
-                      </p>
-                      <p className="text-sm mt-0.5">{displayValue}</p>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
           </div>
         </ScrollArea>
 
@@ -921,13 +893,19 @@ export default function AppointmentDetailPage() {
                       className="bg-green-600 hover:bg-green-700 text-white"
                       disabled={isSaving}
                       onClick={() => {
-                        setEditStatus("CLOSED")
-                        handleSaveStatus("CLOSED")
+                        setEditStatus("ATTENDED")
+                        handleSaveStatus("ATTENDED")
                       }}
                     >
                       <CheckCircle2 className="w-4 h-4 mr-1.5" />
                       Confirm Attendance
                     </Button>
+                  )}
+                  {editStatus === "ATTENDED" && (
+                    <Badge className="bg-green-100 text-green-700 border-green-200 text-sm px-3 py-1.5">
+                      <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                      Attended
+                    </Badge>
                   )}
                   <Button
                     variant="outline"

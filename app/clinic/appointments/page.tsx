@@ -292,6 +292,7 @@ export default function AppointmentsPage() {
   const history = filteredLeads.filter((l) => {
     const s = l.status?.status
     return (
+      s === "ATTENDED" ||
       s === "CLOSED" ||
       s === "NOT_SUITABLE" ||
       s === "NO_RESPONSE" ||
@@ -473,6 +474,7 @@ export default function AppointmentsPage() {
               <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
               <SelectItem value="BOOKED_PENDING">Booked Pending</SelectItem>
               <SelectItem value="BOOKED_CONFIRMED">Booked Confirmed</SelectItem>
+              <SelectItem value="ATTENDED">Attended</SelectItem>
               <SelectItem value="NOT_SUITABLE">Not Suitable</SelectItem>
               <SelectItem value="NO_RESPONSE">No Response</SelectItem>
               <SelectItem value="CLOSED">Closed</SelectItem>
@@ -541,7 +543,7 @@ export default function AppointmentsPage() {
                 <SelectItem value="NO_RESPONSE">Mark as No Response</SelectItem>
                 <SelectItem value="NOT_SUITABLE">Mark as Not Suitable</SelectItem>
                 <SelectItem value="BOOKED_CONFIRMED">Booking Confirmed</SelectItem>
-                <SelectItem value="CLOSED">Mark as Attended / Closed</SelectItem>
+                <SelectItem value="ATTENDED">Mark as Attended</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -715,8 +717,8 @@ export default function AppointmentsPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <Badge variant="secondary" className="text-xs">
-                          {status.replace(/_/g, " ")}
+                        <Badge variant="secondary" className={cn("text-xs", status === "ATTENDED" && "bg-green-100 text-green-700")}>
+                          {status === "ATTENDED" ? "Attended" : status.replace(/_/g, " ")}
                         </Badge>
                         <p className="text-sm text-muted-foreground">
                           {lead.booking
