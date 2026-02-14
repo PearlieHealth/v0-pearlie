@@ -43,19 +43,25 @@ export function EmbeddedClinicChat({
   const [error, setError] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const botTypingTimers = useRef<NodeJS.Timeout[]>([])
+  const queuedBotIds = useRef<Set<string>>(new Set())
 
   // ── Helper: drip-feed bot messages with typing delay ───────────
   const queueBotMessages = useCallback((botMsgs: Message[]) => {
-    if (!botMsgs.length) return
+    // Filter out already-queued messages (prevents double-scheduling from API + Realtime)
+    const fresh = botMsgs.filter((m) => !queuedBotIds.current.has(m.id))
+    if (!fresh.length) return
+    fresh.forEach((m) => queuedBotIds.current.add(m.id))
     setBotTyping(true)
-    botMsgs.forEach((msg, i) => {
+    fresh.forEach((msg, i) => {
       const delay = (i + 1) * 1500 // 1.5s per message
       const timer = setTimeout(() => {
         setMessages((prev) => {
           if (prev.some((m) => m.id === msg.id)) return prev
-          return [...prev, msg]
+          return [...prev, msg].sort(
+            (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          )
         })
-        if (i === botMsgs.length - 1) setBotTyping(false)
+        if (i === fresh.length - 1) setBotTyping(false)
       }, delay)
       botTypingTimers.current.push(timer)
     })
@@ -76,7 +82,9 @@ export function EmbeddedClinicChat({
     }
     setMessages((prev) => {
       if (prev.some((m) => m.id === msg.id)) return prev
-      return [...prev, msg]
+      return [...prev, msg].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )
     })
   }, [queueBotMessages])
 
