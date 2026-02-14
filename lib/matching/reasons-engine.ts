@@ -249,7 +249,10 @@ function buildPlanningReasons(facts: MatchFacts, deprioritizeTreatment = false, 
 
   // 1. Treatment match candidate — different text for cosmetic vs checkup
   if (facts.treatmentMatch?.clinicOffers && !deprioritizeTreatment) {
-    const treatmentName = facts.treatmentMatch.requested || "your requested"
+    const rawTreatment = facts.treatmentMatch.requested || "your requested treatment"
+    // Clean up multi-treatment: "Invisalign / Clear Aligners, Teeth Whitening" → "Invisalign / Clear Aligners and more"
+    const treatmentParts = rawTreatment.split(",").map((t) => t.trim()).filter(Boolean)
+    const treatmentName = treatmentParts.length > 1 ? `${treatmentParts[0]} and more` : rawTreatment
     const templates = TREATMENT_REASON_TEMPLATES[treatmentCategory] || TREATMENT_REASON_TEMPLATES.cosmetic
     const templateText = templates[fallbackOffset % templates.length].replace(/{treatment}/g, treatmentName)
     const tagKey = treatmentCategory === "checkup" ? "TREATMENT_CHECKUP" : "TREATMENT_MATCH"
@@ -275,7 +278,10 @@ function buildPlanningReasons(facts: MatchFacts, deprioritizeTreatment = false, 
     if (template) {
       // Substitute {treatment} in specialist experience template
       if (tag === "TAG_SPECIALIST_LEVEL_EXPERIENCE" && facts.treatmentMatch?.requested) {
-        template = template.replace(/{treatment}/g, facts.treatmentMatch.requested)
+        const rawTx = facts.treatmentMatch.requested
+        const txParts = rawTx.split(",").map((t) => t.trim()).filter(Boolean)
+        const txDisplay = txParts.length > 1 ? `${txParts[0]} and more` : rawTx
+        template = template.replace(/{treatment}/g, txDisplay)
       }
       candidates.push({
         reason: {
@@ -353,16 +359,29 @@ function buildPlanningReasons(facts: MatchFacts, deprioritizeTreatment = false, 
   // NOTE: No "extra clinic tags" loop — we only show reasons for things the patient chose
 
   // ─── Selection with diversity ───
+  // Rotate which groups are used based on clinic position (fallbackOffset)
+  // Treatment is always pinned first; remaining groups rotate so each clinic
+  // draws from different category combinations (e.g. 0: priorities+blockers,
+  // 1: priorities+anxiety, 2: blockers+anxiety)
+  const nonTreatmentGroups: ReasonGroup[] = GROUP_PRIORITY.filter(
+    (g) => g !== "GROUP_TREATMENT_FIT" && g !== "GROUP_GENERIC_FALLBACK",
+  )
+  // Rotate: shift by fallbackOffset so each clinic position starts at a different group
+  const rotatedGroups: ReasonGroup[] = [
+    "GROUP_TREATMENT_FIT" as ReasonGroup,
+    ...nonTreatmentGroups.slice(fallbackOffset % nonTreatmentGroups.length),
+    ...nonTreatmentGroups.slice(0, fallbackOffset % nonTreatmentGroups.length),
+  ]
+
   const selectedReasons: MatchReason[] = []
   const usedGroups = new Set<ReasonGroup>()
   const usedTexts: string[] = []
 
   candidates.sort((a, b) => a.priority - b.priority)
 
-  // First pass: pick best from each group (diversity across categories)
-  for (const targetGroup of GROUP_PRIORITY) {
+  // First pass: pick best from each group in rotated order (diversity across categories)
+  for (const targetGroup of rotatedGroups) {
     if (selectedReasons.length >= 3) break
-    if (targetGroup === "GROUP_GENERIC_FALLBACK") continue
     if (usedGroups.has(targetGroup)) continue
 
     const groupCandidates = candidates.filter(

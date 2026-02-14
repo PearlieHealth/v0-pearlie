@@ -27,7 +27,6 @@ export const TREATMENT_OPTIONS = [
   "Composite Bonding",
   "Veneers",
   "Dental Implants",
-  "Crowns or Bridges",
   "General Check-up & Clean",
   "Emergency dental issue (pain, swelling, broken tooth)",
 ] as const

@@ -169,6 +169,8 @@ export const REASON_TEMPLATES: Record<string, string[]> = {
 
   TAG_FLEXIBLE_APPOINTMENTS: [
     "Matched because they provide late afternoon or weekend availability.",
+    "Offers flexible scheduling including evenings and weekends.",
+    "A good fit for patients who need appointments outside standard hours.",
   ],
 
   TAG_CLEAR_PRICING_UPFRONT: [
@@ -189,14 +191,20 @@ export const REASON_TEMPLATES: Record<string, string[]> = {
 
   TAG_CONTINUITY_OF_CARE: [
     "A good fit for patients seeking long-term care because they focus on building ongoing patient relationships.",
+    "Matched because they prioritise seeing the same dentist each visit.",
+    "Selected for their focus on continuity and long-term trust.",
   ],
 
   // Legacy priority tags (backwards compat)
   TAG_CLEAR_EXPLANATIONS: [
     "Matched because they explain treatment options in plain, simple language.",
+    "Selected for their focus on clear, jargon-free communication.",
+    "A good fit for patients who value thorough explanations.",
   ],
   TAG_LISTENED_TO_RESPECTED: [
     "Matched for their collaborative, patient-led approach to care.",
+    "A good fit for patients who want to feel heard and respected.",
+    "Selected because they take time to listen to patient concerns.",
   ],
 
   // ─── HESITATION-BASED REASONS (Q5 Blockers) ────────────────────────────────
@@ -204,6 +212,8 @@ export const REASON_TEMPLATES: Record<string, string[]> = {
 
   TAG_GOOD_FOR_COST_CONCERNS: [
     "A thoughtful match for patients considering their investment carefully.",
+    "Matched because they support patients in understanding treatment value.",
+    "A good fit if cost is an important factor in your decision.",
   ],
 
   TAG_DECISION_SUPPORTIVE: [
@@ -218,6 +228,8 @@ export const REASON_TEMPLATES: Record<string, string[]> = {
 
   TAG_COMPLEX_CASES_WELCOME: [
     "Matched with a team experienced in handling more complex cases.",
+    "A good fit for patients who want reassurance around complexity.",
+    "Selected because they regularly manage complex treatment plans.",
   ],
 
   TAG_BAD_EXPERIENCE_SUPPORTIVE: [
@@ -227,31 +239,47 @@ export const REASON_TEMPLATES: Record<string, string[]> = {
 
   TAG_RIGHT_FIT_FOCUSED: [
     "Matched because they focus on finding the right treatment for each patient.",
+    "A good match for patients who value a personalised approach.",
+    "Selected for their focus on tailoring care to individual needs.",
   ],
 
   // Legacy blocker tags
   TAG_FINANCE_AVAILABLE: [
     "Matched for flexible payment plans to spread the cost.",
+    "Offers finance options to help manage treatment costs.",
+    "A good fit if spreading the cost over time matters to you.",
   ],
   TAG_ANXIETY_FRIENDLY: [
     "Matched because they focus on supportive, patient-centred care.",
+    "A good fit for patients who appreciate a gentle, reassuring approach.",
+    "Selected for their experience in supporting anxious patients.",
   ],
 
   // ─── COST APPROACH REASONS (Q8) ────────────────────────────────────────────
   TAG_QUALITY_OUTCOME_FOCUSED: [
     "A thoughtful match for patients considering their investment carefully.",
+    "Matched because they focus on delivering the best possible outcome.",
+    "Selected for their emphasis on quality and long-term results.",
   ],
   TAG_DISCUSS_OPTIONS_BEFORE_COST: [
     "Matched with a team that takes time to explain options clearly.",
+    "A good fit for patients who want to explore options before discussing cost.",
+    "Selected because they present options with clear reasoning.",
   ],
   TAG_MONTHLY_PAYMENTS_PREFERRED: [
     "Matched for flexible payment plans to spread the cost.",
+    "Offers monthly payment options to make treatment more accessible.",
+    "A good fit if spreading the cost matters to you.",
   ],
   TAG_FLEXIBLE_BUDGET_OK: [
     "A thoughtful match for patients considering their investment carefully.",
+    "Matched because they work with patients on flexible cost arrangements.",
+    "A good fit for patients with a rough budget who value flexibility.",
   ],
   TAG_STRICT_BUDGET_SUPPORTIVE: [
     "A thoughtful match for patients considering their investment carefully.",
+    "Matched because they work within clear budget constraints.",
+    "A good fit for patients who need transparency around costs upfront.",
   ],
 
   // ─── ANXIETY REASONS (Q10) ─────────────────────────────────────────────────

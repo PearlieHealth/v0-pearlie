@@ -75,7 +75,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
     const normalizedLead = normalizeLead(lead)
 
     // Score each clinic first
-    const clinicsWithScoresRaw = (clinicsRaw || []).map((clinicRow) => {
+    const clinicsWithScoresRaw = (clinicsRaw || []).map((clinicRow, clinicIndex) => {
       // Extract filter keys
       const filterKeys = Array.isArray(clinicRow.clinic_filter_selections)
         ? clinicRow.clinic_filter_selections.map((sel: any) => sel.filter_key)
@@ -90,7 +90,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       const matchFacts = buildMatchFacts(normalizedLead, normalizedClinic, scoreBreakdown)
 
       // Build personalized reasons from MatchFacts (never raw lead data)
-      const reasons = buildMatchReasons(matchFacts)
+      // Pass clinicIndex as fallbackOffset so each clinic gets different group rotation + template variants
+      const reasons = buildMatchReasons(matchFacts, false, clinicIndex)
 
       return {
         clinicRow,
