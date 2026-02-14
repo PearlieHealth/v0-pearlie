@@ -65,6 +65,8 @@ export interface ClinicProfile {
   available_days?: string[] // Mon, Tue, Wed, Thu, Fri, Sat, Sun
   available_hours?: string[] // 09:00, 10:00, 11:00, etc.
   accepts_same_day?: boolean // Can accept same-day appointments
+  accepts_urgent?: boolean // Can accept emergency/urgent patients
+  opening_hours?: Record<string, { open: string; close: string; closed: boolean }> // Day-by-day hours
 }
 
 /**
@@ -178,6 +180,8 @@ export interface MatchFacts {
     matchedTimeSlots: string[] // Which preferred times clinic covers
     urgency: string | null
     acceptsSameDay: boolean
+    acceptsUrgent: boolean // Whether clinic accepts emergency patients
+    weekendAvailable: boolean // Whether clinic is open on Saturday or Sunday
   }
 
   // Score breakdown (for weight calculation)

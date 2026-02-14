@@ -320,19 +320,25 @@ function scoreAvailability(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
   const clinicHours = clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]
   const clinicDays = clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]
   const urgency = lead.timingPreference || "flexible"
-  
+  const acceptsSameDay = clinic.accepts_same_day ?? false
+  const acceptsUrgent = clinic.accepts_urgent ?? false
+
   // Map clinic hours to time slot categories
   // Morning: 9-12, Afternoon: 13-17
   const morningHours = ["09:00", "10:00", "11:00", "12:00"]
   const afternoonHours = ["13:00", "14:00", "15:00", "16:00", "17:00"]
-  
+
   const clinicHasMorning = morningHours.some(h => clinicHours.includes(h))
   const clinicHasAfternoon = afternoonHours.some(h => clinicHours.includes(h))
   const clinicHasWeekend = clinicDays.some(d => d === "sat" || d === "saturday" || d === "sun" || d === "sunday")
-  
+
+  // Detect if this is an emergency treatment
+  const treatmentLower = lead.treatment.toLowerCase()
+  const isEmergency = treatmentLower.includes("emergency") || treatmentLower.includes("pain") || treatmentLower.includes("swelling") || treatmentLower.includes("broken")
+
   let points = 0
   const matchedTimeSlots: string[] = []
-  
+
   // Check which preferred time slots the clinic can accommodate
   for (const pref of preferredTimes) {
     if (pref === "morning" && clinicHasMorning) {
@@ -345,45 +351,66 @@ function scoreAvailability(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
       matchedTimeSlots.push("weekend")
     }
   }
-  
+
   const totalPreferred = preferredTimes.length
   const matchCount = matchedTimeSlots.length
-  
-  // Base score from time slot matching (70% of availability points)
-  const slotWeight = 0.7
-  if (totalPreferred > 0) {
-    if (matchCount === totalPreferred) {
-      points += maxPoints * slotWeight // All slots match = 70%
-    } else if (matchCount >= 1) {
-      // Partial match - proportional score
-      points += Math.round(maxPoints * slotWeight * (matchCount / totalPreferred))
+
+  // Emergency path: if patient needs emergency, weight accepts_urgent heavily
+  if (isEmergency) {
+    // Emergency scoring: 60% emergency readiness, 40% time slot matching
+    const emergencyWeight = 0.6
+    const slotWeight = 0.4
+
+    if (acceptsUrgent) {
+      points += Math.round(maxPoints * emergencyWeight) // Full emergency bonus
+    } else if (acceptsSameDay) {
+      points += Math.round(maxPoints * emergencyWeight * 0.5) // Same-day = partial emergency support
     }
-  } else {
-    // Patient didn't specify preference - give full slot score if clinic has good availability
-    if (clinicHasMorning && clinicHasAfternoon && clinicDays.length >= 5) {
-      points += maxPoints * slotWeight
-    } else if (clinicDays.length >= 3) {
+    // else: 0 emergency points — clinic doesn't accept emergency patients
+
+    // Time slot matching for emergency
+    if (totalPreferred > 0 && matchCount > 0) {
+      points += Math.round(maxPoints * slotWeight * (matchCount / totalPreferred))
+    } else if (clinicDays.length >= 5) {
       points += Math.round(maxPoints * slotWeight * 0.7)
     }
-  }
-  
-  // Urgency bonus (30% of availability points)
-  const urgencyWeight = 0.3
-  const acceptsSameDay = clinic.accepts_same_day ?? false
-  
-  if (urgency === "asap" || urgency === "1_week" || urgency === "within_week") {
-    // Patient needs urgent/soon appointment
-    if (acceptsSameDay) {
-      points += Math.round(maxPoints * urgencyWeight) // Full urgency bonus
-    } else if (clinicDays.length >= 5) {
-      // Clinic open most days, still decent for urgent
+  } else {
+    // Normal (non-emergency) path
+    // Base score from time slot matching (70% of availability points)
+    const slotWeight = 0.7
+    if (totalPreferred > 0) {
+      if (matchCount === totalPreferred) {
+        points += maxPoints * slotWeight // All slots match = 70%
+      } else if (matchCount >= 1) {
+        // Partial match - proportional score
+        points += Math.round(maxPoints * slotWeight * (matchCount / totalPreferred))
+      }
+    } else {
+      // Patient didn't specify preference - give full slot score if clinic has good availability
+      if (clinicHasMorning && clinicHasAfternoon && clinicDays.length >= 5) {
+        points += maxPoints * slotWeight
+      } else if (clinicDays.length >= 3) {
+        points += Math.round(maxPoints * slotWeight * 0.7)
+      }
+    }
+
+    // Urgency bonus (30% of availability points)
+    const urgencyWeight = 0.3
+
+    if (urgency === "asap" || urgency === "1_week" || urgency === "within_week") {
+      // Patient needs urgent/soon appointment
+      if (acceptsSameDay || acceptsUrgent) {
+        points += Math.round(maxPoints * urgencyWeight) // Full urgency bonus
+      } else if (clinicDays.length >= 5) {
+        // Clinic open most days, still decent for urgent
+        points += Math.round(maxPoints * urgencyWeight * 0.5)
+      }
+    } else {
+      // Patient is flexible - give partial bonus
       points += Math.round(maxPoints * urgencyWeight * 0.5)
     }
-  } else {
-    // Patient is flexible - give partial bonus
-    points += Math.round(maxPoints * urgencyWeight * 0.5)
   }
-  
+
   return {
     category: "availability",
     points: Math.min(points, maxPoints), // Cap at max
@@ -397,6 +424,8 @@ function scoreAvailability(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
       matchCount,
       urgency,
       acceptsSameDay,
+      acceptsUrgent,
+      weekendAvailable: clinicHasWeekend,
     },
   }
 }
@@ -561,6 +590,8 @@ anxiety: {
       matchedTimeSlots: (availabilityCat?.facts?.matchedTimeSlots as string[]) || [],
       urgency: lead.timingPreference || null,
       acceptsSameDay: (availabilityCat?.facts?.acceptsSameDay as boolean) ?? false,
+      acceptsUrgent: (availabilityCat?.facts?.acceptsUrgent as boolean) ?? false,
+      weekendAvailable: (availabilityCat?.facts?.weekendAvailable as boolean) ?? false,
     },
 
     scoreBreakdown: {

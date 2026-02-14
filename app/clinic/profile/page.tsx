@@ -599,15 +599,15 @@ export default function ClinicProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Emergency Availability */}
+          {/* Availability & Emergency */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4" />
-                Emergency Availability
+                Availability & Emergency
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Accepts emergency patients</p>
@@ -617,6 +617,37 @@ export default function ClinicProfilePage() {
                   checked={profile.accepts_urgent}
                   onCheckedChange={(checked) => setProfile({ ...profile, accepts_urgent: checked })}
                 />
+              </div>
+              <div className="border-t border-border/50 pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Weekend availability</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(() => {
+                        const satOpen = profile.opening_hours?.saturday && !profile.opening_hours.saturday.closed
+                        const sunOpen = profile.opening_hours?.sunday && !profile.opening_hours.sunday.closed
+                        if (satOpen && sunOpen) return "Open Saturday & Sunday — set via Practice Hours above"
+                        if (satOpen) return "Open Saturday — set via Practice Hours above"
+                        if (sunOpen) return "Open Sunday — set via Practice Hours above"
+                        return "Not available — toggle Saturday or Sunday open in Practice Hours above"
+                      })()}
+                    </p>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={`text-[10px] h-5 flex-shrink-0 ${
+                      (profile.opening_hours?.saturday && !profile.opening_hours.saturday.closed) ||
+                      (profile.opening_hours?.sunday && !profile.opening_hours.sunday.closed)
+                        ? "border-green-300 text-green-700 bg-green-50"
+                        : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    {(profile.opening_hours?.saturday && !profile.opening_hours.saturday.closed) ||
+                    (profile.opening_hours?.sunday && !profile.opening_hours.sunday.closed)
+                      ? "ACTIVE"
+                      : "OFF"}
+                  </Badge>
+                </div>
               </div>
             </CardContent>
           </Card>
