@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-
-const CURRENT_FORM_VERSION = "v2_final_11q_2026-01-13"
+import { FORM_VERSION, SCHEMA_VERSION } from "@/lib/intake-form-config"
 
 async function geocodePostcode(postcode: string): Promise<{ latitude: number; longitude: number } | null> {
   try {
@@ -76,8 +75,8 @@ function validateLeadData(body: Record<string, unknown>): { valid: true; data: R
       outcomePriorityKey: body.outcomePriorityKey || "",
       locationPreference: body.locationPreference || "",
       anxietyLevel: body.anxietyLevel || "",
-      formVersion: body.formVersion || CURRENT_FORM_VERSION,
-      schemaVersion: typeof body.schemaVersion === "number" ? body.schemaVersion : 2,
+      formVersion: body.formVersion || FORM_VERSION,
+      schemaVersion: typeof body.schemaVersion === "number" ? body.schemaVersion : SCHEMA_VERSION,
     },
   }
 }
@@ -120,6 +119,7 @@ export async function POST(request: Request) {
             ? [validatedData.conversionBlockerCode]
             : [],
       blocker_label: validatedData.conversionBlocker,
+      blocker_labels: Array.isArray(body.rawAnswers?.blocker_labels) ? body.rawAnswers.blocker_labels : [],
       timing: validatedData.timingPreference,
       preferred_times: validatedData.preferred_times,
       expectations: validatedData.outcomePriority,
@@ -145,6 +145,13 @@ export async function POST(request: Request) {
 
     const isGoogleAuth = body.authMethod === "google"
 
+    const blockerCodes = validatedData.conversionBlockerCodes as string[]
+    // Extract blocker labels from the form's rawAnswers payload, or fall back to codes
+    const incomingBlockerLabels = body.rawAnswers?.blocker_labels
+    const blockerLabels = Array.isArray(incomingBlockerLabels) && incomingBlockerLabels.length > 0
+      ? incomingBlockerLabels
+      : blockerCodes
+
     const { data: insertedLead, error: insertError } = await supabase
       .from("leads")
       .insert({
@@ -154,11 +161,17 @@ export async function POST(request: Request) {
         longitude: geocoded.longitude,
         is_emergency: validatedData.isEmergency,
         decision_values: validatedData.decisionValues || [],
-        conversion_blocker: validatedData.conversionBlocker || (validatedData.conversionBlockerCodes as string[])[0] || "",
-        blocker: validatedData.conversionBlockerCode || (validatedData.conversionBlockerCodes as string[])[0] || "",
+        conversion_blocker: validatedData.conversionBlocker || blockerCodes[0] || "",
+        conversion_blocker_codes: blockerCodes,
+        blocker_labels: blockerLabels,
+        blocker: validatedData.conversionBlockerCode || blockerCodes[0] || "",
         preferred_timing: validatedData.timingPreference || "flexible",
         preferred_times: validatedData.preferred_times,
         budget_range: validatedData.budgetRange || "unspecified",
+        cost_approach: validatedData.costApproach || "",
+        monthly_payment_range: validatedData.monthlyPaymentRange || null,
+        strict_budget_mode: validatedData.strictBudgetMode || "",
+        strict_budget_amount: validatedData.strictBudgetAmount,
         outcome_treatment: validatedData.outcomeTreatment || "",
         outcome_priority: validatedData.outcomePriority || "",
         outcome_priority_key: validatedData.outcomePriorityKey || "",
@@ -172,6 +185,7 @@ export async function POST(request: Request) {
         consent_contact: validatedData.consentContact,
         consent_terms: validatedData.consentTerms,
         contact_method: contactMethod,
+        form_version: validatedData.formVersion,
         schema_version: validatedData.schemaVersion,
         raw_answers: rawAnswers,
         source: body.source || "match",

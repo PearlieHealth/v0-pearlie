@@ -30,7 +30,7 @@ export interface LeadAnswer {
   priorities: string[] // Maps from decision_values in DB
   anxietyLevel?: "comfortable" | "slightly_anxious" | "quite_anxious" | "very_anxious" | null
   budgetRange?: string | null
-  costApproach?: "COMPARE_VALUE" | "FLEXIBLE_FINANCE" | "STRICT_BUDGET" | "PREFER_DISCUSS" | null
+  costApproach?: string | null // v6: best_outcome, understand_value, comfort_range, strict_budget (+ legacy values)
   strictBudgetMax?: number | string | null
   timingPreference?: string | null
   preferred_times?: string[] // Morning, afternoon, weekends

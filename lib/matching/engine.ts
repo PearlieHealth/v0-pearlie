@@ -154,7 +154,7 @@ export function buildLeadProfile(input: TestLeadInput): LeadAnswer {
     anxietyLevel: anxietyLevel as any,
     budgetRange,
     costApproach: input.costApproach || null,
-    strictBudgetAmount: input.strictBudgetAmount || null,
+    strictBudgetMax: input.strictBudgetAmount || null,
     timingPreference: input.timingPreference || "flexible",
     preferred_times: input.preferred_times || [],
     email: "",

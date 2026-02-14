@@ -15,11 +15,22 @@ export function normalizeLead(leadRow: any): LeadAnswer {
 
   const rawAnswers = leadRow.raw_answers || {}
 
-  const rawBlocker = rawAnswers.blocker || leadRow.blocker || leadRow.conversion_blocker || null
-  const blockerCodes: string[] = Array.isArray(rawBlocker) ? rawBlocker : rawBlocker ? [rawBlocker] : []
+  // Resolve blocker codes — prefer the dedicated array column, then raw_answers, then legacy single fields
+  const rawBlockerCodes = leadRow.conversion_blocker_codes || rawAnswers.blocker || null
+  const rawBlockerFallback = leadRow.blocker || leadRow.conversion_blocker || null
+  const blockerCodes: string[] = Array.isArray(rawBlockerCodes)
+    ? rawBlockerCodes
+    : rawBlockerCodes
+      ? [rawBlockerCodes]
+      : Array.isArray(rawBlockerFallback)
+        ? rawBlockerFallback
+        : rawBlockerFallback
+          ? [rawBlockerFallback]
+          : []
 
-  const costApproach = rawAnswers.cost_approach || leadRow.cost_approach || null
-  const strictBudgetMax = rawAnswers.strict_budget_amount || leadRow.strict_budget_amount || null
+  // Resolve cost approach — prefer dedicated column, then raw_answers
+  const costApproach = leadRow.cost_approach || rawAnswers.cost_approach || null
+  const strictBudgetMax = leadRow.strict_budget_amount || rawAnswers.strict_budget_amount || null
 
   return {
     id: leadRow.id,
