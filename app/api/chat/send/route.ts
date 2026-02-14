@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { Resend } from "resend"
-import { getBotGreeting, getBotSuggestions } from "@/lib/chat-bot"
+import { getBotGreeting, getBotSuggestions, getBotFollowUp } from "@/lib/chat-bot"
 import { generateIntelligentBotResponse } from "@/lib/chat-bot-ai"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -242,6 +242,7 @@ export async function POST(request: NextRequest) {
             sender_type: "bot",
             content: greetingContent,
             sent_via: "chat",
+            message_type: "bot-greeting",
           })
           .select("*")
           .single()
@@ -260,6 +261,7 @@ export async function POST(request: NextRequest) {
             sender_type: "bot",
             content: suggestionsContent,
             sent_via: "chat",
+            message_type: "bot-suggestions",
           })
           .select("*")
           .single()
@@ -277,7 +279,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Follow-up bot: patient sends another message before clinic has replied
-    if (senderType === "patient" && conversation.bot_greeted && useAI) {
+    if (senderType === "patient" && conversation.bot_greeted) {
       try {
         // Check if clinic has replied in this conversation
         const { data: clinicReplies } = await supabase
@@ -288,56 +290,62 @@ export async function POST(request: NextRequest) {
           .limit(1)
 
         if (!clinicReplies?.length) {
-          // Get recent messages for context
-          const { data: recentDbMsgs } = await supabase
-            .from("messages")
-            .select("sender_type, content")
-            .eq("conversation_id", conversation.id)
-            .order("created_at", { ascending: false })
-            .limit(6)
+          let followUpContent: string | null = null
 
-          const recentMsgs = (recentDbMsgs || [])
-            .reverse()
-            .map((m: any) => ({ sender_type: m.sender_type, content: m.content }))
-
-          const followUpResponse = await generateIntelligentBotResponse(
-            "follow_up",
-            {
-              name: clinic.name,
-              phone: clinic.phone,
-              treatments: clinic.treatments,
-              price_range: clinic.price_range,
-              description: clinic.description,
-              opening_hours: clinic.opening_hours,
-              accepts_nhs: clinic.accepts_nhs,
-              parking_available: clinic.parking_available,
-              wheelchair_accessible: clinic.wheelchair_accessible,
-            },
-            {
-              first_name: lead.first_name,
-              treatment_interest: lead.treatment_interest,
-              budget_range: lead.budget_range,
-              pain_score: lead.pain_score,
-              has_swelling: lead.has_swelling,
-              has_bleeding: lead.has_bleeding,
-              additional_info: lead.additional_info,
-            },
-            recentMsgs
-          )
-
-          if (followUpResponse) {
-            const { data: followUpMsg } = await supabase
+          if (useAI) {
+            // Get recent messages for context
+            const { data: recentDbMsgs } = await supabase
               .from("messages")
-              .insert({
-                conversation_id: conversation.id,
-                sender_type: "bot",
-                content: followUpResponse,
-                sent_via: "chat",
-              })
-              .select("*")
-              .single()
-            if (followUpMsg) botMessages.push(followUpMsg)
+              .select("sender_type, content")
+              .eq("conversation_id", conversation.id)
+              .order("created_at", { ascending: false })
+              .limit(6)
+
+            const recentMsgs = (recentDbMsgs || [])
+              .reverse()
+              .map((m: any) => ({ sender_type: m.sender_type, content: m.content }))
+
+            followUpContent = await generateIntelligentBotResponse(
+              "follow_up",
+              {
+                name: clinic.name,
+                phone: clinic.phone,
+                treatments: clinic.treatments,
+                price_range: clinic.price_range,
+                description: clinic.description,
+                opening_hours: clinic.opening_hours,
+                accepts_nhs: clinic.accepts_nhs,
+                parking_available: clinic.parking_available,
+                wheelchair_accessible: clinic.wheelchair_accessible,
+              },
+              {
+                first_name: lead.first_name,
+                treatment_interest: lead.treatment_interest,
+                budget_range: lead.budget_range,
+                pain_score: lead.pain_score,
+                has_swelling: lead.has_swelling,
+                has_bleeding: lead.has_bleeding,
+                additional_info: lead.additional_info,
+              },
+              recentMsgs
+            )
           }
+
+          // Use AI response or fall back to template
+          const finalContent = followUpContent || getBotFollowUp(clinic.name)
+
+          const { data: followUpMsg } = await supabase
+            .from("messages")
+            .insert({
+              conversation_id: conversation.id,
+              sender_type: "bot",
+              content: finalContent,
+              sent_via: "chat",
+              message_type: "bot-follow-up",
+            })
+            .select("*")
+            .single()
+          if (followUpMsg) botMessages.push(followUpMsg)
         }
       } catch (followUpError) {
         console.error("[Chat] Bot follow-up error:", followUpError)

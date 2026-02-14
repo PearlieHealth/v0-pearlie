@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     // Conditions: bot has greeted, no clinic reply yet, 30+ min since first patient message
     if (conversation.bot_greeted && !conversation.clinic_first_reply_at) {
       const hasNoReplyBot = allMessages.some(
-        (m) => m.sender_type === "bot" && m.content.includes("typically responds")
+        (m) => m.sender_type === "bot" && (m.message_type === "bot-no-reply" || m.content.includes("typically responds"))
       )
 
       if (!hasNoReplyBot) {
@@ -99,6 +99,7 @@ export async function GET(request: NextRequest) {
                 sender_type: "bot",
                 content: noReplyContent,
                 sent_via: "chat",
+                message_type: "bot-no-reply",
               })
               .select("*")
               .single()

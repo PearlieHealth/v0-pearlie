@@ -106,8 +106,9 @@ export async function POST(request: NextRequest) {
               sender_type: "bot",
               content: getBotClinicReplied(clinic.name),
               sent_via: "chat",
-              // Set created_at slightly before the clinic message so it appears above
-              created_at: new Date(Date.now() - 1000).toISOString(),
+              message_type: "bot-clinic-replied",
+              // Use clinic message timestamp minus 1s so bot notification appears above the reply
+              created_at: new Date(new Date(message.created_at).getTime() - 1000).toISOString(),
             })
             .select("*")
             .single()
