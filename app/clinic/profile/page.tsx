@@ -34,9 +34,18 @@ import {
   Eye,
   Bell,
   AlertTriangle,
+  Loader2,
+  Trash2,
 } from "lucide-react"
 import { toast } from "sonner"
 import { HIGHLIGHT_CATEGORIES, getHighlightLabel } from "@/lib/clinic-highlights-config"
+
+interface BeforeAfterImage {
+  before_url: string
+  after_url: string
+  treatment: string
+  description?: string
+}
 
 interface ClinicProfile {
   id: string
@@ -50,6 +59,7 @@ interface ClinicProfile {
   notification_email: string
   website: string
   description: string
+  featured_review: string
   accepts_urgent: boolean
   treatments: string[]
   services: string[]
@@ -61,7 +71,8 @@ interface ClinicProfile {
   ideal_patient_tags: string[]
   exclusion_tags: string[]
   highlight_chips: string[]
-  images?: string[]
+  images: string[]
+  before_after_images: BeforeAfterImage[]
   google_rating?: number
   google_review_count?: number
   latitude?: number
@@ -240,6 +251,8 @@ export default function ClinicProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false)
+  const [isUploadingBeforeAfter, setIsUploadingBeforeAfter] = useState<string | null>(null) // 'before' | 'after' | null
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     highlights: false,
     matching: false,
@@ -247,6 +260,93 @@ export default function ClinicProfilePage() {
 
   const toggleSection = (key: string) => {
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const handleGalleryUpload = async (files: FileList) => {
+    if (!profile) return
+    setIsUploadingGallery(true)
+    const newUrls: string[] = []
+    for (const file of Array.from(files)) {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+        toast.error(`${file.name}: Invalid type. Use JPEG, PNG, or WEBP.`)
+        continue
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name}: Too large (max 10MB).`)
+        continue
+      }
+      try {
+        const formData = new FormData()
+        formData.append("file", file)
+        formData.append("type", "gallery")
+        const res = await fetch("/api/clinics/upload", { method: "POST", body: formData })
+        const data = await res.json()
+        if (res.ok && data.url) {
+          newUrls.push(data.url)
+        } else {
+          toast.error(`${file.name}: ${data.error || "Upload failed"}`)
+        }
+      } catch {
+        toast.error(`${file.name}: Upload failed`)
+      }
+    }
+    if (newUrls.length > 0) {
+      setProfile({ ...profile, images: [...(profile.images || []), ...newUrls] })
+      toast.success(`${newUrls.length} photo${newUrls.length > 1 ? "s" : ""} uploaded`)
+    }
+    setIsUploadingGallery(false)
+  }
+
+  const removeGalleryImage = (index: number) => {
+    if (!profile) return
+    setProfile({ ...profile, images: profile.images.filter((_, i) => i !== index) })
+  }
+
+  const handleBeforeAfterUpload = async (file: File, pairIndex: number, side: "before" | "after") => {
+    if (!profile) return
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Invalid file type. Use JPEG, PNG, or WEBP.")
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File too large (max 10MB).")
+      return
+    }
+    setIsUploadingBeforeAfter(`${pairIndex}-${side}`)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("type", "gallery")
+      const res = await fetch("/api/clinics/upload", { method: "POST", body: formData })
+      const data = await res.json()
+      if (res.ok && data.url) {
+        const updated = [...profile.before_after_images]
+        updated[pairIndex] = { ...updated[pairIndex], [`${side}_url`]: data.url }
+        setProfile({ ...profile, before_after_images: updated })
+        toast.success(`${side === "before" ? "Before" : "After"} photo uploaded`)
+      } else {
+        toast.error(data.error || "Upload failed")
+      }
+    } catch {
+      toast.error("Upload failed")
+    }
+    setIsUploadingBeforeAfter(null)
+  }
+
+  const addBeforeAfterPair = () => {
+    if (!profile) return
+    setProfile({
+      ...profile,
+      before_after_images: [...profile.before_after_images, { before_url: "", after_url: "", treatment: "" }],
+    })
+  }
+
+  const removeBeforeAfterPair = (index: number) => {
+    if (!profile) return
+    setProfile({
+      ...profile,
+      before_after_images: profile.before_after_images.filter((_, i) => i !== index),
+    })
   }
 
   const fetchProfile = useCallback(async (showRefreshToast = false) => {
@@ -285,6 +385,7 @@ export default function ClinicProfilePage() {
           exclusion_tags: clinic.exclusion_tags || [],
           highlight_chips: clinic.highlight_chips || [],
           images: clinic.images || [],
+          before_after_images: clinic.before_after_images || [],
           google_rating: clinic.google_rating,
           google_review_count: clinic.google_review_count,
           latitude: clinic.latitude,
@@ -334,6 +435,8 @@ export default function ClinicProfilePage() {
           ideal_patient_tags: profile.ideal_patient_tags,
           exclusion_tags: profile.exclusion_tags,
           highlight_chips: profile.highlight_chips,
+          images: profile.images,
+          before_after_images: profile.before_after_images,
         }),
       })
       if (response.ok) {
@@ -666,29 +769,221 @@ export default function ClinicProfilePage() {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base font-semibold">Practice Photos</CardTitle>
-                <Button variant="outline" size="sm" className="h-7 text-xs gap-1 bg-transparent">
-                  <ImagePlus className="h-3.5 w-3.5" />
-                  Add Photos
-                </Button>
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    className="hidden"
+                    disabled={isUploadingGallery}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        handleGalleryUpload(e.target.files)
+                      }
+                      e.target.value = ""
+                    }}
+                  />
+                  <span className={`inline-flex items-center gap-1 text-xs px-3 py-1.5 border rounded-md transition-colors ${isUploadingGallery ? "opacity-60 cursor-wait" : "hover:bg-muted cursor-pointer"}`}>
+                    {isUploadingGallery ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <ImagePlus className="h-3.5 w-3.5" />
+                    )}
+                    {isUploadingGallery ? "Uploading..." : "Add Photos"}
+                  </span>
+                </label>
               </div>
             </CardHeader>
             <CardContent>
               {profile.images && profile.images.length > 0 ? (
                 <div className="grid grid-cols-4 gap-2">
                   {profile.images.map((img, i) => (
-                    <div key={i} className="aspect-square rounded-lg overflow-hidden bg-muted">
+                    <div key={i} className="relative group aspect-square rounded-lg overflow-hidden bg-muted">
                       <img src={img || "/placeholder.svg"} alt={`Practice photo ${i + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeGalleryImage(i)}
+                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-40 border-2 border-dashed rounded-lg">
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    className="hidden"
+                    disabled={isUploadingGallery}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        handleGalleryUpload(e.target.files)
+                      }
+                      e.target.value = ""
+                    }}
+                  />
+                  <div className="flex items-center justify-center h-40 border-2 border-dashed rounded-lg hover:border-[#9F7AEA]/50 transition-colors">
+                    <div className="text-center">
+                      <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">Click to upload photos</p>
+                      <p className="text-xs text-muted-foreground mt-1">JPEG, PNG, or WEBP. Max 10MB each.</p>
+                    </div>
+                  </div>
+                </label>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Before & After Gallery */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold">Before & After</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-1 bg-transparent"
+                  onClick={addBeforeAfterPair}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Pair
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Show patients the results they can expect.</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {profile.before_after_images.length === 0 ? (
+                <div
+                  className="flex items-center justify-center h-32 border-2 border-dashed rounded-lg hover:border-[#9F7AEA]/50 transition-colors cursor-pointer"
+                  onClick={addBeforeAfterPair}
+                >
                   <div className="text-center">
-                    <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">No photos yet</p>
-                    <p className="text-xs text-muted-foreground mt-1">Add photos to attract more patients</p>
+                    <ImagePlus className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
+                    <p className="text-sm text-muted-foreground">Add your first before & after</p>
                   </div>
                 </div>
+              ) : (
+                profile.before_after_images.map((pair, pairIndex) => (
+                  <div key={pairIndex} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Input
+                        value={pair.treatment}
+                        onChange={(e) => {
+                          const updated = [...profile.before_after_images]
+                          updated[pairIndex] = { ...updated[pairIndex], treatment: e.target.value }
+                          setProfile({ ...profile, before_after_images: updated })
+                        }}
+                        placeholder="Treatment type (e.g. Invisalign, Veneers)"
+                        className="h-8 text-sm max-w-xs"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeBeforeAfterPair(pairIndex)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Before */}
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1.5">Before</p>
+                        {pair.before_url ? (
+                          <div className="relative group aspect-[4/3] rounded-lg overflow-hidden bg-muted">
+                            <img src={pair.before_url} alt="Before" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = [...profile.before_after_images]
+                                updated[pairIndex] = { ...updated[pairIndex], before_url: "" }
+                                setProfile({ ...profile, before_after_images: updated })
+                              }}
+                              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              className="hidden"
+                              disabled={isUploadingBeforeAfter !== null}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) handleBeforeAfterUpload(file, pairIndex, "before")
+                                e.target.value = ""
+                              }}
+                            />
+                            <div className="aspect-[4/3] rounded-lg border-2 border-dashed flex items-center justify-center hover:border-[#9F7AEA]/50 transition-colors">
+                              {isUploadingBeforeAfter === `${pairIndex}-before` ? (
+                                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                              ) : (
+                                <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                              )}
+                            </div>
+                          </label>
+                        )}
+                      </div>
+                      {/* After */}
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1.5">After</p>
+                        {pair.after_url ? (
+                          <div className="relative group aspect-[4/3] rounded-lg overflow-hidden bg-muted">
+                            <img src={pair.after_url} alt="After" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = [...profile.before_after_images]
+                                updated[pairIndex] = { ...updated[pairIndex], after_url: "" }
+                                setProfile({ ...profile, before_after_images: updated })
+                              }}
+                              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              className="hidden"
+                              disabled={isUploadingBeforeAfter !== null}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) handleBeforeAfterUpload(file, pairIndex, "after")
+                                e.target.value = ""
+                              }}
+                            />
+                            <div className="aspect-[4/3] rounded-lg border-2 border-dashed flex items-center justify-center hover:border-[#9F7AEA]/50 transition-colors">
+                              {isUploadingBeforeAfter === `${pairIndex}-after` ? (
+                                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                              ) : (
+                                <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                              )}
+                            </div>
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                    <Input
+                      value={pair.description || ""}
+                      onChange={(e) => {
+                        const updated = [...profile.before_after_images]
+                        updated[pairIndex] = { ...updated[pairIndex], description: e.target.value }
+                        setProfile({ ...profile, before_after_images: updated })
+                      }}
+                      placeholder="Brief description (optional)"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                ))
               )}
             </CardContent>
           </Card>
