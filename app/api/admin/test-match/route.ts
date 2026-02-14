@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import {
   buildLeadProfile,
   buildClinicProfile,
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     const profile = buildLeadProfile(normalizedTestLead)
 
     // Fetch all non-archived clinics (same filter as live flow)
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { data: clinicsData, error: clinicsError } = await supabase
       .from("clinics")
       .select("*")
@@ -114,7 +114,13 @@ export async function POST(request: Request) {
           "test-lead",
           rc.clinic.id,
           rc.reasons,
-          treatments[0]
+          {
+            treatmentMatch: {
+              requested: treatments[0],
+              clinicOffers: true,
+              matchedTreatments: treatments,
+            },
+          } as any
         )
         
         return {

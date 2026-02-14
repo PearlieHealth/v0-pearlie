@@ -113,7 +113,7 @@ async function fetchWebsiteContent(url: string): Promise<{ text: string; success
 function buildExtractionPrompt(websiteText: string): string {
   // Create tag list with descriptions for AI
   const tagDescriptions = CANONICAL_TAG_KEYS.map(tag => {
-    const description = REASON_TEMPLATES[tag] || tag
+    const description = REASON_TEMPLATES[tag]?.[0] || tag
     return `- ${tag}: "${description}"`
   }).join("\n")
 

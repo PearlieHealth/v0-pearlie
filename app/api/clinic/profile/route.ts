@@ -1,16 +1,13 @@
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
+import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 
 // Fields that only admin can modify
 const ADMIN_ONLY_FIELDS = ["is_live", "verified", "is_archived", "google_place_id", "google_rating", "google_review_count"]
 
 export async function GET() {
   try {
-    const supabase = await createClient()
-    
-    // Verify user is logged in
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -47,10 +44,7 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const supabase = await createClient()
-    
-    // Verify user is logged in
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

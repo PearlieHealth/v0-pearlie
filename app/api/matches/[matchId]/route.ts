@@ -54,25 +54,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       return NextResponse.json({ error: "Lead not found" }, { status: 404 })
     }
 
-    // Fetch pre-generated AI reasons from match_results (if available)
-    const { data: aiMatchResults } = await supabase
-      .from("match_results")
-      .select("clinic_id, reasons, ai_headline, ai_proof, ai_reasons_source")
-      .eq("lead_id", match.lead_id)
-    
-    // Build a map of clinic_id -> AI reasons
-    const aiReasonsMap = new Map<string, { reasons: string[]; headline?: string; proof?: string; source?: string }>()
-    if (aiMatchResults) {
-      for (const result of aiMatchResults) {
-        aiReasonsMap.set(result.clinic_id, {
-          reasons: result.reasons || [],
-          headline: result.ai_headline,
-          proof: result.ai_proof,
-          source: result.ai_reasons_source,
-        })
-      }
-    }
-
     // Fetch clinics with their filter keys (left join to include clinics without tags)
     const { data: clinicsRaw, error: clinicsError } = await supabase
       .from("clinics")
@@ -94,7 +75,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
     const normalizedLead = normalizeLead(lead)
 
     // Score each clinic first
-    const clinicsWithScoresRaw = (clinicsRaw || []).map((clinicRow) => {
+    const clinicsWithScoresRaw = (clinicsRaw || []).map((clinicRow, clinicIndex) => {
       // Extract filter keys
       const filterKeys = Array.isArray(clinicRow.clinic_filter_selections)
         ? clinicRow.clinic_filter_selections.map((sel: any) => sel.filter_key)
@@ -109,7 +90,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       const matchFacts = buildMatchFacts(normalizedLead, normalizedClinic, scoreBreakdown)
 
       // Build personalized reasons from MatchFacts (never raw lead data)
-      const reasons = buildMatchReasons(matchFacts)
+      // Pass clinicIndex as fallbackOffset so each clinic gets different group rotation + template variants
+      const reasons = buildMatchReasons(matchFacts, false, clinicIndex)
 
       return {
         clinicRow,
@@ -121,35 +103,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       }
     })
 
-    // Now compose reasons for ALL clinics at once to ensure uniqueness
-    // Use saved reasons from match_results if available, otherwise regenerate
-    const clinicsNeedingReasons = clinicsWithScoresRaw.filter(c => {
-      const aiData = aiReasonsMap.get(c.clinicRow.id)
-      return !aiData || aiData.reasons.length === 0
-    })
+    // Compose reasons for ALL clinics at once to ensure uniqueness across cards
+    const composedReasonsMap = composeReasonsForMultipleClinics(
+      normalizedLead.id,
+      clinicsWithScoresRaw.map(c => ({
+        clinicId: c.normalizedClinic.id,
+        matchReasons: c.reasons,
+        matchFacts: c.matchFacts,
+      }))
+    )
 
-    // Generate unique reasons for clinics that don't have saved ones
-    const composedReasonsMap = clinicsNeedingReasons.length > 0 
-      ? composeReasonsForMultipleClinics(
-          normalizedLead.id,
-          clinicsNeedingReasons.map(c => ({
-            clinicId: c.normalizedClinic.id,
-            matchReasons: c.reasons,
-            matchFacts: c.matchFacts,
-          }))
-        )
-      : new Map()
+    // Detect if this is an emergency match
+    const isEmergency = normalizedLead.treatment?.toLowerCase().includes("emergency") || false
 
     // Build final clinics with scores and reasons
-    const clinicsWithScores = clinicsWithScoresRaw.map(({ clinicRow, normalizedClinic, filterKeys, scoreBreakdown, reasons }) => {
-      // Check for pre-saved reasons from match_results
-      const aiData = aiReasonsMap.get(clinicRow.id)
-      const hasSavedReasons = aiData && aiData.reasons.length > 0
-      
-      // Get composed reasons (either saved or newly generated)
-      const composed = hasSavedReasons ? null : composedReasonsMap.get(normalizedClinic.id)
-      const finalReasons = hasSavedReasons ? aiData!.reasons : (composed?.bullets || reasons.map(r => r.text))
-      const finalLongReasons = composed?.longBullets || finalReasons // Long reasons for clinic detail page
+    const clinicsWithScores = clinicsWithScoresRaw.map(({ clinicRow, normalizedClinic, filterKeys, scoreBreakdown, matchFacts, reasons }) => {
+      const composed = composedReasonsMap.get(normalizedClinic.id)
+      const finalReasons = composed?.bullets || reasons.map(r => r.text)
+      const finalLongReasons = composed?.longBullets || finalReasons
 
       return {
         ...clinicRow,
@@ -158,19 +129,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
         match_percentage: scoreBreakdown.percent,
         match_breakdown: scoreBreakdown.categories,
         match_reasons: reasons.map((r) => r.text),
-        // Use saved reasons if available, otherwise use composed template reasons
         match_reasons_composed: finalReasons,
-        match_reasons_long: finalLongReasons, // Premium long-form explanations
+        match_reasons_long: finalLongReasons,
         match_reasons_meta: {
           tagsUsed: composed?.tagsUsed || [],
           templatesUsed: composed?.templatesUsed || [],
           confidence: composed?.confidence || 0.8,
-          source: hasSavedReasons ? (aiData?.source || "saved") : "template",
-          aiHeadline: aiData?.headline,
-          aiProof: aiData?.proof,
+          source: "template" as const,
         },
         tier: "top",
-        card_title: "Why we matched you",
+        card_title: isEmergency ? "Why this clinic" : "Why we matched you",
+        is_emergency: isEmergency,
       }
     })
 
@@ -205,7 +174,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       // Only exclude matched clinics if there are any
       if (matchedClinicIds.length > 0) {
         // Supabase requires proper array format for not.in operator
-        nearbyQuery = nearbyQuery.not("id", "in", `(${matchedClinicIds.map(id => `"${id}"`).join(",")})`)
+        nearbyQuery = nearbyQuery.not("id", "in", `(${matchedClinicIds.map((id: string) => `"${id}"`).join(",")})`)
       }
       
       const { data: nearbyClinics, error: nearbyError } = await nearbyQuery

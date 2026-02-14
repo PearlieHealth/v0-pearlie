@@ -125,13 +125,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await verifyAdminAuth()
   if (!auth.authenticated) return auth.response
 
   try {
-    const supabase = await createAdminClient()
-    const { id } = params
+    const supabase = createAdminClient()
+    const { id } = await params
 
     console.log("[v0 API] Deleting clinic with ID:", id)
 

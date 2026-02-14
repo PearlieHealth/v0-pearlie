@@ -19,7 +19,7 @@
 // This is the single source of truth for all tag-to-form mappings
 // IMPORTANT: These TAG_* keys must match exactly what's in clinic_filters table
 
-export const FORM_VERSION = "v2_final_11q_2026-01-13"
+export const FORM_VERSION = "v6_blocker_multiselect_2026-02-14"
 
 // =============================================================================
 // Q4: "What matters most when choosing a clinic?" (7 options, multi-select, max 3)
@@ -52,15 +52,17 @@ export const Q4_PRIORITY_TAG_MAP: Record<string, string> = {
 }
 
 // =============================================================================
-// Q5: "Concerns / blockers" (7 options, multi-select)
-// Form blocker codes → TAG_* keys (1:1 mapping)
+// Q5: "Concerns / blockers" (6 options, multi-select max 2)
+// Informational only — does NOT affect scoring (except WORRIED_COMPLEX penalty)
+// Form blocker codes → TAG_* keys (1:1 mapping, kept for data recording)
 // =============================================================================
 export const Q5_BLOCKER_TAG_MAP: Record<string, string> = {
-  // v5 FINAL blocker codes (LOCKED, single-select):
+  // v6 blocker codes (multi-select max 2):
   NOT_WORTH_COST: "TAG_GOOD_FOR_COST_CONCERNS",
   NEED_MORE_TIME: "TAG_DECISION_SUPPORTIVE",
   UNSURE_OPTION: "TAG_OPTION_CLARITY_SUPPORT",
   WORRIED_COMPLEX: "TAG_COMPLEX_CASES_WELCOME",
+  BAD_EXPERIENCE: "TAG_BAD_EXPERIENCE_SUPPORTIVE",
   NO_CONCERN: "TAG_RIGHT_FIT_FOCUSED",
   // Legacy v4 blocker codes (backwards compatibility):
   COST_CONCERNS: "TAG_GOOD_FOR_COST_CONCERNS",
@@ -80,15 +82,35 @@ export const Q5_BLOCKER_TAG_MAP: Record<string, string> = {
 // MUST match COST_APPROACH_OPTIONS values in intake-form-config.ts exactly
 // =============================================================================
 export const Q8_COST_TAG_MAP: Record<string, string> = {
-  // v4 cost approach values:
+  // v5 cost approach values (LOCKED):
+  best_outcome: "TAG_QUALITY_OUTCOME_FOCUSED",
+  understand_value: "TAG_DISCUSS_OPTIONS_BEFORE_COST",
+  comfort_range: "TAG_CLEAR_PRICING_UPFRONT",
+  strict_budget: "TAG_STRICT_BUDGET_SUPPORTIVE",
+  // Legacy v4 cost approach values (backwards compatibility):
   options_first: "TAG_DISCUSS_OPTIONS_BEFORE_COST",
   upfront_pricing: "TAG_CLEAR_PRICING_UPFRONT",
   finance_preferred: "TAG_MONTHLY_PAYMENTS_PREFERRED",
-  strict_budget: "TAG_STRICT_BUDGET_SUPPORTIVE",
   // Legacy v3 cost approach values (backwards compatibility):
   options_then_cost: "TAG_DISCUSS_OPTIONS_BEFORE_COST",
   payments_preferred: "TAG_MONTHLY_PAYMENTS_PREFERRED",
   rough_range_flexible: "TAG_FLEXIBLE_BUDGET_OK",
+}
+
+// =============================================================================
+// Q8: Cost approach → Clinic price_range compatibility
+// Used for price tier scoring (hard filter for extremes, soft score otherwise)
+// premium patient → never see budget clinics, budget patient → never see premium clinics
+// =============================================================================
+export const COST_PRICE_TIER_MAP: Record<string, { full: string[]; partial: string[]; excluded: string[] }> = {
+  best_outcome:    { full: ["premium"],      partial: ["mid"],            excluded: ["budget"] },
+  understand_value:{ full: ["premium", "mid"], partial: ["budget"],       excluded: [] },
+  comfort_range:   { full: ["mid", "budget"], partial: ["premium"],       excluded: [] },
+  strict_budget:   { full: ["budget"],        partial: ["mid"],           excluded: ["premium"] },
+  // Legacy values
+  options_first:   { full: ["premium", "mid"], partial: ["budget"],       excluded: [] },
+  upfront_pricing: { full: ["mid", "budget"], partial: ["premium"],       excluded: [] },
+  finance_preferred:{ full: ["mid", "budget"], partial: ["premium"],      excluded: [] },
 }
 
 // =============================================================================
@@ -111,11 +133,11 @@ export const Q10_ANXIETY_TAG_MAP: Record<string, string> = {
 // =============================================================================
 export const WEIGHT_CONFIG = {
   treatment: 15, // Must-have: clinic offers requested treatment
-  distance: 20, // Geographic proximity (NEVER used for reasons)
+  distance: 25, // Geographic proximity (NEVER used for reasons)
   priorities: 20, // Q4 priority tag matches
-  blockers: 15, // Q5 blocker tag matches
+  blockers: 0, // Q5 informational only — complex case penalty (-15) applied separately
   anxiety: 10, // Q10 anxiety accommodation
-  cost: 5, // Q8 cost approach alignment
+  cost: 15, // Q8 cost: price tier match + communication TAG match
   availability: 15, // Appointment time slot compatibility
 } as const
 
@@ -131,38 +153,186 @@ export const CANONICAL_TAG_KEYS: string[] = [
 ]
 
 // =============================================================================
-// Reason templates: TAG_* key → human-readable bullet
+// Reason templates: TAG_* key → human-readable bullet variants
 // Used for "Why we matched you" section (NEVER includes distance)
+// Multiple variants per tag — engine picks one to avoid repetition across clinics
 // =============================================================================
-export const REASON_TEMPLATES: Record<string, string> = {
-  // Q4 Priority matches - Following template: Matched because [patient priority] + [clinic attribute] + [patient benefit]
-  TAG_CLEAR_EXPLANATIONS: "Matched for their clear, patient-first treatment explanations. They take time to explain options in plain English, helping you make fully informed decisions",
-  TAG_LISTENED_TO_RESPECTED: "Matched because your preferences matter here. They take a patient-led approach where your concerns genuinely shape the conversation and treatment plan",
-  TAG_CALM_REASSURING: "Matched for their calm, gentle approach and strong patient comfort focus. Their supportive environment helps nervous patients feel genuinely at ease",
-  TAG_CLEAR_PRICING_UPFRONT: "Matched for transparent pricing with no hidden fees. You'll know exactly what treatment costs before committing, helping you feel informed and in control",
-  TAG_FLEXIBLE_APPOINTMENTS: "Matched for convenient scheduling including evenings and weekends. Their flexible approach makes it easier to fit quality dental care into your life",
-  TAG_SPECIALIST_LEVEL_EXPERIENCE: "Matched for specialist-level expertise in your treatment area. Their advanced training and experience give confidence in handling complex situations",
-  TAG_STRONG_REPUTATION_REVIEWS: "Matched for their consistently high patient satisfaction. Patients praise their communication, professionalism, and quality of care",
-  TAG_CONTINUITY_OF_CARE: "Matched because you value seeing the same dentist. This clinic prioritises long-term patient relationships, so you can build trust with one clinician over time",
+export const REASON_TEMPLATES: Record<string, string[]> = {
+  // ─── PRIORITY-BASED REASONS (Q4) ───────────────────────────────────────────
+  // Only shown if the patient actually selected this priority
 
-  // Q5 Blocker matches
-  TAG_GOOD_FOR_COST_CONCERNS: "Matched because financial clarity is important to you. This clinic provides understanding support for cost concerns without compromising on care quality",
-  TAG_FINANCE_AVAILABLE: "Matched for flexible payment options including finance plans. Spreading the cost helps make quality dental care more accessible and less stressful",
-  TAG_DECISION_SUPPORTIVE: "Matched because you value time to think before deciding. They offer honest conversations without pressure, giving you space to make the right choice",
-  TAG_OPTION_CLARITY_SUPPORT: "Matched for their thorough option explanations. They present pros, cons, and costs clearly so you can make confident, informed decisions",
-  TAG_ANXIETY_FRIENDLY: "Matched because anxious patients consistently feel safe and reassured here. Their gentle, patient-led approach helps you feel genuinely in control",
-  TAG_COMPLEX_CASES_WELCOME: "Matched because they welcome complex cases with confidence. Their experience means they can navigate challenging situations and find the right path forward",
-  TAG_RIGHT_FIT_FOCUSED: "Matched because they focus on finding the right treatment for each patient. They understand your needs before making recommendations",
+  TAG_SPECIALIST_LEVEL_EXPERIENCE: [
+    "This clinic has strong clinical expertise in {treatment}.",
+    "Matched because this team has extensive experience in {treatment}.",
+    "Selected for their depth of experience in {treatment}.",
+  ],
 
-  // Q8 Cost matches
-  TAG_DISCUSS_OPTIONS_BEFORE_COST: "Matched for their approach of discussing options before costs. Understanding your choices first helps you feel informed rather than pressured by price",
-  TAG_MONTHLY_PAYMENTS_PREFERRED: "Matched for monthly payment options to spread treatment costs. This makes quality dental care more manageable for your budget",
-  TAG_FLEXIBLE_BUDGET_OK: "Matched because they're understanding about budget discussions. They work with you to find treatment options that fit your financial situation",
-  TAG_STRICT_BUDGET_SUPPORTIVE: "Matched because they're supportive of patients with specific budgets. They help prioritise treatment and find solutions that work financially",
+  TAG_FLEXIBLE_APPOINTMENTS: [
+    "Matched because they provide late afternoon or weekend availability.",
+    "Offers flexible scheduling including evenings and weekends.",
+    "A good fit for patients who need appointments outside standard hours.",
+  ],
 
-  // Q10 Anxiety matches
-  TAG_OK_WITH_ANXIOUS_PATIENTS: "Matched because anxious patients consistently feel supported here. Their team takes extra time to explain each step and will pause whenever you need",
-  TAG_SEDATION_AVAILABLE: "Matched because sedation options are available for extra comfort. Whether mild relaxation or deeper sedation, they'll help you find what works",
+  TAG_CLEAR_PRICING_UPFRONT: [
+    "This clinic provides transparent treatment plans.",
+    "Matched because they show clear treatment plans and cost discussions.",
+  ],
+
+  TAG_CALM_REASSURING: [
+    "Matched because they focus on supportive, patient-centred care.",
+    "A good fit for patients who value reassurance and clear communication.",
+  ],
+
+  TAG_STRONG_REPUTATION_REVIEWS: [
+    "This clinic has consistently strong reviews.",
+    "Matched because of their excellent patient feedback.",
+    "Selected for their trusted reputation.",
+  ],
+
+  TAG_CONTINUITY_OF_CARE: [
+    "A good fit for patients seeking long-term care because they focus on building ongoing patient relationships.",
+    "Matched because they prioritise seeing the same dentist each visit.",
+    "Selected for their focus on continuity and long-term trust.",
+  ],
+
+  // Legacy priority tags (backwards compat)
+  TAG_CLEAR_EXPLANATIONS: [
+    "Matched because they explain treatment options in plain, simple language.",
+    "Selected for their focus on clear, jargon-free communication.",
+    "A good fit for patients who value thorough explanations.",
+  ],
+  TAG_LISTENED_TO_RESPECTED: [
+    "Matched for their collaborative, patient-led approach to care.",
+    "A good fit for patients who want to feel heard and respected.",
+    "Selected because they take time to listen to patient concerns.",
+  ],
+
+  // ─── HESITATION-BASED REASONS (Q5 Blockers) ────────────────────────────────
+  // Only shown if the patient actually selected this hesitation AND clinic has the tag
+
+  TAG_GOOD_FOR_COST_CONCERNS: [
+    "A thoughtful match for patients considering their investment carefully.",
+    "Matched because they support patients in understanding treatment value.",
+    "A good fit if cost is an important factor in your decision.",
+  ],
+
+  TAG_DECISION_SUPPORTIVE: [
+    "Matched with a team that takes time to explain options clearly.",
+    "A good fit if you'd like space to make a confident decision.",
+  ],
+
+  TAG_OPTION_CLARITY_SUPPORT: [
+    "Matched with a team that takes time to explain different treatment paths.",
+    "A good fit for exploring options comfortably.",
+  ],
+
+  TAG_COMPLEX_CASES_WELCOME: [
+    "Matched with a team experienced in handling more complex cases.",
+    "A good fit for patients who want reassurance around complexity.",
+    "Selected because they regularly manage complex treatment plans.",
+  ],
+
+  TAG_BAD_EXPERIENCE_SUPPORTIVE: [
+    "Matched with a team experienced in helping patients rebuild confidence.",
+    "A thoughtful match for patients seeking reassurance.",
+  ],
+
+  TAG_RIGHT_FIT_FOCUSED: [
+    "Matched because they focus on finding the right treatment for each patient.",
+    "A good match for patients who value a personalised approach.",
+    "Selected for their focus on tailoring care to individual needs.",
+  ],
+
+  // Legacy blocker tags
+  TAG_FINANCE_AVAILABLE: [
+    "Matched for flexible payment plans to spread the cost.",
+    "Offers finance options to help manage treatment costs.",
+    "A good fit if spreading the cost over time matters to you.",
+  ],
+  TAG_ANXIETY_FRIENDLY: [
+    "Matched because they focus on supportive, patient-centred care.",
+    "A good fit for patients who appreciate a gentle, reassuring approach.",
+    "Selected for their experience in supporting anxious patients.",
+  ],
+
+  // ─── COST APPROACH REASONS (Q8) ────────────────────────────────────────────
+  TAG_QUALITY_OUTCOME_FOCUSED: [
+    "A thoughtful match for patients considering their investment carefully.",
+    "Matched because they focus on delivering the best possible outcome.",
+    "Selected for their emphasis on quality and long-term results.",
+  ],
+  TAG_DISCUSS_OPTIONS_BEFORE_COST: [
+    "Matched with a team that takes time to explain options clearly.",
+    "A good fit for patients who want to explore options before discussing cost.",
+    "Selected because they present options with clear reasoning.",
+  ],
+  TAG_MONTHLY_PAYMENTS_PREFERRED: [
+    "Matched for flexible payment plans to spread the cost.",
+    "Offers monthly payment options to make treatment more accessible.",
+    "A good fit if spreading the cost matters to you.",
+  ],
+  TAG_FLEXIBLE_BUDGET_OK: [
+    "A thoughtful match for patients considering their investment carefully.",
+    "Matched because they work with patients on flexible cost arrangements.",
+    "A good fit for patients with a rough budget who value flexibility.",
+  ],
+  TAG_STRICT_BUDGET_SUPPORTIVE: [
+    "A thoughtful match for patients considering their investment carefully.",
+    "Matched because they work within clear budget constraints.",
+    "A good fit for patients who need transparency around costs upfront.",
+  ],
+
+  // ─── ANXIETY REASONS (Q10) ─────────────────────────────────────────────────
+  TAG_OK_WITH_ANXIOUS_PATIENTS: [
+    "Experienced in supporting nervous patients.",
+    "Provides a calm approach for patients who need reassurance.",
+  ],
+  TAG_SEDATION_AVAILABLE: [
+    "Experienced in supporting nervous patients.",
+    "Provides a calm approach for patients who need reassurance.",
+  ],
+}
+
+// =============================================================================
+// Treatment-based reason templates (used by reasons engine based on category)
+// =============================================================================
+export const TREATMENT_REASON_TEMPLATES: Record<string, string[]> = {
+  cosmetic: [
+    "Experienced in cosmetic treatments like {treatment}.",
+    "Strong portfolio in {treatment}.",
+    "A focused match for your chosen treatment.",
+  ],
+  checkup: [
+    "Well suited for ongoing general dental care.",
+    "A good match for preventative and routine care.",
+  ],
+  emergency: [
+    "Experienced in handling urgent dental concerns.",
+    "Accepts emergency appointments.",
+  ],
+}
+
+// =============================================================================
+// Emergency-specific reason templates
+// =============================================================================
+export const EMERGENCY_REASON_TEMPLATES = {
+  availability: [
+    "Available within your preferred timeframe.",
+    "Able to see urgent patients.",
+    "Offers appointments aligned with your urgency.",
+  ],
+  distance: [
+    "Conveniently located near you.",
+    "Within your preferred travel distance.",
+  ],
+  capability: [
+    "Experienced in handling urgent dental concerns.",
+    "Accepts emergency appointments.",
+  ],
+  anxiety: [
+    "Experienced in supporting nervous patients.",
+    "Provides a calm approach for urgent visits.",
+  ],
 }
 
 // =============================================================================
@@ -185,35 +355,26 @@ export const PROFILE_HIGHLIGHT_TAGS = [
 // These are tagged as FALLBACK, not AI-generated
 // Priority: lower number = used first
 // =============================================================================
+// Logistics-only fallback reasons — ONLY appear when not enough other reasons exist
 export const FALLBACK_REASONS: Array<{
   key: string
   text: string
   priority: number
 }> = [
   {
-    key: "FALLBACK_CLINIC_COMPARED",
-    text: "Matched after comparing clinics against your criteria. Their overall profile aligns well with what you're looking for",
+    key: "FALLBACK_CONVENIENT_LOCATION",
+    text: "Conveniently located near you.",
     priority: 1,
   },
   {
-    key: "FALLBACK_CLEAR_EXPLANATIONS",
-    text: "Matched for their clear communication style. Patients appreciate how thoroughly they explain options before decisions",
+    key: "FALLBACK_TRAVEL_DISTANCE",
+    text: "Within your preferred travel distance.",
     priority: 2,
   },
   {
-    key: "FALLBACK_SUITABLE_PREFERENCES",
-    text: "Matched because their approach and services fit the preferences you described. A balanced choice across your priorities",
+    key: "FALLBACK_AVAILABILITY",
+    text: "Offers appointments aligned with your availability.",
     priority: 3,
-  },
-  {
-    key: "FALLBACK_PATIENT_FOCUSED",
-    text: "Matched for their patient-focused approach. They take time to understand individual needs before making recommendations",
-    priority: 4,
-  },
-  {
-    key: "FALLBACK_QUALITY_CARE",
-    text: "Matched for their commitment to quality care. Their track record reflects positive patient experiences and outcomes",
-    priority: 5,
   },
 ]
 
@@ -270,9 +431,11 @@ export const TAG_TO_CATEGORY: Record<string, TagCategory> = {
   TAG_OPTION_CLARITY_SUPPORT: "q5_blockers",
   TAG_ANXIETY_FRIENDLY: "q5_blockers",
   TAG_COMPLEX_CASES_WELCOME: "q5_blockers",
+  TAG_BAD_EXPERIENCE_SUPPORTIVE: "q5_blockers",
   TAG_RIGHT_FIT_FOCUSED: "q5_blockers",
 
   // Q8 Cost tags
+  TAG_QUALITY_OUTCOME_FOCUSED: "q8_cost",
   TAG_DISCUSS_OPTIONS_BEFORE_COST: "q8_cost",
   TAG_MONTHLY_PAYMENTS_PREFERRED: "q8_cost",
   TAG_FLEXIBLE_BUDGET_OK: "q8_cost",

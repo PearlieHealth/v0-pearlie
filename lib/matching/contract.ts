@@ -12,8 +12,8 @@
  * ============================================================================
  */
 
-export const MATCHING_CONTRACT_VERSION = "v1_locked"
-export const EXPLANATION_SCHEMA_VERSION = "v1_locked"
+export const MATCHING_CONTRACT_VERSION = "v2_reason_templates"
+export const EXPLANATION_SCHEMA_VERSION = "v2_reason_templates"
 
 /**
  * Canonical lead answer shape - normalized and validated
@@ -28,9 +28,9 @@ export interface LeadAnswer {
   city?: string
   locationPreference?: "near_home" | "travel_bit" | "travel_further" | null
   priorities: string[] // Maps from decision_values in DB
-  anxietyLevel?: "comfortable" | "slightly_anxious" | "quite_anxious" | "very_anxious" | null
+  anxietyLevel?: string | null // v6: comfortable, slightly_anxious, quite_anxious, very_anxious (+ legacy values)
   budgetRange?: string | null
-  costApproach?: "COMPARE_VALUE" | "FLEXIBLE_FINANCE" | "STRICT_BUDGET" | "PREFER_DISCUSS" | null
+  costApproach?: string | null // v6: best_outcome, understand_value, comfort_range, strict_budget (+ legacy values)
   strictBudgetMax?: number | string | null
   timingPreference?: string | null
   preferred_times?: string[] // Morning, afternoon, weekends
@@ -87,6 +87,7 @@ export interface MatchScoreBreakdown {
   percent: number
   categories: ScoreCategoryBreakdown[]
   distanceMiles?: number
+  complexCasePenalty?: number // -15 if WORRIED_COMPLEX selected and clinic lacks TAG_COMPLEX_CASES_WELCOME
 }
 
 /**
@@ -126,11 +127,15 @@ export interface MatchFacts {
   clinicId: string
   clinicName: string
 
+  // Whether this is an emergency match (changes reason count and tone)
+  isEmergency: boolean
+
   // Treatment match
   treatmentMatch: {
     requested: string
     clinicOffers: boolean
     matchedTreatments: string[]
+    treatmentCategory: "cosmetic" | "checkup" | "emergency"
   }
 
   // Q4: Priorities (what patient values most)
@@ -147,11 +152,13 @@ export interface MatchFacts {
     hasMatch: boolean
   }
 
-  // Q8: Cost approach
+  // Q8: Cost approach (two-layer: price tier + communication TAG)
   cost: {
     patientApproach: string | null
     matchedTag: string | null
     hasMatch: boolean
+    priceTierMatch: "full" | "partial" | "excluded" | "unknown"
+    clinicPriceRange: string | null
   }
 
   // Q10: Anxiety support
@@ -177,13 +184,14 @@ export interface MatchFacts {
   scoreBreakdown: {
     treatment: number
     priorities: number
-    blockers: number
+    blockers: number // Always 0 — informational only
     cost: number
     anxiety: number
     availability: number
     total: number
     maxPossible: number
     percent: number
+    complexCasePenalty?: number // -15 if applied
   }
 
   // All clinic tags for fallback selection

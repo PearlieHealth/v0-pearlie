@@ -65,7 +65,7 @@ interface RankedClinicResult {
   tier: string
   isPinned: boolean
   explanationVersion?: string
-  reasons: Array<{ text: string; category: string; tagKey?: string }>
+  reasons: Array<{ text: string; category: string; tagKey?: string; rawText?: string }>
   debug: {
     distanceMiles?: number
     treatmentMatch: boolean
