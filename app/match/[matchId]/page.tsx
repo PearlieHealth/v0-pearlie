@@ -817,7 +817,7 @@ const categoryLabels: Record<string, string> = {
                                   priorities: "Your priorities",
                                   blockers: "Concerns addressed",
                                   anxiety: "Anxiety support",
-                                  cost: "Payment options",
+                                  cost: "Cost & value fit",
                                   distance: "Location",
                                   availability: "Appointment times",
                                 }

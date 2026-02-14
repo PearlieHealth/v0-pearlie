@@ -6,6 +6,7 @@ import {
   Q5_BLOCKER_TAG_MAP,
   Q8_COST_TAG_MAP,
   Q10_ANXIETY_TAG_MAP,
+  COST_PRICE_TIER_MAP,
 } from "./tag-schema"
 
 /**
@@ -446,26 +447,58 @@ function scoreAvailability(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
 function scoreCostApproach(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: number): ScoreCategoryBreakdown {
   const costApproach = lead.costApproach || ""
   const tagKey = Q8_COST_TAG_MAP[costApproach]
+  const clinicPriceRange = clinic.priceRange || null
   let points = 0
   let matchedTag: string | null = null
+  let priceTierMatch: "full" | "partial" | "excluded" | "unknown" = "unknown"
 
+  // Split points: 50% price tier match, 50% communication TAG match
+  const tierPoints = Math.round(maxPoints * 0.5)
+  const tagPoints = maxPoints - tierPoints
+
+  // --- Layer 1: Price tier match ---
+  // Hard filter for extremes: premium patient never sees budget, budget patient never sees premium
+  const tierConfig = COST_PRICE_TIER_MAP[costApproach]
+  if (tierConfig && clinicPriceRange) {
+    if (tierConfig.excluded.includes(clinicPriceRange)) {
+      // Hard exclusion — clinic's price tier is incompatible with patient's mindset
+      priceTierMatch = "excluded"
+      // 0 points for tier, effectively penalises this clinic heavily
+    } else if (tierConfig.full.includes(clinicPriceRange)) {
+      priceTierMatch = "full"
+      points += tierPoints // Full tier points
+    } else if (tierConfig.partial.includes(clinicPriceRange)) {
+      priceTierMatch = "partial"
+      points += Math.round(tierPoints * 0.5) // Half tier points
+    }
+  } else if (!clinicPriceRange) {
+    // Clinic has no price_range set — give benefit of the doubt
+    priceTierMatch = "unknown"
+    points += Math.round(tierPoints * 0.5)
+  } else {
+    // Patient has no cost approach or legacy value without tier config — neutral
+    priceTierMatch = "unknown"
+    points += Math.round(tierPoints * 0.5)
+  }
+
+  // --- Layer 2: Communication TAG match ---
   if (tagKey && clinic.filterKeys.includes(tagKey)) {
-    // Direct match: clinic has the exact cost tag the patient needs
-    points = maxPoints
+    // Direct match: clinic has the exact cost communication tag the patient needs
+    points += tagPoints
     matchedTag = tagKey
   } else if (tagKey) {
     // No direct match, but check for related cost support
-    // e.g. patient wants strict_budget but clinic has finance available
-    const hasSomeCostSupport = 
+    const hasSomeCostSupport =
+      clinic.filterKeys.includes("TAG_QUALITY_OUTCOME_FOCUSED") ||
       clinic.filterKeys.includes("TAG_CLEAR_PRICING_UPFRONT") ||
       clinic.filterKeys.includes("TAG_MONTHLY_PAYMENTS_PREFERRED") ||
       clinic.filterKeys.includes("TAG_FINANCE_AVAILABLE") ||
       clinic.filterKeys.includes("TAG_STRICT_BUDGET_SUPPORTIVE") ||
       clinic.filterKeys.includes("TAG_FLEXIBLE_BUDGET_OK") ||
       clinic.filterKeys.includes("TAG_DISCUSS_OPTIONS_BEFORE_COST")
-    
+
     if (hasSomeCostSupport) {
-      points = Math.round(maxPoints * 0.4) // Partial credit for related cost support
+      points += Math.round(tagPoints * 0.4) // Partial credit for related cost support
     }
   }
 
@@ -478,6 +511,8 @@ function scoreCostApproach(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
       patientApproach: costApproach,
       matchedTag,
       hasCostMatch: points > 0,
+      priceTierMatch,
+      clinicPriceRange,
     },
   }
 }
@@ -519,8 +554,10 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
 
     cost: {
       patientApproach: lead.costApproach || null,
-      matchedTag: (costCat?.facts?.matchedTags as string[])?.[0] || null,
+      matchedTag: (costCat?.facts?.matchedTag as string) || null,
       hasMatch: (costCat?.facts?.hasCostMatch as boolean) || false,
+      priceTierMatch: (costCat?.facts?.priceTierMatch as "full" | "partial" | "excluded" | "unknown") || "unknown",
+      clinicPriceRange: (costCat?.facts?.clinicPriceRange as string) || null,
     },
 
 anxiety: {

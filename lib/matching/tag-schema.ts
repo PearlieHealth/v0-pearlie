@@ -19,7 +19,7 @@
 // This is the single source of truth for all tag-to-form mappings
 // IMPORTANT: These TAG_* keys must match exactly what's in clinic_filters table
 
-export const FORM_VERSION = "v2_final_11q_2026-01-13"
+export const FORM_VERSION = "v5_cost_question_2026-02-14"
 
 // =============================================================================
 // Q4: "What matters most when choosing a clinic?" (7 options, multi-select, max 3)
@@ -80,15 +80,35 @@ export const Q5_BLOCKER_TAG_MAP: Record<string, string> = {
 // MUST match COST_APPROACH_OPTIONS values in intake-form-config.ts exactly
 // =============================================================================
 export const Q8_COST_TAG_MAP: Record<string, string> = {
-  // v4 cost approach values:
+  // v5 cost approach values (LOCKED):
+  best_outcome: "TAG_QUALITY_OUTCOME_FOCUSED",
+  understand_value: "TAG_DISCUSS_OPTIONS_BEFORE_COST",
+  comfort_range: "TAG_CLEAR_PRICING_UPFRONT",
+  strict_budget: "TAG_STRICT_BUDGET_SUPPORTIVE",
+  // Legacy v4 cost approach values (backwards compatibility):
   options_first: "TAG_DISCUSS_OPTIONS_BEFORE_COST",
   upfront_pricing: "TAG_CLEAR_PRICING_UPFRONT",
   finance_preferred: "TAG_MONTHLY_PAYMENTS_PREFERRED",
-  strict_budget: "TAG_STRICT_BUDGET_SUPPORTIVE",
   // Legacy v3 cost approach values (backwards compatibility):
   options_then_cost: "TAG_DISCUSS_OPTIONS_BEFORE_COST",
   payments_preferred: "TAG_MONTHLY_PAYMENTS_PREFERRED",
   rough_range_flexible: "TAG_FLEXIBLE_BUDGET_OK",
+}
+
+// =============================================================================
+// Q8: Cost approach → Clinic price_range compatibility
+// Used for price tier scoring (hard filter for extremes, soft score otherwise)
+// premium patient → never see budget clinics, budget patient → never see premium clinics
+// =============================================================================
+export const COST_PRICE_TIER_MAP: Record<string, { full: string[]; partial: string[]; excluded: string[] }> = {
+  best_outcome:    { full: ["premium"],      partial: ["mid"],            excluded: ["budget"] },
+  understand_value:{ full: ["premium", "mid"], partial: ["budget"],       excluded: [] },
+  comfort_range:   { full: ["mid", "budget"], partial: ["premium"],       excluded: [] },
+  strict_budget:   { full: ["budget"],        partial: ["mid"],           excluded: ["premium"] },
+  // Legacy values
+  options_first:   { full: ["premium", "mid"], partial: ["budget"],       excluded: [] },
+  upfront_pricing: { full: ["mid", "budget"], partial: ["premium"],       excluded: [] },
+  finance_preferred:{ full: ["mid", "budget"], partial: ["premium"],      excluded: [] },
 }
 
 // =============================================================================
@@ -111,11 +131,11 @@ export const Q10_ANXIETY_TAG_MAP: Record<string, string> = {
 // =============================================================================
 export const WEIGHT_CONFIG = {
   treatment: 15, // Must-have: clinic offers requested treatment
-  distance: 20, // Geographic proximity (NEVER used for reasons)
+  distance: 15, // Geographic proximity (NEVER used for reasons)
   priorities: 20, // Q4 priority tag matches
   blockers: 15, // Q5 blocker tag matches
   anxiety: 10, // Q10 anxiety accommodation
-  cost: 5, // Q8 cost approach alignment
+  cost: 10, // Q8 cost: price tier match (5) + communication TAG match (5)
   availability: 15, // Appointment time slot compatibility
 } as const
 
@@ -155,6 +175,7 @@ export const REASON_TEMPLATES: Record<string, string> = {
   TAG_RIGHT_FIT_FOCUSED: "Matched because they focus on finding the right treatment for each patient. They understand your needs before making recommendations",
 
   // Q8 Cost matches
+  TAG_QUALITY_OUTCOME_FOCUSED: "Matched for their focus on achieving the best long-term results. They invest in advanced techniques and materials, prioritising lasting outcomes over shortcuts",
   TAG_DISCUSS_OPTIONS_BEFORE_COST: "Matched for their approach of discussing options before costs. Understanding your choices first helps you feel informed rather than pressured by price",
   TAG_MONTHLY_PAYMENTS_PREFERRED: "Matched for monthly payment options to spread treatment costs. This makes quality dental care more manageable for your budget",
   TAG_FLEXIBLE_BUDGET_OK: "Matched because they're understanding about budget discussions. They work with you to find treatment options that fit your financial situation",
@@ -273,6 +294,7 @@ export const TAG_TO_CATEGORY: Record<string, TagCategory> = {
   TAG_RIGHT_FIT_FOCUSED: "q5_blockers",
 
   // Q8 Cost tags
+  TAG_QUALITY_OUTCOME_FOCUSED: "q8_cost",
   TAG_DISCUSS_OPTIONS_BEFORE_COST: "q8_cost",
   TAG_MONTHLY_PAYMENTS_PREFERRED: "q8_cost",
   TAG_FLEXIBLE_BUDGET_OK: "q8_cost",

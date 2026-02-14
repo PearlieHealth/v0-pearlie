@@ -147,11 +147,13 @@ export interface MatchFacts {
     hasMatch: boolean
   }
 
-  // Q8: Cost approach
+  // Q8: Cost approach (two-layer: price tier + communication TAG)
   cost: {
     patientApproach: string | null
     matchedTag: string | null
     hasMatch: boolean
+    priceTierMatch: "full" | "partial" | "excluded" | "unknown"
+    clinicPriceRange: string | null
   }
 
   // Q10: Anxiety support

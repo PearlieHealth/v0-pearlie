@@ -15,8 +15,8 @@
 // =============================================================================
 // FORM VERSION - Update when making breaking changes
 // =============================================================================
-export const FORM_VERSION = "v4_emergency_flow_2026-02-08"
-export const SCHEMA_VERSION = 4
+export const FORM_VERSION = "v5_cost_question_2026-02-14"
+export const SCHEMA_VERSION = 5
 
 // =============================================================================
 // TREATMENTS (Q1)
@@ -159,26 +159,35 @@ export const TIMING_SHORT_LABELS: Record<string, string> = {
 
 // =============================================================================
 // COST APPROACH (Q9 - Planning only)
+// Question: "How do you usually think about investing in dental treatment?"
 // =============================================================================
 export const COST_APPROACH_OPTIONS = [
-  { value: "options_first", label: "I want to explore my options before thinking about cost" },
-  { value: "upfront_pricing", label: "I'd like to know rough pricing upfront" },
-  { value: "finance_preferred", label: "I'd prefer to spread the cost with a payment plan" },
-  { value: "strict_budget", label: "I have a fixed budget I need to stay within" },
+  { value: "best_outcome", label: "I'm looking for the best possible result and long-term outcome" },
+  { value: "understand_value", label: "I want to clearly understand the options and why one might be worth more than another" },
+  { value: "comfort_range", label: "I have a rough comfort range, but I'm flexible if the plan makes sense" },
+  { value: "strict_budget", label: "I have a strict budget I need to stay within" },
 ] as const
 
 export const COST_APPROACH_LABELS: Record<string, string> = {
+  best_outcome: "Looking for the best result and long-term outcome",
+  understand_value: "Wants to understand options and why one might be worth more",
+  comfort_range: "Has a rough range but flexible if plan makes sense",
+  strict_budget: "Has a strict budget",
+  // Legacy v4 values (backwards compatibility)
   options_first: "Wants to explore options before thinking about cost",
   upfront_pricing: "Would like to know rough pricing upfront",
   finance_preferred: "Prefers to spread cost with a payment plan",
-  strict_budget: "Has a fixed budget",
 }
 
 export const COST_APPROACH_SHORT_LABELS: Record<string, string> = {
+  best_outcome: "Best Outcome",
+  understand_value: "Understand Value",
+  comfort_range: "Flexible Range",
+  strict_budget: "Strict Budget",
+  // Legacy v4 values (backwards compatibility)
   options_first: "Options First",
   upfront_pricing: "Upfront Pricing",
   finance_preferred: "Wants Finance",
-  strict_budget: "Strict Budget",
 }
 
 // =============================================================================
@@ -197,22 +206,23 @@ export const URGENCY_LABELS: Record<string, string> = {
 }
 
 // =============================================================================
-// MONTHLY PAYMENT OPTIONS (Q9A - Planning only, conditional on Q9 option 3)
+// MONTHLY PAYMENT OPTIONS (Q9A - Planning only, conditional on "comfort_range")
+// Question: "Would spreading the cost into monthly payments make treatment easier for you?"
+// Informational only — does NOT affect scoring
 // =============================================================================
 export const MONTHLY_PAYMENT_OPTIONS = [
-  { value: "under_50", label: "Under \u00a350/month" },
-  { value: "50_100", label: "\u00a350 - \u00a3100/month" },
-  { value: "100_200", label: "\u00a3100 - \u00a3200/month" },
-  { value: "over_200", label: "Over \u00a3200/month" },
-  { value: "not_sure", label: "Not sure yet" },
+  { value: "yes", label: "Yes, that would make it easier" },
+  { value: "no", label: "No, that's not important for me" },
 ] as const
 
 // =============================================================================
-// BUDGET HANDLING OPTIONS (Q9B - Planning only, conditional on Q9 option 4)
+// BUDGET HANDLING OPTIONS (Q9B - Planning only, conditional on "strict_budget")
+// Question: "How would you prefer to handle costs with the clinic?"
+// Informational only — does NOT affect scoring
 // =============================================================================
 export const BUDGET_HANDLING_OPTIONS = [
-  { value: "discuss_with_clinic", label: "I'd rather discuss it directly with the clinic" },
-  { value: "enter_amount", label: "I'd like to enter my budget" },
+  { value: "discuss_with_clinic", label: "I'd prefer to discuss costs directly with the clinic" },
+  { value: "share_range", label: "I can share a rough budget range" },
 ] as const
 
 // =============================================================================
