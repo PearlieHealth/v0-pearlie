@@ -60,6 +60,7 @@ interface Clinic {
   accepts_nhs?: boolean
   is_archived: boolean
   tags?: string[]
+  offers_free_consultation?: boolean
   show_treatment_prices?: boolean
   treatment_prices?: {
     category: string
@@ -563,6 +564,19 @@ export default function ClinicDetailPage() {
                 <div>
                   <h3 className="font-bold text-[#1a1a1a]">Pearlie Guarantee</h3>
                   <p className="text-sm text-[#666] mt-0.5">{"This clinic has been verified by Pearlie. Quality care, transparent pricing, and a trusted experience. If your new Pearlie dentist doesn\u2019t live up to your expectations, we\u2019ll cover your next consultation/check-up fee."}</p>
+                </div>
+              </section>
+            )}
+
+            {/* FREE CONSULTATION BADGE */}
+            {clinic.offers_free_consultation && (
+              <section className="flex items-center gap-4 bg-[#f0f0ff] border border-indigo-200 rounded-xl p-5">
+                <div className="flex-shrink-0 h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                  <CheckCircle2 className="h-6 w-6 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-[#1a1a1a]">Free Consultation</h3>
+                  <p className="text-sm text-[#666] mt-0.5">This clinic offers a free initial consultation for cosmetic treatments and Invisalign. Contact them to book yours.</p>
                 </div>
               </section>
             )}

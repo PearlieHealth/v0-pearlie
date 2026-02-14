@@ -82,6 +82,7 @@ interface Clinic {
   card_title?: string
   is_directory_listing?: boolean
   is_emergency?: boolean
+  offers_free_consultation?: boolean
   highlight_chips?: string[]
   available_days?: string[]
   available_hours?: string[]
@@ -125,6 +126,7 @@ export default function MatchPage() {
     acceptsNhs: false,
     wheelchairAccessible: false,
     parkingAvailable: false,
+    freeConsultation: false,
     prioritiseDistance: false,
   })
 
@@ -270,6 +272,10 @@ export default function MatchPage() {
 
     if (filters.parkingAvailable) {
       clinics = clinics.filter((c) => c.parking_available === true)
+    }
+
+    if (filters.freeConsultation) {
+      clinics = clinics.filter((c) => c.offers_free_consultation === true)
     }
 
     if (filters.prioritiseDistance && clinics.length > 0) {
@@ -778,6 +784,12 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                         ) : (
                                           <div className="flex items-center gap-1 text-muted-foreground">
                                             <span className="text-xs">Directory listing</span>
+                                          </div>
+                                        )}
+                                        {clinic.offers_free_consultation && (
+                                          <div className="flex items-center gap-1 text-indigo-600">
+                                            <CheckCircle2 className="w-4 h-4" />
+                                            <span className="font-medium">Free consultation</span>
                                           </div>
                                         )}
                                         {clinic.distance_miles !== undefined && (

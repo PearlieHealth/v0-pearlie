@@ -75,6 +75,7 @@ interface ClinicProfile {
   highlight_chips: string[]
   images: string[]
   before_after_images: BeforeAfterImage[]
+  offers_free_consultation: boolean
   show_treatment_prices: boolean
   treatment_prices: TreatmentCategory[]
   google_rating?: number
@@ -390,6 +391,7 @@ export default function ClinicProfilePage() {
           highlight_chips: clinic.highlight_chips || [],
           images: clinic.images || [],
           before_after_images: clinic.before_after_images || [],
+          offers_free_consultation: clinic.offers_free_consultation || false,
           show_treatment_prices: clinic.show_treatment_prices || false,
           treatment_prices: clinic.treatment_prices || [],
           google_rating: clinic.google_rating,
@@ -443,6 +445,7 @@ export default function ClinicProfilePage() {
           highlight_chips: profile.highlight_chips,
           images: profile.images,
           before_after_images: profile.before_after_images,
+          offers_free_consultation: profile.offers_free_consultation,
           show_treatment_prices: profile.show_treatment_prices,
           treatment_prices: profile.treatment_prices,
         }),
@@ -1047,6 +1050,25 @@ export default function ClinicProfilePage() {
                 placeholder="Add treatment..."
               />
             </CardContent>
+          </Card>
+
+          {/* Free Consultation */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Offers Free Consultation
+                </CardTitle>
+                <Switch
+                  checked={profile.offers_free_consultation}
+                  onCheckedChange={(checked) => setProfile({ ...profile, offers_free_consultation: checked })}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Enable this if your clinic offers a free initial consultation for cosmetic treatments and Invisalign. This does not apply to routine check-ups or emergency appointments. A badge will appear on your profile and in match results.
+              </p>
+            </CardHeader>
           </Card>
 
           {/* Treatment Pricing */}
