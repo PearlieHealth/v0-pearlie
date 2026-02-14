@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
     // Mark messages as read by patient
     await supabase
       .from("conversations")
-      .update({ unread_by_patient: false })
+      .update({ unread_by_patient: false, unread_count_patient: 0 })
       .eq("id", conversation.id)
 
     // Determine if clinic is currently typing (within last 10 seconds)

@@ -67,12 +67,12 @@ export async function POST(request: NextRequest) {
     // Get or create conversation using limit instead of single to avoid errors
     const { data: conversations } = await supabase
       .from("conversations")
-      .select("id, bot_greeted")
+      .select("id, bot_greeted, unread_count_clinic, unread_count_patient")
       .eq("lead_id", leadId)
       .eq("clinic_id", clinicId)
       .limit(1)
 
-    let conversation = conversations?.[0] as { id: string; bot_greeted?: boolean } | undefined
+    let conversation = conversations?.[0] as { id: string; bot_greeted?: boolean; unread_count_clinic?: number; unread_count_patient?: number } | undefined
 
     if (!conversation) {
       // Create new conversation with unread flags
@@ -137,15 +137,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update conversation with unread flag
-    await supabase
+    // Update conversation: set unread flags, increment unread counts, update timestamp
+    const updateData: Record<string, any> = {
+      last_message_at: new Date().toISOString(),
+    }
+    if (senderType === "patient") {
+      updateData.unread_by_clinic = true
+      updateData.unread_count_clinic = ((conversation as any).unread_count_clinic || 0) + 1
+    } else {
+      updateData.unread_by_patient = true
+      updateData.unread_count_patient = ((conversation as any).unread_count_patient || 0) + 1
+    }
+
+    const { error: updateError } = await supabase
       .from("conversations")
-      .update({
-        last_message_at: new Date().toISOString(),
-        unread_by_clinic: senderType === "patient" ? true : undefined,
-        unread_by_patient: senderType === "clinic" ? true : undefined,
-      })
+      .update(updateData)
       .eq("id", conversation.id)
+
+    if (updateError) {
+      console.error("[Chat] Failed to update conversation:", updateError)
+    }
 
     // Send email notification to clinic when patient sends a message
     // Only send if RESEND_VERIFIED_DOMAIN is set (indicating domain is verified)

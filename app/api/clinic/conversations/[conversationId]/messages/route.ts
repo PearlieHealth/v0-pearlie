@@ -59,7 +59,7 @@ export async function GET(
     // Mark conversation as read by clinic
     await supabaseAdmin
       .from("conversations")
-      .update({ unread_by_clinic: false })
+      .update({ unread_by_clinic: false, unread_count_clinic: 0 })
       .eq("id", conversationId)
 
     return NextResponse.json({

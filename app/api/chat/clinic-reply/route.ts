@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     // Verify conversation belongs to this clinic
     const { data: conversation, error: convError } = await supabaseAdmin
       .from("conversations")
-      .select("id, clinic_id, clinic_first_reply_at")
+      .select("id, clinic_id, clinic_first_reply_at, unread_count_patient")
       .eq("id", conversationId)
       .single()
 
@@ -71,6 +71,8 @@ export async function POST(request: NextRequest) {
       last_message_at: new Date().toISOString(),
       unread_by_patient: true,
       unread_by_clinic: false,
+      unread_count_patient: (conversation.unread_count_patient || 0) + 1,
+      unread_count_clinic: 0,
       clinic_typing_at: null, // Clear typing indicator on send
     }
 
@@ -85,6 +87,7 @@ export async function POST(request: NextRequest) {
       .eq("id", conversationId)
 
     // Insert bot "clinic has replied" message before the first clinic reply
+    let botMessage = null
     if (isFirstClinicReply) {
       try {
         // Get clinic name
@@ -95,7 +98,7 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (clinic) {
-          await supabaseAdmin
+          const { data: botMsg } = await supabaseAdmin
             .from("messages")
             .insert({
               conversation_id: conversationId,
@@ -105,6 +108,10 @@ export async function POST(request: NextRequest) {
               // Set created_at slightly before the clinic message so it appears above
               created_at: new Date(Date.now() - 1000).toISOString(),
             })
+            .select("*")
+            .single()
+
+          botMessage = botMsg
         }
       } catch (botError) {
         console.error("[Chat] Bot clinic-replied message error:", botError)
@@ -114,6 +121,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message,
+      botMessage,
     })
   } catch (error) {
     console.error("[Chat] Unexpected error:", error)

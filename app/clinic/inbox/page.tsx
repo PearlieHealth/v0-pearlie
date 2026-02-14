@@ -36,7 +36,8 @@ interface Conversation {
     last_name: string
     email: string
     phone: string
-    treatment_type: string
+    treatment_interest: string
+    primary_treatment: string
   }
   latest_message?: string
 }
@@ -216,7 +217,10 @@ export default function ClinicInboxPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setMessages((prev) => [...prev, data.message])
+        const newMsgs = data.botMessage
+          ? [data.botMessage, data.message]
+          : [data.message]
+        setMessages((prev) => [...prev, ...newMsgs])
         setNewMessage("")
       }
     } catch (error) {
@@ -226,8 +230,10 @@ export default function ClinicInboxPage() {
     }
   }
 
-  const formatTime = (date: string) => {
+  const formatTime = (date: string | null) => {
+    if (!date) return ""
     const d = new Date(date)
+    if (isNaN(d.getTime())) return ""
     const now = new Date()
     const diffHours = (now.getTime() - d.getTime()) / (1000 * 60 * 60)
 
@@ -325,9 +331,9 @@ export default function ClinicInboxPage() {
                               {formatTime(conv.last_message_at)}
                             </span>
                           </div>
-                          {conv.lead?.treatment_type && (
+                          {(conv.lead?.treatment_interest || conv.lead?.primary_treatment) && (
                             <Badge variant="secondary" className="text-xs mt-1">
-                              {getTreatmentLabel(conv.lead.treatment_type)}
+                              {conv.lead?.treatment_interest || conv.lead?.primary_treatment}
                             </Badge>
                           )}
                           {conv.latest_message && (
