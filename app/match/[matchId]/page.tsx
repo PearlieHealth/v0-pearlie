@@ -81,6 +81,7 @@ interface Clinic {
   tier?: string
   card_title?: string
   is_directory_listing?: boolean
+  is_emergency?: boolean
   highlight_chips?: string[]
   available_days?: string[]
   available_hours?: string[]
@@ -871,9 +872,11 @@ const categoryLabels: Record<string, string> = {
                                         ? "About this clinic"
                                         : clinic.tier === "nearby"
                                           ? "Other option in your area"
-                                          : index < 2
-                                            ? "Why we matched you"
-                                            : "Could also be a good match"}
+                                          : clinic.is_emergency
+                                            ? "Why this clinic"
+                                            : index < 2
+                                              ? "Why we matched you"
+                                              : "Could also be a good match"}
                                     </h3>
                                   </div>
 
@@ -900,46 +903,17 @@ const categoryLabels: Record<string, string> = {
                                       </>
                                     ) : (
                                       (() => {
-                                        // Get reasons, ensuring we have at least 3
-                                        let reasons = clinic.match_reasons_composed && clinic.match_reasons_composed.length > 0
+                                        // Get reasons from the engine (already correct count: 2 for emergency, 3 for planning)
+                                        const reasons = clinic.match_reasons_composed && clinic.match_reasons_composed.length > 0
                                           ? clinic.match_reasons_composed
                                           : clinic.match_reasons && clinic.match_reasons.length > 0
                                             ? clinic.match_reasons
                                             : []
-                                        
-                                        // Clinic-specific fallback reasons (not generic)
-                                        const getClinicSpecificFallback = (idx: number) => {
-                                          if (idx === 0) {
-                                            if (clinic.rating >= 4.5) {
-                                              return `Matched for their excellent ${clinic.rating.toFixed(1)} star rating from ${clinic.review_count}+ patients.`
-                                            } else if (clinic.rating >= 4.0) {
-                                              return `Matched for strong patient reviews with a ${clinic.rating.toFixed(1)} star rating.`
-                                            }
-                                            return "Matched for their commitment to quality patient care."
-                                          }
-                                          if (idx === 1) {
-                                            if (clinic.distance_miles && clinic.distance_miles < 3) {
-                                              return `Matched for their convenient location just ${clinic.distance_miles.toFixed(1)} miles from you.`
-                                            } else if (clinic.distance_miles && clinic.distance_miles < 10) {
-                                              return `Matched for good accessibility at ${clinic.distance_miles.toFixed(1)} miles away.`
-                                            }
-                                            return "Matched for their accessible location and availability."
-                                          }
-                                          if (clinic.verified) {
-                                            return "Matched as a verified partner with confirmed credentials."
-                                          }
-                                          return "Matched based on their services and patient feedback."
-                                        }
-                                        
-                                        // Ensure we always have 3 reasons
-                                        let idx = 0
-                                        while (reasons.length < 3) {
-                                          reasons = [...reasons, getClinicSpecificFallback(idx)]
-                                          idx++
-                                        }
-                                        
-                                        // Take first 3 reasons
-                                        return reasons.slice(0, 3).map((sentence, i) => (
+
+                                        // Max reasons: 2 for emergency, 3 for planning
+                                        const maxReasons = clinic.is_emergency ? 2 : 3
+
+                                        return reasons.slice(0, maxReasons).map((sentence: string, i: number) => (
                                           <p key={i}>{sentence}</p>
                                         ))
                                       })()

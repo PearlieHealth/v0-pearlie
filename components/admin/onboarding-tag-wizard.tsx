@@ -95,9 +95,9 @@ export function OnboardingTagWizard({
     const matchedPatients: string[] = []
 
     tags.forEach((tag) => {
-      const template = REASON_TEMPLATES[tag as keyof typeof REASON_TEMPLATES]
-      if (template) {
-        matchedPatients.push(template)
+      const templates = REASON_TEMPLATES[tag as keyof typeof REASON_TEMPLATES]
+      if (templates?.[0]) {
+        matchedPatients.push(templates[0])
       }
     })
 

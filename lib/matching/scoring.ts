@@ -479,10 +479,27 @@ function scoreCostApproach(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
 }
 
 /**
+ * Detect treatment category from the treatment string
+ */
+function detectTreatmentCategory(treatment: string): "cosmetic" | "checkup" | "emergency" {
+  const lower = treatment.toLowerCase()
+  if (lower.includes("emergency") || lower.includes("pain") || lower.includes("swelling") || lower.includes("broken")) {
+    return "emergency"
+  }
+  if (lower.includes("check-up") || lower.includes("checkup") || lower.includes("check up") || lower.includes("general") || lower.includes("clean")) {
+    return "checkup"
+  }
+  return "cosmetic"
+}
+
+/**
  * Build MATCH_FACTS from lead and clinic - this is the ONLY input to reasons engine
  * Extracts structured facts, never passes raw answers
  */
 export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdown: MatchScoreBreakdown): MatchFacts {
+  const treatmentCategory = detectTreatmentCategory(lead.treatment)
+  const isEmergency = treatmentCategory === "emergency"
+
   // Extract category data from breakdown
   const treatmentCat = breakdown.categories.find((c) => c.category === "treatment")
   const prioritiesCat = breakdown.categories.find((c) => c.category === "priorities")
@@ -500,11 +517,13 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
   return {
     clinicId: clinic.id,
     clinicName: clinic.name,
+    isEmergency,
 
     treatmentMatch: {
       requested: lead.treatment,
       clinicOffers: treatmentCat?.facts?.clinicOffersTreatment ?? false,
       matchedTreatments: (treatmentCat?.facts?.clinicTreatments as string[]) || [],
+      treatmentCategory,
     },
 
     priorities: {

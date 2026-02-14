@@ -66,9 +66,9 @@ export default function MatchingAlgorithmPage() {
 
   // Initialize reason variations from REASON_TEMPLATES
   useEffect(() => {
-    const variations: ReasonVariation[] = Object.entries(REASON_TEMPLATES).map(([tagKey, template]) => ({
+    const variations: ReasonVariation[] = Object.entries(REASON_TEMPLATES).map(([tagKey, templates]) => ({
       tagKey,
-      templates: [template], // Start with the default template
+      templates: Array.isArray(templates) ? templates : [templates],
       currentIndex: 0,
     }))
     setReasonVariations(variations)
@@ -240,7 +240,7 @@ export default function MatchingAlgorithmPage() {
                           <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           <div className="flex-1">
                             <div className="text-sm text-muted-foreground">
-                              {REASON_TEMPLATES[tagKey] || "No reason template"}
+                              {REASON_TEMPLATES[tagKey]?.[0] || "No reason template"}
                             </div>
                           </div>
                         </div>
@@ -337,10 +337,11 @@ export default function MatchingAlgorithmPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {Object.entries(REASON_TEMPLATES).map(([tagKey, template]) => {
+                  {Object.entries(REASON_TEMPLATES).map(([tagKey, templates]) => {
                     const category = getTagCategory(tagKey)
                     const colors = CATEGORY_COLORS[category] || CATEGORY_COLORS.unknown
                     const categoryInfo = TAG_CATEGORIES[category]
+                    const firstTemplate = Array.isArray(templates) ? templates[0] : templates
 
                     return (
                       <div key={tagKey} className={`p-4 rounded-lg border ${colors.border} ${colors.bg}`}>
@@ -355,7 +356,7 @@ export default function MatchingAlgorithmPage() {
                           </div>
                           <div className="flex-1">
                             <Input
-                              value={editedTemplates[tagKey] ?? template}
+                              value={editedTemplates[tagKey] ?? firstTemplate}
                               onChange={(e) => handleTemplateChange(tagKey, e.target.value)}
                               className="bg-white"
                               placeholder="Enter reason text..."

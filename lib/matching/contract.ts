@@ -12,8 +12,8 @@
  * ============================================================================
  */
 
-export const MATCHING_CONTRACT_VERSION = "v1_locked"
-export const EXPLANATION_SCHEMA_VERSION = "v1_locked"
+export const MATCHING_CONTRACT_VERSION = "v2_reason_templates"
+export const EXPLANATION_SCHEMA_VERSION = "v2_reason_templates"
 
 /**
  * Canonical lead answer shape - normalized and validated
@@ -127,11 +127,15 @@ export interface MatchFacts {
   clinicId: string
   clinicName: string
 
+  // Whether this is an emergency match (changes reason count and tone)
+  isEmergency: boolean
+
   // Treatment match
   treatmentMatch: {
     requested: string
     clinicOffers: boolean
     matchedTreatments: string[]
+    treatmentCategory: "cosmetic" | "checkup" | "emergency"
   }
 
   // Q4: Priorities (what patient values most)
