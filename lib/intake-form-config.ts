@@ -15,8 +15,8 @@
 // =============================================================================
 // FORM VERSION - Update when making breaking changes
 // =============================================================================
-export const FORM_VERSION = "v5_cost_question_2026-02-14"
-export const SCHEMA_VERSION = 5
+export const FORM_VERSION = "v6_blocker_multiselect_2026-02-14"
+export const SCHEMA_VERSION = 6
 
 // =============================================================================
 // TREATMENTS (Q1)
@@ -100,14 +100,16 @@ export const ANXIETY_LEVEL_SHORT_LABELS: Record<string, string> = {
 }
 
 // =============================================================================
-// CONVERSION BLOCKERS / BIGGEST CONCERN (Q6 - Planning only, single select)
+// CONVERSION BLOCKERS / CONCERNS (Q5 - Planning only, multi-select max 2)
+// Informational only — does NOT affect scoring (except WORRIED_COMPLEX penalty)
 // =============================================================================
 export const BLOCKER_OPTIONS = [
-  { code: "NOT_WORTH_COST", label: "I'm not sure it's worth the cost" },
-  { code: "NEED_MORE_TIME", label: "I need more time to decide" },
-  { code: "UNSURE_OPTION", label: "I'm not sure which option is right for me" },
-  { code: "WORRIED_COMPLEX", label: "I'm worried it might be more complex than I expect" },
-  { code: "NO_CONCERN", label: "Nothing in particular - I just want the right clinic" },
+  { code: "NOT_WORTH_COST", label: "I'm unsure how much this might cost and whether it's the right investment" },
+  { code: "NEED_MORE_TIME", label: "I'd like to understand everything clearly and take my time before deciding" },
+  { code: "UNSURE_OPTION", label: "I'm not sure which treatment option is right for me" },
+  { code: "WORRIED_COMPLEX", label: "I'm concerned it might be more complicated than I expect" },
+  { code: "BAD_EXPERIENCE", label: "I've had a bad dental experience before" },
+  { code: "NO_CONCERN", label: "Nothing in particular — I just want the right clinic" },
 ] as const
 
 export type BlockerCode = (typeof BLOCKER_OPTIONS)[number]["code"]
@@ -117,10 +119,11 @@ export const BLOCKER_LABELS: Record<string, string> = Object.fromEntries(
 )
 
 export const BLOCKER_SHORT_LABELS: Record<string, string> = {
-  NOT_WORTH_COST: "Cost Concern",
+  NOT_WORTH_COST: "Cost Unsure",
   NEED_MORE_TIME: "Needs Time",
   UNSURE_OPTION: "Unsure Options",
-  WORRIED_COMPLEX: "Complexity Worry",
+  WORRIED_COMPLEX: "Complexity Concern",
+  BAD_EXPERIENCE: "Past Bad Experience",
   NO_CONCERN: "No Concern",
 }
 

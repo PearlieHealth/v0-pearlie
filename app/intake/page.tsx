@@ -46,7 +46,7 @@ export default function IntakePage() {
     // Planning-only fields
     location_preference: "",
     decisionValues: [] as string[],
-    conversionBlockerCode: "",
+    conversionBlockerCodes: [] as string[],
     preferred_times: [] as string[],
     readiness: "",
     costApproach: "",
@@ -95,6 +95,7 @@ export default function IntakePage() {
   const canContinueStep1 = formData.treatments.length > 0
   const canContinueStep2 = formData.postcode !== "" && formData.postcodeValid
   const canContinueStep3 = formData.decisionValues.length > 0
+  const canContinueStep5 = formData.conversionBlockerCodes.length > 0
   const canContinueStep5_5 = formData.preferred_times.length > 0
   const canContinueStep8 =
     formData.firstName && formData.lastName && (formData.email || formData.phone) && formData.consentContact
@@ -126,6 +127,22 @@ export default function IntakePage() {
       }
       if (prev.decisionValues.length >= 2) return prev
       return { ...prev, decisionValues: [...prev.decisionValues, value] }
+    })
+  }
+
+  const handleBlockerToggle = (code: string) => {
+    setFormData((prev) => {
+      // "Nothing in particular" is exclusive
+      if (code === "NO_CONCERN") {
+        return { ...prev, conversionBlockerCodes: ["NO_CONCERN"] }
+      }
+      // Selecting a real concern removes "Nothing in particular"
+      const withoutNoConcern = prev.conversionBlockerCodes.filter((c) => c !== "NO_CONCERN")
+      if (withoutNoConcern.includes(code)) {
+        return { ...prev, conversionBlockerCodes: withoutNoConcern.filter((c) => c !== code) }
+      }
+      if (withoutNoConcern.length >= 2) return prev // Max 2
+      return { ...prev, conversionBlockerCodes: [...withoutNoConcern, code] }
     })
   }
 
@@ -198,7 +215,7 @@ export default function IntakePage() {
       2.5: "Travel Distance",
       3: "Clinic Priorities",
       3.5: "Dental Anxiety",
-      5: "Biggest Concern",
+      5: "Concerns",
       5.5: "Best Time",
       6: "When to Start",
       7: "Cost Mindset",
@@ -238,8 +255,10 @@ export default function IntakePage() {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      const blockerCode = formData.conversionBlockerCode
-      const blockerOption = BLOCKER_OPTIONS.find((o) => o.code === blockerCode)
+      const blockerCodes = formData.conversionBlockerCodes
+      const blockerLabels = blockerCodes
+        .map((code) => BLOCKER_OPTIONS.find((o) => o.code === code)?.label)
+        .filter(Boolean) as string[]
 
       const rawAnswers = {
         treatments_selected: formData.treatments,
@@ -248,8 +267,8 @@ export default function IntakePage() {
         location_preference: isEmergency ? null : formData.location_preference || null,
         postcode: formData.postcode,
         values: isEmergency ? [] : formData.decisionValues,
-        blocker: isEmergency ? [] : (blockerCode ? [blockerCode] : []),
-        blocker_labels: isEmergency ? [] : (blockerOption ? [blockerOption.label] : []),
+        blocker: isEmergency ? [] : blockerCodes,
+        blocker_labels: isEmergency ? [] : blockerLabels,
         timing: isEmergency ? null : formData.readiness || null,
         preferred_times: formData.preferred_times,
         cost_approach: isEmergency ? null : formData.costApproach || null,
@@ -294,9 +313,9 @@ export default function IntakePage() {
           consentContact: formData.consentContact,
           consentTerms: formData.consentContact,
           decisionValues: isEmergency ? [] : formData.decisionValues,
-          conversionBlocker: isEmergency ? "" : (blockerOption?.label || ""),
-          conversionBlockerCode: isEmergency ? "" : blockerCode,
-          conversionBlockerCodes: isEmergency ? [] : (blockerCode ? [blockerCode] : []),
+          conversionBlocker: isEmergency ? "" : (blockerLabels[0] || ""),
+          conversionBlockerCode: isEmergency ? "" : (blockerCodes[0] || ""),
+          conversionBlockerCodes: isEmergency ? [] : blockerCodes,
           timingPreference: isEmergency ? (formData.urgency || "asap") : (formData.readiness || "flexible"),
           preferred_times: formData.preferred_times,
           locationPreference: isEmergency ? null : formData.location_preference || null,
@@ -721,30 +740,41 @@ export default function IntakePage() {
               )}
 
               {/* ============================================ */}
-              {/* Q5: BIGGEST CONCERN (Planning only, single)  */}
+              {/* Q5: CONCERNS (Planning only, multi max 2)    */}
               {/* ============================================ */}
               {step === 5 && !isEmergency && (
                 <motion.div key="step5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
                   <StepHeader
                     icon={<AlertCircle className="w-10 h-10" />}
-                    title="What's your main concern right now?"
-                    subtitle="This helps us find clinics that can address what matters to you."
+                    title="Is there anything you're unsure or concerned about right now?"
+                    subtitle="Select up to 2."
                   />
 
                   <div className="grid grid-cols-1 gap-3">
-                    {BLOCKER_OPTIONS.map((option, index) => (
-                      <motion.div key={option.code} {...fadeUp(0.1 * index + 0.3)}>
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <OptionCard
-                            selected={formData.conversionBlockerCode === option.code}
-                            onClick={() => handleSingleSelect("conversionBlockerCode", option.code, getNextStep(5))}
-                          >
-                            {option.label}
-                          </OptionCard>
+                    {BLOCKER_OPTIONS.map((option, index) => {
+                      const isSelected = formData.conversionBlockerCodes.includes(option.code)
+                      const isNoConcernSelected = formData.conversionBlockerCodes.includes("NO_CONCERN")
+                      const isDisabled = !isSelected && option.code !== "NO_CONCERN" && (
+                        isNoConcernSelected || formData.conversionBlockerCodes.length >= 2
+                      )
+                      return (
+                        <motion.div key={option.code} {...fadeUp(0.1 * index + 0.3)}>
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <OptionCard
+                              selected={isSelected}
+                              onClick={() => handleBlockerToggle(option.code)}
+                              disabled={isDisabled}
+                              hasCheckbox
+                            >
+                              {option.label}
+                            </OptionCard>
+                          </motion.div>
                         </motion.div>
-                      </motion.div>
-                    ))}
+                      )
+                    })}
                   </div>
+
+                  <ContinueButton onClick={() => handleStepForward(5, getNextStep(5))} disabled={!canContinueStep5} />
                 </motion.div>
               )}
 

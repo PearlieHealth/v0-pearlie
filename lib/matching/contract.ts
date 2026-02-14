@@ -87,6 +87,7 @@ export interface MatchScoreBreakdown {
   percent: number
   categories: ScoreCategoryBreakdown[]
   distanceMiles?: number
+  complexCasePenalty?: number // -15 if WORRIED_COMPLEX selected and clinic lacks TAG_COMPLEX_CASES_WELCOME
 }
 
 /**
@@ -179,13 +180,14 @@ export interface MatchFacts {
   scoreBreakdown: {
     treatment: number
     priorities: number
-    blockers: number
+    blockers: number // Always 0 — informational only
     cost: number
     anxiety: number
     availability: number
     total: number
     maxPossible: number
     percent: number
+    complexCasePenalty?: number // -15 if applied
   }
 
   // All clinic tags for fallback selection

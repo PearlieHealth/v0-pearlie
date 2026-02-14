@@ -19,7 +19,7 @@
 // This is the single source of truth for all tag-to-form mappings
 // IMPORTANT: These TAG_* keys must match exactly what's in clinic_filters table
 
-export const FORM_VERSION = "v5_cost_question_2026-02-14"
+export const FORM_VERSION = "v6_blocker_multiselect_2026-02-14"
 
 // =============================================================================
 // Q4: "What matters most when choosing a clinic?" (7 options, multi-select, max 3)
@@ -52,15 +52,17 @@ export const Q4_PRIORITY_TAG_MAP: Record<string, string> = {
 }
 
 // =============================================================================
-// Q5: "Concerns / blockers" (7 options, multi-select)
-// Form blocker codes → TAG_* keys (1:1 mapping)
+// Q5: "Concerns / blockers" (6 options, multi-select max 2)
+// Informational only — does NOT affect scoring (except WORRIED_COMPLEX penalty)
+// Form blocker codes → TAG_* keys (1:1 mapping, kept for data recording)
 // =============================================================================
 export const Q5_BLOCKER_TAG_MAP: Record<string, string> = {
-  // v5 FINAL blocker codes (LOCKED, single-select):
+  // v6 blocker codes (multi-select max 2):
   NOT_WORTH_COST: "TAG_GOOD_FOR_COST_CONCERNS",
   NEED_MORE_TIME: "TAG_DECISION_SUPPORTIVE",
   UNSURE_OPTION: "TAG_OPTION_CLARITY_SUPPORT",
   WORRIED_COMPLEX: "TAG_COMPLEX_CASES_WELCOME",
+  BAD_EXPERIENCE: "TAG_BAD_EXPERIENCE_SUPPORTIVE",
   NO_CONCERN: "TAG_RIGHT_FIT_FOCUSED",
   // Legacy v4 blocker codes (backwards compatibility):
   COST_CONCERNS: "TAG_GOOD_FOR_COST_CONCERNS",
@@ -131,11 +133,11 @@ export const Q10_ANXIETY_TAG_MAP: Record<string, string> = {
 // =============================================================================
 export const WEIGHT_CONFIG = {
   treatment: 15, // Must-have: clinic offers requested treatment
-  distance: 15, // Geographic proximity (NEVER used for reasons)
+  distance: 25, // Geographic proximity (NEVER used for reasons)
   priorities: 20, // Q4 priority tag matches
-  blockers: 15, // Q5 blocker tag matches
+  blockers: 0, // Q5 informational only — complex case penalty (-15) applied separately
   anxiety: 10, // Q10 anxiety accommodation
-  cost: 10, // Q8 cost: price tier match (5) + communication TAG match (5)
+  cost: 15, // Q8 cost: price tier match + communication TAG match
   availability: 15, // Appointment time slot compatibility
 } as const
 
@@ -172,6 +174,7 @@ export const REASON_TEMPLATES: Record<string, string> = {
   TAG_OPTION_CLARITY_SUPPORT: "Matched for their thorough option explanations. They present pros, cons, and costs clearly so you can make confident, informed decisions",
   TAG_ANXIETY_FRIENDLY: "Matched because anxious patients consistently feel safe and reassured here. Their gentle, patient-led approach helps you feel genuinely in control",
   TAG_COMPLEX_CASES_WELCOME: "Matched because they welcome complex cases with confidence. Their experience means they can navigate challenging situations and find the right path forward",
+  TAG_BAD_EXPERIENCE_SUPPORTIVE: "Matched because they understand previous bad dental experiences. Their approach prioritises rebuilding trust and making you feel safe and in control",
   TAG_RIGHT_FIT_FOCUSED: "Matched because they focus on finding the right treatment for each patient. They understand your needs before making recommendations",
 
   // Q8 Cost matches
@@ -291,6 +294,7 @@ export const TAG_TO_CATEGORY: Record<string, TagCategory> = {
   TAG_OPTION_CLARITY_SUPPORT: "q5_blockers",
   TAG_ANXIETY_FRIENDLY: "q5_blockers",
   TAG_COMPLEX_CASES_WELCOME: "q5_blockers",
+  TAG_BAD_EXPERIENCE_SUPPORTIVE: "q5_blockers",
   TAG_RIGHT_FIT_FOCUSED: "q5_blockers",
 
   // Q8 Cost tags

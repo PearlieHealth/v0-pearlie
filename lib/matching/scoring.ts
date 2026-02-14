@@ -3,7 +3,6 @@ import { getDistanceMultiplier } from "./features"
 import {
   WEIGHT_CONFIG,
   Q4_PRIORITY_TAG_MAP,
-  Q5_BLOCKER_TAG_MAP,
   Q8_COST_TAG_MAP,
   Q10_ANXIETY_TAG_MAP,
   COST_PRICE_TIER_MAP,
@@ -56,13 +55,8 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
     maxPossible += prioritiesScore.maxPoints
   }
 
-  // 4. Q5: Blocker Alignment (blocker_codes → TAG_* keys)
-  if (lead.blockerCodes?.length || lead.blockerCode || lead.conversionBlocker) {
-    const blockerScore = scoreBlockerAlignment(lead, clinic, WEIGHT_CONFIG.blockers)
-    categories.push(blockerScore)
-    totalScore += blockerScore.points
-    maxPossible += blockerScore.maxPoints
-  }
+  // 4. Q5: Blockers — informational only (no scoring)
+  // Complex case penalty applied after all scoring below
 
   // 5. Q10: Anxiety Accommodation (anxiety_level → TAG_* keys)
   // Check for anxious levels (not_anxious = no scoring needed)
@@ -89,6 +83,14 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
     maxPossible += availabilityScore.maxPoints
   }
 
+  // Complex case penalty: -15 if patient selected WORRIED_COMPLEX and clinic lacks TAG_COMPLEX_CASES_WELCOME
+  const blockerCodes = lead.blockerCodes || (lead.blockerCode ? [lead.blockerCode] : [])
+  let complexCasePenalty = 0
+  if (blockerCodes.includes("WORRIED_COMPLEX") && !clinic.filterKeys.includes("TAG_COMPLEX_CASES_WELCOME")) {
+    complexCasePenalty = 15
+    totalScore = Math.max(0, totalScore - complexCasePenalty)
+  }
+
   // Calculate contribution weights for each category
   categories.forEach((cat) => {
     cat.weight = totalScore > 0 ? cat.points / totalScore : 0
@@ -102,6 +104,7 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
     percent,
     categories,
     distanceMiles,
+    complexCasePenalty,
   }
 }
 
@@ -252,52 +255,6 @@ function scorePriorities(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: num
       matchedPriorities,
       matchedTags,
       matchCount,
-    },
-  }
-}
-
-function scoreBlockerAlignment(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: number): ScoreCategoryBreakdown {
-  // Support multiple blocker codes OR single legacy blockerCode
-  const blockerCodes: string[] =
-    lead.blockerCodes ||
-    (lead.blockerCode ? [lead.blockerCode] : []) ||
-    (lead.conversionBlocker ? [lead.conversionBlocker] : [])
-
-  const matchedTags: string[] = []
-
-  for (const code of blockerCodes) {
-    const tag = Q5_BLOCKER_TAG_MAP[code]
-    if (tag && clinic.filterKeys.includes(tag)) {
-      matchedTags.push(tag)
-    }
-  }
-
-  const totalBlockers = blockerCodes.length
-  const matchCount = matchedTags.length
-  let points = 0
-
-  // Blockers are concerns - addressing them is important
-  if (totalBlockers === 0) {
-    points = 0
-  } else if (matchCount === totalBlockers) {
-    points = maxPoints // All concerns addressed = 100%
-  } else if (matchCount >= totalBlockers * 0.5) {
-    points = Math.round(maxPoints * 0.6) // Half addressed = 60%
-  } else if (matchCount >= 1) {
-    points = Math.round(maxPoints * 0.25) // At least 1 addressed = 25%
-  } else {
-    points = 0 // None addressed = 0%
-  }
-
-  return {
-    category: "blockers",
-    points,
-    maxPoints,
-    weight: 0,
-    facts: {
-      blockerCodes,
-      matchedTags,
-      hasBlockerSupport: matchCount > 0,
     },
   }
 }
@@ -525,10 +482,16 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
   // Extract category data from breakdown
   const treatmentCat = breakdown.categories.find((c) => c.category === "treatment")
   const prioritiesCat = breakdown.categories.find((c) => c.category === "priorities")
-  const blockersCat = breakdown.categories.find((c) => c.category === "blockers")
   const costCat = breakdown.categories.find((c) => c.category === "cost")
   const anxietyCat = breakdown.categories.find((c) => c.category === "anxiety")
   const availabilityCat = breakdown.categories.find((c) => c.category === "availability")
+
+  // Blockers are informational only — manually check for complex case match (used for reasons)
+  const patientBlockerCodes = lead.blockerCodes || (lead.blockerCode ? [lead.blockerCode] : [])
+  const blockerMatchedTags: string[] = []
+  if (patientBlockerCodes.includes("WORRIED_COMPLEX") && clinic.filterKeys.includes("TAG_COMPLEX_CASES_WELCOME")) {
+    blockerMatchedTags.push("TAG_COMPLEX_CASES_WELCOME")
+  }
 
   return {
     clinicId: clinic.id,
@@ -547,9 +510,9 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
     },
 
     blockers: {
-      patientBlockers: lead.blockerCodes || (lead.blockerCode ? [lead.blockerCode] : []),
-      matchedTags: (blockersCat?.facts?.matchedTags as string[]) || [],
-      hasMatch: (blockersCat?.facts?.hasBlockerSupport as boolean) || false,
+      patientBlockers: patientBlockerCodes,
+      matchedTags: blockerMatchedTags,
+      hasMatch: blockerMatchedTags.length > 0,
     },
 
     cost: {
@@ -580,13 +543,14 @@ anxiety: {
     scoreBreakdown: {
       treatment: treatmentCat?.points || 0,
       priorities: prioritiesCat?.points || 0,
-      blockers: blockersCat?.points || 0,
+      blockers: 0, // Informational only — no scoring
       cost: costCat?.points || 0,
       anxiety: anxietyCat?.points || 0,
       availability: availabilityCat?.points || 0,
       total: breakdown.totalScore,
       maxPossible: breakdown.maxPossible,
       percent: breakdown.percent,
+      complexCasePenalty: breakdown.complexCasePenalty || 0,
     },
 
     clinicTags: clinic.filterKeys,
