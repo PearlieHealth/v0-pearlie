@@ -151,9 +151,9 @@ export function buildMatchReasons(facts: MatchFacts, deprioritizeTreatment = fal
   const matchingTagCount = clinicTags.filter((t) => t && t.startsWith("TAG_")).length
   if (matchingTagCount === 0) {
     console.warn(
-      `[buildMatchReasons] Clinic ${facts.clinicId} has 0 matching tags - should have been filtered upstream`,
+      `[buildMatchReasons] Clinic ${facts.clinicId || "unknown"} has 0 matching tags - returning fallback reasons`,
     )
-    return []
+    return getEmergencyFallbackReasons(facts.clinicId || "unknown", fallbackOffset)
   }
 
   const clinicId = facts.clinicId || "unknown"

@@ -42,6 +42,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await verifyAdminAuth()
+  if (!auth.authenticated) return auth.response
+
   try {
     const { id } = await params
     const supabase = createAdminClient()

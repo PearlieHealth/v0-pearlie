@@ -309,7 +309,7 @@ function scoreAnxiety(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: number
     facts: {
       anxietyLevel,
       hasSedation,
-      hasAnxietyFriendly,
+      hasAnxietySupport: hasAnxietyFriendly,
       matchedTags,
     },
   }
@@ -439,7 +439,11 @@ function scoreCostApproach(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
   }
 
   // --- Layer 2: Communication TAG match ---
-  if (tagKey && clinic.filterKeys.includes(tagKey)) {
+  // Skip TAG scoring entirely if price tier is excluded (hard exclusion)
+  if (priceTierMatch === "excluded") {
+    // Hard exclusion: clinic's price tier is incompatible — no TAG bonus
+    // Total cost points stay at 0
+  } else if (tagKey && clinic.filterKeys.includes(tagKey)) {
     // Direct match: clinic has the exact cost communication tag the patient needs
     points += tagPoints
     matchedTag = tagKey
