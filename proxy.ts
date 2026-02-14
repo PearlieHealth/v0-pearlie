@@ -1,7 +1,9 @@
 import { updateSession } from "@/lib/supabase/middleware"
 import { type NextRequest, NextResponse } from "next/server"
 
-const SESSION_COOKIE_NAME = "admin_session"
+// Must match lib/auth-config.ts — can't import it here (Node crypto unavailable in Edge)
+const SESSION_COOKIE_NAME =
+  process.env.NODE_ENV === "production" ? "__Host-admin_session" : "admin_session"
 
 // Cached HMAC token so we don't recompute on every request
 let cachedToken: string | null = null

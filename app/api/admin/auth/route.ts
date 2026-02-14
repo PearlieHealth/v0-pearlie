@@ -1,6 +1,20 @@
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
 import { ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_IS_CONFIGURED, SESSION_COOKIE_NAME, SESSION_TOKEN } from "@/lib/auth-config"
+
+// ── CSRF: Origin header check ──
+async function verifyCsrfOrigin(): Promise<boolean> {
+  const hdrs = await headers()
+  const origin = hdrs.get("origin")
+  if (!origin) return true // same-origin navigations omit Origin; SameSite cookie covers this
+  const host = hdrs.get("host")
+  if (!host) return false
+  try {
+    return new URL(origin).host === host
+  } catch {
+    return false
+  }
+}
 
 // ── In-memory rate limiter for login attempts ──
 const LOGIN_WINDOW_MS = 15 * 60 * 1000 // 15-minute window
@@ -50,6 +64,11 @@ function clearFailures(ip: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    // CSRF: reject cross-origin login attempts
+    if (!(await verifyCsrfOrigin())) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 })
+    }
+
     // Reject all login attempts if ADMIN_PASSWORD is not configured
     if (!ADMIN_IS_CONFIGURED) {
       console.error("[Admin Auth] ADMIN_PASSWORD environment variable is not set. Login is disabled.")

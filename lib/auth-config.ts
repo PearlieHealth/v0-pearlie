@@ -3,7 +3,9 @@ import { createHmac } from "crypto"
 // Admin credentials from environment variables
 export const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin"
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || ""
-export const SESSION_COOKIE_NAME = "admin_session"
+// __Host- prefix enforces Secure + Path=/ and prevents subdomain cookie attacks
+export const SESSION_COOKIE_NAME =
+  process.env.NODE_ENV === "production" ? "__Host-admin_session" : "admin_session"
 
 // Derive session token from ADMIN_SESSION_SECRET (preferred) or ADMIN_PASSWORD.
 // This ensures the token is never a guessable hardcoded string in source code.

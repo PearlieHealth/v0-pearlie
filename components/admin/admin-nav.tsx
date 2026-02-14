@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { ArrowLeft, BarChart3, Building2, FlaskConical, Menu, Tags, ClipboardList, CheckSquare, LogOut, Users, Settings } from "lucide-react"
+import { ArrowLeft, BarChart3, Building2, FlaskConical, Menu, Tags, ClipboardList, CheckSquare, LogOut, Users, Settings, Mail } from "lucide-react"
 import { AdminLogoutButton } from "./admin-auth-provider"
 import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -48,6 +48,11 @@ export function AdminNav() {
       href: "/admin/clinic-users",
       label: "Clinic Users",
       icon: Users,
+    },
+    {
+      href: "/admin/email-logs",
+      label: "Email Logs",
+      icon: Mail,
     },
     {
       href: "/admin/settings",
