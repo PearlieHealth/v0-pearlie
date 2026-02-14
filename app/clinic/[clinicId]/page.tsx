@@ -27,6 +27,8 @@ import {
   MessageCircle,
   X,
   PoundSterling,
+  Eye,
+  Pencil,
 } from "lucide-react"
 import { generateMatchReasons, calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
@@ -452,15 +454,39 @@ export default function ClinicDetailPage() {
   // Main content grid
   return (
     <div className="min-h-screen bg-white pb-24 lg:pb-8">
+      {/* Preview banner */}
+      {isPreview && (
+        <div className="bg-[#7C3AED] text-white sticky top-0 z-30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              <span className="text-sm font-medium">Preview Mode</span>
+              <span className="text-sm text-white/70">— This is how patients see your profile</span>
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-7 text-xs bg-white text-[#7C3AED] hover:bg-white/90"
+              onClick={() => {
+                window.location.href = "/clinic/profile"
+              }}
+            >
+              <Pencil className="h-3 w-3 mr-1.5" />
+              Make Changes
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Back button header */}
-      <div className="bg-white border-b border-[#e5e5e5] sticky top-0 z-20">
+      <div className="bg-white border-b border-[#e5e5e5] sticky top-0 z-20" style={isPreview ? { top: "44px" } : undefined}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-[#666] hover:text-[#1a1a1a] transition-colors text-sm font-medium"
           >
             <ChevronLeft className="h-4 w-4" />
-            Back to results
+            {isPreview ? "Close preview" : "Back to results"}
           </button>
         </div>
       </div>
