@@ -26,11 +26,13 @@ CREATE TABLE IF NOT EXISTS clinic_users (
 
 ALTER TABLE clinic_users ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "clinic_users_select_own"
+DROP POLICY IF EXISTS "clinic_users_select_own" ON clinic_users;
+CREATE POLICY "clinic_users_select_own"
   ON clinic_users FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "clinic_users_update_own"
+DROP POLICY IF EXISTS "clinic_users_update_own" ON clinic_users;
+CREATE POLICY "clinic_users_update_own"
   ON clinic_users FOR UPDATE
   USING (auth.uid() = user_id);
 
@@ -51,7 +53,8 @@ CREATE TABLE IF NOT EXISTS clinic_invites (
 
 ALTER TABLE clinic_invites ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "clinic_invites_public_read"
+DROP POLICY IF EXISTS "clinic_invites_public_read" ON clinic_invites;
+CREATE POLICY "clinic_invites_public_read"
   ON clinic_invites FOR SELECT
   USING (true);
 
@@ -70,7 +73,8 @@ CREATE TABLE IF NOT EXISTS clinic_portal_users (
 
 ALTER TABLE clinic_portal_users ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "portal_users_select_own"
+DROP POLICY IF EXISTS "portal_users_select_own" ON clinic_portal_users;
+CREATE POLICY "portal_users_select_own"
   ON clinic_portal_users FOR SELECT
   USING (
     email = (SELECT email FROM auth.users WHERE id = auth.uid())
@@ -91,7 +95,8 @@ CREATE TABLE IF NOT EXISTS lead_clinic_status (
 
 ALTER TABLE lead_clinic_status ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "lead_clinic_status_clinic_access"
+DROP POLICY IF EXISTS "lead_clinic_status_clinic_access" ON lead_clinic_status;
+CREATE POLICY "lead_clinic_status_clinic_access"
   ON lead_clinic_status FOR ALL
   USING (
     EXISTS (
@@ -117,11 +122,13 @@ CREATE TABLE IF NOT EXISTS lead_actions (
 
 ALTER TABLE lead_actions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "lead_actions_public_insert"
+DROP POLICY IF EXISTS "lead_actions_public_insert" ON lead_actions;
+CREATE POLICY "lead_actions_public_insert"
   ON lead_actions FOR INSERT
   WITH CHECK (true);
 
-CREATE POLICY IF NOT EXISTS "lead_actions_authenticated_read"
+DROP POLICY IF EXISTS "lead_actions_authenticated_read" ON lead_actions;
+CREATE POLICY "lead_actions_authenticated_read"
   ON lead_actions FOR SELECT
   USING (true);
 
@@ -143,7 +150,8 @@ CREATE TABLE IF NOT EXISTS bookings (
 
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "bookings_clinic_access"
+DROP POLICY IF EXISTS "bookings_clinic_access" ON bookings;
+CREATE POLICY "bookings_clinic_access"
   ON bookings FOR ALL
   USING (
     EXISTS (
@@ -171,15 +179,18 @@ CREATE TABLE IF NOT EXISTS match_sessions (
 
 ALTER TABLE match_sessions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "match_sessions_public_read"
+DROP POLICY IF EXISTS "match_sessions_public_read" ON match_sessions;
+CREATE POLICY "match_sessions_public_read"
   ON match_sessions FOR SELECT
   USING (true);
 
-CREATE POLICY IF NOT EXISTS "match_sessions_public_insert"
+DROP POLICY IF EXISTS "match_sessions_public_insert" ON match_sessions;
+CREATE POLICY "match_sessions_public_insert"
   ON match_sessions FOR INSERT
   WITH CHECK (true);
 
-CREATE POLICY IF NOT EXISTS "match_sessions_public_update"
+DROP POLICY IF EXISTS "match_sessions_public_update" ON match_sessions;
+CREATE POLICY "match_sessions_public_update"
   ON match_sessions FOR UPDATE
   USING (true);
 
@@ -198,11 +209,13 @@ CREATE TABLE IF NOT EXISTS lead_matches (
 
 ALTER TABLE lead_matches ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "lead_matches_public_read"
+DROP POLICY IF EXISTS "lead_matches_public_read" ON lead_matches;
+CREATE POLICY "lead_matches_public_read"
   ON lead_matches FOR SELECT
   USING (true);
 
-CREATE POLICY IF NOT EXISTS "lead_matches_public_insert"
+DROP POLICY IF EXISTS "lead_matches_public_insert" ON lead_matches;
+CREATE POLICY "lead_matches_public_insert"
   ON lead_matches FOR INSERT
   WITH CHECK (true);
 
@@ -223,11 +236,13 @@ CREATE TABLE IF NOT EXISTS email_logs (
 
 ALTER TABLE email_logs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "email_logs_authenticated_read"
+DROP POLICY IF EXISTS "email_logs_authenticated_read" ON email_logs;
+CREATE POLICY "email_logs_authenticated_read"
   ON email_logs FOR SELECT
   USING (true);
 
-CREATE POLICY IF NOT EXISTS "email_logs_insert"
+DROP POLICY IF EXISTS "email_logs_insert" ON email_logs;
+CREATE POLICY "email_logs_insert"
   ON email_logs FOR INSERT
   WITH CHECK (true);
 
@@ -249,8 +264,8 @@ CREATE TABLE IF NOT EXISTS provisioning_logs (
 
 ALTER TABLE provisioning_logs ENABLE ROW LEVEL SECURITY;
 
--- Admin-only via service_role; no user-facing policies needed
-CREATE POLICY IF NOT EXISTS "provisioning_logs_deny_all"
+DROP POLICY IF EXISTS "provisioning_logs_deny_all" ON provisioning_logs;
+CREATE POLICY "provisioning_logs_deny_all"
   ON provisioning_logs FOR SELECT
   USING (false);
 
@@ -294,7 +309,8 @@ CREATE TABLE IF NOT EXISTS clinic_waitlist (
 
 ALTER TABLE clinic_waitlist ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "waitlist_public_insert"
+DROP POLICY IF EXISTS "waitlist_public_insert" ON clinic_waitlist;
+CREATE POLICY "waitlist_public_insert"
   ON clinic_waitlist FOR INSERT
   WITH CHECK (true);
 
@@ -314,7 +330,8 @@ CREATE TABLE IF NOT EXISTS waitlist_email_log (
 
 ALTER TABLE waitlist_email_log ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "waitlist_email_log_deny_all"
+DROP POLICY IF EXISTS "waitlist_email_log_deny_all" ON waitlist_email_log;
+CREATE POLICY "waitlist_email_log_deny_all"
   ON waitlist_email_log FOR SELECT
   USING (false);
 
@@ -332,7 +349,8 @@ CREATE TABLE IF NOT EXISTS clinic_audit_log (
 
 ALTER TABLE clinic_audit_log ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "audit_log_deny_all"
+DROP POLICY IF EXISTS "audit_log_deny_all" ON clinic_audit_log;
+CREATE POLICY "audit_log_deny_all"
   ON clinic_audit_log FOR SELECT
   USING (false);
 
@@ -349,7 +367,8 @@ CREATE TABLE IF NOT EXISTS clinic_tags (
 
 ALTER TABLE clinic_tags ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "clinic_tags_public_read"
+DROP POLICY IF EXISTS "clinic_tags_public_read" ON clinic_tags;
+CREATE POLICY "clinic_tags_public_read"
   ON clinic_tags FOR SELECT
   USING (true);
 
