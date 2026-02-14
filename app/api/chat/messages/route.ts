@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getBotNoReplyYet } from "@/lib/chat-bot"
+import { generateIntelligentBotResponse } from "@/lib/chat-bot-ai"
 
 const NO_REPLY_DELAY_MS = 30 * 60 * 1000 // 30 minutes
 
@@ -67,14 +68,30 @@ export async function GET(request: NextRequest) {
         if (firstPatientMsg) {
           const timeSinceFirst = Date.now() - new Date(firstPatientMsg.created_at).getTime()
           if (timeSinceFirst >= NO_REPLY_DELAY_MS) {
-            // Get clinic name for the bot message
+            // Get clinic + lead context for AI bot
             const { data: clinic } = await supabase
               .from("clinics")
-              .select("name")
+              .select("name, phone, treatments, opening_hours, accepts_nhs, bot_intelligence")
               .eq("id", clinicId)
               .single()
 
-            const noReplyContent = getBotNoReplyYet(clinic?.name || "The clinic")
+            const { data: leadData } = await supabase
+              .from("leads")
+              .select("first_name, treatment_interest, budget_range")
+              .eq("id", leadId)
+              .single()
+
+            // Try AI no-reply message (if enabled), fall back to template
+            const useAI = clinic?.bot_intelligence !== false
+            const aiNoReply = useAI
+              ? await generateIntelligentBotResponse(
+                  "no_reply",
+                  { name: clinic?.name || "The clinic", phone: clinic?.phone, treatments: clinic?.treatments, opening_hours: clinic?.opening_hours, accepts_nhs: clinic?.accepts_nhs },
+                  { first_name: leadData?.first_name, treatment_interest: leadData?.treatment_interest, budget_range: leadData?.budget_range },
+                  allMessages.filter((m: any) => m.sender_type !== "bot").slice(-4).map((m: any) => ({ sender_type: m.sender_type, content: m.content }))
+                )
+              : null
+            const noReplyContent = aiNoReply || getBotNoReplyYet(clinic?.name || "The clinic")
             const { data: noReplyMsg } = await supabase
               .from("messages")
               .insert({
