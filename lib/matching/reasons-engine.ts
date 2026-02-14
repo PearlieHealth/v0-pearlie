@@ -527,7 +527,7 @@ export function validateUniqueReasons(
   })
   const uniqueNonTreatmentSets = new Set(nonTreatmentReasonSets)
 
-  const primaryReasonKeys = validMatches.map((cm) => cm.reasons?.[0]?.tagKey).filter(Boolean)
+  const primaryReasonKeys = validMatches.map((cm) => cm.reasons?.[0]?.tagKey).filter((k): k is string => !!k)
   const uniquePrimaryReasons = [...new Set(primaryReasonKeys)]
 
   if (uniqueReasonSets.size >= Math.min(2, validMatches.length)) {

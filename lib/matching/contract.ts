@@ -28,7 +28,7 @@ export interface LeadAnswer {
   city?: string
   locationPreference?: "near_home" | "travel_bit" | "travel_further" | null
   priorities: string[] // Maps from decision_values in DB
-  anxietyLevel?: "comfortable" | "slightly_anxious" | "quite_anxious" | "very_anxious" | null
+  anxietyLevel?: string | null // v6: comfortable, slightly_anxious, quite_anxious, very_anxious (+ legacy values)
   budgetRange?: string | null
   costApproach?: string | null // v6: best_outcome, understand_value, comfort_range, strict_budget (+ legacy values)
   strictBudgetMax?: number | string | null

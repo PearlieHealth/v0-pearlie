@@ -161,8 +161,7 @@ export function buildLeadProfile(input: TestLeadInput): LeadAnswer {
     phone: null,
     schemaVersion: 1,
     conversionBlocker,
-    conversionBlockerCodes: blockers,
-    blockerCodes: blockers, // For scoring compatibility
+    blockerCodes: blockers,
     blockerCode: conversionBlocker, // For scoring compatibility
     outcomePriority: null,
     outcomePriorityKey: null,

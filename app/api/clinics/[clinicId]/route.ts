@@ -34,13 +34,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
     }
 
+    const clinicData = clinic as Record<string, any>
+
     // Don't show archived clinics to anyone
-    if (clinic.is_archived === true) {
+    if (clinicData.is_archived === true) {
       return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
     }
 
     // For non-live clinics, only allow if preview=true AND the user owns this clinic
-    if (clinic.is_live !== true) {
+    if (clinicData.is_live !== true) {
       if (!isPreview) {
         return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
       }
@@ -56,7 +58,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         .from("clinic_users")
         .select("clinic_id")
         .eq("user_id", user.id)
-        .eq("clinic_id", clinic.id)
+        .eq("clinic_id", clinicData.id)
         .single()
 
       if (!clinicUser) {
@@ -65,7 +67,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Strip internal status fields from the response
-    const { is_live, ...publicClinic } = clinic
+    const { is_live, ...publicClinic } = clinicData
 
     return NextResponse.json({ clinic: publicClinic })
   } catch (error) {

@@ -205,7 +205,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       // Only exclude matched clinics if there are any
       if (matchedClinicIds.length > 0) {
         // Supabase requires proper array format for not.in operator
-        nearbyQuery = nearbyQuery.not("id", "in", `(${matchedClinicIds.map(id => `"${id}"`).join(",")})`)
+        nearbyQuery = nearbyQuery.not("id", "in", `(${matchedClinicIds.map((id: string) => `"${id}"`).join(",")})`)
       }
       
       const { data: nearbyClinics, error: nearbyError } = await nearbyQuery
