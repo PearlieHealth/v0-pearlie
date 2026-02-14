@@ -30,6 +30,7 @@ export function ClinicShell({ children }: ClinicShellProps) {
   const [newLeadsCount, setNewLeadsCount] = useState(0)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [debugError, setDebugError] = useState<string | null>(null)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -71,26 +72,31 @@ export function ClinicShell({ children }: ClinicShellProps) {
       }
       
       if (!accessToken) {
-        router.push("/clinic/login")
-        setIsLoading(false)
+        setDebugError("No access token found")
+        await supabaseAuth.auth.signOut()
+        window.location.href = "/clinic/login"
         return
       }
 
       const response = await fetch("/api/clinic/me", {
         headers: { "Authorization": `Bearer ${accessToken}` },
       })
-      
+
       if (!response.ok) {
-        router.push("/clinic/login")
-        setIsLoading(false)
+        const errBody = await response.text()
+        setDebugError(`API ${response.status}: ${errBody}`)
+        // Sign out to prevent redirect loop (proxy redirects authenticated users away from /clinic/login)
+        await supabaseAuth.auth.signOut()
+        window.location.href = "/clinic/login"
         return
       }
 
       const data = await response.json()
-      
+
       if (!data.clinic) {
-        router.push("/clinic/login?error=no_clinic")
-        setIsLoading(false)
+        setDebugError("API returned OK but no clinic data")
+        await supabaseAuth.auth.signOut()
+        window.location.href = "/clinic/login?error=no_clinic"
         return
       }
 
@@ -115,7 +121,10 @@ export function ClinicShell({ children }: ClinicShellProps) {
       setNewLeadsCount(count || 0)
     } catch (error) {
       console.error("Auth check failed:", error)
-      router.push("/clinic/login")
+      setDebugError(`Exception: ${error instanceof Error ? error.message : String(error)}`)
+      const supabase = createBrowserClient()
+      await supabase.auth.signOut()
+      window.location.href = "/clinic/login"
     }
 
     setIsLoading(false)
@@ -154,7 +163,14 @@ export function ClinicShell({ children }: ClinicShellProps) {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <p className="text-muted-foreground">Unable to load clinic data</p>
-          <Button onClick={() => router.push("/clinic/login")}>
+          {debugError && (
+            <p className="text-xs text-red-500 max-w-md mx-auto break-all">{debugError}</p>
+          )}
+          <Button onClick={async () => {
+            const supabase = createBrowserClient()
+            await supabase.auth.signOut()
+            window.location.href = "/clinic/login"
+          }}>
             Return to Login
           </Button>
         </div>
