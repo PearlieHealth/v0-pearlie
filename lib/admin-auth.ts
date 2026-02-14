@@ -19,6 +19,17 @@ export type AuthResult =
  */
 export async function verifyAdminAuth(): Promise<AuthResult> {
   try {
+    // If SESSION_TOKEN is empty (no password/secret configured), always reject
+    if (!SESSION_TOKEN) {
+      return {
+        authenticated: false,
+        response: NextResponse.json(
+          { error: "Admin not configured" },
+          { status: 401 }
+        )
+      }
+    }
+
     const cookieStore = await cookies()
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)
 
@@ -49,6 +60,7 @@ export async function verifyAdminAuth(): Promise<AuthResult> {
  */
 export async function isAdminAuthenticated(): Promise<boolean> {
   try {
+    if (!SESSION_TOKEN) return false
     const cookieStore = await cookies()
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)
     return sessionCookie?.value === SESSION_TOKEN
