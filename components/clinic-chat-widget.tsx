@@ -2,17 +2,19 @@
 
 import React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { MessageCircle, X, Send, Loader2, Heart } from "lucide-react"
+import { MessageCircle, X, Send, Loader2, Heart, Check, CheckCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
 
 interface Message {
   id: string
   content: string
   sender_type: "patient" | "clinic" | "bot"
+  status?: "sent" | "delivered" | "read"
   created_at: string
   read_at?: string
 }
@@ -42,9 +44,38 @@ export function ClinicChatWidget({
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const [showVerifyPrompt, setShowVerifyPrompt] = useState(false)
-  const [clinicTyping, setClinicTyping] = useState(false)
   const [leadInfo, setLeadInfo] = useState<{ name: string; email: string } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // ── Realtime: instant messages + typing via Broadcast ──────────
+  const handleNewMessage = useCallback((msg: RealtimeMessage) => {
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === msg.id)) return prev
+      return [...prev, msg]
+    })
+    if (!isOpen) setUnreadCount((c) => c + 1)
+  }, [isOpen])
+
+  const handleStatusChange = useCallback((msgId: string, status: string) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, status: status as Message["status"] } : m))
+    )
+  }, [])
+
+  const { otherTyping: clinicTyping, sendTyping } = useChatChannel({
+    conversationId,
+    userType: "patient",
+    onNewMessage: handleNewMessage,
+    onStatusChange: handleStatusChange,
+    enabled: isOpen && !!conversationId,
+  })
+
+  // ── Fallback polling (30s) in case Realtime is unavailable ─────
+  useEffect(() => {
+    if (!isOpen || !conversationId) return
+    const interval = setInterval(fetchMessages, 30000)
+    return () => clearInterval(interval)
+  }, [isOpen, conversationId])
 
   // Fetch lead info on mount if verified
   useEffect(() => {
@@ -52,23 +83,6 @@ export function ClinicChatWidget({
       fetchLeadInfo()
     }
   }, [isEmailVerified, leadId])
-
-  const fetchLeadInfo = async () => {
-    try {
-      const response = await fetch(`/api/leads/${leadId}/status`)
-      if (response.ok) {
-        const data = await response.json()
-        if (data.firstName || data.lastName) {
-          setLeadInfo({
-            name: `${data.firstName || ""} ${data.lastName || ""}`.trim(),
-            email: data.email || "",
-          })
-        }
-      }
-    } catch (error) {
-      // Silently fail
-    }
-  }
 
   // Fetch messages when widget opens
   useEffect(() => {
@@ -84,13 +98,22 @@ export function ClinicChatWidget({
     }
   }, [messages])
 
-  // Poll for new messages when open
-  useEffect(() => {
-    if (!isOpen || !conversationId) return
-
-    const interval = setInterval(fetchMessages, 10000) // Poll every 10s
-    return () => clearInterval(interval)
-  }, [isOpen, conversationId])
+  const fetchLeadInfo = async () => {
+    try {
+      const response = await fetch(`/api/leads/${leadId}/status`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.firstName || data.lastName) {
+          setLeadInfo({
+            name: `${data.firstName || ""} ${data.lastName || ""}`.trim(),
+            email: data.email || "",
+          })
+        }
+      }
+    } catch {
+      // Silently fail
+    }
+  }
 
   const fetchMessages = async () => {
     setIsLoading(true)
@@ -102,8 +125,7 @@ export function ClinicChatWidget({
         const data = await response.json()
         setMessages(data.messages || [])
         setConversationId(data.conversationId)
-        setClinicTyping(data.clinicTyping || false)
-        setUnreadCount(0) // Mark as read when opened
+        setUnreadCount(0)
       }
     } catch (error) {
       console.error("[Chat] Failed to fetch messages:", error)
@@ -172,6 +194,18 @@ export function ClinicChatWidget({
     {} as Record<string, Message[]>
   )
 
+  // ── Delivery status icon ──────────────────────────────────────
+  const StatusIcon = ({ status }: { status?: string }) => {
+    if (!status || status === "sent") {
+      return <Check className="h-3 w-3 text-teal-200" />
+    }
+    if (status === "delivered") {
+      return <CheckCheck className="h-3 w-3 text-teal-200" />
+    }
+    // read
+    return <CheckCheck className="h-3 w-3 text-white" />
+  }
+
   return (
     <>
       {/* Chat Button */}
@@ -214,7 +248,6 @@ export function ClinicChatWidget({
           <Button
             onClick={() => {
               setShowVerifyPrompt(false)
-              // Scroll to OTP verification if on page, or show message
               const otpSection = document.getElementById("otp-verification")
               if (otpSection) {
                 otpSection.scrollIntoView({ behavior: "smooth" })
@@ -244,7 +277,6 @@ export function ClinicChatWidget({
                 <X className="h-5 w-5" />
               </button>
             </div>
-            {/* Show logged in user info */}
             {leadInfo && (
               <div className="mt-2 pt-2 border-t border-teal-500 text-xs text-teal-100">
                 <p>Chatting as: <span className="font-medium text-white">{leadInfo.name}</span></p>
@@ -302,16 +334,19 @@ export function ClinicChatWidget({
                               )}
                             >
                               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                              <p
+                              <div
                                 className={cn(
-                                  "text-xs mt-1",
+                                  "flex items-center gap-1 mt-1",
                                   message.sender_type === "patient"
-                                    ? "text-teal-100"
+                                    ? "text-teal-100 justify-end"
                                     : "text-neutral-400"
                                 )}
                               >
-                                {formatTime(message.created_at)}
-                              </p>
+                                <span className="text-xs">{formatTime(message.created_at)}</span>
+                                {message.sender_type === "patient" && (
+                                  <StatusIcon status={message.status} />
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -342,7 +377,10 @@ export function ClinicChatWidget({
             <div className="flex gap-2">
               <Input
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={(e) => {
+                  setNewMessage(e.target.value)
+                  sendTyping()
+                }}
                 placeholder="Type a message..."
                 className="flex-1 rounded-full border-neutral-200"
                 disabled={isSending}

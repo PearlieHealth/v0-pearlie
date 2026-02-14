@@ -2,14 +2,16 @@
 
 import React from "react"
 
-import { useState, useEffect, useRef } from "react"
-import { MessageCircle, Send, ChevronDown, Heart } from "lucide-react"
+import { useState, useEffect, useRef, useCallback } from "react"
+import { MessageCircle, Send, ChevronDown, Heart, Check, CheckCheck } from "lucide-react"
 import { DirectEnquiryForm } from "@/components/clinic/direct-enquiry-form"
+import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
 
 interface Message {
   id: string
   content: string
   sender_type: "patient" | "clinic" | "bot"
+  status?: "sent" | "delivered" | "read"
   created_at: string
 }
 
@@ -38,8 +40,36 @@ export function EmbeddedClinicChat({
   const [isLoading, setIsLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [clinicTyping, setClinicTyping] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // ── Realtime: instant messages + typing via Broadcast ──────────
+  const handleNewMessage = useCallback((msg: RealtimeMessage) => {
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === msg.id)) return prev
+      return [...prev, msg]
+    })
+  }, [])
+
+  const handleStatusChange = useCallback((msgId: string, status: string) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, status: status as Message["status"] } : m))
+    )
+  }, [])
+
+  const { otherTyping: clinicTyping, sendTyping } = useChatChannel({
+    conversationId,
+    userType: "patient",
+    onNewMessage: handleNewMessage,
+    onStatusChange: handleStatusChange,
+    enabled: isOpen && !!conversationId,
+  })
+
+  // ── Fallback polling (30s) ─────────────────────────────────────
+  useEffect(() => {
+    if (!isOpen || !conversationId) return
+    const interval = setInterval(fetchMessages, 30000)
+    return () => clearInterval(interval)
+  }, [isOpen, conversationId])
 
   // Fetch messages when chat opens and we have both IDs
   useEffect(() => {
@@ -47,13 +77,6 @@ export function EmbeddedClinicChat({
       fetchMessages()
     }
   }, [isOpen, leadId, clinicId])
-
-  // Poll for new messages every 10s when open
-  useEffect(() => {
-    if (!isOpen || !conversationId) return
-    const interval = setInterval(fetchMessages, 10000)
-    return () => clearInterval(interval)
-  }, [isOpen, conversationId])
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -73,7 +96,6 @@ export function EmbeddedClinicChat({
         const data = await response.json()
         setMessages(data.messages || [])
         setConversationId(data.conversationId || null)
-        setClinicTyping(data.clinicTyping || false)
       }
     } catch {
       // Silently fail on fetch
@@ -145,6 +167,17 @@ export function EmbeddedClinicChat({
     groups[date].push(message)
     return groups
   }, {})
+
+  // ── Delivery status icon ──────────────────────────────────────
+  const StatusIcon = ({ status }: { status?: string }) => {
+    if (!status || status === "sent") {
+      return <Check className="h-2.5 w-2.5 text-[#777]" />
+    }
+    if (status === "delivered") {
+      return <CheckCheck className="h-2.5 w-2.5 text-[#777]" />
+    }
+    return <CheckCheck className="h-2.5 w-2.5 text-teal-500" />
+  }
 
   if (!isOpen) return null
 
@@ -230,13 +263,16 @@ export function EmbeddedClinicChat({
                         }`}
                       >
                         <p className="whitespace-pre-wrap">{msg.content}</p>
-                        <p
-                          className={`text-[10px] mt-1 ${
-                            msg.sender_type === "patient" ? "text-[#999]" : "text-[#aaa]"
+                        <div
+                          className={`flex items-center gap-1 mt-1 ${
+                            msg.sender_type === "patient" ? "text-[#999] justify-end" : "text-[#aaa]"
                           }`}
                         >
-                          {formatTime(msg.created_at)}
-                        </p>
+                          <span className="text-[10px]">{formatTime(msg.created_at)}</span>
+                          {msg.sender_type === "patient" && (
+                            <StatusIcon status={msg.status} />
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -277,6 +313,7 @@ export function EmbeddedClinicChat({
                 value={newMessage}
                 onChange={(e) => {
                   setNewMessage(e.target.value)
+                  sendTyping()
                   if (error) setError(null)
                 }}
                 onKeyDown={(e) => {

@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create message
+    // Create message with delivery status
     const { data: message, error: messageError } = await supabase
       .from("messages")
       .insert({
@@ -125,6 +125,7 @@ export async function POST(request: NextRequest) {
         sender_type: senderType,
         content: trimmedContent,
         sent_via: "chat",
+        status: "sent",
       })
       .select("*")
       .single()

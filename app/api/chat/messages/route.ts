@@ -94,17 +94,31 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Mark messages as read by patient
+    // Mark conversation as read by patient + reset unread count
     await supabase
       .from("conversations")
       .update({ unread_by_patient: false, unread_count_patient: 0 })
       .eq("id", conversation.id)
 
+    // Batch-mark all clinic messages in this conversation as 'read'
+    // (only upgrade sent/delivered → read, never touch bot/patient messages)
+    const unreadClinicMsgIds = allMessages
+      .filter((m: any) => m.sender_type === "clinic" && m.status !== "read")
+      .map((m: any) => m.id)
+
+    if (unreadClinicMsgIds.length > 0) {
+      await supabase
+        .from("messages")
+        .update({ status: "read", read_at: new Date().toISOString() })
+        .in("id", unreadClinicMsgIds)
+    }
+
     // Determine if clinic is currently typing (within last 10 seconds)
+    // This is the polling-based fallback; Realtime uses Broadcast instead
     let clinicTyping = false
     if (conversation.clinic_typing_at) {
       const typingAge = Date.now() - new Date(conversation.clinic_typing_at).getTime()
-      clinicTyping = typingAge < 10000 // 10 seconds
+      clinicTyping = typingAge < 10000
     }
 
     return NextResponse.json({

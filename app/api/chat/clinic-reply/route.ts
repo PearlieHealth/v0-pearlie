@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
-    // Create message
+    // Create message with delivery status
     const { data: message, error: messageError } = await supabaseAdmin
       .from("messages")
       .insert({
@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
         sender_type: "clinic",
         content: content.trim(),
         sent_via: "chat",
+        status: "sent",
       })
       .select("*")
       .single()
