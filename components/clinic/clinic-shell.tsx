@@ -72,9 +72,8 @@ export function ClinicShell({ children }: ClinicShellProps) {
       }
       
       if (!accessToken) {
-        setDebugError("No access token found")
-        await supabaseAuth.auth.signOut()
-        window.location.href = "/clinic/login"
+        setDebugError("No access token found — session missing")
+        setIsLoading(false)
         return
       }
 
@@ -85,18 +84,15 @@ export function ClinicShell({ children }: ClinicShellProps) {
       if (!response.ok) {
         const errBody = await response.text()
         setDebugError(`API ${response.status}: ${errBody}`)
-        // Sign out to prevent redirect loop (proxy redirects authenticated users away from /clinic/login)
-        await supabaseAuth.auth.signOut()
-        window.location.href = "/clinic/login"
+        setIsLoading(false)
         return
       }
 
       const data = await response.json()
 
       if (!data.clinic) {
-        setDebugError("API returned OK but no clinic data")
-        await supabaseAuth.auth.signOut()
-        window.location.href = "/clinic/login?error=no_clinic"
+        setDebugError("API returned OK but no clinic data: " + JSON.stringify(data))
+        setIsLoading(false)
         return
       }
 
@@ -122,9 +118,6 @@ export function ClinicShell({ children }: ClinicShellProps) {
     } catch (error) {
       console.error("Auth check failed:", error)
       setDebugError(`Exception: ${error instanceof Error ? error.message : String(error)}`)
-      const supabase = createBrowserClient()
-      await supabase.auth.signOut()
-      window.location.href = "/clinic/login"
     }
 
     setIsLoading(false)
