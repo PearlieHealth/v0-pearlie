@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { PostcodeInput } from "@/components/postcode-input"
+import { GoogleSignInButton } from "@/components/google-sign-in-button"
 import { trackEvent } from "@/lib/analytics"
 import { slideVariants, slideTransition } from "@/lib/slide-variants"
 import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap } from "lucide-react"
@@ -1055,7 +1056,26 @@ export default function IntakePage() {
                     </div>
                   </motion.div>
 
-                  <motion.div {...fadeUp(0.5)}>
+                  {/* Google sign-in option */}
+                  <motion.div {...fadeUp(0.45)}>
+                    <GoogleSignInButton
+                      redirectTo={`${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=/intake/google-complete`}
+                      onBeforeSignIn={() => {
+                        // Save form data to localStorage so google-complete page can create the lead
+                        try {
+                          localStorage.setItem("pearlie_intake_form", JSON.stringify(formData))
+                        } catch {}
+                      }}
+                    />
+                  </motion.div>
+
+                  <motion.div {...fadeUp(0.5)} className="flex items-center gap-4">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-sm text-[#323141]/50 font-medium">or</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </motion.div>
+
+                  <motion.div {...fadeUp(0.55)}>
                     <Button
                       type="submit"
                       disabled={!canContinueStep8 || isSubmitting}
