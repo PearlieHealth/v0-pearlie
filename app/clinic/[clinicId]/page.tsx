@@ -1011,7 +1011,7 @@ export default function ClinicDetailPage() {
                     ))}
                   </div>
                   <p className="text-xs text-[#999] mt-4 pt-3 border-t border-[#e5e5e5]">
-                    Most patients book one of these clinics
+                    Thoughtfully matched based on your answers.
                   </p>
                 </div>
               )}
