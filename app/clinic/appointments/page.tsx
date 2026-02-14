@@ -114,6 +114,7 @@ export default function AppointmentsPage() {
   // Bulk selection
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set())
   const [isBulkUpdating, setIsBulkUpdating] = useState(false)
+  const [bulkAction, setBulkAction] = useState<string>("")
 
   const fetchData = useCallback(async () => {
     const supabase = createBrowserClient()
@@ -344,6 +345,7 @@ export default function AppointmentsPage() {
       })
       if (res.ok) {
         setSelectedLeads(new Set())
+        setBulkAction("")
         await fetchData()
       }
     } catch (err) {
@@ -527,24 +529,31 @@ export default function AppointmentsPage() {
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground mr-1">Set status:</span>
-            {[
-              { value: "CONTACTED", label: "Contacted" },
-              { value: "NO_RESPONSE", label: "No Response" },
-              { value: "NOT_SUITABLE", label: "Not Suitable" },
-              { value: "CLOSED", label: "Closed" },
-            ].map((opt) => (
-              <Button
-                key={opt.value}
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs bg-white"
-                disabled={isBulkUpdating}
-                onClick={() => handleBulkStatusUpdate(opt.value)}
-              >
-                {opt.label}
-              </Button>
-            ))}
+            <Select
+              value={bulkAction}
+              onValueChange={setBulkAction}
+            >
+              <SelectTrigger className="w-[180px] h-8 text-xs bg-white">
+                <SelectValue placeholder="Choose action..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="CONTACTED">Mark as Contacted</SelectItem>
+                <SelectItem value="NO_RESPONSE">Mark as No Response</SelectItem>
+                <SelectItem value="NOT_SUITABLE">Mark as Not Suitable</SelectItem>
+                <SelectItem value="BOOKED_CONFIRMED">Booking Confirmed</SelectItem>
+                <SelectItem value="CLOSED">Mark as Attended / Closed</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              size="sm"
+              className="h-8 text-xs bg-[#7C3AED] hover:bg-[#6D28D9] text-white"
+              disabled={isBulkUpdating || !bulkAction}
+              onClick={() => {
+                if (bulkAction) handleBulkStatusUpdate(bulkAction)
+              }}
+            >
+              {isBulkUpdating ? "Updating..." : "Apply"}
+            </Button>
           </div>
         </div>
       )}

@@ -218,7 +218,7 @@ export default function AppointmentDetailPage() {
       supabase.from("leads").select("*").eq("id", leadId).single(),
       supabase
         .from("match_results")
-        .select("reasons, rank, score, match_breakdown")
+        .select("*")
         .eq("lead_id", leadId)
         .eq("clinic_id", clinicData.id)
         .single(),
@@ -311,8 +311,9 @@ export default function AppointmentDetailPage() {
     }
   }, [messages])
 
-  const handleSaveStatus = async () => {
+  const handleSaveStatus = async (overrideStatus?: string) => {
     if (!clinic) return
+    const statusToSave = overrideStatus || editStatus
     setIsSaving(true)
     const supabase = createBrowserClient()
     const {
@@ -323,7 +324,7 @@ export default function AppointmentDetailPage() {
       await supabase
         .from("lead_clinic_status")
         .update({
-          status: editStatus,
+          status: statusToSave,
           updated_by: session?.user.id,
           updated_at: new Date().toISOString(),
         })
@@ -332,7 +333,7 @@ export default function AppointmentDetailPage() {
       await supabase.from("lead_clinic_status").insert({
         lead_id: leadId,
         clinic_id: clinic.id,
-        status: editStatus,
+        status: statusToSave,
         updated_by: session?.user.id,
       })
     }
@@ -488,29 +489,44 @@ export default function AppointmentDetailPage() {
             {/* Patient Intent */}
             {(() => {
               const ra = lead.raw_answers || {}
+              const treatmentsSelected = ra.treatments_selected as string[] | undefined
+              const treatmentSingle = ra.treatment as string | undefined
               const anxietyLevel = ra.anxiety_level as string | undefined
               const costApproach = ra.cost_approach as string | undefined
               const budgetRange = ra.budget_range as string | undefined
               const urgency = ra.urgency as string | undefined
-              const values = ra.values as string[] | undefined
+              const decisionValues = ra.values as string[] | undefined
               const blockers = ra.blocker as string[] | undefined
               const blockerLabels = ra.blocker_labels as string[] | undefined
               const painScore = ra.pain_score as number | undefined
-              const hasSwelling = ra.has_swelling as boolean | undefined
-              const hasBleeding = ra.has_bleeding as boolean | undefined
+              const hasSwelling = ra.has_swelling === true
+              const hasBleeding = ra.has_bleeding === true
               const outcomePriority = ra.outcome_priority as string | undefined
               const isEmergency = ra.is_emergency as boolean | undefined
 
-              const hasIntent = anxietyLevel || costApproach || budgetRange || urgency || values?.length || blockers?.length || painScore !== undefined || outcomePriority
+              // Determine treatment display
+              const treatmentDisplay = treatmentsSelected?.length
+                ? treatmentsSelected.join(", ")
+                : treatmentSingle
+                  ? (TREATMENT_LABELS[treatmentSingle] || treatmentSingle.replace(/_/g, " "))
+                  : null
+
+              const hasMedicalFlags = (painScore !== undefined && painScore > 0) || hasSwelling || hasBleeding
+              const hasIntent = treatmentDisplay || anxietyLevel || costApproach || budgetRange || urgency || decisionValues?.length || blockers?.length || hasMedicalFlags || outcomePriority
 
               if (!hasIntent) return null
 
-              const anxietyColors: Record<string, string> = {
-                none: "bg-green-100 text-green-700",
-                mild: "bg-yellow-100 text-yellow-700",
-                moderate: "bg-orange-100 text-orange-700",
-                severe: "bg-red-100 text-red-700",
-                high: "bg-red-100 text-red-700",
+              const anxietyConfig: Record<string, { label: string; color: string }> = {
+                comfortable: { label: "Comfortable", color: "bg-green-100 text-green-700" },
+                slightly_anxious: { label: "Slightly anxious", color: "bg-yellow-100 text-yellow-700" },
+                quite_anxious: { label: "Quite anxious", color: "bg-orange-100 text-orange-700" },
+                very_anxious: { label: "Very anxious", color: "bg-red-100 text-red-700" },
+                // Legacy values
+                none: { label: "Comfortable", color: "bg-green-100 text-green-700" },
+                mild: { label: "Slightly anxious", color: "bg-yellow-100 text-yellow-700" },
+                moderate: { label: "Quite anxious", color: "bg-orange-100 text-orange-700" },
+                severe: { label: "Very anxious", color: "bg-red-100 text-red-700" },
+                high: { label: "Very anxious", color: "bg-red-100 text-red-700" },
               }
 
               const costLabels: Record<string, string> = {
@@ -518,9 +534,18 @@ export default function AppointmentDetailPage() {
                 understand_value: "Wants to understand value before committing",
                 comfort_range: "Has a comfortable budget range in mind",
                 strict_budget: "Strict budget constraints",
+                // Legacy v4 values
+                options_first: "Wants to explore options first",
+                upfront_pricing: "Prefers upfront pricing",
+                finance_preferred: "Prefers finance / payment plans",
               }
 
               const urgencyLabels: Record<string, string> = {
+                // Emergency urgency
+                today: "Needs to be seen today",
+                tomorrow: "Needs to be seen tomorrow",
+                next_few_days: "Within the next few days",
+                // Planning urgency
                 asap: "As soon as possible",
                 within_week: "Within a week",
                 few_weeks: "Within a few weeks",
@@ -533,6 +558,15 @@ export default function AppointmentDetailPage() {
                 premium: "Premium",
               }
 
+              const blockerCodeLabels: Record<string, string> = {
+                NOT_WORTH_COST: "Unsure about cost and whether it's the right investment",
+                NEED_MORE_TIME: "Wants to understand everything and take time deciding",
+                UNSURE_OPTION: "Not sure which treatment option is right",
+                WORRIED_COMPLEX: "Worried it might be more complicated than expected",
+                BAD_EXPERIENCE: "Has had a bad dental experience before",
+                NO_CONCERN: "No particular concerns",
+              }
+
               return (
                 <div>
                   <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
@@ -540,6 +574,17 @@ export default function AppointmentDetailPage() {
                     Patient Intent
                   </h3>
                   <div className="space-y-3">
+                    {/* Treatment */}
+                    {treatmentDisplay && (
+                      <div className="flex items-start gap-2">
+                        <Sparkles className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Treatment Interest</p>
+                          <p className="text-sm font-medium">{treatmentDisplay}</p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Urgency */}
                     {(urgency || isEmergency) && (
                       <div className="flex items-start gap-2">
@@ -547,7 +592,7 @@ export default function AppointmentDetailPage() {
                         <div>
                           <p className="text-xs text-muted-foreground">Urgency</p>
                           <p className="text-sm font-medium">
-                            {isEmergency ? "Emergency" : urgencyLabels[urgency!] || urgency?.replace(/_/g, " ")}
+                            {isEmergency && !urgency ? "Emergency" : urgencyLabels[urgency!] || urgency?.replace(/_/g, " ")}
                           </p>
                         </div>
                       </div>
@@ -559,8 +604,8 @@ export default function AppointmentDetailPage() {
                         <Brain className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                         <div>
                           <p className="text-xs text-muted-foreground">Anxiety Level</p>
-                          <Badge className={cn("text-xs mt-0.5", anxietyColors[anxietyLevel] || "bg-muted text-muted-foreground")}>
-                            {anxietyLevel.charAt(0).toUpperCase() + anxietyLevel.slice(1)}
+                          <Badge className={cn("text-xs mt-0.5", anxietyConfig[anxietyLevel]?.color || "bg-muted text-muted-foreground")}>
+                            {anxietyConfig[anxietyLevel]?.label || anxietyLevel.replace(/_/g, " ")}
                           </Badge>
                         </div>
                       </div>
@@ -573,7 +618,7 @@ export default function AppointmentDetailPage() {
                         <div>
                           <p className="text-xs text-muted-foreground">Budget & Cost</p>
                           {budgetRange && (
-                            <p className="text-sm font-medium">{budgetLabels[budgetRange] || budgetRange}</p>
+                            <p className="text-sm font-medium">{budgetLabels[budgetRange] || budgetRange.replace(/_/g, " ")}</p>
                           )}
                           {costApproach && (
                             <p className="text-xs text-muted-foreground mt-0.5">{costLabels[costApproach] || costApproach.replace(/_/g, " ")}</p>
@@ -582,8 +627,8 @@ export default function AppointmentDetailPage() {
                       </div>
                     )}
 
-                    {/* Medical Flags */}
-                    {(painScore !== undefined || hasSwelling || hasBleeding) && (
+                    {/* Medical Flags - only show if there's actual positive data */}
+                    {hasMedicalFlags && (
                       <div className="flex items-start gap-2">
                         <Activity className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                         <div>
@@ -606,14 +651,14 @@ export default function AppointmentDetailPage() {
                     )}
 
                     {/* What Matters (decision values) */}
-                    {values && values.length > 0 && (
+                    {decisionValues && decisionValues.length > 0 && (
                       <div className="flex items-start gap-2">
                         <Star className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                         <div>
                           <p className="text-xs text-muted-foreground">What Matters Most</p>
                           <div className="flex flex-wrap gap-1 mt-0.5">
-                            {values.map((v, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">{typeof v === "string" ? v.replace(/_/g, " ") : v}</Badge>
+                            {decisionValues.map((v, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">{v}</Badge>
                             ))}
                           </div>
                         </div>
@@ -621,14 +666,16 @@ export default function AppointmentDetailPage() {
                     )}
 
                     {/* Concerns / Blockers */}
-                    {blockers && blockers.length > 0 && (
+                    {blockers && blockers.length > 0 && blockers[0] !== "NO_CONCERN" && (
                       <div className="flex items-start gap-2">
                         <AlertTriangle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                         <div>
                           <p className="text-xs text-muted-foreground">Concerns / Barriers</p>
                           <div className="flex flex-wrap gap-1 mt-0.5">
                             {(blockerLabels || blockers).map((b, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs bg-amber-50 text-amber-700">{typeof b === "string" ? b.replace(/_/g, " ") : b}</Badge>
+                              <Badge key={i} variant="secondary" className="text-xs bg-amber-50 text-amber-700">
+                                {blockerLabels ? b : (blockerCodeLabels[b] || (typeof b === "string" ? b.replace(/_/g, " ") : b))}
+                              </Badge>
                             ))}
                           </div>
                         </div>
@@ -734,7 +781,7 @@ export default function AppointmentDetailPage() {
                 {Object.entries(lead.raw_answers || {}).map(([key, value]) => {
                   if (!value || key === "step") return null
                   // Skip fields already shown in Patient Intent
-                  if (["anxiety_level", "cost_approach", "budget_range", "values", "blocker", "blocker_labels", "pain_score", "has_swelling", "has_bleeding", "outcome_priority", "outcome_priority_key", "is_emergency"].includes(key)) return null
+                  if (["anxiety_level", "cost_approach", "budget_range", "values", "blocker", "blocker_labels", "pain_score", "has_swelling", "has_bleeding", "outcome_priority", "outcome_priority_key", "is_emergency", "treatments_selected"].includes(key)) return null
                   const label = FORM_FIELD_LABELS[key] || key.replace(/_/g, " ")
                   let displayValue: string
 
@@ -859,7 +906,7 @@ export default function AppointmentDetailPage() {
                   </Select>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
+                <div className="flex items-center gap-2 pt-2 flex-wrap">
                   {!booking && (
                     <Button
                       className="bg-green-600 hover:bg-green-700 text-white"
@@ -869,9 +916,22 @@ export default function AppointmentDetailPage() {
                       Confirm Appointment
                     </Button>
                   )}
+                  {editStatus === "BOOKED_CONFIRMED" && booking && (
+                    <Button
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      disabled={isSaving}
+                      onClick={() => {
+                        setEditStatus("CLOSED")
+                        handleSaveStatus("CLOSED")
+                      }}
+                    >
+                      <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                      Confirm Attendance
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
-                    onClick={handleSaveStatus}
+                    onClick={() => handleSaveStatus()}
                     disabled={isSaving}
                     className="bg-transparent"
                   >
