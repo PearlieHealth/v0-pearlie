@@ -128,6 +128,11 @@ export async function POST(request: Request) {
       reasons: rc.reasons.map((r) => r.text),
       match_run_id: match.id,
       rank: index + 1,
+      match_breakdown: rc.score.categories.map((c) => ({
+        category: c.category,
+        points: c.points,
+        maxPoints: c.maxPoints,
+      })),
     }))
 
     const { error: resultsError } = await supabase

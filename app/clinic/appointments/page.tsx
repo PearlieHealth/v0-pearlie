@@ -10,7 +10,15 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { formatDistanceToNow, format, differenceInHours, differenceInMinutes } from "date-fns"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { formatDistanceToNow, format, differenceInHours, differenceInMinutes, subDays, isAfter } from "date-fns"
 import {
   Search,
   Clock,
@@ -21,6 +29,10 @@ import {
   Inbox,
   History,
   CalendarDays,
+  Filter,
+  X,
+  Globe,
+  CheckSquare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -31,6 +43,7 @@ interface Lead {
   email: string
   phone: string
   created_at: string
+  source?: string
   raw_answers: Record<string, unknown>
   status?: {
     id: string
@@ -91,6 +104,17 @@ export default function AppointmentsPage() {
   const [clinicId, setClinicId] = useState<string | null>(null)
   const router = useRouter()
 
+  // Advanced filters
+  const [filterTreatment, setFilterTreatment] = useState<string>("all")
+  const [filterDateRange, setFilterDateRange] = useState<string>("all")
+  const [filterStatus, setFilterStatus] = useState<string>("all")
+  const [filterSource, setFilterSource] = useState<string>("all")
+  const [showFilters, setShowFilters] = useState(false)
+
+  // Bulk selection
+  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set())
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false)
+
   const fetchData = useCallback(async () => {
     const supabase = createBrowserClient()
 
@@ -125,14 +149,14 @@ export default function AppointmentsPage() {
     }
     setClinicId(cId)
 
-    // Fetch match results
+    // Fetch match results - include source from leads
     const { data: matchResults } = await supabase
       .from("match_results")
       .select(
         `
         lead_id,
         created_at,
-        leads(id, first_name, last_name, email, phone, created_at, raw_answers)
+        leads(id, first_name, last_name, email, phone, created_at, raw_answers, source)
       `
       )
       .eq("clinic_id", cId)
@@ -192,16 +216,55 @@ export default function AppointmentsPage() {
     return () => clearInterval(interval)
   }, [fetchData])
 
-  // Filter by search
+  // Get unique treatments for filter dropdown
+  const uniqueTreatments = Array.from(
+    new Set(leads.map((l) => l.raw_answers?.treatment as string).filter(Boolean))
+  )
+
+  // Check if any filters are active
+  const hasActiveFilters = filterTreatment !== "all" || filterDateRange !== "all" || filterStatus !== "all" || filterSource !== "all"
+  const activeFilterCount = [filterTreatment !== "all", filterDateRange !== "all", filterStatus !== "all", filterSource !== "all"].filter(Boolean).length
+
+  // Filter leads
   const filteredLeads = leads.filter((l) => {
-    if (!searchQuery.trim()) return true
-    const q = searchQuery.toLowerCase()
-    return (
-      l.first_name?.toLowerCase().includes(q) ||
-      l.last_name?.toLowerCase().includes(q) ||
-      l.email?.toLowerCase().includes(q) ||
-      l.phone?.toLowerCase().includes(q)
-    )
+    // Text search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      const matchesSearch =
+        l.first_name?.toLowerCase().includes(q) ||
+        l.last_name?.toLowerCase().includes(q) ||
+        l.email?.toLowerCase().includes(q) ||
+        l.phone?.toLowerCase().includes(q)
+      if (!matchesSearch) return false
+    }
+
+    // Treatment filter
+    if (filterTreatment !== "all") {
+      const treatment = l.raw_answers?.treatment as string
+      if (treatment !== filterTreatment) return false
+    }
+
+    // Date range filter
+    if (filterDateRange !== "all") {
+      const leadDate = new Date(l.created_at)
+      const now = new Date()
+      if (filterDateRange === "today" && !isAfter(leadDate, subDays(now, 1))) return false
+      if (filterDateRange === "week" && !isAfter(leadDate, subDays(now, 7))) return false
+      if (filterDateRange === "month" && !isAfter(leadDate, subDays(now, 30))) return false
+    }
+
+    // Status filter
+    if (filterStatus !== "all") {
+      const status = l.status?.status || "NEW"
+      if (status !== filterStatus) return false
+    }
+
+    // Source filter
+    if (filterSource !== "all") {
+      if ((l.source || "match") !== filterSource) return false
+    }
+
+    return true
   })
 
   // Categorize leads
@@ -243,6 +306,60 @@ export default function AppointmentsPage() {
     { key: "history" as Tab, label: "History", count: history.length, icon: History },
   ]
 
+  // Bulk actions
+  const toggleSelect = (leadId: string) => {
+    setSelectedLeads((prev) => {
+      const next = new Set(prev)
+      if (next.has(leadId)) next.delete(leadId)
+      else next.add(leadId)
+      return next
+    })
+  }
+
+  const selectAll = (leadIds: string[]) => {
+    setSelectedLeads((prev) => {
+      const next = new Set(prev)
+      const allSelected = leadIds.every((id) => next.has(id))
+      if (allSelected) {
+        leadIds.forEach((id) => next.delete(id))
+      } else {
+        leadIds.forEach((id) => next.add(id))
+      }
+      return next
+    })
+  }
+
+  const handleBulkStatusUpdate = async (newStatus: string) => {
+    if (!clinicId || selectedLeads.size === 0) return
+    setIsBulkUpdating(true)
+    try {
+      const res = await fetch("/api/clinic/leads/bulk-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadIds: Array.from(selectedLeads),
+          clinicId,
+          status: newStatus,
+        }),
+      })
+      if (res.ok) {
+        setSelectedLeads(new Set())
+        await fetchData()
+      }
+    } catch (err) {
+      console.error("Bulk update failed:", err)
+    } finally {
+      setIsBulkUpdating(false)
+    }
+  }
+
+  const clearFilters = () => {
+    setFilterTreatment("all")
+    setFilterDateRange("all")
+    setFilterStatus("all")
+    setFilterSource("all")
+  }
+
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
@@ -267,7 +384,7 @@ export default function AppointmentsPage() {
         </p>
       </div>
 
-      {/* Tabs + Search */}
+      {/* Tabs + Search + Filter Toggle */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-1 border-b">
           {tabs.map((tab) => (
@@ -299,16 +416,138 @@ export default function AppointmentsPage() {
           ))}
         </div>
 
-        <div className="relative w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search patients..."
-            className="pl-9"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search patients..."
+              className="pl-9"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Button
+            variant={showFilters ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className={cn("gap-1.5", showFilters ? "bg-[#7C3AED] hover:bg-[#6D28D9] text-white" : "bg-transparent")}
+          >
+            <Filter className="w-4 h-4" />
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="ml-1 w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                {activeFilterCount}
+              </span>
+            )}
+          </Button>
         </div>
       </div>
+
+      {/* Advanced Filters Bar */}
+      {showFilters && (
+        <div className="flex items-center gap-3 flex-wrap bg-muted/50 rounded-lg p-3 border">
+          <Select value={filterTreatment} onValueChange={setFilterTreatment}>
+            <SelectTrigger className="w-[180px] h-8 text-xs bg-background">
+              <SelectValue placeholder="Treatment" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All treatments</SelectItem>
+              {uniqueTreatments.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {TREATMENT_LABELS[t] || t.replace(/_/g, " ")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-[160px] h-8 text-xs bg-background">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="NEW">New</SelectItem>
+              <SelectItem value="CONTACTED">Contacted</SelectItem>
+              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+              <SelectItem value="BOOKED_PENDING">Booked Pending</SelectItem>
+              <SelectItem value="BOOKED_CONFIRMED">Booked Confirmed</SelectItem>
+              <SelectItem value="NOT_SUITABLE">Not Suitable</SelectItem>
+              <SelectItem value="NO_RESPONSE">No Response</SelectItem>
+              <SelectItem value="CLOSED">Closed</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filterDateRange} onValueChange={setFilterDateRange}>
+            <SelectTrigger className="w-[140px] h-8 text-xs bg-background">
+              <SelectValue placeholder="Date range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All time</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">Past 7 days</SelectItem>
+              <SelectItem value="month">Past 30 days</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filterSource} onValueChange={setFilterSource}>
+            <SelectTrigger className="w-[150px] h-8 text-xs bg-background">
+              <SelectValue placeholder="Source" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All sources</SelectItem>
+              <SelectItem value="match">From matching</SelectItem>
+              <SelectItem value="direct_profile">Direct enquiry</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 text-xs gap-1 text-muted-foreground">
+              <X className="w-3 h-3" />
+              Clear filters
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Bulk Actions Bar */}
+      {selectedLeads.size > 0 && (
+        <div className="flex items-center justify-between bg-[#F5F0FF] border border-[#7C3AED]/20 rounded-lg px-4 py-3">
+          <div className="flex items-center gap-2">
+            <CheckSquare className="w-4 h-4 text-[#7C3AED]" />
+            <span className="text-sm font-medium text-[#7C3AED]">
+              {selectedLeads.size} selected
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-7"
+              onClick={() => setSelectedLeads(new Set())}
+            >
+              Clear
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground mr-1">Set status:</span>
+            {[
+              { value: "CONTACTED", label: "Contacted" },
+              { value: "NO_RESPONSE", label: "No Response" },
+              { value: "NOT_SUITABLE", label: "Not Suitable" },
+              { value: "CLOSED", label: "Closed" },
+            ].map((opt) => (
+              <Button
+                key={opt.value}
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs bg-white"
+                disabled={isBulkUpdating}
+                onClick={() => handleBulkStatusUpdate(opt.value)}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tab Content */}
       {activeTab === "todos" && (
@@ -324,6 +563,9 @@ export default function AppointmentsPage() {
             onAction={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
             onView={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
             showElapsed
+            selectedLeads={selectedLeads}
+            onToggleSelect={toggleSelect}
+            onSelectAll={selectAll}
           />
 
           {/* Needs Scheduling */}
@@ -337,6 +579,9 @@ export default function AppointmentsPage() {
             onAction={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
             onView={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
             showElapsed
+            selectedLeads={selectedLeads}
+            onToggleSelect={toggleSelect}
+            onSelectAll={selectAll}
           />
 
           {/* Needs Confirming */}
@@ -350,6 +595,9 @@ export default function AppointmentsPage() {
             onAction={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
             onView={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
             showDate
+            selectedLeads={selectedLeads}
+            onToggleSelect={toggleSelect}
+            onSelectAll={selectAll}
           />
 
           {todoCount === 0 && (
@@ -498,6 +746,9 @@ function LeadSection({
   onView,
   showElapsed = false,
   showDate = false,
+  selectedLeads,
+  onToggleSelect,
+  onSelectAll,
 }: {
   title: string
   count: number
@@ -509,29 +760,51 @@ function LeadSection({
   onView: (lead: Lead) => void
   showElapsed?: boolean
   showDate?: boolean
+  selectedLeads: Set<string>
+  onToggleSelect: (id: string) => void
+  onSelectAll: (ids: string[]) => void
 }) {
   if (count === 0) return null
 
+  const leadIds = leads.map((l) => l.id)
+  const allSelected = leadIds.length > 0 && leadIds.every((id) => selectedLeads.has(id))
+
   return (
     <div>
-      <h3 className="text-xs font-bold tracking-wider text-muted-foreground mb-3 uppercase">
-        {title} ({count})
-      </h3>
+      <div className="flex items-center gap-3 mb-3">
+        <Checkbox
+          checked={allSelected}
+          onCheckedChange={() => onSelectAll(leadIds)}
+          className="data-[state=checked]:bg-[#7C3AED] data-[state=checked]:border-[#7C3AED]"
+        />
+        <h3 className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+          {title} ({count})
+        </h3>
+      </div>
       <Card>
         <CardContent className="p-0 divide-y">
           {leads.map((lead) => {
             const treatment = getTreatmentLabel(lead.raw_answers?.treatment as string)
             const hasUnread = lead.conversation?.unread_by_clinic
+            const isSelected = selectedLeads.has(lead.id)
+            const source = lead.source || "match"
 
             return (
               <div
                 key={lead.id}
                 className={cn(
                   "flex items-center justify-between p-4 hover:bg-muted/30 transition-colors",
-                  hasUnread && "bg-[#F5F0FF]/50"
+                  hasUnread && "bg-[#F5F0FF]/50",
+                  isSelected && "bg-[#F5F0FF]/80"
                 )}
               >
                 <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => onToggleSelect(lead.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="data-[state=checked]:bg-[#7C3AED] data-[state=checked]:border-[#7C3AED]"
+                  />
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-semibold">
@@ -539,6 +812,11 @@ function LeadSection({
                       </p>
                       {hasUnread && (
                         <span className="w-2 h-2 rounded-full bg-[#7C3AED] flex-shrink-0" />
+                      )}
+                      {source === "direct_profile" && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                          Direct
+                        </Badge>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">{treatment}</p>

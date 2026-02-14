@@ -154,6 +154,30 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       return a.name.localeCompare(b.name)
     })
 
+    // Persist match breakdowns for clinic dashboard visibility (upsert, non-blocking)
+    try {
+      const breakdownUpdates = clinicsWithScores.map((c) => ({
+        lead_id: match.lead_id,
+        clinic_id: c.id,
+        match_breakdown: c.match_breakdown.map((cat: any) => ({
+          category: cat.category,
+          points: cat.points,
+          maxPoints: cat.maxPoints,
+        })),
+        score: c.match_percentage,
+      }))
+
+      for (const update of breakdownUpdates) {
+        await supabase
+          .from("match_results")
+          .update({ match_breakdown: update.match_breakdown, score: update.score })
+          .eq("lead_id", update.lead_id)
+          .eq("clinic_id", update.clinic_id)
+      }
+    } catch (e) {
+      console.error("[match-api] Non-critical: failed to persist match breakdowns:", e)
+    }
+
     // Fetch additional nearby clinics not in the matched list (for "Load More" feature)
     // These are non-verified clinics or clinics that didn't match well enough
     const matchedClinicIds = match.clinic_ids || []

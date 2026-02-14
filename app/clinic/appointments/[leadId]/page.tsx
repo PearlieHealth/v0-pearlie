@@ -34,6 +34,14 @@ import {
   StickyNote,
   Plus,
   User,
+  Star,
+  Heart,
+  AlertTriangle,
+  DollarSign,
+  Brain,
+  Activity,
+  Globe,
+  Sparkles,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BookingDialog } from "@/components/clinic/booking-dialog"
@@ -46,6 +54,7 @@ interface Lead {
   phone: string
   postcode: string
   created_at: string
+  source?: string
   raw_answers: Record<string, unknown>
 }
 
@@ -74,6 +83,12 @@ interface Booking {
 interface MatchResult {
   reasons: string[]
   rank: number
+  score?: number
+  match_breakdown?: Array<{
+    category: string
+    points: number
+    maxPoints: number
+  }>
 }
 
 interface Conversation {
@@ -203,7 +218,7 @@ export default function AppointmentDetailPage() {
       supabase.from("leads").select("*").eq("id", leadId).single(),
       supabase
         .from("match_results")
-        .select("reasons, rank")
+        .select("reasons, rank, score, match_breakdown")
         .eq("lead_id", leadId)
         .eq("clinic_id", clinicData.id)
         .single(),
@@ -457,17 +472,269 @@ export default function AppointmentDetailPage() {
                   <Calendar className="w-4 h-4" />
                   {format(new Date(lead.created_at), "d MMM yyyy")}
                 </div>
+                {lead.source && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <Globe className="w-4 h-4 text-muted-foreground" />
+                    <Badge variant="secondary" className="text-xs">
+                      {lead.source === "match" ? "From matching" : lead.source === "direct_profile" ? "Direct enquiry" : lead.source.replace(/_/g, " ")}
+                    </Badge>
+                  </div>
+                )}
               </div>
             </div>
 
             <Separator />
 
+            {/* Patient Intent */}
+            {(() => {
+              const ra = lead.raw_answers || {}
+              const anxietyLevel = ra.anxiety_level as string | undefined
+              const costApproach = ra.cost_approach as string | undefined
+              const budgetRange = ra.budget_range as string | undefined
+              const urgency = ra.urgency as string | undefined
+              const values = ra.values as string[] | undefined
+              const blockers = ra.blocker as string[] | undefined
+              const blockerLabels = ra.blocker_labels as string[] | undefined
+              const painScore = ra.pain_score as number | undefined
+              const hasSwelling = ra.has_swelling as boolean | undefined
+              const hasBleeding = ra.has_bleeding as boolean | undefined
+              const outcomePriority = ra.outcome_priority as string | undefined
+              const isEmergency = ra.is_emergency as boolean | undefined
+
+              const hasIntent = anxietyLevel || costApproach || budgetRange || urgency || values?.length || blockers?.length || painScore !== undefined || outcomePriority
+
+              if (!hasIntent) return null
+
+              const anxietyColors: Record<string, string> = {
+                none: "bg-green-100 text-green-700",
+                mild: "bg-yellow-100 text-yellow-700",
+                moderate: "bg-orange-100 text-orange-700",
+                severe: "bg-red-100 text-red-700",
+                high: "bg-red-100 text-red-700",
+              }
+
+              const costLabels: Record<string, string> = {
+                best_outcome: "Wants the best outcome regardless of cost",
+                understand_value: "Wants to understand value before committing",
+                comfort_range: "Has a comfortable budget range in mind",
+                strict_budget: "Strict budget constraints",
+              }
+
+              const urgencyLabels: Record<string, string> = {
+                asap: "As soon as possible",
+                within_week: "Within a week",
+                few_weeks: "Within a few weeks",
+                exploring: "Just exploring options",
+              }
+
+              const budgetLabels: Record<string, string> = {
+                budget: "Budget-conscious",
+                mid: "Mid-range",
+                premium: "Premium",
+              }
+
+              return (
+                <div>
+                  <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                    <Heart className="w-4 h-4 text-[#7C3AED]" />
+                    Patient Intent
+                  </h3>
+                  <div className="space-y-3">
+                    {/* Urgency */}
+                    {(urgency || isEmergency) && (
+                      <div className="flex items-start gap-2">
+                        <Clock className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Urgency</p>
+                          <p className="text-sm font-medium">
+                            {isEmergency ? "Emergency" : urgencyLabels[urgency!] || urgency?.replace(/_/g, " ")}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Anxiety Level */}
+                    {anxietyLevel && (
+                      <div className="flex items-start gap-2">
+                        <Brain className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Anxiety Level</p>
+                          <Badge className={cn("text-xs mt-0.5", anxietyColors[anxietyLevel] || "bg-muted text-muted-foreground")}>
+                            {anxietyLevel.charAt(0).toUpperCase() + anxietyLevel.slice(1)}
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Budget / Cost */}
+                    {(budgetRange || costApproach) && (
+                      <div className="flex items-start gap-2">
+                        <DollarSign className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Budget & Cost</p>
+                          {budgetRange && (
+                            <p className="text-sm font-medium">{budgetLabels[budgetRange] || budgetRange}</p>
+                          )}
+                          {costApproach && (
+                            <p className="text-xs text-muted-foreground mt-0.5">{costLabels[costApproach] || costApproach.replace(/_/g, " ")}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Medical Flags */}
+                    {(painScore !== undefined || hasSwelling || hasBleeding) && (
+                      <div className="flex items-start gap-2">
+                        <Activity className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Medical Flags</p>
+                          <div className="flex flex-wrap gap-1 mt-0.5">
+                            {painScore !== undefined && painScore > 0 && (
+                              <Badge variant="secondary" className={cn("text-xs", painScore >= 7 ? "bg-red-100 text-red-700" : painScore >= 4 ? "bg-orange-100 text-orange-700" : "bg-muted")}>
+                                Pain: {painScore}/10
+                              </Badge>
+                            )}
+                            {hasSwelling && (
+                              <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">Swelling</Badge>
+                            )}
+                            {hasBleeding && (
+                              <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">Bleeding</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* What Matters (decision values) */}
+                    {values && values.length > 0 && (
+                      <div className="flex items-start gap-2">
+                        <Star className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">What Matters Most</p>
+                          <div className="flex flex-wrap gap-1 mt-0.5">
+                            {values.map((v, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">{typeof v === "string" ? v.replace(/_/g, " ") : v}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Concerns / Blockers */}
+                    {blockers && blockers.length > 0 && (
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Concerns / Barriers</p>
+                          <div className="flex flex-wrap gap-1 mt-0.5">
+                            {(blockerLabels || blockers).map((b, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs bg-amber-50 text-amber-700">{typeof b === "string" ? b.replace(/_/g, " ") : b}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Outcome Priority */}
+                    {outcomePriority && (
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Outcome Priority</p>
+                          <p className="text-sm">{outcomePriority}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })()}
+
+            <Separator />
+
+            {/* Match Score + Breakdown */}
+            {matchResult && (
+              <div>
+                <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#7C3AED]" />
+                  Match Score
+                </h3>
+
+                {/* Overall percentage */}
+                {matchResult.score !== undefined && matchResult.score > 0 && (
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center justify-center w-14 h-14 rounded-full border-2 border-[#7C3AED]">
+                      <span className="text-lg font-bold text-[#7C3AED]">{matchResult.score}%</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Match Percentage</p>
+                      <p className="text-xs text-muted-foreground">Based on patient preferences</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Category breakdown */}
+                {matchResult.match_breakdown && matchResult.match_breakdown.length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    {matchResult.match_breakdown.map((cat) => {
+                      const ratio = cat.maxPoints > 0 ? cat.points / cat.maxPoints : 0
+                      const pct = Math.round(ratio * 100)
+                      const categoryLabels: Record<string, string> = {
+                        treatment: "Treatment match",
+                        priorities: "Patient priorities",
+                        blockers: "Concerns addressed",
+                        anxiety: "Anxiety support",
+                        cost: "Cost & value fit",
+                        distance: "Location proximity",
+                        availability: "Appointment times",
+                      }
+                      return (
+                        <div key={cat.category}>
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-xs text-muted-foreground">{categoryLabels[cat.category] || cat.category}</span>
+                            <span className="text-xs font-medium">{pct}%</span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-[#7C3AED]"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* Match reasons */}
+                {matchResult.reasons && matchResult.reasons.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                      Why They Were Matched
+                    </p>
+                    <ul className="space-y-2">
+                      {matchResult.reasons.map((reason, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm">
+                          <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span>{reason}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <Separator />
+
             {/* Request Details - Form Answers */}
             <div>
-              <h3 className="font-semibold text-sm mb-3">Request Details</h3>
+              <h3 className="font-semibold text-sm mb-3">All Form Answers</h3>
               <div className="space-y-4">
                 {Object.entries(lead.raw_answers || {}).map(([key, value]) => {
                   if (!value || key === "step") return null
+                  // Skip fields already shown in Patient Intent
+                  if (["anxiety_level", "cost_approach", "budget_range", "values", "blocker", "blocker_labels", "pain_score", "has_swelling", "has_bleeding", "outcome_priority", "outcome_priority_key", "is_emergency"].includes(key)) return null
                   const label = FORM_FIELD_LABELS[key] || key.replace(/_/g, " ")
                   let displayValue: string
 
@@ -480,6 +747,8 @@ export default function AppointmentDetailPage() {
                   } else if (typeof value === "string") {
                     displayValue =
                       TREATMENT_LABELS[value] || value.replace(/_/g, " ")
+                  } else if (typeof value === "boolean") {
+                    displayValue = value ? "Yes" : "No"
                   } else {
                     displayValue = String(value)
                   }
@@ -495,28 +764,6 @@ export default function AppointmentDetailPage() {
                 })}
               </div>
             </div>
-
-            <Separator />
-
-            {/* Why Matched */}
-            {matchResult?.reasons && matchResult.reasons.length > 0 && (
-              <div>
-                <h3 className="font-semibold text-sm mb-3">
-                  Why They Were Matched
-                </h3>
-                <ul className="space-y-2">
-                  {matchResult.reasons.map((reason, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-2 text-sm"
-                    >
-                      <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span>{reason}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
         </ScrollArea>
 
