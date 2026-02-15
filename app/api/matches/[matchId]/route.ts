@@ -5,6 +5,7 @@ import { scoreClinic, buildMatchFacts } from "@/lib/matching/scoring"
 import { buildMatchReasons, validateUniqueReasons } from "@/lib/matching/reasons-engine"
 import { isInGreaterLondon } from "@/lib/matching/reasons"
 import { composeReasonsForMultipleClinics } from "@/lib/matching/reasonComposer"
+import { calculateHaversineDistance } from "@/lib/utils/geo"
 
 export async function GET(request: Request, { params }: { params: Promise<{ matchId: string }> }) {
   try {
@@ -225,17 +226,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
             
             let distance = 999
             if (clinic.latitude && clinic.longitude) {
-              const R = 3959 // Earth's radius in miles
-              const dLat = ((clinic.latitude - lead.latitude) * Math.PI) / 180
-              const dLon = ((clinic.longitude - lead.longitude) * Math.PI) / 180
-              const a =
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos((lead.latitude * Math.PI) / 180) *
-                  Math.cos((clinic.latitude * Math.PI) / 180) *
-                  Math.sin(dLon / 2) *
-                  Math.sin(dLon / 2)
-              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-              distance = R * c
+              distance = calculateHaversineDistance(lead.latitude, lead.longitude, clinic.latitude, clinic.longitude)
             }
             
             // Determine if this is just a directory listing (not matchable - less than 3 tags)

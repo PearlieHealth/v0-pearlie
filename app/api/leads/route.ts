@@ -40,6 +40,10 @@ function validateLeadData(body: Record<string, unknown>): { valid: true; data: R
   if (!body.lastName || typeof body.lastName !== "string" || (body.lastName as string).trim() === "") {
     return { valid: false, error: "Last name is required" }
   }
+  // Require at least an email (needed for OTP verification on match page)
+  if (!body.email || typeof body.email !== "string" || (body.email as string).trim() === "") {
+    return { valid: false, error: "Email address is required" }
+  }
 
   return {
     valid: true,

@@ -1,0 +1,42 @@
+/**
+ * Shared geographic utility functions
+ * Single source of truth for distance calculations
+ */
+
+/**
+ * Calculate distance between two lat/lng points using the Haversine formula
+ * @returns Distance in miles
+ */
+export function calculateHaversineDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 3959 // Earth's radius in miles
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
+/**
+ * Check if postcode is in Greater London based on prefix
+ */
+export function isInGreaterLondon(postcode?: string): boolean {
+  if (!postcode) return false
+
+  const londonPrefixes = [
+    "E", "EC", "N", "NW", "SE", "SW", "W", "WC",
+    "BR", "CR", "DA", "EN", "HA", "IG", "KT", "RM", "SM", "TW", "UB", "WD",
+  ]
+
+  const prefix = postcode.trim().split(/\d/)[0].toUpperCase()
+  return londonPrefixes.includes(prefix)
+}
