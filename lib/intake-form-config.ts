@@ -267,6 +267,13 @@ function normalizeValue(
   return null // Unknown value — drop it
 }
 
+/** Coerce a value to a string array — handles string, array, null, undefined */
+function toArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value
+  if (typeof value === "string" && value) return [value]
+  return []
+}
+
 /**
  * Parse raw_answers JSON and extract normalized values.
  * Unknown values are dropped (returned as null).
@@ -275,27 +282,27 @@ export function parseRawAnswers(rawAnswers: Record<string, any> | null | undefin
   if (!rawAnswers) return null
 
   // Normalize blocker codes: drop unknowns
-  const rawBlockerCodes: string[] = rawAnswers.blocker || []
+  const rawBlockerCodes = toArray(rawAnswers.blocker)
   const normalizedBlockerCodes = rawBlockerCodes
     .map((code: string) => normalizeValue(code, VALID_BLOCKER))
     .filter((code): code is string => code !== null)
 
   return {
-    treatments: rawAnswers.treatments_selected || [],
+    treatments: toArray(rawAnswers.treatments_selected),
     isEmergency: rawAnswers.is_emergency || false,
     urgency: normalizeValue(rawAnswers.urgency, VALID_URGENCY),
     postcode: rawAnswers.postcode || "",
     locationPreference: normalizeValue(rawAnswers.location_preference, VALID_LOCATION),
-    decisionValues: rawAnswers.values || [],
+    decisionValues: toArray(rawAnswers.values),
     blockerCodes: normalizedBlockerCodes,
-    blockerLabels: rawAnswers.blocker_labels || [],
+    blockerLabels: toArray(rawAnswers.blocker_labels),
     timing: normalizeValue(rawAnswers.timing, VALID_TIMING),
     costApproach: normalizeValue(rawAnswers.cost_approach, VALID_COST),
     strictBudgetMode: rawAnswers.strict_budget_mode || null,
     strictBudgetAmount: rawAnswers.strict_budget_amount || null,
     monthlyPaymentRange: rawAnswers.monthly_payment_range || null,
     anxietyLevel: normalizeValue(rawAnswers.anxiety_level, VALID_ANXIETY),
-    preferredTimes: rawAnswers.preferred_times || [],
+    preferredTimes: toArray(rawAnswers.preferred_times),
     firstName: rawAnswers.first_name || "",
     lastName: rawAnswers.last_name || "",
     email: rawAnswers.email || null,
