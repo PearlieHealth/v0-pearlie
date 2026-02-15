@@ -14,7 +14,8 @@ const PUBLIC_CLINIC_FIELDS = `
   parking_available, wheelchair_accessible, tags, available_days,
   available_hours, accepts_same_day, highlight_chips, price_range,
   featured, featured_review, is_live, is_archived,
-  show_treatment_prices, treatment_prices, offers_free_consultation
+  show_treatment_prices, treatment_prices, offers_free_consultation,
+  google_place_id, google_rating, google_review_count, google_maps_url
 `.replace(/\s+/g, " ").trim()
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ clinicId: string }> }) {
