@@ -14,9 +14,12 @@ const PUBLIC_CLINIC_FIELDS = `
   parking_available, wheelchair_accessible, tags, available_days,
   available_hours, accepts_same_day, highlight_chips, price_range,
   featured, featured_review, is_live, is_archived,
-  show_treatment_prices, treatment_prices, offers_free_consultation,
-  google_place_id, google_rating, google_review_count, google_maps_url
+  show_treatment_prices, treatment_prices, offers_free_consultation
 `.replace(/\s+/g, " ").trim()
+
+// Google fields may not exist if the migration hasn't been applied yet.
+// Fetched separately so the main query never fails.
+const GOOGLE_FIELDS = "google_place_id, google_rating, google_review_count, google_maps_url"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ clinicId: string }> }) {
   try {
@@ -40,6 +43,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const clinicData = clinic as Record<string, any>
+
+    // Try to merge Google review fields (columns may not exist yet)
+    try {
+      const { data: googleData } = isUUID
+        ? await supabaseAdmin.from("clinics").select(GOOGLE_FIELDS).eq("id", clinicId).single()
+        : await supabaseAdmin.from("clinics").select(GOOGLE_FIELDS).eq("slug", clinicId).single()
+      if (googleData) {
+        Object.assign(clinicData, googleData)
+      }
+    } catch {
+      // Google columns don't exist yet — that's fine, skip them
+    }
 
     // Don't show archived clinics to anyone
     if (clinicData.is_archived === true) {
