@@ -325,6 +325,7 @@ function scoreAnxiety(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: number
 
 function scoreAvailability(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: number): ScoreCategoryBreakdown {
   const preferredTimes = lead.preferred_times || [] // ["morning", "afternoon"]
+  const hasAvailabilityData = !!(clinic.available_hours && clinic.available_days)
   const clinicHours = clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]
   const clinicDays = clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]
   const urgency = lead.timingPreference || "flexible"
@@ -419,6 +420,11 @@ function scoreAvailability(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
     }
   }
 
+  // If clinic has no real availability data, cap at 50% — don't reward assumed defaults
+  if (!hasAvailabilityData) {
+    points = Math.min(points, Math.round(maxPoints * 0.5))
+  }
+
   return {
     category: "availability",
     points: Math.min(points, maxPoints), // Cap at max
@@ -434,6 +440,7 @@ function scoreAvailability(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
       acceptsSameDay,
       acceptsUrgent,
       weekendAvailable: clinicHasWeekend,
+      hasAvailabilityData,
     },
   }
 }

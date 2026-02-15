@@ -121,6 +121,9 @@ export async function POST(request: Request) {
     }
 
     // 8. Save individual match_results for each clinic (feeds clinic dashboards)
+    // Clean up any previous match_results for this lead to avoid duplicates
+    await supabase.from("match_results").delete().eq("lead_id", leadId)
+
     const matchResultRows = rankedClinics.map((rc, index) => ({
       lead_id: leadId,
       clinic_id: rc.clinic.id,

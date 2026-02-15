@@ -621,6 +621,25 @@ export default function MatchPage() {
           </Empty>
         )}
 
+        {!loading && !error && allClinicsData.length === 0 && (
+          <Empty>
+            <EmptyHeader>
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-muted mx-auto mb-4">
+                <MapPin className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <EmptyTitle>No matching clinics found</EmptyTitle>
+              <EmptyDescription>
+                We couldn't find clinics matching your criteria right now. We're growing our network — check back soon or try a different postcode.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button asChild variant="default">
+                <Link href="/intake">Start a new search</Link>
+              </Button>
+            </EmptyContent>
+          </Empty>
+        )}
+
         {!loading && !error && allClinicsData.length > 0 && (
           <>
             {showExpansionBanner && (

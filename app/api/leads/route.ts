@@ -104,44 +104,13 @@ export async function POST(request: Request) {
     const phone = validatedData.phone && (validatedData.phone as string).trim() !== "" ? validatedData.phone : null
     const contactMethod = email ? "email" : phone ? "phone" : "email"
 
+    // Use the form's rawAnswers directly — it's built from the actual form state
+    // and is the canonical record of what the patient selected.
+    // Only override geocoded coords and submitted_at (server-authoritative values).
     const rawAnswers = {
-      treatments_selected: (validatedData.treatmentInterest as string).split(", ").filter(Boolean),
-      is_emergency: validatedData.isEmergency,
-      urgency: validatedData.urgency,
-      location_preference: validatedData.locationPreference,
-      postcode: validatedData.postcode,
+      ...(body.rawAnswers || {}),
       user_lat: geocoded.latitude,
       user_lng: geocoded.longitude,
-      values: validatedData.decisionValues || [],
-      blocker:
-        (validatedData.conversionBlockerCodes as string[]).length > 0
-          ? validatedData.conversionBlockerCodes
-          : validatedData.conversionBlockerCode
-            ? [validatedData.conversionBlockerCode]
-            : [],
-      blocker_label: validatedData.conversionBlocker,
-      blocker_labels: Array.isArray(body.rawAnswers?.blocker_labels) ? body.rawAnswers.blocker_labels : [],
-      timing: validatedData.timingPreference,
-      preferred_times: validatedData.preferred_times,
-      expectations: validatedData.outcomePriority,
-      expectations_key: validatedData.outcomePriorityKey,
-      expectations_treatment: validatedData.outcomeTreatment,
-      cost_approach: validatedData.costApproach,
-      monthly_payment_range: validatedData.monthlyPaymentRange,
-      strict_budget_mode: validatedData.strictBudgetMode,
-      strict_budget_amount: validatedData.strictBudgetAmount,
-      anxiety_level: validatedData.anxietyLevel,
-      contact_method: contactMethod,
-      contact_value: email || phone,
-      first_name: validatedData.firstName,
-      last_name: validatedData.lastName,
-      email: email,
-      phone: phone,
-      city: validatedData.city || "",
-      consent_contact: validatedData.consentContact,
-      consent_terms: validatedData.consentTerms,
-      consent_marketing: validatedData.consentMarketing,
-      form_version: validatedData.formVersion,
       submitted_at: new Date().toISOString(),
     }
 
