@@ -28,11 +28,8 @@ export class AdminCardErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log to console in development
-    if (process.env.NODE_ENV === "development") {
-      console.error("[AdminCardErrorBoundary] Component crashed:", error)
-      console.error("[AdminCardErrorBoundary] Component stack:", errorInfo.componentStack)
-    }
+    console.error(`[AdminCardErrorBoundary] ${this.props.cardName || "Card"} crashed:`, error)
+    console.error(`[AdminCardErrorBoundary] Component stack:`, errorInfo.componentStack)
   }
 
   render() {
@@ -46,7 +43,7 @@ export class AdminCardErrorBoundary extends Component<Props, State> {
                 {this.props.fallbackTitle || (this.props.cardName ? `${this.props.cardName} is temporarily unavailable` : "This metric is temporarily unavailable")}
               </span>
             </div>
-            {process.env.NODE_ENV === "development" && this.state.error && (
+            {this.state.error && (
               <p className="mt-2 text-xs text-amber-600 font-mono">{this.state.error.message}</p>
             )}
           </CardContent>
