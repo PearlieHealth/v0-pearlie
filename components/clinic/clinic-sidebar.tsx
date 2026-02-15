@@ -18,7 +18,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Heart,
-  UserCog,
   MessageCircle,
 } from "lucide-react"
 import {
@@ -66,12 +65,6 @@ const navItems = [
     href: "/clinic/providers",
     label: "Providers",
     icon: Users,
-    roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
-  },
-  {
-    href: "/clinic/team",
-    label: "Team",
-    icon: UserCog,
     roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
   },
   {
