@@ -10,6 +10,15 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { PostcodeInput } from "@/components/postcode-input"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
 import { trackEvent } from "@/lib/analytics"
 import { slideVariants, slideTransition } from "@/lib/slide-variants"
 import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap } from "lucide-react"
@@ -38,6 +47,7 @@ export default function IntakePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formStarted, setFormStarted] = useState(false)
   const [animatedSteps, setAnimatedSteps] = useState<Set<number>>(new Set())
+  const [outsideLondonArea, setOutsideLondonArea] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     treatments: [] as string[],
@@ -613,6 +623,10 @@ export default function IntakePage() {
                       value={formData.postcode}
                       onChange={(value) => setFormData({ ...formData, postcode: value })}
                       onValidChange={(isValid) => setFormData({ ...formData, postcodeValid: isValid })}
+                      onOutsideLondon={(area) => {
+                        setOutsideLondonArea(area)
+                        trackEvent("postcode_outside_london", { meta: { area, postcode: formData.postcode } })
+                      }}
                     />
                   </motion.div>
 
@@ -1136,6 +1150,27 @@ export default function IntakePage() {
           </form>
         </div>
       </main>
+
+      {/* Outside London hard-block dialog */}
+      <AlertDialog open={outsideLondonArea !== null} onOpenChange={(open) => { if (!open) setOutsideLondonArea(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>We're not in your area yet</AlertDialogTitle>
+            <AlertDialogDescription className="text-base leading-relaxed">
+              We're currently serving patients in <span className="font-semibold text-foreground">London</span> only.
+              {outsideLondonArea && (
+                <> It looks like you're in <span className="font-semibold text-foreground">{outsideLondonArea}</span>.</>
+              )}
+              {" "}We're expanding soon — watch this space!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction className="bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0">
+              Got it
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -9,16 +9,22 @@ interface PostcodeInputProps {
   value: string
   onChange: (value: string) => void
   onValidChange?: (isValid: boolean) => void
+  onOutsideLondon?: (area: string) => void
 }
 
-export function PostcodeInput({ value, onChange, onValidChange }: PostcodeInputProps) {
+export function PostcodeInput({ value, onChange, onValidChange, onOutsideLondon }: PostcodeInputProps) {
   const [error, setError] = useState<string | null>(null)
   const [isValidating, setIsValidating] = useState(false)
   const onValidChangeRef = useRef(onValidChange)
+  const onOutsideLondonRef = useRef(onOutsideLondon)
 
   useEffect(() => {
     onValidChangeRef.current = onValidChange
   }, [onValidChange])
+
+  useEffect(() => {
+    onOutsideLondonRef.current = onOutsideLondon
+  }, [onOutsideLondon])
 
   useEffect(() => {
     if (!value) {
@@ -47,8 +53,18 @@ export function PostcodeInput({ value, onChange, onValidChange }: PostcodeInputP
           setError("Please enter a valid UK postcode")
           onValidChangeRef.current?.(false)
         } else {
-          setError(null)
-          onValidChangeRef.current?.(true)
+          const data = await response.json()
+          const region = data.result?.region || ""
+          const area = data.result?.admin_district || region
+
+          if (region !== "London") {
+            setError("We're currently only serving patients in London")
+            onValidChangeRef.current?.(false)
+            onOutsideLondonRef.current?.(area)
+          } else {
+            setError(null)
+            onValidChangeRef.current?.(true)
+          }
         }
       } catch (err) {
         console.warn("[v0] Postcode validation error:", err)
