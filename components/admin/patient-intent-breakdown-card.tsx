@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Brain, Wallet, Clock } from "lucide-react"
+import { safeArray } from "@/lib/analytics/safe"
 import {
   ANXIETY_LEVEL_SHORT_LABELS,
   ANXIETY_LEVEL_OPTIONS,
@@ -20,16 +21,18 @@ interface Lead {
 }
 
 interface PatientIntentBreakdownCardProps {
-  leads: Lead[]
+  leads?: Lead[]
 }
 
 export function PatientIntentBreakdownCard({ leads }: PatientIntentBreakdownCardProps) {
+  const safeLeads = safeArray(leads)
+
   // Calculate breakdowns using centralized parseRawAnswers
   const anxietyCounts: Record<string, number> = {}
   const budgetCounts: Record<string, number> = {}
   const urgencyCounts: Record<string, number> = {}
 
-  leads.forEach((lead) => {
+  safeLeads.forEach((lead) => {
     const parsed = parseRawAnswers(lead.raw_answers as Record<string, any> | null | undefined)
     if (!parsed) return
 
@@ -130,7 +133,7 @@ export function PatientIntentBreakdownCard({ leads }: PatientIntentBreakdownCard
           Patient Intent Breakdown
         </CardTitle>
         <CardDescription>
-          Aggregated patient preferences across all leads ({leads.length} total)
+          Aggregated patient preferences across all leads ({safeLeads.length} total)
         </CardDescription>
       </CardHeader>
       <CardContent>

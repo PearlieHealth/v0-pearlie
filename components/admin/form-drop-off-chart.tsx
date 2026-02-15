@@ -43,7 +43,7 @@ export function FormDropOffChart({ events = [] }: FormDropOffChartProps) {
   const [flow, setFlow] = useState<"planning" | "emergency">("planning")
 
   const formEvents = (events ?? []).filter((e) =>
-    [
+    e?.event_name && [
       "form_started",
       "form_step_viewed",
       "form_step_completed",
