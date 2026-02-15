@@ -1,7 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { Resend } from "resend"
 import { getBotClinicReplied } from "@/lib/chat-bot"
 import { getAuthUser } from "@/lib/supabase/get-clinic-user"
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,7 +37,7 @@ export async function POST(request: NextRequest) {
     // Verify conversation belongs to this clinic
     const { data: conversation, error: convError } = await supabaseAdmin
       .from("conversations")
-      .select("id, clinic_id, clinic_first_reply_at, unread_count_patient")
+      .select("id, clinic_id, lead_id, clinic_first_reply_at, unread_count_patient")
       .eq("id", conversationId)
       .single()
 
@@ -117,6 +120,61 @@ export async function POST(request: NextRequest) {
         }
       } catch (botError) {
         console.error("[Chat] Bot clinic-replied message error:", botError)
+      }
+    }
+
+    // Send email notification to patient when clinic replies
+    const verifiedDomain = process.env.RESEND_VERIFIED_DOMAIN
+    if (verifiedDomain) {
+      try {
+        const { data: lead } = await supabaseAdmin
+          .from("leads")
+          .select("email, first_name")
+          .eq("id", conversation.lead_id)
+          .single()
+
+        const { data: clinic } = await supabaseAdmin
+          .from("clinics")
+          .select("name, id")
+          .eq("id", clinicUser.clinic_id)
+          .single()
+
+        if (lead?.email && clinic) {
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://mydentalfly.com"
+          const trimmedContent = content.trim()
+          await resend.emails.send({
+            from: `MyDentalFly <notifications@${verifiedDomain}>`,
+            to: lead.email,
+            subject: `${clinic.name} has replied to your message`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background-color: #0d9488; color: white; padding: 20px; text-align: center;">
+                  <h1 style="margin: 0;">You've Got a Reply!</h1>
+                </div>
+                <div style="padding: 30px; background-color: #f9fafb;">
+                  <p style="color: #374151; font-size: 16px;">
+                    Hi${lead.first_name ? ` ${lead.first_name}` : ""}, <strong>${clinic.name}</strong> has replied to your message:
+                  </p>
+                  <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0d9488;">
+                    <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${trimmedContent.substring(0, 500)}${trimmedContent.length > 500 ? "..." : ""}</p>
+                  </div>
+                  <div style="text-align: center; margin-top: 30px;">
+                    <a href="${baseUrl}/clinic/${clinic.id}"
+                       style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                      View &amp; Reply
+                    </a>
+                  </div>
+                </div>
+                <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
+                  <p>This is an automated message from MyDentalFly</p>
+                </div>
+              </div>
+            `,
+          })
+        }
+      } catch (emailError) {
+        // Don't fail the reply if email notification fails
+        console.error("[Chat] Failed to send patient email notification:", emailError)
       }
     }
 
