@@ -76,8 +76,7 @@ export function AdminLogin() {
             </Button>
           </form>
           <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>Default password: pearlie-admin-2024</p>
-            <p className="text-xs mt-1">Change this in production!</p>
+            <p>Contact your administrator for access credentials.</p>
           </div>
         </CardContent>
       </Card>

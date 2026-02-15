@@ -4,6 +4,7 @@ import { getBotNoReplyYet } from "@/lib/chat-bot"
 import { generateIntelligentBotResponse } from "@/lib/chat-bot-ai"
 
 const NO_REPLY_DELAY_MS = 30 * 60 * 1000 // 30 minutes
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +15,13 @@ export async function GET(request: NextRequest) {
     if (!leadId || !clinicId) {
       return NextResponse.json(
         { error: "Lead ID and Clinic ID are required" },
+        { status: 400 }
+      )
+    }
+
+    if (!UUID_REGEX.test(leadId) || !UUID_REGEX.test(clinicId)) {
+      return NextResponse.json(
+        { error: "Invalid Lead ID or Clinic ID format" },
         { status: 400 }
       )
     }

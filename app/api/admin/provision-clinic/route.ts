@@ -154,8 +154,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       clinicId: clinic.id,
-      tempPassword, // Return for admin reference
-      message: "Clinic provisioned successfully",
+      message: "Clinic provisioned successfully. Login credentials sent via email.",
     })
   } catch (error) {
     console.error("Provisioning error:", error)
@@ -168,6 +167,9 @@ export async function POST(request: Request) {
 
 // GET provisioning logs
 export async function GET() {
+  const auth = await verifyAdminAuth()
+  if (!auth.authenticated) return auth.response
+
   try {
     const supabaseAdmin = createAdminClient()
 

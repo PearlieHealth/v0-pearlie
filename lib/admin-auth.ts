@@ -1,6 +1,18 @@
 import { cookies, headers } from "next/headers"
 import { NextResponse } from "next/server"
+import { timingSafeEqual } from "crypto"
 import { SESSION_COOKIE_NAME, SESSION_TOKEN } from "./auth-config"
+
+/** Timing-safe string comparison to prevent timing attacks */
+function safeCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    // Compare b with itself to keep constant time, then return false
+    const buf = Buffer.from(b)
+    timingSafeEqual(buf, buf)
+    return false
+  }
+  return timingSafeEqual(Buffer.from(a), Buffer.from(b))
+}
 
 export type AuthResult =
   | { authenticated: true }
@@ -67,7 +79,7 @@ export async function verifyAdminAuth(): Promise<AuthResult> {
     const cookieStore = await cookies()
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)
 
-    if (!sessionCookie || sessionCookie.value !== SESSION_TOKEN) {
+    if (!sessionCookie || !safeCompare(sessionCookie.value, SESSION_TOKEN)) {
       return {
         authenticated: false,
         response: NextResponse.json(
@@ -97,7 +109,7 @@ export async function isAdminAuthenticated(): Promise<boolean> {
     if (!SESSION_TOKEN) return false
     const cookieStore = await cookies()
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)
-    return sessionCookie?.value === SESSION_TOKEN
+    return !!sessionCookie && safeCompare(sessionCookie.value, SESSION_TOKEN)
   } catch {
     return false
   }

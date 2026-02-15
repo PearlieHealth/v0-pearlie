@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { Resend } from "resend"
 import { getBotClinicReplied } from "@/lib/chat-bot"
 import { getAuthUser } from "@/lib/supabase/get-clinic-user"
+import { escapeHtml } from "@/lib/escape-html"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -140,10 +141,13 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (lead?.email && clinic) {
-          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://mydentalfly.com"
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
           const trimmedContent = content.trim()
+          const safeFirstName = lead.first_name ? ` ${escapeHtml(lead.first_name)}` : ""
+          const safeClinicName = escapeHtml(clinic.name)
+          const safeContent = escapeHtml(trimmedContent.substring(0, 500)) + (trimmedContent.length > 500 ? "..." : "")
           await resend.emails.send({
-            from: `MyDentalFly <notifications@${verifiedDomain}>`,
+            from: `Pearlie <notifications@${verifiedDomain}>`,
             to: lead.email,
             subject: `${clinic.name} has replied to your message`,
             html: `
@@ -153,20 +157,20 @@ export async function POST(request: NextRequest) {
                 </div>
                 <div style="padding: 30px; background-color: #f9fafb;">
                   <p style="color: #374151; font-size: 16px;">
-                    Hi${lead.first_name ? ` ${lead.first_name}` : ""}, <strong>${clinic.name}</strong> has replied to your message:
+                    Hi${safeFirstName}, <strong>${safeClinicName}</strong> has replied to your message:
                   </p>
                   <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0d9488;">
-                    <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${trimmedContent.substring(0, 500)}${trimmedContent.length > 500 ? "..." : ""}</p>
+                    <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${safeContent}</p>
                   </div>
                   <div style="text-align: center; margin-top: 30px;">
-                    <a href="${baseUrl}/clinic/${clinic.id}"
+                    <a href="${appUrl}/clinic/${clinic.id}"
                        style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
                       View &amp; Reply
                     </a>
                   </div>
                 </div>
                 <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
-                  <p>This is an automated message from MyDentalFly</p>
+                  <p>This is an automated message from Pearlie</p>
                 </div>
               </div>
             `,

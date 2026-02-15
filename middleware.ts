@@ -10,7 +10,8 @@ let cachedToken: string | null = null
 let cachedSecret: string | null = null
 
 async function getAdminSessionToken(): Promise<string> {
-  const secret = process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || ""
+  const secret = process.env.ADMIN_SESSION_SECRET || ""
+  const sessionEpoch = process.env.ADMIN_SESSION_EPOCH || "1"
 
   if (cachedToken !== null && cachedSecret === secret) {
     return cachedToken
@@ -23,7 +24,7 @@ async function getAdminSessionToken(): Promise<string> {
   }
 
   // Web Crypto HMAC-SHA256 – same output as Node's
-  // createHmac("sha256", secret).update("pearlie_admin_session").digest("hex")
+  // createHmac("sha256", secret).update("pearlie_admin_session_v" + epoch).digest("hex")
   const enc = new TextEncoder()
   const key = await crypto.subtle.importKey(
     "raw",
@@ -32,7 +33,7 @@ async function getAdminSessionToken(): Promise<string> {
     false,
     ["sign"],
   )
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode("pearlie_admin_session"))
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(`pearlie_admin_session_v${sessionEpoch}`))
   cachedToken = Array.from(new Uint8Array(sig))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("")
@@ -45,8 +46,8 @@ export default async function middleware(request: NextRequest) {
 
   // ── Admin route protection (server-side, before any HTML is sent) ──
   if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
-    const password = process.env.ADMIN_PASSWORD || ""
-    if (!password) {
+    const isConfigured = !!(process.env.ADMIN_PASSWORD)
+    if (!isConfigured) {
       const url = request.nextUrl.clone()
       url.pathname = "/admin/login"
       return NextResponse.redirect(url)

@@ -11,19 +11,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Token, email, and password are required" }, { status: 400 })
     }
 
-    // 1. Get the invite
+    // Validate password strength
+    if (password.length < 8) {
+      return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 })
+    }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      return NextResponse.json({ error: "Password must contain uppercase, lowercase, and a number" }, { status: 400 })
+    }
+
+    // 1. Get the invite (filter for not-yet-accepted atomically)
     const { data: invite, error: inviteError } = await supabase
       .from("clinic_invites")
       .select("*")
       .eq("token", token)
+      .is("accepted_at", null)
       .single()
 
     if (inviteError || !invite) {
-      return NextResponse.json({ error: "Invalid invitation token" }, { status: 404 })
-    }
-
-    if (invite.accepted_at) {
-      return NextResponse.json({ error: "This invitation has already been used" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid or already used invitation token" }, { status: 404 })
     }
 
     if (new Date(invite.expires_at) < new Date()) {

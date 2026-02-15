@@ -61,9 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify OTP using timing-safe comparison
-    console.log("[v0] Verifying OTP for lead:", leadId, "Submitted OTP:", normalizedOTP, "Stored hash:", lead.otp_hash?.substring(0, 16) + "...")
     const isValid = verifyOTPHash(normalizedOTP, lead.otp_hash, OTP_SECRET)
-    console.log("[v0] OTP verification result:", isValid)
 
     if (!isValid) {
       // Increment failed attempts

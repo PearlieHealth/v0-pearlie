@@ -1122,7 +1122,7 @@ export default function IntakePage() {
                           // Save form data to localStorage so google-complete page can create the lead
                           try {
                             localStorage.setItem("pearlie_intake_form", JSON.stringify(formData))
-                          } catch {}
+                          } catch (e) { console.error("[Intake] Failed to save form data:", e) }
                         }}
                       />
                     ) : (

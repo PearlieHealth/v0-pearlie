@@ -125,11 +125,14 @@ export async function GET() {
     })
   } catch (error) {
     console.error("[TAG_HYGIENE_ERROR]", error)
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 })
+    return NextResponse.json({ error: "Failed to fetch tag hygiene data" }, { status: 500 })
   }
 }
 
 export async function DELETE(request: Request) {
+  const auth = await verifyAdminAuth()
+  if (!auth.authenticated) return auth.response
+
   try {
     const body = await request.json()
     const { clinicId } = body
@@ -169,6 +172,6 @@ export async function DELETE(request: Request) {
     })
   } catch (error) {
     console.error("[TAG_HYGIENE_DELETE_ERROR]", error)
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 })
+    return NextResponse.json({ error: "Failed to clean up tags" }, { status: 500 })
   }
 }

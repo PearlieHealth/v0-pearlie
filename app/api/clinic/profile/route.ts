@@ -2,8 +2,18 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
 import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 
-// Fields that only admin can modify
-const ADMIN_ONLY_FIELDS = ["is_live", "verified", "is_archived", "google_place_id", "google_rating", "google_review_count"]
+// Roles allowed to edit clinic profile
+const EDIT_ROLES = ["clinic_admin", "clinic_owner", "clinic_manager"]
+
+// Fields that clinic users are allowed to edit (allowlist approach)
+const EDITABLE_FIELDS = new Set([
+  "name", "email", "phone", "website", "address", "postcode", "city",
+  "description", "opening_hours", "facilities", "treatments", "price_range",
+  "latitude", "longitude", "logo_url", "cover_image_url", "gallery_images",
+  "accepts_nhs", "parking_available", "wheelchair_accessible",
+  "booking_url", "social_links", "languages_spoken",
+  "bot_intelligence", "notification_preferences",
+])
 
 export async function GET() {
   try {
@@ -61,17 +71,25 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "No clinic found" }, { status: 404 })
     }
 
+    // Check role — only clinic_admin, clinic_owner, or clinic_manager can edit
+    if (!EDIT_ROLES.includes(clinicUser.role)) {
+      return NextResponse.json({ error: "Insufficient permissions to edit clinic profile" }, { status: 403 })
+    }
+
     // Parse request body
     const body = await request.json()
-    
-    // Remove admin-only fields from the update
-    const sanitizedData = { ...body }
-    for (const field of ADMIN_ONLY_FIELDS) {
-      delete sanitizedData[field]
+
+    // Allowlist approach: only include fields that clinic users are allowed to edit
+    const sanitizedData: Record<string, any> = {}
+    for (const [key, value] of Object.entries(body)) {
+      if (EDITABLE_FIELDS.has(key)) {
+        sanitizedData[key] = value
+      }
     }
-    
-    // Also remove id to prevent changing it
-    delete sanitizedData.id
+
+    if (Object.keys(sanitizedData).length === 0) {
+      return NextResponse.json({ error: "No valid fields to update" }, { status: 400 })
+    }
 
     // Update the clinic
     const { data: updatedClinic, error } = await supabaseAdmin
