@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
       console.error("[v0] Failed to log provisioning (non-critical):", logError)
     }
     
-    console.log("[v0] Invite created successfully for", primary_contact_email, "token:", inviteToken.substring(0, 8) + "...")
+    console.log("[v0] Invite created successfully for", primary_contact_email)
 
     // Build invite URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"

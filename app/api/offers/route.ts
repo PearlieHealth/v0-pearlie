@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const limit = Number.parseInt(searchParams.get("limit") || "10")
+    const limit = Math.min(Number.parseInt(searchParams.get("limit") || "10") || 10, 100)
 
     const supabase = await createClient()
 
