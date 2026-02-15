@@ -12,6 +12,11 @@ import { MatchReasonsCard } from "@/components/admin/match-reasons-card"
 import { PatientIntentBreakdownCard } from "@/components/admin/patient-intent-breakdown-card"
 import { ExecutiveSnapshot } from "@/components/admin/executive-snapshot"
 import { AdvancedInsightsPreview } from "@/components/admin/advanced-insights-preview"
+import { BlockerAnalysisCard } from "@/components/admin/blocker-analysis-card"
+import { FlowSplitCard } from "@/components/admin/flow-split-card"
+import { PreferredTimesCard } from "@/components/admin/preferred-times-card"
+import { LocationPreferenceCard } from "@/components/admin/location-preference-card"
+import { PostcodeDemandCard } from "@/components/admin/postcode-demand-card"
 import { SelfTestButton } from "@/components/admin/self-test-button"
 import { AnalyticsSelfCheckButton } from "@/components/admin/analytics-self-check-button"
 import { LiveFlowTestButton } from "@/components/admin/live-flow-test-button"
@@ -202,17 +207,43 @@ export default async function AnalyticsDashboard() {
                 <PatientIntentBreakdownCard leads={analytics.leads} />
               </AdminCardErrorBoundary>
             </div>
+
+            <div className="grid gap-4 md:gap-6 md:grid-cols-2 mt-4 md:mt-6">
+              <AdminCardErrorBoundary cardName="Blocker Analysis">
+                <BlockerAnalysisCard leads={analytics.leads} />
+              </AdminCardErrorBoundary>
+
+              <AdminCardErrorBoundary cardName="Flow Split">
+                <FlowSplitCard leads={analytics.leads} />
+              </AdminCardErrorBoundary>
+            </div>
+
+            <div className="grid gap-4 md:gap-6 md:grid-cols-2 mt-4 md:mt-6">
+              <AdminCardErrorBoundary cardName="Preferred Times">
+                <PreferredTimesCard leads={analytics.leads} />
+              </AdminCardErrorBoundary>
+
+              <AdminCardErrorBoundary cardName="Location Preference">
+                <LocationPreferenceCard leads={analytics.leads} />
+              </AdminCardErrorBoundary>
+            </div>
           </TabsContent>
 
           <TabsContent value="clinics">
             <AdminCardErrorBoundary cardName="Clinic Performance">
-              <ClinicPerformanceTable 
-                events={analytics.events} 
+              <ClinicPerformanceTable
+                events={analytics.events}
                 clinicMap={analytics.clinicMap}
                 leads={analytics.leads}
                 matchResults={analytics.matchResults}
               />
             </AdminCardErrorBoundary>
+
+            <div className="mt-4 md:mt-6">
+              <AdminCardErrorBoundary cardName="Postcode Demand">
+                <PostcodeDemandCard leads={analytics.leads} />
+              </AdminCardErrorBoundary>
+            </div>
           </TabsContent>
 
           <TabsContent value="leads">
