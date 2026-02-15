@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server"
-import { Resend } from "resend"
 import { verifyAdminAuth } from "@/lib/admin-auth"
-
-function getResendClient() {
-  return new Resend(process.env.RESEND_API_KEY)
-}
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 export async function POST(request: Request) {
   const auth = await verifyAdminAuth()
@@ -34,22 +31,21 @@ export async function POST(request: Request) {
     const subject = `[TEST] New ${actionLabel} Request - ${testLead.firstName} ${testLead.lastName}`
     const html = generateTestEmailHTML(clinicName || "Your Clinic", "click_book", testLead)
 
-    const resend = getResendClient()
-    const { data, error } = await resend.emails.send({
-      from: "Pearlie <hello@pearlie.org>",
+    const result = await sendEmailWithRetry({
+      from: EMAIL_FROM.NOTIFICATIONS,
       to: email,
       subject,
       html,
     })
 
-    if (error) {
-      console.error("[v0] Test email error:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (!result.success) {
+      console.error("[v0] Test email error:", result.error)
+      return NextResponse.json({ error: result.error }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
-      messageId: data?.id,
+      messageId: result.messageId,
     })
   } catch (error: any) {
     console.error("[v0] Error sending test email:", error)

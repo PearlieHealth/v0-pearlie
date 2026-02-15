@@ -1,9 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { Resend } from "resend"
 import { generateOTP, hashOTP, canSendOTP } from "@/lib/otp/generate"
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 const OTP_SECRET = process.env.SUPABASE_JWT_SECRET
 if (!OTP_SECRET) throw new Error("SUPABASE_JWT_SECRET environment variable is required")
 
@@ -70,8 +69,8 @@ export async function POST(request: NextRequest) {
 
     // Send OTP email via Resend (after DB is updated to ensure consistency)
     try {
-      await resend.emails.send({
-        from: "Pearlie <verify@pearlie.org>",
+      await sendEmailWithRetry({
+        from: EMAIL_FROM.NOREPLY,
         to: email,
         subject: "Your Pearlie verification code",
         html: `

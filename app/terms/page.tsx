@@ -1,4 +1,10 @@
+import type { Metadata } from "next"
 import Link from "next/link"
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "Pearlie terms of service — the rules and guidelines for using our dental clinic matching platform.",
+}
 
 export default function TermsPage() {
   return (

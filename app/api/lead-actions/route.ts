@@ -4,27 +4,14 @@ export const dynamic = "force-dynamic"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
-import { Resend } from "resend"
 import { TIMING_LABELS, COST_APPROACH_LABELS, LOCATION_PREFERENCE_LABELS, ANXIETY_LEVEL_LABELS } from "@/lib/intake-form-config"
 import { escapeHtml } from "@/lib/escape-html"
-
-function getResendClient() {
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) {
-    throw new Error("RESEND_API_KEY environment variable is not set")
-  }
-  return new Resend(apiKey)
-}
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 export async function POST(request: Request) {
   try {
     const { leadId, clinicId, actionType } = await request.json()
-
-    console.log("[lead-actions] Environment check", {
-      hasResendKey: !!process.env.RESEND_API_KEY,
-      emailFrom: process.env.EMAIL_FROM,
-      appUrl: process.env.APP_URL,
-    })
 
     if (!leadId || !clinicId || !actionType) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -196,42 +183,27 @@ async function sendClinicNotification({
   const supabaseAdmin = createAdminClient()
 
   try {
-    const emailFrom = "Pearlie <hello@pearlie.org>"
-
-    if (!process.env.RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY environment variable is not set")
-    }
-
-    console.log("[lead-actions] Testing Resend API connectivity...")
-    const pingResponse = await fetch("https://api.resend.com/domains", {
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      },
-    })
-    console.log("[lead-actions] Resend API ping status:", pingResponse.status)
-
     const actionLabel = actionType === "click_book" ? "Book Consultation" : "Call Clinic"
     const subject = `New ${actionLabel} Request - ${lead.firstName} ${lead.lastName}`
     const html = generateEmailHTML(clinicName, actionType, lead)
 
     console.log("[lead-actions] Sending email", {
       to: recipientEmail,
-      from: emailFrom,
+      from: EMAIL_FROM.NOTIFICATIONS,
       subject,
       leadId,
       clinicId,
     })
 
-    const resend = getResendClient()
-    const { data, error } = await resend.emails.send({
-      from: emailFrom,
+    const result = await sendEmailWithRetry({
+      from: EMAIL_FROM.NOTIFICATIONS,
       to: recipientEmail,
       subject,
       html,
     })
 
-    if (error) {
-      console.error("[lead-actions] Resend API error:", error)
+    if (!result.success) {
+      console.error("[lead-actions] Email send failed:", result.error)
 
       await supabaseAdmin.from("email_logs").insert({
         clinic_id: clinicId,
@@ -239,13 +211,13 @@ async function sendClinicNotification({
         to_email: recipientEmail,
         subject,
         status: "failed",
-        error: error.message || "Unknown error",
+        error: result.error || "Unknown error",
       })
 
-      return { success: false, error: error.message }
+      return { success: false, error: result.error }
     }
 
-    console.log("[lead-actions] Email sent successfully, ID:", data?.id)
+    console.log("[lead-actions] Email sent successfully, ID:", result.messageId)
 
     await supabaseAdmin.from("email_logs").insert({
       clinic_id: clinicId,
@@ -253,7 +225,7 @@ async function sendClinicNotification({
       to_email: recipientEmail,
       subject,
       status: "sent",
-      provider_message_id: data?.id,
+      provider_message_id: result.messageId,
     })
 
     return { success: true }

@@ -1,11 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { Resend } from "resend"
 import { STARTER_TAGS } from "@/lib/matching/tag-validation"
 import { verifyAdminAuth } from "@/lib/admin-auth"
 import { escapeHtml } from "@/lib/escape-html"
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 export async function GET() {
   const auth = await verifyAdminAuth()
@@ -124,8 +123,8 @@ export async function PATCH(request: Request) {
 
       // Step 5: Send approval email
       try {
-        const emailResult = await resend.emails.send({
-          from: "Pearlie <clinics@pearlie.org>",
+        const emailResult = await sendEmailWithRetry({
+          from: EMAIL_FROM.CLINICS,
           to: entry.email,
           subject: "You're in — complete your clinic profile",
           html: `
@@ -158,7 +157,7 @@ export async function PATCH(request: Request) {
           .from("waitlist_email_log")
           .update({
             status: "sent",
-            provider_message_id: emailResult?.data?.id,
+            provider_message_id: emailResult?.messageId,
           })
           .eq("id", emailLogId)
       } catch (emailError) {
@@ -185,8 +184,8 @@ export async function PATCH(request: Request) {
 
       // Step 5: Send rejection email
       try {
-        const emailResult = await resend.emails.send({
-          from: "Pearlie <clinics@pearlie.org>",
+        const emailResult = await sendEmailWithRetry({
+          from: EMAIL_FROM.CLINICS,
           to: entry.email,
           subject: "Your Pearlie application",
           html: `
@@ -213,7 +212,7 @@ export async function PATCH(request: Request) {
           .from("waitlist_email_log")
           .update({
             status: "sent",
-            provider_message_id: emailResult?.data?.id,
+            provider_message_id: emailResult?.messageId,
           })
           .eq("id", emailLogId)
       } catch (emailError) {

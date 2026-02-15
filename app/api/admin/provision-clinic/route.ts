@@ -1,12 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
-import { Resend } from "resend"
 import { verifyAdminAuth } from "@/lib/admin-auth"
 import { escapeHtml } from "@/lib/escape-html"
 import crypto from "crypto"
 import bcrypt from "bcrypt"
-
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 export async function POST(request: Request) {
   const auth = await verifyAdminAuth()
@@ -121,11 +120,11 @@ export async function POST(request: Request) {
     })
 
     // 5. Send login credentials email
-    if (resend) {
+    {
       const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"}/clinic/login`
-      
-      await resend.emails.send({
-        from: "Pearlie <noreply@pearlie.app>",
+
+      await sendEmailWithRetry({
+        from: EMAIL_FROM.NOREPLY,
         to: primaryContactEmail,
         subject: `Your ${clinicName} Portal Login - Pearlie`,
         html: `

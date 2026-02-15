@@ -77,6 +77,39 @@ export default function IntakePage() {
     consentMarketing: false,
   })
 
+  // Restore form data from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("pearlie_intake_progress")
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed._savedAt && Date.now() - parsed._savedAt < 24 * 60 * 60 * 1000) {
+          const { _savedAt, _savedStep, ...restoredData } = parsed
+          setFormData(prev => ({ ...prev, ...restoredData }))
+          if (_savedStep && _savedStep > 1) {
+            setStep(_savedStep)
+          }
+        } else {
+          localStorage.removeItem("pearlie_intake_progress")
+        }
+      }
+    } catch {}
+  }, [])
+
+  // Persist form data to localStorage on change (debounced)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      try {
+        localStorage.setItem("pearlie_intake_progress", JSON.stringify({
+          ...formData,
+          _savedAt: Date.now(),
+          _savedStep: step,
+        }))
+      } catch {}
+    }, 500)
+    return () => clearTimeout(timeout)
+  }, [formData, step])
+
   // Derived: is the user on the emergency flow?
   const isEmergency = formData.treatments.includes(EMERGENCY_TREATMENT)
 
@@ -340,6 +373,7 @@ export default function IntakePage() {
       if (!leadRes.ok) throw new Error("Failed to create lead")
       const { leadId } = await leadRes.json()
       localStorage.setItem("pearlie_lead_id", leadId)
+      localStorage.removeItem("pearlie_intake_progress")
 
       trackEvent("lead_submitted", {
         leadId,
