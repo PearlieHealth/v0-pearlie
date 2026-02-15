@@ -137,12 +137,16 @@ export function CrossSegmentCard({ leads }: CrossSegmentCardProps) {
 
   // Parse all leads once
   const parsed = safeLeads
-    .map((lead) => ({
-      id: lead?.id,
-      bookingStatus: lead?.booking_status || null,
-      ...parseRawAnswers(lead?.raw_answers),
-    }))
-    .filter((p) => p.treatments) // Only include leads with parsed data
+    .map((lead) => {
+      const rawParsed = parseRawAnswers(lead?.raw_answers)
+      if (!rawParsed) return null
+      return {
+        id: lead?.id,
+        bookingStatus: lead?.booking_status || null,
+        ...rawParsed,
+      }
+    })
+    .filter((p): p is NonNullable<typeof p> => p !== null && !!p.treatments)
 
   // === Tab 1: Cost × Treatment ===
   const costTreatmentPairs: { row: string; col: string }[] = []

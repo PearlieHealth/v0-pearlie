@@ -15,11 +15,11 @@
  * ============================================================================
  */
 
-// Canonical match tags aligned to 11Q intake form
+// Canonical match tags aligned to intake form
 // This is the single source of truth for all tag-to-form mappings
 // IMPORTANT: These TAG_* keys must match exactly what's in clinic_filters table
 
-export const FORM_VERSION = "v2_final_11q_2026-01-13"
+export { FORM_VERSION } from "@/lib/intake-form-config"
 
 // =============================================================================
 // Q4: "What matters most when choosing a clinic?" (7 options, multi-select, max 3)

@@ -9,6 +9,7 @@ import { AlertTriangle } from "lucide-react"
 interface Props {
   children: ReactNode
   fallbackTitle?: string
+  cardName?: string
 }
 
 interface State {
@@ -42,7 +43,7 @@ export class AdminCardErrorBoundary extends Component<Props, State> {
             <div className="flex items-center gap-2 text-amber-700">
               <AlertTriangle className="w-4 h-4" />
               <span className="text-sm font-medium">
-                {this.props.fallbackTitle || "This metric is temporarily unavailable"}
+                {this.props.fallbackTitle || (this.props.cardName ? `${this.props.cardName} is temporarily unavailable` : "This metric is temporarily unavailable")}
               </span>
             </div>
             {process.env.NODE_ENV === "development" && this.state.error && (

@@ -247,48 +247,7 @@ export function getLabel(
   }
 }
 
-// =============================================================================
-// LEGACY VALUE MIGRATION MAPS
-// Maps old form version values to current v4 equivalents.
-// When old leads exist in the database with outdated field values,
-// these maps ensure analytics always aggregate into the correct v4 buckets.
-// =============================================================================
-
-const LEGACY_ANXIETY_MAP: Record<string, string> = {
-  not_anxious: "comfortable",
-  a_bit_nervous: "slightly_anxious",
-  somewhat_anxious: "quite_anxious",
-  "prefer-sedation": "very_anxious",
-}
-
-const LEGACY_COST_MAP: Record<string, string> = {
-  monthly_payments: "finance_preferred",
-  spread_cost: "finance_preferred",
-  want_clarity: "upfront_pricing",
-  flexible: "options_first",
-  budget_conscious: "strict_budget",
-}
-
-const LEGACY_TIMING_MAP: Record<string, string> = {
-  this_week: "within_week",
-  "1_week": "within_week",
-  this_month: "few_weeks",
-  next_few_months: "exploring",
-}
-
-const LEGACY_BLOCKER_MAP: Record<string, string> = {
-  COST_CONCERNS: "NOT_WORTH_COST",
-  UNSURE_OPTIONS: "UNSURE_OPTION",
-  TIME_DECIDE: "NEED_MORE_TIME",
-  FIND_RIGHT_FIT: "NO_CONCERN",
-}
-
-const LEGACY_LOCATION_MAP: Record<string, string> = {
-  near_home: "near_home_work",
-  travel_bit: "travel_a_bit",
-}
-
-// Valid v4 values (used to drop truly unknown values)
+// Valid v4 values (used to drop unknown values during parsing)
 const VALID_ANXIETY = new Set(ANXIETY_LEVEL_OPTIONS.map(o => o.value))
 const VALID_COST = new Set(COST_APPROACH_OPTIONS.map(o => o.value))
 const VALID_TIMING = new Set(TIMING_OPTIONS.map(o => o.value))
@@ -297,48 +256,45 @@ const VALID_LOCATION = new Set(LOCATION_PREFERENCE_OPTIONS.map(o => o.value))
 const VALID_URGENCY = new Set(URGENCY_OPTIONS.map(o => o.value))
 
 /**
- * Normalize a field value: migrate legacy → v4, drop unknown
+ * Validate a field value against the known v4 values, drop unknown.
  */
 function normalizeValue(
   value: string | null | undefined,
-  legacyMap: Record<string, string>,
   validSet: Set<string>,
 ): string | null {
   if (!value) return null
   if (validSet.has(value)) return value
-  if (legacyMap[value]) return legacyMap[value]
   return null // Unknown value — drop it
 }
 
 /**
  * Parse raw_answers JSON and extract normalized values.
- * Legacy values from older form versions are migrated to v4 equivalents.
- * Truly unknown values are dropped (returned as null).
+ * Unknown values are dropped (returned as null).
  */
 export function parseRawAnswers(rawAnswers: Record<string, any> | null | undefined) {
   if (!rawAnswers) return null
 
-  // Normalize blocker codes: migrate legacy codes, drop unknowns
+  // Normalize blocker codes: drop unknowns
   const rawBlockerCodes: string[] = rawAnswers.blocker || []
   const normalizedBlockerCodes = rawBlockerCodes
-    .map((code: string) => normalizeValue(code, LEGACY_BLOCKER_MAP, VALID_BLOCKER))
+    .map((code: string) => normalizeValue(code, VALID_BLOCKER))
     .filter((code): code is string => code !== null)
 
   return {
     treatments: rawAnswers.treatments_selected || [],
     isEmergency: rawAnswers.is_emergency || false,
-    urgency: normalizeValue(rawAnswers.urgency, {}, VALID_URGENCY),
+    urgency: normalizeValue(rawAnswers.urgency, VALID_URGENCY),
     postcode: rawAnswers.postcode || "",
-    locationPreference: normalizeValue(rawAnswers.location_preference, LEGACY_LOCATION_MAP, VALID_LOCATION),
+    locationPreference: normalizeValue(rawAnswers.location_preference, VALID_LOCATION),
     decisionValues: rawAnswers.values || [],
     blockerCodes: normalizedBlockerCodes,
     blockerLabels: rawAnswers.blocker_labels || [],
-    timing: normalizeValue(rawAnswers.timing, LEGACY_TIMING_MAP, VALID_TIMING),
-    costApproach: normalizeValue(rawAnswers.cost_approach, LEGACY_COST_MAP, VALID_COST),
+    timing: normalizeValue(rawAnswers.timing, VALID_TIMING),
+    costApproach: normalizeValue(rawAnswers.cost_approach, VALID_COST),
     strictBudgetMode: rawAnswers.strict_budget_mode || null,
     strictBudgetAmount: rawAnswers.strict_budget_amount || null,
     monthlyPaymentRange: rawAnswers.monthly_payment_range || null,
-    anxietyLevel: normalizeValue(rawAnswers.anxiety_level, LEGACY_ANXIETY_MAP, VALID_ANXIETY),
+    anxietyLevel: normalizeValue(rawAnswers.anxiety_level, VALID_ANXIETY),
     preferredTimes: rawAnswers.preferred_times || [],
     firstName: rawAnswers.first_name || "",
     lastName: rawAnswers.last_name || "",

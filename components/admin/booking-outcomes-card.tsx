@@ -39,7 +39,7 @@ export function BookingOutcomesCard({ leads, clinicMap }: BookingOutcomesCardPro
       if (lead?.booking_confirmed_at && lead?.created_at) {
         const created = new Date(lead.created_at).getTime()
         const confirmedAt = new Date(lead.booking_confirmed_at).getTime()
-        if (confirmedAt > created) {
+        if (!isNaN(created) && !isNaN(confirmedAt) && confirmedAt > created) {
           confirmTimes.push(confirmedAt - created)
         }
       }

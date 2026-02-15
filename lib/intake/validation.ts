@@ -1,7 +1,7 @@
 import { z } from "zod"
+import { SCHEMA_VERSION } from "@/lib/intake-form-config"
 
-export const CURRENT_SCHEMA_VERSION = 2
-export const CURRENT_FORM_VERSION = "v2_final_11q_2026-01-13"
+export const CURRENT_SCHEMA_VERSION = SCHEMA_VERSION
 
 export const IntakeFormSchema = z.object({
   // Core fields (required)

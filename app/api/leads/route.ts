@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-
-const CURRENT_FORM_VERSION = "v2_final_11q_2026-01-13"
+import { FORM_VERSION } from "@/lib/intake-form-config"
 
 async function geocodePostcode(postcode: string): Promise<{ latitude: number; longitude: number } | null> {
   try {
@@ -76,7 +75,7 @@ function validateLeadData(body: Record<string, unknown>): { valid: true; data: R
       outcomePriorityKey: body.outcomePriorityKey || "",
       locationPreference: body.locationPreference || "",
       anxietyLevel: body.anxietyLevel || "",
-      formVersion: body.formVersion || CURRENT_FORM_VERSION,
+      formVersion: body.formVersion || FORM_VERSION,
       schemaVersion: typeof body.schemaVersion === "number" ? body.schemaVersion : 2,
     },
   }
