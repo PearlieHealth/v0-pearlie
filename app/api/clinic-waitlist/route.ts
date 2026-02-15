@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
+import { escapeHtml } from "@/lib/escape-html"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -100,8 +101,8 @@ export async function POST(request: Request) {
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
             <h1 style="color: #1a1a1a;">Application Received</h1>
-            <p>Hi ${ownerName.trim()},</p>
-            <p>Thank you for applying to join Pearlie with <strong>${clinicName.trim()}</strong>.</p>
+            <p>Hi ${escapeHtml(ownerName.trim())},</p>
+            <p>Thank you for applying to join Pearlie with <strong>${escapeHtml(clinicName.trim())}</strong>.</p>
             <p>We're reviewing applications for our founding clinic cohort and will be in touch soon with next steps.</p>
             <p>What happens next:</p>
             <ul>
