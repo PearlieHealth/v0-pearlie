@@ -4,6 +4,7 @@ import { verifyAdminAuth } from "@/lib/admin-auth"
 
 export async function POST(request: Request) {
   try {
+    // Verify admin authentication using the shared auth guard
     const auth = await verifyAdminAuth()
     if (!auth.authenticated) return auth.response
 

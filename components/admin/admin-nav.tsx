@@ -3,9 +3,8 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { ArrowLeft, BarChart3, Building2, FlaskConical, Menu, Tags, ClipboardList, CheckSquare, LogOut, Users } from "lucide-react"
+import { ArrowLeft, BarChart3, Building2, FlaskConical, Menu, Tags, ClipboardList, CheckSquare, LogOut, Users, Settings, Mail } from "lucide-react"
 import { AdminLogoutButton } from "./admin-auth-provider"
-import { ResetDataButton } from "./reset-data-button"
 import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
@@ -50,6 +49,16 @@ export function AdminNav() {
       label: "Clinic Users",
       icon: Users,
     },
+    {
+      href: "/admin/email-logs",
+      label: "Email Logs",
+      icon: Mail,
+    },
+    {
+      href: "/admin/settings",
+      label: "Settings",
+      icon: Settings,
+    },
   ]
 
   return (
@@ -88,7 +97,6 @@ export function AdminNav() {
           </div>
 
           <div className="hidden md:flex items-center gap-2">
-            <ResetDataButton />
             <AdminLogoutButton />
           </div>
 
@@ -136,7 +144,6 @@ export function AdminNav() {
                   })}
                 </nav>
                 <div className="mt-auto p-4 border-t border-border space-y-3">
-                  <ResetDataButton />
                   <Link
                     href="/"
                     onClick={() => setOpen(false)}
