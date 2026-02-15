@@ -16,9 +16,9 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
 
-    const page = Number.parseInt(searchParams.get("page") || "1")
-    const limit = Number.parseInt(searchParams.get("limit") || "10")
-    const offset = Number.parseInt(searchParams.get("offset") || "0")
+    const page = Math.max(1, Number.parseInt(searchParams.get("page") || "1") || 1)
+    const limit = Math.min(Math.max(1, Number.parseInt(searchParams.get("limit") || "10") || 10), 100)
+    const offset = Math.max(0, Number.parseInt(searchParams.get("offset") || "0") || 0)
     const treatment = searchParams.get("treatment")
     const priceRange = searchParams.get("priceRange")
     const acceptsNhs = searchParams.get("acceptsNhs") === "true"

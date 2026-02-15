@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+import { createAdminClient } from "@/lib/supabase/admin"
 
 export async function POST(request: Request) {
   try {
@@ -16,7 +13,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 })
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabase = createAdminClient()
 
     // Find lead by booking token
     const { data: lead, error: leadError } = await supabase
@@ -75,22 +72,11 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       action,
-      lead: {
-        id: lead.id,
-        firstName: lead.first_name,
-        lastName: lead.last_name,
-        email: lead.email,
-        phone: lead.phone,
-        bookingDate: lead.booking_date,
-        bookingTime: lead.booking_time,
-      },
-      clinic: lead.clinics ? {
-        id: lead.clinics.id,
-        name: lead.clinics.name,
-      } : null
+      leadId: lead.id,
+      clinicName: lead.clinics?.name || null,
     })
   } catch (error) {
     console.error("[clinic-response] Error:", error)

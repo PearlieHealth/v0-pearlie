@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient as createServerClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -16,10 +16,7 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const supabaseAdmin = createAdminClient()
 
   // Get clinic ID from user
   const { data: clinicUser } = await supabaseAdmin
@@ -61,10 +58,7 @@ export async function POST(
     return NextResponse.json({ error: "Note text required" }, { status: 400 })
   }
 
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const supabaseAdmin = createAdminClient()
 
   const { data: clinicUser } = await supabaseAdmin
     .from("clinic_users")
@@ -106,7 +100,8 @@ export async function POST(
     )
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error("[notes] Failed to save note:", error)
+    return NextResponse.json({ error: "Failed to save note" }, { status: 500 })
   }
 
   return NextResponse.json({ notes: updatedNotes })

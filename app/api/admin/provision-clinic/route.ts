@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
 import { verifyAdminAuth } from "@/lib/admin-auth"
+import { escapeHtml } from "@/lib/escape-html"
 import crypto from "crypto"
 import bcrypt from "bcrypt"
 
@@ -130,12 +131,12 @@ export async function POST(request: Request) {
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
             <h1 style="color: #1a1a1a;">Welcome to Pearlie</h1>
-            <p>Your account has been created to manage <strong>${clinicName}</strong> on Pearlie's clinic portal.</p>
-            
+            <p>Your account has been created to manage <strong>${escapeHtml(clinicName)}</strong> on Pearlie's clinic portal.</p>
+
             <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <p style="margin: 0 0 10px 0;"><strong>Your Login Credentials:</strong></p>
-              <p style="margin: 5px 0;">Email: <strong>${primaryContactEmail}</strong></p>
-              <p style="margin: 5px 0;">Password: <strong>${tempPassword}</strong></p>
+              <p style="margin: 5px 0;">Email: <strong>${escapeHtml(primaryContactEmail)}</strong></p>
+              <p style="margin: 5px 0;">Password: <strong>${escapeHtml(tempPassword)}</strong></p>
             </div>
             
             <a href="${loginUrl}" style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">

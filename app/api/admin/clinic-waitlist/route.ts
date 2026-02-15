@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { Resend } from "resend"
 import { STARTER_TAGS } from "@/lib/matching/tag-validation"
 import { verifyAdminAuth } from "@/lib/admin-auth"
+import { escapeHtml } from "@/lib/escape-html"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -130,8 +131,8 @@ export async function PATCH(request: Request) {
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #1a1a1a;">Welcome to Pearlie</h1>
-              <p>Hi ${entry.owner_name},</p>
-              <p>Great news — <strong>${entry.clinic_name}</strong> has been approved for early access to Pearlie.</p>
+              <p>Hi ${escapeHtml(entry.owner_name)},</p>
+              <p>Great news — <strong>${escapeHtml(entry.clinic_name)}</strong> has been approved for early access to Pearlie.</p>
               <p>You're now part of our founding clinic cohort. This means:</p>
               <ul>
                 <li>Priority placement in patient matches</li>
@@ -191,8 +192,8 @@ export async function PATCH(request: Request) {
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #1a1a1a;">Thank you for applying</h1>
-              <p>Hi ${entry.owner_name},</p>
-              <p>Thank you for your interest in joining Pearlie with ${entry.clinic_name}.</p>
+              <p>Hi ${escapeHtml(entry.owner_name)},</p>
+              <p>Thank you for your interest in joining Pearlie with ${escapeHtml(entry.clinic_name)}.</p>
               <p>Unfortunately, we're unable to include your clinic in this cohort. This may be due to:</p>
               <ul>
                 <li>Geographic coverage priorities for this phase</li>

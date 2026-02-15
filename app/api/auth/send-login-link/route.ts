@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { Resend } from "resend"
 import { createRateLimiter } from "@/lib/rate-limit"
+import { escapeHtml } from "@/lib/escape-html"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -125,7 +126,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (lead?.first_name) {
-      greeting = `Hi ${lead.first_name}`
+      greeting = `Hi ${escapeHtml(lead.first_name)}`
     }
 
     // Send branded email via Resend

@@ -4,7 +4,8 @@ import { Resend } from "resend"
 import { generateOTP, hashOTP, canSendOTP } from "@/lib/otp/generate"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const OTP_SECRET = process.env.SUPABASE_JWT_SECRET || "fallback-secret-key"
+const OTP_SECRET = process.env.SUPABASE_JWT_SECRET
+if (!OTP_SECRET) throw new Error("SUPABASE_JWT_SECRET environment variable is required")
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
     const otpHash = hashOTP(otp, OTP_SECRET)
     const now = new Date().toISOString()
     
-    console.log("[v0] OTP generated for lead:", leadId, "OTP:", otp, "Hash:", otpHash.substring(0, 16) + "...")
+    console.log("[OTP] Code generated for lead:", leadId)
 
     // Store OTP hash and update verification tracking FIRST before sending email
     const { error: updateError } = await supabase

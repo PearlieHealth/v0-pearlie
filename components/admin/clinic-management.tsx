@@ -564,7 +564,7 @@ export function ClinicManagement({ clinics }: { clinics: Clinic[] }) {
                           <X className="w-4 h-4" />
                         </Button>
                         {photo.attribution && (
-                          <p className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-2 py-1 truncate" dangerouslySetInnerHTML={{ __html: photo.attribution }} />
+                          <p className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-2 py-1 truncate" dangerouslySetInnerHTML={{ __html: photo.attribution.replace(/<(?!\/?a[\s>])[^>]*>/gi, "") }} />
                         )}
                       </div>
                     ))}
