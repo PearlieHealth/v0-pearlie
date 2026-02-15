@@ -166,7 +166,7 @@ export function EnhancedLeadsTable({ leads }: { leads?: Lead[] }) {
       <Card>
         <CardHeader>
           <CardTitle>Patient Leads</CardTitle>
-          <CardDescription>View and manage all patient form submissions from the new 11-question flow</CardDescription>
+          <CardDescription>View and manage all patient form submissions</CardDescription>
           <div className="pt-4 flex flex-col sm:flex-row gap-3">
             <Input
               placeholder="Search by name, email, treatment, or postcode..."

@@ -7,7 +7,6 @@ export type AnalyticsMetrics = {
   clinicClickers: number
   clinicClicksTotal: number
   bookedConsults: number
-  treatmentAccepted: number
 
   // Conversion rates
   conversionRatePct: number
@@ -91,8 +90,6 @@ export async function aggregateAnalytics(dateFrom?: Date, dateTo?: Date): Promis
 
   const bookEvents = events.filter((e) => e.event_name === "book_clicked" && e.lead_id)
   const bookedConsults = new Set(bookEvents.map((e) => e.lead_id)).size
-
-  const treatmentAccepted = 0 // Placeholder for future
 
   let conversionRatePct = 0
   if (leadsSubmitted > 0) {
@@ -203,7 +200,6 @@ export async function aggregateAnalytics(dateFrom?: Date, dateTo?: Date): Promis
     clinicClickers,
     clinicClicksTotal,
     bookedConsults,
-    treatmentAccepted,
     conversionRatePct,
     matchesToClicksPct,
     totalRevenue,
