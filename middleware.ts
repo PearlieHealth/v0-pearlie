@@ -40,7 +40,7 @@ async function getAdminSessionToken(): Promise<string> {
   return cachedToken
 }
 
-export default async function proxy(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // ── Admin route protection (server-side, before any HTML is sent) ──

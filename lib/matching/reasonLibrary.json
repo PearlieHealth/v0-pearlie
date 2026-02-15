@@ -1,74 +1,64 @@
 {
-  "version": "5.0.0",
+  "version": "6.0.0",
   "categories": {
     "calm_anxiety": {
       "label": "Calm / Anxiety Support",
       "tagKeys": ["TAG_CALM_REASSURING", "TAG_ANXIETY_FRIENDLY", "TAG_OK_WITH_ANXIOUS_PATIENTS"],
       "shortVariants": [
-        "Matched for their calm, gentle approach and strong patient comfort focus.",
-        "Matched because anxious patients consistently feel safe and reassured here.",
-        "Matched for their patient-led approach that helps nervous patients feel in control."
+        "Matched because they focus on supportive, patient-centred care.",
+        "A good fit for patients who value reassurance and clear communication."
       ],
       "longVariants": [
-        "You mentioned concerns around comfort and anxiety. This clinic places a strong emphasis on gentle dentistry, calm communication, and patient reassurance. Many anxious patients report feeling significantly more relaxed and supported here, making it an excellent fit for your needs.",
-        "Because feeling at ease matters to you, we matched you with a clinic known for their gentle, unhurried approach. Their team is trained to recognise anxiety and adapt their care accordingly—patients often describe leaving appointments feeling more confident than when they arrived.",
-        "You told us that managing anxiety is important. This clinic has built their practice around patient comfort, with techniques designed to help you feel calm and in control. Their supportive environment means you can take the time you need."
+        "Matched because they focus on supportive, patient-centred care.",
+        "A good fit for patients who value reassurance and clear communication."
       ]
     },
     "sedation": {
       "label": "Sedation Available",
       "tagKeys": ["TAG_SEDATION_AVAILABLE"],
       "shortVariants": [
-        "Matched because sedation options are available for extra comfort.",
-        "Matched for their range of sedation services to suit your needs.",
-        "Matched because they offer sedation to help patients feel at ease."
+        "Experienced in supporting nervous patients.",
+        "Provides a calm approach for patients who need reassurance."
       ],
       "longVariants": [
-        "You indicated that sedation might help you feel more comfortable. This clinic offers various sedation options—from mild relaxation to deeper sedation—allowing you to choose the level of support that works for you. Their qualified team will discuss what's right for your situation.",
-        "Because you may benefit from sedation, we matched you with a clinic experienced in helping patients who need extra support. They'll take time to explain your options and help you feel genuinely comfortable throughout treatment.",
-        "You mentioned sedation as something that could help. This clinic is qualified to provide sedation dentistry and understands how to tailor the experience to your comfort level, helping you get the care you need without unnecessary stress."
+        "Experienced in supporting nervous patients.",
+        "Provides a calm approach for patients who need reassurance."
       ]
     },
     "clear_explanations": {
       "label": "Clear Explanations",
       "tagKeys": ["TAG_CLEAR_EXPLANATIONS", "TAG_OPTION_CLARITY_SUPPORT"],
       "shortVariants": [
-        "Matched because they explain treatment options in plain, simple language.",
-        "Matched for taking time to walk you through every option clearly.",
-        "Matched because patients say they leave consultations feeling informed."
+        "Matched with a team that takes time to explain different treatment paths.",
+        "A good fit for exploring options comfortably."
       ],
       "longVariants": [
-        "You told us that clear explanations matter to you. This clinic is recognised for their patient-focused communication style, taking time to carefully explain treatment options, risks, benefits, and expected outcomes—allowing you to make fully informed decisions.",
-        "Because understanding your options is important to you, we matched you with a clinic known for clear, straightforward explanations. You'll leave consultations feeling well-informed and confident about the path forward.",
-        "You prioritised clarity in treatment discussions. This clinic ensures patients understand everything before committing—they answer questions thoroughly and explain each step in plain language, so you're never left wondering what comes next."
+        "Matched with a team that takes time to explain different treatment paths.",
+        "A good fit for exploring options comfortably."
       ]
     },
     "listened_to": {
       "label": "Patient-Led / Listened To",
       "tagKeys": ["TAG_LISTENED_TO_RESPECTED", "TAG_DECISION_SUPPORTIVE"],
       "shortVariants": [
-        "Matched because your preferences are genuinely heard and respected here.",
-        "Matched for their collaborative, patient-led approach to care.",
-        "Matched because they give you time to think without pressure."
+        "Matched with a team that takes time to explain options clearly.",
+        "A good fit if you'd like space to make a confident decision."
       ],
       "longVariants": [
-        "You indicated that feeling heard and respected matters to you. This clinic takes a collaborative approach where your concerns shape the conversation. Patients consistently describe feeling involved in their care decisions, not just processed.",
-        "Because you value being listened to, we matched you with a clinic known for their patient-first philosophy. They adapt recommendations based on your input and give you space to make decisions that feel right for you.",
-        "You told us that respect and collaboration are important. This clinic won't rush you—they understand that good care starts with listening, and they take the time to understand your individual situation before making recommendations."
+        "Matched with a team that takes time to explain options clearly.",
+        "A good fit if you'd like space to make a confident decision."
       ]
     },
     "transparent_pricing": {
       "label": "Transparent Pricing",
       "tagKeys": ["TAG_CLEAR_PRICING_UPFRONT", "TAG_DISCUSS_OPTIONS_BEFORE_COST"],
       "shortVariants": [
-        "Matched for transparent pricing and flexible payment options.",
-        "Matched for their clear cost explanations and patient-friendly approach.",
-        "Matched because you'll know exactly what treatment costs upfront."
+        "This clinic provides transparent treatment plans.",
+        "Matched because they show clear treatment plans and cost discussions."
       ],
       "longVariants": [
-        "You told us that cost clarity and financial flexibility matter to you. This clinic is known for transparent pricing, detailed cost explanations before treatment, and providing written estimates. Patients frequently highlight that they feel financially informed, never pressured, and fully aware of their options before making decisions.",
-        "Because financial transparency is important to you, we matched you with a clinic that discusses options before costs. They believe you should understand your choices first—then pricing is explained clearly, with no hidden fees or surprises.",
-        "You prioritised clear pricing. This clinic provides straightforward cost breakdowns and won't spring unexpected charges on you. Their honest approach to pricing means you can make informed decisions with confidence."
+        "This clinic provides transparent treatment plans.",
+        "Matched because they show clear treatment plans and cost discussions."
       ]
     },
     "payment_flexibility": {
@@ -76,111 +66,178 @@
       "tagKeys": ["TAG_FINANCE_AVAILABLE", "TAG_MONTHLY_PAYMENTS_PREFERRED", "TAG_GOOD_FOR_COST_CONCERNS"],
       "shortVariants": [
         "Matched for flexible payment plans to spread the cost.",
-        "Matched because they offer finance options that suit your budget.",
-        "Matched for their understanding approach to cost concerns."
+        "A thoughtful match for patients considering their investment carefully."
       ],
       "longVariants": [
-        "You indicated that spreading costs matters to you. This clinic offers flexible payment options including monthly plans and finance arrangements, making quality dental care more accessible without the stress of a large upfront payment.",
-        "Because managing costs is important to you, we matched you with a clinic that offers multiple payment solutions. They understand that cost shouldn't be a barrier to getting the care you need.",
-        "You told us that payment flexibility would help. This clinic provides various finance options tailored to different circumstances, helping patients access treatment in a way that works for their budget."
+        "Matched for flexible payment plans to spread the cost.",
+        "A thoughtful match for patients considering their investment carefully."
       ]
     },
     "budget_supportive": {
       "label": "Budget Supportive",
       "tagKeys": ["TAG_STRICT_BUDGET_SUPPORTIVE", "TAG_FLEXIBLE_BUDGET_OK"],
       "shortVariants": [
-        "Matched because they're supportive of patients with budget constraints.",
-        "Matched for their practical, no-pressure approach to cost discussions.",
-        "Matched because they help prioritise treatment within your budget."
+        "A thoughtful match for patients considering their investment carefully."
       ],
       "longVariants": [
-        "You told us that working within a specific budget is important. This clinic is understanding about financial constraints—they'll help you prioritise treatment and find solutions that work financially, without judgement or pressure.",
-        "Because budget is a consideration for you, we matched you with a clinic that takes a practical approach. They'll discuss what's essential versus what can wait, helping you get the most important care within your means.",
-        "You indicated budget is a factor. This clinic respects financial boundaries and will work with you to find treatment options that fit your situation. They focus on what you need most, not unnecessary extras."
+        "A thoughtful match for patients considering their investment carefully."
       ]
     },
     "flexible_scheduling": {
       "label": "Flexible Scheduling",
       "tagKeys": ["TAG_FLEXIBLE_APPOINTMENTS"],
       "shortVariants": [
-        "Matched for fast appointment availability and flexible scheduling.",
-        "Matched because they offer quick bookings and convenient times.",
-        "Matched for their evening and weekend availability."
+        "Matched because they provide late afternoon or weekend availability."
       ],
       "longVariants": [
-        "You prioritised fast access and convenience. This clinic offers efficient scheduling, flexible appointment availability including evenings and weekends, and streamlined booking systems that minimise waiting times—making it easier to fit dental care into your life.",
-        "Because your time matters, we matched you with a clinic that works around busy schedules. Their flexible hours and efficient booking mean you won't have to rearrange your life to get dental care.",
-        "You indicated scheduling convenience is important. This clinic offers extended hours and good availability, making it straightforward to book appointments that work for you without long waits."
+        "Matched because they provide late afternoon or weekend availability."
       ]
     },
     "specialist_experience": {
       "label": "Specialist Experience",
       "tagKeys": ["TAG_SPECIALIST_LEVEL_EXPERIENCE", "TAG_COMPLEX_CASES_WELCOME"],
       "shortVariants": [
-        "Matched for specialist-level expertise in your treatment area.",
-        "Matched because they welcome complex cases with confidence.",
-        "Matched for their depth of experience with challenging situations."
+        "This clinic has strong clinical expertise in {treatment}.",
+        "Matched because this team has extensive experience in {treatment}.",
+        "Matched with a team experienced in handling more complex cases."
       ],
       "longVariants": [
-        "Your case may benefit from specialist-level expertise. This clinic has advanced training and experience handling complex or challenging situations—they welcome cases that require deeper knowledge and have the skills to navigate them confidently.",
-        "Because your treatment needs may be complex, we matched you with a clinic experienced in handling challenging cases. Their specialist knowledge means you're in capable hands throughout your care journey.",
-        "You may need treatment that requires specialist expertise. This clinic has built their reputation on handling cases that require advanced skills, giving you confidence that they understand the nuances of your situation."
+        "This clinic has strong clinical expertise in {treatment}.",
+        "Matched because this team has extensive experience in {treatment}.",
+        "Matched with a team experienced in handling more complex cases."
       ]
     },
     "strong_reputation": {
       "label": "Strong Reputation",
       "tagKeys": ["TAG_STRONG_REPUTATION_REVIEWS"],
       "shortVariants": [
-        "Matched for their consistently high patient satisfaction.",
-        "Matched because patients consistently praise their care quality.",
-        "Matched for their trusted clinical reputation and communication."
+        "This clinic has consistently strong reviews.",
+        "Matched because of their excellent patient feedback.",
+        "Selected for their trusted reputation."
       ],
       "longVariants": [
-        "You indicated that trust and reputation are important when choosing a clinic. This practice consistently receives strong patient feedback for clinical quality, communication, and professionalism. Patients often describe feeling confident, respected, and well cared for throughout their treatment journey.",
-        "Because reputation matters to you, we matched you with a clinic that has earned consistent praise from patients. Their track record reflects a commitment to quality outcomes and genuine care.",
-        "You prioritised trust in your clinic choice. This clinic has built their reputation on patient satisfaction—reviews highlight their professionalism, communication, and the quality of care they deliver."
+        "This clinic has consistently strong reviews.",
+        "Matched because of their excellent patient feedback.",
+        "Selected for their trusted reputation."
       ]
     },
     "right_fit": {
       "label": "Right Fit Focus",
       "tagKeys": ["TAG_RIGHT_FIT_FOCUSED"],
       "shortVariants": [
-        "Matched because they focus on finding the right treatment for each patient.",
-        "Matched for their personalised, patient-centered recommendations.",
-        "Matched because they take time to understand your specific needs."
+        "Matched because they focus on finding the right treatment for each patient."
       ],
       "longVariants": [
-        "This clinic is focused on finding the right fit for each patient rather than one-size-fits-all solutions. They take time to understand your individual circumstances, goals, and preferences before making recommendations—ensuring treatment is tailored to you.",
-        "Because your individual needs matter, we matched you with a clinic known for personalised care. They don't push standard solutions; instead, they listen first and recommend what's genuinely right for your situation.",
-        "You'll find this clinic takes a thoughtful approach to care. They focus on understanding you as an individual before suggesting treatment, ensuring recommendations truly fit your needs and circumstances."
+        "Matched because they focus on finding the right treatment for each patient."
+      ]
+    },
+    "bad_experience": {
+      "label": "Bad Experience Support",
+      "tagKeys": ["TAG_BAD_EXPERIENCE_SUPPORTIVE"],
+      "shortVariants": [
+        "Matched with a team experienced in helping patients rebuild confidence.",
+        "A thoughtful match for patients seeking reassurance."
+      ],
+      "longVariants": [
+        "Matched with a team experienced in helping patients rebuild confidence.",
+        "A thoughtful match for patients seeking reassurance."
+      ]
+    },
+    "continuity": {
+      "label": "Continuity of Care",
+      "tagKeys": ["TAG_CONTINUITY_OF_CARE"],
+      "shortVariants": [
+        "A good fit for patients seeking long-term care because they focus on building ongoing patient relationships."
+      ],
+      "longVariants": [
+        "A good fit for patients seeking long-term care because they focus on building ongoing patient relationships."
       ]
     },
     "treatment_match": {
       "label": "Treatment Match",
       "tagKeys": ["TREATMENT_MATCH"],
       "shortVariants": [
-        "Matched for their experience with {treatment} treatments.",
-        "Matched because they regularly treat {treatment} patients like you.",
-        "Matched for their track record delivering {treatment} results."
+        "Experienced in cosmetic treatments like {treatment}.",
+        "Strong portfolio in {treatment}.",
+        "A focused match for your chosen treatment."
       ],
       "longVariants": [
-        "You're looking for {treatment}, and this clinic has significant experience in this area. Their track record shows they regularly treat patients with similar needs and consistently deliver quality outcomes—you're in capable hands.",
-        "Because you need {treatment}, we matched you with a clinic experienced in this type of care. Their expertise means they understand what you're looking for and can guide you through the process confidently.",
-        "Your interest in {treatment} led us to match you with a clinic well-equipped to deliver. They have the skills, experience, and equipment to handle your treatment effectively and help you achieve the results you're hoping for."
+        "Experienced in cosmetic treatments like {treatment}.",
+        "Strong portfolio in {treatment}.",
+        "A focused match for your chosen treatment."
+      ]
+    },
+    "treatment_checkup": {
+      "label": "Check-up / General",
+      "tagKeys": ["TREATMENT_CHECKUP"],
+      "shortVariants": [
+        "Well suited for ongoing general dental care.",
+        "A good match for preventative and routine care."
+      ],
+      "longVariants": [
+        "Well suited for ongoing general dental care.",
+        "A good match for preventative and routine care."
+      ]
+    },
+    "emergency_availability": {
+      "label": "Emergency Availability",
+      "tagKeys": ["EMERGENCY_AVAILABILITY"],
+      "shortVariants": [
+        "Available within your preferred timeframe.",
+        "Able to see urgent patients.",
+        "Offers appointments aligned with your urgency."
+      ],
+      "longVariants": [
+        "Available within your preferred timeframe.",
+        "Able to see urgent patients.",
+        "Offers appointments aligned with your urgency."
+      ]
+    },
+    "emergency_distance": {
+      "label": "Emergency Distance",
+      "tagKeys": ["EMERGENCY_DISTANCE"],
+      "shortVariants": [
+        "Conveniently located near you.",
+        "Within your preferred travel distance."
+      ],
+      "longVariants": [
+        "Conveniently located near you.",
+        "Within your preferred travel distance."
+      ]
+    },
+    "emergency_capability": {
+      "label": "Emergency Capability",
+      "tagKeys": ["EMERGENCY_CAPABILITY"],
+      "shortVariants": [
+        "Experienced in handling urgent dental concerns.",
+        "Accepts emergency appointments."
+      ],
+      "longVariants": [
+        "Experienced in handling urgent dental concerns.",
+        "Accepts emergency appointments."
+      ]
+    },
+    "emergency_anxiety": {
+      "label": "Emergency Anxiety Support",
+      "tagKeys": ["EMERGENCY_ANXIETY"],
+      "shortVariants": [
+        "Experienced in supporting nervous patients.",
+        "Provides a calm approach for urgent visits."
+      ],
+      "longVariants": [
+        "Experienced in supporting nervous patients.",
+        "Provides a calm approach for urgent visits."
       ]
     }
   },
   "fallbackSentences": [
-    "Matched for their strong overall patient satisfaction and quality of care.",
-    "Matched because their location and availability work well for you.",
-    "Matched for positive patient reviews highlighting their professionalism.",
-    "Matched based on their reputation for reliable, quality dental care.",
-    "Matched for their convenient location and good appointment availability.",
-    "Matched because patients consistently rate their experience highly."
+    "Conveniently located near you.",
+    "Within your preferred travel distance.",
+    "Offers appointments aligned with your availability."
   ],
   "fallbackLongSentences": [
-    "Based on the information you provided, this clinic emerged as a strong match across multiple criteria. While we can't highlight a specific standout factor, their overall profile aligns well with what you told us you're looking for in a dental practice.",
-    "We selected this clinic after comparing options against your stated preferences. They represent a balanced match across the factors that matter to you, offering a combination of qualities that fit your needs.",
-    "This clinic was recommended because their approach and services align with the priorities you shared. They offer a solid combination of the things you indicated were important in your dental care."
+    "Conveniently located near you.",
+    "Within your preferred travel distance.",
+    "Offers appointments aligned with your availability."
   ]
 }

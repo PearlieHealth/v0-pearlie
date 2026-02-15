@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-
-const CURRENT_FORM_VERSION = "v2_final_11q_2026-01-13"
+import { FORM_VERSION, SCHEMA_VERSION } from "@/lib/intake-form-config"
 
 async function geocodePostcode(postcode: string): Promise<{ latitude: number; longitude: number } | null> {
   try {
@@ -61,6 +60,7 @@ function validateLeadData(body: Record<string, unknown>): { valid: true; data: R
       city: body.city || "",
       consentContact: Boolean(body.consentContact),
       consentTerms: Boolean(body.consentTerms),
+      consentMarketing: Boolean(body.consentMarketing),
       decisionValues: Array.isArray(body.decisionValues) ? body.decisionValues : [],
       conversionBlocker: body.conversionBlocker || "",
       conversionBlockerCode: body.conversionBlockerCode || "",
@@ -76,8 +76,8 @@ function validateLeadData(body: Record<string, unknown>): { valid: true; data: R
       outcomePriorityKey: body.outcomePriorityKey || "",
       locationPreference: body.locationPreference || "",
       anxietyLevel: body.anxietyLevel || "",
-      formVersion: body.formVersion || CURRENT_FORM_VERSION,
-      schemaVersion: typeof body.schemaVersion === "number" ? body.schemaVersion : 2,
+      formVersion: body.formVersion || FORM_VERSION,
+      schemaVersion: typeof body.schemaVersion === "number" ? body.schemaVersion : SCHEMA_VERSION,
     },
   }
 }
@@ -104,46 +104,24 @@ export async function POST(request: Request) {
     const phone = validatedData.phone && (validatedData.phone as string).trim() !== "" ? validatedData.phone : null
     const contactMethod = email ? "email" : phone ? "phone" : "email"
 
+    // Use the form's rawAnswers directly — it's built from the actual form state
+    // and is the canonical record of what the patient selected.
+    // Only override geocoded coords and submitted_at (server-authoritative values).
     const rawAnswers = {
-      treatments_selected: (validatedData.treatmentInterest as string).split(", ").filter(Boolean),
-      is_emergency: validatedData.isEmergency,
-      urgency: validatedData.urgency,
-      location_preference: validatedData.locationPreference,
-      postcode: validatedData.postcode,
+      ...(body.rawAnswers || {}),
       user_lat: geocoded.latitude,
       user_lng: geocoded.longitude,
-      values: validatedData.decisionValues || [],
-      blocker:
-        (validatedData.conversionBlockerCodes as string[]).length > 0
-          ? validatedData.conversionBlockerCodes
-          : validatedData.conversionBlockerCode
-            ? [validatedData.conversionBlockerCode]
-            : [],
-      blocker_label: validatedData.conversionBlocker,
-      timing: validatedData.timingPreference,
-      preferred_times: validatedData.preferred_times,
-      expectations: validatedData.outcomePriority,
-      expectations_key: validatedData.outcomePriorityKey,
-      expectations_treatment: validatedData.outcomeTreatment,
-      cost_approach: validatedData.costApproach,
-      monthly_payment_range: validatedData.monthlyPaymentRange,
-      strict_budget_mode: validatedData.strictBudgetMode,
-      strict_budget_amount: validatedData.strictBudgetAmount,
-      anxiety_level: validatedData.anxietyLevel,
-      contact_method: contactMethod,
-      contact_value: email || phone,
-      first_name: validatedData.firstName,
-      last_name: validatedData.lastName,
-      email: email,
-      phone: phone,
-      city: validatedData.city || "",
-      consent_contact: validatedData.consentContact,
-      consent_terms: validatedData.consentTerms,
-      form_version: validatedData.formVersion,
       submitted_at: new Date().toISOString(),
     }
 
     const isGoogleAuth = body.authMethod === "google"
+
+    const blockerCodes = validatedData.conversionBlockerCodes as string[]
+    // Extract blocker labels from the form's rawAnswers payload, or fall back to codes
+    const incomingBlockerLabels = body.rawAnswers?.blocker_labels
+    const blockerLabels = Array.isArray(incomingBlockerLabels) && incomingBlockerLabels.length > 0
+      ? incomingBlockerLabels
+      : blockerCodes
 
     const { data: insertedLead, error: insertError } = await supabase
       .from("leads")
@@ -154,11 +132,17 @@ export async function POST(request: Request) {
         longitude: geocoded.longitude,
         is_emergency: validatedData.isEmergency,
         decision_values: validatedData.decisionValues || [],
-        conversion_blocker: validatedData.conversionBlocker || (validatedData.conversionBlockerCodes as string[])[0] || "",
-        blocker: validatedData.conversionBlockerCode || (validatedData.conversionBlockerCodes as string[])[0] || "",
+        conversion_blocker: validatedData.conversionBlocker || blockerCodes[0] || "",
+        conversion_blocker_codes: blockerCodes,
+        blocker_labels: blockerLabels,
+        blocker: validatedData.conversionBlockerCode || blockerCodes[0] || "",
         preferred_timing: validatedData.timingPreference || "flexible",
         preferred_times: validatedData.preferred_times,
         budget_range: validatedData.budgetRange || "unspecified",
+        cost_approach: validatedData.costApproach || "",
+        monthly_payment_range: validatedData.monthlyPaymentRange || null,
+        strict_budget_mode: validatedData.strictBudgetMode || "",
+        strict_budget_amount: validatedData.strictBudgetAmount,
         outcome_treatment: validatedData.outcomeTreatment || "",
         outcome_priority: validatedData.outcomePriority || "",
         outcome_priority_key: validatedData.outcomePriorityKey || "",
@@ -171,7 +155,9 @@ export async function POST(request: Request) {
         city: validatedData.city || "",
         consent_contact: validatedData.consentContact,
         consent_terms: validatedData.consentTerms,
+        consent_marketing: validatedData.consentMarketing,
         contact_method: contactMethod,
+        form_version: validatedData.formVersion,
         schema_version: validatedData.schemaVersion,
         raw_answers: rawAnswers,
         source: body.source || "match",

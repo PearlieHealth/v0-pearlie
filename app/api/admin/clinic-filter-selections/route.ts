@@ -60,6 +60,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const auth = await verifyAdminAuth()
+  if (!auth.authenticated) return auth.response
+
   try {
     const { clinicId, filterKeys } = await request.json()
 

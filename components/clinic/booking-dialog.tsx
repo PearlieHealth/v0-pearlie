@@ -36,10 +36,8 @@ const BOOKING_METHODS = [
 
 export function BookingDialog({ leadId, clinicId, patientName, onClose, onSuccess }: BookingDialogProps) {
   const [appointmentDate, setAppointmentDate] = useState("")
-  const [appointmentTime, setAppointmentTime] = useState("")
   const [bookingMethod, setBookingMethod] = useState("")
   const [expectedValue, setExpectedValue] = useState("")
-  const [bookingReference, setBookingReference] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
 
@@ -47,7 +45,7 @@ export function BookingDialog({ leadId, clinicId, patientName, onClose, onSucces
     e.preventDefault()
     setError("")
 
-    if (!appointmentDate || !appointmentTime || !bookingMethod) {
+    if (!appointmentDate || !bookingMethod) {
       setError("Please fill in all required fields")
       return
     }
@@ -57,13 +55,13 @@ export function BookingDialog({ leadId, clinicId, patientName, onClose, onSucces
     try {
       const supabase = createBrowserClient()
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       if (!session) {
         setError("You must be logged in")
         return
       }
 
-      const appointmentDatetime = new Date(`${appointmentDate}T${appointmentTime}`)
+      const appointmentDatetime = new Date(`${appointmentDate}T09:00`)
 
       const { error: insertError } = await supabase
         .from("bookings")
@@ -73,7 +71,6 @@ export function BookingDialog({ leadId, clinicId, patientName, onClose, onSucces
           appointment_datetime: appointmentDatetime.toISOString(),
           booking_method: bookingMethod,
           expected_value_gbp: expectedValue ? parseFloat(expectedValue) : null,
-          booking_reference: bookingReference || null,
           confirmed_by: session.user.id,
         })
 
@@ -105,27 +102,15 @@ export function BookingDialog({ leadId, clinicId, patientName, onClose, onSucces
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Appointment Date *</Label>
-              <Input
-                id="date"
-                type="date"
-                value={appointmentDate}
-                onChange={(e) => setAppointmentDate(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="time">Time *</Label>
-              <Input
-                id="time"
-                type="time"
-                value={appointmentTime}
-                onChange={(e) => setAppointmentTime(e.target.value)}
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="date">Appointment Date *</Label>
+            <Input
+              id="date"
+              type="date"
+              value={appointmentDate}
+              onChange={(e) => setAppointmentDate(e.target.value)}
+              required
+            />
           </div>
 
           <div className="space-y-2">
@@ -152,16 +137,6 @@ export function BookingDialog({ leadId, clinicId, patientName, onClose, onSucces
               placeholder="e.g. 2500"
               value={expectedValue}
               onChange={(e) => setExpectedValue(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="reference">Booking Reference</Label>
-            <Input
-              id="reference"
-              placeholder="Optional reference number"
-              value={bookingReference}
-              onChange={(e) => setBookingReference(e.target.value)}
             />
           </div>
 

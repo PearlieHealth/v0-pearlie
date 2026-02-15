@@ -30,10 +30,11 @@ export async function GET(request: NextRequest) {
         status,
         last_message_at,
         unread_by_clinic,
+        unread_count_clinic,
         created_at
       `)
       .eq("clinic_id", clinicUser.clinic_id)
-      .order("last_message_at", { ascending: false })
+      .order("last_message_at", { ascending: false, nullsFirst: false })
 
     if (error) {
       console.error("[Conversations] Failed to fetch:", error)
@@ -52,11 +53,12 @@ export async function GET(request: NextRequest) {
           .eq("id", conv.lead_id)
           .single()
 
-        // Get latest message
+        // Get latest human message (exclude bot messages so preview shows patient/clinic text)
         const { data: latestMessage } = await supabaseAdmin
           .from("messages")
-          .select("content")
+          .select("content, sender_type")
           .eq("conversation_id", conv.id)
+          .neq("sender_type", "bot")
           .order("created_at", { ascending: false })
           .limit(1)
           .single()

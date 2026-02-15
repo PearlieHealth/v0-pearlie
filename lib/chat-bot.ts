@@ -16,6 +16,10 @@ export function getBotClinicReplied(clinicName: string): string {
   return `${clinicName} has replied! You're now chatting directly with the clinic team.`
 }
 
+export function getBotFollowUp(clinicName: string): string {
+  return `Thanks for the extra detail — ${clinicName} will see all your messages when they come online. No need to wait here; we'll email you as soon as they reply.`
+}
+
 export function getBotNoReplyYet(clinicName: string): string {
   return `Just a heads up — ${clinicName} typically responds within a few hours. We'll notify you by email when they reply, so you don't need to stay on this page.`
 }

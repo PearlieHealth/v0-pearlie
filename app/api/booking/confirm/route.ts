@@ -77,7 +77,7 @@ export async function POST(request: Request) {
 
     const { data: clinic, error: clinicError } = await supabase
       .from("clinics")
-      .select("name, notification_email, email")
+      .select("name, notification_email, email, notification_preferences")
       .eq("id", clinicId)
       .maybeSingle()
 
@@ -88,10 +88,21 @@ export async function POST(request: Request) {
         hasLeadData: !!leadData,
         hasClinic: !!clinic,
       })
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         emailSent: false,
-        message: "Booking confirmed but email notification failed" 
+        message: "Booking confirmed but email notification failed"
+      })
+    }
+
+    // Check notification preferences — default to sending if not configured
+    const prefs = (clinic.notification_preferences as Record<string, boolean> | null) || {}
+    if (prefs.booking_confirmations === false) {
+      console.log("[booking/confirm] Clinic has disabled booking confirmation emails:", clinic.name)
+      return NextResponse.json({
+        success: true,
+        emailSent: false,
+        message: "Booking confirmed - email notifications disabled by clinic"
       })
     }
 
@@ -99,10 +110,10 @@ export async function POST(request: Request) {
 
     if (!recipientEmail) {
       console.log("[booking/confirm] No notification email configured for clinic:", clinic.name)
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         emailSent: false,
-        message: "Booking confirmed - clinic will be notified" 
+        message: "Booking confirmed - clinic will be notified"
       })
     }
 

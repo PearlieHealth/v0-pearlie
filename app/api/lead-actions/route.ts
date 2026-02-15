@@ -83,7 +83,7 @@ export async function POST(request: Request) {
 
         const { data: clinic, error: clinicError } = await supabase
           .from("clinics")
-          .select("name, notification_email, email")
+          .select("name, notification_email, email, notification_preferences")
           .eq("id", clinicId)
           .maybeSingle()
 
@@ -94,6 +94,13 @@ export async function POST(request: Request) {
             hasLeadData: !!leadData,
             hasClinic: !!clinic,
           })
+          return
+        }
+
+        // Check notification preferences — default to sending if not configured
+        const prefs = (clinic.notification_preferences as Record<string, boolean> | null) || {}
+        if (prefs.new_leads === false) {
+          console.log("[lead-actions] Clinic has disabled new lead alerts:", clinic.name)
           return
         }
 

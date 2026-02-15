@@ -34,9 +34,20 @@ import {
   Eye,
   Bell,
   AlertTriangle,
+  Loader2,
+  Trash2,
+  PoundSterling,
 } from "lucide-react"
 import { toast } from "sonner"
 import { HIGHLIGHT_CATEGORIES, getHighlightLabel } from "@/lib/clinic-highlights-config"
+import { DEFAULT_TREATMENT_CATEGORIES, type TreatmentCategory, type TreatmentItem } from "@/lib/treatment-pricing-config"
+
+interface BeforeAfterImage {
+  before_url: string
+  after_url: string
+  treatment: string
+  description?: string
+}
 
 interface ClinicProfile {
   id: string
@@ -50,6 +61,7 @@ interface ClinicProfile {
   notification_email: string
   website: string
   description: string
+  featured_review: string
   accepts_urgent: boolean
   treatments: string[]
   services: string[]
@@ -61,7 +73,11 @@ interface ClinicProfile {
   ideal_patient_tags: string[]
   exclusion_tags: string[]
   highlight_chips: string[]
-  images?: string[]
+  images: string[]
+  before_after_images: BeforeAfterImage[]
+  offers_free_consultation: boolean
+  show_treatment_prices: boolean
+  treatment_prices: TreatmentCategory[]
   google_rating?: number
   google_review_count?: number
   latitude?: number
@@ -240,6 +256,8 @@ export default function ClinicProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false)
+  const [isUploadingBeforeAfter, setIsUploadingBeforeAfter] = useState<string | null>(null) // 'before' | 'after' | null
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     highlights: false,
     matching: false,
@@ -247,6 +265,93 @@ export default function ClinicProfilePage() {
 
   const toggleSection = (key: string) => {
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const handleGalleryUpload = async (files: FileList) => {
+    if (!profile) return
+    setIsUploadingGallery(true)
+    const newUrls: string[] = []
+    for (const file of Array.from(files)) {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+        toast.error(`${file.name}: Invalid type. Use JPEG, PNG, or WEBP.`)
+        continue
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name}: Too large (max 10MB).`)
+        continue
+      }
+      try {
+        const formData = new FormData()
+        formData.append("file", file)
+        formData.append("type", "gallery")
+        const res = await fetch("/api/clinics/upload", { method: "POST", body: formData })
+        const data = await res.json()
+        if (res.ok && data.url) {
+          newUrls.push(data.url)
+        } else {
+          toast.error(`${file.name}: ${data.error || "Upload failed"}`)
+        }
+      } catch {
+        toast.error(`${file.name}: Upload failed`)
+      }
+    }
+    if (newUrls.length > 0) {
+      setProfile({ ...profile, images: [...(profile.images || []), ...newUrls] })
+      toast.success(`${newUrls.length} photo${newUrls.length > 1 ? "s" : ""} uploaded`)
+    }
+    setIsUploadingGallery(false)
+  }
+
+  const removeGalleryImage = (index: number) => {
+    if (!profile) return
+    setProfile({ ...profile, images: profile.images.filter((_, i) => i !== index) })
+  }
+
+  const handleBeforeAfterUpload = async (file: File, pairIndex: number, side: "before" | "after") => {
+    if (!profile) return
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Invalid file type. Use JPEG, PNG, or WEBP.")
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File too large (max 10MB).")
+      return
+    }
+    setIsUploadingBeforeAfter(`${pairIndex}-${side}`)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("type", "gallery")
+      const res = await fetch("/api/clinics/upload", { method: "POST", body: formData })
+      const data = await res.json()
+      if (res.ok && data.url) {
+        const updated = [...profile.before_after_images]
+        updated[pairIndex] = { ...updated[pairIndex], [`${side}_url`]: data.url }
+        setProfile({ ...profile, before_after_images: updated })
+        toast.success(`${side === "before" ? "Before" : "After"} photo uploaded`)
+      } else {
+        toast.error(data.error || "Upload failed")
+      }
+    } catch {
+      toast.error("Upload failed")
+    }
+    setIsUploadingBeforeAfter(null)
+  }
+
+  const addBeforeAfterPair = () => {
+    if (!profile) return
+    setProfile({
+      ...profile,
+      before_after_images: [...profile.before_after_images, { before_url: "", after_url: "", treatment: "" }],
+    })
+  }
+
+  const removeBeforeAfterPair = (index: number) => {
+    if (!profile) return
+    setProfile({
+      ...profile,
+      before_after_images: profile.before_after_images.filter((_, i) => i !== index),
+    })
   }
 
   const fetchProfile = useCallback(async (showRefreshToast = false) => {
@@ -285,6 +390,10 @@ export default function ClinicProfilePage() {
           exclusion_tags: clinic.exclusion_tags || [],
           highlight_chips: clinic.highlight_chips || [],
           images: clinic.images || [],
+          before_after_images: clinic.before_after_images || [],
+          offers_free_consultation: clinic.offers_free_consultation || false,
+          show_treatment_prices: clinic.show_treatment_prices || false,
+          treatment_prices: clinic.treatment_prices || [],
           google_rating: clinic.google_rating,
           google_review_count: clinic.google_review_count,
           latitude: clinic.latitude,
@@ -334,6 +443,11 @@ export default function ClinicProfilePage() {
           ideal_patient_tags: profile.ideal_patient_tags,
           exclusion_tags: profile.exclusion_tags,
           highlight_chips: profile.highlight_chips,
+          images: profile.images,
+          before_after_images: profile.before_after_images,
+          offers_free_consultation: profile.offers_free_consultation,
+          show_treatment_prices: profile.show_treatment_prices,
+          treatment_prices: profile.treatment_prices,
         }),
       })
       if (response.ok) {
@@ -599,15 +713,15 @@ export default function ClinicProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Emergency Availability */}
+          {/* Availability & Emergency */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4" />
-                Emergency Availability
+                Availability & Emergency
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Accepts emergency patients</p>
@@ -617,6 +731,37 @@ export default function ClinicProfilePage() {
                   checked={profile.accepts_urgent}
                   onCheckedChange={(checked) => setProfile({ ...profile, accepts_urgent: checked })}
                 />
+              </div>
+              <div className="border-t border-border/50 pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Weekend availability</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(() => {
+                        const satOpen = profile.opening_hours?.saturday && !profile.opening_hours.saturday.closed
+                        const sunOpen = profile.opening_hours?.sunday && !profile.opening_hours.sunday.closed
+                        if (satOpen && sunOpen) return "Open Saturday & Sunday — set via Practice Hours above"
+                        if (satOpen) return "Open Saturday — set via Practice Hours above"
+                        if (sunOpen) return "Open Sunday — set via Practice Hours above"
+                        return "Not available — toggle Saturday or Sunday open in Practice Hours above"
+                      })()}
+                    </p>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={`text-[10px] h-5 flex-shrink-0 ${
+                      (profile.opening_hours?.saturday && !profile.opening_hours.saturday.closed) ||
+                      (profile.opening_hours?.sunday && !profile.opening_hours.sunday.closed)
+                        ? "border-green-300 text-green-700 bg-green-50"
+                        : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    {(profile.opening_hours?.saturday && !profile.opening_hours.saturday.closed) ||
+                    (profile.opening_hours?.sunday && !profile.opening_hours.sunday.closed)
+                      ? "ACTIVE"
+                      : "OFF"}
+                  </Badge>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -666,29 +811,221 @@ export default function ClinicProfilePage() {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base font-semibold">Practice Photos</CardTitle>
-                <Button variant="outline" size="sm" className="h-7 text-xs gap-1 bg-transparent">
-                  <ImagePlus className="h-3.5 w-3.5" />
-                  Add Photos
-                </Button>
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    className="hidden"
+                    disabled={isUploadingGallery}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        handleGalleryUpload(e.target.files)
+                      }
+                      e.target.value = ""
+                    }}
+                  />
+                  <span className={`inline-flex items-center gap-1 text-xs px-3 py-1.5 border rounded-md transition-colors ${isUploadingGallery ? "opacity-60 cursor-wait" : "hover:bg-muted cursor-pointer"}`}>
+                    {isUploadingGallery ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <ImagePlus className="h-3.5 w-3.5" />
+                    )}
+                    {isUploadingGallery ? "Uploading..." : "Add Photos"}
+                  </span>
+                </label>
               </div>
             </CardHeader>
             <CardContent>
               {profile.images && profile.images.length > 0 ? (
                 <div className="grid grid-cols-4 gap-2">
                   {profile.images.map((img, i) => (
-                    <div key={i} className="aspect-square rounded-lg overflow-hidden bg-muted">
+                    <div key={i} className="relative group aspect-square rounded-lg overflow-hidden bg-muted">
                       <img src={img || "/placeholder.svg"} alt={`Practice photo ${i + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeGalleryImage(i)}
+                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-40 border-2 border-dashed rounded-lg">
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    className="hidden"
+                    disabled={isUploadingGallery}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        handleGalleryUpload(e.target.files)
+                      }
+                      e.target.value = ""
+                    }}
+                  />
+                  <div className="flex items-center justify-center h-40 border-2 border-dashed rounded-lg hover:border-[#9F7AEA]/50 transition-colors">
+                    <div className="text-center">
+                      <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">Click to upload photos</p>
+                      <p className="text-xs text-muted-foreground mt-1">JPEG, PNG, or WEBP. Max 10MB each.</p>
+                    </div>
+                  </div>
+                </label>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Before & After Gallery */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold">Before & After</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-1 bg-transparent"
+                  onClick={addBeforeAfterPair}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Pair
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Show patients the results they can expect.</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {profile.before_after_images.length === 0 ? (
+                <div
+                  className="flex items-center justify-center h-32 border-2 border-dashed rounded-lg hover:border-[#9F7AEA]/50 transition-colors cursor-pointer"
+                  onClick={addBeforeAfterPair}
+                >
                   <div className="text-center">
-                    <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">No photos yet</p>
-                    <p className="text-xs text-muted-foreground mt-1">Add photos to attract more patients</p>
+                    <ImagePlus className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
+                    <p className="text-sm text-muted-foreground">Add your first before & after</p>
                   </div>
                 </div>
+              ) : (
+                profile.before_after_images.map((pair, pairIndex) => (
+                  <div key={pairIndex} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Input
+                        value={pair.treatment}
+                        onChange={(e) => {
+                          const updated = [...profile.before_after_images]
+                          updated[pairIndex] = { ...updated[pairIndex], treatment: e.target.value }
+                          setProfile({ ...profile, before_after_images: updated })
+                        }}
+                        placeholder="Treatment type (e.g. Invisalign, Veneers)"
+                        className="h-8 text-sm max-w-xs"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeBeforeAfterPair(pairIndex)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Before */}
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1.5">Before</p>
+                        {pair.before_url ? (
+                          <div className="relative group aspect-[4/3] rounded-lg overflow-hidden bg-muted">
+                            <img src={pair.before_url} alt="Before" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = [...profile.before_after_images]
+                                updated[pairIndex] = { ...updated[pairIndex], before_url: "" }
+                                setProfile({ ...profile, before_after_images: updated })
+                              }}
+                              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              className="hidden"
+                              disabled={isUploadingBeforeAfter !== null}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) handleBeforeAfterUpload(file, pairIndex, "before")
+                                e.target.value = ""
+                              }}
+                            />
+                            <div className="aspect-[4/3] rounded-lg border-2 border-dashed flex items-center justify-center hover:border-[#9F7AEA]/50 transition-colors">
+                              {isUploadingBeforeAfter === `${pairIndex}-before` ? (
+                                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                              ) : (
+                                <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                              )}
+                            </div>
+                          </label>
+                        )}
+                      </div>
+                      {/* After */}
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1.5">After</p>
+                        {pair.after_url ? (
+                          <div className="relative group aspect-[4/3] rounded-lg overflow-hidden bg-muted">
+                            <img src={pair.after_url} alt="After" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = [...profile.before_after_images]
+                                updated[pairIndex] = { ...updated[pairIndex], after_url: "" }
+                                setProfile({ ...profile, before_after_images: updated })
+                              }}
+                              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              className="hidden"
+                              disabled={isUploadingBeforeAfter !== null}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) handleBeforeAfterUpload(file, pairIndex, "after")
+                                e.target.value = ""
+                              }}
+                            />
+                            <div className="aspect-[4/3] rounded-lg border-2 border-dashed flex items-center justify-center hover:border-[#9F7AEA]/50 transition-colors">
+                              {isUploadingBeforeAfter === `${pairIndex}-after` ? (
+                                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                              ) : (
+                                <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                              )}
+                            </div>
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                    <Input
+                      value={pair.description || ""}
+                      onChange={(e) => {
+                        const updated = [...profile.before_after_images]
+                        updated[pairIndex] = { ...updated[pairIndex], description: e.target.value }
+                        setProfile({ ...profile, before_after_images: updated })
+                      }}
+                      placeholder="Brief description (optional)"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                ))
               )}
             </CardContent>
           </Card>
@@ -743,6 +1080,199 @@ export default function ClinicProfilePage() {
                 onRemove={(tag) => removeTag("treatments", tag)}
                 placeholder="Add treatment..."
               />
+            </CardContent>
+          </Card>
+
+          {/* Free Consultation */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Offers Free Consultation
+                </CardTitle>
+                <Switch
+                  checked={profile.offers_free_consultation}
+                  onCheckedChange={(checked) => setProfile({ ...profile, offers_free_consultation: checked })}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Enable this if your clinic offers a free initial consultation for cosmetic treatments and Invisalign. This does not apply to routine check-ups or emergency appointments. A badge will appear on your profile and in match results.
+              </p>
+            </CardHeader>
+          </Card>
+
+          {/* Treatment Pricing */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <PoundSterling className="h-4 w-4" />
+                  Treatment Pricing
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {profile.show_treatment_prices ? "Visible on profile" : "Hidden from profile"}
+                  </span>
+                  <Switch
+                    checked={profile.show_treatment_prices}
+                    onCheckedChange={(checked) => setProfile({ ...profile, show_treatment_prices: checked })}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Add your treatment prices. Only treatments with a price will appear on your public profile. Leave price blank to hide a treatment.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Initialise from defaults button */}
+              {profile.treatment_prices.length === 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full bg-transparent"
+                  onClick={() => setProfile({ ...profile, treatment_prices: DEFAULT_TREATMENT_CATEGORIES })}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1.5" />
+                  Load Default Treatment Categories
+                </Button>
+              )}
+
+              {profile.treatment_prices.map((category, catIndex) => (
+                <div key={catIndex} className="border rounded-lg overflow-hidden">
+                  {/* Category header */}
+                  <div className="flex items-center justify-between bg-muted/50 px-3 py-2">
+                    <Input
+                      value={category.category}
+                      onChange={(e) => {
+                        const updated = [...profile.treatment_prices]
+                        updated[catIndex] = { ...updated[catIndex], category: e.target.value }
+                        setProfile({ ...profile, treatment_prices: updated })
+                      }}
+                      className="h-7 text-sm font-semibold border-0 bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      placeholder="Category name"
+                    />
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => {
+                          const updated = [...profile.treatment_prices]
+                          updated[catIndex] = {
+                            ...updated[catIndex],
+                            treatments: [...updated[catIndex].treatments, { name: "", price: "", description: "" }],
+                          }
+                          setProfile({ ...profile, treatment_prices: updated })
+                        }}
+                        title="Add treatment to this category"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => {
+                          const updated = profile.treatment_prices.filter((_, i) => i !== catIndex)
+                          setProfile({ ...profile, treatment_prices: updated })
+                        }}
+                        title="Remove category"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Treatments in category */}
+                  <div className="divide-y divide-border/50">
+                    {category.treatments.map((treatment, treatIndex) => (
+                      <div key={treatIndex} className="px-3 py-2 flex items-start gap-2">
+                        <div className="flex-1 space-y-1.5">
+                          <div className="flex gap-2">
+                            <Input
+                              value={treatment.name}
+                              onChange={(e) => {
+                                const updated = [...profile.treatment_prices]
+                                const treatments = [...updated[catIndex].treatments]
+                                treatments[treatIndex] = { ...treatments[treatIndex], name: e.target.value }
+                                updated[catIndex] = { ...updated[catIndex], treatments }
+                                setProfile({ ...profile, treatment_prices: updated })
+                              }}
+                              placeholder="Treatment name"
+                              className="h-7 text-sm flex-1"
+                            />
+                            <div className="relative w-28">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">£</span>
+                              <Input
+                                value={treatment.price}
+                                onChange={(e) => {
+                                  const updated = [...profile.treatment_prices]
+                                  const treatments = [...updated[catIndex].treatments]
+                                  treatments[treatIndex] = { ...treatments[treatIndex], price: e.target.value }
+                                  updated[catIndex] = { ...updated[catIndex], treatments }
+                                  setProfile({ ...profile, treatment_prices: updated })
+                                }}
+                                placeholder="Price"
+                                className="h-7 text-sm pl-5"
+                              />
+                            </div>
+                          </div>
+                          <Input
+                            value={treatment.description}
+                            onChange={(e) => {
+                              const updated = [...profile.treatment_prices]
+                              const treatments = [...updated[catIndex].treatments]
+                              treatments[treatIndex] = { ...treatments[treatIndex], description: e.target.value }
+                              updated[catIndex] = { ...updated[catIndex], treatments }
+                              setProfile({ ...profile, treatment_prices: updated })
+                            }}
+                            placeholder="Brief description (optional)"
+                            className="h-7 text-xs text-muted-foreground"
+                          />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 mt-0.5 text-muted-foreground hover:text-destructive flex-shrink-0"
+                          onClick={() => {
+                            const updated = [...profile.treatment_prices]
+                            const treatments = updated[catIndex].treatments.filter((_, i) => i !== treatIndex)
+                            updated[catIndex] = { ...updated[catIndex], treatments }
+                            setProfile({ ...profile, treatment_prices: updated })
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                    {category.treatments.length === 0 && (
+                      <p className="px-3 py-2 text-xs text-muted-foreground italic">No treatments in this category</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* Add category button */}
+              {profile.treatment_prices.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full bg-transparent"
+                  onClick={() => {
+                    setProfile({
+                      ...profile,
+                      treatment_prices: [
+                        ...profile.treatment_prices,
+                        { category: "", treatments: [{ name: "", price: "", description: "" }] },
+                      ],
+                    })
+                  }}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1.5" />
+                  Add Category
+                </Button>
+              )}
             </CardContent>
           </Card>
 

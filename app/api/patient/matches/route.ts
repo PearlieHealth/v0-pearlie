@@ -27,7 +27,7 @@ export async function GET() {
     }
 
     if (!leads || leads.length === 0) {
-      return NextResponse.json({ leads: [], matches: [] })
+      return NextResponse.json({ leads: [], matches: [], conversations: [] })
     }
 
     // Link any unlinked leads to this user

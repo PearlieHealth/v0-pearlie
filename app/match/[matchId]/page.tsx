@@ -81,6 +81,8 @@ interface Clinic {
   tier?: string
   card_title?: string
   is_directory_listing?: boolean
+  is_emergency?: boolean
+  offers_free_consultation?: boolean
   highlight_chips?: string[]
   available_days?: string[]
   available_hours?: string[]
@@ -124,6 +126,7 @@ export default function MatchPage() {
     acceptsNhs: false,
     wheelchairAccessible: false,
     parkingAvailable: false,
+    freeConsultation: false,
     prioritiseDistance: false,
   })
 
@@ -269,6 +272,10 @@ export default function MatchPage() {
 
     if (filters.parkingAvailable) {
       clinics = clinics.filter((c) => c.parking_available === true)
+    }
+
+    if (filters.freeConsultation) {
+      clinics = clinics.filter((c) => c.offers_free_consultation === true)
     }
 
     if (filters.prioritiseDistance && clinics.length > 0) {
@@ -620,6 +627,25 @@ export default function MatchPage() {
           </Empty>
         )}
 
+        {!loading && !error && allClinicsData.length === 0 && (
+          <Empty>
+            <EmptyHeader>
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-muted mx-auto mb-4">
+                <MapPin className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <EmptyTitle>No matching clinics found</EmptyTitle>
+              <EmptyDescription>
+                We couldn't find clinics matching your criteria right now. We're growing our network — check back soon or try a different postcode.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button asChild variant="default">
+                <Link href="/intake">Start a new search</Link>
+              </Button>
+            </EmptyContent>
+          </Empty>
+        )}
+
         {!loading && !error && allClinicsData.length > 0 && (
           <>
             {showExpansionBanner && (
@@ -779,6 +805,12 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                             <span className="text-xs">Directory listing</span>
                                           </div>
                                         )}
+                                        {clinic.offers_free_consultation && (
+                                          <div className="flex items-center gap-1 text-indigo-600">
+                                            <CheckCircle2 className="w-4 h-4" />
+                                            <span className="font-medium">Free consultation</span>
+                                          </div>
+                                        )}
                                         {clinic.distance_miles !== undefined && (
                                           <div className="flex items-center gap-1">
                                             <MapPin className="w-4 h-4" />
@@ -817,7 +849,7 @@ const categoryLabels: Record<string, string> = {
                                   priorities: "Your priorities",
                                   blockers: "Concerns addressed",
                                   anxiety: "Anxiety support",
-                                  cost: "Payment options",
+                                  cost: "Cost & value fit",
                                   distance: "Location",
                                   availability: "Appointment times",
                                 }
@@ -871,9 +903,11 @@ const categoryLabels: Record<string, string> = {
                                         ? "About this clinic"
                                         : clinic.tier === "nearby"
                                           ? "Other option in your area"
-                                          : index < 2
-                                            ? "Why we matched you"
-                                            : "Could also be a good match"}
+                                          : clinic.is_emergency
+                                            ? "Why this clinic"
+                                            : index < 2
+                                              ? "Why we matched you"
+                                              : "Could also be a good match"}
                                     </h3>
                                   </div>
 
@@ -900,46 +934,17 @@ const categoryLabels: Record<string, string> = {
                                       </>
                                     ) : (
                                       (() => {
-                                        // Get reasons, ensuring we have at least 3
-                                        let reasons = clinic.match_reasons_composed && clinic.match_reasons_composed.length > 0
+                                        // Get reasons from the engine (already correct count: 2 for emergency, 3 for planning)
+                                        const reasons = clinic.match_reasons_composed && clinic.match_reasons_composed.length > 0
                                           ? clinic.match_reasons_composed
                                           : clinic.match_reasons && clinic.match_reasons.length > 0
                                             ? clinic.match_reasons
                                             : []
-                                        
-                                        // Clinic-specific fallback reasons (not generic)
-                                        const getClinicSpecificFallback = (idx: number) => {
-                                          if (idx === 0) {
-                                            if (clinic.rating >= 4.5) {
-                                              return `Matched for their excellent ${clinic.rating.toFixed(1)} star rating from ${clinic.review_count}+ patients.`
-                                            } else if (clinic.rating >= 4.0) {
-                                              return `Matched for strong patient reviews with a ${clinic.rating.toFixed(1)} star rating.`
-                                            }
-                                            return "Matched for their commitment to quality patient care."
-                                          }
-                                          if (idx === 1) {
-                                            if (clinic.distance_miles && clinic.distance_miles < 3) {
-                                              return `Matched for their convenient location just ${clinic.distance_miles.toFixed(1)} miles from you.`
-                                            } else if (clinic.distance_miles && clinic.distance_miles < 10) {
-                                              return `Matched for good accessibility at ${clinic.distance_miles.toFixed(1)} miles away.`
-                                            }
-                                            return "Matched for their accessible location and availability."
-                                          }
-                                          if (clinic.verified) {
-                                            return "Matched as a verified partner with confirmed credentials."
-                                          }
-                                          return "Matched based on their services and patient feedback."
-                                        }
-                                        
-                                        // Ensure we always have 3 reasons
-                                        let idx = 0
-                                        while (reasons.length < 3) {
-                                          reasons = [...reasons, getClinicSpecificFallback(idx)]
-                                          idx++
-                                        }
-                                        
-                                        // Take first 3 reasons
-                                        return reasons.slice(0, 3).map((sentence, i) => (
+
+                                        // Max reasons: 2 for emergency, 3 for planning
+                                        const maxReasons = clinic.is_emergency ? 2 : 3
+
+                                        return reasons.slice(0, maxReasons).map((sentence: string, i: number) => (
                                           <p key={i}>{sentence}</p>
                                         ))
                                       })()

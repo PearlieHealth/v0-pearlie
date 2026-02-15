@@ -18,7 +18,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Heart,
-  UserCog,
   MessageCircle,
 } from "lucide-react"
 import {
@@ -54,7 +53,7 @@ const navItems = [
     href: "/clinic/insights",
     label: "Insights",
     icon: BarChart3,
-    roles: ["CLINIC_ADMIN", "CORPORATE_ADMIN"],
+    roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
   },
   {
     href: "/clinic/profile",
@@ -69,16 +68,10 @@ const navItems = [
     roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
   },
   {
-    href: "/clinic/team",
-    label: "Team",
-    icon: UserCog,
-    roles: ["CLINIC_ADMIN", "CORPORATE_ADMIN"],
-  },
-  {
     href: "/clinic/settings",
     label: "Settings",
     icon: Settings,
-    roles: ["CLINIC_ADMIN", "CORPORATE_ADMIN"],
+    roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
   },
 ]
 

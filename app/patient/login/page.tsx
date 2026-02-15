@@ -38,15 +38,17 @@ export default function PatientLoginPage() {
     setError("")
 
     try {
-      const supabase = createClient()
-      const { error: signInError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/patient/dashboard`,
-        },
+      const res = await fetch("/api/auth/send-login-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       })
 
-      if (signInError) throw signInError
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to send login link")
+      }
+
       setMagicLinkSent(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send login link")

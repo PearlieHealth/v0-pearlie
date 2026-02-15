@@ -1,7 +1,7 @@
 import { z } from "zod"
 
-export const CURRENT_SCHEMA_VERSION = 2
-export const CURRENT_FORM_VERSION = "v2_final_11q_2026-01-13"
+export const CURRENT_SCHEMA_VERSION = 6
+export const CURRENT_FORM_VERSION = "v6_blocker_multiselect_2026-02-14"
 
 export const IntakeFormSchema = z.object({
   // Core fields (required)
@@ -15,10 +15,10 @@ export const IntakeFormSchema = z.object({
 
   budget_range: z.string().nullish().default("unspecified"),
   cost_approach: z
-    .enum(["options_then_cost", "payments_preferred", "rough_range_flexible", "strict_budget"])
+    .string()
     .nullish()
     .default(null),
-  strict_budget_mode: z.enum(["discuss_with_clinic", "entered_amount"]).nullish().default(null),
+  strict_budget_mode: z.string().nullish().default(null),
   strict_budget_amount: z.number().nullish().default(null),
 
   timing: z.string().nullish().default("flexible"),
@@ -27,18 +27,10 @@ export const IntakeFormSchema = z.object({
   outcome_priority_label: z.string().nullish().default(null),
 
   blocker: z.string().nullish().default(null),
-  blocker_code: z
-    .enum([
-      "COST_VALUE",
-      "PAYMENTS_HELP",
-      "NEED_TIME",
-      "UNSURE_OPTION",
-      "ANXIETY_FEAR",
-      "COMPLEXITY_WORRY",
-      "RIGHT_CLINIC",
-    ])
-    .nullish()
-    .default(null),
+  blocker_code: z.string().nullish().default(null),
+
+  // v6: multi-select blocker codes (max 2)
+  blocker_codes: z.array(z.string()).nullish().default([]),
 
   // Decision factors (values) - max 3, empty array if missing/null
   decision_factors: z.array(z.string()).nullish().default([]),

@@ -1,16 +1,17 @@
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
 import { verifyAdminAuth } from "@/lib/admin-auth"
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await verifyAdminAuth()
   if (!auth.authenticated) return auth.response
 
   try {
+    const { id } = await params
     const body = await request.json()
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
-    const { data, error } = await supabase.from("offers").update(body).eq("id", params.id).select().single()
+    const { data, error } = await supabase.from("offers").update(body).eq("id", id).select().single()
 
     if (error) {
       console.error("Error updating offer:", error)
@@ -24,14 +25,15 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await verifyAdminAuth()
   if (!auth.authenticated) return auth.response
 
   try {
-    const supabase = await createClient()
+    const { id } = await params
+    const supabase = createAdminClient()
 
-    const { error } = await supabase.from("offers").delete().eq("id", params.id)
+    const { error } = await supabase.from("offers").delete().eq("id", id)
 
     if (error) {
       console.error("Error deleting offer:", error)

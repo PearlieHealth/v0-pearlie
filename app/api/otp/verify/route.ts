@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyOTPHash, isOTPExpired } from "@/lib/otp/generate"
 
@@ -21,7 +20,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid verification code format" }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Get lead with OTP data
     const { data: lead, error: leadError } = await supabase
@@ -96,9 +95,8 @@ export async function POST(request: NextRequest) {
     // Auto-create a Supabase auth user for the patient (if they don't have one yet)
     if (!lead.user_id && lead.email) {
       try {
-        const admin = createAdminClient()
         // Check if a user with this email already exists
-        const { data: existingUsers } = await admin.auth.admin.listUsers()
+        const { data: existingUsers } = await supabase.auth.admin.listUsers()
         const existingUser = existingUsers?.users?.find(
           (u) => u.email?.toLowerCase() === lead.email?.toLowerCase()
         )
@@ -108,7 +106,7 @@ export async function POST(request: NextRequest) {
           updateData.user_id = existingUser.id
         } else {
           // Create a new auth user for this patient
-          const { data: newUser, error: createError } = await admin.auth.admin.createUser({
+          const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
             email: lead.email,
             email_confirm: true, // Already verified via OTP
             user_metadata: {

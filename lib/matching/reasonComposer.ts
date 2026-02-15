@@ -77,21 +77,24 @@ export function composeReasonSentences(
   const templatesUsed: string[] = []
   const usedCategories = new Set<string>()
   
+  // Detect if this is an emergency match (emergency reasons have EMERGENCY_ tagKeys)
+  const isEmergency = matchReasons.some(r => r.tagKey?.startsWith("EMERGENCY_"))
+  const maxBullets = isEmergency ? 2 : 3
+
   // Sort reasons by weight (highest first)
   const sortedReasons = [...matchReasons].sort((a, b) => (b.weight || 0) - (a.weight || 0))
-  
-  // Take top 3-4 contributing tags (excluding fallbacks first)
+
+  // Take top contributing tags (excluding fallbacks first)
   const primaryReasons = sortedReasons.filter(r => !r.isFallback).slice(0, 4)
-  
+
   for (const reason of primaryReasons) {
-    // Max 3 category-based sentences
-    if (bullets.length >= 3) break
+    if (bullets.length >= maxBullets) break
     
     const tagKey = reason.tagKey
     if (!tagKey) continue
     
     // Skip if this is a fallback and we already have enough
-    if (reason.isFallback && bullets.length >= 2) continue
+    if (reason.isFallback && bullets.length >= (isEmergency ? 1 : 2)) continue
     
     // Find the category for this tag
     const categoryMatch = findCategoryForTag(tagKey)
@@ -113,21 +116,30 @@ export function composeReasonSentences(
       let longSentence = longPool[longIndex] || shortSentence
       
       // Handle treatment name substitution
-      if (categoryKey === "treatment_match" && matchFacts?.treatmentMatch?.requested) {
+      if ((categoryKey === "treatment_match" || categoryKey === "specialist_experience") && matchFacts?.treatmentMatch?.requested) {
         shortSentence = shortSentence.replace(/{treatment}/g, matchFacts.treatmentMatch.requested)
         longSentence = longSentence.replace(/{treatment}/g, matchFacts.treatmentMatch.requested)
       }
-      
+
       bullets.push(shortSentence)
       longBullets.push(longSentence)
       tagsUsed.push(tagKey)
       templatesUsed.push(`${categoryKey}_${variantIndex}`)
       usedCategories.add(categoryKey)
+    } else if (!categoryMatch && reason.text) {
+      // For emergency/custom tags with no category in library, use the reason text directly
+      if (!bullets.includes(reason.text)) {
+        bullets.push(reason.text)
+        longBullets.push(reason.text)
+        tagsUsed.push(tagKey)
+        templatesUsed.push(`direct_${tagKey}`)
+      }
     }
   }
-  
+
   // If we still need more sentences, use fallback reasons
-  if (bullets.length < 2) {
+  const minBullets = isEmergency ? 2 : 2
+  if (bullets.length < minBullets) {
     const fallbackReasons = sortedReasons.filter(r => r.isFallback)
     for (const reason of fallbackReasons) {
       if (bullets.length >= 2) break
@@ -145,15 +157,16 @@ export function composeReasonSentences(
     }
   }
   
-  // Ensure minimum of 2 sentences using library fallbacks
-  if (bullets.length < 2) {
+  // Ensure minimum sentences using library fallbacks
+  const minRequired = isEmergency ? 2 : 2
+  if (bullets.length < minRequired) {
     const fallbackSentences = reasonLibrary.fallbackSentences as string[]
-    const neededCount = 2 - bullets.length
-    
+    const neededCount = minRequired - bullets.length
+
     for (let i = 0; i < neededCount && i < fallbackSentences.length; i++) {
       const index = getVariantIndex(patientId, clinicId, `fallback_${i}`, fallbackSentences.length)
       bullets.push(fallbackSentences[index])
-      longBullets.push(fallbackSentences[index]) // Ensure longBullets is also populated
+      longBullets.push(fallbackSentences[index])
       templatesUsed.push(`library_fallback_${index}`)
     }
   }
@@ -219,64 +232,71 @@ function composeReasonSentencesWithTracking(
   const templatesUsed: string[] = []
   const usedCategories = new Set<string>()
   
+  // Detect emergency mode
+  const isEmergency = matchReasons.some(r => r.tagKey?.startsWith("EMERGENCY_"))
+  const maxBullets = isEmergency ? 2 : 3
+
   // Sort reasons by weight (highest first)
   const sortedReasons = [...matchReasons].sort((a, b) => (b.weight || 0) - (a.weight || 0))
-  
+
   // Take top contributing tags (excluding fallbacks first)
   const primaryReasons = sortedReasons.filter(r => !r.isFallback).slice(0, 4)
-  
+
   for (const reason of primaryReasons) {
-    if (bullets.length >= 3) break
-    
+    if (bullets.length >= maxBullets) break
+
     const tagKey = reason.tagKey
     if (!tagKey) continue
-    if (reason.isFallback && bullets.length >= 2) continue
-    
+    if (reason.isFallback && bullets.length >= (isEmergency ? 1 : 2)) continue
+
     const categoryMatch = findCategoryForTag(tagKey)
-    
+
     if (categoryMatch && !usedCategories.has(categoryMatch.categoryKey)) {
       const { categoryKey, category } = categoryMatch
-      
-      // Use shortVariants for card display, fall back to variants for backwards compat
+
       const shortPool = category.shortVariants || category.variants || []
       const longPool = category.longVariants || category.variants || []
-      
+
       if (shortPool.length === 0) continue
-      
-      // Get or create tracking set for this category
+
       if (!usedVariants.has(categoryKey)) {
         usedVariants.set(categoryKey, new Set())
       }
       const usedIndices = usedVariants.get(categoryKey)!
-      
-      // Find an unused variant
+
       let variantIndex = getVariantIndex(patientId, clinicId, categoryKey, shortPool.length)
       let attempts = 0
-      
-      // If this variant was used, try to find an unused one
+
       while (usedIndices.has(variantIndex) && attempts < shortPool.length) {
         variantIndex = (variantIndex + 1) % shortPool.length
         attempts++
       }
-      
-      // Mark as used
+
       usedIndices.add(variantIndex)
-      
+
       const longIndex = longPool.length > 0 ? variantIndex % longPool.length : 0
       let shortSentence = shortPool[variantIndex]
       let longSentence = longPool[longIndex] || shortSentence
-      
+
       // Handle treatment name substitution
-      if (categoryKey === "treatment_match" && matchFacts?.treatmentMatch?.requested) {
+      if ((categoryKey === "treatment_match" || categoryKey === "specialist_experience") && matchFacts?.treatmentMatch?.requested) {
         shortSentence = shortSentence.replace(/{treatment}/g, matchFacts.treatmentMatch.requested)
         longSentence = longSentence.replace(/{treatment}/g, matchFacts.treatmentMatch.requested)
       }
-      
+
       bullets.push(shortSentence)
       longBullets.push(longSentence)
       tagsUsed.push(tagKey)
       templatesUsed.push(`${categoryKey}_v${variantIndex}`)
       usedCategories.add(categoryKey)
+    } else if (!categoryMatch && reason.text) {
+      // For emergency/custom tags not in library, use reason text directly
+      if (!bullets.includes(reason.text)) {
+        bullets.push(reason.text)
+        longBullets.push(reason.text)
+        tagsUsed.push(tagKey)
+        templatesUsed.push(`direct_${tagKey}`)
+      }
     }
   }
   
@@ -335,7 +355,8 @@ export function composeReasonsFromTags(
     treatmentMatch: treatmentName ? {
       requested: treatmentName,
       clinicOffers: true,
-      matchedTreatments: [treatmentName]
+      matchedTreatments: [treatmentName],
+      treatmentCategory: "cosmetic" as const,
     } : undefined
   }
   

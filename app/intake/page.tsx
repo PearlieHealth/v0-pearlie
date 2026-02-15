@@ -10,6 +10,16 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { PostcodeInput } from "@/components/postcode-input"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
+import { GoogleSignInButton } from "@/components/google-sign-in-button"
 import { trackEvent } from "@/lib/analytics"
 import { slideVariants, slideTransition } from "@/lib/slide-variants"
 import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap } from "lucide-react"
@@ -38,6 +48,7 @@ export default function IntakePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formStarted, setFormStarted] = useState(false)
   const [animatedSteps, setAnimatedSteps] = useState<Set<number>>(new Set())
+  const [outsideLondonArea, setOutsideLondonArea] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     treatments: [] as string[],
@@ -46,7 +57,7 @@ export default function IntakePage() {
     // Planning-only fields
     location_preference: "",
     decisionValues: [] as string[],
-    conversionBlockerCode: "",
+    conversionBlockerCodes: [] as string[],
     preferred_times: [] as string[],
     readiness: "",
     costApproach: "",
@@ -78,7 +89,7 @@ export default function IntakePage() {
     }
     // Planning flow - 7.5 and 7.6 are conditionally shown
     const order = [1, 2, 2.5, 3, 3.5, 5, 5.5, 6, 7]
-    if (formData.costApproach === "finance_preferred") {
+    if (formData.costApproach === "comfort_range") {
       order.push(7.5)
     } else if (formData.costApproach === "strict_budget") {
       order.push(7.6)
@@ -95,6 +106,7 @@ export default function IntakePage() {
   const canContinueStep1 = formData.treatments.length > 0
   const canContinueStep2 = formData.postcode !== "" && formData.postcodeValid
   const canContinueStep3 = formData.decisionValues.length > 0
+  const canContinueStep5 = formData.conversionBlockerCodes.length > 0
   const canContinueStep5_5 = formData.preferred_times.length > 0
   const canContinueStep8 =
     formData.firstName && formData.lastName && (formData.email || formData.phone) && formData.consentContact
@@ -129,12 +141,28 @@ export default function IntakePage() {
     })
   }
 
+  const handleBlockerToggle = (code: string) => {
+    setFormData((prev) => {
+      // "Nothing in particular" is exclusive
+      if (code === "NO_CONCERN") {
+        return { ...prev, conversionBlockerCodes: ["NO_CONCERN"] }
+      }
+      // Selecting a real concern removes "Nothing in particular"
+      const withoutNoConcern = prev.conversionBlockerCodes.filter((c) => c !== "NO_CONCERN")
+      if (withoutNoConcern.includes(code)) {
+        return { ...prev, conversionBlockerCodes: withoutNoConcern.filter((c) => c !== code) }
+      }
+      if (withoutNoConcern.length >= 2) return prev // Max 2
+      return { ...prev, conversionBlockerCodes: [...withoutNoConcern, code] }
+    })
+  }
+
   // Reset conditional fields when costApproach changes
   useEffect(() => {
     if (formData.costApproach !== "strict_budget") {
       setFormData((prev) => ({ ...prev, strictBudgetMode: "", strictBudgetAmount: "" }))
     }
-    if (formData.costApproach !== "finance_preferred") {
+    if (formData.costApproach !== "comfort_range") {
       setFormData((prev) => ({ ...prev, monthlyPaymentRange: "" }))
     }
   }, [formData.costApproach])
@@ -198,7 +226,7 @@ export default function IntakePage() {
       2.5: "Travel Distance",
       3: "Clinic Priorities",
       3.5: "Dental Anxiety",
-      5: "Biggest Concern",
+      5: "Concerns",
       5.5: "Best Time",
       6: "When to Start",
       7: "Cost Mindset",
@@ -238,8 +266,10 @@ export default function IntakePage() {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      const blockerCode = formData.conversionBlockerCode
-      const blockerOption = BLOCKER_OPTIONS.find((o) => o.code === blockerCode)
+      const blockerCodes = formData.conversionBlockerCodes
+      const blockerLabels = blockerCodes
+        .map((code) => BLOCKER_OPTIONS.find((o) => o.code === code)?.label)
+        .filter(Boolean) as string[]
 
       const rawAnswers = {
         treatments_selected: formData.treatments,
@@ -248,8 +278,8 @@ export default function IntakePage() {
         location_preference: isEmergency ? null : formData.location_preference || null,
         postcode: formData.postcode,
         values: isEmergency ? [] : formData.decisionValues,
-        blocker: isEmergency ? [] : (blockerCode ? [blockerCode] : []),
-        blocker_labels: isEmergency ? [] : (blockerOption ? [blockerOption.label] : []),
+        blocker: isEmergency ? [] : blockerCodes,
+        blocker_labels: isEmergency ? [] : blockerLabels,
         timing: isEmergency ? null : formData.readiness || null,
         preferred_times: formData.preferred_times,
         cost_approach: isEmergency ? null : formData.costApproach || null,
@@ -294,9 +324,9 @@ export default function IntakePage() {
           consentContact: formData.consentContact,
           consentTerms: formData.consentContact,
           decisionValues: isEmergency ? [] : formData.decisionValues,
-          conversionBlocker: isEmergency ? "" : (blockerOption?.label || ""),
-          conversionBlockerCode: isEmergency ? "" : blockerCode,
-          conversionBlockerCodes: isEmergency ? [] : (blockerCode ? [blockerCode] : []),
+          conversionBlocker: isEmergency ? "" : (blockerLabels[0] || ""),
+          conversionBlockerCode: isEmergency ? "" : (blockerCodes[0] || ""),
+          conversionBlockerCodes: isEmergency ? [] : blockerCodes,
           timingPreference: isEmergency ? (formData.urgency || "asap") : (formData.readiness || "flexible"),
           preferred_times: formData.preferred_times,
           locationPreference: isEmergency ? null : formData.location_preference || null,
@@ -594,6 +624,10 @@ export default function IntakePage() {
                       value={formData.postcode}
                       onChange={(value) => setFormData({ ...formData, postcode: value })}
                       onValidChange={(isValid) => setFormData({ ...formData, postcodeValid: isValid })}
+                      onOutsideLondon={(area) => {
+                        setOutsideLondonArea(area)
+                        trackEvent("postcode_outside_london", { meta: { area, postcode: formData.postcode } })
+                      }}
                     />
                   </motion.div>
 
@@ -721,30 +755,41 @@ export default function IntakePage() {
               )}
 
               {/* ============================================ */}
-              {/* Q5: BIGGEST CONCERN (Planning only, single)  */}
+              {/* Q5: CONCERNS (Planning only, multi max 2)    */}
               {/* ============================================ */}
               {step === 5 && !isEmergency && (
                 <motion.div key="step5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
                   <StepHeader
                     icon={<AlertCircle className="w-10 h-10" />}
-                    title="What's your main concern right now?"
-                    subtitle="This helps us find clinics that can address what matters to you."
+                    title="Is there anything you're unsure or concerned about right now?"
+                    subtitle="Select up to 2."
                   />
 
                   <div className="grid grid-cols-1 gap-3">
-                    {BLOCKER_OPTIONS.map((option, index) => (
-                      <motion.div key={option.code} {...fadeUp(0.1 * index + 0.3)}>
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <OptionCard
-                            selected={formData.conversionBlockerCode === option.code}
-                            onClick={() => handleSingleSelect("conversionBlockerCode", option.code, getNextStep(5))}
-                          >
-                            {option.label}
-                          </OptionCard>
+                    {BLOCKER_OPTIONS.map((option, index) => {
+                      const isSelected = formData.conversionBlockerCodes.includes(option.code)
+                      const isNoConcernSelected = formData.conversionBlockerCodes.includes("NO_CONCERN")
+                      const isDisabled = !isSelected && option.code !== "NO_CONCERN" && (
+                        isNoConcernSelected || formData.conversionBlockerCodes.length >= 2
+                      )
+                      return (
+                        <motion.div key={option.code} {...fadeUp(0.1 * index + 0.3)}>
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <OptionCard
+                              selected={isSelected}
+                              onClick={() => handleBlockerToggle(option.code)}
+                              disabled={isDisabled}
+                              hasCheckbox
+                            >
+                              {option.label}
+                            </OptionCard>
+                          </motion.div>
                         </motion.div>
-                      </motion.div>
-                    ))}
+                      )
+                    })}
                   </div>
+
+                  <ContinueButton onClick={() => handleStepForward(5, getNextStep(5))} disabled={!canContinueStep5} />
                 </motion.div>
               )}
 
@@ -833,8 +878,8 @@ export default function IntakePage() {
                 <motion.div key="step7" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
-                    title="How do you think about cost?"
-                    subtitle="This helps us recommend clinics with the right payment options."
+                    title="How do you usually think about investing in dental treatment?"
+                    subtitle="This helps us match you with clinics that fit your approach."
                   />
 
                   <div className="grid grid-cols-1 gap-3">
@@ -846,7 +891,7 @@ export default function IntakePage() {
                             onClick={() => {
                               setFormData((prev) => ({ ...prev, costApproach: option.value }))
                               // Conditional next step based on selection
-                              if (option.value === "finance_preferred") {
+                              if (option.value === "comfort_range") {
                                 setTimeout(() => handleStepForward(7, 7.5), 300)
                               } else if (option.value === "strict_budget") {
                                 setTimeout(() => handleStepForward(7, 7.6), 300)
@@ -866,14 +911,14 @@ export default function IntakePage() {
 
               {/* ============================================ */}
               {/* Q7.5 (Q9A): MONTHLY PAYMENTS (Planning only) */}
-              {/* Shown only if Q7 = finance_preferred         */}
+              {/* Shown only if Q7 = comfort_range             */}
               {/* ============================================ */}
-              {step === 7.5 && formData.costApproach === "finance_preferred" && (
+              {step === 7.5 && formData.costApproach === "comfort_range" && (
                 <motion.div key="step7.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
-                    title="What monthly payment range works for you?"
-                    subtitle="This is just a guide to help with recommendations."
+                    title="Would spreading the cost into monthly payments make treatment easier for you?"
+                    subtitle="This is informational only — it won't affect your matches."
                   />
 
                   <div className="grid grid-cols-1 gap-3">
@@ -901,8 +946,8 @@ export default function IntakePage() {
                 <motion.div key="step7.6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
-                    title="Would you like to share your budget?"
-                    subtitle="This is optional but helps clinics prepare accurate quotes."
+                    title="How would you prefer to handle costs with the clinic?"
+                    subtitle="This is informational only — it won't affect your matches."
                   />
 
                   <div className="grid grid-cols-1 gap-3">
@@ -915,35 +960,47 @@ export default function IntakePage() {
                             setTimeout(() => handleStepForward(7.6, 8), 300)
                           }}
                         >
-                          I would rather discuss it directly with the clinic
+                          I'd prefer to discuss costs directly with the clinic
                         </OptionCard>
                       </motion.div>
                     </motion.div>
 
-                    <motion.div
-                      {...fadeUp(0.45)}
-                      className={`
-                        p-5 md:p-6 rounded-2xl border-2 transition-all duration-200
-                        ${formData.strictBudgetMode === "entered_amount" ? "border-[#907EFF] bg-[#F8F5FF]" : "border-border bg-card"}
-                      `}
-                    >
-                      <Label className="text-lg font-medium text-foreground">Enter a budget amount</Label>
-                      <div className="relative mt-3">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">£</span>
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          placeholder="e.g. 3,000"
-                          value={formData.strictBudgetAmount}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/[^\d,]/g, "")
-                            setFormData((prev) => ({ ...prev, strictBudgetMode: "entered_amount", strictBudgetAmount: value }))
+                    <motion.div {...fadeUp(0.45)}>
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <OptionCard
+                          selected={formData.strictBudgetMode === "share_range"}
+                          onClick={() => {
+                            setFormData((prev) => ({ ...prev, strictBudgetMode: "share_range" }))
                           }}
-                          onFocus={() => setFormData((prev) => ({ ...prev, strictBudgetMode: "entered_amount" }))}
-                          className="pl-8 h-14 text-lg rounded-xl"
-                        />
-                      </div>
+                        >
+                          I can share a rough budget range
+                        </OptionCard>
+                      </motion.div>
                     </motion.div>
+
+                    {/* Optional budget input — shown when "share_range" is selected */}
+                    {formData.strictBudgetMode === "share_range" && (
+                      <motion.div
+                        {...fadeUp(0.1)}
+                        className="p-5 md:p-6 rounded-2xl border-2 border-[#907EFF] bg-[#F8F5FF]"
+                      >
+                        <Label className="text-lg font-medium text-foreground">Enter your approximate budget or range (optional)</Label>
+                        <div className="relative mt-3">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">£</span>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="e.g. 3,000"
+                            value={formData.strictBudgetAmount}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^\d,]/g, "")
+                              setFormData((prev) => ({ ...prev, strictBudgetAmount: value }))
+                            }}
+                            className="pl-8 h-14 text-lg rounded-xl"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
 
                   <ContinueButton
@@ -1056,7 +1113,42 @@ export default function IntakePage() {
                     </div>
                   </motion.div>
 
-                  <motion.div {...fadeUp(0.5)}>
+                  {/* Google sign-in option - requires name + consent */}
+                  <motion.div {...fadeUp(0.45)}>
+                    {formData.firstName && formData.lastName && formData.consentContact ? (
+                      <GoogleSignInButton
+                        redirectTo={`${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=/intake/google-complete`}
+                        onBeforeSignIn={() => {
+                          // Save form data to localStorage so google-complete page can create the lead
+                          try {
+                            localStorage.setItem("pearlie_intake_form", JSON.stringify(formData))
+                          } catch {}
+                        }}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        className="w-full h-14 flex items-center justify-center gap-3 rounded-2xl border-2 border-border bg-white text-[#323141] font-semibold text-lg opacity-50 cursor-not-allowed"
+                      >
+                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                        </svg>
+                        Continue with Google
+                      </button>
+                    )}
+                  </motion.div>
+
+                  <motion.div {...fadeUp(0.5)} className="flex items-center gap-4">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-sm text-[#323141]/50 font-medium">or</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </motion.div>
+
+                  <motion.div {...fadeUp(0.55)}>
                     <Button
                       type="submit"
                       disabled={!canContinueStep8 || isSubmitting}
@@ -1094,6 +1186,27 @@ export default function IntakePage() {
           </form>
         </div>
       </main>
+
+      {/* Outside London hard-block dialog */}
+      <AlertDialog open={outsideLondonArea !== null} onOpenChange={(open) => { if (!open) setOutsideLondonArea(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>We're not in your area yet</AlertDialogTitle>
+            <AlertDialogDescription className="text-base leading-relaxed">
+              We're currently serving patients in <span className="font-semibold text-foreground">London</span> only.
+              {outsideLondonArea && (
+                <> It looks like you're in <span className="font-semibold text-foreground">{outsideLondonArea}</span>.</>
+              )}
+              {" "}We're expanding soon — watch this space!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction className="bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0">
+              Got it
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

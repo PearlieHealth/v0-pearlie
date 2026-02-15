@@ -59,11 +59,24 @@ export async function GET(
     // Mark conversation as read by clinic
     await supabaseAdmin
       .from("conversations")
-      .update({ unread_by_clinic: false })
+      .update({ unread_by_clinic: false, unread_count_clinic: 0 })
       .eq("id", conversationId)
 
+    // Batch-mark all patient messages as 'read'
+    const allMessages = messages || []
+    const unreadPatientMsgIds = allMessages
+      .filter((m: any) => m.sender_type === "patient" && m.status !== "read")
+      .map((m: any) => m.id)
+
+    if (unreadPatientMsgIds.length > 0) {
+      await supabaseAdmin
+        .from("messages")
+        .update({ status: "read", read_at: new Date().toISOString() })
+        .in("id", unreadPatientMsgIds)
+    }
+
     return NextResponse.json({
-      messages: messages || [],
+      messages: allMessages,
     })
   } catch (error) {
     console.error("[Messages] Unexpected error:", error)

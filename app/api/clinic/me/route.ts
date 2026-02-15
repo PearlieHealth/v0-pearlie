@@ -13,17 +13,28 @@ export async function GET() {
     const supabaseAdmin = createAdminClient()
     const { data: clinicUser, error: clinicError } = await supabaseAdmin
       .from("clinic_users")
-      .select("user_id, role, clinic_id, clinics(id, name)")
+      .select("user_id, role, clinic_id")
       .eq("user_id", user.id)
       .single()
 
     if (clinicError || !clinicUser) {
+      console.error("[clinic/me] clinic_users lookup failed:", clinicError?.message)
       return NextResponse.json({ error: "No clinic account found" }, { status: 404 })
     }
 
-    const clinic = clinicUser.clinics as { id: string; name: string }
+    // 3. Fetch clinic details separately (avoids FK join dependency)
+    const { data: clinic, error: clinicDetailError } = await supabaseAdmin
+      .from("clinics")
+      .select("id, name")
+      .eq("id", clinicUser.clinic_id)
+      .single()
 
-    // 3. Return data
+    if (clinicDetailError || !clinic) {
+      console.error("[clinic/me] clinic lookup failed:", clinicDetailError?.message)
+      return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
+    }
+
+    // 4. Return data
     return NextResponse.json({
       user: {
         id: user.id,

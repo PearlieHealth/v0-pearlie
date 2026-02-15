@@ -15,6 +15,7 @@ export interface FilterState {
   acceptsNhs: boolean
   wheelchairAccessible: boolean
   parkingAvailable: boolean
+  freeConsultation: boolean
 }
 
 interface MatchFiltersPanelProps {
@@ -52,6 +53,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
       acceptsNhs: false,
       wheelchairAccessible: false,
       parkingAvailable: false,
+      freeConsultation: false,
     })
   }
 
@@ -63,7 +65,8 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
     filters.highRatingOnly ||
     filters.acceptsNhs ||
     filters.wheelchairAccessible ||
-    filters.parkingAvailable
+    filters.parkingAvailable ||
+    filters.freeConsultation
 
   const FilterContent = () => (
     <div className="flex flex-col h-full">
@@ -216,12 +219,23 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
               </button>
               <button
                 onClick={() => updateFilter("wheelchairAccessible", !filters.wheelchairAccessible)}
-                className="w-full flex items-center justify-between py-3 cursor-pointer"
+                className="w-full flex items-center justify-between py-3 border-b border-border/60 cursor-pointer"
               >
                 <span className="text-sm text-foreground">Wheelchair accessible</span>
                 <Switch
                   checked={filters.wheelchairAccessible}
                   onCheckedChange={(checked) => updateFilter("wheelchairAccessible", checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </button>
+              <button
+                onClick={() => updateFilter("freeConsultation", !filters.freeConsultation)}
+                className="w-full flex items-center justify-between py-3 cursor-pointer"
+              >
+                <span className="text-sm text-foreground">Free consultation</span>
+                <Switch
+                  checked={filters.freeConsultation}
+                  onCheckedChange={(checked) => updateFilter("freeConsultation", checked)}
                   onClick={(e) => e.stopPropagation()}
                 />
               </button>
@@ -260,6 +274,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
                     filters.acceptsNhs,
                     filters.wheelchairAccessible,
                     filters.parkingAvailable,
+                    filters.freeConsultation,
                   ].filter(Boolean).length
                 }
               </span>

@@ -1,36 +1,14 @@
 import type { MatchFacts, MatchReason, MatchReasonsDebug } from "./contract"
 import { EXPLANATION_SCHEMA_VERSION } from "./contract"
-import { REASON_TEMPLATES, FALLBACK_REASONS, BANNED_GENERIC_PHRASES } from "./tag-schema"
+import {
+  REASON_TEMPLATES,
+  TREATMENT_REASON_TEMPLATES,
+  EMERGENCY_REASON_TEMPLATES,
+  FALLBACK_REASONS,
+  BANNED_GENERIC_PHRASES,
+} from "./tag-schema"
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production"
-
-// Custom template overrides (loaded from database at runtime)
-// These take precedence over REASON_TEMPLATES from tag-schema.ts
-let customTemplateOverrides: Record<string, string[]> = {}
-
-/**
- * Set custom template overrides from database
- * Call this when loading the matching config from the DB
- */
-export function setCustomTemplateOverrides(overrides: Record<string, string[]>) {
-  customTemplateOverrides = overrides || {}
-}
-
-/**
- * Get the reason template for a tag, checking custom overrides first
- * Returns a random variation if multiple templates exist
- */
-function getReasonTemplate(tagKey: string): string | undefined {
-  // Check custom overrides first
-  const customVariations = customTemplateOverrides[tagKey]
-  if (customVariations && customVariations.length > 0) {
-    // Return random variation for diversity
-    return customVariations[Math.floor(Math.random() * customVariations.length)]
-  }
-  
-  // Fall back to static templates
-  return REASON_TEMPLATES[tagKey]
-}
 
 // Each reason belongs to exactly one group to prevent semantic overlap
 type ReasonGroup =
@@ -46,24 +24,27 @@ type ReasonGroup =
 const TAG_TO_GROUP: Record<string, ReasonGroup> = {
   // Treatment fit
   TREATMENT_MATCH: "GROUP_TREATMENT_FIT",
-  TAG_SPECIALIST_LEVEL_EXPERIENCE: "GROUP_TREATMENT_FIT", // Same semantic meaning as treatment
+  TREATMENT_CHECKUP: "GROUP_TREATMENT_FIT",
 
   // Priorities (patient values)
+  TAG_SPECIALIST_LEVEL_EXPERIENCE: "GROUP_PRIORITIES",
   TAG_CLEAR_EXPLANATIONS: "GROUP_PRIORITIES",
   TAG_LISTENED_TO_RESPECTED: "GROUP_PRIORITIES",
   TAG_CALM_REASSURING: "GROUP_PRIORITIES",
   TAG_CLEAR_PRICING_UPFRONT: "GROUP_PRIORITIES",
   TAG_FLEXIBLE_APPOINTMENTS: "GROUP_PRIORITIES",
+  TAG_CONTINUITY_OF_CARE: "GROUP_PRIORITIES",
 
   // Reputation
   TAG_STRONG_REPUTATION_REVIEWS: "GROUP_REPUTATION",
 
-  // Blockers
+  // Blockers (hesitations)
   TAG_GOOD_FOR_COST_CONCERNS: "GROUP_BLOCKERS",
   TAG_FINANCE_AVAILABLE: "GROUP_BLOCKERS",
   TAG_DECISION_SUPPORTIVE: "GROUP_BLOCKERS",
   TAG_OPTION_CLARITY_SUPPORT: "GROUP_BLOCKERS",
   TAG_COMPLEX_CASES_WELCOME: "GROUP_BLOCKERS",
+  TAG_BAD_EXPERIENCE_SUPPORTIVE: "GROUP_BLOCKERS",
   TAG_RIGHT_FIT_FOCUSED: "GROUP_BLOCKERS",
 
   // Anxiety support
@@ -72,32 +53,43 @@ const TAG_TO_GROUP: Record<string, ReasonGroup> = {
   TAG_SEDATION_AVAILABLE: "GROUP_ANXIETY_SUPPORT",
 
   // Cost approach
+  TAG_QUALITY_OUTCOME_FOCUSED: "GROUP_COST_APPROACH",
   TAG_DISCUSS_OPTIONS_BEFORE_COST: "GROUP_COST_APPROACH",
   TAG_MONTHLY_PAYMENTS_PREFERRED: "GROUP_COST_APPROACH",
   TAG_FLEXIBLE_BUDGET_OK: "GROUP_COST_APPROACH",
   TAG_STRICT_BUDGET_SUPPORTIVE: "GROUP_COST_APPROACH",
 
   // Fallbacks
-  FALLBACK_CLINIC_COMPARED: "GROUP_GENERIC_FALLBACK",
-  FALLBACK_CLEAR_EXPLANATIONS: "GROUP_GENERIC_FALLBACK",
-  FALLBACK_SUITABLE_PREFERENCES: "GROUP_GENERIC_FALLBACK",
+  FALLBACK_CONVENIENT_LOCATION: "GROUP_GENERIC_FALLBACK",
+  FALLBACK_TRAVEL_DISTANCE: "GROUP_GENERIC_FALLBACK",
+  FALLBACK_AVAILABILITY: "GROUP_GENERIC_FALLBACK",
 }
 
 // Priority order for group selection (ensures diversity)
+// Treatment → Priorities → Hesitations → Logistics (fallback only)
 const GROUP_PRIORITY: ReasonGroup[] = [
   "GROUP_TREATMENT_FIT",
   "GROUP_PRIORITIES",
   "GROUP_BLOCKERS",
-  "GROUP_COST_APPROACH",
   "GROUP_ANXIETY_SUPPORT",
   "GROUP_REPUTATION",
+  "GROUP_COST_APPROACH",
   "GROUP_GENERIC_FALLBACK",
 ]
 
-const EXPERIENCE_WORDS = ["experienced", "experience", "expertise", "skilled", "trained"]
+/**
+ * Get a reason template variant for a tag
+ * REASON_TEMPLATES now stores string[] per tag — pick one using offset for determinism
+ */
+function getReasonTemplate(tagKey: string, offset = 0): string | undefined {
+  const variants = REASON_TEMPLATES[tagKey]
+  if (!variants || variants.length === 0) return undefined
+  const index = offset % variants.length
+  return variants[index]
+}
 
 /**
- * Check if two reason texts have semantic overlap
+ * Check if two reason texts have semantic overlap (>60% word match)
  */
 function hasSemanticOverlap(text1: string, text2: string): boolean {
   const normalize = (text: string) =>
@@ -109,13 +101,8 @@ function hasSemanticOverlap(text1: string, text2: string): boolean {
   const norm1 = normalize(text1)
   const norm2 = normalize(text2)
 
-  // Check if both contain experience-related words
-  const hasExperience1 = EXPERIENCE_WORDS.some((word) => norm1.includes(word))
-  const hasExperience2 = EXPERIENCE_WORDS.some((word) => norm2.includes(word))
-
-  if (hasExperience1 && hasExperience2) {
-    return true
-  }
+  // Exact match
+  if (norm1 === norm2) return true
 
   // Check for very similar phrases (>60% word overlap)
   const words1 = new Set(norm1.split(/\s+/))
@@ -133,28 +120,126 @@ function getReasonGroup(tagKey: string): ReasonGroup {
   return TAG_TO_GROUP[tagKey] || "GROUP_GENERIC_FALLBACK"
 }
 
-/**
- * Build EXACTLY 3 match reasons with semantic de-duplication
- * - Ensures reasons come from at least 2 different groups when possible
- * - Never has two reasons with "experience/experienced" language
- * - Priority: Treatment fit → Priorities → Blockers → Cost → Anxiety → Reputation
- */
-export function buildMatchReasons(facts: MatchFacts, deprioritizeTreatment = false, fallbackOffset = 0): MatchReason[] {
-  if (!facts || typeof facts !== "object") {
-    console.error("[buildMatchReasons] Invalid facts input:", facts)
-    return getEmergencyFallbackReasons("unknown", fallbackOffset)
-  }
+function safeWeight(value: number | undefined, total: number | undefined, defaultValue: number): number {
+  if (!total || total === 0) return defaultValue
+  if (!value || typeof value !== "number") return defaultValue
+  const weight = value / total
+  if (!isFinite(weight)) return defaultValue
+  return weight
+}
 
-  const clinicTags = facts.clinicTags || []
-  const matchingTagCount = clinicTags.filter((t) => t && t.startsWith("TAG_")).length
-  if (matchingTagCount === 0) {
-    console.warn(
-      `[buildMatchReasons] Clinic ${facts.clinicId} has 0 matching tags - should have been filtered upstream`,
-    )
-    return []
-  }
+// ─── EMERGENCY PATH ──────────────────────────────────────────────────────────
+// Short. Calm. Efficient. Only 2 reasons.
+// Priority: Availability → Distance → Emergency capability → Anxiety (if selected)
 
+function buildEmergencyReasons(facts: MatchFacts, fallbackOffset = 0): MatchReason[] {
   const clinicId = facts.clinicId || "unknown"
+  const selectedReasons: MatchReason[] = []
+  const usedTexts: string[] = []
+
+  const pickVariant = (variants: string[], offset: number) => {
+    return variants[(fallbackOffset + offset) % variants.length]
+  }
+
+  // 1. Availability (almost always first)
+  const availVariants = EMERGENCY_REASON_TEMPLATES.availability
+  const availText = pickVariant(availVariants, 0)
+  selectedReasons.push({
+    key: `emergency_avail_${clinicId}`,
+    text: availText,
+    category: "treatment",
+    weight: 0.5,
+    tagKey: "EMERGENCY_AVAILABILITY",
+  })
+  usedTexts.push(availText)
+
+  // 2. Distance (second priority)
+  const distVariants = EMERGENCY_REASON_TEMPLATES.distance
+  const distText = pickVariant(distVariants, 1)
+  if (!hasSemanticOverlap(distText, usedTexts[0])) {
+    selectedReasons.push({
+      key: `emergency_dist_${clinicId}`,
+      text: distText,
+      category: "treatment",
+      weight: 0.3,
+      tagKey: "EMERGENCY_DISTANCE",
+    })
+    usedTexts.push(distText)
+  }
+
+  // 3. If we need a second reason still, try capability
+  if (selectedReasons.length < 2) {
+    const capVariants = EMERGENCY_REASON_TEMPLATES.capability
+    const capText = pickVariant(capVariants, 2)
+    if (!usedTexts.some((t) => hasSemanticOverlap(t, capText))) {
+      selectedReasons.push({
+        key: `emergency_cap_${clinicId}`,
+        text: capText,
+        category: "treatment",
+        weight: 0.2,
+        tagKey: "EMERGENCY_CAPABILITY",
+      })
+      usedTexts.push(capText)
+    }
+  }
+
+  // 4. If patient is anxious and we still need a second, add anxiety
+  const patientAnxious =
+    facts.anxiety?.patientLevel &&
+    facts.anxiety.patientLevel !== "comfortable" &&
+    facts.anxiety.patientLevel !== "not_anxious"
+
+  if (selectedReasons.length < 2 && patientAnxious) {
+    const anxVariants = EMERGENCY_REASON_TEMPLATES.anxiety
+    const anxText = pickVariant(anxVariants, 3)
+    if (!usedTexts.some((t) => hasSemanticOverlap(t, anxText))) {
+      selectedReasons.push({
+        key: `emergency_anx_${clinicId}`,
+        text: anxText,
+        category: "anxiety",
+        weight: 0.15,
+        tagKey: "EMERGENCY_ANXIETY",
+      })
+    }
+  }
+
+  // Ensure we have exactly 2
+  while (selectedReasons.length < 2) {
+    const capVariants = EMERGENCY_REASON_TEMPLATES.capability
+    const idx = selectedReasons.length
+    const text = capVariants[idx % capVariants.length]
+    if (!usedTexts.some((t) => hasSemanticOverlap(t, text))) {
+      selectedReasons.push({
+        key: `emergency_fill_${clinicId}_${idx}`,
+        text,
+        category: "treatment",
+        weight: 0.1,
+        tagKey: "EMERGENCY_CAPABILITY",
+      })
+      usedTexts.push(text)
+    } else {
+      // Absolute fallback
+      selectedReasons.push({
+        key: `emergency_fb_${clinicId}_${idx}`,
+        text: "Accepts emergency appointments.",
+        category: "treatment",
+        weight: 0.1,
+        tagKey: "EMERGENCY_CAPABILITY",
+      })
+      break
+    }
+  }
+
+  return selectedReasons.slice(0, 2)
+}
+
+// ─── PLANNING PATH ───────────────────────────────────────────────────────────
+// Max 3 reasons. Patient-driven: only show reasons for what the patient selected.
+// Priority: Treatment → Priorities → Hesitations → Logistics (fallback only)
+
+function buildPlanningReasons(facts: MatchFacts, deprioritizeTreatment = false, fallbackOffset = 0): MatchReason[] {
+  const clinicId = facts.clinicId || "unknown"
+  const treatmentCategory = facts.treatmentMatch?.treatmentCategory || "cosmetic"
 
   const candidates: Array<{
     reason: MatchReason
@@ -162,27 +247,42 @@ export function buildMatchReasons(facts: MatchFacts, deprioritizeTreatment = fal
     priority: number
   }> = []
 
-  // Add treatment match candidate
+  // 1. Treatment match candidate — different text for cosmetic vs checkup
   if (facts.treatmentMatch?.clinicOffers && !deprioritizeTreatment) {
-    const treatmentName = facts.treatmentMatch.requested || "your requested"
+    const rawTreatment = facts.treatmentMatch.requested || "your requested treatment"
+    // Clean up multi-treatment: "Invisalign / Clear Aligners, Teeth Whitening" → "Invisalign / Clear Aligners and more"
+    const treatmentParts = rawTreatment.split(",").map((t) => t.trim()).filter(Boolean)
+    const treatmentName = treatmentParts.length > 1 ? `${treatmentParts[0]} and more` : rawTreatment
+    const templates = TREATMENT_REASON_TEMPLATES[treatmentCategory] || TREATMENT_REASON_TEMPLATES.cosmetic
+    const templateText = templates[fallbackOffset % templates.length].replace(/{treatment}/g, treatmentName)
+    const tagKey = treatmentCategory === "checkup" ? "TREATMENT_CHECKUP" : "TREATMENT_MATCH"
+
     candidates.push({
       reason: {
         key: `treatment_${clinicId}`,
-        text: `Experienced with ${treatmentName} treatment`,
+        text: templateText,
         category: "treatment",
         weight: safeWeight(facts.scoreBreakdown?.treatment, facts.scoreBreakdown?.total, 0.3),
-        tagKey: "TREATMENT_MATCH",
+        tagKey,
       },
       group: "GROUP_TREATMENT_FIT",
       priority: deprioritizeTreatment ? 99 : 0,
     })
   }
 
-  // Add priority tag candidates
+  // 2. Priority tag candidates — ONLY tags the patient selected on Q4 AND clinic has
   const priorityTags = facts.priorities?.matchedTags || []
-  for (const tag of priorityTags) {
-    const template = getReasonTemplate(tag)
+  for (let i = 0; i < priorityTags.length; i++) {
+    const tag = priorityTags[i]
+    let template = getReasonTemplate(tag, fallbackOffset + i)
     if (template) {
+      // Substitute {treatment} in specialist experience template
+      if (tag === "TAG_SPECIALIST_LEVEL_EXPERIENCE" && facts.treatmentMatch?.requested) {
+        const rawTx = facts.treatmentMatch.requested
+        const txParts = rawTx.split(",").map((t) => t.trim()).filter(Boolean)
+        const txDisplay = txParts.length > 1 ? `${txParts[0]} and more` : rawTx
+        template = template.replace(/{treatment}/g, txDisplay)
+      }
       candidates.push({
         reason: {
           key: `priority_${tag}_${clinicId}`,
@@ -197,10 +297,11 @@ export function buildMatchReasons(facts: MatchFacts, deprioritizeTreatment = fal
     }
   }
 
-  // Add blocker tag candidates
+  // 3. Blocker/hesitation candidates — ONLY blockers the patient selected AND clinic has the tag
   const blockerTags = facts.blockers?.matchedTags || []
-  for (const tag of blockerTags) {
-    const template = getReasonTemplate(tag)
+  for (let i = 0; i < blockerTags.length; i++) {
+    const tag = blockerTags[i]
+    const template = getReasonTemplate(tag, fallbackOffset + i)
     if (template) {
       candidates.push({
         reason: {
@@ -216,29 +317,11 @@ export function buildMatchReasons(facts: MatchFacts, deprioritizeTreatment = fal
     }
   }
 
-  // Add cost tag candidate
-  const costTag = facts.cost?.matchedTag
-  if (costTag) {
-    const template = getReasonTemplate(costTag)
-    if (template) {
-      candidates.push({
-        reason: {
-          key: `cost_${costTag}_${clinicId}`,
-          text: template,
-          category: "cost",
-          weight: safeWeight(facts.scoreBreakdown?.cost, facts.scoreBreakdown?.total, 0.05),
-          tagKey: costTag,
-        },
-        group: "GROUP_COST_APPROACH",
-        priority: 3,
-      })
-    }
-  }
-
-  // Add anxiety tag candidates
+  // 4. Anxiety support — only if patient selected an anxiety level
   const anxietyTags = facts.anxiety?.matchedTags || []
-  for (const tag of anxietyTags) {
-    const template = getReasonTemplate(tag)
+  for (let i = 0; i < anxietyTags.length; i++) {
+    const tag = anxietyTags[i]
+    const template = getReasonTemplate(tag, fallbackOffset + i)
     if (template) {
       candidates.push({
         reason: {
@@ -249,44 +332,56 @@ export function buildMatchReasons(facts: MatchFacts, deprioritizeTreatment = fal
           tagKey: tag,
         },
         group: "GROUP_ANXIETY_SUPPORT",
+        priority: 3,
+      })
+    }
+  }
+
+  // 5. Cost tag — only if patient selected a cost approach
+  const costTag = facts.cost?.matchedTag
+  if (costTag) {
+    const template = getReasonTemplate(costTag, fallbackOffset)
+    if (template) {
+      candidates.push({
+        reason: {
+          key: `cost_${costTag}_${clinicId}`,
+          text: template,
+          category: "cost",
+          weight: safeWeight(facts.scoreBreakdown?.cost, facts.scoreBreakdown?.total, 0.05),
+          tagKey: costTag,
+        },
+        group: "GROUP_COST_APPROACH",
         priority: 4,
       })
     }
   }
 
-  // Add extra clinic tag candidates
-  for (const tag of clinicTags) {
-    if (!tag || !tag.startsWith("TAG_")) continue
-    // Skip if already added
-    if (candidates.some((c) => c.reason.tagKey === tag)) continue
+  // NOTE: No "extra clinic tags" loop — we only show reasons for things the patient chose
 
-    const template = getReasonTemplate(tag)
-    if (template) {
-      candidates.push({
-        reason: {
-          key: `extra_${tag}_${clinicId}`,
-          text: template,
-          category: "priorities",
-          weight: 0.1,
-          tagKey: tag,
-        },
-        group: getReasonGroup(tag),
-        priority: 5,
-      })
-    }
-  }
+  // ─── Selection with diversity ───
+  // Rotate which groups are used based on clinic position (fallbackOffset)
+  // Treatment is always pinned first; remaining groups rotate so each clinic
+  // draws from different category combinations (e.g. 0: priorities+blockers,
+  // 1: priorities+anxiety, 2: blockers+anxiety)
+  const nonTreatmentGroups: ReasonGroup[] = GROUP_PRIORITY.filter(
+    (g) => g !== "GROUP_TREATMENT_FIT" && g !== "GROUP_GENERIC_FALLBACK",
+  )
+  // Rotate: shift by fallbackOffset so each clinic position starts at a different group
+  const rotatedGroups: ReasonGroup[] = [
+    "GROUP_TREATMENT_FIT" as ReasonGroup,
+    ...nonTreatmentGroups.slice(fallbackOffset % nonTreatmentGroups.length),
+    ...nonTreatmentGroups.slice(0, fallbackOffset % nonTreatmentGroups.length),
+  ]
 
   const selectedReasons: MatchReason[] = []
   const usedGroups = new Set<ReasonGroup>()
   const usedTexts: string[] = []
 
-  // Sort candidates by priority
   candidates.sort((a, b) => a.priority - b.priority)
 
-  // First pass: pick best from each group (diversity)
-  for (const targetGroup of GROUP_PRIORITY) {
+  // First pass: pick best from each group in rotated order (diversity across categories)
+  for (const targetGroup of rotatedGroups) {
     if (selectedReasons.length >= 3) break
-    if (targetGroup === "GROUP_GENERIC_FALLBACK") continue // Save fallbacks for last
     if (usedGroups.has(targetGroup)) continue
 
     const groupCandidates = candidates.filter(
@@ -312,7 +407,7 @@ export function buildMatchReasons(facts: MatchFacts, deprioritizeTreatment = fal
     usedTexts.push(candidate.reason.text)
   }
 
-  // Fill with fallbacks if needed
+  // Fill with logistics fallbacks if needed (ONLY as last resort)
   const fallbacksNeeded = 3 - selectedReasons.length
   if (fallbacksNeeded > 0) {
     const availableFallbacks = [...FALLBACK_REASONS].filter(
@@ -334,17 +429,57 @@ export function buildMatchReasons(facts: MatchFacts, deprioritizeTreatment = fal
     }
   }
 
+  return selectedReasons.slice(0, 3)
+}
+
+// ─── PUBLIC API ──────────────────────────────────────────────────────────────
+
+/**
+ * Build match reasons — delegates to emergency or planning path
+ * Emergency: exactly 2 reasons (short, practical)
+ * Planning: exactly 3 reasons (patient-driven, emotional)
+ */
+export function buildMatchReasons(facts: MatchFacts, deprioritizeTreatment = false, fallbackOffset = 0): MatchReason[] {
+  if (!facts || typeof facts !== "object") {
+    console.error("[buildMatchReasons] Invalid facts input:", facts)
+    return getSafeFallbackReasons("unknown", fallbackOffset, false)
+  }
+
+  const clinicId = facts.clinicId || "unknown"
+  const isEmergency = facts.isEmergency === true
+
+  // For emergency, we don't require matching tags — availability/distance matter more
+  if (!isEmergency) {
+    const clinicTags = facts.clinicTags || []
+    const matchingTagCount = clinicTags.filter((t) => t && t.startsWith("TAG_")).length
+    if (matchingTagCount === 0) {
+      console.warn(`[buildMatchReasons] Clinic ${clinicId} has 0 matching tags - returning fallback reasons`)
+      return getSafeFallbackReasons(clinicId, fallbackOffset, false)
+    }
+  }
+
+  let reasons: MatchReason[]
+
+  if (isEmergency) {
+    reasons = buildEmergencyReasons(facts, fallbackOffset)
+  } else {
+    reasons = buildPlanningReasons(facts, deprioritizeTreatment, fallbackOffset)
+  }
+
   // Validate and sanitize
-  const validatedReasons = validateAndSanitizeReasons(selectedReasons.slice(0, 3), clinicId, fallbackOffset)
+  const expectedCount = isEmergency ? 2 : 3
+  const validatedReasons = validateAndSanitizeReasons(reasons, clinicId, fallbackOffset, expectedCount)
 
   // Final invariant check
-  const validationResult = validateReasonInvariants(validatedReasons, clinicId)
+  const validationResult = validateReasonInvariants(validatedReasons, clinicId, isEmergency)
   if (!validationResult.valid) {
     if (IS_PRODUCTION) {
       console.error(`[REASON_INVARIANT_VIOLATION] ${validationResult.error}`)
-      return getEmergencyFallbackReasons(clinicId, fallbackOffset)
+      return getSafeFallbackReasons(clinicId, fallbackOffset, isEmergency)
     } else {
-      throw new Error(`[REASON_INVARIANT_VIOLATION] ${validationResult.error}`)
+      console.error(`[REASON_INVARIANT_VIOLATION] ${validationResult.error}`)
+      // In dev, still return fallbacks rather than crashing
+      return getSafeFallbackReasons(clinicId, fallbackOffset, isEmergency)
     }
   }
 
@@ -366,15 +501,14 @@ export function buildMatchReasonsDebug(facts: MatchFacts, reasons: MatchReason[]
   }
 }
 
-function safeWeight(value: number | undefined, total: number | undefined, defaultValue: number): number {
-  if (!total || total === 0) return defaultValue
-  if (!value || typeof value !== "number") return defaultValue
-  const weight = value / total
-  if (!isFinite(weight)) return defaultValue
-  return weight
-}
+// ─── VALIDATION ──────────────────────────────────────────────────────────────
 
-function validateAndSanitizeReasons(reasons: MatchReason[], clinicId: string, fallbackOffset = 0): MatchReason[] {
+function validateAndSanitizeReasons(
+  reasons: MatchReason[],
+  clinicId: string,
+  fallbackOffset = 0,
+  expectedCount = 3,
+): MatchReason[] {
   const validReasons: MatchReason[] = []
 
   for (const reason of reasons) {
@@ -386,13 +520,18 @@ function validateAndSanitizeReasons(reasons: MatchReason[], clinicId: string, fa
 
     const hasValidTag =
       reason.tagKey &&
-      (reason.tagKey.startsWith("TAG_") || reason.tagKey.startsWith("FALLBACK_") || reason.tagKey === "TREATMENT_MATCH")
+      (reason.tagKey.startsWith("TAG_") ||
+        reason.tagKey.startsWith("FALLBACK_") ||
+        reason.tagKey.startsWith("EMERGENCY_") ||
+        reason.tagKey === "TREATMENT_MATCH" ||
+        reason.tagKey === "TREATMENT_CHECKUP")
     if (!hasValidTag) continue
 
     validReasons.push(reason)
   }
 
-  while (validReasons.length < 3) {
+  // Pad with fallbacks if needed
+  while (validReasons.length < expectedCount) {
     const fallbackIndex = (fallbackOffset + validReasons.length) % FALLBACK_REASONS.length
     const fallback = FALLBACK_REASONS[fallbackIndex]
     if (fallback) {
@@ -405,54 +544,31 @@ function validateAndSanitizeReasons(reasons: MatchReason[], clinicId: string, fa
         isFallback: true,
       })
     } else {
-      const emergencyFallback = FALLBACK_REASONS[0]
       validReasons.push({
-        key: `emergency_${clinicId}_${validReasons.length}`,
-        text: emergencyFallback?.text || "Trusted dental practice",
+        key: `fallback_safe_${clinicId}_${validReasons.length}`,
+        text: "Offers appointments aligned with your availability.",
         category: "trust",
         weight: 0.05,
-        tagKey: emergencyFallback?.key || "FALLBACK_TRUSTED",
+        tagKey: "FALLBACK_AVAILABILITY",
         isFallback: true,
       })
     }
   }
 
-  return validReasons.slice(0, 3)
+  return validReasons.slice(0, expectedCount)
 }
 
-function validateReasonInvariants(reasons: MatchReason[], clinicId: string): { valid: boolean; error?: string } {
-  if (reasons.length !== 3) {
-    return {
-      valid: false,
-      error: `Expected exactly 3 reasons for clinic ${clinicId}, got ${reasons.length}`,
-    }
-  }
+function validateReasonInvariants(
+  reasons: MatchReason[],
+  clinicId: string,
+  isEmergency = false,
+): { valid: boolean; error?: string } {
+  const expectedCount = isEmergency ? 2 : 3
 
-  const keys = reasons.map((r) => r.tagKey)
-  const uniqueKeys = new Set(keys)
-  if (uniqueKeys.size !== keys.length) {
+  if (reasons.length !== expectedCount) {
     return {
       valid: false,
-      error: `Duplicate reason keys for clinic ${clinicId}: ${keys.join(", ")}`,
-    }
-  }
-
-  const hasDistanceReason = reasons.some((r) => r.category === "distance" || r.tagKey?.includes("DISTANCE"))
-  if (hasDistanceReason) {
-    return {
-      valid: false,
-      error: `Distance-based reason found for clinic ${clinicId} (forbidden)`,
-    }
-  }
-
-  const invalidTagReason = reasons.find(
-    (r) =>
-      !r.tagKey || !(r.tagKey.startsWith("TAG_") || r.tagKey.startsWith("FALLBACK_") || r.tagKey === "TREATMENT_MATCH"),
-  )
-  if (invalidTagReason) {
-    return {
-      valid: false,
-      error: `Invalid tagKey "${invalidTagReason.tagKey}" for clinic ${clinicId}`,
+      error: `Expected ${expectedCount} reasons for clinic ${clinicId}, got ${reasons.length}`,
     }
   }
 
@@ -464,34 +580,63 @@ function validateReasonInvariants(reasons: MatchReason[], clinicId: string): { v
     }
   }
 
-  for (let i = 0; i < reasons.length; i++) {
-    for (let j = i + 1; j < reasons.length; j++) {
-      if (hasSemanticOverlap(reasons[i].text, reasons[j].text)) {
-        return {
-          valid: false,
-          error: `Semantic overlap detected between reasons "${reasons[i].text}" and "${reasons[j].text}" for clinic ${clinicId}`,
-        }
-      }
+  const invalidTagReason = reasons.find(
+    (r) =>
+      !r.tagKey ||
+      !(
+        r.tagKey.startsWith("TAG_") ||
+        r.tagKey.startsWith("FALLBACK_") ||
+        r.tagKey.startsWith("EMERGENCY_") ||
+        r.tagKey === "TREATMENT_MATCH" ||
+        r.tagKey === "TREATMENT_CHECKUP"
+      ),
+  )
+  if (invalidTagReason) {
+    return {
+      valid: false,
+      error: `Invalid tagKey "${invalidTagReason.tagKey}" for clinic ${clinicId}`,
     }
   }
 
   return { valid: true }
 }
 
-function getEmergencyFallbackReasons(clinicId: string, offset = 0): MatchReason[] {
-  const safeFallbacks = FALLBACK_REASONS.slice(0, 6).map((fallback, index) => ({
-    key: `emergency_${fallback?.key || "FALLBACK"}_${clinicId}_${index}`,
-    text: fallback?.text || "Trusted dental practice",
-    category: "trust" as const,
-    weight: 0.05,
-    tagKey: fallback?.key || "FALLBACK_TRUSTED",
-    isFallback: true,
-  }))
+function getSafeFallbackReasons(clinicId: string, offset = 0, isEmergency = false): MatchReason[] {
+  const count = isEmergency ? 2 : 3
+
+  if (isEmergency) {
+    return [
+      {
+        key: `emergency_fb_avail_${clinicId}`,
+        text: "Able to see urgent patients.",
+        category: "treatment" as const,
+        weight: 0.5,
+        tagKey: "EMERGENCY_AVAILABILITY",
+        isFallback: true,
+      },
+      {
+        key: `emergency_fb_dist_${clinicId}`,
+        text: "Conveniently located near you.",
+        category: "treatment" as const,
+        weight: 0.3,
+        tagKey: "EMERGENCY_DISTANCE",
+        isFallback: true,
+      },
+    ]
+  }
 
   const result: MatchReason[] = []
-  for (let i = 0; i < 3; i++) {
-    const fallbackIndex = (offset + i) % safeFallbacks.length
-    result.push(safeFallbacks[fallbackIndex])
+  for (let i = 0; i < count; i++) {
+    const fallbackIndex = (offset + i) % FALLBACK_REASONS.length
+    const fallback = FALLBACK_REASONS[fallbackIndex]
+    result.push({
+      key: `fallback_${fallback?.key || "SAFE"}_${clinicId}_${i}`,
+      text: fallback?.text || "Offers appointments aligned with your availability.",
+      category: "trust" as const,
+      weight: 0.05,
+      tagKey: fallback?.key || "FALLBACK_AVAILABILITY",
+      isFallback: true,
+    })
   }
 
   return result
@@ -510,29 +655,16 @@ export function validateUniqueReasons(
     return { valid: true, uniquePrimaryReasons: [] }
   }
 
+  const primaryReasonKeys = validMatches.map((cm) => cm.reasons?.[0]?.tagKey).filter((k): k is string => !!k)
+  const uniquePrimaryReasons = [...new Set(primaryReasonKeys)]
+
   const reasonSets = validMatches.map((cm) => {
     const tagKeys = (cm.reasons || []).map((r) => r?.tagKey || "NONE").sort()
     return tagKeys.join(",")
   })
   const uniqueReasonSets = new Set(reasonSets)
 
-  const nonTreatmentReasonSets = validMatches.map((cm) => {
-    const tagKeys = (cm.reasons || [])
-      .filter((r) => r?.tagKey !== "TREATMENT_MATCH")
-      .map((r) => r?.tagKey || "NONE")
-      .sort()
-    return tagKeys.join(",")
-  })
-  const uniqueNonTreatmentSets = new Set(nonTreatmentReasonSets)
-
-  const primaryReasonKeys = validMatches.map((cm) => cm.reasons?.[0]?.tagKey).filter(Boolean)
-  const uniquePrimaryReasons = [...new Set(primaryReasonKeys)]
-
   if (uniqueReasonSets.size >= Math.min(2, validMatches.length)) {
-    return { valid: true, uniquePrimaryReasons }
-  }
-
-  if (uniqueNonTreatmentSets.size >= Math.min(2, validMatches.length)) {
     return { valid: true, uniquePrimaryReasons }
   }
 
