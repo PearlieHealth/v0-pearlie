@@ -8,7 +8,7 @@ import {
   type RankingOptions,
 } from "@/lib/matching/engine"
 import { verifyAdminAuth } from "@/lib/admin-auth"
-import { composeReasonSentences, composeReasonsForMultipleClinics } from "@/lib/matching/reasonComposer"
+import { buildMatchReasonsForMultipleClinics } from "@/lib/matching/reasons-engine"
 
 export const runtime = "nodejs"
 
@@ -87,19 +87,13 @@ export async function POST(request: Request) {
 
     const result = await runMatchingPipeline(profile, clinics, options)
 
-    // Compose reasons using same function as live flow
-    const composedReasonsMap = composeReasonsForMultipleClinics(
+    // Build reasons with cross-clinic dedup (same as live flow, uses matchFacts from engine)
+    const reasonsMap = buildMatchReasonsForMultipleClinics(
       "test-lead",
-      result.rankedClinics.map((rc) => ({
+      result.rankedClinics.map((rc, index) => ({
         clinicId: rc.clinic.id,
-        matchReasons: rc.reasons,
-        matchFacts: {
-          treatmentMatch: {
-            requested: treatments[0],
-            clinicOffers: true,
-            matchedTreatments: treatments
-          }
-        } as any
+        matchFacts: rc.matchFacts,
+        fallbackOffset: index,
       }))
     )
 
@@ -107,22 +101,9 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       rankedClinics: result.rankedClinics.map((rc) => {
-        // Get composed reasons from the map (same as live flow)
-        const composed = composedReasonsMap.get(rc.clinic.id)
-        // Also compute individual reasons for debug comparison
-        const composedReasons = composeReasonSentences(
-          "test-lead",
-          rc.clinic.id,
-          rc.reasons,
-          {
-            treatmentMatch: {
-              requested: treatments[0],
-              clinicOffers: true,
-              matchedTreatments: treatments,
-            },
-          } as any
-        )
-        
+        const result2 = reasonsMap.get(rc.clinic.id)
+        const composed = result2?.composed
+
         return {
           clinicId: rc.clinic.id,
           clinicName: rc.clinic.name,
@@ -135,15 +116,15 @@ export async function POST(request: Request) {
           isPinned: rc.isPinned,
           explanationVersion: rc.explanationVersion,
           isDirectoryListing: rc.debug?.isDirectoryListing || false,
-          // Use composed reasons from map (same as live flow)
+          // Use composed reasons (same as live flow)
           reasons: rc.reasons.map((r, idx) => ({
-            text: composed?.bullets[idx] || composedReasons.bullets[idx] || r.text,
+            text: composed?.bullets[idx] || r.text,
             rawText: r.text, // Keep raw for debug
             category: r.category,
             tagKey: r.tagKey,
           })),
           // Primary composed reasons (as displayed to patients)
-          composedReasons: composed?.bullets || composedReasons.bullets,
+          composedReasons: composed?.bullets || rc.reasons.map(r => r.text),
           debug: {
             ...rc.debug,
             categories: rc.score.categories.map((c) => ({
@@ -154,9 +135,9 @@ export async function POST(request: Request) {
               facts: c.facts,
             })),
             reasonsComposer: {
-              tagsUsed: composed?.tagsUsed || composedReasons.tagsUsed,
-              templatesUsed: composed?.templatesUsed || composedReasons.templatesUsed,
-              confidence: composed?.confidence || composedReasons.confidence,
+              tagsUsed: composed?.tagsUsed || [],
+              templatesUsed: composed?.templatesUsed || [],
+              confidence: composed?.confidence || 0.8,
             },
           },
         }

@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { geocodePostcode } from "@/lib/postcodes-io"
 import { buildLeadProfileFromDB, buildClinicProfile, rankClinics } from "@/lib/matching/engine"
 import { getLiveClinicFilter } from "@/lib/matching/clinic-status"
+import { buildMatchReasonsForMultipleClinics, getExplanationVersion } from "@/lib/matching/reasons-engine"
 
 export async function POST(request: Request) {
   try {
@@ -132,23 +133,50 @@ export async function POST(request: Request) {
       throw matchError
     }
 
-    // 8. Save individual match_results for each clinic (feeds clinic dashboards)
+    // 8. Build cross-clinic deduped reasons (uses matchFacts from ranking)
+    const reasonsMap = buildMatchReasonsForMultipleClinics(
+      leadId,
+      rankedClinics.map((rc, index) => ({
+        clinicId: rc.clinic.id,
+        matchFacts: rc.matchFacts,
+        fallbackOffset: index,
+      }))
+    )
+
+    // 9. Save individual match_results for each clinic (feeds clinic dashboards)
     // Clean up any previous match_results for this lead to avoid duplicates
     await supabase.from("match_results").delete().eq("lead_id", leadId)
 
-    const matchResultRows = rankedClinics.map((rc, index) => ({
-      lead_id: leadId,
-      clinic_id: rc.clinic.id,
-      score: rc.score.percent,
-      reasons: rc.reasons.map((r) => r.text),
-      match_run_id: match.id,
-      rank: index + 1,
-      match_breakdown: rc.score.categories.map((c) => ({
-        category: c.category,
-        points: c.points,
-        maxPoints: c.maxPoints,
-      })),
-    }))
+    const matchResultRows = rankedClinics.map((rc, index) => {
+      const result = reasonsMap.get(rc.clinic.id)
+      const composed = result?.composed
+
+      return {
+        lead_id: leadId,
+        clinic_id: rc.clinic.id,
+        score: rc.score.percent,
+        reasons: rc.reasons.map((r) => r.text),
+        match_run_id: match.id,
+        rank: index + 1,
+        match_breakdown: rc.score.categories.map((c) => ({
+          category: c.category,
+          points: c.points,
+          maxPoints: c.maxPoints,
+        })),
+        // Cache fields for D1 (served directly on GET without re-scoring)
+        match_reasons_composed: composed?.bullets || rc.reasons.map((r) => r.text),
+        match_reasons_long: composed?.longBullets || rc.reasons.map((r) => r.text),
+        match_reasons_meta: {
+          tagsUsed: composed?.tagsUsed || [],
+          templatesUsed: composed?.templatesUsed || [],
+          confidence: composed?.confidence || 0.8,
+          source: "template",
+        },
+        distance_miles: rc.score.distanceMiles,
+        explanation_version: getExplanationVersion(),
+        tier: rc.tier,
+      }
+    })
 
     const { error: resultsError } = await supabase
       .from("match_results")

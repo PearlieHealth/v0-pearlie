@@ -206,6 +206,18 @@ export interface MatchFacts {
 }
 
 /**
+ * Composed reason output for patient-facing display
+ * Produced by buildMatchReasonsForMultipleClinics() with cross-clinic dedup
+ */
+export interface ComposedReasons {
+  bullets: string[]           // 2-3 short sentences for card display
+  longBullets: string[]       // Extended explanations (currently same as bullets)
+  tagsUsed: string[]          // TAG_* keys that contributed
+  templatesUsed: string[]     // Template IDs for analytics/debug
+  confidence: number          // 0-1 based on non-fallback reason count
+}
+
+/**
  * Fallback reason definition
  */
 export interface FallbackReason {

@@ -56,6 +56,7 @@ export interface RankedClinic {
   tier: "excellent" | "strong" | "good" | "possible"
   isPinned?: boolean
   explanationVersion: string // Added explanation version tracking
+  matchFacts?: any // MatchFacts from scoring, used for cross-clinic reason dedup
   debug: {
     distanceMiles?: number
     treatmentMatch: boolean
@@ -325,7 +326,7 @@ export function rankClinics(
 
   // First pass: score all primary (matchable) clinics with normal priority
   let scoredClinics: RankedClinic[] = primaryClinics.map((clinic, index) => {
-    const { score, reasons, explanationVersion, reasonsDebug } = computeClinicScore(profile, clinic, false, index)
+    const { score, reasons, explanationVersion, matchFacts, reasonsDebug } = computeClinicScore(profile, clinic, false, index)
     const tier = getTier(score.percent)
     const debug = buildDebugInfo(score, profile, clinic, reasonsDebug)
 
@@ -336,6 +337,7 @@ export function rankClinics(
       tier,
       isPinned: clinic.id === pinnedClinicId,
       explanationVersion,
+      matchFacts,
       debug,
     }
   })
@@ -349,7 +351,7 @@ export function rankClinics(
     console.log("[rankClinics] All clinics have TREATMENT_MATCH primary reason, re-running with differentiation")
     scoredClinics = primaryClinics.map((clinic, index) => {
       // Deprioritize treatment, use index as fallback offset for differentiation
-      const { score, reasons, explanationVersion, reasonsDebug } = computeClinicScore(profile, clinic, true, index)
+      const { score, reasons, explanationVersion, matchFacts, reasonsDebug } = computeClinicScore(profile, clinic, true, index)
       const tier = getTier(score.percent)
       const debug = buildDebugInfo(score, profile, clinic, reasonsDebug)
 
@@ -360,6 +362,7 @@ export function rankClinics(
         tier,
         isPinned: clinic.id === pinnedClinicId,
         explanationVersion,
+        matchFacts,
         debug,
       }
     })
@@ -400,7 +403,7 @@ export function rankClinics(
   if (includeUnverified && unverifiedMatchable.length > 0) {
     scoredUnverified = unverifiedMatchable.map((clinic, index) => {
       // Score unverified clinics but mark them appropriately
-      const { score, reasons, explanationVersion, reasonsDebug } = computeClinicScore(profile, clinic, false, index)
+      const { score, reasons, explanationVersion, matchFacts, reasonsDebug } = computeClinicScore(profile, clinic, false, index)
       const tier = getTier(score.percent)
       const debug = buildDebugInfo(score, profile, clinic, reasonsDebug)
       debug.isDirectoryListing = false // They're scored, not directory listings
@@ -412,6 +415,7 @@ export function rankClinics(
         tier,
         isPinned: clinic.id === pinnedClinicId,
         explanationVersion,
+        matchFacts,
         debug,
       }
     })

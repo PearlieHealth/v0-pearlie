@@ -1,4 +1,4 @@
-import type { MatchFacts, MatchReason, MatchReasonsDebug } from "./contract"
+import type { MatchFacts, MatchReason, MatchReasonsDebug, ComposedReasons } from "./contract"
 import { EXPLANATION_SCHEMA_VERSION } from "./contract"
 import {
   REASON_TEMPLATES,
@@ -673,6 +673,164 @@ export function validateUniqueReasons(
     warning: `${validMatches.length} clinics have similar reason sets. This may indicate limited tag differentiation.`,
     uniquePrimaryReasons,
   }
+}
+
+// ─── CROSS-CLINIC VARIANT DEDUP ─────────────────────────────────────────────
+
+/**
+ * Simple hash for deterministic variant selection
+ * Same patient + clinic + tag always picks the same initial variant
+ */
+function simpleHash(str: string): number {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash // Convert to 32bit integer
+  }
+  return Math.abs(hash)
+}
+
+/**
+ * Get the variant pool for a given tag key
+ * Returns the template array for cross-clinic variant dedup
+ */
+function getVariantPool(tagKey: string, treatmentCategory?: string): string[] | null {
+  // Standard tag templates (Q4 priorities, Q5 blockers, Q8 cost, Q10 anxiety)
+  if (REASON_TEMPLATES[tagKey]) return REASON_TEMPLATES[tagKey]
+
+  // Treatment templates
+  if (tagKey === "TREATMENT_MATCH") {
+    return TREATMENT_REASON_TEMPLATES[treatmentCategory || "cosmetic"] || TREATMENT_REASON_TEMPLATES.cosmetic
+  }
+  if (tagKey === "TREATMENT_CHECKUP") return TREATMENT_REASON_TEMPLATES.checkup
+
+  // Emergency templates
+  if (tagKey === "EMERGENCY_AVAILABILITY") return EMERGENCY_REASON_TEMPLATES.availability
+  if (tagKey === "EMERGENCY_DISTANCE") return EMERGENCY_REASON_TEMPLATES.distance
+  if (tagKey === "EMERGENCY_CAPABILITY") return EMERGENCY_REASON_TEMPLATES.capability
+  if (tagKey === "EMERGENCY_ANXIETY") return EMERGENCY_REASON_TEMPLATES.anxiety
+
+  return null
+}
+
+/**
+ * Build match reasons for multiple clinics with cross-clinic variant dedup.
+ * Single unified function that replaces the old two-step process of
+ * buildMatchReasons() + composeReasonsForMultipleClinics().
+ *
+ * How it works:
+ * 1. Calls buildMatchReasons() per clinic (preserves all intra-clinic logic)
+ * 2. For each reason's tagKey, picks a deterministic variant from REASON_TEMPLATES
+ *    using simpleHash(patientId + clinicId + tagKey) — then rotates if another
+ *    clinic already claimed that variant index
+ * 3. Returns both the raw MatchReason[] and a ComposedReasons with deduped bullets
+ */
+export function buildMatchReasonsForMultipleClinics(
+  patientId: string,
+  clinics: Array<{
+    clinicId: string
+    matchFacts: MatchFacts
+    deprioritizeTreatment?: boolean
+    fallbackOffset: number
+  }>
+): Map<string, { reasons: MatchReason[]; composed: ComposedReasons }> {
+  const results = new Map<string, { reasons: MatchReason[]; composed: ComposedReasons }>()
+  const usedVariantsByTag = new Map<string, Set<number>>()
+  // Track fallback indices separately (all FALLBACK_* share one pool)
+  const usedFallbackIndices = new Set<number>()
+
+  for (const clinic of clinics) {
+    // Step 1: Build reasons using existing per-clinic logic
+    const reasons = buildMatchReasons(
+      clinic.matchFacts,
+      clinic.deprioritizeTreatment || false,
+      clinic.fallbackOffset
+    )
+
+    // Step 2: Build composed bullets with cross-clinic variant dedup
+    const treatmentCategory = clinic.matchFacts.treatmentMatch?.treatmentCategory || "cosmetic"
+    const rawTreatment = clinic.matchFacts.treatmentMatch?.requested || ""
+    const txParts = rawTreatment.split(",").map(t => t.trim()).filter(Boolean)
+    const treatmentDisplay = txParts.length > 1 ? `${txParts[0]} and more` : rawTreatment
+
+    const composedBullets: string[] = []
+    const tagsUsed: string[] = []
+    const templatesUsed: string[] = []
+
+    for (const reason of reasons) {
+      const tagKey = reason.tagKey
+      if (!tagKey) {
+        composedBullets.push(reason.text)
+        continue
+      }
+
+      // Handle fallback reasons (share a single pool)
+      if (tagKey.startsWith("FALLBACK_")) {
+        const fallbackPool = FALLBACK_REASONS.map(f => f.text)
+        let fbIndex = simpleHash(`${patientId}_${clinic.clinicId}_fallback_${composedBullets.length}`) % fallbackPool.length
+        let attempts = 0
+        while (usedFallbackIndices.has(fbIndex) && attempts < fallbackPool.length) {
+          fbIndex = (fbIndex + 1) % fallbackPool.length
+          attempts++
+        }
+        usedFallbackIndices.add(fbIndex)
+        composedBullets.push(fallbackPool[fbIndex])
+        tagsUsed.push(tagKey)
+        templatesUsed.push(`fallback_v${fbIndex}`)
+        continue
+      }
+
+      // Get variant pool for this tag
+      const pool = getVariantPool(tagKey, treatmentCategory)
+      if (!pool || pool.length === 0) {
+        // No variant pool (e.g., custom/emergency tags with no templates)
+        composedBullets.push(reason.text)
+        tagsUsed.push(tagKey)
+        templatesUsed.push(`direct_${tagKey}`)
+        continue
+      }
+
+      // Track used variants for this tag across clinics
+      if (!usedVariantsByTag.has(tagKey)) {
+        usedVariantsByTag.set(tagKey, new Set())
+      }
+      const usedIndices = usedVariantsByTag.get(tagKey)!
+
+      // Pick variant deterministically, rotate if already claimed
+      let variantIndex = simpleHash(`${patientId}_${clinic.clinicId}_${tagKey}`) % pool.length
+      let attempts = 0
+      while (usedIndices.has(variantIndex) && attempts < pool.length) {
+        variantIndex = (variantIndex + 1) % pool.length
+        attempts++
+      }
+      usedIndices.add(variantIndex)
+
+      // Get variant text with treatment substitution if needed
+      let text = pool[variantIndex]
+      if (treatmentDisplay && text.includes("{treatment}")) {
+        text = text.replace(/{treatment}/g, treatmentDisplay)
+      }
+
+      composedBullets.push(text)
+      tagsUsed.push(tagKey)
+      templatesUsed.push(`${tagKey}_v${variantIndex}`)
+    }
+
+    // Step 3: Build ComposedReasons
+    const nonFallbackCount = reasons.filter(r => !r.isFallback).length
+    const composed: ComposedReasons = {
+      bullets: composedBullets,
+      longBullets: composedBullets, // Currently same as bullets (no separate long templates)
+      tagsUsed,
+      templatesUsed,
+      confidence: Math.min(1, nonFallbackCount / 3),
+    }
+
+    results.set(clinic.clinicId, { reasons, composed })
+  }
+
+  return results
 }
 
 export function getExplanationVersion(): string {
