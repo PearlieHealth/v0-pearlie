@@ -41,6 +41,8 @@ import {
 import { toast } from "sonner"
 import { HIGHLIGHT_CATEGORIES, getHighlightLabel } from "@/lib/clinic-highlights-config"
 import { DEFAULT_TREATMENT_CATEGORIES, type TreatmentCategory, type TreatmentItem } from "@/lib/treatment-pricing-config"
+import { InlineField } from "@/components/clinic/profile/inline-field"
+import { TagEditor } from "@/components/clinic/profile/tag-editor"
 
 interface BeforeAfterImage {
   before_url: string
@@ -93,163 +95,6 @@ const LANGUAGE_OPTIONS = [
   "Gujarati", "Tamil", "Mandarin", "Cantonese", "Japanese", "Korean",
   "Russian", "Turkish", "Greek", "Dutch",
 ]
-
-// Inline editable field component
-function InlineField({
-  label,
-  value,
-  icon: Icon,
-  onChange,
-  type = "text",
-  verified = false,
-}: {
-  label: string
-  value: string
-  icon: React.ComponentType<{ className?: string }>
-  onChange: (val: string) => void
-  type?: string
-  verified?: boolean
-}) {
-  const [editing, setEditing] = useState(false)
-  const [localValue, setLocalValue] = useState(value)
-
-  useEffect(() => {
-    setLocalValue(value)
-  }, [value])
-
-  if (editing) {
-    return (
-      <div className="flex items-center gap-3 py-3 border-b border-border/50 last:border-0">
-        <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        <Input
-          type={type}
-          value={localValue}
-          onChange={(e) => setLocalValue(e.target.value)}
-          className="flex-1 h-8 text-sm"
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              onChange(localValue)
-              setEditing(false)
-            }
-            if (e.key === "Escape") {
-              setLocalValue(value)
-              setEditing(false)
-            }
-          }}
-        />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 text-green-600"
-          onClick={() => {
-            onChange(localValue)
-            setEditing(false)
-          }}
-        >
-          <Check className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => {
-            setLocalValue(value)
-            setEditing(false)
-          }}
-        >
-          <X className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex items-center gap-3 py-3 border-b border-border/50 last:border-0 group">
-      <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm truncate">{value || <span className="text-muted-foreground italic">Not set</span>}</p>
-      </div>
-      {verified && (
-        <Badge variant="outline" className="text-[10px] h-5 border-green-300 text-green-700 bg-green-50">
-          VERIFIED
-        </Badge>
-      )}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={() => setEditing(true)}
-      >
-        <Pencil className="h-3.5 w-3.5" />
-      </Button>
-    </div>
-  )
-}
-
-// Tag list editor component
-function TagEditor({
-  tags,
-  onAdd,
-  onRemove,
-  placeholder,
-  variant = "secondary",
-}: {
-  tags: string[]
-  onAdd: (tag: string) => void
-  onRemove: (tag: string) => void
-  placeholder: string
-  variant?: "secondary" | "default" | "destructive"
-}) {
-  const [newTag, setNewTag] = useState("")
-
-  return (
-    <div>
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {tags.map((tag) => (
-          <Badge key={tag} variant={variant} className="gap-1 text-xs">
-            {tag}
-            <button onClick={() => onRemove(tag)} className="ml-0.5 hover:text-destructive">
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-        ))}
-        {tags.length === 0 && (
-          <p className="text-xs text-muted-foreground italic">None added yet</p>
-        )}
-      </div>
-      <div className="flex gap-2">
-        <Input
-          placeholder={placeholder}
-          value={newTag}
-          onChange={(e) => setNewTag(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && newTag.trim()) {
-              onAdd(newTag.trim())
-              setNewTag("")
-            }
-          }}
-          className="h-8 text-sm"
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 bg-transparent"
-          onClick={() => {
-            if (newTag.trim()) {
-              onAdd(newTag.trim())
-              setNewTag("")
-            }
-          }}
-          disabled={!newTag.trim()}
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-    </div>
-  )
-}
 
 export default function ClinicProfilePage() {
   const [profile, setProfile] = useState<ClinicProfile | null>(null)
@@ -1016,12 +861,13 @@ export default function ClinicProfilePage() {
                     </div>
                     <Input
                       value={pair.description || ""}
+                      maxLength={200}
                       onChange={(e) => {
                         const updated = [...profile.before_after_images]
                         updated[pairIndex] = { ...updated[pairIndex], description: e.target.value }
                         setProfile({ ...profile, before_after_images: updated })
                       }}
-                      placeholder="Brief description (optional)"
+                      placeholder="Brief description (optional, max 200 chars)"
                       className="h-8 text-sm"
                     />
                   </div>
@@ -1205,13 +1051,20 @@ export default function ClinicProfilePage() {
                             <div className="relative w-28">
                               <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">£</span>
                               <Input
+                                type="number"
+                                min={0}
+                                max={99999}
+                                step="0.01"
                                 value={treatment.price}
                                 onChange={(e) => {
-                                  const updated = [...profile.treatment_prices]
-                                  const treatments = [...updated[catIndex].treatments]
-                                  treatments[treatIndex] = { ...treatments[treatIndex], price: e.target.value }
-                                  updated[catIndex] = { ...updated[catIndex], treatments }
-                                  setProfile({ ...profile, treatment_prices: updated })
+                                  const val = e.target.value
+                                  if (val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 99999)) {
+                                    const updated = [...profile.treatment_prices]
+                                    const treatments = [...updated[catIndex].treatments]
+                                    treatments[treatIndex] = { ...treatments[treatIndex], price: val }
+                                    updated[catIndex] = { ...updated[catIndex], treatments }
+                                    setProfile({ ...profile, treatment_prices: updated })
+                                  }
                                 }}
                                 placeholder="Price"
                                 className="h-7 text-sm pl-5"

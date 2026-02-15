@@ -2,8 +2,14 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const matchesLimit = Math.min(parseInt(searchParams.get("matchesLimit") || "10", 10), 100)
+    const matchesOffset = parseInt(searchParams.get("matchesOffset") || "0", 10)
+    const convsLimit = Math.min(parseInt(searchParams.get("convsLimit") || "10", 10), 100)
+    const convsOffset = parseInt(searchParams.get("convsOffset") || "0", 10)
+
     // Get the authenticated user
     const supabase = await createClient()
     const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -27,7 +33,10 @@ export async function GET() {
     }
 
     if (!leads || leads.length === 0) {
-      return NextResponse.json({ leads: [], matches: [], conversations: [] })
+      return NextResponse.json({
+        leads: [], matches: [], conversations: [],
+        matchesTotal: 0, conversationsTotal: 0,
+      })
     }
 
     // Link any unlinked leads to this user
@@ -41,27 +50,41 @@ export async function GET() {
 
     const leadIds = leads.map((l) => l.id)
 
-    // Get matches for these leads
-    const { data: matches, error: matchesError } = await admin
-      .from("matches")
-      .select("id, lead_id, clinic_ids, status, created_at")
-      .in("lead_id", leadIds)
-      .order("created_at", { ascending: false })
+    // Get matches for these leads with pagination
+    const [
+      { data: matches, error: matchesError },
+      { count: matchesTotal },
+      { data: conversations, error: convsError },
+      { count: convsTotal },
+    ] = await Promise.all([
+      admin
+        .from("matches")
+        .select("id, lead_id, clinic_ids, status, created_at")
+        .in("lead_id", leadIds)
+        .order("created_at", { ascending: false })
+        .range(matchesOffset, matchesOffset + matchesLimit - 1),
+      admin
+        .from("matches")
+        .select("*", { count: "exact", head: true })
+        .in("lead_id", leadIds),
+      admin
+        .from("conversations")
+        .select(`
+          id, clinic_id, lead_id, status, last_message_at, unread_by_patient, unread_count_patient,
+          clinics:clinic_id (id, name, images)
+        `)
+        .in("lead_id", leadIds)
+        .order("last_message_at", { ascending: false })
+        .range(convsOffset, convsOffset + convsLimit - 1),
+      admin
+        .from("conversations")
+        .select("*", { count: "exact", head: true })
+        .in("lead_id", leadIds),
+    ])
 
     if (matchesError) {
       console.error("[patient/matches] Error fetching matches:", matchesError)
     }
-
-    // Get conversations for these leads
-    const { data: conversations, error: convsError } = await admin
-      .from("conversations")
-      .select(`
-        id, clinic_id, lead_id, status, last_message_at, unread_by_patient, unread_count_patient,
-        clinics:clinic_id (id, name, images)
-      `)
-      .in("lead_id", leadIds)
-      .order("last_message_at", { ascending: false })
-
     if (convsError) {
       console.error("[patient/matches] Error fetching conversations:", convsError)
     }
@@ -75,6 +98,8 @@ export async function GET() {
       leads: leads || [],
       matches: matches || [],
       conversations: conversations || [],
+      matchesTotal: matchesTotal || 0,
+      conversationsTotal: convsTotal || 0,
     })
   } catch (error) {
     console.error("[patient/matches] Error:", error)

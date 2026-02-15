@@ -13,7 +13,106 @@ const EDITABLE_FIELDS = new Set([
   "accepts_nhs", "parking_available", "wheelchair_accessible",
   "booking_url", "social_links", "languages_spoken",
   "bot_intelligence", "notification_preferences",
+  // Additional fields used by clinic profile page
+  "notification_email", "accepts_urgent", "featured_review",
+  "services", "languages", "accessibility_features", "key_selling_points",
+  "finance_provider_names", "ideal_patient_tags", "exclusion_tags",
+  "highlight_chips", "images", "before_after_images",
+  "offers_free_consultation", "show_treatment_prices", "treatment_prices",
 ])
+
+// Array fields with their max items
+const ARRAY_FIELD_LIMITS: Record<string, number> = {
+  treatments: 50,
+  facilities: 50,
+  gallery_images: 50,
+  languages_spoken: 30,
+  social_links: 20,
+  services: 50,
+  languages: 30,
+  accessibility_features: 30,
+  key_selling_points: 20,
+  finance_provider_names: 20,
+  ideal_patient_tags: 30,
+  exclusion_tags: 30,
+  highlight_chips: 30,
+  images: 50,
+  before_after_images: 20,
+}
+
+const MAX_STRING_ITEM_LENGTH = 200
+const MAX_TEXT_LENGTH = 5000
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function validateEmail(email: string): boolean {
+  return EMAIL_REGEX.test(email) && email.length <= 254
+}
+
+function validateTreatmentPrices(prices: unknown): string | null {
+  if (!Array.isArray(prices)) return "treatment_prices must be an array"
+  if (prices.length > 50) return "Too many treatment categories (max 50)"
+
+  for (const category of prices) {
+    if (typeof category !== "object" || category === null) {
+      return "Invalid treatment category"
+    }
+    if (typeof category.category === "string" && category.category.length > MAX_STRING_ITEM_LENGTH) {
+      return `Category name too long (max ${MAX_STRING_ITEM_LENGTH} chars)`
+    }
+    if (!Array.isArray(category.treatments)) continue
+    if (category.treatments.length > 100) {
+      return "Too many treatments in a category (max 100)"
+    }
+    for (const treatment of category.treatments) {
+      if (typeof treatment !== "object" || treatment === null) {
+        return "Invalid treatment item"
+      }
+      if (typeof treatment.price === "string" && treatment.price !== "") {
+        const price = parseFloat(treatment.price)
+        if (isNaN(price) || price < 0 || price > 99999) {
+          return `Invalid price "${treatment.price}": must be a number between 0 and 99999`
+        }
+      }
+      if (typeof treatment.name === "string" && treatment.name.length > MAX_STRING_ITEM_LENGTH) {
+        return `Treatment name too long (max ${MAX_STRING_ITEM_LENGTH} chars)`
+      }
+      if (typeof treatment.description === "string" && treatment.description.length > MAX_STRING_ITEM_LENGTH) {
+        return `Treatment description too long (max ${MAX_STRING_ITEM_LENGTH} chars)`
+      }
+    }
+  }
+  return null
+}
+
+function validateBeforeAfterImages(images: unknown): string | null {
+  if (!Array.isArray(images)) return "before_after_images must be an array"
+  if (images.length > 20) return "Too many before/after pairs (max 20)"
+
+  for (const pair of images) {
+    if (typeof pair !== "object" || pair === null) {
+      return "Invalid before/after pair"
+    }
+    if (typeof pair.description === "string" && pair.description.length > MAX_STRING_ITEM_LENGTH) {
+      return `Before/after description too long (max ${MAX_STRING_ITEM_LENGTH} chars)`
+    }
+    if (typeof pair.treatment === "string" && pair.treatment.length > MAX_STRING_ITEM_LENGTH) {
+      return `Before/after treatment label too long (max ${MAX_STRING_ITEM_LENGTH} chars)`
+    }
+  }
+  return null
+}
+
+function validateArrayField(value: unknown, fieldName: string, maxItems: number): string | null {
+  if (!Array.isArray(value)) return `${fieldName} must be an array`
+  if (value.length > maxItems) return `${fieldName}: too many items (max ${maxItems})`
+
+  for (const item of value) {
+    if (typeof item === "string" && item.length > MAX_STRING_ITEM_LENGTH) {
+      return `${fieldName}: item too long (max ${MAX_STRING_ITEM_LENGTH} chars)`
+    }
+  }
+  return null
+}
 
 export async function GET() {
   try {
@@ -89,6 +188,48 @@ export async function PUT(request: Request) {
 
     if (Object.keys(sanitizedData).length === 0) {
       return NextResponse.json({ error: "No valid fields to update" }, { status: 400 })
+    }
+
+    // Validate email fields
+    if (sanitizedData.email !== undefined) {
+      if (typeof sanitizedData.email !== "string" || !validateEmail(sanitizedData.email)) {
+        return NextResponse.json({ error: "Invalid email format" }, { status: 400 })
+      }
+    }
+    if (sanitizedData.notification_email !== undefined && sanitizedData.notification_email !== "") {
+      if (typeof sanitizedData.notification_email !== "string" || !validateEmail(sanitizedData.notification_email)) {
+        return NextResponse.json({ error: "Invalid notification email format" }, { status: 400 })
+      }
+    }
+
+    // Validate text fields length
+    for (const field of ["description", "featured_review"] as const) {
+      if (sanitizedData[field] !== undefined && typeof sanitizedData[field] === "string") {
+        if (sanitizedData[field].length > MAX_TEXT_LENGTH) {
+          return NextResponse.json({ error: `${field} too long (max ${MAX_TEXT_LENGTH} characters)` }, { status: 400 })
+        }
+      }
+    }
+
+    // Validate array fields
+    for (const [fieldName, maxItems] of Object.entries(ARRAY_FIELD_LIMITS)) {
+      if (sanitizedData[fieldName] !== undefined) {
+        // Special validation for treatment_prices
+        if (fieldName === "treatment_prices") {
+          const err = validateTreatmentPrices(sanitizedData[fieldName])
+          if (err) return NextResponse.json({ error: err }, { status: 400 })
+          continue
+        }
+        // Special validation for before_after_images
+        if (fieldName === "before_after_images") {
+          const err = validateBeforeAfterImages(sanitizedData[fieldName])
+          if (err) return NextResponse.json({ error: err }, { status: 400 })
+          continue
+        }
+        // Generic array validation
+        const err = validateArrayField(sanitizedData[fieldName], fieldName, maxItems)
+        if (err) return NextResponse.json({ error: err }, { status: 400 })
+      }
     }
 
     // Update the clinic
