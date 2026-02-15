@@ -209,6 +209,29 @@ DELETE FROM public.clinic_filters WHERE key IN (
 
 
 -- ============================================================================
+-- MIGRATION 047: Missing lead contact/intake columns
+-- ============================================================================
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS first_name TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS last_name TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS consent_contact BOOLEAN DEFAULT false;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS consent_terms BOOLEAN DEFAULT false;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS is_emergency BOOLEAN DEFAULT false;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS blocker TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS location_preference TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS anxiety_level TEXT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS preferred_times JSONB;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS verification_email TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email) WHERE email IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_leads_is_emergency ON leads(is_emergency) WHERE is_emergency = true;
+
+
+-- ============================================================================
 -- VERIFY: Run these SELECT queries after to confirm everything worked
 -- ============================================================================
 
