@@ -62,30 +62,22 @@ export default function SettingsPage() {
   const fetchSettings = useCallback(async () => {
     const supabase = createBrowserClient()
 
+    // Get clinic ID from /api/clinic/me (uses admin client, bypasses RLS)
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-
-    // Get clinic ID
-    let clinicId: string | null = null
-
-    const { data: portalUser } = await supabase
-      .from("clinic_portal_users")
-      .select("clinic_ids")
-      .eq("email", session.user.email)
-      .single()
-
-    if (portalUser?.clinic_ids?.[0]) {
-      clinicId = portalUser.clinic_ids[0]
-    } else {
-      const { data: clinicUser } = await supabase
-        .from("clinic_users")
-        .select("clinic_id")
-        .eq("user_id", session.user.id)
-        .single()
-
-      clinicId = clinicUser?.clinic_id || null
+    if (!session) {
+      setIsLoading(false)
+      return
     }
 
+    const meRes = await fetch("/api/clinic/me", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+    if (!meRes.ok) {
+      setIsLoading(false)
+      return
+    }
+    const meData = await meRes.json()
+    const clinicId = meData.clinic?.id
     if (!clinicId) {
       setIsLoading(false)
       return
