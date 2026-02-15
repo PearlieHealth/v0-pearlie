@@ -65,10 +65,21 @@ export default async function AnalyticsDashboard({
 
   // Compute date cutoff from search params
   let dateFrom: string | null = null
-  if (daysParam && ["7", "30", "90"].includes(daysParam)) {
-    const d = new Date()
-    d.setDate(d.getDate() - Number(daysParam))
-    dateFrom = d.toISOString()
+  let prevDateFrom: string | null = null
+  let prevDateTo: string | null = null
+  const days = daysParam && ["7", "30", "90"].includes(daysParam) ? Number(daysParam) : null
+
+  if (days) {
+    const now = new Date()
+    const from = new Date(now)
+    from.setDate(from.getDate() - days)
+    dateFrom = from.toISOString()
+
+    // Previous period: same duration before dateFrom
+    const prevFrom = new Date(from)
+    prevFrom.setDate(prevFrom.getDate() - days)
+    prevDateFrom = prevFrom.toISOString()
+    prevDateTo = dateFrom
   }
 
   let rawData: {
@@ -121,6 +132,28 @@ export default async function AnalyticsDashboard({
 
   const analytics = normalizeAnalyticsData(rawData)
 
+  // Fetch previous period data for delta comparison (only when a date range is active)
+  let prevAnalytics: typeof analytics | null = null
+  if (prevDateFrom && prevDateTo) {
+    try {
+      const [prevLeads, prevMatches, prevEvents, prevMatchResults] = await Promise.all([
+        supabase.from("leads").select("*").gte("created_at", prevDateFrom).lt("created_at", prevDateTo),
+        supabase.from("matches").select("*").gte("created_at", prevDateFrom).lt("created_at", prevDateTo),
+        supabase.from("analytics_events").select("*").gte("created_at", prevDateFrom).lt("created_at", prevDateTo).limit(10000),
+        supabase.from("match_results").select("*").gte("created_at", prevDateFrom).lt("created_at", prevDateTo),
+      ])
+      prevAnalytics = normalizeAnalyticsData({
+        leads: prevLeads.data,
+        matches: prevMatches.data,
+        events: prevEvents.data,
+        clinics: rawData.clinics, // clinics don't change between periods
+        matchResults: prevMatchResults.data,
+      })
+    } catch (error) {
+      console.error("[Analytics] Previous period fetch error:", error)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#fafaf9]">
       <AdminNav currentPath="/admin/analytics" />
@@ -170,6 +203,13 @@ export default async function AnalyticsDashboard({
             bookingsDeclined={analytics.bookingsDeclined}
             revenueMin={analytics.totalRevenuePotentialMin}
             avgClinicsViewed={analytics.avgClinicsViewed}
+            prevPeriod={prevAnalytics ? {
+              totalLeads: prevAnalytics.leads.length,
+              matchesShown: prevAnalytics.funnel.matchesShown,
+              bookingClicks: prevAnalytics.funnel.bookedConsults,
+              bookingsConfirmed: prevAnalytics.bookingsConfirmed,
+              revenueMin: prevAnalytics.totalRevenuePotentialMin,
+            } : undefined}
           />
         </AdminCardErrorBoundary>
 
