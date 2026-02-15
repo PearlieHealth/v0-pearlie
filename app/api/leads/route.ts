@@ -157,6 +157,7 @@ export async function POST(request: Request) {
         consent_terms: validatedData.consentTerms,
         consent_marketing: validatedData.consentMarketing,
         contact_method: contactMethod,
+        contact_value: (email || phone || "") as string,
         form_version: validatedData.formVersion,
         schema_version: validatedData.schemaVersion,
         raw_answers: rawAnswers,
