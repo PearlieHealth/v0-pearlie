@@ -936,7 +936,7 @@ export default function ClinicProfilePage() {
                         <p className="text-xs font-medium text-muted-foreground mb-1.5">Before</p>
                         {pair.before_url ? (
                           <div className="relative group aspect-[4/3] rounded-lg overflow-hidden bg-muted">
-                            <img src={pair.before_url} alt="Before" className="w-full h-full object-cover" />
+                            <img src={pair.before_url} alt="Before treatment photo" className="w-full h-full object-cover" />
                             <button
                               type="button"
                               onClick={() => {
@@ -977,7 +977,7 @@ export default function ClinicProfilePage() {
                         <p className="text-xs font-medium text-muted-foreground mb-1.5">After</p>
                         {pair.after_url ? (
                           <div className="relative group aspect-[4/3] rounded-lg overflow-hidden bg-muted">
-                            <img src={pair.after_url} alt="After" className="w-full h-full object-cover" />
+                            <img src={pair.after_url} alt="After treatment photo" className="w-full h-full object-cover" />
                             <button
                               type="button"
                               onClick={() => {

@@ -1,11 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { Resend } from "resend"
 import { getBotClinicReplied } from "@/lib/chat-bot"
 import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 import { escapeHtml } from "@/lib/escape-html"
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
+import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders, isUnsubscribed } from "@/lib/unsubscribe"
 
 export async function POST(request: NextRequest) {
   try {
@@ -125,8 +125,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email notification to patient when clinic replies
-    const verifiedDomain = process.env.RESEND_VERIFIED_DOMAIN
-    if (verifiedDomain) {
+    {
       try {
         const { data: lead } = await supabaseAdmin
           .from("leads")
@@ -141,40 +140,48 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (lead?.email && clinic) {
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
-          const trimmedContent = content.trim()
-          const safeFirstName = lead.first_name ? ` ${escapeHtml(lead.first_name)}` : ""
-          const safeClinicName = escapeHtml(clinic.name)
-          const safeContent = escapeHtml(trimmedContent.substring(0, 500)) + (trimmedContent.length > 500 ? "..." : "")
-          await resend.emails.send({
-            from: `Pearlie <notifications@${verifiedDomain}>`,
-            to: lead.email,
-            subject: `${clinic.name} has replied to your message`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background-color: #0d9488; color: white; padding: 20px; text-align: center;">
-                  <h1 style="margin: 0;">You've Got a Reply!</h1>
-                </div>
-                <div style="padding: 30px; background-color: #f9fafb;">
-                  <p style="color: #374151; font-size: 16px;">
-                    Hi${safeFirstName}, <strong>${safeClinicName}</strong> has replied to your message:
-                  </p>
-                  <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0d9488;">
-                    <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${safeContent}</p>
+          const unsubscribed = await isUnsubscribed(lead.email, "patient_notifications")
+          if (!unsubscribed) {
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+            const trimmedContent = content.trim()
+            const safeFirstName = lead.first_name ? ` ${escapeHtml(lead.first_name)}` : ""
+            const safeClinicName = escapeHtml(clinic.name)
+            const safeContent = escapeHtml(trimmedContent.substring(0, 500)) + (trimmedContent.length > 500 ? "..." : "")
+            const unsubFooter = generateUnsubscribeFooterHtml(
+              generateUnsubscribeHeaders(lead.email, "patient_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
+            )
+            await sendEmailWithRetry({
+              from: EMAIL_FROM.NOTIFICATIONS,
+              to: lead.email,
+              subject: `${clinic.name} has replied to your message`,
+              headers: generateUnsubscribeHeaders(lead.email, "patient_notifications"),
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <div style="background-color: #0d9488; color: white; padding: 20px; text-align: center;">
+                    <h1 style="margin: 0;">You've Got a Reply!</h1>
                   </div>
-                  <div style="text-align: center; margin-top: 30px;">
-                    <a href="${appUrl}/clinic/${clinic.id}"
-                       style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                      View &amp; Reply
-                    </a>
+                  <div style="padding: 30px; background-color: #f9fafb;">
+                    <p style="color: #374151; font-size: 16px;">
+                      Hi${safeFirstName}, <strong>${safeClinicName}</strong> has replied to your message:
+                    </p>
+                    <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0d9488;">
+                      <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${safeContent}</p>
+                    </div>
+                    <div style="text-align: center; margin-top: 30px;">
+                      <a href="${appUrl}/clinic/${clinic.id}"
+                         style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                        View &amp; Reply
+                      </a>
+                    </div>
+                  </div>
+                  <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
+                    <p>This is an automated message from Pearlie</p>
+                    ${unsubFooter}
                   </div>
                 </div>
-                <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
-                  <p>This is an automated message from Pearlie</p>
-                </div>
-              </div>
-            `,
-          })
+              `,
+            })
+          }
         }
       } catch (emailError) {
         // Don't fail the reply if email notification fails

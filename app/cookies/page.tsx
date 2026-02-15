@@ -1,4 +1,10 @@
+import type { Metadata } from "next"
 import Link from "next/link"
+
+export const metadata: Metadata = {
+  title: "Cookie Settings",
+  description: "Manage your cookie preferences on Pearlie.",
+}
 
 export default function CookiesPage() {
   return (

@@ -4,18 +4,11 @@ export const dynamic = "force-dynamic"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
-import { Resend } from "resend"
 import { randomBytes } from "crypto"
 import { TIME_SLOT_OPTIONS, URGENCY_OPTIONS } from "@/lib/constants"
 import { escapeHtml } from "@/lib/escape-html"
-
-function getResendClient() {
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) {
-    throw new Error("RESEND_API_KEY environment variable is not set")
-  }
-  return new Resend(apiKey)
-}
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 /**
  * POST /api/booking/confirm
@@ -120,43 +113,41 @@ export async function POST(request: Request) {
 
     // Send clinic notification email
     try {
-      const emailFrom = "Pearlie <hello@pearlie.org>"
       const subject = `Booking Request from ${leadData.first_name} ${leadData.last_name}`
       const html = generateBookingEmailHTML(clinic.name, leadData)
 
-      const resend = getResendClient()
-      const { data, error } = await resend.emails.send({
-        from: emailFrom,
+      const result = await sendEmailWithRetry({
+        from: EMAIL_FROM.NOTIFICATIONS,
         to: recipientEmail,
         subject,
         html,
       })
 
-      if (error) {
-        console.error("[booking/confirm] Resend API error:", error)
+      if (!result.success) {
+        console.error("[booking/confirm] Email send failed:", result.error)
         await supabaseAdmin.from("email_logs").insert({
           clinic_id: clinicId,
           lead_id: leadId,
           to_email: recipientEmail,
           subject,
           status: "failed",
-          error: error.message || "Unknown error",
+          error: result.error || "Unknown error",
         })
       } else {
-        console.log("[booking/confirm] Email sent successfully, ID:", data?.id)
+        console.log("[booking/confirm] Email sent successfully, ID:", result.messageId)
         await supabaseAdmin.from("email_logs").insert({
           clinic_id: clinicId,
           lead_id: leadId,
           to_email: recipientEmail,
           subject,
           status: "sent",
-          provider_message_id: data?.id,
+          provider_message_id: result.messageId,
         })
       }
 
       return NextResponse.json({
         success: true,
-        emailSent: !error,
+        emailSent: result.success,
         bookingToken,
       })
     } catch (emailError: any) {

@@ -1,13 +1,10 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
-import { Resend } from "resend"
 import { generateInviteEmailHTML } from "@/lib/email-templates"
 import { verifyAdminAuth } from "@/lib/admin-auth"
-
-function getResendClient() {
-  return new Resend(process.env.RESEND_API_KEY)
-}
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 /**
  * Clinic Provisioning API
@@ -133,9 +130,8 @@ export async function POST(request: NextRequest) {
     // Send invite email
     let emailSent = false
     try {
-      const resend = getResendClient()
-      const { error: emailError } = await resend.emails.send({
-        from: "Pearlie <hello@pearlie.org>",
+      const result = await sendEmailWithRetry({
+        from: EMAIL_FROM.CLINICS,
         to: primary_contact_email,
         subject: `You're invited to join ${clinic_name} on Pearlie`,
         html: generateInviteEmailHTML({
@@ -146,8 +142,8 @@ export async function POST(request: NextRequest) {
         }),
       })
 
-      if (emailError) {
-        console.error("[v0] Failed to send invite email:", emailError)
+      if (!result.success) {
+        console.error("[v0] Failed to send invite email:", result.error)
       } else {
         emailSent = true
       }

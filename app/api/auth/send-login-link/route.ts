@@ -1,10 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { Resend } from "resend"
 import { createRateLimiter } from "@/lib/rate-limit"
 import { escapeHtml } from "@/lib/escape-html"
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 // Rate limiters: per-IP and per-email
 const ipLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, maxAttempts: 10 })
@@ -130,8 +129,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Send branded email via Resend
-    await resend.emails.send({
-      from: "Pearlie <noreply@pearlie.org>",
+    await sendEmailWithRetry({
+      from: EMAIL_FROM.NOREPLY,
       to: email,
       subject: "Your Pearlie login link",
       html: `
