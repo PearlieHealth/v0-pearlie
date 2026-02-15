@@ -78,7 +78,7 @@ const navItems = [
     href: "/clinic/settings",
     label: "Settings",
     icon: Settings,
-    roles: ["CLINIC_ADMIN", "CORPORATE_ADMIN"],
+    roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
   },
 ]
 
