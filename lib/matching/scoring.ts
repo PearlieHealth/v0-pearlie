@@ -1,26 +1,13 @@
 import type { LeadAnswer, ClinicProfile, MatchScoreBreakdown, ScoreCategoryBreakdown, MatchFacts } from "./contract"
-import { getDistanceMultiplier } from "./features"
+import { calculateHaversineDistance } from "@/lib/utils/geo"
 import {
   WEIGHT_CONFIG,
   Q4_PRIORITY_TAG_MAP,
+  Q5_BLOCKER_TAG_MAP,
   Q8_COST_TAG_MAP,
   Q10_ANXIETY_TAG_MAP,
   COST_PRICE_TIER_MAP,
 } from "./tag-schema"
-
-/**
- * Calculate distance using Haversine formula
- */
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 3959 // Earth radius in miles
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLon = ((lon2 - lon1) * Math.PI) / 180
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  return R * c
-}
 
 /**
  * Score a clinic against a lead with full breakdown
@@ -40,7 +27,7 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
   // 2. Distance
   let distanceMiles: number | undefined
   if (lead.latitude && lead.longitude && clinic.latitude && clinic.longitude) {
-    distanceMiles = calculateDistance(lead.latitude, lead.longitude, clinic.latitude, clinic.longitude)
+    distanceMiles = calculateHaversineDistance(lead.latitude, lead.longitude, clinic.latitude, clinic.longitude)
     const distanceScore = scoreDistance(lead, clinic, distanceMiles, WEIGHT_CONFIG.distance)
     categories.push(distanceScore)
     totalScore += distanceScore.points
@@ -57,8 +44,14 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
     console.log(`[scoring] Skipped priorities for clinic ${clinic.name}: lead has no priorities`)
   }
 
-  // 4. Q5: Blockers — informational only (no scoring)
-  // Complex case penalty applied after all scoring below
+  // 4. Q5: Blocker support scoring (positive bonus for supportive clinics)
+  const blockerCodes = lead.blockerCodes || (lead.blockerCode ? [lead.blockerCode] : [])
+  if (blockerCodes.length > 0 && !blockerCodes.includes("NO_CONCERN")) {
+    const blockerScore = scoreBlockerSupport(lead, clinic, blockerCodes, 10)
+    categories.push(blockerScore)
+    totalScore += blockerScore.points
+    maxPossible += blockerScore.maxPoints
+  }
 
   // 5. Q10: Anxiety Accommodation (anxiety_level → TAG_* keys)
   // Check for anxious levels (not_anxious = no scoring needed)
@@ -92,7 +85,6 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
   }
 
   // Complex case penalty: -15 if patient selected WORRIED_COMPLEX and clinic lacks TAG_COMPLEX_CASES_WELCOME
-  const blockerCodes = lead.blockerCodes || (lead.blockerCode ? [lead.blockerCode] : [])
   let complexCasePenalty = 0
   if (blockerCodes.includes("WORRIED_COMPLEX") && !clinic.filterKeys.includes("TAG_COMPLEX_CASES_WELCOME")) {
     complexCasePenalty = 15
@@ -116,28 +108,45 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
   }
 }
 
+// Treatment taxonomy: canonical treatment → known aliases
+// Used for matching instead of raw substring matching to avoid false positives
+const TREATMENT_ALIASES: Record<string, string[]> = {
+  "invisalign / clear aligners": ["invisalign", "clear aligners", "aligners", "clear aligner", "orthodontic"],
+  "teeth whitening": ["whitening", "teeth whitening", "tooth whitening", "bleaching"],
+  "composite bonding": ["bonding", "composite bonding", "composite", "dental bonding"],
+  "veneers": ["veneers", "veneer", "porcelain veneers", "porcelain veneer"],
+  "dental implants": ["implants", "dental implants", "implant", "dental implant"],
+  "general check-up & clean": ["check-up", "checkup", "check up", "clean", "hygiene", "general dentistry", "routine", "preventative"],
+  "emergency dental issue (pain, swelling, broken tooth)": ["emergency", "urgent", "pain", "swelling", "broken tooth", "toothache", "abscess"],
+}
+
+function getCanonicalAliases(treatmentInput: string): string[] {
+  const lower = treatmentInput.toLowerCase()
+  // Try exact match first
+  if (TREATMENT_ALIASES[lower]) return TREATMENT_ALIASES[lower]
+  // Try finding the canonical entry that contains this treatment
+  for (const [canonical, aliases] of Object.entries(TREATMENT_ALIASES)) {
+    if (canonical.includes(lower) || lower.includes(canonical)) return aliases
+    if (aliases.some(a => lower.includes(a) || a.includes(lower))) return aliases
+  }
+  // Fallback: split into terms for legacy compatibility
+  return lower.split(/[\s\/,&]+/).filter(term => term.length > 2).map(term => term.trim())
+}
+
 function scoreTreatmentMatch(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: number): ScoreCategoryBreakdown {
-  const treatmentLower = lead.treatment.toLowerCase()
-  
-  // Extract key treatment terms from lead's treatment (e.g., "Invisalign / Aligners" -> ["invisalign", "aligners"])
-  const treatmentTerms = treatmentLower
-    .split(/[\s\/,&]+/)
-    .filter(term => term.length > 2)
-    .map(term => term.trim())
-  
-  // Check if any treatment term matches clinic offerings
+  const aliases = getCanonicalAliases(lead.treatment)
+
+  // Check if any alias matches clinic offerings
   const hasMatch =
-    // Check if clinic treatment contains any of the lead's treatment terms
+    // Check clinic treatments against canonical aliases
     clinic.treatments.some((t) => {
       const clinicTreatment = t.toLowerCase()
-      return treatmentTerms.some(term => clinicTreatment.includes(term))
+      return aliases.some(alias => clinicTreatment.includes(alias))
     }) ||
-    // Check if lead treatment is fully contained in clinic treatment
-    clinic.treatments.some((t) => t.toLowerCase().includes(treatmentLower)) ||
     // Also check tags
     clinic.tags.some((t) => {
       const tagLower = t.toLowerCase()
-      return treatmentTerms.some(term => tagLower.includes(term)) || tagLower.includes(treatmentLower)
+      return aliases.some(alias => tagLower.includes(alias))
     })
 
   return {
@@ -147,7 +156,7 @@ function scoreTreatmentMatch(lead: LeadAnswer, clinic: ClinicProfile, maxPoints:
     weight: 0,
     facts: {
       leadTreatment: lead.treatment,
-      treatmentTerms,
+      treatmentAliases: aliases,
       clinicOffersTreatment: hasMatch,
       clinicTreatments: clinic.treatments,
     },
@@ -160,55 +169,25 @@ function scoreDistance(
   distanceMiles: number,
   maxPoints: number,
 ): ScoreCategoryBreakdown {
-  // Simple scoring: closer = higher score
-  // Patient's preference determines the "ideal" range and how much to weight distance
-  
+  // Smooth linear decay: 100% at 0mi, 0% at maxRadius
+  // No cliff edges — score decreases proportionally with distance
+
   const pref = lead.locationPreference?.toLowerCase()
-  let points = 0
-  
+
+  // Define max radius per preference (distance where score reaches 0)
+  let maxRadius: number
   if (pref === "near_home" || pref === "near_home_work") {
-    // Patient wants very close - score heavily based on proximity
-    if (distanceMiles <= 1) {
-      points = maxPoints // Full points for under 1 mile
-    } else if (distanceMiles <= 2) {
-      points = Math.round(maxPoints * 0.8) // 80% for 1-2 miles
-    } else if (distanceMiles <= 3) {
-      points = Math.round(maxPoints * 0.5) // 50% for 2-3 miles
-    } else if (distanceMiles <= 5) {
-      points = Math.round(maxPoints * 0.25) // 25% for 3-5 miles
-    } else {
-      points = 0 // Too far for "near home" preference
-    }
+    maxRadius = 5 // 0% at 5 miles
   } else if (pref === "travel_bit" || pref === "travel_a_bit") {
-    // Patient willing to travel a bit - more flexible
-    if (distanceMiles <= 2) {
-      points = maxPoints // Full points
-    } else if (distanceMiles <= 5) {
-      points = Math.round(maxPoints * 0.75) // 75%
-    } else if (distanceMiles <= 10) {
-      points = Math.round(maxPoints * 0.4) // 40%
-    } else {
-      points = Math.round(maxPoints * 0.1) // 10% for far
-    }
+    maxRadius = 12 // 0% at 12 miles
   } else if (pref === "travel_further") {
-    // Patient happy to travel - distance matters less
-    if (distanceMiles <= 5) {
-      points = maxPoints // Full points
-    } else if (distanceMiles <= 15) {
-      points = Math.round(maxPoints * 0.7) // 70%
-    } else {
-      points = Math.round(maxPoints * 0.4) // 40% even for far
-    }
+    maxRadius = 25 // 0% at 25 miles
   } else {
-    // No preference - moderate scoring
-    if (distanceMiles <= 3) {
-      points = maxPoints
-    } else if (distanceMiles <= 7) {
-      points = Math.round(maxPoints * 0.6)
-    } else {
-      points = Math.round(maxPoints * 0.2)
-    }
+    maxRadius = 10 // default: 0% at 10 miles
   }
+
+  const ratio = Math.max(0, 1 - distanceMiles / maxRadius)
+  const points = Math.round(maxPoints * ratio)
 
   return {
     category: "distance",
@@ -218,6 +197,7 @@ function scoreDistance(
     facts: {
       distanceMiles,
       locationPreference: lead.locationPreference,
+      maxRadius,
     },
   }
 }
@@ -523,6 +503,58 @@ function scoreCostApproach(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
 }
 
 /**
+ * Score blocker support: positive bonus when clinic has tags matching patient's hesitations
+ * NOT_WORTH_COST → TAG_GOOD_FOR_COST_CONCERNS (+8)
+ * BAD_EXPERIENCE → TAG_BAD_EXPERIENCE_SUPPORTIVE (+8)
+ * UNSURE_OPTION → TAG_OPTION_CLARITY_SUPPORT (+5)
+ * NEED_MORE_TIME → TAG_DECISION_SUPPORTIVE (+5)
+ * WORRIED_COMPLEX is handled as a penalty separately (existing behavior)
+ */
+function scoreBlockerSupport(
+  lead: LeadAnswer,
+  clinic: ClinicProfile,
+  blockerCodes: string[],
+  maxPoints: number,
+): ScoreCategoryBreakdown {
+  const matchedTags: string[] = []
+  let points = 0
+
+  // Points per blocker type (higher for more impactful blockers)
+  const BLOCKER_POINTS: Record<string, number> = {
+    NOT_WORTH_COST: 8,
+    BAD_EXPERIENCE: 8,
+    UNSURE_OPTION: 5,
+    NEED_MORE_TIME: 5,
+  }
+
+  for (const code of blockerCodes) {
+    if (code === "WORRIED_COMPLEX" || code === "NO_CONCERN") continue // Handled separately
+
+    const tagKey = Q5_BLOCKER_TAG_MAP[code]
+    if (tagKey && clinic.filterKeys.includes(tagKey)) {
+      matchedTags.push(tagKey)
+      points += BLOCKER_POINTS[code] || 5
+    }
+  }
+
+  // Cap at maxPoints
+  points = Math.min(points, maxPoints)
+
+  return {
+    category: "blockers",
+    points,
+    maxPoints,
+    weight: 0,
+    facts: {
+      patientBlockers: blockerCodes,
+      matchedTags,
+      matchCount: matchedTags.length,
+      hasBlockerSupport: matchedTags.length > 0,
+    },
+  }
+}
+
+/**
  * Detect treatment category from the treatment string
  */
 function detectTreatmentCategory(treatment: string): "cosmetic" | "checkup" | "emergency" {
@@ -551,11 +583,18 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
   const anxietyCat = breakdown.categories.find((c) => c.category === "anxiety")
   const availabilityCat = breakdown.categories.find((c) => c.category === "availability")
 
-  // Blockers are informational only — manually check for complex case match (used for reasons)
+  // Check ALL blocker types against clinic tags (used for reasons and blocker scoring)
   const patientBlockerCodes = lead.blockerCodes || (lead.blockerCode ? [lead.blockerCode] : [])
   const blockerMatchedTags: string[] = []
+  const blockersCat = breakdown.categories.find((c) => c.category === "blockers")
+  if (blockersCat?.facts?.matchedTags) {
+    blockerMatchedTags.push(...(blockersCat.facts.matchedTags as string[]))
+  }
+  // Also check WORRIED_COMPLEX (handled as penalty, not in blocker scoring category)
   if (patientBlockerCodes.includes("WORRIED_COMPLEX") && clinic.filterKeys.includes("TAG_COMPLEX_CASES_WELCOME")) {
-    blockerMatchedTags.push("TAG_COMPLEX_CASES_WELCOME")
+    if (!blockerMatchedTags.includes("TAG_COMPLEX_CASES_WELCOME")) {
+      blockerMatchedTags.push("TAG_COMPLEX_CASES_WELCOME")
+    }
   }
 
   return {
@@ -590,7 +629,7 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
       clinicPriceRange: (costCat?.facts?.clinicPriceRange as string) || null,
     },
 
-anxiety: {
+    anxiety: {
       patientLevel: lead.anxietyLevel || null,
       needsSedation: lead.anxietyLevel === "prefer-sedation",
       hasSedation: (anxietyCat?.facts?.hasSedation as boolean) || false,
@@ -612,7 +651,7 @@ anxiety: {
     scoreBreakdown: {
       treatment: treatmentCat?.points || 0,
       priorities: prioritiesCat?.points || 0,
-      blockers: 0, // Informational only — no scoring
+      blockers: blockersCat?.points || 0,
       cost: costCat?.points || 0,
       anxiety: anxietyCat?.points || 0,
       availability: availabilityCat?.points || 0,

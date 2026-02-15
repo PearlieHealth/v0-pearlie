@@ -135,7 +135,7 @@ export const WEIGHT_CONFIG = {
   treatment: 15, // Must-have: clinic offers requested treatment
   distance: 25, // Geographic proximity (NEVER used for reasons)
   priorities: 20, // Q4 priority tag matches
-  blockers: 0, // Q5 informational only — complex case penalty (-15) applied separately
+  blockers: 10, // Q5 blocker support bonus (+ separate -15 complex case penalty)
   anxiety: 10, // Q10 anxiety accommodation
   cost: 15, // Q8 cost: price tier match + communication TAG match
   availability: 15, // Appointment time slot compatibility
@@ -160,6 +160,7 @@ export const CANONICAL_TAG_KEYS: string[] = [
 export const REASON_TEMPLATES: Record<string, string[]> = {
   // ─── PRIORITY-BASED REASONS (Q4) ───────────────────────────────────────────
   // Only shown if the patient actually selected this priority
+  // IMPORTANT: Every tag MUST have unique template text — no two tags may share identical strings
 
   TAG_SPECIALIST_LEVEL_EXPERIENCE: [
     "This clinic has strong clinical expertise in {treatment}.",
@@ -174,25 +175,27 @@ export const REASON_TEMPLATES: Record<string, string[]> = {
   ],
 
   TAG_CLEAR_PRICING_UPFRONT: [
-    "This clinic provides transparent treatment plans.",
-    "Matched because they show clear treatment plans and cost discussions.",
+    "This clinic provides transparent treatment plans with clear costs.",
+    "Matched because they discuss costs openly before treatment begins.",
+    "Selected for their upfront approach to pricing and treatment plans.",
   ],
 
   TAG_CALM_REASSURING: [
     "Matched because they focus on supportive, patient-centred care.",
     "A good fit for patients who value reassurance and clear communication.",
+    "Selected for their warm, calming approach to dental care.",
   ],
 
   TAG_STRONG_REPUTATION_REVIEWS: [
-    "This clinic has consistently strong reviews.",
-    "Matched because of their excellent patient feedback.",
-    "Selected for their trusted reputation.",
+    "This clinic has consistently strong reviews from patients.",
+    "Matched because of their excellent patient feedback and ratings.",
+    "Selected for their trusted reputation in the community.",
   ],
 
   TAG_CONTINUITY_OF_CARE: [
-    "A good fit for patients seeking long-term care because they focus on building ongoing patient relationships.",
     "Matched because they prioritise seeing the same dentist each visit.",
-    "Selected for their focus on continuity and long-term trust.",
+    "A good fit for patients who want to build a long-term relationship with their dentist.",
+    "Selected for their focus on continuity and ongoing patient relationships.",
   ],
 
   // Legacy priority tags (backwards compat)
@@ -211,19 +214,21 @@ export const REASON_TEMPLATES: Record<string, string[]> = {
   // Only shown if the patient actually selected this hesitation AND clinic has the tag
 
   TAG_GOOD_FOR_COST_CONCERNS: [
-    "A thoughtful match for patients considering their investment carefully.",
-    "Matched because they support patients in understanding treatment value.",
     "A good fit if cost is an important factor in your decision.",
+    "Matched because they help patients understand the value of treatment.",
+    "Selected for their supportive approach to discussing costs.",
   ],
 
   TAG_DECISION_SUPPORTIVE: [
-    "Matched with a team that takes time to explain options clearly.",
-    "A good fit if you'd like space to make a confident decision.",
+    "A good fit if you'd like space and support to make a confident decision.",
+    "Matched because they give patients time to consider their options.",
+    "Selected for their patient, no-pressure approach to decision-making.",
   ],
 
   TAG_OPTION_CLARITY_SUPPORT: [
-    "Matched with a team that takes time to explain different treatment paths.",
-    "A good fit for exploring options comfortably.",
+    "Matched because they clearly explain different treatment paths available.",
+    "A good fit for patients who want to explore and compare options.",
+    "Selected for their thorough approach to presenting treatment choices.",
   ],
 
   TAG_COMPLEX_CASES_WELCOME: [
@@ -233,8 +238,9 @@ export const REASON_TEMPLATES: Record<string, string[]> = {
   ],
 
   TAG_BAD_EXPERIENCE_SUPPORTIVE: [
-    "Matched with a team experienced in helping patients rebuild confidence.",
-    "A thoughtful match for patients seeking reassurance.",
+    "Matched with a team experienced in helping patients rebuild dental confidence.",
+    "A good fit for patients who want extra care and understanding from their dentist.",
+    "Selected for their gentle approach with patients who've had difficult past experiences.",
   ],
 
   TAG_RIGHT_FIT_FOCUSED: [
@@ -245,51 +251,53 @@ export const REASON_TEMPLATES: Record<string, string[]> = {
 
   // Legacy blocker tags
   TAG_FINANCE_AVAILABLE: [
-    "Matched for flexible payment plans to spread the cost.",
     "Offers finance options to help manage treatment costs.",
     "A good fit if spreading the cost over time matters to you.",
+    "Matched because they provide payment plan options for treatment.",
   ],
   TAG_ANXIETY_FRIENDLY: [
-    "Matched because they focus on supportive, patient-centred care.",
     "A good fit for patients who appreciate a gentle, reassuring approach.",
     "Selected for their experience in supporting anxious patients.",
+    "Matched because they create a comfortable environment for nervous patients.",
   ],
 
   // ─── COST APPROACH REASONS (Q8) ────────────────────────────────────────────
   TAG_QUALITY_OUTCOME_FOCUSED: [
-    "A thoughtful match for patients considering their investment carefully.",
     "Matched because they focus on delivering the best possible outcome.",
     "Selected for their emphasis on quality and long-term results.",
+    "A good fit for patients who prioritise outcome over cost.",
   ],
   TAG_DISCUSS_OPTIONS_BEFORE_COST: [
-    "Matched with a team that takes time to explain options clearly.",
-    "A good fit for patients who want to explore options before discussing cost.",
-    "Selected because they present options with clear reasoning.",
+    "Selected because they present options with clear reasoning before discussing cost.",
+    "A good fit for patients who want to understand their options first.",
+    "Matched because they take a consultative approach to treatment planning.",
   ],
   TAG_MONTHLY_PAYMENTS_PREFERRED: [
-    "Matched for flexible payment plans to spread the cost.",
     "Offers monthly payment options to make treatment more accessible.",
-    "A good fit if spreading the cost matters to you.",
+    "Matched because they help patients spread the cost of treatment.",
+    "A good fit for patients looking for manageable payment plans.",
   ],
   TAG_FLEXIBLE_BUDGET_OK: [
-    "A thoughtful match for patients considering their investment carefully.",
+    "A good fit for patients who have a rough budget but value flexibility.",
     "Matched because they work with patients on flexible cost arrangements.",
-    "A good fit for patients with a rough budget who value flexibility.",
+    "Selected for their adaptable approach to treatment pricing.",
   ],
   TAG_STRICT_BUDGET_SUPPORTIVE: [
-    "A thoughtful match for patients considering their investment carefully.",
     "Matched because they work within clear budget constraints.",
-    "A good fit for patients who need transparency around costs upfront.",
+    "A good fit for patients who need full transparency around costs upfront.",
+    "Selected for their experience in planning treatment within set budgets.",
   ],
 
   // ─── ANXIETY REASONS (Q10) ─────────────────────────────────────────────────
   TAG_OK_WITH_ANXIOUS_PATIENTS: [
-    "Experienced in supporting nervous patients.",
-    "Provides a calm approach for patients who need reassurance.",
+    "Experienced in supporting patients who feel nervous about dental visits.",
+    "Provides a calm, reassuring approach for anxious patients.",
+    "A good fit for patients who need extra support and patience.",
   ],
   TAG_SEDATION_AVAILABLE: [
-    "Experienced in supporting nervous patients.",
-    "Provides a calm approach for patients who need reassurance.",
+    "Offers sedation options for patients who need extra comfort.",
+    "Matched because they provide sedation for anxious or nervous patients.",
+    "A good fit for patients who may benefit from sedation during treatment.",
   ],
 }
 
@@ -375,6 +383,21 @@ export const FALLBACK_REASONS: Array<{
     key: "FALLBACK_AVAILABILITY",
     text: "Offers appointments aligned with your availability.",
     priority: 3,
+  },
+  {
+    key: "FALLBACK_SCHEDULE_FIT",
+    text: "Open during hours that suit your schedule.",
+    priority: 4,
+  },
+  {
+    key: "FALLBACK_WELL_REVIEWED",
+    text: "Well-reviewed by other patients in your area.",
+    priority: 5,
+  },
+  {
+    key: "FALLBACK_PATIENT_COMFORT",
+    text: "A clinic focused on patient comfort and care.",
+    priority: 6,
   },
 ]
 

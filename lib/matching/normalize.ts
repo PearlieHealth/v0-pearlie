@@ -32,6 +32,13 @@ export function normalizeLead(leadRow: any): LeadAnswer {
   const costApproach = leadRow.cost_approach || rawAnswers.cost_approach || null
   const strictBudgetMax = leadRow.strict_budget_amount || rawAnswers.strict_budget_amount || null
 
+  // Warn if lead schema version doesn't match current version
+  const CURRENT_SCHEMA = 6
+  const leadSchema = leadRow.schema_version || 1
+  if (leadSchema < CURRENT_SCHEMA) {
+    console.warn(`[normalizeLead] Lead ${leadRow.id} has schema v${leadSchema}, current is v${CURRENT_SCHEMA}. Backwards-compat mappings in use.`)
+  }
+
   return {
     id: leadRow.id,
     treatment: leadRow.treatment_interest || leadRow.treatment || "",

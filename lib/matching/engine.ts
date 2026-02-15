@@ -11,6 +11,7 @@ import { scoreClinic, buildMatchFacts } from "./scoring"
 import { buildMatchReasons, getExplanationVersion, buildMatchReasonsDebug } from "./reasons-engine"
 import { createClient } from "@/lib/supabase/server"
 import { isClinicMatchable, getMatchingTagCount, getLiveClinicFilter, MIN_MATCHING_TAGS } from "./clinic-status"
+import { calculateHaversineDistance } from "@/lib/utils/geo"
 
 export interface TestLeadInput {
   // Treatment(s) - support both old single and new multi format
@@ -551,15 +552,20 @@ export async function runMatchingEngine(leadId: string): Promise<{
   let finalRadiusMiles = RADIUS_STEPS[0]
   let rankedClinics: RankedClinic[] = []
 
-  for (const radiusMiles of RADIUS_STEPS) {
-    // Filter clinics by distance
-    const clinicsInRadius = allClinics.filter((clinic) => {
-      if (radiusMiles === 999) return true // Nationwide
-      if (!profile.latitude || !profile.longitude || !clinic.latitude || !clinic.longitude) return true
+  // Pre-compute all distances once (avoid recalculating haversine at each radius step)
+  const clinicsWithDistance = allClinics.map((clinic) => ({
+    clinic,
+    distance:
+      profile.latitude && profile.longitude && clinic.latitude && clinic.longitude
+        ? haversineDistance(profile.latitude, profile.longitude, clinic.latitude, clinic.longitude)
+        : 999,
+  })).sort((a, b) => a.distance - b.distance)
 
-      const distMiles = haversineDistance(profile.latitude, profile.longitude, clinic.latitude, clinic.longitude)
-      return distMiles <= radiusMiles
-    })
+  for (const radiusMiles of RADIUS_STEPS) {
+    // Filter clinics by pre-computed distance
+    const clinicsInRadius = clinicsWithDistance
+      .filter((c) => radiusMiles === 999 || c.distance <= radiusMiles)
+      .map((c) => c.clinic)
 
     if (clinicsInRadius.length === 0) continue
 
@@ -603,16 +609,9 @@ export async function runMatchingEngine(leadId: string): Promise<{
   }
 }
 
-function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 3959 // Earth's radius in miles
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLon = ((lon2 - lon1) * Math.PI) / 180
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  return R * c
-}
+// Use shared calculateHaversineDistance from lib/utils/geo.ts
+// Local alias for backwards compatibility with internal references
+const haversineDistance = calculateHaversineDistance
 
 // Re-export types for convenience
 export type { LeadAnswer, ClinicProfile, MatchScoreBreakdown, MatchReason, ClinicMatch }

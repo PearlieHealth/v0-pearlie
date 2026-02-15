@@ -39,9 +39,19 @@ export async function POST(request: Request) {
           .eq("id", leadId)
           .then(() => console.log("[match] Updated lead coordinates"))
       } else {
-        console.warn("[match] Geocoding failed, using default London coordinates")
-        leadLat = 51.5074
-        leadLon = -0.1278
+        // If lead already has stored coords from lead creation, use those
+        // Otherwise return error — don't silently default to London
+        if (lead.latitude && lead.longitude) {
+          console.warn("[match] Re-geocoding failed, using stored lead coordinates")
+          leadLat = Number(lead.latitude)
+          leadLon = Number(lead.longitude)
+        } else {
+          console.error("[match] Geocoding failed and no stored coordinates for lead:", leadId)
+          return NextResponse.json(
+            { error: "We couldn't verify your postcode. Please try again." },
+            { status: 400 },
+          )
+        }
       }
     }
 
@@ -103,7 +113,9 @@ export async function POST(request: Request) {
 
     console.log("[match] Ranked", rankedClinics.length, "clinics")
 
-    // 7. Persist match to database
+    // 7. Persist match to database (clean up previous matches for this lead first)
+    await supabase.from("matches").delete().eq("lead_id", leadId)
+
     const clinicIds = rankedClinics.map((rc) => rc.clinic.id)
     const { data: match, error: matchError } = await supabase
       .from("matches")
