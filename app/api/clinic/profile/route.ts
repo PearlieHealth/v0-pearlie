@@ -40,6 +40,9 @@ const ARRAY_FIELD_LIMITS: Record<string, number> = {
   before_after_images: 20,
 }
 
+// Array fields that contain URLs — skip per-item string length validation
+const URL_ARRAY_FIELDS = new Set(["images", "gallery_images"])
+
 const MAX_STRING_ITEM_LENGTH = 200
 const MAX_TEXT_LENGTH = 5000
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -105,6 +108,9 @@ function validateBeforeAfterImages(images: unknown): string | null {
 function validateArrayField(value: unknown, fieldName: string, maxItems: number): string | null {
   if (!Array.isArray(value)) return `${fieldName} must be an array`
   if (value.length > maxItems) return `${fieldName}: too many items (max ${maxItems})`
+
+  // Skip per-item string length check for URL fields (URLs can exceed 200 chars)
+  if (URL_ARRAY_FIELDS.has(fieldName)) return null
 
   for (const item of value) {
     if (typeof item === "string" && item.length > MAX_STRING_ITEM_LENGTH) {
