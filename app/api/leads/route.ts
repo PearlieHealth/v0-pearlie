@@ -172,13 +172,17 @@ export async function POST(request: Request) {
       .single()
 
     if (insertError) {
-      console.error("[leads] Error creating lead:", insertError)
-      throw insertError
+      console.error("[leads] Supabase insert error:", insertError.message, insertError.details, insertError.hint)
+      return NextResponse.json(
+        { error: `Database error: ${insertError.message}`, details: insertError.details, hint: insertError.hint },
+        { status: 500 },
+      )
     }
 
     return NextResponse.json({ leadId: insertedLead.id }, { status: 201 })
   } catch (error) {
-    console.error("[leads] Error in lead creation:", error)
-    return NextResponse.json({ error: "Failed to create lead" }, { status: 500 })
+    const message = error instanceof Error ? error.message : "Unknown error"
+    console.error("[leads] Error in lead creation:", message)
+    return NextResponse.json({ error: `Failed to create lead: ${message}` }, { status: 500 })
   }
 }

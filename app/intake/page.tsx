@@ -337,7 +337,10 @@ export default function IntakePage() {
         }),
       })
 
-      if (!leadRes.ok) throw new Error("Failed to create lead")
+      if (!leadRes.ok) {
+        const errBody = await leadRes.json().catch(() => ({}))
+        throw new Error(errBody.error || `Failed to create lead (${leadRes.status})`)
+      }
       const { leadId } = await leadRes.json()
       localStorage.setItem("pearlie_lead_id", leadId)
 
