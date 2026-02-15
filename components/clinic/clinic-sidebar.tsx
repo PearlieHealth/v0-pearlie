@@ -54,7 +54,7 @@ const navItems = [
     href: "/clinic/insights",
     label: "Insights",
     icon: BarChart3,
-    roles: ["CLINIC_ADMIN", "CORPORATE_ADMIN"],
+    roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
   },
   {
     href: "/clinic/profile",
@@ -72,7 +72,7 @@ const navItems = [
     href: "/clinic/team",
     label: "Team",
     icon: UserCog,
-    roles: ["CLINIC_ADMIN", "CORPORATE_ADMIN"],
+    roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
   },
   {
     href: "/clinic/settings",
