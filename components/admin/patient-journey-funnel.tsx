@@ -9,23 +9,16 @@ type FunnelProps = {
   matchesShown?: number
   clinicClicks?: number
   bookedConsults?: number
-  treatmentAccepted?: number
+  bookingsConfirmed?: number
 }
 
 export function PatientJourneyFunnel(props: FunnelProps) {
-  // Use props directly instead of expecting a nested data object
-
-const stages = [
+  const stages = [
     { label: "Leads Submitted", value: safeNumber(props.leadsSubmitted), color: "bg-[#1a2332]" },
     { label: "Matches Shown", value: safeNumber(props.matchesShown), color: "bg-[#2d3b4f]" },
     { label: "Clinic Clicks", value: safeNumber(props.clinicClicks), color: "bg-[#3f5166]" },
-    { label: "Booked Consults", value: safeNumber(props.bookedConsults), color: "bg-[#51677d]", placeholder: true },
-    {
-      label: "Treatment Accepted",
-      value: safeNumber(props.treatmentAccepted),
-      color: "bg-[#637d94]",
-      placeholder: true,
-    },
+    { label: "Booking Requests", value: safeNumber(props.bookedConsults), color: "bg-[#51677d]" },
+    { label: "Bookings Confirmed", value: safeNumber(props.bookingsConfirmed), color: "bg-[#637d94]" },
   ]
 
   const calculateConversion = (current: number, previous: number) => {
@@ -55,9 +48,6 @@ const stages = [
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between text-xs md:text-sm gap-0.5 md:gap-2">
                   <span className="font-medium">{stage.label}</span>
                   <div className="flex items-center gap-1 md:gap-2 flex-wrap">
-                    {stage.placeholder && (
-                      <span className="text-[10px] md:text-xs text-muted-foreground">(Coming soon)</span>
-                    )}
                     <span className="font-semibold">{stage.value}</span>
                     {index > 0 && (
                       <span className="text-[10px] md:text-xs text-muted-foreground">({conversionRate})</span>

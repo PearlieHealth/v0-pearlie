@@ -71,16 +71,21 @@ export function ConversionBlockersPanel({ events = [] }: ConversionBlockersPanel
     })
   }
 
-  // Blocker 3: Dropped off at budget step
-  const budgetDropOff = events.filter(
-    (e) => e.event_name === "form_abandoned" && (e.metadata?.last_step === 6 || e.metadata?.last_step === "6") && e.metadata?.last_step_name === "Budget",
+  // Blocker 3: Dropped off at cost question (v4 form: step 7 "Cost Mindset")
+  const costDropOff = events.filter(
+    (e) => e.event_name === "form_abandoned" && (
+      e.metadata?.last_step === 7 ||
+      String(e.metadata?.last_step) === "7" ||
+      e.metadata?.step_name === "Cost Mindset" ||
+      e.metadata?.last_step_name === "Cost Mindset"
+    ),
   ).length
 
-  if (budgetDropOff > 0) {
+  if (costDropOff > 0) {
     blockers.push({
       type: "budget_drop_off",
-      description: "Dropped off at budget question",
-      count: budgetDropOff,
+      description: "Dropped off at cost question",
+      count: costDropOff,
       icon: XCircle,
       severity: "high",
     })

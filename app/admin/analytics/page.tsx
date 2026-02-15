@@ -152,7 +152,7 @@ export default async function AnalyticsDashboard() {
                   matchesShown={analytics.funnel.matchesShown}
                   clinicClicks={analytics.funnel.clinicClicks}
                   bookedConsults={analytics.funnel.bookedConsults}
-                  treatmentAccepted={analytics.funnel.treatmentAccepted}
+                  bookingsConfirmed={analytics.bookingsConfirmed}
                 />
               </AdminCardErrorBoundary>
 
@@ -181,13 +181,7 @@ export default async function AnalyticsDashboard() {
 
             <div className="mt-4 md:mt-6">
               <AdminCardErrorBoundary cardName="Advanced Insights">
-                <AdvancedInsightsPreview
-                  formCompletionRate={analytics.formCompletionRate}
-                  clinicClickRate={analytics.clinicClickRate}
-                  bookingRate={analytics.bookingRate}
-                  avgClinicsViewed={analytics.avgClinicsViewed}
-                  pctBookFromFirst={analytics.pctBookFromFirst}
-                />
+                <AdvancedInsightsPreview />
               </AdminCardErrorBoundary>
             </div>
           </TabsContent>
