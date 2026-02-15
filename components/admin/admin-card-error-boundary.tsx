@@ -43,7 +43,7 @@ export class AdminCardErrorBoundary extends Component<Props, State> {
                 {this.props.fallbackTitle || (this.props.cardName ? `${this.props.cardName} is temporarily unavailable` : "This metric is temporarily unavailable")}
               </span>
             </div>
-            {this.state.error && (
+            {process.env.NODE_ENV === "development" && this.state.error && (
               <p className="mt-2 text-xs text-amber-600 font-mono">{this.state.error.message}</p>
             )}
           </CardContent>
