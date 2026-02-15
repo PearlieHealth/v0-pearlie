@@ -1,4 +1,5 @@
 import type React from "react"
+import { Suspense } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { PatientJourneyFunnel } from "@/components/admin/patient-journey-funnel"
 import { RevenueOpportunityCard } from "@/components/admin/revenue-opportunity-card"
@@ -17,6 +18,7 @@ import { FlowSplitCard } from "@/components/admin/flow-split-card"
 import { PreferredTimesCard } from "@/components/admin/preferred-times-card"
 import { LocationPreferenceCard } from "@/components/admin/location-preference-card"
 import { PostcodeDemandCard } from "@/components/admin/postcode-demand-card"
+import { DateRangeSelector } from "@/components/admin/date-range-selector"
 import { SelfTestButton } from "@/components/admin/self-test-button"
 import { AnalyticsSelfCheckButton } from "@/components/admin/analytics-self-check-button"
 import { LiveFlowTestButton } from "@/components/admin/live-flow-test-button"
@@ -52,8 +54,22 @@ function MetricWithTooltip({
   )
 }
 
-export default async function AnalyticsDashboard() {
+export default async function AnalyticsDashboard({
+  searchParams,
+}: {
+  searchParams?: Promise<{ days?: string }>
+}) {
   const supabase = await createClient()
+  const params = await searchParams
+  const daysParam = params?.days
+
+  // Compute date cutoff from search params
+  let dateFrom: string | null = null
+  if (daysParam && ["7", "30", "90"].includes(daysParam)) {
+    const d = new Date()
+    d.setDate(d.getDate() - Number(daysParam))
+    dateFrom = d.toISOString()
+  }
 
   let rawData: {
     leads: any[] | null
@@ -70,12 +86,26 @@ export default async function AnalyticsDashboard() {
   }
 
   try {
+    // Build queries with optional date filtering
+    let leadsQuery = supabase.from("leads").select("*").order("created_at", { ascending: false })
+    let matchesQuery = supabase.from("matches").select("*").order("created_at", { ascending: false })
+    let eventsQuery = supabase.from("analytics_events").select("*").order("created_at", { ascending: false }).limit(10000)
+    const clinicsQuery = supabase.from("clinics").select("id, name")
+    let matchResultsQuery = supabase.from("match_results").select("*")
+
+    if (dateFrom) {
+      leadsQuery = leadsQuery.gte("created_at", dateFrom)
+      matchesQuery = matchesQuery.gte("created_at", dateFrom)
+      eventsQuery = eventsQuery.gte("created_at", dateFrom)
+      matchResultsQuery = matchResultsQuery.gte("created_at", dateFrom)
+    }
+
     const [leadsRes, matchesRes, eventsRes, clinicsRes, matchResultsRes] = await Promise.all([
-      supabase.from("leads").select("*").order("created_at", { ascending: false }),
-      supabase.from("matches").select("*").order("created_at", { ascending: false }),
-      supabase.from("analytics_events").select("*").order("created_at", { ascending: false }).limit(10000),
-      supabase.from("clinics").select("id, name"),
-      supabase.from("match_results").select("*"),
+      leadsQuery,
+      matchesQuery,
+      eventsQuery,
+      clinicsQuery,
+      matchResultsQuery,
     ])
 
     rawData = {
@@ -100,7 +130,12 @@ export default async function AnalyticsDashboard() {
 
         {/* Desktop header with test buttons */}
         <div className="hidden md:flex items-center justify-between mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-[#1a2332]">Analytics Dashboard</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl md:text-2xl font-bold text-[#1a2332]">Analytics Dashboard</h1>
+            <Suspense>
+              <DateRangeSelector />
+            </Suspense>
+          </div>
           <div className="flex items-center gap-2">
             <LiveFlowTestButton />
             <SelfTestButton />
@@ -110,7 +145,12 @@ export default async function AnalyticsDashboard() {
 
         {/* Mobile header */}
         <div className="md:hidden mb-4">
-          <h1 className="text-lg font-bold text-[#1a2332] mb-3">Analytics Dashboard</h1>
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-lg font-bold text-[#1a2332]">Analytics Dashboard</h1>
+            <Suspense>
+              <DateRangeSelector />
+            </Suspense>
+          </div>
           <div className="flex flex-wrap gap-2">
             <LiveFlowTestButton />
             <SelfTestButton />
