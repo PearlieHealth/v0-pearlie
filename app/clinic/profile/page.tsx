@@ -50,6 +50,7 @@ interface ClinicProfile {
   notification_email: string
   website: string
   description: string
+  featured_review: string
   accepts_urgent: boolean
   treatments: string[]
   services: string[]
@@ -487,9 +488,21 @@ export default function ClinicProfilePage() {
               />
               <InlineField
                 label="Address"
-                value={`${profile.address}${profile.city ? `, ${profile.city}` : ""} ${profile.postcode}`}
+                value={profile.address}
                 icon={MapPin}
                 onChange={(val) => setProfile({ ...profile, address: val })}
+              />
+              <InlineField
+                label="City"
+                value={profile.city}
+                icon={MapPin}
+                onChange={(val) => setProfile({ ...profile, city: val })}
+              />
+              <InlineField
+                label="Postcode"
+                value={profile.postcode}
+                icon={MapPin}
+                onChange={(val) => setProfile({ ...profile, postcode: val })}
               />
               <InlineField
                 label="Phone"

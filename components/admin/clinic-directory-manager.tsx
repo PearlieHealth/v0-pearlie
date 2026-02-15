@@ -98,9 +98,9 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
   const filterClinics = (clinicList: Clinic[]) => {
     return clinicList.filter(
       (clinic) =>
-        clinic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        clinic.postcode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        clinic.treatments.some((t) => t.toLowerCase().includes(searchTerm.toLowerCase())),
+        (clinic.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (clinic.postcode || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (clinic.treatments || []).some((t) => t.toLowerCase().includes(searchTerm.toLowerCase())),
     )
   }
 
@@ -239,17 +239,17 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
                 <TableCell>
                   <div className="text-sm">
                     <div>{clinic.postcode}</div>
-                    <div className="text-muted-foreground">{clinic.address.split(",")[0]}</div>
+                    <div className="text-muted-foreground">{(clinic.address || clinic.postcode || "").split(",")[0]}</div>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1 max-w-xs">
-                    {clinic.treatments.slice(0, 2).map((treatment, i) => (
+                    {(clinic.treatments || []).slice(0, 2).map((treatment, i) => (
                       <Badge key={i} variant="outline" className="text-xs">
                         {treatment}
                       </Badge>
                     ))}
-                    {clinic.treatments.length > 2 && (
+                    {(clinic.treatments || []).length > 2 && (
                       <Badge variant="outline" className="text-xs">
                         +{clinic.treatments.length - 2}
                       </Badge>
