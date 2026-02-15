@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,10 +10,11 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { MessageCircle, Send, Loader2, ArrowLeft, User, Clock, Bell, Heart } from "lucide-react"
+import { MessageCircle, Send, Loader2, ArrowLeft, User, Clock, Heart, Check, CheckCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { useChatChannel, useConversationUpdates, type RealtimeMessage } from "@/hooks/use-chat-channel"
 
 async function getAccessToken(): Promise<string | null> {
   const supabase = createBrowserClient()
@@ -31,12 +32,14 @@ interface Conversation {
   status: string
   last_message_at: string
   unread_by_clinic: boolean
+  unread_count_clinic?: number
   lead?: {
     first_name: string
     last_name: string
     email: string
     phone: string
-    treatment_type: string
+    treatment_interest: string
+    primary_treatment: string
   }
   latest_message?: string
 }
@@ -45,6 +48,7 @@ interface Message {
   id: string
   content: string
   sender_type: "patient" | "clinic" | "bot"
+  status?: "sent" | "delivered" | "read"
   created_at: string
   read_at?: string
 }
@@ -59,61 +63,57 @@ export default function ClinicInboxPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [clinicId, setClinicId] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const prevUnreadCountRef = useRef<number>(0)
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Fetch conversations with faster polling (10s instead of 30s)
+  // ── Realtime: messages in the active conversation ──────────────
+  const handleNewMessage = useCallback((msg: RealtimeMessage) => {
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === msg.id)) return prev
+      return [...prev, msg]
+    })
+  }, [])
+
+  const handleStatusChange = useCallback((msgId: string, status: string) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, status: status as Message["status"] } : m))
+    )
+  }, [])
+
+  const { otherTyping: patientTyping, sendTyping } = useChatChannel({
+    conversationId: selectedConversation?.id || null,
+    userType: "clinic",
+    onNewMessage: handleNewMessage,
+    onStatusChange: handleStatusChange,
+    enabled: !!selectedConversation,
+  })
+
+  // ── Realtime: conversations list updates ───────────────────────
+  const handleConversationUpdate = useCallback(() => {
+    // Re-fetch conversations list when any conversation changes
+    fetchConversations()
+  }, [])
+
+  useConversationUpdates({
+    clinicId,
+    onUpdate: handleConversationUpdate,
+    enabled: !!clinicId,
+  })
+
+  // ── Initial load + fallback polling (30s) for conversations ────
   useEffect(() => {
-    let isMounted = true
-    const abortController = new AbortController()
-    
-    const fetchWithAbort = async () => {
-      if (!isMounted) return
-      try {
-        const token = await getAccessToken()
-        const response = await fetch("/api/clinic/conversations", {
-          signal: abortController.signal,
-          headers: authHeaders(token),
-        })
-        if (!isMounted) return
-        if (response.ok) {
-          const data = await response.json()
-          const convs = data.conversations || []
-          
-          const totalUnread = convs.filter(
-            (c: Conversation) => c.unread_by_clinic
-          ).length
-          
-          if (totalUnread > prevUnreadCountRef.current && prevUnreadCountRef.current > 0) {
-            const newCount = totalUnread - prevUnreadCountRef.current
-            toast({
-              title: "New message",
-              description: `You have ${newCount} new message${newCount > 1 ? "s" : ""}`,
-            })
-          }
-          prevUnreadCountRef.current = totalUnread
-          
-          setConversations(convs)
-        } else if (response.status === 401) {
-          router.push("/clinic/login")
-        }
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') return
-      } finally {
-        if (isMounted) setIsLoading(false)
-      }
-    }
-    
-    fetchWithAbort()
-    const interval = setInterval(fetchWithAbort, 10000)
-    
-    return () => {
-      isMounted = false
-      abortController.abort()
-      clearInterval(interval)
-    }
-  }, [router, toast])
+    fetchConversations()
+    const interval = setInterval(fetchConversations, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // ── Fallback polling (15s) for active conversation messages ────
+  useEffect(() => {
+    if (!selectedConversation) return
+    const interval = setInterval(() => fetchMessagesForConversation(selectedConversation.id), 15000)
+    return () => clearInterval(interval)
+  }, [selectedConversation])
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -122,53 +122,64 @@ export default function ClinicInboxPage() {
     }
   }, [messages])
 
-  // Poll for new messages in selected conversation
-  useEffect(() => {
-    if (!selectedConversation) return
-    
-    let isMounted = true
-    const abortController = new AbortController()
-    
-    const fetchMessages = async () => {
-      if (!isMounted) return
-      try {
-        const token = await getAccessToken()
-        const response = await fetch(
-          `/api/clinic/conversations/${selectedConversation.id}/messages`,
-          { signal: abortController.signal, headers: authHeaders(token) }
-        )
-        if (!isMounted) return
-        if (response.ok) {
-          const data = await response.json()
-          setMessages(data.messages || [])
+  // ── Data fetching ──────────────────────────────────────────────
+  const fetchConversations = async () => {
+    try {
+      const token = await getAccessToken()
+      const response = await fetch("/api/clinic/conversations", {
+        headers: authHeaders(token),
+      })
+      if (response.ok) {
+        const data = await response.json()
+        const convs = data.conversations || []
+
+        // Get clinicId for Realtime subscription
+        if (convs.length > 0 && !clinicId) {
+          const idRes = await fetch("/api/clinic/me", { headers: authHeaders(token) })
+          if (idRes.ok) {
+            const idData = await idRes.json()
+            setClinicId(idData.clinic?.id || null)
+          }
         }
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') return
+
+        const totalUnread = convs.filter(
+          (c: Conversation) => c.unread_by_clinic
+        ).length
+
+        if (totalUnread > prevUnreadCountRef.current && prevUnreadCountRef.current > 0) {
+          const newCount = totalUnread - prevUnreadCountRef.current
+          toast({
+            title: "New message",
+            description: `You have ${newCount} new message${newCount > 1 ? "s" : ""}`,
+          })
+        }
+        prevUnreadCountRef.current = totalUnread
+
+        setConversations(convs)
+      } else if (response.status === 401) {
+        router.push("/clinic/login")
       }
+    } catch {
+      // Silently fail
+    } finally {
+      setIsLoading(false)
     }
-    
-    const interval = setInterval(fetchMessages, 5000)
-    
-    return () => {
-      isMounted = false
-      abortController.abort()
-      clearInterval(interval)
+  }
+
+  const fetchMessagesForConversation = async (conversationId: string) => {
+    try {
+      const token = await getAccessToken()
+      const response = await fetch(
+        `/api/clinic/conversations/${conversationId}/messages`,
+        { headers: authHeaders(token) }
+      )
+      if (response.ok) {
+        const data = await response.json()
+        setMessages(data.messages || [])
+      }
+    } catch {
+      // Silently fail
     }
-  }, [selectedConversation])
-
-
-
-  // Signal typing to patient (debounced - sends at most once per 5 seconds)
-  const signalTyping = () => {
-    if (!selectedConversation || typingTimeoutRef.current) return
-    fetch("/api/chat/typing", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ conversationId: selectedConversation.id }),
-    }).catch(() => {}) // Fire and forget
-    typingTimeoutRef.current = setTimeout(() => {
-      typingTimeoutRef.current = null
-    }, 5000)
   }
 
   const selectConversation = async (conversation: Conversation) => {
@@ -184,10 +195,12 @@ export default function ClinicInboxPage() {
       if (response.ok) {
         const data = await response.json()
         setMessages(data.messages || [])
-        // Mark as read
+        // Mark as read locally
         setConversations((prev) =>
           prev.map((c) =>
-            c.id === conversation.id ? { ...c, unread_by_clinic: false } : c
+            c.id === conversation.id
+              ? { ...c, unread_by_clinic: false, unread_count_clinic: 0 }
+              : c
           )
         )
       }
@@ -216,7 +229,10 @@ export default function ClinicInboxPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setMessages((prev) => [...prev, data.message])
+        const newMsgs = data.botMessage
+          ? [data.botMessage, data.message]
+          : [data.message]
+        setMessages((prev) => [...prev, ...newMsgs])
         setNewMessage("")
       }
     } catch (error) {
@@ -226,8 +242,11 @@ export default function ClinicInboxPage() {
     }
   }
 
-  const formatTime = (date: string) => {
+  // ── Formatting helpers ─────────────────────────────────────────
+  const formatTime = (date: string | null) => {
+    if (!date) return ""
     const d = new Date(date)
+    if (isNaN(d.getTime())) return ""
     const now = new Date()
     const diffHours = (now.getTime() - d.getTime()) / (1000 * 60 * 60)
 
@@ -240,18 +259,16 @@ export default function ClinicInboxPage() {
     return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })
   }
 
-  const getTreatmentLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      checkup: "Check-up",
-      cleaning: "Cleaning",
-      whitening: "Whitening",
-      implants: "Implants",
-      orthodontics: "Orthodontics",
-      crowns: "Crowns/Veneers",
-      emergency: "Emergency",
-      other: "Other",
+  // ── Delivery status icon (for clinic's own sent messages) ──────
+  const StatusIcon = ({ status }: { status?: string }) => {
+    if (!status || status === "sent") {
+      return <Check className="h-3 w-3 text-teal-200" />
     }
-    return labels[type] || type
+    if (status === "delivered") {
+      return <CheckCheck className="h-3 w-3 text-teal-200" />
+    }
+    // read
+    return <CheckCheck className="h-3 w-3 text-white" />
   }
 
   if (isLoading) {
@@ -325,9 +342,9 @@ export default function ClinicInboxPage() {
                               {formatTime(conv.last_message_at)}
                             </span>
                           </div>
-                          {conv.lead?.treatment_type && (
+                          {(conv.lead?.treatment_interest || conv.lead?.primary_treatment) && (
                             <Badge variant="secondary" className="text-xs mt-1">
-                              {getTreatmentLabel(conv.lead.treatment_type)}
+                              {conv.lead?.treatment_interest || conv.lead?.primary_treatment}
                             </Badge>
                           )}
                           {conv.latest_message && (
@@ -337,7 +354,15 @@ export default function ClinicInboxPage() {
                           )}
                         </div>
                         {conv.unread_by_clinic && (
-                          <div className="h-2 w-2 rounded-full bg-teal-500 flex-shrink-0" />
+                          <div className="flex-shrink-0 flex items-center gap-1">
+                            {(conv.unread_count_clinic || 0) > 0 ? (
+                              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-teal-500 text-white text-xs px-1.5">
+                                {conv.unread_count_clinic}
+                              </span>
+                            ) : (
+                              <div className="h-2 w-2 rounded-full bg-teal-500" />
+                            )}
+                          </div>
                         )}
                       </div>
                     </button>
@@ -424,7 +449,7 @@ export default function ClinicInboxPage() {
                                 className={cn(
                                   "flex items-center gap-1 mt-1",
                                   message.sender_type === "clinic"
-                                    ? "text-teal-100"
+                                    ? "text-teal-100 justify-end"
                                     : "text-neutral-400"
                                 )}
                               >
@@ -435,6 +460,9 @@ export default function ClinicInboxPage() {
                                     { hour: "2-digit", minute: "2-digit" }
                                   )}
                                 </span>
+                                {message.sender_type === "clinic" && (
+                                  <StatusIcon status={message.status} />
+                                )}
                               </div>
                             </div>
                           )}
@@ -445,6 +473,20 @@ export default function ClinicInboxPage() {
                 </ScrollArea>
               </CardContent>
 
+              {/* Typing indicator */}
+              {patientTyping && (
+                <div className="px-4 py-2 border-t">
+                  <div className="flex items-center gap-2 text-xs text-neutral-400">
+                    <span className="flex gap-0.5">
+                      <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </span>
+                    Patient is typing...
+                  </div>
+                </div>
+              )}
+
               {/* Reply Input */}
               <div className="border-t p-4">
                 <form onSubmit={sendReply} className="flex gap-2">
@@ -452,7 +494,7 @@ export default function ClinicInboxPage() {
                     value={newMessage}
                     onChange={(e) => {
                       setNewMessage(e.target.value)
-                      signalTyping()
+                      sendTyping()
                     }}
                     placeholder="Type your reply..."
                     className="flex-1"
