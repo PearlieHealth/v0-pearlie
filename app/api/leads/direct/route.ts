@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
         source: "direct_profile",
         consent_contact: true,
         contact_method: "email",
+        contact_value: email.trim().toLowerCase(),
       })
       .select()
       .single()

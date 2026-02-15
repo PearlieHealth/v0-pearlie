@@ -1113,8 +1113,8 @@ export default function IntakePage() {
                     </div>
                   </motion.div>
 
-                  {/* Google sign-in option - requires name + consent */}
-                  <motion.div {...fadeUp(0.45)}>
+                  {/* Google sign-in option - hidden for now, re-enable when ready */}
+                  {/* <motion.div {...fadeUp(0.45)}>
                     {formData.firstName && formData.lastName && formData.consentContact ? (
                       <GoogleSignInButton
                         redirectTo={`${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=/intake/google-complete`}
@@ -1146,7 +1146,7 @@ export default function IntakePage() {
                     <div className="flex-1 h-px bg-border" />
                     <span className="text-sm text-[#323141]/50 font-medium">or</span>
                     <div className="flex-1 h-px bg-border" />
-                  </motion.div>
+                  </motion.div> */}
 
                   <motion.div {...fadeUp(0.55)}>
                     <Button
