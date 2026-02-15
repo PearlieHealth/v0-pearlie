@@ -1,16 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
-import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
+import { verifyAdminAuth } from "@/lib/admin-auth"
 
 export async function POST(request: Request) {
   try {
-    // Verify admin authentication
-    const cookieStore = await cookies()
-    const isAdmin = cookieStore.get("admin_authenticated")?.value === "true"
-    
-    if (!isAdmin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    // Verify admin authentication using the shared auth guard
+    const auth = await verifyAdminAuth()
+    if (!auth.authenticated) return auth.response
 
     // Verify confirmation code from request
     const { confirmationCode } = await request.json()
