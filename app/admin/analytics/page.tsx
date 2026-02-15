@@ -17,6 +17,10 @@ import { FlowSplitCard } from "@/components/admin/flow-split-card"
 import { PreferredTimesCard } from "@/components/admin/preferred-times-card"
 import { LocationPreferenceCard } from "@/components/admin/location-preference-card"
 import { PostcodeDemandCard } from "@/components/admin/postcode-demand-card"
+import { FinanceInsightsCard } from "@/components/admin/finance-insights-card"
+import { TreatmentBenchmarksCard } from "@/components/admin/treatment-benchmarks-card"
+import { BookingOutcomesCard } from "@/components/admin/booking-outcomes-card"
+import { CrossSegmentCard } from "@/components/admin/cross-segment-card"
 import { DateRangeSelector } from "@/components/admin/date-range-selector"
 import { SelfTestButton } from "@/components/admin/self-test-button"
 import { AnalyticsSelfCheckButton } from "@/components/admin/analytics-self-check-button"
@@ -27,31 +31,6 @@ import { Card } from "@/components/ui/card"
 import { AdminNav } from "@/components/admin/admin-nav"
 import { normalizeAnalyticsData } from "@/lib/analytics/normalize-analytics"
 import { AdminCardErrorBoundary } from "@/components/admin/admin-card-error-boundary"
-import { HelpCircle } from "lucide-react"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-
-function MetricWithTooltip({
-  label,
-  tooltip,
-  children,
-}: { label: string; tooltip: string; children: React.ReactNode }) {
-  return (
-    <TooltipProvider>
-      <div className="flex items-center gap-1">
-        <span>{label}</span>
-        <Tooltip>
-          <TooltipTrigger>
-            <HelpCircle className="w-3 h-3 text-muted-foreground" />
-          </TooltipTrigger>
-          <TooltipContent className="max-w-xs">
-            <p className="text-xs">{tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-        {children}
-      </div>
-    </TooltipProvider>
-  )
-}
 
 export default async function AnalyticsDashboard({
   searchParams,
@@ -190,7 +169,7 @@ export default async function AnalyticsDashboard({
           </div>
         </div>
 
-        {/* Executive Snapshot - wrapped in error boundary */}
+        {/* Executive Snapshot */}
         <AdminCardErrorBoundary cardName="Executive Snapshot">
           <ExecutiveSnapshot
             totalLeads={analytics.leads.length}
@@ -212,23 +191,38 @@ export default async function AnalyticsDashboard({
           />
         </AdminCardErrorBoundary>
 
-        <Tabs defaultValue="funnel" className="mt-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6 h-auto">
-            <TabsTrigger value="funnel" className="text-xs md:text-sm py-2">
-              Conversion Funnel
+        {/* ================================================================
+            TAB LAYOUT
+            1. Overview       — Core business metrics (funnel, bookings, treatment conversion, revenue)
+            2. Patient Insights — Psychology & preferences (intent, blockers, finance, cross-segment)
+            3. Clinics        — Per-clinic performance + postcode demand
+            4. Engagement     — Form analytics + conversion blockers
+            5. Leads          — Raw data table
+            ================================================================ */}
+        <Tabs defaultValue="overview" className="mt-6">
+          <TabsList className="flex w-full mb-6 h-auto overflow-x-auto">
+            <TabsTrigger value="overview" className="text-xs md:text-sm py-2 flex-1 min-w-0">
+              Overview
             </TabsTrigger>
-            <TabsTrigger value="insights" className="text-xs md:text-sm py-2">
+            <TabsTrigger value="psychology" className="text-xs md:text-sm py-2 flex-1 min-w-0">
               Patient Insights
             </TabsTrigger>
-            <TabsTrigger value="clinics" className="text-xs md:text-sm py-2">
-              Clinic Performance
+            <TabsTrigger value="clinics" className="text-xs md:text-sm py-2 flex-1 min-w-0">
+              Clinics
             </TabsTrigger>
-            <TabsTrigger value="leads" className="text-xs md:text-sm py-2">
-              Leads Table
+            <TabsTrigger value="engagement" className="text-xs md:text-sm py-2 flex-1 min-w-0">
+              Engagement
+            </TabsTrigger>
+            <TabsTrigger value="leads" className="text-xs md:text-sm py-2 flex-1 min-w-0">
+              Leads
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="funnel">
+          {/* ============================================================
+              TAB 1: OVERVIEW
+              Core business metrics — what a CEO sees first
+              ============================================================ */}
+          <TabsContent value="overview">
             <div className="grid gap-4 md:gap-6 md:grid-cols-2">
               <AdminCardErrorBoundary cardName="Patient Journey Funnel">
                 <PatientJourneyFunnel
@@ -240,19 +234,24 @@ export default async function AnalyticsDashboard({
                 />
               </AdminCardErrorBoundary>
 
-              <AdminCardErrorBoundary cardName="Conversion Blockers">
-                <Card className="p-4 md:p-6">
-                  <h3 className="text-base md:text-lg font-semibold mb-4">Conversion Intelligence</h3>
-                  <FormDropOffChart events={analytics.events} />
-                </Card>
+              <AdminCardErrorBoundary cardName="Booking Outcomes">
+                <BookingOutcomesCard
+                  leads={analytics.leads}
+                  clinicMap={analytics.clinicMap}
+                />
               </AdminCardErrorBoundary>
             </div>
 
-            <div className="grid gap-4 md:gap-6 md:grid-cols-2 mt-4 md:mt-6">
-              <AdminCardErrorBoundary cardName="Conversion Blockers Panel">
-                <ConversionBlockersPanel events={analytics.events} />
+            <div className="mt-4 md:mt-6">
+              <AdminCardErrorBoundary cardName="Treatment Benchmarks">
+                <TreatmentBenchmarksCard
+                  leads={analytics.leads}
+                  events={analytics.events}
+                />
               </AdminCardErrorBoundary>
+            </div>
 
+            <div className="mt-4 md:mt-6">
               <AdminCardErrorBoundary cardName="Revenue Opportunity">
                 <RevenueOpportunityCard
                   bookedTreatmentCounts={analytics.bookedTreatmentCounts}
@@ -262,15 +261,13 @@ export default async function AnalyticsDashboard({
                 />
               </AdminCardErrorBoundary>
             </div>
-
-            <div className="mt-4 md:mt-6">
-              <AdminCardErrorBoundary cardName="Advanced Insights">
-                <AdvancedInsightsPreview />
-              </AdminCardErrorBoundary>
-            </div>
           </TabsContent>
 
-          <TabsContent value="insights">
+          {/* ============================================================
+              TAB 2: PATIENT INSIGHTS
+              Understanding what patients want, feel, and worry about
+              ============================================================ */}
+          <TabsContent value="psychology">
             <div className="grid gap-4 md:gap-6 md:grid-cols-2">
               <AdminCardErrorBoundary cardName="Outcome Priorities">
                 <OutcomePrioritiesCard leads={analytics.leads} />
@@ -298,16 +295,32 @@ export default async function AnalyticsDashboard({
             </div>
 
             <div className="grid gap-4 md:gap-6 md:grid-cols-2 mt-4 md:mt-6">
-              <AdminCardErrorBoundary cardName="Preferred Times">
-                <PreferredTimesCard leads={analytics.leads} />
+              <AdminCardErrorBoundary cardName="Finance Insights">
+                <FinanceInsightsCard leads={analytics.leads} />
               </AdminCardErrorBoundary>
 
               <AdminCardErrorBoundary cardName="Location Preference">
                 <LocationPreferenceCard leads={analytics.leads} />
               </AdminCardErrorBoundary>
             </div>
+
+            <div className="grid gap-4 md:gap-6 md:grid-cols-2 mt-4 md:mt-6">
+              <AdminCardErrorBoundary cardName="Preferred Times">
+                <PreferredTimesCard leads={analytics.leads} />
+              </AdminCardErrorBoundary>
+            </div>
+
+            <div className="mt-4 md:mt-6">
+              <AdminCardErrorBoundary cardName="Cross-Segment Intelligence">
+                <CrossSegmentCard leads={analytics.leads} />
+              </AdminCardErrorBoundary>
+            </div>
           </TabsContent>
 
+          {/* ============================================================
+              TAB 3: CLINIC PERFORMANCE
+              Per-clinic metrics + geographic demand
+              ============================================================ */}
           <TabsContent value="clinics">
             <AdminCardErrorBoundary cardName="Clinic Performance">
               <ClinicPerformanceTable
@@ -325,6 +338,35 @@ export default async function AnalyticsDashboard({
             </div>
           </TabsContent>
 
+          {/* ============================================================
+              TAB 4: ENGAGEMENT & CONVERSION
+              Form analytics, drop-off, conversion blockers
+              ============================================================ */}
+          <TabsContent value="engagement">
+            <div className="grid gap-4 md:gap-6 md:grid-cols-2">
+              <AdminCardErrorBoundary cardName="Form Drop-Off">
+                <Card className="p-4 md:p-6">
+                  <h3 className="text-base md:text-lg font-semibold mb-4">Form Drop-Off Analysis</h3>
+                  <FormDropOffChart events={analytics.events} />
+                </Card>
+              </AdminCardErrorBoundary>
+
+              <AdminCardErrorBoundary cardName="Conversion Blockers">
+                <ConversionBlockersPanel events={analytics.events} />
+              </AdminCardErrorBoundary>
+            </div>
+
+            <div className="mt-4 md:mt-6">
+              <AdminCardErrorBoundary cardName="Advanced Insights">
+                <AdvancedInsightsPreview />
+              </AdminCardErrorBoundary>
+            </div>
+          </TabsContent>
+
+          {/* ============================================================
+              TAB 5: LEADS TABLE
+              Raw data view
+              ============================================================ */}
           <TabsContent value="leads">
             <AdminCardErrorBoundary cardName="Leads Table">
               <EnhancedLeadsTable leads={analytics.leads} />
