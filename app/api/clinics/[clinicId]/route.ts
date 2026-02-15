@@ -21,6 +21,9 @@ const PUBLIC_CLINIC_FIELDS = `
 // Fetched separately so the main query never fails.
 const GOOGLE_FIELDS = "google_place_id, google_rating, google_review_count, google_maps_url"
 
+// Languages column may not exist on all environments yet.
+const LANGUAGES_FIELDS = "languages"
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ clinicId: string }> }) {
   try {
     const { clinicId } = await params
@@ -54,6 +57,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
     } catch {
       // Google columns don't exist yet — that's fine, skip them
+    }
+
+    // Try to merge languages field (column may not exist yet)
+    try {
+      const { data: langData } = isUUID
+        ? await supabaseAdmin.from("clinics").select(LANGUAGES_FIELDS).eq("id", clinicId).single()
+        : await supabaseAdmin.from("clinics").select(LANGUAGES_FIELDS).eq("slug", clinicId).single()
+      if (langData) {
+        Object.assign(clinicData, langData)
+      }
+    } catch {
+      // languages column doesn't exist yet — skip
     }
 
     // Don't show archived clinics to anyone

@@ -39,6 +39,7 @@ export interface Clinic {
   available_days?: string[]
   available_hours?: string[]
   accepts_same_day?: boolean
+  languages?: string[]
 }
 
 export interface Lead {
