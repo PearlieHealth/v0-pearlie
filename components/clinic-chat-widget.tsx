@@ -143,10 +143,10 @@ export function ClinicChatWidget({
       const response = await fetch(`/api/leads/${leadId}/status`)
       if (response.ok) {
         const data = await response.json()
-        if (data.firstName || data.lastName) {
+        if (data.firstName) {
           setLeadInfo({
-            name: `${data.firstName || ""} ${data.lastName || ""}`.trim(),
-            email: data.email || "",
+            name: data.firstName,
+            email: "",
           })
         }
       }

@@ -1,8 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getAuthUser } from "@/lib/supabase/get-clinic-user"
+import { escapeHtml } from "@/lib/escape-html"
 import { Resend } from "resend"
 import { getBotGreeting, getBotSuggestions, getBotFollowUp } from "@/lib/chat-bot"
 import { generateIntelligentBotResponse } from "@/lib/chat-bot-ai"
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -17,11 +21,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (!UUID_REGEX.test(leadId) || !UUID_REGEX.test(clinicId)) {
+      return NextResponse.json(
+        { error: "Invalid Lead ID or Clinic ID format" },
+        { status: 400 }
+      )
+    }
+
     if (!["patient", "clinic"].includes(senderType)) {
       return NextResponse.json(
         { error: "Invalid sender type" },
         { status: 400 }
       )
+    }
+
+    // Clinic senders must be authenticated and belong to the clinic
+    if (senderType === "clinic") {
+      const user = await getAuthUser()
+      if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      const supabaseAuth = createAdminClient()
+      const { data: clinicUser } = await supabaseAuth
+        .from("clinic_users")
+        .select("clinic_id")
+        .eq("user_id", user.id)
+        .eq("clinic_id", clinicId)
+        .single()
+      if (!clinicUser) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
     }
 
     // Validate content length
@@ -165,8 +194,11 @@ export async function POST(request: NextRequest) {
     const verifiedDomain = process.env.RESEND_VERIFIED_DOMAIN
     if (senderType === "patient" && clinic.email && verifiedDomain) {
       try {
+        const safeName = escapeHtml(`${lead.first_name} ${lead.last_name}`)
+        const safeContent = escapeHtml(trimmedContent.substring(0, 500)) + (trimmedContent.length > 500 ? "..." : "")
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
         await resend.emails.send({
-          from: `MyDentalFly <notifications@${verifiedDomain}>`,
+          from: `Pearlie <notifications@${verifiedDomain}>`,
           to: clinic.email,
           subject: `New message from ${lead.first_name} ${lead.last_name}`,
           html: `
@@ -176,20 +208,20 @@ export async function POST(request: NextRequest) {
               </div>
               <div style="padding: 30px; background-color: #f9fafb;">
                 <p style="color: #374151; font-size: 16px;">
-                  You have received a new message from <strong>${lead.first_name} ${lead.last_name}</strong>:
+                  You have received a new message from <strong>${safeName}</strong>:
                 </p>
                 <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0d9488;">
-                  <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${trimmedContent.substring(0, 500)}${trimmedContent.length > 500 ? "..." : ""}</p>
+                  <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${safeContent}</p>
                 </div>
                 <div style="text-align: center; margin-top: 30px;">
-                  <a href="${process.env.NEXT_PUBLIC_BASE_URL || "https://mydentalfly.com"}/clinic/inbox" 
+                  <a href="${appUrl}/clinic/inbox"
                      style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
                     View in Inbox
                   </a>
                 </div>
               </div>
               <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
-                <p>This is an automated message from MyDentalFly</p>
+                <p>This is an automated message from Pearlie</p>
               </div>
             </div>
           `,

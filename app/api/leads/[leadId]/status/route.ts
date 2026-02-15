@@ -16,7 +16,7 @@ export async function GET(
 
     const { data: lead, error } = await supabase
       .from("leads")
-      .select("id, is_verified, email, first_name, last_name")
+      .select("id, is_verified, first_name")
       .eq("id", leadId)
       .single()
 
@@ -24,12 +24,11 @@ export async function GET(
       return NextResponse.json({ error: "Lead not found" }, { status: 404 })
     }
 
+    // Only return minimal fields — no email or last name (PII)
     return NextResponse.json({
       leadId: lead.id,
       isVerified: lead.is_verified ?? false,
-      email: lead.email,
       firstName: lead.first_name,
-      lastName: lead.last_name,
     })
   } catch (error) {
     console.error("[LeadStatus] Unexpected error:", error)

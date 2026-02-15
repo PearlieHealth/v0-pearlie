@@ -579,10 +579,10 @@ export default function ClinicProfilePage() {
             </CardHeader>
             <CardContent>
               {/* Map */}
-              {profile.latitude && profile.longitude && (
+              {profile.latitude && profile.longitude && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY && (
                 <div className="rounded-lg overflow-hidden mb-4 border">
                   <iframe
-                    src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${profile.latitude},${profile.longitude}&zoom=15`}
+                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY}&q=${profile.latitude},${profile.longitude}&zoom=15`}
                     width="100%"
                     height="180"
                     style={{ border: 0 }}

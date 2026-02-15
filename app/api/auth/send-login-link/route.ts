@@ -1,11 +1,34 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { Resend } from "resend"
+import { createRateLimiter } from "@/lib/rate-limit"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-export async function POST(request: Request) {
+// Rate limiters: per-IP and per-email
+const ipLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, maxAttempts: 10 })
+const emailLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, maxAttempts: 3 })
+
+function getClientIp(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  )
+}
+
+export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const ip = getClientIp(request)
+    const ipCheck = ipLimiter.check(ip)
+    if (ipCheck.limited) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(ipCheck.retryAfterSecs) } },
+      )
+    }
+
     const { email } = await request.json()
 
     if (!email || typeof email !== "string") {
@@ -16,6 +39,19 @@ export async function POST(request: Request) {
     if (!emailRegex.test(email)) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 })
     }
+
+    const normalizedEmail = email.toLowerCase()
+    const emailCheck = emailLimiter.check(normalizedEmail)
+    if (emailCheck.limited) {
+      return NextResponse.json(
+        { error: "Too many requests for this email. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(emailCheck.retryAfterSecs) } },
+      )
+    }
+
+    // Record attempts before processing
+    ipLimiter.record(ip)
+    emailLimiter.record(normalizedEmail)
 
     const supabase = createAdminClient()
     const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
@@ -28,9 +64,10 @@ export async function POST(request: Request) {
     )
 
     if (!userExists) {
+      // Don't auto-confirm — the magic link click will confirm the email
       const { error: createError } = await supabase.auth.admin.createUser({
         email,
-        email_confirm: true,
+        email_confirm: false,
         user_metadata: { role: "patient" },
       })
 

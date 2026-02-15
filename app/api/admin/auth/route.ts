@@ -1,6 +1,16 @@
 import { cookies, headers } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
+import { timingSafeEqual } from "crypto"
 import { ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_IS_CONFIGURED, SESSION_COOKIE_NAME, SESSION_TOKEN } from "@/lib/auth-config"
+
+function safeCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    const buf = Buffer.from(b)
+    timingSafeEqual(buf, buf)
+    return false
+  }
+  return timingSafeEqual(Buffer.from(a), Buffer.from(b))
+}
 
 // ── CSRF: Origin header check ──
 async function verifyCsrfOrigin(): Promise<boolean> {
@@ -91,7 +101,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { username, password } = body
 
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    if (safeCompare(username || "", ADMIN_USERNAME) && safeCompare(password || "", ADMIN_PASSWORD)) {
       clearFailures(ip)
 
       const cookieStore = await cookies()
@@ -123,7 +133,7 @@ export async function GET() {
     const cookieStore = await cookies()
     const session = cookieStore.get(SESSION_COOKIE_NAME)
 
-    if (session?.value === SESSION_TOKEN) {
+    if (session && safeCompare(session.value, SESSION_TOKEN)) {
       return NextResponse.json({ authenticated: true })
     }
 

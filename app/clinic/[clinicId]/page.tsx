@@ -497,7 +497,7 @@ export default function ClinicDetailPage() {
       {/* 1. MAP - Full width */}
       <section id="location">
         <div className="w-full h-[225px] lg:h-[285px] bg-[#e5e5e5]">
-          {clinic.latitude && clinic.longitude ? (
+          {clinic.latitude && clinic.longitude && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? (
             <iframe
               title={`${clinic.name} location`}
               width="100%"
@@ -505,7 +505,7 @@ export default function ClinicDetailPage() {
               style={{ border: 0 }}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}&zoom=14`}
+              src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}&zoom=14`}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
