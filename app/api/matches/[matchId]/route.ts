@@ -72,11 +72,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
         .eq("match_run_id", matchId)
         .order("rank", { ascending: true })
 
+      const currentVersion = getExplanationVersion()
       const hasCachedComposed = cachedResults?.length &&
         cachedResults.every(r =>
           r.match_reasons_composed &&
           Array.isArray(r.match_reasons_composed) &&
-          r.match_reasons_composed.length > 0
+          r.match_reasons_composed.length > 0 &&
+          // Ensure cached reasons match current engine version
+          (!r.explanation_version || r.explanation_version === currentVersion)
         )
 
       if (hasCachedComposed) {
@@ -202,28 +205,30 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
         }
       })
 
-      // Backfill cache columns (non-blocking) so next request uses fast path
+      // Backfill cache columns in parallel (non-blocking) so next request uses fast path
       try {
-        for (const c of clinicsWithScores) {
-          await supabase
-            .from("match_results")
-            .update({
-              match_breakdown: (c.match_breakdown || []).map((cat: any) => ({
-                category: cat.category,
-                points: cat.points,
-                maxPoints: cat.maxPoints,
-              })),
-              score: c.match_percentage,
-              match_reasons_composed: c.match_reasons_composed,
-              match_reasons_long: c.match_reasons_long,
-              match_reasons_meta: c.match_reasons_meta,
-              distance_miles: c.distance_miles,
-              explanation_version: getExplanationVersion(),
-              tier: c.tier,
-            })
-            .eq("lead_id", match.lead_id)
-            .eq("clinic_id", c.id)
-        }
+        await Promise.all(
+          clinicsWithScores.map((c: any) =>
+            supabase
+              .from("match_results")
+              .update({
+                match_breakdown: (c.match_breakdown || []).map((cat: any) => ({
+                  category: cat.category,
+                  points: cat.points,
+                  maxPoints: cat.maxPoints,
+                })),
+                score: c.match_percentage,
+                match_reasons_composed: c.match_reasons_composed,
+                match_reasons_long: c.match_reasons_long,
+                match_reasons_meta: c.match_reasons_meta,
+                distance_miles: c.distance_miles,
+                explanation_version: getExplanationVersion(),
+                tier: c.tier,
+              })
+              .eq("lead_id", match.lead_id)
+              .eq("clinic_id", c.id)
+          )
+        )
       } catch (e) {
         console.error("[match-api] Non-critical: failed to backfill cache:", e)
       }
@@ -280,13 +285,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
               distance = calculateHaversineDistance(lead.latitude, lead.longitude, clinic.latitude, clinic.longitude)
             }
 
-            const isDirectoryListing = filterKeys.length < 3
             const isUnverified = !clinic.verified
+            const isDirectoryListing = isUnverified || filterKeys.length < 3
 
-            let tier = "nearby"
-            if (isDirectoryListing || isUnverified) {
-              tier = "directory"
-            }
+            // Tier based on verified status: verified clinics are "nearby", unverified are "directory"
+            const tier = isUnverified ? "directory" : "nearby"
 
             return {
               ...clinic,

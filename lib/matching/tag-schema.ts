@@ -53,8 +53,9 @@ export const Q4_PRIORITY_TAG_MAP: Record<string, string> = {
 
 // =============================================================================
 // Q5: "Concerns / blockers" (6 options, multi-select max 2)
-// Informational only — does NOT affect scoring (except WORRIED_COMPLEX penalty)
-// Form blocker codes → TAG_* keys (1:1 mapping, kept for data recording)
+// Affects scoring: bonus points (0-10) when clinic has tags matching patient hesitations
+// Also: WORRIED_COMPLEX triggers a -15 penalty if clinic lacks TAG_COMPLEX_CASES_WELCOME
+// Form blocker codes → TAG_* keys (1:1 mapping)
 // =============================================================================
 export const Q5_BLOCKER_TAG_MAP: Record<string, string> = {
   // v6 blocker codes (multi-select max 2):
@@ -129,7 +130,7 @@ export const Q10_ANXIETY_TAG_MAP: Record<string, string> = {
 }
 
 // =============================================================================
-// Centralized weight config (sum = 100)
+// Centralized weight config (sum = 110; blockers only scored when patient has concerns, effective sum varies)
 // =============================================================================
 export const WEIGHT_CONFIG = {
   treatment: 15, // Must-have: clinic offers requested treatment

@@ -188,7 +188,7 @@ export interface MatchFacts {
   scoreBreakdown: {
     treatment: number
     priorities: number
-    blockers: number // Always 0 — informational only
+    blockers: number // Bonus points (0-10) when clinic has tags matching patient hesitations
     cost: number
     anxiety: number
     availability: number

@@ -109,7 +109,7 @@ export default function IntakePage() {
   const canContinueStep5 = formData.conversionBlockerCodes.length > 0
   const canContinueStep5_5 = formData.preferred_times.length > 0
   const canContinueStep8 =
-    formData.firstName && formData.lastName && (formData.email || formData.phone) && formData.consentContact
+    formData.firstName && formData.lastName && formData.email && formData.consentContact
 
   // Treatment toggle with emergency exclusivity
   const handleTreatmentToggle = (treatment: string) => {

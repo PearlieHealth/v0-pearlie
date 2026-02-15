@@ -45,6 +45,25 @@ function validateLeadData(body: Record<string, unknown>): { valid: true; data: R
     return { valid: false, error: "Email address is required" }
   }
 
+  // Input length validation
+  if ((body.firstName as string).trim().length > 100) {
+    return { valid: false, error: "First name is too long (max 100 characters)" }
+  }
+  if ((body.lastName as string).trim().length > 100) {
+    return { valid: false, error: "Last name is too long (max 100 characters)" }
+  }
+  if (typeof body.email === "string" && (body.email as string).trim().length > 254) {
+    return { valid: false, error: "Email address is too long" }
+  }
+
+  // Budget amount validation
+  if (body.strictBudgetAmount !== undefined && body.strictBudgetAmount !== null) {
+    const amount = typeof body.strictBudgetAmount === "number" ? body.strictBudgetAmount : Number(body.strictBudgetAmount)
+    if (isNaN(amount) || amount < 0 || amount > 100000) {
+      return { valid: false, error: "Budget amount must be between £0 and £100,000" }
+    }
+  }
+
   return {
     valid: true,
     data: {

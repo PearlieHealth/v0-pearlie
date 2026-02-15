@@ -562,7 +562,7 @@ export async function runMatchingEngine(leadId: string): Promise<{
     distance:
       profile.latitude && profile.longitude && clinic.latitude && clinic.longitude
         ? haversineDistance(profile.latitude, profile.longitude, clinic.latitude, clinic.longitude)
-        : 999,
+        : 999999, // Large fallback to ensure clinics without coords are always beyond any radius filter
   })).sort((a, b) => a.distance - b.distance)
 
   for (const radiusMiles of RADIUS_STEPS) {

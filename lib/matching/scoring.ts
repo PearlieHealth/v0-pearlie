@@ -369,7 +369,7 @@ function scoreAvailability(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
     const slotWeight = 0.7
     if (totalPreferred > 0) {
       if (matchCount === totalPreferred) {
-        points += maxPoints * slotWeight // All slots match = 70%
+        points += Math.round(maxPoints * slotWeight) // All slots match = 70%
       } else if (matchCount >= 1) {
         // Partial match - proportional score
         points += Math.round(maxPoints * slotWeight * (matchCount / totalPreferred))
@@ -377,7 +377,7 @@ function scoreAvailability(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
     } else {
       // Patient didn't specify preference - give full slot score if clinic has good availability
       if (clinicHasMorning && clinicHasAfternoon && clinicDays.length >= 5) {
-        points += maxPoints * slotWeight
+        points += Math.round(maxPoints * slotWeight)
       } else if (clinicDays.length >= 3) {
         points += Math.round(maxPoints * slotWeight * 0.7)
       }
@@ -433,7 +433,8 @@ function scoreCostApproach(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
   let matchedTag: string | null = null
   let priceTierMatch: "full" | "partial" | "excluded" | "unknown" = "unknown"
 
-  // Split points: 50% price tier match, 50% communication TAG match
+  // Split points: ~50% price tier match, ~50% communication TAG match
+  // Note: rounding may give tierPoints one extra point (e.g. 8/7 for 15), but sum always equals maxPoints
   const tierPoints = Math.round(maxPoints * 0.5)
   const tagPoints = maxPoints - tierPoints
 
