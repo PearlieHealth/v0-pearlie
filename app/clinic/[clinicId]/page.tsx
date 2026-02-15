@@ -52,7 +52,7 @@ interface Clinic {
   review_count: number
   treatments: string[]
   facilities: string[]
-  opening_hours: Record<string, string>
+  opening_hours: Record<string, string | { open: string; close: string; closed: boolean }>
   images: string[]
   price_range: string
   verified: boolean
@@ -131,31 +131,47 @@ const ALL_FACILITIES = [
 // Helper function to determine unique clinic feature
 function getUniqueFeature(clinic: Clinic): { label: string; value: string; icon?: string } {
   // Check opening hours for weekend/evening availability
-  const openingHours = clinic.opening_hours as Record<string, string> | null
+  const openingHours = clinic.opening_hours as Record<string, string | { open: string; close: string; closed: boolean }> | null
 
   if (openingHours) {
+    // Helper to check if a day is open
+    const isDayOpen = (key: string): boolean => {
+      const val = openingHours[key]
+      if (!val) return false
+      if (typeof val === "string") return val.toLowerCase() !== "closed"
+      return !val.closed
+    }
+
     // Check for Saturday opening
-    const saturdayHours = openingHours["Saturday"] || openingHours["saturday"] || openingHours["Sat"]
-    if (saturdayHours && saturdayHours.toLowerCase() !== "closed") {
+    if (isDayOpen("Saturday") || isDayOpen("saturday") || isDayOpen("Sat")) {
       return { label: "Weekend", value: "Open Saturdays", icon: "calendar" }
     }
 
     // Check for Sunday opening
-    const sundayHours = openingHours["Sunday"] || openingHours["sunday"] || openingHours["Sun"]
-    if (sundayHours && sundayHours.toLowerCase() !== "closed") {
+    if (isDayOpen("Sunday") || isDayOpen("sunday") || isDayOpen("Sun")) {
       return { label: "Weekend", value: "Open Sundays", icon: "calendar" }
     }
 
     // Check for evening appointments (any day closing after 6pm)
     for (const day of Object.keys(openingHours)) {
       const hours = openingHours[day]
-      if (hours && typeof hours === "string") {
+      if (!hours) continue
+      let closeTime: string | null = null
+      if (typeof hours === "string") {
         const match = hours.match(/(\d{1,2}):?(\d{2})?\s*(pm)?$/i)
         if (match) {
           const hour = Number.parseInt(match[1])
           const isPM = match[3]?.toLowerCase() === "pm"
           const actualHour = isPM && hour !== 12 ? hour + 12 : hour
           if (actualHour >= 18) {
+            return { label: "Hours", value: "Evening appts", icon: "clock" }
+          }
+        }
+      } else if (!hours.closed) {
+        closeTime = hours.close
+        if (closeTime) {
+          const hourNum = Number.parseInt(closeTime.split(":")[0])
+          if (hourNum >= 18) {
             return { label: "Hours", value: "Evening appts", icon: "clock" }
           }
         }
@@ -818,12 +834,22 @@ export default function ClinicDetailPage() {
                   <div>
                     <h2 className="text-xl font-bold text-[#1a1a1a] mb-4">Office Hours</h2>
                     <div className="space-y-0">
-                      {Object.entries(clinic.opening_hours).map(([day, hours]) => (
-                        <div key={day} className="flex justify-between items-center py-2.5 border-b border-[#f0f0f0] last:border-b-0">
-                          <span className="font-medium text-emerald-700 capitalize">{day}</span>
-                          <span className="text-[#444]">{hours}</span>
-                        </div>
-                      ))}
+                      {Object.entries(clinic.opening_hours).map(([day, hours]) => {
+                        let display: string
+                        if (typeof hours === "string") {
+                          display = hours
+                        } else if (hours && typeof hours === "object") {
+                          display = hours.closed ? "Closed" : `${hours.open} – ${hours.close}`
+                        } else {
+                          display = "—"
+                        }
+                        return (
+                          <div key={day} className="flex justify-between items-center py-2.5 border-b border-[#f0f0f0] last:border-b-0">
+                            <span className="font-medium text-emerald-700 capitalize">{day}</span>
+                            <span className="text-[#444]">{display}</span>
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                   <div>
