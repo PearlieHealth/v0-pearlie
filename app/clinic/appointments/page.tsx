@@ -33,6 +33,7 @@ import {
   X,
   Globe,
   CheckSquare,
+  Download,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -363,6 +364,38 @@ export default function AppointmentsPage() {
     setFilterSource("all")
   }
 
+  const exportCSV = () => {
+    if (filteredLeads.length === 0) return
+
+    const escapeCSV = (val: string) => {
+      if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+        return `"${val.replace(/"/g, '""')}"`
+      }
+      return val
+    }
+
+    const headers = ["Name", "Email", "Phone", "Treatment", "Status", "Source", "Date", "Appointment"]
+    const rows = filteredLeads.map((l) => [
+      escapeCSV(`${l.first_name || ""} ${l.last_name || ""}`.trim()),
+      escapeCSV(l.email || ""),
+      escapeCSV(l.phone || ""),
+      escapeCSV(getTreatmentLabel(l.raw_answers?.treatment as string)),
+      escapeCSV((l.status?.status || "NEW").replace(/_/g, " ")),
+      escapeCSV(l.source || "match"),
+      escapeCSV(l.created_at ? format(new Date(l.created_at), "yyyy-MM-dd") : ""),
+      escapeCSV(l.booking ? format(new Date(l.booking.appointment_datetime), "yyyy-MM-dd HH:mm") : ""),
+    ])
+
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `leads-${format(new Date(), "yyyy-MM-dd")}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
@@ -380,11 +413,23 @@ export default function AppointmentsPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Appointments</h1>
-        <p className="text-muted-foreground">
-          Manage patient requests, schedule appointments, and track progress
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Appointments</h1>
+          <p className="text-muted-foreground">
+            Manage patient requests, schedule appointments, and track progress
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={exportCSV}
+          disabled={filteredLeads.length === 0}
+          className="gap-1.5 bg-transparent"
+        >
+          <Download className="h-4 w-4" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Tabs + Search + Filter Toggle */}
