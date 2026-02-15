@@ -19,8 +19,28 @@ import {
   Save,
   Eye,
   EyeOff,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Send,
 } from "lucide-react"
 import { toast } from "sonner"
+
+interface NotificationPreferences {
+  new_leads: boolean
+  booking_confirmations: boolean
+  daily_summary: boolean
+  weekly_report: boolean
+  inactive_reminders: boolean
+}
+
+const DEFAULT_PREFS: NotificationPreferences = {
+  new_leads: true,
+  booking_confirmations: true,
+  daily_summary: true,
+  weekly_report: false,
+  inactive_reminders: true,
+}
 
 interface ClinicSettings {
   id: string
@@ -28,6 +48,7 @@ interface ClinicSettings {
   booking_webhook_secret: string | null
   manual_confirmation_allowed: boolean
   email_forwarding_address: string | null
+  notification_preferences: NotificationPreferences
 }
 
 export default function SettingsPage() {
@@ -35,34 +56,28 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [showSecret, setShowSecret] = useState(false)
+  const [isTestingWebhook, setIsTestingWebhook] = useState(false)
+  const [webhookTestResult, setWebhookTestResult] = useState<{ success: boolean; status: number; statusText: string } | null>(null)
 
   const fetchSettings = useCallback(async () => {
     const supabase = createBrowserClient()
 
+    // Get clinic ID from /api/clinic/me (uses admin client, bypasses RLS)
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-
-    // Get clinic ID
-    let clinicId: string | null = null
-
-    const { data: portalUser } = await supabase
-      .from("clinic_portal_users")
-      .select("clinic_ids")
-      .eq("email", session.user.email)
-      .single()
-
-    if (portalUser?.clinic_ids?.[0]) {
-      clinicId = portalUser.clinic_ids[0]
-    } else {
-      const { data: clinicUser } = await supabase
-        .from("clinic_users")
-        .select("clinic_id")
-        .eq("user_id", session.user.id)
-        .single()
-
-      clinicId = clinicUser?.clinic_id || null
+    if (!session) {
+      setIsLoading(false)
+      return
     }
 
+    const meRes = await fetch("/api/clinic/me", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+    if (!meRes.ok) {
+      setIsLoading(false)
+      return
+    }
+    const meData = await meRes.json()
+    const clinicId = meData.clinic?.id
     if (!clinicId) {
       setIsLoading(false)
       return
@@ -70,7 +85,7 @@ export default function SettingsPage() {
 
     const { data: clinic } = await supabase
       .from("clinics")
-      .select("id, booking_webhook_url, booking_webhook_secret, manual_confirmation_allowed, email_forwarding_address")
+      .select("id, booking_webhook_url, booking_webhook_secret, manual_confirmation_allowed, email_forwarding_address, notification_preferences")
       .eq("id", clinicId)
       .single()
 
@@ -81,6 +96,7 @@ export default function SettingsPage() {
         booking_webhook_secret: clinic.booking_webhook_secret,
         manual_confirmation_allowed: clinic.manual_confirmation_allowed ?? true,
         email_forwarding_address: clinic.email_forwarding_address,
+        notification_preferences: { ...DEFAULT_PREFS, ...(clinic.notification_preferences as Partial<NotificationPreferences> || {}) },
       })
     }
 
@@ -104,6 +120,7 @@ export default function SettingsPage() {
         booking_webhook_secret: settings.booking_webhook_secret,
         manual_confirmation_allowed: settings.manual_confirmation_allowed,
         email_forwarding_address: settings.email_forwarding_address,
+        notification_preferences: settings.notification_preferences,
       })
       .eq("id", settings.id)
 
@@ -124,6 +141,29 @@ export default function SettingsPage() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
     toast.success("Copied to clipboard")
+  }
+
+  const testWebhook = async () => {
+    setIsTestingWebhook(true)
+    setWebhookTestResult(null)
+    try {
+      const res = await fetch("/api/clinic/webhook-test", { method: "POST" })
+      const data = await res.json()
+      if (res.ok) {
+        setWebhookTestResult(data)
+        if (data.success) {
+          toast.success(`Webhook responded with ${data.status}`)
+        } else {
+          toast.error(`Webhook failed: ${data.statusText}`)
+        }
+      } else {
+        toast.error(data.error || "Test failed")
+      }
+    } catch {
+      toast.error("Failed to send test")
+    } finally {
+      setIsTestingWebhook(false)
+    }
   }
 
   if (isLoading) {
@@ -255,6 +295,42 @@ export default function SettingsPage() {
 }`}
                 </pre>
               </div>
+
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={testWebhook}
+                  disabled={isTestingWebhook || !settings.booking_webhook_url}
+                >
+                  {isTestingWebhook ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  {isTestingWebhook ? "Sending..." : "Send Test"}
+                </Button>
+                {webhookTestResult && (
+                  <div className="flex items-center gap-1.5 text-sm">
+                    {webhookTestResult.success ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <span className="text-green-700">
+                          {webhookTestResult.status} {webhookTestResult.statusText}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 text-red-600" />
+                        <span className="text-red-700">
+                          {webhookTestResult.status > 0
+                            ? `${webhookTestResult.status} ${webhookTestResult.statusText}`
+                            : webhookTestResult.statusText}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -328,7 +404,27 @@ export default function SettingsPage() {
                     Get notified when a new patient is matched to your clinic
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch
+                  checked={settings.notification_preferences.new_leads}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, notification_preferences: { ...settings.notification_preferences, new_leads: checked } })
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Booking Confirmations</p>
+                  <p className="text-sm text-muted-foreground">
+                    Get notified when a patient confirms a booking
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.notification_preferences.booking_confirmations}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, notification_preferences: { ...settings.notification_preferences, booking_confirmations: checked } })
+                  }
+                />
               </div>
 
               <div className="flex items-center justify-between">
@@ -338,7 +434,12 @@ export default function SettingsPage() {
                     Receive a daily email with lead activity summary
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch
+                  checked={settings.notification_preferences.daily_summary}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, notification_preferences: { ...settings.notification_preferences, daily_summary: checked } })
+                  }
+                />
               </div>
 
               <div className="flex items-center justify-between">
@@ -348,7 +449,12 @@ export default function SettingsPage() {
                     Receive a weekly performance report
                   </p>
                 </div>
-                <Switch />
+                <Switch
+                  checked={settings.notification_preferences.weekly_report}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, notification_preferences: { ...settings.notification_preferences, weekly_report: checked } })
+                  }
+                />
               </div>
 
               <div className="flex items-center justify-between">
@@ -358,7 +464,12 @@ export default function SettingsPage() {
                     Get reminded about leads that haven't been contacted
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch
+                  checked={settings.notification_preferences.inactive_reminders}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, notification_preferences: { ...settings.notification_preferences, inactive_reminders: checked } })
+                  }
+                />
               </div>
             </CardContent>
           </Card>

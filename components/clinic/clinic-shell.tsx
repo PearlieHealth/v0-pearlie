@@ -30,21 +30,26 @@ export function ClinicShell({ children }: ClinicShellProps) {
   const [newLeadsCount, setNewLeadsCount] = useState(0)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [debugError, setDebugError] = useState<string | null>(null)
   const router = useRouter()
   const pathname = usePathname()
 
   const fetchData = async () => {
-    // Known dashboard and auth path segments -- everything else under /clinic/[x] is a public profile
+    // Auth pages (login, forgot-password, etc.) should render directly — no auth check needed
+    const AUTH_SEGMENTS = ["login", "demo", "accept-invite", "forgot-password", "reset-password", "set-password"]
+    const pathSegment = pathname?.split("/")[2] // e.g. "/clinic/leads" -> "leads"
+    const isAuthPage = !!pathSegment && AUTH_SEGMENTS.includes(pathSegment)
+
+    // Public clinic profile pages (UUID or slug under /clinic/[x])
     const DASHBOARD_SEGMENTS = [
-      "login", "demo", "accept-invite", "forgot-password", "reset-password",
+      ...AUTH_SEGMENTS,
       "profile", "leads", "inbox", "appointments", "bookings",
       "insights", "settings", "team", "providers"
     ]
-    const pathSegment = pathname?.split("/")[2] // e.g. "/clinic/leads" -> "leads"
     const isDashboardPage = !pathSegment || DASHBOARD_SEGMENTS.includes(pathSegment)
-    const publicPageCheck = pathname?.startsWith("/clinic/") && !isDashboardPage
-    
-    if (publicPageCheck) {
+    const isPublicProfilePage = pathname?.startsWith("/clinic/") && !isDashboardPage
+
+    if (isAuthPage || isPublicProfilePage) {
       setIsLoading(false)
       return
     }
@@ -71,7 +76,7 @@ export function ClinicShell({ children }: ClinicShellProps) {
       }
       
       if (!accessToken) {
-        router.push("/clinic/login")
+        setDebugError("No access token found — session missing")
         setIsLoading(false)
         return
       }
@@ -79,17 +84,18 @@ export function ClinicShell({ children }: ClinicShellProps) {
       const response = await fetch("/api/clinic/me", {
         headers: { "Authorization": `Bearer ${accessToken}` },
       })
-      
+
       if (!response.ok) {
-        router.push("/clinic/login")
+        const errBody = await response.text()
+        setDebugError(`API ${response.status}: ${errBody}`)
         setIsLoading(false)
         return
       }
 
       const data = await response.json()
-      
+
       if (!data.clinic) {
-        router.push("/clinic/login?error=no_clinic")
+        setDebugError("API returned OK but no clinic data: " + JSON.stringify(data))
         setIsLoading(false)
         return
       }
@@ -115,7 +121,7 @@ export function ClinicShell({ children }: ClinicShellProps) {
       setNewLeadsCount(count || 0)
     } catch (error) {
       console.error("Auth check failed:", error)
-      router.push("/clinic/login")
+      setDebugError(`Exception: ${error instanceof Error ? error.message : String(error)}`)
     }
 
     setIsLoading(false)
@@ -125,18 +131,18 @@ export function ClinicShell({ children }: ClinicShellProps) {
     fetchData()
   }, [])
 
-  // Check public pages FIRST - must be before any loading state to prevent flicker/redirect race
-  // Uses the same dashboard whitelist logic: anything under /clinic/[x] that isn't a known dashboard segment is public
+  // Auth pages and public profile pages render children directly — no auth shell needed
+  const AUTH_SEGMENTS_RENDER = ["login", "demo", "accept-invite", "forgot-password", "reset-password", "set-password"]
   const DASHBOARD_SEGMENTS_RENDER = [
-    "login", "demo", "accept-invite", "forgot-password", "reset-password",
+    ...AUTH_SEGMENTS_RENDER,
     "profile", "leads", "inbox", "appointments", "bookings",
     "insights", "settings", "team", "providers"
   ]
   const renderSegment = pathname?.split("/")[2]
+  const isAuthPageRender = !!renderSegment && AUTH_SEGMENTS_RENDER.includes(renderSegment)
   const isPublicPage = pathname?.startsWith("/clinic/") && !!renderSegment && !DASHBOARD_SEGMENTS_RENDER.includes(renderSegment)
-  
-  // For public pages, render children immediately without any auth check or loading
-  if (isPublicPage) {
+
+  if (isAuthPageRender || isPublicPage) {
     return <>{children}</>
   }
 
@@ -154,7 +160,14 @@ export function ClinicShell({ children }: ClinicShellProps) {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <p className="text-muted-foreground">Unable to load clinic data</p>
-          <Button onClick={() => router.push("/clinic/login")}>
+          {debugError && (
+            <p className="text-xs text-red-500 max-w-md mx-auto break-all">{debugError}</p>
+          )}
+          <Button onClick={async () => {
+            const supabase = createBrowserClient()
+            await supabase.auth.signOut()
+            window.location.href = "/clinic/login"
+          }}>
             Return to Login
           </Button>
         </div>

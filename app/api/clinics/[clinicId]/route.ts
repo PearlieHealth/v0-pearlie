@@ -13,22 +13,26 @@ const PUBLIC_CLINIC_FIELDS = `
   facilities, opening_hours, images, verified, accepts_nhs,
   parking_available, wheelchair_accessible, tags, available_days,
   available_hours, accepts_same_day, highlight_chips, price_range,
-  featured, featured_review, is_live
+  featured, featured_review, is_live, is_archived,
+  show_treatment_prices, treatment_prices, offers_free_consultation
 `.replace(/\s+/g, " ").trim()
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ clinicId: string }> }) {
   try {
     const { clinicId } = await params
-    const supabase = await createClient()
     const { searchParams } = new URL(request.url)
     const isPreview = searchParams.get("preview") === "true"
 
     // Determine if clinicId is a UUID or a slug
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clinicId)
 
+    // Use admin client to bypass RLS so non-live clinics can still be
+    // fetched for preview. Access control is handled explicitly below.
+    const supabaseAdmin = createAdminClient()
+
     const { data: clinic, error } = isUUID
-      ? await supabase.from("clinics").select(PUBLIC_CLINIC_FIELDS).eq("id", clinicId).single()
-      : await supabase.from("clinics").select(PUBLIC_CLINIC_FIELDS).eq("slug", clinicId).single()
+      ? await supabaseAdmin.from("clinics").select(PUBLIC_CLINIC_FIELDS).eq("id", clinicId).single()
+      : await supabaseAdmin.from("clinics").select(PUBLIC_CLINIC_FIELDS).eq("slug", clinicId).single()
 
     if (error || !clinic) {
       return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
@@ -47,13 +51,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
       }
 
-      // Verify the requesting user owns this clinic
+      // Verify the requesting user owns this clinic via cookie-based auth
+      const supabase = await createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
       }
 
-      const supabaseAdmin = createAdminClient()
       const { data: clinicUser } = await supabaseAdmin
         .from("clinic_users")
         .select("clinic_id")
@@ -67,7 +71,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Strip internal status fields from the response
-    const { is_live, ...publicClinic } = clinicData
+    const { is_live, is_archived, ...publicClinic } = clinicData
+
+    // Only include treatment_prices if the clinic has enabled it
+    if (!publicClinic.show_treatment_prices) {
+      publicClinic.treatment_prices = []
+    }
 
     return NextResponse.json({ clinic: publicClinic })
   } catch (error) {

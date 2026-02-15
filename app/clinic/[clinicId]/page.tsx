@@ -26,6 +26,9 @@ import {
   UserRound,
   MessageCircle,
   X,
+  PoundSterling,
+  Eye,
+  Pencil,
 } from "lucide-react"
 import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
@@ -59,6 +62,12 @@ interface Clinic {
   accepts_nhs?: boolean
   is_archived: boolean
   tags?: string[]
+  offers_free_consultation?: boolean
+  show_treatment_prices?: boolean
+  treatment_prices?: {
+    category: string
+    treatments: { name: string; price: string; description: string }[]
+  }[]
 }
 
 interface Lead {
@@ -448,15 +457,39 @@ export default function ClinicDetailPage() {
   // Main content grid
   return (
     <div className="min-h-screen bg-white pb-24 lg:pb-8">
+      {/* Preview banner */}
+      {isPreview && (
+        <div className="bg-[#7C3AED] text-white sticky top-0 z-30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              <span className="text-sm font-medium">Preview Mode</span>
+              <span className="text-sm text-white/70">— This is how patients see your profile</span>
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-7 text-xs bg-white text-[#7C3AED] hover:bg-white/90"
+              onClick={() => {
+                window.location.href = "/clinic/profile"
+              }}
+            >
+              <Pencil className="h-3 w-3 mr-1.5" />
+              Make Changes
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Back button header */}
-      <div className="bg-white border-b border-[#e5e5e5] sticky top-0 z-20">
+      <div className="bg-white border-b border-[#e5e5e5] sticky top-0 z-20" style={isPreview ? { top: "44px" } : undefined}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-[#666] hover:text-[#1a1a1a] transition-colors text-sm font-medium"
           >
             <ChevronLeft className="h-4 w-4" />
-            Back to results
+            {isPreview ? "Close preview" : "Back to results"}
           </button>
         </div>
       </div>
@@ -564,6 +597,19 @@ export default function ClinicDetailPage() {
               </section>
             )}
 
+            {/* FREE CONSULTATION BADGE */}
+            {clinic.offers_free_consultation && (
+              <section className="flex items-center gap-4 bg-[#f0f0ff] border border-indigo-200 rounded-xl p-5">
+                <div className="flex-shrink-0 h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                  <CheckCircle2 className="h-6 w-6 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-[#1a1a1a]">Free Consultation</h3>
+                  <p className="text-sm text-[#666] mt-0.5">This clinic offers a free initial consultation for cosmetic treatments and Invisalign. Contact them to book yours.</p>
+                </div>
+              </section>
+            )}
+
             {/* 5 + 6. TREATMENTS - patient selected first, then "View All" expands remaining */}
             <section>
               <div className="flex items-center justify-between mb-5">
@@ -663,6 +709,70 @@ export default function ClinicDetailPage() {
 
             {/* Divider */}
             <div className="border-t border-[#e5e5e5]" />
+
+            {/* TREATMENT PRICING */}
+            {clinic.show_treatment_prices && clinic.treatment_prices && clinic.treatment_prices.length > 0 && (() => {
+              // Filter to only categories that have at least one treatment with a price
+              const pricedCategories = clinic.treatment_prices
+                .map((cat) => ({
+                  ...cat,
+                  treatments: cat.treatments.filter((t) => t.price && t.price.trim() !== ""),
+                }))
+                .filter((cat) => cat.treatments.length > 0)
+
+              if (pricedCategories.length === 0) return null
+
+              return (
+                <>
+                  <section>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-[#f5f0ff] flex items-center justify-center">
+                        <PoundSterling className="h-5 w-5 text-[#7c3aed]" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-[#1a1a1a]">Treatment Prices</h2>
+                        <p className="text-sm text-[#666]">Prices are a guide. Your dentist will confirm costs before treatment.</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      {pricedCategories.map((category, catIdx) => (
+                        <div key={catIdx}>
+                          <h3 className="text-lg font-semibold text-[#1a1a1a] mb-3 pb-2 border-b border-[#e5e5e5]">
+                            {category.category}
+                          </h3>
+                          <div className="space-y-0">
+                            {category.treatments.map((treatment, treatIdx) => (
+                              <div
+                                key={treatIdx}
+                                className="flex items-start justify-between py-3 border-b border-[#f0f0f0] last:border-b-0"
+                              >
+                                <div className="flex-1 min-w-0 pr-4">
+                                  <p className="font-medium text-[#1a1a1a]">{treatment.name}</p>
+                                  {treatment.description && (
+                                    <p className="text-sm text-[#666] mt-0.5">{treatment.description}</p>
+                                  )}
+                                </div>
+                                <span className="font-semibold text-[#1a1a1a] whitespace-nowrap">
+                                  {treatment.price.startsWith("£") ? treatment.price : `£${treatment.price}`}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <p className="text-xs text-[#999] mt-6">
+                      Prices shown are indicative and may vary depending on individual treatment needs. A full treatment plan with confirmed costs will be provided following your consultation.
+                    </p>
+                  </section>
+
+                  {/* Divider */}
+                  <div className="border-t border-[#e5e5e5]" />
+                </>
+              )
+            })()}
 
             {/* 7. INSURANCE & PAYMENT */}
             <section>

@@ -8,9 +8,9 @@ export async function GET(request: Request) {
   const error = searchParams.get("error")
   const errorDescription = searchParams.get("error_description")
 
-  // Determine if this is an intake/patient flow based on the next parameter
-  const isIntakeFlow = next.startsWith("/intake")
-  const errorRedirect = isIntakeFlow
+  // Determine error redirect based on the flow
+  const isPatientFlow = next.startsWith("/intake") || next.startsWith("/patient") || next.startsWith("/match")
+  const errorRedirect = isPatientFlow
     ? `${origin}/intake?error=${encodeURIComponent(errorDescription || error || "auth_failed")}`
     : `${origin}/clinic/login?error=${encodeURIComponent(errorDescription || error || "auth_failed")}`
 
