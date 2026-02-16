@@ -150,7 +150,7 @@ export function LiveFlowTestButton() {
                         />
                       </div>
                       <div className="text-sm text-muted-foreground">{result.message}</div>
-                      {result.details && (
+                      {result.details != null && (
                         <details className="mt-1">
                           <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
                             Show details

@@ -47,7 +47,7 @@ export async function GET() {
       email: emailMap.get(cu.user_id) || null,
       role: cu.role,
       created_at: cu.created_at,
-      clinic_name: (cu.clinics as { name: string } | null)?.name || null,
+      clinic_name: (cu.clinics as unknown as { name: string } | null)?.name || null,
     }))
 
     return NextResponse.json({ users })

@@ -5,7 +5,7 @@ import { sendEmailWithRetry } from "@/lib/email-send"
 import { EMAIL_FROM } from "@/lib/email-config"
 import { escapeHtml } from "@/lib/escape-html"
 
-const OTP_SECRET = process.env.SUPABASE_JWT_SECRET
+const OTP_SECRET = process.env.SUPABASE_JWT_SECRET!
 if (!OTP_SECRET) throw new Error("SUPABASE_JWT_SECRET environment variable is required")
 
 export async function POST(request: NextRequest) {

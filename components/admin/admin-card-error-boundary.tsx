@@ -9,6 +9,7 @@ import { AlertTriangle } from "lucide-react"
 interface Props {
   children: ReactNode
   fallbackTitle?: string
+  cardName?: string
 }
 
 interface State {

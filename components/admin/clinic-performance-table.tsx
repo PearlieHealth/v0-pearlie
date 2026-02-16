@@ -40,9 +40,9 @@ export function ClinicPerformanceTable({ events, clinicMap, leads, matchResults 
   const [sortField, setSortField] = useState<SortField>("conversionRate")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
 
-  const safeEvents = safeArray(events)
-  const safeLeads = safeArray(leads)
-  const safeMatchResults = safeArray(matchResults)
+  const safeEvents = safeArray<Record<string, any>>(events)
+  const safeLeads = safeArray<Record<string, any>>(leads)
+  const safeMatchResults = safeArray<Record<string, any>>(matchResults)
   const safeClinicMap = clinicMap instanceof Map ? clinicMap : new Map<string, string>()
 
   // Get all unique clinic IDs from events and match results

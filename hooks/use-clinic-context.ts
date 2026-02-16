@@ -78,7 +78,7 @@ export function useClinicContext(): ClinicContext {
           setUserRole(
             clinicUser.role === "clinic_manager" ? "CLINIC_ADMIN" : "CLINIC_USER"
           )
-          setClinicName((clinicUser.clinics as { name: string })?.name || null)
+          setClinicName((clinicUser.clinics as unknown as { name: string })?.name || null)
         } else {
           setError("User not assigned to any clinic")
         }

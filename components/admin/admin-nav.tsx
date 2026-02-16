@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 
-export function AdminNav() {
+export function AdminNav(_props?: { currentPath?: string }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 

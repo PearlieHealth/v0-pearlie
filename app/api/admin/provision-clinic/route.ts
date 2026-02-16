@@ -3,7 +3,6 @@ import { NextResponse } from "next/server"
 import { verifyAdminAuth } from "@/lib/admin-auth"
 import { escapeHtml } from "@/lib/escape-html"
 import crypto from "crypto"
-import bcrypt from "bcrypt"
 import { sendEmailWithRetry } from "@/lib/email-send"
 import { EMAIL_FROM } from "@/lib/email-config"
 

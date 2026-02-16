@@ -7,22 +7,24 @@ import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { safeArray, safeString } from "@/lib/analytics/safe"
 
+interface ClickEvent {
+  id?: string
+  lead_id?: string
+  clinic_id?: string
+  event_name?: string
+  created_at?: string
+  [key: string]: unknown
+}
+
 interface ClinicClicksTableProps {
-  events?: Array<{
-    id?: string
-    lead_id?: string
-    clinic_id?: string
-    event_name?: string
-    created_at?: string
-    [key: string]: unknown
-  }>
+  events?: ClickEvent[]
   clinicMap?: Map<string, string>
 }
 
 export function ClinicClicksTable({ events, clinicMap }: ClinicClicksTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
-  const safeEvents = safeArray(events)
+  const safeEvents = safeArray<ClickEvent>(events)
   const safeClinicMap = clinicMap instanceof Map ? clinicMap : new Map<string, string>()
 
   // Transform events into click data

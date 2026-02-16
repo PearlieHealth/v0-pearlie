@@ -30,7 +30,7 @@ interface DecisionValuesByTreatmentCardProps {
 export function OutcomePrioritiesCard({ leads }: DecisionValuesByTreatmentCardProps) {
   const [selectedTreatment, setSelectedTreatment] = useState<string>("all")
 
-  const safeLeads = safeArray(leads)
+  const safeLeads = safeArray<Lead>(leads)
 
   // Get leads with decision values data
   const leadsWithValues = safeLeads.filter((l) => {

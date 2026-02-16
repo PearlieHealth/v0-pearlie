@@ -51,6 +51,7 @@ type ValidEventName =
   | "email_verified"
   | "otp_sent"
   | "otp_resent"
+  | "postcode_outside_london"
 
 type TrackEventOptions = {
   leadId?: string | null

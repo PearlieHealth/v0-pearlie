@@ -48,7 +48,21 @@ interface Clinic {
   facilities?: string[]
   opening_hours?: any
   is_archived?: boolean
-  archived_at?: string
+  archived_at?: string | null
+  city?: string
+  is_live?: boolean
+  notification_email?: string
+  languages?: string[]
+  highlight_chips?: string[]
+  gallery?: { url: string; tag?: "before" | "after" | "clinic" }[]
+  google_place_id?: string
+  google_rating?: number
+  google_review_count?: number
+  google_maps_url?: string
+  tag_notes?: string
+  available_days?: string[]
+  available_hours?: string[]
+  accepts_same_day?: boolean
   created_at: string
   updated_at: string
 }
@@ -427,9 +441,9 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       <ClinicEditorDrawer
         open={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        clinic={selectedClinic}
+        clinic={selectedClinic as any}
         isCreating={isCreating}
-        onSave={handleSave}
+        onSave={handleSave as any}
       />
     </div>
   )
