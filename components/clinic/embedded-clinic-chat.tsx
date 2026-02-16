@@ -348,8 +348,8 @@ export function EmbeddedClinicChat({
             </div>
           )}
 
-          <form onSubmit={handleSend} className="border-t border-[#e5e5e5] p-3">
-            <div className="flex gap-2">
+          <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white">
+            <div className="flex items-center gap-2">
               <input
                 type="text"
                 value={newMessage}
@@ -365,13 +365,13 @@ export function EmbeddedClinicChat({
                   }
                 }}
                 placeholder="Type a message..."
-                className="flex-1 text-sm border border-[#ddd] rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
+                className="flex-1 min-w-0 text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
                 disabled={isSending}
               />
               <button
                 type="submit"
                 disabled={!newMessage.trim() || isSending}
-                className="flex-shrink-0 h-9 w-9 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#333] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#333] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isSending ? (
                   <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
