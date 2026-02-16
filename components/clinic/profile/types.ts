@@ -40,6 +40,7 @@ export interface Clinic {
   available_hours?: string[]
   accepts_same_day?: boolean
   languages?: string[]
+  before_after_images?: { before_url: string; after_url: string; treatment: string; description?: string }[]
 }
 
 export interface Lead {

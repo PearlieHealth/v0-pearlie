@@ -135,6 +135,57 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
         </section>
       )}
 
+      {/* Before & After */}
+      {clinic.before_after_images && clinic.before_after_images.length > 0 && (
+        <section>
+          <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Before & After</h2>
+          <div className="grid sm:grid-cols-2 gap-6">
+            {clinic.before_after_images
+              .filter((pair) => pair.before_url || pair.after_url)
+              .map((pair, idx) => (
+                <div key={idx} className="space-y-2">
+                  {pair.treatment && (
+                    <p className="text-sm font-semibold text-[#1a1a1a]">{pair.treatment}</p>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    {pair.before_url && (
+                      <div className="relative aspect-square rounded-lg overflow-hidden bg-[#f0f0f0]">
+                        <Image
+                          src={pair.before_url}
+                          alt={`Before${pair.treatment ? ` - ${pair.treatment}` : ""}`}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 640px) 45vw, 25vw"
+                        />
+                        <span className="absolute bottom-2 left-2 text-xs font-medium bg-black/60 text-white px-2 py-0.5 rounded-full">
+                          Before
+                        </span>
+                      </div>
+                    )}
+                    {pair.after_url && (
+                      <div className="relative aspect-square rounded-lg overflow-hidden bg-[#f0f0f0]">
+                        <Image
+                          src={pair.after_url}
+                          alt={`After${pair.treatment ? ` - ${pair.treatment}` : ""}`}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 640px) 45vw, 25vw"
+                        />
+                        <span className="absolute bottom-2 left-2 text-xs font-medium bg-black/60 text-white px-2 py-0.5 rounded-full">
+                          After
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {pair.description && (
+                    <p className="text-xs text-[#666]">{pair.description}</p>
+                  )}
+                </div>
+              ))}
+          </div>
+        </section>
+      )}
+
       {/* Providers */}
       {providers.length > 0 && (
         <section>

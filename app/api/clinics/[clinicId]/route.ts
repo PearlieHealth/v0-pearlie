@@ -14,7 +14,8 @@ const PUBLIC_CLINIC_FIELDS = `
   parking_available, wheelchair_accessible, tags, available_days,
   available_hours, accepts_same_day, highlight_chips, price_range,
   featured, featured_review, is_live, is_archived,
-  show_treatment_prices, treatment_prices, offers_free_consultation
+  show_treatment_prices, treatment_prices, offers_free_consultation,
+  before_after_images
 `.replace(/\s+/g, " ").trim()
 
 // Google fields may not exist if the migration hasn't been applied yet.
