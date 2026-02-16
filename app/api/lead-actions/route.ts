@@ -20,7 +20,9 @@ export async function POST(request: Request) {
 
     console.log("[lead-actions] Processing action", { leadId, clinicId, actionType })
 
-    // Auth: require authenticated user whose ID matches the lead's user_id
+    // Auth: require authenticated user whose ID matches the lead's user_id.
+    // If the lead has no user_id yet (pre-OTP or failed account creation),
+    // still allow authenticated users who own the email on the lead.
     const user = await getAuthUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -29,11 +31,20 @@ export async function POST(request: Request) {
     const supabaseAdmin = createAdminClient()
     const { data: leadOwner } = await supabaseAdmin
       .from("leads")
-      .select("user_id")
+      .select("user_id, email")
       .eq("id", leadId)
       .maybeSingle()
 
-    if (!leadOwner || leadOwner.user_id !== user.id) {
+    if (!leadOwner) {
+      return NextResponse.json({ error: "Lead not found" }, { status: 404 })
+    }
+
+    // Verify ownership: user_id match, or email match if user_id not yet set
+    const ownsLead =
+      (leadOwner.user_id && leadOwner.user_id === user.id) ||
+      (!leadOwner.user_id && leadOwner.email && leadOwner.email.toLowerCase() === user.email?.toLowerCase())
+
+    if (!ownsLead) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 

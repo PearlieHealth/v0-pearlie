@@ -81,9 +81,16 @@ export async function POST(request: Request) {
       console.log("[v0] Base URL:", baseUrl)
       console.log("[v0] Clinic ID:", clinicId, "Lead ID:", leadId)
       
+      // Forward auth headers so lead-actions can verify the caller
+      const incomingHeaders: Record<string, string> = { "Content-Type": "application/json" }
+      const cookie = request.headers.get("cookie")
+      if (cookie) incomingHeaders["cookie"] = cookie
+      const authorization = request.headers.get("authorization")
+      if (authorization) incomingHeaders["authorization"] = authorization
+
       const leadActionsResponse = await fetch(`${baseUrl}/api/lead-actions`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: incomingHeaders,
         body: JSON.stringify({
           clinicId,
           leadId,

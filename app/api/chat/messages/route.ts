@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = createAdminClient()
 
-    // Auth: require either a clinic user session or a lead whose user_id matches
+    // Auth: require either a clinic user session or a lead whose user_id/email matches
     const user = await getAuthUser()
     if (user) {
       // Authenticated user — must be a clinic user for this clinic OR the lead owner
@@ -44,11 +44,17 @@ export async function GET(request: NextRequest) {
         // Not a clinic user — check if they own this lead
         const { data: lead } = await supabase
           .from("leads")
-          .select("user_id")
+          .select("user_id, email")
           .eq("id", leadId)
           .maybeSingle()
 
-        if (!lead || lead.user_id !== user.id) {
+        // Verify ownership: user_id match, or email match if user_id not yet set
+        const ownsLead =
+          lead &&
+          ((lead.user_id && lead.user_id === user.id) ||
+           (!lead.user_id && lead.email && lead.email.toLowerCase() === user.email?.toLowerCase()))
+
+        if (!ownsLead) {
           return NextResponse.json({ error: "Forbidden" }, { status: 403 })
         }
       }
