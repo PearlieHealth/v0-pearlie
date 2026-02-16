@@ -124,7 +124,24 @@ export default function LeadDetailPage() {
     const clinicData = clinicUser.clinics as unknown as Clinic
     setClinic(clinicData)
 
-    // Get lead details
+    // AUTHORIZATION: Verify this lead is matched to the user's clinic BEFORE fetching lead data
+    const { data: matchData } = await supabase
+      .from("match_results")
+      .select("reasons, rank")
+      .eq("lead_id", leadId)
+      .eq("clinic_id", clinicData.id)
+      .single()
+
+    if (!matchData) {
+      // This clinic is not authorized to view this lead
+      setLead(null)
+      setIsLoading(false)
+      return
+    }
+
+    setMatchResult(matchData as MatchResult)
+
+    // Only fetch lead details after authorization is confirmed
     const { data: leadData } = await supabase
       .from("leads")
       .select("*")
@@ -133,18 +150,6 @@ export default function LeadDetailPage() {
 
     if (leadData) {
       setLead(leadData)
-    }
-
-    // Get match result
-    const { data: matchData } = await supabase
-      .from("match_results")
-      .select("reasons, rank")
-      .eq("lead_id", leadId)
-      .eq("clinic_id", clinicData.id)
-      .single()
-
-    if (matchData) {
-      setMatchResult(matchData as MatchResult)
     }
 
     // Get status
@@ -227,13 +232,40 @@ export default function LeadDetailPage() {
     setIsSaving(false)
   }
 
-  if (isLoading || !lead) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <ClinicNav clinicName="Loading..." />
         <div className="flex items-center justify-center h-[calc(100vh-64px)]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
+      </div>
+    )
+  }
+
+  if (!lead) {
+    return (
+      <div className="min-h-screen bg-background">
+        <ClinicNav clinicName={clinic?.name || "Clinic Portal"} />
+        <main className="container mx-auto px-4 py-8 max-w-4xl">
+          <Button
+            variant="ghost"
+            className="mb-6"
+            onClick={() => router.push("/clinic")}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Leads
+          </Button>
+          <Card>
+            <CardContent className="p-8 text-center">
+              <AlertCircle className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+              <h2 className="text-lg font-semibold mb-1">Lead not found</h2>
+              <p className="text-sm text-muted-foreground">
+                This lead does not exist or is not matched to your clinic.
+              </p>
+            </CardContent>
+          </Card>
+        </main>
       </div>
     )
   }

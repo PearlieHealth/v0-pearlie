@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Fragment, useState } from "react"
 import { Input } from "@/components/ui/input"
-import { Trash2, ChevronDown, ChevronRight, ChevronLeft, Mail, Phone } from "lucide-react"
+import { Trash2, ChevronDown, ChevronRight, ChevronLeft, Mail, Phone, Download } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -172,8 +172,23 @@ export function EnhancedLeadsTable({ leads }: { leads?: Lead[] }) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Patient Leads</CardTitle>
-          <CardDescription>View and manage all patient form submissions</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Patient Leads</CardTitle>
+              <CardDescription>View and manage all patient form submissions</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs gap-1.5"
+              onClick={() => {
+                window.open("/api/admin/export?type=leads", "_blank")
+              }}
+            >
+              <Download className="h-3.5 w-3.5" />
+              Export CSV
+            </Button>
+          </div>
           <div className="pt-4 flex flex-col sm:flex-row gap-3">
             <Input
               placeholder="Search by name, email, treatment, or postcode..."

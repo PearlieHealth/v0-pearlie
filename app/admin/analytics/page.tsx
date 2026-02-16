@@ -79,7 +79,7 @@ export default async function AnalyticsDashboard({
     // Build queries with optional date filtering
     let leadsQuery = supabase.from("leads").select("*").order("created_at", { ascending: false })
     let matchesQuery = supabase.from("matches").select("*").order("created_at", { ascending: false })
-    let eventsQuery = supabase.from("analytics_events").select("*").order("created_at", { ascending: false }).limit(10000)
+    let eventsQuery = supabase.from("analytics_events").select("*").order("created_at", { ascending: false })
     const clinicsQuery = supabase.from("clinics").select("id, name")
     let matchResultsQuery = supabase.from("match_results").select("*")
 
@@ -89,6 +89,9 @@ export default async function AnalyticsDashboard({
       eventsQuery = eventsQuery.gte("created_at", dateFrom)
       matchResultsQuery = matchResultsQuery.gte("created_at", dateFrom)
     }
+
+    // Always limit events to prevent memory overload
+    eventsQuery = eventsQuery.limit(5000)
 
     const [leadsRes, matchesRes, eventsRes, clinicsRes, matchResultsRes] = await Promise.all([
       leadsQuery,
@@ -119,7 +122,7 @@ export default async function AnalyticsDashboard({
       const [prevLeads, prevMatches, prevEvents, prevMatchResults] = await Promise.all([
         supabase.from("leads").select("*").gte("created_at", prevDateFrom).lt("created_at", prevDateTo),
         supabase.from("matches").select("*").gte("created_at", prevDateFrom).lt("created_at", prevDateTo),
-        supabase.from("analytics_events").select("*").gte("created_at", prevDateFrom).lt("created_at", prevDateTo).limit(10000),
+        supabase.from("analytics_events").select("*").gte("created_at", prevDateFrom).lt("created_at", prevDateTo).limit(5000),
         supabase.from("match_results").select("*").gte("created_at", prevDateFrom).lt("created_at", prevDateTo),
       ])
       prevAnalytics = normalizeAnalyticsData({
@@ -151,7 +154,7 @@ export default async function AnalyticsDashboard({
         <div className="hidden md:flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <h1 className="text-xl md:text-2xl font-bold text-[#1a2332]">Analytics Dashboard</h1>
-            <Suspense>
+            <Suspense fallback={null}>
               <DateRangeSelector />
             </Suspense>
           </div>
@@ -166,7 +169,7 @@ export default async function AnalyticsDashboard({
         <div className="md:hidden mb-4">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-lg font-bold text-[#1a2332]">Analytics Dashboard</h1>
-            <Suspense>
+            <Suspense fallback={null}>
               <DateRangeSelector />
             </Suspense>
           </div>

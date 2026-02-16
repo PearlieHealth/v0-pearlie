@@ -53,12 +53,11 @@ export async function GET(request: NextRequest) {
           .eq("id", conv.lead_id)
           .single()
 
-        // Get latest human message (exclude bot messages so preview shows patient/clinic text)
+        // Get latest message (include bot messages so preview is always current)
         const { data: latestMessage } = await supabaseAdmin
           .from("messages")
           .select("content, sender_type")
           .eq("conversation_id", conv.id)
-          .neq("sender_type", "bot")
           .order("created_at", { ascending: false })
           .limit(1)
           .single()
@@ -67,6 +66,7 @@ export async function GET(request: NextRequest) {
           ...conv,
           lead,
           latest_message: latestMessage?.content,
+          latest_message_sender: latestMessage?.sender_type,
         }
       })
     )

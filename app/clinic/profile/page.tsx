@@ -19,18 +19,12 @@ import {
   Save,
   Plus,
   X,
-  Pencil,
-  Check,
   Languages,
-  Accessibility,
-  CreditCard,
   ImagePlus,
   Star,
   CheckCircle,
   Shield,
   RefreshCw,
-  ChevronDown,
-  ChevronUp,
   Eye,
   Bell,
   AlertTriangle,
@@ -39,8 +33,10 @@ import {
   PoundSterling,
 } from "lucide-react"
 import { toast } from "sonner"
-import { HIGHLIGHT_CATEGORIES, getHighlightLabel } from "@/lib/clinic-highlights-config"
+import { HIGHLIGHT_CATEGORIES } from "@/lib/clinic-highlights-config"
 import { DEFAULT_TREATMENT_CATEGORIES, type TreatmentCategory, type TreatmentItem } from "@/lib/treatment-pricing-config"
+import { InlineField } from "@/components/clinic/profile/inline-field"
+import { TagEditor } from "@/components/clinic/profile/tag-editor"
 
 interface BeforeAfterImage {
   before_url: string
@@ -94,163 +90,6 @@ const LANGUAGE_OPTIONS = [
   "Russian", "Turkish", "Greek", "Dutch",
 ]
 
-// Inline editable field component
-function InlineField({
-  label,
-  value,
-  icon: Icon,
-  onChange,
-  type = "text",
-  verified = false,
-}: {
-  label: string
-  value: string
-  icon: React.ComponentType<{ className?: string }>
-  onChange: (val: string) => void
-  type?: string
-  verified?: boolean
-}) {
-  const [editing, setEditing] = useState(false)
-  const [localValue, setLocalValue] = useState(value)
-
-  useEffect(() => {
-    setLocalValue(value)
-  }, [value])
-
-  if (editing) {
-    return (
-      <div className="flex items-center gap-3 py-3 border-b border-border/50 last:border-0">
-        <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        <Input
-          type={type}
-          value={localValue}
-          onChange={(e) => setLocalValue(e.target.value)}
-          className="flex-1 h-8 text-sm"
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              onChange(localValue)
-              setEditing(false)
-            }
-            if (e.key === "Escape") {
-              setLocalValue(value)
-              setEditing(false)
-            }
-          }}
-        />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 text-green-600"
-          onClick={() => {
-            onChange(localValue)
-            setEditing(false)
-          }}
-        >
-          <Check className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => {
-            setLocalValue(value)
-            setEditing(false)
-          }}
-        >
-          <X className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex items-center gap-3 py-3 border-b border-border/50 last:border-0 group">
-      <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm truncate">{value || <span className="text-muted-foreground italic">Not set</span>}</p>
-      </div>
-      {verified && (
-        <Badge variant="outline" className="text-[10px] h-5 border-green-300 text-green-700 bg-green-50">
-          VERIFIED
-        </Badge>
-      )}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={() => setEditing(true)}
-      >
-        <Pencil className="h-3.5 w-3.5" />
-      </Button>
-    </div>
-  )
-}
-
-// Tag list editor component
-function TagEditor({
-  tags,
-  onAdd,
-  onRemove,
-  placeholder,
-  variant = "secondary",
-}: {
-  tags: string[]
-  onAdd: (tag: string) => void
-  onRemove: (tag: string) => void
-  placeholder: string
-  variant?: "secondary" | "default" | "destructive"
-}) {
-  const [newTag, setNewTag] = useState("")
-
-  return (
-    <div>
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {tags.map((tag) => (
-          <Badge key={tag} variant={variant} className="gap-1 text-xs">
-            {tag}
-            <button onClick={() => onRemove(tag)} className="ml-0.5 hover:text-destructive">
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-        ))}
-        {tags.length === 0 && (
-          <p className="text-xs text-muted-foreground italic">None added yet</p>
-        )}
-      </div>
-      <div className="flex gap-2">
-        <Input
-          placeholder={placeholder}
-          value={newTag}
-          onChange={(e) => setNewTag(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && newTag.trim()) {
-              onAdd(newTag.trim())
-              setNewTag("")
-            }
-          }}
-          className="h-8 text-sm"
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 bg-transparent"
-          onClick={() => {
-            if (newTag.trim()) {
-              onAdd(newTag.trim())
-              setNewTag("")
-            }
-          }}
-          disabled={!newTag.trim()}
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-    </div>
-  )
-}
-
 export default function ClinicProfilePage() {
   const [profile, setProfile] = useState<ClinicProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -258,15 +97,6 @@ export default function ClinicProfilePage() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isUploadingGallery, setIsUploadingGallery] = useState(false)
   const [isUploadingBeforeAfter, setIsUploadingBeforeAfter] = useState<string | null>(null) // 'before' | 'after' | null
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    highlights: false,
-    matching: false,
-  })
-
-  const toggleSection = (key: string) => {
-    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }))
-  }
-
   const handleGalleryUpload = async (files: FileList) => {
     if (!profile) return
     setIsUploadingGallery(true)
@@ -385,7 +215,26 @@ export default function ClinicProfilePage() {
           accessibility_features: clinic.accessibility_features || [],
           key_selling_points: clinic.key_selling_points || [],
           finance_provider_names: clinic.finance_provider_names || [],
-          opening_hours: clinic.opening_hours || {},
+          opening_hours: (() => {
+            const saved = clinic.opening_hours || {}
+            const full: Record<string, { open: string; close: string; closed: boolean }> = {}
+            for (const day of ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]) {
+              const existing = saved[day] || saved[day.charAt(0).toUpperCase() + day.slice(1)]
+              if (existing && typeof existing === "object") {
+                full[day] = existing as { open: string; close: string; closed: boolean }
+              } else if (existing && typeof existing === "string") {
+                if (existing.toLowerCase() === "closed") {
+                  full[day] = { open: "", close: "", closed: true }
+                } else {
+                  const parts = existing.split("-")
+                  full[day] = { open: parts[0] || "09:00", close: parts[1] || "17:00", closed: false }
+                }
+              } else {
+                full[day] = { open: "09:00", close: "17:00", closed: false }
+              }
+            }
+            return full
+          })(),
           ideal_patient_tags: clinic.ideal_patient_tags || [],
           exclusion_tags: clinic.exclusion_tags || [],
           highlight_chips: clinic.highlight_chips || [],
@@ -436,12 +285,7 @@ export default function ClinicProfilePage() {
           featured_review: profile.featured_review,
           treatments: profile.treatments,
           languages: profile.languages,
-          accessibility_features: profile.accessibility_features,
-          key_selling_points: profile.key_selling_points,
-          finance_provider_names: profile.finance_provider_names,
           opening_hours: profile.opening_hours,
-          ideal_patient_tags: profile.ideal_patient_tags,
-          exclusion_tags: profile.exclusion_tags,
           highlight_chips: profile.highlight_chips,
           images: profile.images,
           before_after_images: profile.before_after_images,
@@ -733,7 +577,7 @@ export default function ClinicProfilePage() {
                 Availability & Emergency
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Accepts emergency patients</p>
@@ -743,37 +587,6 @@ export default function ClinicProfilePage() {
                   checked={profile.accepts_urgent}
                   onCheckedChange={(checked) => setProfile({ ...profile, accepts_urgent: checked })}
                 />
-              </div>
-              <div className="border-t border-border/50 pt-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Weekend availability</p>
-                    <p className="text-xs text-muted-foreground">
-                      {(() => {
-                        const satOpen = profile.opening_hours?.saturday && !profile.opening_hours.saturday.closed
-                        const sunOpen = profile.opening_hours?.sunday && !profile.opening_hours.sunday.closed
-                        if (satOpen && sunOpen) return "Open Saturday & Sunday — set via Practice Hours above"
-                        if (satOpen) return "Open Saturday — set via Practice Hours above"
-                        if (sunOpen) return "Open Sunday — set via Practice Hours above"
-                        return "Not available — toggle Saturday or Sunday open in Practice Hours above"
-                      })()}
-                    </p>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className={`text-[10px] h-5 flex-shrink-0 ${
-                      (profile.opening_hours?.saturday && !profile.opening_hours.saturday.closed) ||
-                      (profile.opening_hours?.sunday && !profile.opening_hours.sunday.closed)
-                        ? "border-green-300 text-green-700 bg-green-50"
-                        : "border-border text-muted-foreground"
-                    }`}
-                  >
-                    {(profile.opening_hours?.saturday && !profile.opening_hours.saturday.closed) ||
-                    (profile.opening_hours?.sunday && !profile.opening_hours.sunday.closed)
-                      ? "ACTIVE"
-                      : "OFF"}
-                  </Badge>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -1028,12 +841,13 @@ export default function ClinicProfilePage() {
                     </div>
                     <Input
                       value={pair.description || ""}
+                      maxLength={200}
                       onChange={(e) => {
                         const updated = [...profile.before_after_images]
                         updated[pairIndex] = { ...updated[pairIndex], description: e.target.value }
                         setProfile({ ...profile, before_after_images: updated })
                       }}
-                      placeholder="Brief description (optional)"
+                      placeholder="Brief description (optional, max 200 chars)"
                       className="h-8 text-sm"
                     />
                   </div>
@@ -1217,13 +1031,20 @@ export default function ClinicProfilePage() {
                             <div className="relative w-28">
                               <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">£</span>
                               <Input
+                                type="number"
+                                min={0}
+                                max={99999}
+                                step="0.01"
                                 value={treatment.price}
                                 onChange={(e) => {
-                                  const updated = [...profile.treatment_prices]
-                                  const treatments = [...updated[catIndex].treatments]
-                                  treatments[treatIndex] = { ...treatments[treatIndex], price: e.target.value }
-                                  updated[catIndex] = { ...updated[catIndex], treatments }
-                                  setProfile({ ...profile, treatment_prices: updated })
+                                  const val = e.target.value
+                                  if (val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 99999)) {
+                                    const updated = [...profile.treatment_prices]
+                                    const treatments = [...updated[catIndex].treatments]
+                                    treatments[treatIndex] = { ...treatments[treatIndex], price: val }
+                                    updated[catIndex] = { ...updated[catIndex], treatments }
+                                    setProfile({ ...profile, treatment_prices: updated })
+                                  }
                                 }}
                                 placeholder="Price"
                                 className="h-7 text-sm pl-5"
@@ -1288,196 +1109,59 @@ export default function ClinicProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Key Selling Points */}
+          {/* Highlight Badges — primary differentiation tool */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Star className="h-4 w-4" />
-                Key Selling Points
+                <Shield className="h-4 w-4" />
+                Highlight Badges
               </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground mb-3">
-                What makes your clinic special? These are shown to matched patients.
+              <p className="text-xs text-muted-foreground mt-1">
+                These badges appear on your clinic card in match results. Select features that set your practice apart.
               </p>
-              <TagEditor
-                tags={profile.key_selling_points}
-                onAdd={(tag) => addTag("key_selling_points", tag)}
-                onRemove={(tag) => removeTag("key_selling_points", tag)}
-                placeholder="e.g., Same-day appointments, Free parking..."
-              />
-            </CardContent>
-          </Card>
-
-          {/* Accessibility */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Accessibility className="h-4 w-4" />
-                Accessibility Features
-              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <TagEditor
-                tags={profile.accessibility_features}
-                onAdd={(tag) => addTag("accessibility_features", tag)}
-                onRemove={(tag) => removeTag("accessibility_features", tag)}
-                placeholder="e.g., Wheelchair access, Step-free entry..."
-              />
-            </CardContent>
-          </Card>
-
-          {/* Finance Options */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                Finance Options
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <TagEditor
-                tags={profile.finance_provider_names}
-                onAdd={(tag) => addTag("finance_provider_names", tag)}
-                onRemove={(tag) => removeTag("finance_provider_names", tag)}
-                placeholder="Add finance provider..."
-              />
-            </CardContent>
-          </Card>
-
-          {/* Highlight Badges - Collapsible */}
-          <Card>
-            <CardHeader className="pb-2">
-              <button
-                type="button"
-                onClick={() => toggleSection("highlights")}
-                className="flex items-center justify-between w-full"
-              >
-                <CardTitle className="text-base font-semibold flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  Highlight Badges
-                </CardTitle>
-                {expandedSections.highlights ? (
-                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                )}
-              </button>
-              {!expandedSections.highlights && profile.highlight_chips.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {profile.highlight_chips.slice(0, 5).map((chip) => (
-                    <Badge key={chip} variant="secondary" className="text-[10px]">
-                      {getHighlightLabel(chip)}
-                    </Badge>
-                  ))}
-                  {profile.highlight_chips.length > 5 && (
-                    <Badge variant="secondary" className="text-[10px]">
-                      +{profile.highlight_chips.length - 5} more
-                    </Badge>
-                  )}
-                </div>
-              )}
-            </CardHeader>
-            {expandedSections.highlights && (
-              <CardContent className="space-y-4">
-                <p className="text-xs text-muted-foreground">
-                  Select badges to display on your clinic card. These help patients see your key features at a glance.
-                </p>
-                {HIGHLIGHT_CATEGORIES.map((category) => (
-                  <div key={category.id} className="space-y-1.5">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      {category.label}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {category.options.map((option) => {
-                        const isSelected = profile.highlight_chips.includes(option.value)
-                        return (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => {
-                              if (isSelected) {
-                                setProfile({
-                                  ...profile,
-                                  highlight_chips: profile.highlight_chips.filter((h) => h !== option.value),
-                                })
-                              } else {
-                                setProfile({
-                                  ...profile,
-                                  highlight_chips: [...profile.highlight_chips, option.value],
-                                })
-                              }
-                            }}
-                            className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
-                              isSelected
-                                ? "bg-[#9F7AEA] text-white border-[#9F7AEA]"
-                                : "bg-background border-border hover:border-[#9F7AEA]/50"
-                            }`}
-                          >
-                            {option.label}
-                          </button>
-                        )
-                      })}
-                    </div>
+            <CardContent className="space-y-4">
+              {HIGHLIGHT_CATEGORIES.map((category) => (
+                <div key={category.id} className="space-y-1.5">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    {category.label}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {category.options.map((option) => {
+                      const isSelected = profile.highlight_chips.includes(option.value)
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setProfile({
+                                ...profile,
+                                highlight_chips: profile.highlight_chips.filter((h) => h !== option.value),
+                              })
+                            } else {
+                              setProfile({
+                                ...profile,
+                                highlight_chips: [...profile.highlight_chips, option.value],
+                              })
+                            }
+                          }}
+                          className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
+                            isSelected
+                              ? "bg-[#9F7AEA] text-white border-[#9F7AEA]"
+                              : "bg-background border-border hover:border-[#9F7AEA]/50"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      )
+                    })}
                   </div>
-                ))}
-              </CardContent>
-            )}
+                </div>
+              ))}
+            </CardContent>
           </Card>
 
-          {/* Matching Preferences - Collapsible */}
-          <Card>
-            <CardHeader className="pb-2">
-              <button
-                type="button"
-                onClick={() => toggleSection("matching")}
-                className="flex items-center justify-between w-full"
-              >
-                <CardTitle className="text-base font-semibold flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
-                  Matching Preferences
-                </CardTitle>
-                {expandedSections.matching ? (
-                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                )}
-              </button>
-            </CardHeader>
-            {expandedSections.matching && (
-              <CardContent className="space-y-6">
-                {/* Ideal Patient Tags */}
-                <div>
-                  <p className="text-sm font-medium mb-1">Ideal Patient Tags</p>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Tags that describe your ideal patients - helps Pearlie match you with the right leads.
-                  </p>
-                  <TagEditor
-                    tags={profile.ideal_patient_tags}
-                    onAdd={(tag) => addTag("ideal_patient_tags", tag)}
-                    onRemove={(tag) => removeTag("ideal_patient_tags", tag)}
-                    placeholder="e.g., nervous patients, cosmetic focus..."
-                    variant="default"
-                  />
-                </div>
-
-                {/* Exclusion Tags */}
-                <div>
-                  <p className="text-sm font-medium mb-1">Exclusion Tags</p>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Tags for cases you would prefer not to receive.
-                  </p>
-                  <TagEditor
-                    tags={profile.exclusion_tags}
-                    onAdd={(tag) => addTag("exclusion_tags", tag)}
-                    onRemove={(tag) => removeTag("exclusion_tags", tag)}
-                    placeholder="e.g., emergency only, no NHS..."
-                    variant="destructive"
-                  />
-                </div>
-              </CardContent>
-            )}
-          </Card>
         </div>
       </div>
     </div>
