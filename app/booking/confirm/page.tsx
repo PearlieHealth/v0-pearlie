@@ -215,10 +215,10 @@ export default function BookingConfirmPage() {
         </div>
 
         {/* Clinic Card with Appointment Details */}
-        <Card className="p-5 mb-4">
-          <div className="flex gap-4">
+        <Card className="p-4 sm:p-5 mb-4">
+          <div className="flex gap-3 sm:gap-4">
             {clinic?.images?.[0] ? (
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-muted shrink-0 border-2 border-primary/20">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-muted shrink-0 border-2 border-primary/20">
                 <Image
                   src={clinic.images[0] || "/placeholder.svg"}
                   alt={clinic.name}
@@ -228,7 +228,7 @@ export default function BookingConfirmPage() {
                 />
               </div>
             ) : (
-              <div className="w-20 h-20 rounded-full bg-muted shrink-0 flex items-center justify-center border-2 border-primary/20">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-muted shrink-0 flex items-center justify-center border-2 border-primary/20">
                 <MapPin className="w-8 h-8 text-muted-foreground" />
               </div>
             )}

@@ -197,8 +197,8 @@ export function ClinicDatePicker({
                     : "border-muted bg-muted/30 text-muted-foreground cursor-not-allowed opacity-60"
                 )}
               >
-                <div className="text-xs text-muted-foreground">{dayShort}</div>
-                <div className={cn("font-semibold", isSelected && "text-primary")}>{monthShort} {dateNum}</div>
+                <div className="text-[11px] sm:text-xs text-muted-foreground">{dayShort}</div>
+                <div className={cn("text-sm sm:text-base font-semibold", isSelected && "text-primary")}>{monthShort} {dateNum}</div>
                 <div className={cn(
                   "text-xs",
                   dateInfo.isAvailable 
@@ -231,7 +231,7 @@ export function ClinicDatePicker({
           </p>
           
           {availableSlots.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
               {availableSlots.map((slot) => (
                 <Button
                   key={slot.key}
