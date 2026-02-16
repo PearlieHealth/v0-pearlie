@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { Fragment, useState } from "react"
 import { Input } from "@/components/ui/input"
-import { Trash2, ChevronDown, ChevronRight, Mail, Phone } from "lucide-react"
+import { Trash2, ChevronDown, ChevronRight, ChevronLeft, Mail, Phone } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,9 +65,11 @@ export function EnhancedLeadsTable({ leads }: { leads?: Lead[] }) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 20
   const router = useRouter()
 
-  const safeLeads = safeArray(leads)
+  const safeLeads = safeArray<Lead>(leads)
 
   // Get unique treatments for filters
   const treatments = Array.from(new Set(safeLeads.map((l) => safeString(l.treatment_interest)).filter(Boolean)))
@@ -85,6 +87,11 @@ export function EnhancedLeadsTable({ leads }: { leads?: Lead[] }) {
 
     return matchesSearch && matchesTreatment && matchesTiming
   })
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredLeads.length / pageSize))
+  const safePage = Math.min(currentPage, totalPages)
+  const paginatedLeads = filteredLeads.slice((safePage - 1) * pageSize, safePage * pageSize)
 
   const generateLeadId = (lead: Lead) => {
     const id = safeString(lead.id)
@@ -166,15 +173,15 @@ export function EnhancedLeadsTable({ leads }: { leads?: Lead[] }) {
       <Card>
         <CardHeader>
           <CardTitle>Patient Leads</CardTitle>
-          <CardDescription>View and manage all patient form submissions from the new 11-question flow</CardDescription>
+          <CardDescription>View and manage all patient form submissions</CardDescription>
           <div className="pt-4 flex flex-col sm:flex-row gap-3">
             <Input
               placeholder="Search by name, email, treatment, or postcode..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1) }}
               className="max-w-sm"
             />
-            <Select value={treatmentFilter} onValueChange={setTreatmentFilter}>
+            <Select value={treatmentFilter} onValueChange={(v) => { setTreatmentFilter(v); setCurrentPage(1) }}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filter by treatment" />
               </SelectTrigger>
@@ -187,7 +194,7 @@ export function EnhancedLeadsTable({ leads }: { leads?: Lead[] }) {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={timingFilter} onValueChange={setTimingFilter}>
+            <Select value={timingFilter} onValueChange={(v) => { setTimingFilter(v); setCurrentPage(1) }}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by timing" />
               </SelectTrigger>
@@ -210,6 +217,37 @@ export function EnhancedLeadsTable({ leads }: { leads?: Lead[] }) {
                 : "No leads yet"}
             </p>
           ) : (
+            <>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm text-muted-foreground">
+                Showing {((safePage - 1) * pageSize) + 1}-{Math.min(safePage * pageSize, filteredLeads.length)} of {filteredLeads.length} lead{filteredLeads.length !== 1 ? 's' : ''}
+              </p>
+              {totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={safePage <= 1}
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {safePage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={safePage >= totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              )}
+            </div>
             <div className="rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -225,9 +263,9 @@ export function EnhancedLeadsTable({ leads }: { leads?: Lead[] }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredLeads.map((lead) => (
-                    <>
-                      <TableRow key={safeString(lead.id) || Math.random()} className="cursor-pointer hover:bg-muted/50">
+                  {paginatedLeads.map((lead) => (
+                    <Fragment key={safeString(lead.id) || Math.random()}>
+                      <TableRow className="cursor-pointer hover:bg-muted/50">
                         <TableCell onClick={() => setExpandedRow(expandedRow === lead.id ? null : safeString(lead.id))}>
                           {expandedRow === lead.id ? (
                             <ChevronDown className="w-4 h-4" />
@@ -350,11 +388,12 @@ export function EnhancedLeadsTable({ leads }: { leads?: Lead[] }) {
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </Fragment>
                   ))}
                 </TableBody>
               </Table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>

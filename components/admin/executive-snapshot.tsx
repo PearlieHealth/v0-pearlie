@@ -1,8 +1,16 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { Users, Eye, MousePointer, TrendingUp, Activity, CheckCircle2, Calendar } from "lucide-react"
+import { Users, Eye, MousePointer, TrendingUp, Activity, CheckCircle2, Calendar, ArrowUp, ArrowDown, Minus } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+
+interface PrevPeriod {
+  totalLeads?: number
+  matchesShown?: number
+  bookingClicks?: number
+  bookingsConfirmed?: number
+  revenueMin?: number
+}
 
 interface ExecutiveSnapshotProps {
   totalLeads?: number
@@ -14,6 +22,37 @@ interface ExecutiveSnapshotProps {
   bookingsDeclined?: number
   revenueMin?: number
   avgClinicsViewed?: number
+  prevPeriod?: PrevPeriod
+}
+
+function DeltaBadge({ current, previous }: { current: number; previous: number }) {
+  if (previous === 0 && current === 0) return null
+  if (previous === 0) {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-green-600">
+        <ArrowUp className="h-2.5 w-2.5" />new
+      </span>
+    )
+  }
+
+  const pctChange = ((current - previous) / previous) * 100
+  const rounded = Math.round(pctChange)
+
+  if (rounded === 0) {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-muted-foreground">
+        <Minus className="h-2.5 w-2.5" />0%
+      </span>
+    )
+  }
+
+  const isUp = rounded > 0
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-[10px] font-medium ${isUp ? "text-green-600" : "text-red-500"}`}>
+      {isUp ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
+      {isUp ? "+" : ""}{rounded}%
+    </span>
+  )
 }
 
 export function ExecutiveSnapshot({
@@ -26,11 +65,29 @@ export function ExecutiveSnapshot({
   bookingsDeclined = 0,
   revenueMin = 0,
   avgClinicsViewed = 0,
+  prevPeriod,
 }: ExecutiveSnapshotProps) {
   // Calculate conversion rate: booked / leads
   const conversionRate = totalLeads > 0 ? (bookingClicks / totalLeads) * 100 : 0
   // Calculate confirmation rate: confirmed / booking requests
   const confirmationRate = bookingClicks > 0 ? (bookingsConfirmed / bookingClicks) * 100 : 0
+
+  // Map metric keys to previous period values for delta display
+  const prevValues: Record<string, number> | null = prevPeriod ? {
+    "Total Leads": prevPeriod.totalLeads ?? 0,
+    "Matches Shown": prevPeriod.matchesShown ?? 0,
+    "Booking Requests": prevPeriod.bookingClicks ?? 0,
+    "Confirmed Bookings": prevPeriod.bookingsConfirmed ?? 0,
+    "Revenue Opportunity": prevPeriod.revenueMin ?? 0,
+  } : null
+
+  const currentValues: Record<string, number> = {
+    "Total Leads": totalLeads,
+    "Matches Shown": matchesShown,
+    "Booking Requests": bookingClicks,
+    "Confirmed Bookings": bookingsConfirmed,
+    "Revenue Opportunity": revenueMin,
+  }
 
   const metrics = [
     {
@@ -99,6 +156,14 @@ export function ExecutiveSnapshot({
                         <span className="text-xs text-muted-foreground">{metric.subtext}</span>
                       )}
                     </div>
+                    {prevValues && prevValues[metric.label] !== undefined && (
+                      <div className="mt-1">
+                        <DeltaBadge
+                          current={currentValues[metric.label]}
+                          previous={prevValues[metric.label]}
+                        />
+                      </div>
+                    )}
                   </Card>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">

@@ -109,8 +109,10 @@ export function ConversionBlockersPanel({ events = [] }: ConversionBlockersPanel
     if (!matchesEvent) return false
 
     const matchesTime = new Date(matchesEvent.created_at).getTime()
+    if (isNaN(matchesTime)) return false
     const hasSubsequentActivity = sessionEvents.some((e) => {
       const eventTime = new Date(e.created_at).getTime()
+      if (isNaN(eventTime)) return false
       return eventTime > matchesTime && eventTime - matchesTime > 30000 // 30 seconds
     })
 

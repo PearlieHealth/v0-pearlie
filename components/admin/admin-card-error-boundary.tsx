@@ -8,6 +8,7 @@ import { AlertTriangle } from "lucide-react"
 
 interface Props {
   children: ReactNode
+  cardName?: string
   fallbackTitle?: string
 }
 
@@ -27,11 +28,9 @@ export class AdminCardErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log to console in development
-    if (process.env.NODE_ENV === "development") {
-      console.error("[AdminCardErrorBoundary] Component crashed:", error)
-      console.error("[AdminCardErrorBoundary] Component stack:", errorInfo.componentStack)
-    }
+    const name = this.props.cardName || "Unknown"
+    console.error(`[AdminCardErrorBoundary] ${name} crashed:`, error)
+    console.error(`[AdminCardErrorBoundary] ${name} stack:`, errorInfo.componentStack)
   }
 
   render() {
@@ -42,7 +41,9 @@ export class AdminCardErrorBoundary extends Component<Props, State> {
             <div className="flex items-center gap-2 text-amber-700">
               <AlertTriangle className="w-4 h-4" />
               <span className="text-sm font-medium">
-                {this.props.fallbackTitle || "This metric is temporarily unavailable"}
+                {this.props.cardName
+                  ? `${this.props.cardName} is temporarily unavailable`
+                  : this.props.fallbackTitle || "This metric is temporarily unavailable"}
               </span>
             </div>
             {process.env.NODE_ENV === "development" && this.state.error && (
