@@ -243,6 +243,24 @@ export default function ClinicDashboardPage() {
       const weekAgo = subDays(now, 7)
       const twoWeeksAgo = subDays(now, 14)
 
+      // Fetch non-NEW lead IDs first to avoid raw SQL interpolation
+      const { data: nonNewStatuses } = await supabase
+        .from("lead_clinic_status")
+        .select("lead_id")
+        .eq("clinic_id", clinicId)
+        .neq("status", "NEW")
+
+      const nonNewLeadIds = (nonNewStatuses || []).map((s) => s.lead_id)
+
+      const newCountQuery = supabase
+        .from("match_results")
+        .select("lead_id", { count: "exact", head: true })
+        .eq("clinic_id", clinicId)
+
+      if (nonNewLeadIds.length > 0) {
+        newCountQuery.not("lead_id", "in", `(${nonNewLeadIds.join(",")})`)
+      }
+
       const [
         { count: thisWeekCount },
         { count: lastWeekCount },
@@ -260,11 +278,7 @@ export default function ClinicDashboardPage() {
           .eq("clinic_id", clinicId)
           .gte("created_at", twoWeeksAgo.toISOString())
           .lt("created_at", weekAgo.toISOString()),
-        supabase
-          .from("match_results")
-          .select("lead_id", { count: "exact", head: true })
-          .eq("clinic_id", clinicId)
-          .not("lead_id", "in", `(select lead_id from lead_clinic_status where clinic_id = '${clinicId}' and status != 'NEW')`),
+        newCountQuery,
         supabase
           .from("lead_clinic_status")
           .select("*", { count: "exact", head: true })

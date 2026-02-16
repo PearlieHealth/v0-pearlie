@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic"
 
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 import { NextResponse } from "next/server"
 import { TIMING_LABELS, COST_APPROACH_LABELS, LOCATION_PREFERENCE_LABELS, ANXIETY_LEVEL_LABELS } from "@/lib/intake-form-config"
 import { escapeHtml } from "@/lib/escape-html"
@@ -18,6 +19,34 @@ export async function POST(request: Request) {
     }
 
     console.log("[lead-actions] Processing action", { leadId, clinicId, actionType })
+
+    // Auth: require authenticated user whose ID matches the lead's user_id.
+    // If the lead has no user_id yet (pre-OTP or failed account creation),
+    // still allow authenticated users who own the email on the lead.
+    const user = await getAuthUser()
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const supabaseAdmin = createAdminClient()
+    const { data: leadOwner } = await supabaseAdmin
+      .from("leads")
+      .select("user_id, email")
+      .eq("id", leadId)
+      .maybeSingle()
+
+    if (!leadOwner) {
+      return NextResponse.json({ error: "Lead not found" }, { status: 404 })
+    }
+
+    // Verify ownership: user_id match, or email match if user_id not yet set
+    const ownsLead =
+      (leadOwner.user_id && leadOwner.user_id === user.id) ||
+      (!leadOwner.user_id && leadOwner.email && leadOwner.email.toLowerCase() === user.email?.toLowerCase())
+
+    if (!ownsLead) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
 
     const supabase = await createClient()
 

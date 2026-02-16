@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 import { getBotNoReplyYet } from "@/lib/chat-bot"
 import { generateIntelligentBotResponse } from "@/lib/chat-bot-ai"
 
@@ -27,6 +28,40 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = createAdminClient()
+
+    // Auth: require either a clinic user session or a lead whose user_id/email matches
+    const user = await getAuthUser()
+    if (user) {
+      // Authenticated user — must be a clinic user for this clinic OR the lead owner
+      const { data: clinicUser } = await supabase
+        .from("clinic_users")
+        .select("clinic_id")
+        .eq("user_id", user.id)
+        .eq("clinic_id", clinicId)
+        .maybeSingle()
+
+      if (!clinicUser) {
+        // Not a clinic user — check if they own this lead
+        const { data: lead } = await supabase
+          .from("leads")
+          .select("user_id, email")
+          .eq("id", leadId)
+          .maybeSingle()
+
+        // Verify ownership: user_id match, or email match if user_id not yet set
+        const ownsLead =
+          lead &&
+          ((lead.user_id && lead.user_id === user.id) ||
+           (!lead.user_id && lead.email && lead.email.toLowerCase() === user.email?.toLowerCase()))
+
+        if (!ownsLead) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+        }
+      }
+    } else {
+      // No auth session — reject
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
     // Get conversation with bot tracking fields
     const { data: conversations } = await supabase

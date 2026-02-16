@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { randomBytes } from "crypto"
+import { createRateLimiter } from "@/lib/rate-limit"
+
+// 10 booking requests per IP per hour
+const bookingIpLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, maxAttempts: 10 })
 
 export async function POST(request: Request) {
   try {
+    // Rate limit by IP
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
+    const ipCheck = bookingIpLimiter.check(ip)
+    if (ipCheck.limited) {
+      return NextResponse.json(
+        { error: `Too many requests. Please try again in ${ipCheck.retryAfterSecs} seconds.` },
+        { status: 429, headers: { "Retry-After": String(ipCheck.retryAfterSecs) } }
+      )
+    }
+    bookingIpLimiter.record(ip)
+
     const { clinicId, leadId, date, time } = await request.json()
 
     if (!clinicId || !leadId || !date || !time) {
@@ -66,9 +81,16 @@ export async function POST(request: Request) {
       console.log("[v0] Base URL:", baseUrl)
       console.log("[v0] Clinic ID:", clinicId, "Lead ID:", leadId)
       
+      // Forward auth headers so lead-actions can verify the caller
+      const incomingHeaders: Record<string, string> = { "Content-Type": "application/json" }
+      const cookie = request.headers.get("cookie")
+      if (cookie) incomingHeaders["cookie"] = cookie
+      const authorization = request.headers.get("authorization")
+      if (authorization) incomingHeaders["authorization"] = authorization
+
       const leadActionsResponse = await fetch(`${baseUrl}/api/lead-actions`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: incomingHeaders,
         body: JSON.stringify({
           clinicId,
           leadId,

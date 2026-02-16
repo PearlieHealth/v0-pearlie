@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyAdminAuth } from "@/lib/admin-auth"
+import { isValidImageMagicBytes } from "@/lib/validate-image-bytes"
 
 export async function POST(request: NextRequest) {
   const auth = await verifyAdminAuth()
@@ -31,6 +32,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate magic bytes match a known image format
+    const fileBuffer = new Uint8Array(await file.arrayBuffer())
+    if (!isValidImageMagicBytes(fileBuffer)) {
+      return NextResponse.json(
+        { error: "File does not appear to be a valid image. Only JPEG, PNG, and WebP are allowed." },
+        { status: 400 },
+      )
+    }
+
     // Create unique filename
     const timestamp = Date.now()
     const randomString = Math.random().toString(36).substring(7)
@@ -39,8 +49,8 @@ export async function POST(request: NextRequest) {
     const folder = type === "main" ? "main" : "gallery"
     const path = `clinic-photos/${folder}/${filename}`
 
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage.from("clinic-assets").upload(path, file, {
+    // Upload to Supabase Storage — use the already-read buffer
+    const { data, error } = await supabase.storage.from("clinic-assets").upload(path, fileBuffer, {
       contentType: file.type,
       cacheControl: "3600",
       upsert: false,

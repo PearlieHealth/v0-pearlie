@@ -18,10 +18,10 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
 
     const {
-      data: { session },
-    } = await supabase.auth.getSession()
+      data: { user },
+    } = await supabase.auth.getUser()
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     const { data: clinicUser } = await supabase
       .from("clinic_users")
       .select("clinic_id")
-      .eq("user_id", session.user.id)
+      .eq("user_id", user.id)
       .eq("clinic_id", clinicId)
       .single()
 
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       const { data: portalUser } = await supabase
         .from("clinic_portal_users")
         .select("clinic_ids")
-        .eq("email", session.user.email)
+        .eq("email", user.email)
         .single()
 
       if (!portalUser?.clinic_ids?.includes(clinicId)) {
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
           .from("lead_clinic_status")
           .update({
             status,
-            updated_by: session.user.id,
+            updated_by: user.id,
             updated_at: now,
           })
           .eq("id", existing.id)
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
           lead_id: leadId,
           clinic_id: clinicId,
           status,
-          updated_by: session.user.id,
+          updated_by: user.id,
         })
 
         if (!error) updatedCount++

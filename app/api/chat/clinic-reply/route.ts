@@ -6,6 +6,10 @@ import { escapeHtml } from "@/lib/escape-html"
 import { sendEmailWithRetry } from "@/lib/email-send"
 import { EMAIL_FROM } from "@/lib/email-config"
 import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders, isUnsubscribed } from "@/lib/unsubscribe"
+import { createRateLimiter } from "@/lib/rate-limit"
+
+// 20 messages per clinic per minute
+const clinicReplyLimiter = createRateLimiter({ windowMs: 60 * 1000, maxAttempts: 20 })
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,6 +38,16 @@ export async function POST(request: NextRequest) {
     if (!clinicUser) {
       return NextResponse.json({ error: "No clinic found" }, { status: 404 })
     }
+
+    // Rate limit: 20 messages per clinic per minute
+    const { limited, retryAfterSecs } = clinicReplyLimiter.check(clinicUser.clinic_id)
+    if (limited) {
+      return NextResponse.json(
+        { error: `Too many messages. Please try again in ${retryAfterSecs} seconds.` },
+        { status: 429, headers: { "Retry-After": String(retryAfterSecs) } }
+      )
+    }
+    clinicReplyLimiter.record(clinicUser.clinic_id)
 
     // Verify conversation belongs to this clinic
     const { data: conversation, error: convError } = await supabaseAdmin
