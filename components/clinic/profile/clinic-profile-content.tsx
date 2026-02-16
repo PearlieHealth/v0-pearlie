@@ -516,8 +516,7 @@ export function ClinicProfileContent() {
           <div className="flex gap-3 max-w-lg mx-auto">
             <Button
               size="lg"
-              variant="outline"
-              className="flex-1 border-[#907EFF]/30 bg-white hover:bg-[#f8f5ff] text-[#1a1a1a] min-h-[48px] touch-manipulation"
+              className="flex-1 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] hover:from-[#805AD5] hover:to-[#D53F8C] text-white min-h-[48px] touch-manipulation shadow-md"
               onClick={() => setShowMobileChat(true)}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
@@ -525,7 +524,8 @@ export function ClinicProfileContent() {
             </Button>
             <Button
               size="lg"
-              className="flex-1 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] hover:from-[#805AD5] hover:to-[#D53F8C] text-white min-h-[48px] touch-manipulation shadow-md"
+              variant="outline"
+              className="flex-1 border-[#907EFF]/30 bg-white hover:bg-[#f8f5ff] text-[#1a1a1a] min-h-[48px] touch-manipulation"
               onClick={() => setShowMobilePicker(true)}
             >
               <Calendar className="h-4 w-4 mr-2" />
