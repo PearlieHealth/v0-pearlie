@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { FORM_VERSION, SCHEMA_VERSION } from "@/lib/intake-form-config"
+import { createRateLimiter } from "@/lib/rate-limit"
+
+// Rate limit: 5 lead submissions per email per 10 minutes
+const leadRateLimiter = createRateLimiter({ windowMs: 10 * 60 * 1000, maxAttempts: 5 })
 
 async function geocodePostcode(postcode: string): Promise<{ latitude: number; longitude: number } | null> {
   try {
@@ -43,6 +47,25 @@ function validateLeadData(body: Record<string, unknown>): { valid: true; data: R
   // Require at least an email (needed for OTP verification on match page)
   if (!body.email || typeof body.email !== "string" || (body.email as string).trim() === "") {
     return { valid: false, error: "Email address is required" }
+  }
+
+  // Input length validation
+  if ((body.firstName as string).trim().length > 100) {
+    return { valid: false, error: "First name is too long (max 100 characters)" }
+  }
+  if ((body.lastName as string).trim().length > 100) {
+    return { valid: false, error: "Last name is too long (max 100 characters)" }
+  }
+  if (typeof body.email === "string" && (body.email as string).trim().length > 254) {
+    return { valid: false, error: "Email address is too long" }
+  }
+
+  // Budget amount validation
+  if (body.strictBudgetAmount !== undefined && body.strictBudgetAmount !== null) {
+    const amount = typeof body.strictBudgetAmount === "number" ? body.strictBudgetAmount : Number(body.strictBudgetAmount)
+    if (isNaN(amount) || amount < 0 || amount > 100000) {
+      return { valid: false, error: "Budget amount must be between £0 and £100,000" }
+    }
   }
 
   return {
@@ -98,6 +121,33 @@ export async function POST(request: Request) {
     }
 
     const validatedData = validation.data as Record<string, unknown>
+
+    // M2: Rate limit by email (5 per 10 minutes)
+    const rateLimitKey = (validatedData.email as string).trim().toLowerCase()
+    const { limited, retryAfterSecs } = leadRateLimiter.check(rateLimitKey)
+    if (limited) {
+      return NextResponse.json(
+        { error: `Too many submissions. Please try again in ${retryAfterSecs} seconds.` },
+        { status: 429, headers: { "Retry-After": String(retryAfterSecs) } }
+      )
+    }
+
+    // M1: Check for duplicate submission (same email + postcode + treatment within 10 min)
+    const { data: existingLead } = await supabase
+      .from("leads")
+      .select("id")
+      .eq("email", rateLimitKey)
+      .eq("postcode", (validatedData.postcode as string).trim())
+      .eq("treatment_interest", (validatedData.treatmentInterest as string).trim())
+      .gte("created_at", new Date(Date.now() - 10 * 60 * 1000).toISOString())
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (existingLead) {
+      console.log(`[leads] Duplicate submission detected, returning existing lead: ${existingLead.id}`)
+      return NextResponse.json({ leadId: existingLead.id }, { status: 200 })
+    }
 
     const geocoded = await geocodePostcode(validatedData.postcode as string)
     if (!geocoded) {
@@ -180,6 +230,9 @@ export async function POST(request: Request) {
       console.error("[leads] Error creating lead:", insertError)
       throw insertError
     }
+
+    // Record successful submission for rate limiting
+    leadRateLimiter.record(rateLimitKey)
 
     return NextResponse.json({ leadId: insertedLead.id }, { status: 201 })
   } catch (error) {

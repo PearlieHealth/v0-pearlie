@@ -20,6 +20,7 @@ import {
   Info,
   Shield,
   Clock,
+  MessageCircle,
 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
@@ -302,30 +303,6 @@ export default function MatchPage() {
     if (index === 0) return "Top match"
     if (index === 1) return "Strong alternative"
     return null
-  }
-
-  const handleLoadMore = async () => {
-    // This function is no longer directly used for loading more clinics,
-    // but kept for potential future use or analytics.
-    trackEvent("load_more_clicked", {
-      meta: {
-        current_shown: visibleClinics.length,
-      },
-    })
-
-    fetch("/api/events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        matchId,
-        eventType: "view",
-        metadata: { timestamp: new Date().toISOString() },
-      }),
-    }).catch(() => {
-      // Fail silently
-    })
-
-    // The logic for loading more clinics is now handled by setVisibleClinicsCount
   }
 
   const handleClinicClick = (clinicId: string, index: number) => {
@@ -891,7 +868,7 @@ const categoryLabels: Record<string, string> = {
                                   <div className="flex items-center gap-2 mb-3">
                                     <Shield className="w-5 h-5 text-muted-foreground" />
                                     <h3 className="font-semibold text-foreground">
-                                      {clinic.tier === "directory"
+                                      {clinic.card_title || (clinic.tier === "directory"
                                         ? "About this clinic"
                                         : clinic.tier === "nearby"
                                           ? "Other option in your area"
@@ -899,7 +876,7 @@ const categoryLabels: Record<string, string> = {
                                             ? "Why this clinic"
                                             : index < 2
                                               ? "Why we matched you"
-                                              : "Could also be a good match"}
+                                              : "Could also be a good match")}
                                     </h3>
                                   </div>
 
@@ -989,6 +966,18 @@ const categoryLabels: Record<string, string> = {
                                     >
                                       <Phone className="w-4 h-4" />
                                       Call Clinic
+                                    </Button>
+                                  )}
+                                  {clinic.tier !== "directory" && (
+                                    <Button
+                                      variant="outline"
+                                      className="flex-1 bg-transparent"
+                                      asChild
+                                    >
+                                      <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>
+                                        <MessageCircle className="w-4 h-4" />
+                                        Message
+                                      </Link>
                                     </Button>
                                   )}
                                 </div>

@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { geocodePostcode } from "@/lib/postcodes-io"
 import { buildLeadProfileFromDB, buildClinicProfile, rankClinics } from "@/lib/matching/engine"
 import { getLiveClinicFilter } from "@/lib/matching/clinic-status"
+import { buildMatchReasonsForMultipleClinics, getExplanationVersion } from "@/lib/matching/reasons-engine"
 
 export async function POST(request: Request) {
   try {
@@ -132,34 +133,69 @@ export async function POST(request: Request) {
       throw matchError
     }
 
-    // 8. Save individual match_results for each clinic (feeds clinic dashboards)
+    // 8. Build cross-clinic deduped reasons (uses matchFacts from ranking)
+    const reasonsMap = buildMatchReasonsForMultipleClinics(
+      leadId,
+      rankedClinics.map((rc, index) => ({
+        clinicId: rc.clinic.id,
+        matchFacts: rc.matchFacts,
+        fallbackOffset: index,
+      }))
+    )
+
+    // 9. Save individual match_results for each clinic (feeds clinic dashboards)
     // Clean up any previous match_results for this lead to avoid duplicates
     await supabase.from("match_results").delete().eq("lead_id", leadId)
 
-    const matchResultRows = rankedClinics.map((rc, index) => ({
-      lead_id: leadId,
-      clinic_id: rc.clinic.id,
-      score: rc.score.percent,
-      reasons: rc.reasons.map((r) => r.text),
-      match_run_id: match.id,
-      rank: index + 1,
-      match_breakdown: rc.score.categories.map((c) => ({
-        category: c.category,
-        points: c.points,
-        maxPoints: c.maxPoints,
-      })),
-    }))
+    const matchResultRows = rankedClinics.map((rc, index) => {
+      const result = reasonsMap.get(rc.clinic.id)
+      const composed = result?.composed
 
-    const { error: resultsError } = await supabase
+      return {
+        lead_id: leadId,
+        clinic_id: rc.clinic.id,
+        score: rc.score.percent,
+        reasons: rc.reasons.map((r) => r.text),
+        match_run_id: match.id,
+        rank: index + 1,
+        match_breakdown: rc.score.categories.map((c) => ({
+          category: c.category,
+          points: c.points,
+          maxPoints: c.maxPoints,
+        })),
+        // Cache fields for D1 (served directly on GET without re-scoring)
+        match_reasons_composed: composed?.bullets || rc.reasons.map((r) => r.text),
+        match_reasons_long: composed?.longBullets || rc.reasons.map((r) => r.text),
+        match_reasons_meta: {
+          tagsUsed: composed?.tagsUsed || [],
+          templatesUsed: composed?.templatesUsed || [],
+          confidence: composed?.confidence || 0.8,
+          source: "template",
+        },
+        distance_miles: rc.score.distanceMiles,
+        explanation_version: getExplanationVersion(),
+        tier: rc.tier,
+      }
+    })
+
+    // Try insert with cache columns; fall back to base fields if columns don't exist yet
+    const { error: insertError } = await supabase
       .from("match_results")
       .insert(matchResultRows)
 
-    if (resultsError) {
-      console.error("[match] Error saving match_results:", resultsError)
+    if (insertError) {
+      console.warn("[match] match_results insert failed (cache columns may not exist), retrying with base fields:", insertError.message)
+      const baseRows = matchResultRows.map(({ match_reasons_composed, match_reasons_long, match_reasons_meta, distance_miles, explanation_version, tier, ...base }) => base)
+      const { error: retryError } = await supabase
+        .from("match_results")
+        .insert(baseRows)
+      if (retryError) {
+        console.error("[match] Error saving match_results (base fields):", retryError)
+      }
       // Don't throw — the match was created, results are non-critical
     }
 
-    // 9. Build response in format frontend expects
+    // 10. Build response in format frontend expects
     const topClinics = rankedClinics.slice(0, 2).map((rc) => ({
       id: rc.clinic.id,
       name: rc.clinic.name,

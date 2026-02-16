@@ -91,6 +91,13 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
     totalScore = Math.max(0, totalScore - complexCasePenalty)
   }
 
+  // Sedation penalty: -15 if patient is very anxious (likely needs sedation) and clinic doesn't offer it
+  let sedationPenalty = 0
+  if (lead.anxietyLevel === "very_anxious" && !clinic.filterKeys.includes("TAG_SEDATION_AVAILABLE")) {
+    sedationPenalty = 15
+    totalScore = Math.max(0, totalScore - sedationPenalty)
+  }
+
   // Calculate contribution weights for each category
   categories.forEach((cat) => {
     cat.weight = totalScore > 0 ? cat.points / totalScore : 0
@@ -105,6 +112,7 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
     categories,
     distanceMiles,
     complexCasePenalty,
+    sedationPenalty,
   }
 }
 
@@ -163,6 +171,22 @@ function scoreTreatmentMatch(lead: LeadAnswer, clinic: ClinicProfile, maxPoints:
   }
 }
 
+/**
+ * Distance thresholds (miles) — the radius at which a clinic's distance score reaches 0%.
+ * Scoring uses smooth linear decay: 100% at 0 miles, 0% at maxRadius.
+ *
+ *   NEAR_HOME_WORK: ~20 min walk / short bus ride in London
+ *   TRAVEL_A_BIT:   ~30 min tube/bus across a few zones
+ *   TRAVEL_FURTHER: Willing to cross London for the right clinic
+ *   DEFAULT:        Fallback when no preference is specified
+ */
+const DISTANCE_THRESHOLDS = {
+  NEAR_HOME_WORK: 5,
+  TRAVEL_A_BIT: 12,
+  TRAVEL_FURTHER: 25,
+  DEFAULT: 10,
+} as const
+
 function scoreDistance(
   lead: LeadAnswer,
   clinic: ClinicProfile,
@@ -174,16 +198,15 @@ function scoreDistance(
 
   const pref = lead.locationPreference?.toLowerCase()
 
-  // Define max radius per preference (distance where score reaches 0)
   let maxRadius: number
   if (pref === "near_home" || pref === "near_home_work") {
-    maxRadius = 5 // 0% at 5 miles
+    maxRadius = DISTANCE_THRESHOLDS.NEAR_HOME_WORK
   } else if (pref === "travel_bit" || pref === "travel_a_bit") {
-    maxRadius = 12 // 0% at 12 miles
+    maxRadius = DISTANCE_THRESHOLDS.TRAVEL_A_BIT
   } else if (pref === "travel_further") {
-    maxRadius = 25 // 0% at 25 miles
+    maxRadius = DISTANCE_THRESHOLDS.TRAVEL_FURTHER
   } else {
-    maxRadius = 10 // default: 0% at 10 miles
+    maxRadius = DISTANCE_THRESHOLDS.DEFAULT
   }
 
   const ratio = Math.max(0, 1 - distanceMiles / maxRadius)
@@ -260,7 +283,7 @@ function scoreAnxiety(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: number
     clinic.filterKeys.includes("TAG_CALM_REASSURING")
   
   // Score based on patient's anxiety level and clinic's support
-  if (anxietyLevel === "prefer-sedation" || anxietyLevel === "very_anxious" || anxietyLevel === "quite_anxious") {
+  if (anxietyLevel === "very_anxious" || anxietyLevel === "quite_anxious") {
     // Patient needs strong anxiety support (serious tier)
     if (hasSedation) {
       points = maxPoints // Sedation available = 100%
@@ -369,7 +392,7 @@ function scoreAvailability(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
     const slotWeight = 0.7
     if (totalPreferred > 0) {
       if (matchCount === totalPreferred) {
-        points += maxPoints * slotWeight // All slots match = 70%
+        points += Math.round(maxPoints * slotWeight) // All slots match = 70%
       } else if (matchCount >= 1) {
         // Partial match - proportional score
         points += Math.round(maxPoints * slotWeight * (matchCount / totalPreferred))
@@ -377,7 +400,7 @@ function scoreAvailability(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
     } else {
       // Patient didn't specify preference - give full slot score if clinic has good availability
       if (clinicHasMorning && clinicHasAfternoon && clinicDays.length >= 5) {
-        points += maxPoints * slotWeight
+        points += Math.round(maxPoints * slotWeight)
       } else if (clinicDays.length >= 3) {
         points += Math.round(maxPoints * slotWeight * 0.7)
       }
@@ -433,7 +456,8 @@ function scoreCostApproach(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: n
   let matchedTag: string | null = null
   let priceTierMatch: "full" | "partial" | "excluded" | "unknown" = "unknown"
 
-  // Split points: 50% price tier match, 50% communication TAG match
+  // Split points: ~50% price tier match, ~50% communication TAG match
+  // Note: rounding may give tierPoints one extra point (e.g. 8/7 for 15), but sum always equals maxPoints
   const tierPoints = Math.round(maxPoints * 0.5)
   const tagPoints = maxPoints - tierPoints
 
@@ -631,7 +655,7 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
 
     anxiety: {
       patientLevel: lead.anxietyLevel || null,
-      needsSedation: lead.anxietyLevel === "prefer-sedation",
+      needsSedation: lead.anxietyLevel === "very_anxious",
       hasSedation: (anxietyCat?.facts?.hasSedation as boolean) || false,
       hasAnxietySupport: (anxietyCat?.facts?.hasAnxietySupport as boolean) || false,
       matchedTags: (anxietyCat?.facts?.matchedTags as string[]) || [],
@@ -659,6 +683,7 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
       maxPossible: breakdown.maxPossible,
       percent: breakdown.percent,
       complexCasePenalty: breakdown.complexCasePenalty || 0,
+      sedationPenalty: breakdown.sedationPenalty || 0,
     },
 
     clinicTags: clinic.filterKeys,

@@ -53,8 +53,9 @@ export const Q4_PRIORITY_TAG_MAP: Record<string, string> = {
 
 // =============================================================================
 // Q5: "Concerns / blockers" (6 options, multi-select max 2)
-// Informational only — does NOT affect scoring (except WORRIED_COMPLEX penalty)
-// Form blocker codes → TAG_* keys (1:1 mapping, kept for data recording)
+// Affects scoring: bonus points (0-10) when clinic has tags matching patient hesitations
+// Also: WORRIED_COMPLEX triggers a -15 penalty if clinic lacks TAG_COMPLEX_CASES_WELCOME
+// Form blocker codes → TAG_* keys (1:1 mapping)
 // =============================================================================
 export const Q5_BLOCKER_TAG_MAP: Record<string, string> = {
   // v6 blocker codes (multi-select max 2):
@@ -135,10 +136,10 @@ export const WEIGHT_CONFIG = {
   treatment: 15, // Must-have: clinic offers requested treatment
   distance: 25, // Geographic proximity (NEVER used for reasons)
   priorities: 20, // Q4 priority tag matches
-  blockers: 10, // Q5 blocker support bonus (+ separate -15 complex case penalty)
+  blockers: 10, // Q5 blocker support (+ separate -15 complex case penalty)
   anxiety: 10, // Q10 anxiety accommodation
   cost: 15, // Q8 cost: price tier match + communication TAG match
-  availability: 15, // Appointment time slot compatibility
+  availability: 5, // Appointment time slot compatibility
 } as const
 
 export const CANONICAL_TAG_KEYS: string[] = [
@@ -323,19 +324,25 @@ export const TREATMENT_REASON_TEMPLATES: Record<string, string[]> = {
 // =============================================================================
 // Emergency-specific reason templates
 // =============================================================================
+// IMPORTANT: Must NOT contain distance words (mile, km, near, close to, nearby, within)
 export const EMERGENCY_REASON_TEMPLATES = {
   availability: [
-    "Able to see urgent patients.",
+    "Able to see urgent patients quickly.",
     "Offers appointments aligned with your urgency.",
+    "Can accommodate emergency visits at short notice.",
+    "Prioritises urgent cases in their schedule.",
     "Ready to accommodate emergency visits.",
   ],
   capability: [
     "Experienced in handling urgent dental concerns.",
     "Accepts emergency appointments.",
+    "Equipped to manage urgent dental issues effectively.",
+    "Has the facilities to treat emergency cases.",
   ],
   anxiety: [
-    "Experienced in supporting nervous patients.",
-    "Provides a calm approach for urgent visits.",
+    "Experienced in supporting nervous patients during urgent visits.",
+    "Provides a calm, reassuring approach for urgent care.",
+    "Gentle approach to help ease anxiety during emergency treatment.",
   ],
 }
 

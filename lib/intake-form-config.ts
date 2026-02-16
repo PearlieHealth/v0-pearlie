@@ -19,6 +19,12 @@ export const FORM_VERSION = "v6_blocker_multiselect_2026-02-14"
 export const SCHEMA_VERSION = 6
 
 // =============================================================================
+// SERVICE REGION — Change here when expanding beyond London
+// =============================================================================
+export const SUPPORTED_REGION = "London"
+export const REGION_NOT_AVAILABLE_MESSAGE = `We're currently only serving patients in ${SUPPORTED_REGION}`
+
+// =============================================================================
 // TREATMENTS (Q1)
 // =============================================================================
 export const TREATMENT_OPTIONS = [

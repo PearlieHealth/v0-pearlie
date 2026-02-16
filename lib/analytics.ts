@@ -78,7 +78,7 @@ export async function trackEvent(
     clinic_id: options.clinicId || null,
     match_id: matchId,
     match_count: options.matchCount || null,
-    page: window.location.pathname,
+    page: window.location.pathname + window.location.search,
     meta: options.meta || {},
   }
 

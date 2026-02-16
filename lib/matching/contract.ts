@@ -90,6 +90,7 @@ export interface MatchScoreBreakdown {
   categories: ScoreCategoryBreakdown[]
   distanceMiles?: number
   complexCasePenalty?: number // -15 if WORRIED_COMPLEX selected and clinic lacks TAG_COMPLEX_CASES_WELCOME
+  sedationPenalty?: number // -15 if very_anxious patient and clinic lacks TAG_SEDATION_AVAILABLE
 }
 
 /**
@@ -188,7 +189,7 @@ export interface MatchFacts {
   scoreBreakdown: {
     treatment: number
     priorities: number
-    blockers: number // Always 0 — informational only
+    blockers: number // Bonus points (0-10) when clinic has tags matching patient hesitations
     cost: number
     anxiety: number
     availability: number
@@ -196,6 +197,7 @@ export interface MatchFacts {
     maxPossible: number
     percent: number
     complexCasePenalty?: number // -15 if applied
+    sedationPenalty?: number // -15 if applied
   }
 
   // All clinic tags for fallback selection
@@ -203,6 +205,18 @@ export interface MatchFacts {
 
   // Clinic metadata for fallback reasons
   clinicRating?: number
+}
+
+/**
+ * Composed reason output for patient-facing display
+ * Produced by buildMatchReasonsForMultipleClinics() with cross-clinic dedup
+ */
+export interface ComposedReasons {
+  bullets: string[]           // 2-3 short sentences for card display
+  longBullets: string[]       // Extended explanations (currently same as bullets)
+  tagsUsed: string[]          // TAG_* keys that contributed
+  templatesUsed: string[]     // Template IDs for analytics/debug
+  confidence: number          // 0-1 based on non-fallback reason count
 }
 
 /**

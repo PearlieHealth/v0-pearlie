@@ -2,15 +2,17 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { normalizeLead, normalizeClinic } from "@/lib/matching/normalize"
 import { scoreClinic, buildMatchFacts } from "@/lib/matching/scoring"
-import { buildMatchReasons, validateUniqueReasons } from "@/lib/matching/reasons-engine"
+import { buildMatchReasonsForMultipleClinics, validateUniqueReasons } from "@/lib/matching/reasons-engine"
+import { getExplanationVersion } from "@/lib/matching/reasons-engine"
 import { isInGreaterLondon } from "@/lib/matching/reasons"
-import { composeReasonsForMultipleClinics } from "@/lib/matching/reasonComposer"
 import { calculateHaversineDistance } from "@/lib/utils/geo"
 
 export async function GET(request: Request, { params }: { params: Promise<{ matchId: string }> }) {
   try {
     const supabase = await createClient()
     const { matchId } = await params
+    const url = new URL(request.url)
+    const forceRefresh = url.searchParams.get("refresh") === "true"
 
     if (!matchId || typeof matchId !== "string") {
       return NextResponse.json({ error: "Invalid match ID" }, { status: 400 })
@@ -55,97 +57,187 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       return NextResponse.json({ error: "Lead not found" }, { status: 404 })
     }
 
-    // Fetch clinics with their filter keys (left join to include clinics without tags)
-    const { data: clinicsRaw, error: clinicsError } = await supabase
-      .from("clinics")
-      .select(
-        `
-        *,
-        clinic_filter_selections(filter_key)
-      `,
-      )
-      .in("id", match.clinic_ids)
-      .eq("is_archived", false)
+    // Detect emergency
+    const isEmergency = lead.treatment_interest?.toLowerCase().includes("emergency") || false
 
-    if (clinicsError) {
-      console.error("[match-api] Error fetching clinics:", clinicsError)
-      throw clinicsError
+    // ─── Try cached path first ──────────────────────────────────────────────
+    let clinicsWithScores: any[] = []
+    let usedCache = false
+
+    if (!forceRefresh) {
+      // Check if we have cached match_results with composed reasons
+      const { data: cachedResults } = await supabase
+        .from("match_results")
+        .select("*")
+        .eq("match_run_id", matchId)
+        .order("rank", { ascending: true })
+
+      const currentVersion = getExplanationVersion()
+      const hasCachedComposed = cachedResults?.length &&
+        cachedResults.every(r =>
+          r.match_reasons_composed &&
+          Array.isArray(r.match_reasons_composed) &&
+          r.match_reasons_composed.length > 0 &&
+          // Ensure cached reasons match current engine version
+          (!r.explanation_version || r.explanation_version === currentVersion)
+        )
+
+      if (hasCachedComposed) {
+        console.log(`[match-api] Serving cached results for match ${matchId} (${cachedResults.length} clinics)`)
+
+        // FAST PATH: Fetch fresh clinic base data (name, address, phone, images, etc.)
+        const { data: clinicsRaw } = await supabase
+          .from("clinics")
+          .select("*")
+          .in("id", match.clinic_ids)
+          .eq("is_archived", false)
+
+        const clinicMap = new Map((clinicsRaw || []).map(c => [c.id, c]))
+
+        clinicsWithScores = cachedResults
+          .map(cached => {
+            const clinicRow = clinicMap.get(cached.clinic_id)
+            if (!clinicRow) return null
+            return {
+              ...clinicRow,
+              distance_miles: cached.distance_miles,
+              match_score: cached.score,
+              match_percentage: cached.score,
+              match_breakdown: cached.match_breakdown || [],
+              match_reasons: cached.reasons || [],
+              match_reasons_composed: cached.match_reasons_composed,
+              match_reasons_long: cached.match_reasons_long || cached.match_reasons_composed,
+              match_reasons_meta: cached.match_reasons_meta || {
+                tagsUsed: [],
+                templatesUsed: [],
+                confidence: 0.8,
+                source: "template",
+              },
+              tier: cached.tier || "top",
+              card_title: isEmergency ? "Why this clinic" : "Why we matched you",
+              is_emergency: isEmergency,
+            }
+          })
+          .filter(Boolean)
+
+        usedCache = true
+      }
     }
 
-    // Normalize lead
-    const normalizedLead = normalizeLead(lead)
+    // ─── Slow path: re-score if no cache or forced refresh ──────────────────
+    if (!usedCache) {
+      console.log(`[match-api] ${forceRefresh ? "Forced refresh" : "No cache"} — running full scoring for match ${matchId}`)
 
-    // Score each clinic first
-    const clinicsWithScoresRaw = (clinicsRaw || []).map((clinicRow, clinicIndex) => {
-      // Extract filter keys
-      const filterKeys = Array.isArray(clinicRow.clinic_filter_selections)
-        ? clinicRow.clinic_filter_selections.map((sel: any) => sel.filter_key)
-        : []
+      // Fetch clinics with their filter keys
+      const { data: clinicsRaw, error: clinicsError } = await supabase
+        .from("clinics")
+        .select(
+          `
+          *,
+          clinic_filter_selections(filter_key)
+        `,
+        )
+        .in("id", match.clinic_ids)
+        .eq("is_archived", false)
 
-      // Normalize clinic
-      const normalizedClinic = normalizeClinic(clinicRow, filterKeys)
-
-      // Score clinic
-      const scoreBreakdown = scoreClinic(normalizedLead, normalizedClinic)
-
-      const matchFacts = buildMatchFacts(normalizedLead, normalizedClinic, scoreBreakdown)
-
-      // Build personalized reasons from MatchFacts (never raw lead data)
-      // Pass clinicIndex as fallbackOffset so each clinic gets different group rotation + template variants
-      const reasons = buildMatchReasons(matchFacts, false, clinicIndex)
-
-      return {
-        clinicRow,
-        normalizedClinic,
-        filterKeys,
-        scoreBreakdown,
-        matchFacts,
-        reasons,
+      if (clinicsError) {
+        console.error("[match-api] Error fetching clinics:", clinicsError)
+        throw clinicsError
       }
-    })
 
-    // Compose reasons for ALL clinics at once to ensure uniqueness across cards
-    const composedReasonsMap = composeReasonsForMultipleClinics(
-      normalizedLead.id,
-      clinicsWithScoresRaw.map(c => ({
-        clinicId: c.normalizedClinic.id,
-        matchReasons: c.reasons,
-        matchFacts: c.matchFacts,
-      }))
-    )
+      // Normalize lead
+      const normalizedLead = normalizeLead(lead)
 
-    // Detect if this is an emergency match
-    const isEmergency = normalizedLead.treatment?.toLowerCase().includes("emergency") || false
+      // Score each clinic
+      const clinicScoringData = (clinicsRaw || []).map((clinicRow, clinicIndex) => {
+        const filterKeys = Array.isArray(clinicRow.clinic_filter_selections)
+          ? clinicRow.clinic_filter_selections.map((sel: any) => sel.filter_key)
+          : []
 
-    // Build final clinics with scores and reasons
-    const clinicsWithScores = clinicsWithScoresRaw.map(({ clinicRow, normalizedClinic, filterKeys, scoreBreakdown, matchFacts, reasons }) => {
-      const composed = composedReasonsMap.get(normalizedClinic.id)
-      const finalReasons = composed?.bullets || reasons.map(r => r.text)
-      const finalLongReasons = composed?.longBullets || finalReasons
+        const normalizedClinic = normalizeClinic(clinicRow, filterKeys)
+        const scoreBreakdown = scoreClinic(normalizedLead, normalizedClinic)
+        const matchFacts = buildMatchFacts(normalizedLead, normalizedClinic, scoreBreakdown)
 
-      return {
-        ...clinicRow,
-        distance_miles: scoreBreakdown.distanceMiles,
-        match_score: scoreBreakdown.totalScore,
-        match_percentage: scoreBreakdown.percent,
-        match_breakdown: scoreBreakdown.categories,
-        match_reasons: reasons.map((r) => r.text),
-        match_reasons_composed: finalReasons,
-        match_reasons_long: finalLongReasons,
-        match_reasons_meta: {
-          tagsUsed: composed?.tagsUsed || [],
-          templatesUsed: composed?.templatesUsed || [],
-          confidence: composed?.confidence || 0.8,
-          source: "template" as const,
-        },
-        tier: "top",
-        card_title: isEmergency ? "Why this clinic" : "Why we matched you",
-        is_emergency: isEmergency,
+        return {
+          clinicRow,
+          normalizedClinic,
+          filterKeys,
+          scoreBreakdown,
+          matchFacts,
+          clinicIndex,
+        }
+      })
+
+      // Build reasons for ALL clinics at once with cross-clinic variant dedup
+      const reasonsMap = buildMatchReasonsForMultipleClinics(
+        normalizedLead.id,
+        clinicScoringData.map(c => ({
+          clinicId: c.normalizedClinic.id,
+          matchFacts: c.matchFacts,
+          fallbackOffset: c.clinicIndex,
+        }))
+      )
+
+      // Build final clinics with scores and reasons
+      clinicsWithScores = clinicScoringData.map(({ clinicRow, normalizedClinic, scoreBreakdown }) => {
+        const result = reasonsMap.get(normalizedClinic.id)
+        const reasons = result?.reasons || []
+        const composed = result?.composed
+
+        return {
+          ...clinicRow,
+          distance_miles: scoreBreakdown.distanceMiles,
+          match_score: scoreBreakdown.percent,
+          match_percentage: scoreBreakdown.percent,
+          match_breakdown: scoreBreakdown.categories,
+          match_reasons: reasons.map((r) => r.text),
+          match_reasons_composed: composed?.bullets || reasons.map(r => r.text),
+          match_reasons_long: composed?.longBullets || reasons.map(r => r.text),
+          match_reasons_meta: {
+            tagsUsed: composed?.tagsUsed || [],
+            templatesUsed: composed?.templatesUsed || [],
+            confidence: composed?.confidence || 0.8,
+            source: "template" as const,
+          },
+          tier: "top",
+          card_title: isEmergency ? "Why this clinic" : "Why we matched you",
+          is_emergency: isEmergency,
+        }
+      })
+
+      // Backfill cache columns in parallel (non-blocking) so next request uses fast path
+      try {
+        await Promise.all(
+          clinicsWithScores.map((c: any) =>
+            supabase
+              .from("match_results")
+              .update({
+                match_breakdown: (c.match_breakdown || []).map((cat: any) => ({
+                  category: cat.category,
+                  points: cat.points,
+                  maxPoints: cat.maxPoints,
+                })),
+                score: c.match_percentage,
+                match_reasons_composed: c.match_reasons_composed,
+                match_reasons_long: c.match_reasons_long,
+                match_reasons_meta: c.match_reasons_meta,
+                distance_miles: c.distance_miles,
+                explanation_version: getExplanationVersion(),
+                tier: c.tier,
+              })
+              .eq("lead_id", match.lead_id)
+              .eq("clinic_id", c.id)
+          )
+        )
+      } catch (e) {
+        console.error("[match-api] Non-critical: failed to backfill cache:", e)
       }
-    })
+    }
+
+    // ─── Common: sort, nearby clinics, validate, respond ────────────────────
 
     // Sort by score with tie-breakers
-    clinicsWithScores.sort((a, b) => {
+    clinicsWithScores.sort((a: any, b: any) => {
       if (b.match_score !== a.match_score) return b.match_score - a.match_score
       const distA = a.distance_miles ?? 9999
       const distB = b.distance_miles ?? 9999
@@ -155,38 +247,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       return a.name.localeCompare(b.name)
     })
 
-    // Persist match breakdowns for clinic dashboard visibility (upsert, non-blocking)
-    try {
-      const breakdownUpdates = clinicsWithScores.map((c) => ({
-        lead_id: match.lead_id,
-        clinic_id: c.id,
-        match_breakdown: c.match_breakdown.map((cat: any) => ({
-          category: cat.category,
-          points: cat.points,
-          maxPoints: cat.maxPoints,
-        })),
-        score: c.match_percentage,
-      }))
-
-      for (const update of breakdownUpdates) {
-        await supabase
-          .from("match_results")
-          .update({ match_breakdown: update.match_breakdown, score: update.score })
-          .eq("lead_id", update.lead_id)
-          .eq("clinic_id", update.clinic_id)
-      }
-    } catch (e) {
-      console.error("[match-api] Non-critical: failed to persist match breakdowns:", e)
-    }
-
     // Fetch additional nearby clinics not in the matched list (for "Load More" feature)
-    // These are non-verified clinics or clinics that didn't match well enough
     const matchedClinicIds = match.clinic_ids || []
     let additionalClinics: any[] = []
 
     if (lead?.latitude && lead?.longitude) {
-      // Get nearby clinics within 15 miles that weren't in the matched list
-      // Use LEFT join to include clinics without any filter selections (non-matchable)
       let nearbyQuery = supabase
         .from("clinics")
         .select(`
@@ -195,90 +260,65 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
         `)
         .eq("is_archived", false)
         .limit(20)
-      
-      // Only exclude matched clinics if there are any
+
       if (matchedClinicIds.length > 0) {
         nearbyQuery = nearbyQuery.not("id", "in", `(${matchedClinicIds.join(",")})`)
       }
-      
+
       const { data: nearbyClinics, error: nearbyError } = await nearbyQuery
-      
+
       if (nearbyError) {
         console.error("[match-api] Error fetching nearby clinics:", nearbyError)
       }
 
       console.log(`[match-api] Found ${nearbyClinics?.length || 0} nearby clinics to check`)
-      console.log(`[match-api] Nearby clinics raw:`, nearbyClinics?.map(c => ({
-        name: c.name,
-        verified: c.verified,
-        tags: c.clinic_filter_selections?.length || 0
-      })))
-      
+
       if (nearbyClinics && nearbyClinics.length > 0) {
-        // Calculate distances and filter by 15 miles
         additionalClinics = nearbyClinics
           .map((clinic) => {
-            // Extract filter keys (may be empty for non-matchable clinics)
             const filterKeys = Array.isArray(clinic.clinic_filter_selections)
               ? clinic.clinic_filter_selections.map((sel: any) => sel.filter_key)
               : []
-            
+
             let distance = 999
             if (clinic.latitude && clinic.longitude) {
               distance = calculateHaversineDistance(lead.latitude, lead.longitude, clinic.latitude, clinic.longitude)
             }
-            
-            // Determine if this is just a directory listing (not matchable - less than 3 tags)
-            const isDirectoryListing = filterKeys.length < 3
-            // Also check if unverified
+
             const isUnverified = !clinic.verified
-            
-            // Determine tier: directory (no tags or unverified), nearby-unverified, or nearby
-            // Unverified clinics should also be treated as directory listings
-            let tier = "nearby"
-            if (isDirectoryListing || isUnverified) {
-              tier = "directory"
-            }
-            
-            return { 
-              ...clinic, 
-              distance_miles: distance, 
+            const isDirectoryListing = isUnverified || filterKeys.length < 3
+
+            // Tier based on verified status: verified clinics are "nearby", unverified are "directory"
+            const tier = isUnverified ? "directory" : "nearby"
+
+            return {
+              ...clinic,
+              distance_miles: distance,
               tier,
               filter_keys: filterKeys,
               is_directory_listing: isDirectoryListing,
-              // For directory listings and unverified clinics, set a default match percentage of 0
               match_percentage: (isDirectoryListing || isUnverified) ? 0 : undefined,
               match_reasons: (isDirectoryListing || isUnverified) ? [] : undefined,
-              match_reasons_composed: (isDirectoryListing || isUnverified) 
-                ? [isUnverified ? "This clinic is in our directory but hasn't completed verification yet." : "Listed in our clinic directory."] 
+              match_reasons_composed: (isDirectoryListing || isUnverified)
+                ? [isUnverified ? "This clinic is in our directory but hasn't completed verification yet." : "Listed in our clinic directory."]
                 : undefined,
             }
           })
-          // Include clinics within 15 miles, but be more lenient for directory listings (25 miles)
           .filter((c) => c.tier === "directory" ? c.distance_miles <= 25 : c.distance_miles <= 15)
           .sort((a, b) => {
-            // Sort by: 
-            // 1. Directory listings at the end
-            // 2. Verified first within each group
-            // 3. Then by distance
             if (a.tier === "directory" && b.tier !== "directory") return 1
             if (a.tier !== "directory" && b.tier === "directory") return -1
             if (a.verified !== b.verified) return a.verified ? -1 : 1
             return a.distance_miles - b.distance_miles
           })
-        
-        console.log(`[match-api] Additional nearby clinics after distance filter: ${additionalClinics.length}`)
-        additionalClinics.forEach(c => {
-          console.log(`[match-api]   - ${c.name} (${c.distance_miles?.toFixed(1)} mi, verified: ${c.verified}, tags: ${c.filter_keys?.length || 0}, tier: ${c.tier})`)
-        })
       }
     }
 
     // Validate unique reasons (dev assertion)
     validateUniqueReasons(
-      clinicsWithScores.map((c) => ({
+      clinicsWithScores.map((c: any) => ({
         clinicId: c.id,
-        reasons: c.match_reasons.map((text: string, idx: number) => ({
+        reasons: (c.match_reasons || []).map((text: string, idx: number) => ({
           key: `${c.id}_${idx}`,
           text,
           category: "treatment" as const,
@@ -287,19 +327,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       })),
     )
 
-    console.log("[match-api] Final sorted order:")
-    clinicsWithScores.forEach((c, idx) => {
+    console.log(`[match-api] Final sorted order (cached=${usedCache}):`)
+    clinicsWithScores.forEach((c: any, idx: number) => {
       console.log(
         `[match-api] ${idx + 1}. ${c.name}: ${c.match_score} pts (${c.match_percentage}%) @ ${c.distance_miles?.toFixed(1) || "N/A"} mi`,
       )
     })
 
     const needsExpansionBanner = lead
-      ? !isInGreaterLondon(lead.postcode) || clinicsWithScores.every((c) => (c.distance_miles ?? 999) > 5)
+      ? !isInGreaterLondon(lead.postcode) || clinicsWithScores.every((c: any) => (c.distance_miles ?? 999) > 5)
       : false
 
-    // Combine matched clinics with additional nearby clinics
-    // Matched clinics first (sorted by score), then additional nearby clinics (sorted by distance)
     const allClinics = [...clinicsWithScores, ...additionalClinics]
 
     return NextResponse.json(

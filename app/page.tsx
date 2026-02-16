@@ -13,6 +13,10 @@ import { Badge } from "@/components/ui/badge"
 import { LoadingAnimation } from "@/components/loading-animation"
 import StatsCard from "@/components/stats-card"
 import ClinicCarousel from "@/components/clinic-carousel" // Import the ClinicCarousel component
+import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config"
+
+// Homepage treatment list derived from the canonical config (not hardcoded)
+const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT)
 
 const dynamicWords = ["perfect", "right", "trusted", "ideal"]
 
@@ -31,7 +35,7 @@ export default function Home() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const [lastMatch, setLastMatch] = useState<LastMatch | null>(null)
-  const treatments = ["Invisalign", "Composite bonding", "Veneers", "Whitening", "Implants", "General check-up"]
+  const treatments = HOMEPAGE_TREATMENTS
 
   // Check for previous match results in localStorage
   useEffect(() => {
@@ -39,13 +43,18 @@ export default function Home() {
       const stored = localStorage.getItem("pearlie_last_match")
       if (stored) {
         const data = JSON.parse(stored) as LastMatch
-        // Only show if the match is less than 30 days old
+        const MAX_MATCH_AGE_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
         const age = Date.now() - new Date(data.createdAt).getTime()
-        if (age < 30 * 24 * 60 * 60 * 1000) {
+        if (age < MAX_MATCH_AGE_MS && data.matchId) {
           setLastMatch(data)
+        } else {
+          // Clean up stale entry
+          localStorage.removeItem("pearlie_last_match")
         }
       }
-    } catch {}
+    } catch {
+      localStorage.removeItem("pearlie_last_match")
+    }
   }, [])
 
   // Check for reduced motion preference
