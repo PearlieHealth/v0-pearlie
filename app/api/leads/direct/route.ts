@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       .insert({
         lead_id: lead.id,
         clinic_id: clinicId,
-        status: "new",
+        status: "NEW",
       })
       .then(({ error }) => {
         if (error) console.error("[leads/direct] Failed to create lead_clinic_status:", error)

@@ -663,7 +663,7 @@ export default function ClinicDashboardPage() {
             ) : (
               <div className="space-y-2">
                 {recentLeads.map((lead) => {
-                  const status = lead.status?.status || "NEW"
+                  const status = (lead.status?.status || "NEW").toUpperCase()
                   const treatment =
                     (lead.raw_answers?.treatment as string) || "Dental treatment"
 

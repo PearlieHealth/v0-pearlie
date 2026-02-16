@@ -162,7 +162,7 @@ export default function LeadDetailPage() {
 
     if (statusData) {
       setStatus(statusData)
-      setEditStatus(statusData.status)
+      setEditStatus((statusData.status || "NEW").toUpperCase())
       setEditNote(statusData.note || "")
     } else {
       setEditStatus("NEW")
