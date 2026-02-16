@@ -187,7 +187,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
         return {
           ...clinicRow,
           distance_miles: scoreBreakdown.distanceMiles,
-          match_score: scoreBreakdown.totalScore,
+          match_score: scoreBreakdown.percent,
           match_percentage: scoreBreakdown.percent,
           match_breakdown: scoreBreakdown.categories,
           match_reasons: reasons.map((r) => r.text),

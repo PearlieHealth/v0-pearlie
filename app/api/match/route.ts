@@ -179,12 +179,20 @@ export async function POST(request: Request) {
       }
     })
 
-    const { error: resultsError } = await supabase
+    // Try insert with cache columns; fall back to base fields if columns don't exist yet
+    const { error: insertError } = await supabase
       .from("match_results")
       .insert(matchResultRows)
 
-    if (resultsError) {
-      console.error("[match] Error saving match_results:", resultsError)
+    if (insertError) {
+      console.warn("[match] match_results insert failed (cache columns may not exist), retrying with base fields:", insertError.message)
+      const baseRows = matchResultRows.map(({ match_reasons_composed, match_reasons_long, match_reasons_meta, distance_miles, explanation_version, tier, ...base }) => base)
+      const { error: retryError } = await supabase
+        .from("match_results")
+        .insert(baseRows)
+      if (retryError) {
+        console.error("[match] Error saving match_results (base fields):", retryError)
+      }
       // Don't throw — the match was created, results are non-critical
     }
 
