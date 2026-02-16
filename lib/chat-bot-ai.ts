@@ -9,6 +9,9 @@
  *   - bot_intelligence is disabled for the clinic
  */
 
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
+
 // ─── Types ───────────────────────────────────────────────────────
 
 interface ClinicContext {
@@ -41,6 +44,15 @@ interface ConversationMessage {
 }
 
 type BotTrigger = "greeting" | "suggestions" | "no_reply" | "follow_up"
+
+interface EscalationContext {
+  clinicEmail?: string
+  clinicName?: string
+  patientName?: string
+  messageContent?: string
+  conversationId?: string
+  appUrl?: string
+}
 
 // ─── Guardrails (system prompt) ──────────────────────────────────
 
@@ -121,7 +133,7 @@ function buildUserPrompt(
   const leadInfo = buildLeadSummary(lead)
   const history = recentMessages
     .slice(-6)
-    .map((m) => `[${m.sender_type}]: ${m.content}`)
+    .map((m) => `[${m.sender_type}]: ${JSON.stringify(m.content)}`)
     .join("\n")
 
   switch (trigger) {
@@ -229,6 +241,29 @@ function detectComplaint(text: string): boolean {
   return COMPLAINT_PATTERNS.some((re) => re.test(text))
 }
 
+// ─── Prompt injection detection ───────────────────────────────────
+
+const INJECTION_PATTERNS = [
+  /ignore\s+(all\s+)?previous\s+instructions/i,
+  /ignore\s+(all\s+)?above\s+instructions/i,
+  /disregard\s+(all\s+)?(previous|above|prior)/i,
+  /you\s+are\s+now/i,
+  /new\s+instructions:/i,
+  /system\s*:/i,
+  /\bpretend\s+you\s+are\b/i,
+  /\bact\s+as\s+(a|an)\b/i,
+  /\bjailbreak/i,
+  /\bDAN\b/,
+  /do\s+not\s+follow\s+(your|the)\s+(rules|instructions)/i,
+]
+
+const INJECTION_FALLBACK_RESPONSE =
+  "Thanks for your message! The clinic team will review and get back to you soon."
+
+function detectPromptInjection(text: string): boolean {
+  return INJECTION_PATTERNS.some((re) => re.test(text))
+}
+
 // ─── Post-generation validation ──────────────────────────────────
 
 const BANNED_PHRASES = [
@@ -259,16 +294,15 @@ const BANNED_PHRASES = [
   "don't miss out",
 ]
 
-function sanitizeResponse(text: string): string {
-  let sanitized = text
+function sanitizeResponse(text: string): string | null {
   for (const phrase of BANNED_PHRASES) {
     const regex = new RegExp(phrase, "gi")
-    if (regex.test(sanitized)) {
-      // Replace banned phrase with safe alternative
-      sanitized = sanitized.replace(regex, "…")
+    if (regex.test(text)) {
+      console.warn("[chat-bot-ai] Banned phrase detected in LLM output, falling back to template:", phrase)
+      return null
     }
   }
-  return sanitized.trim()
+  return text.trim()
 }
 
 // ─── Groq API call with timeout ──────────────────────────────────
@@ -302,7 +336,7 @@ async function callGroq(
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
           ],
-          temperature: 0.6,
+          temperature: 0.3,
           max_tokens: 300,
         }),
         signal: controller.signal,
@@ -329,13 +363,66 @@ async function callGroq(
   }
 }
 
+// ─── Escalation email helper ─────────────────────────────────────
+
+function sendEscalationEmail(
+  type: "complaint" | "emergency",
+  escalation: EscalationContext
+): void {
+  const { clinicEmail, clinicName, patientName, messageContent, appUrl } = escalation
+  if (!clinicEmail) return
+
+  const isEmergency = type === "emergency"
+  const subject = isEmergency
+    ? `[URGENT] Emergency flagged by ${patientName || "a patient"}`
+    : `Complaint received from ${patientName || "a patient"}`
+  const heading = isEmergency ? "Emergency Flagged" : "Patient Complaint"
+  const intro = isEmergency
+    ? `A patient has flagged a potential emergency in their conversation with <strong>${clinicName || "your clinic"}</strong>.`
+    : `A patient has raised a complaint in their conversation with <strong>${clinicName || "your clinic"}</strong>.`
+  const inboxUrl = `${appUrl || "https://pearlie.org"}/clinic/inbox`
+
+  sendEmailWithRetry({
+    from: EMAIL_FROM.NOTIFICATIONS,
+    to: clinicEmail,
+    subject,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: ${isEmergency ? "#dc2626" : "#d97706"}; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">${heading}</h1>
+        </div>
+        <div style="padding: 30px; background-color: #f9fafb;">
+          <p style="color: #374151; font-size: 16px;">${intro}</p>
+          ${patientName ? `<p style="color: #374151;"><strong>Patient:</strong> ${patientName}</p>` : ""}
+          ${messageContent ? `
+          <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid ${isEmergency ? "#dc2626" : "#d97706"};">
+            <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${messageContent.substring(0, 500)}${messageContent.length > 500 ? "..." : ""}</p>
+          </div>` : ""}
+          <div style="text-align: center; margin-top: 30px;">
+            <a href="${inboxUrl}"
+               style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              View in Inbox
+            </a>
+          </div>
+        </div>
+        <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
+          <p>This is an automated message from Pearlie</p>
+        </div>
+      </div>
+    `,
+  }).catch((err) => {
+    console.error(`[chat-bot-ai] Failed to send ${type} escalation email:`, err)
+  })
+}
+
 // ─── Public API ──────────────────────────────────────────────────
 
 export async function generateIntelligentBotResponse(
   trigger: BotTrigger,
   clinic: ClinicContext,
   lead: LeadContext,
-  recentMessages: ConversationMessage[]
+  recentMessages: ConversationMessage[],
+  escalation?: EscalationContext
 ): Promise<string | null> {
   // 1. Pre-LLM safety checks on the latest patient message
   const lastPatientMsg = [...recentMessages]
@@ -344,10 +431,16 @@ export async function generateIntelligentBotResponse(
 
   if (lastPatientMsg) {
     if (detectRedFlags(lastPatientMsg.content)) {
+      if (escalation) sendEscalationEmail("emergency", escalation)
       return EMERGENCY_RESPONSE
     }
     if (detectComplaint(lastPatientMsg.content)) {
+      if (escalation) sendEscalationEmail("complaint", escalation)
       return COMPLAINT_RESPONSE
+    }
+    if (detectPromptInjection(lastPatientMsg.content)) {
+      console.warn("[chat-bot-ai] Prompt injection detected, returning safe response")
+      return INJECTION_FALLBACK_RESPONSE
     }
   }
 
@@ -360,7 +453,7 @@ export async function generateIntelligentBotResponse(
 
   // 4. Post-generation validation
   const sanitized = sanitizeResponse(raw)
-  if (sanitized.length < 10) return null
+  if (!sanitized || sanitized.length < 10) return null
 
   return sanitized
 }

@@ -76,15 +76,12 @@ export async function POST(request: NextRequest) {
 
       if (error.message?.includes("Bucket not found")) {
         return NextResponse.json(
-          {
-            error: "Storage not configured. Please contact support.",
-            details: error.message,
-          },
+          { error: "Storage not configured. Please contact support." },
           { status: 503 },
         )
       }
 
-      return NextResponse.json({ error: `Upload failed: ${error.message}` }, { status: 500 })
+      return NextResponse.json({ error: "Upload failed. Please try again." }, { status: 500 })
     }
 
     // Get public URL
@@ -140,7 +137,7 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error("[Clinic Upload] Storage delete error:", error)
-      return NextResponse.json({ error: `Delete failed: ${error.message}` }, { status: 500 })
+      return NextResponse.json({ error: "Delete failed. Please try again." }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })

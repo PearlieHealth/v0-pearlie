@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         } else {
           console.error("[match] Geocoding failed and no stored coordinates for lead:", leadId)
           return NextResponse.json(
-            { error: "We couldn't verify your postcode. Please try again." },
+            { error: "We couldn't verify your postcode. Please check and try again." },
             { status: 400 },
           )
         }

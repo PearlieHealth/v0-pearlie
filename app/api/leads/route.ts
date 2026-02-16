@@ -48,6 +48,10 @@ function validateLeadData(body: Record<string, unknown>): { valid: true; data: R
   if (!body.email || typeof body.email !== "string" || (body.email as string).trim() === "") {
     return { valid: false, error: "Email address is required" }
   }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test((body.email as string).trim())) {
+    return { valid: false, error: "Please enter a valid email address" }
+  }
 
   // Input length validation
   if ((body.firstName as string).trim().length > 100) {
