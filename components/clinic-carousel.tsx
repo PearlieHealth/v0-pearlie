@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react"
 import Image from "next/image"
-import { createClient } from "@/lib/supabase/client"
 
 interface ClinicImage {
   src: string
@@ -14,7 +13,7 @@ interface ClinicImage {
   rating: number
 }
 
-// Fallback images in case database fetch fails
+// Fallback images in case API fetch fails
 const fallbackImages: ClinicImage[] = [
   {
     src: "/clinic-reception-modern-dental.jpg",
@@ -39,54 +38,16 @@ export default function ClinicCarousel() {
   const [clinicImages, setClinicImages] = useState<ClinicImage[]>(fallbackImages)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Fetch clinics with images from database
+  // Fetch clinics from cached API endpoint (CDN-cached, avoids direct Supabase call)
   useEffect(() => {
     const fetchClinics = async () => {
       try {
-        const supabase = createClient()
-        const { data: clinics, error } = await supabase
-          .from("clinics")
-          .select("id, name, city, images, rating")
-          .eq("is_archived", false)
-          .eq("verified", true)
-          .not("images", "is", null)
-          .limit(10)
+        const res = await fetch("/api/clinics/carousel")
+        if (!res.ok) return
 
-        if (error) {
-          console.error("Error fetching clinics for carousel:", error)
-          return
-        }
-
-        // Filter clinics that have at least one image
-        const clinicsWithImages = clinics?.filter(
-          (c) => c.images && Array.isArray(c.images) && c.images.length > 0
-        ) || []
-
-        if (clinicsWithImages.length > 0) {
-          // Custom sort: Ziha Dental first, Watford Smile Clinic last
-          const sortedClinics = [...clinicsWithImages].sort((a, b) => {
-            const nameA = a.name?.toLowerCase() || ""
-            const nameB = b.name?.toLowerCase() || ""
-            
-            // Ziha Dental should be first
-            if (nameA.includes("ziha")) return -1
-            if (nameB.includes("ziha")) return 1
-            
-            // Watford Smile Clinic should be last
-            if (nameA.includes("watford")) return 1
-            if (nameB.includes("watford")) return -1
-            
-            return 0
-          })
-
-          const carouselData: ClinicImage[] = sortedClinics.map((clinic) => ({
-            src: clinic.images[0],
-            alt: `${clinic.name} dental clinic`,
-            name: clinic.name,
-            location: clinic.city || "UK",
-            rating: clinic.rating || 4.8,
-          }))
-          setClinicImages(carouselData)
+        const data = await res.json()
+        if (data.clinics && data.clinics.length > 0) {
+          setClinicImages(data.clinics)
         }
       } catch (err) {
         console.error("Failed to fetch clinics:", err)

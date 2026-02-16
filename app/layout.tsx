@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { CookieBanner } from "@/components/cookie-banner"
@@ -54,6 +54,14 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-icon.jpg",
   },
+}
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#FEFEFE",
 }
 
 export default function RootLayout({

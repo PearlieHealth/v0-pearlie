@@ -19,10 +19,10 @@ export default function AboutPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="py-20 md:py-28 bg-white">
+        <section className="py-12 sm:py-20 md:py-28 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-8 text-balance">
+              <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-6 sm:mb-8 text-balance">
                 Find the right dental clinic for you
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
@@ -38,15 +38,15 @@ export default function AboutPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
               <div className="text-center">
-                <div className="text-5xl md:text-6xl font-bold text-foreground mb-3">500+</div>
+                <div className="text-4xl md:text-6xl font-bold text-foreground mb-3">500+</div>
                 <div className="text-lg text-muted-foreground">Verified dental clinics</div>
               </div>
               <div className="text-center">
-                <div className="text-5xl md:text-6xl font-bold text-foreground mb-3">10k+</div>
+                <div className="text-4xl md:text-6xl font-bold text-foreground mb-3">10k+</div>
                 <div className="text-lg text-muted-foreground">Patients matched</div>
               </div>
               <div className="text-center">
-                <div className="text-5xl md:text-6xl font-bold text-foreground mb-3">92%</div>
+                <div className="text-4xl md:text-6xl font-bold text-foreground mb-3">92%</div>
                 <div className="text-lg text-muted-foreground">Match satisfaction rate</div>
               </div>
             </div>
@@ -54,7 +54,7 @@ export default function AboutPage() {
         </section>
 
         {/* Our Clinics Section - matching BetterHelp therapist grid */}
-        <section className="py-20 md:py-28 bg-white">
+        <section className="py-12 sm:py-20 md:py-28 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-16">
@@ -77,7 +77,7 @@ export default function AboutPage() {
         </section>
 
         {/* How we help - matching BetterHelp's approach section */}
-        <section className="py-20 md:py-28 bg-background">
+        <section className="py-12 sm:py-20 md:py-28 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-16">
@@ -91,7 +91,7 @@ export default function AboutPage() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-                <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm">
+                <div className="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-sm">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                     <CheckCircle2 className="w-6 h-6 text-foreground" />
                   </div>
@@ -112,7 +112,7 @@ export default function AboutPage() {
                   </ul>
                 </div>
 
-                <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm">
+                <div className="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-sm">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                     <Shield className="w-6 h-6 text-foreground" />
                   </div>
@@ -132,7 +132,7 @@ export default function AboutPage() {
         </section>
 
         {/* Why we built Pearlie - story section matching BetterHelp team */}
-        <section className="py-20 md:py-28 bg-white">
+        <section className="py-12 sm:py-20 md:py-28 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-16">
@@ -185,7 +185,7 @@ export default function AboutPage() {
         </section>
 
         {/* Impact Section - matching BetterHelp social impact */}
-        <section className="py-20 md:py-28 bg-background">
+        <section className="py-12 sm:py-20 md:py-28 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-16">
@@ -197,7 +197,7 @@ export default function AboutPage() {
               </div>
 
               <div className="grid md:grid-cols-3 gap-8">
-                <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
+                <div className="bg-white rounded-2xl p-5 sm:p-8 text-center shadow-sm">
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
                     <Award className="w-8 h-8 text-foreground" />
                   </div>
@@ -205,7 +205,7 @@ export default function AboutPage() {
                   <p className="text-muted-foreground">All clinics are verified and GDC-registered professionals</p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
+                <div className="bg-white rounded-2xl p-5 sm:p-8 text-center shadow-sm">
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
                     <Shield className="w-8 h-8 text-foreground" />
                   </div>
@@ -213,7 +213,7 @@ export default function AboutPage() {
                   <p className="text-muted-foreground">No hidden fees, paid placements, or misleading rankings</p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
+                <div className="bg-white rounded-2xl p-5 sm:p-8 text-center shadow-sm">
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
                     <TrendingUp className="w-8 h-8 text-foreground" />
                   </div>
@@ -226,7 +226,7 @@ export default function AboutPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 md:py-28 bg-white">
+        <section className="py-12 sm:py-20 md:py-28 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">Ready to find your clinic match?</h2>
@@ -245,7 +245,7 @@ export default function AboutPage() {
       <footer className="border-t border-border bg-white py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8">
               <div className="md:col-span-1">
                 <div className="text-2xl font-semibold mb-4">Pearlie</div>
                 <p className="text-sm text-muted-foreground">Independent dental matching platform</p>

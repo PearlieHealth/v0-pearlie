@@ -430,7 +430,7 @@ export default function IntakePage() {
       onClick={onClick}
       disabled={disabled}
       className={`
-        group relative w-full p-5 md:p-6 rounded-2xl border-2 text-left ${className}
+        group relative w-full p-4 sm:p-5 md:p-6 rounded-2xl border-2 text-left ${className}
         transition-all duration-200 ease-out
         ${selected
           ? "border-[#907EFF] bg-[#F8F5FF] shadow-md"
@@ -567,7 +567,7 @@ export default function IntakePage() {
 
       {/* Floating background orb */}
       <motion.div
-        className="fixed -top-40 -right-40 w-[500px] h-[500px] rounded-full opacity-20 pointer-events-none blur-[100px]"
+        className="fixed -top-40 -right-40 w-[500px] h-[500px] rounded-full opacity-20 pointer-events-none blur-[100px] hidden md:block"
         style={{
           background: "radial-gradient(circle, rgba(144, 126, 255, 0.3) 0%, transparent 70%)"
         }}
@@ -838,7 +838,7 @@ export default function IntakePage() {
                     subtitle="Choose all the times that suit you."
                   />
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {PREFERRED_TIME_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.button
@@ -1057,7 +1057,7 @@ export default function IntakePage() {
                   />
 
                   <motion.div className="space-y-5" {...fadeUp(0.3)}>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="firstName" className="text-sm font-medium text-foreground">
                           First name
@@ -1195,7 +1195,7 @@ export default function IntakePage() {
 
                   {/* Trust indicators */}
                   <motion.div
-                    className="flex items-center justify-center gap-6 pt-4 text-sm text-[#323141]/50"
+                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#323141]/50"
                     initial={hasAnimated ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: hasAnimated ? 0 : 0.7 }}
