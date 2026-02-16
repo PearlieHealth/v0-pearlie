@@ -110,6 +110,40 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       publicClinic.treatment_prices = []
     }
 
+    // Normalize opening_hours: ensure all 7 days are present.
+    // Some clinics have incomplete data (e.g. only Sunday saved).
+    if (publicClinic.opening_hours && typeof publicClinic.opening_hours === "object") {
+      const ALL_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+      const hours = publicClinic.opening_hours as Record<string, unknown>
+      // Build case-insensitive lookup
+      const lowerMap: Record<string, string> = {}
+      for (const key of Object.keys(hours)) {
+        lowerMap[key.toLowerCase()] = key
+      }
+      const normalized: Record<string, unknown> = {}
+      for (const day of ALL_DAYS) {
+        const actualKey = lowerMap[day]
+        if (actualKey) {
+          const val = hours[actualKey]
+          // Convert string format ("9:00-18:00" / "Closed") to object format
+          if (typeof val === "string") {
+            if (val.toLowerCase() === "closed") {
+              normalized[day] = { open: "", close: "", closed: true }
+            } else {
+              const parts = val.split("-")
+              normalized[day] = { open: parts[0] || "09:00", close: parts[1] || "17:00", closed: false }
+            }
+          } else {
+            normalized[day] = val
+          }
+        }
+        // Don't add defaults for missing days — only show what the clinic has set
+      }
+      if (Object.keys(normalized).length > 0) {
+        publicClinic.opening_hours = normalized
+      }
+    }
+
     return NextResponse.json({ clinic: publicClinic })
   } catch (error) {
     console.error("Error in clinic API:", error)
