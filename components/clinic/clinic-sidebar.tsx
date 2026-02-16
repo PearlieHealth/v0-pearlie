@@ -33,6 +33,7 @@ interface ClinicSidebarProps {
   clinicId: string
   userRole: "CLINIC_USER" | "CLINIC_ADMIN" | "CORPORATE_ADMIN"
   newLeadsCount?: number
+  unrepliedCount?: number
 }
 
 const navItems = [
@@ -75,7 +76,7 @@ const navItems = [
   },
 ]
 
-export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 0 }: ClinicSidebarProps) {
+export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 0, unrepliedCount = 0 }: ClinicSidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
 
@@ -144,6 +145,8 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
               (item.href !== "/clinic" && pathname.startsWith(item.href))
             const Icon = item.icon
 
+            const showRedDot = item.badge && unrepliedCount > 0
+
             const linkContent = (
               <Link
                 href={item.href}
@@ -155,11 +158,23 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
                   collapsed && "justify-center px-2"
                 )}
               >
-                <Icon className="h-5 w-5 flex-shrink-0" />
+                <div className="relative flex-shrink-0">
+                  <Icon className="h-5 w-5" />
+                  {showRedDot && collapsed && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                      {unrepliedCount > 9 ? "9+" : unrepliedCount}
+                    </span>
+                  )}
+                </div>
                 {!collapsed && (
                   <>
                     <span className="flex-1">{item.label}</span>
-                    {item.badge && newLeadsCount > 0 && (
+                    {showRedDot && (
+                      <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
+                        {unrepliedCount > 99 ? "99+" : unrepliedCount}
+                      </span>
+                    )}
+                    {item.badge && !showRedDot && newLeadsCount > 0 && (
                       <Badge variant="secondary" className="h-5 px-1.5 text-xs">
                         {newLeadsCount}
                       </Badge>
@@ -175,7 +190,12 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
                   <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
                   <TooltipContent side="right" className="flex items-center gap-2">
                     {item.label}
-                    {item.badge && newLeadsCount > 0 && (
+                    {item.badge && unrepliedCount > 0 && (
+                      <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
+                        {unrepliedCount}
+                      </span>
+                    )}
+                    {item.badge && unrepliedCount === 0 && newLeadsCount > 0 && (
                       <Badge variant="secondary" className="h-5 px-1.5 text-xs">
                         {newLeadsCount}
                       </Badge>

@@ -4,17 +4,11 @@ export const dynamic = "force-dynamic"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
-import { Resend } from "resend"
 import { randomBytes } from "crypto"
 import { TIME_SLOT_OPTIONS, URGENCY_OPTIONS } from "@/lib/constants"
-
-function getResendClient() {
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) {
-    throw new Error("RESEND_API_KEY environment variable is not set")
-  }
-  return new Resend(apiKey)
-}
+import { escapeHtml } from "@/lib/escape-html"
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 /**
  * POST /api/booking/confirm
@@ -119,43 +113,41 @@ export async function POST(request: Request) {
 
     // Send clinic notification email
     try {
-      const emailFrom = "Pearlie <hello@pearlie.org>"
       const subject = `Booking Request from ${leadData.first_name} ${leadData.last_name}`
       const html = generateBookingEmailHTML(clinic.name, leadData)
 
-      const resend = getResendClient()
-      const { data, error } = await resend.emails.send({
-        from: emailFrom,
+      const result = await sendEmailWithRetry({
+        from: EMAIL_FROM.NOTIFICATIONS,
         to: recipientEmail,
         subject,
         html,
       })
 
-      if (error) {
-        console.error("[booking/confirm] Resend API error:", error)
+      if (!result.success) {
+        console.error("[booking/confirm] Email send failed:", result.error)
         await supabaseAdmin.from("email_logs").insert({
           clinic_id: clinicId,
           lead_id: leadId,
           to_email: recipientEmail,
           subject,
           status: "failed",
-          error: error.message || "Unknown error",
+          error: result.error || "Unknown error",
         })
       } else {
-        console.log("[booking/confirm] Email sent successfully, ID:", data?.id)
+        console.log("[booking/confirm] Email sent successfully, ID:", result.messageId)
         await supabaseAdmin.from("email_logs").insert({
           clinic_id: clinicId,
           lead_id: leadId,
           to_email: recipientEmail,
           subject,
           status: "sent",
-          provider_message_id: data?.id,
+          provider_message_id: result.messageId,
         })
       }
 
       return NextResponse.json({
         success: true,
-        emailSent: !error,
+        emailSent: result.success,
         bookingToken,
       })
     } catch (emailError: any) {
@@ -189,7 +181,7 @@ function generateBookingEmailHTML(clinicName: string, lead: any): string {
 
   const timing = lead.raw_answers?.timing || lead.preferred_timing
   const preferredTimes = lead.preferred_times || lead.raw_answers?.preferred_times || []
-  
+
   // Format preferred times for display
   const formattedTimes = preferredTimes
     .map((key: string) => {
@@ -203,6 +195,15 @@ function generateBookingEmailHTML(clinicName: string, lead: any): string {
   const urgencyLabel = urgencyOption?.label || timing || "Flexible"
 
   const isUrgent = timing === "asap" || timing === "1_week"
+
+  // Escape all user-supplied values for safe HTML embedding
+  const safeFirstName = escapeHtml(lead.first_name || "")
+  const safeLastName = escapeHtml(lead.last_name || "")
+  const safeEmail = escapeHtml(lead.email || "")
+  const safePhone = escapeHtml(lead.phone || "")
+  const safeTreatment = escapeHtml(lead.treatment_interest || "")
+  const safePostcode = escapeHtml(lead.postcode || "")
+  const safeClinicName = escapeHtml(clinicName || "")
 
   return `
     <!DOCTYPE html>
@@ -230,7 +231,7 @@ function generateBookingEmailHTML(clinicName: string, lead: any): string {
         <div class="container">
           <div class="header">
             <h1 style="margin: 0; font-size: 24px;">New Booking Request</h1>
-            <p style="margin: 10px 0 0; opacity: 0.9; font-size: 16px;">${clinicName}</p>
+            <p style="margin: 10px 0 0; opacity: 0.9; font-size: 16px;">${safeClinicName}</p>
           </div>
           <div class="content">
             <div class="badge">Confirmed Booking Request</div>
@@ -243,26 +244,26 @@ function generateBookingEmailHTML(clinicName: string, lead: any): string {
             <!-- Patient Details -->
             <div class="field">
               <div class="label">Patient Name</div>
-              <div class="value">${lead.first_name} ${lead.last_name}</div>
+              <div class="value">${safeFirstName} ${safeLastName}</div>
             </div>
             
             <div class="field">
               <div class="label">Contact Details</div>
               <div class="value">
-                ${lead.email ? `<strong>Email:</strong> ${lead.email}` : ""}
+                ${lead.email ? `<strong>Email:</strong> ${safeEmail}` : ""}
                 ${lead.email && lead.phone ? "<br>" : ""}
-                ${lead.phone ? `<strong>Phone:</strong> ${lead.phone}` : ""}
+                ${lead.phone ? `<strong>Phone:</strong> ${safePhone}` : ""}
               </div>
             </div>
             
             <div class="field">
               <div class="label">Treatment Interest</div>
-              <div class="value">${lead.treatment_interest}</div>
+              <div class="value">${safeTreatment}</div>
             </div>
             
             <div class="field">
               <div class="label">Location</div>
-              <div class="value">${lead.postcode}</div>
+              <div class="value">${safePostcode}</div>
             </div>
             
             <!-- Appointment Preferences -->
@@ -287,9 +288,9 @@ function generateBookingEmailHTML(clinicName: string, lead: any): string {
             
             <div class="cta-box">
               <h3 style="margin: 0 0 10px; color: #065f46;">Ready to Book?</h3>
-              <p style="margin: 0 0 15px; color: #047857;">Contact ${lead.first_name} to schedule their appointment</p>
-              ${lead.phone ? `<a href="tel:${lead.phone}" class="cta-button">Call ${lead.phone}</a>` : ""}
-              ${lead.email && !lead.phone ? `<a href="mailto:${lead.email}" class="cta-button">Email ${lead.first_name}</a>` : ""}
+              <p style="margin: 0 0 15px; color: #047857;">Contact ${safeFirstName} to schedule their appointment</p>
+              ${lead.phone ? `<a href="tel:${safePhone}" class="cta-button">Call ${safePhone}</a>` : ""}
+              ${lead.email && !lead.phone ? `<a href="mailto:${safeEmail}" class="cta-button">Email ${safeFirstName}</a>` : ""}
             </div>
             
             <div class="field" style="margin-top: 20px;">

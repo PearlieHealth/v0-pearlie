@@ -1,4 +1,10 @@
+import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
+
+export const metadata: Metadata = {
+  title: "For Dental Clinics",
+  description: "Join Pearlie to receive matched patients looking for your dental services. Priority placement, quality leads, and zero upfront cost.",
+}
 import { Card } from "@/components/ui/card"
 import { ArrowRight, Heart, CheckCircle2, X, Star, TrendingUp, Users, Eye } from "lucide-react"
 import Link from "next/link"

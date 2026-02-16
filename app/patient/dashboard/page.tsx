@@ -52,13 +52,19 @@ interface DashboardData {
   leads: Lead[]
   matches: Match[]
   conversations: Conversation[]
+  matchesTotal: number
+  conversationsTotal: number
 }
+
+const PAGE_SIZE = 10
 
 export default function PatientDashboard() {
   const router = useRouter()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [loadingMoreMatches, setLoadingMoreMatches] = useState(false)
+  const [loadingMoreConvs, setLoadingMoreConvs] = useState(false)
 
   useEffect(() => {
     fetchDashboard()
@@ -74,7 +80,7 @@ export default function PatientDashboard() {
         return
       }
 
-      const res = await fetch("/api/patient/matches")
+      const res = await fetch(`/api/patient/matches?matchesLimit=${PAGE_SIZE}&convsLimit=${PAGE_SIZE}`)
       if (!res.ok) {
         if (res.status === 401) {
           router.replace("/patient/login")
@@ -92,6 +98,50 @@ export default function PatientDashboard() {
     }
   }
 
+  async function loadMoreMatches() {
+    if (!data) return
+    setLoadingMoreMatches(true)
+    try {
+      const offset = data.matches.length
+      const res = await fetch(
+        `/api/patient/matches?matchesLimit=${PAGE_SIZE}&matchesOffset=${offset}&convsLimit=0`
+      )
+      if (res.ok) {
+        const moreData = await res.json()
+        setData({
+          ...data,
+          matches: [...data.matches, ...(moreData.matches || [])],
+        })
+      }
+    } catch (err) {
+      console.error("Failed to load more matches:", err)
+    } finally {
+      setLoadingMoreMatches(false)
+    }
+  }
+
+  async function loadMoreConversations() {
+    if (!data) return
+    setLoadingMoreConvs(true)
+    try {
+      const offset = data.conversations.length
+      const res = await fetch(
+        `/api/patient/matches?matchesLimit=0&convsLimit=${PAGE_SIZE}&convsOffset=${offset}`
+      )
+      if (res.ok) {
+        const moreData = await res.json()
+        setData({
+          ...data,
+          conversations: [...data.conversations, ...(moreData.conversations || [])],
+        })
+      }
+    } catch (err) {
+      console.error("Failed to load more conversations:", err)
+    } finally {
+      setLoadingMoreConvs(false)
+    }
+  }
+
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -99,6 +149,9 @@ export default function PatientDashboard() {
   }
 
   const totalUnread = data?.conversations?.reduce((sum, c) => sum + (c.unread_count_patient || 0), 0) || 0
+
+  const hasMoreMatches = data ? data.matches.length < (data.matchesTotal || 0) : false
+  const hasMoreConvs = data ? data.conversations.length < (data.conversationsTotal || 0) : false
 
   if (loading) {
     return (
@@ -208,6 +261,28 @@ export default function PatientDashboard() {
                   </Link>
                 )
               })}
+
+              {/* Load more matches */}
+              {hasMoreMatches && (
+                <div className="text-center pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={loadMoreMatches}
+                    disabled={loadingMoreMatches}
+                    className="text-xs"
+                  >
+                    {loadingMoreMatches ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      `Load more (${(data?.matchesTotal || 0) - data.matches.length} remaining)`
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </section>
@@ -265,6 +340,28 @@ export default function PatientDashboard() {
                   </Card>
                 </Link>
               ))}
+
+              {/* Load more conversations */}
+              {hasMoreConvs && (
+                <div className="text-center pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={loadMoreConversations}
+                    disabled={loadingMoreConvs}
+                    className="text-xs"
+                  >
+                    {loadingMoreConvs ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      `Load more (${(data?.conversationsTotal || 0) - data.conversations.length} remaining)`
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </section>

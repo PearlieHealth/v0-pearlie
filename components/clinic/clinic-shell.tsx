@@ -28,6 +28,7 @@ export function ClinicShell({ children }: ClinicShellProps) {
   const [clinic, setClinic] = useState<ClinicData | null>(null)
   const [userData, setUserData] = useState<UserData | null>(null)
   const [newLeadsCount, setNewLeadsCount] = useState(0)
+  const [unrepliedCount, setUnrepliedCount] = useState(0)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [debugError, setDebugError] = useState<string | null>(null)
@@ -110,15 +111,23 @@ export function ClinicShell({ children }: ClinicShellProps) {
         clinicIds: [data.clinic.id],
       })
 
-      // Get new leads count using the Supabase client
+      // Get new leads count and unreplied conversations count
       const supabase = createBrowserClient()
-      const { count } = await supabase
-        .from("lead_clinic_status")
-        .select("*", { count: "exact", head: true })
-        .eq("clinic_id", data.clinic.id)
-        .eq("status", "NEW")
+      const [{ count }, { count: unreplied }] = await Promise.all([
+        supabase
+          .from("lead_clinic_status")
+          .select("*", { count: "exact", head: true })
+          .eq("clinic_id", data.clinic.id)
+          .eq("status", "NEW"),
+        supabase
+          .from("conversations")
+          .select("*", { count: "exact", head: true })
+          .eq("clinic_id", data.clinic.id)
+          .is("clinic_first_reply_at", null),
+      ])
 
       setNewLeadsCount(count || 0)
+      setUnrepliedCount(unreplied || 0)
     } catch (error) {
       console.error("Auth check failed:", error)
       setDebugError(`Exception: ${error instanceof Error ? error.message : String(error)}`)
@@ -184,6 +193,7 @@ export function ClinicShell({ children }: ClinicShellProps) {
           clinicId={clinic.id}
           userRole={userData.role}
           newLeadsCount={newLeadsCount}
+          unrepliedCount={unrepliedCount}
         />
       </div>
 

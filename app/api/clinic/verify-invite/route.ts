@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   try {
     const supabaseAdmin = createAdminClient()
     
-    console.log("[v0] Verifying invite token:", token.substring(0, 8) + "...")
+    console.log("[v0] Verifying invite token")
 
     const { data: invite, error } = await supabaseAdmin
       .from("clinic_invites")

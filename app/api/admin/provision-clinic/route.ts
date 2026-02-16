@@ -1,11 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
-import { Resend } from "resend"
 import { verifyAdminAuth } from "@/lib/admin-auth"
+import { escapeHtml } from "@/lib/escape-html"
 import crypto from "crypto"
 import bcrypt from "bcrypt"
-
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 export async function POST(request: Request) {
   const auth = await verifyAdminAuth()
@@ -120,22 +120,22 @@ export async function POST(request: Request) {
     })
 
     // 5. Send login credentials email
-    if (resend) {
+    {
       const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"}/clinic/login`
-      
-      await resend.emails.send({
-        from: "Pearlie <noreply@pearlie.app>",
+
+      await sendEmailWithRetry({
+        from: EMAIL_FROM.NOREPLY,
         to: primaryContactEmail,
         subject: `Your ${clinicName} Portal Login - Pearlie`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
             <h1 style="color: #1a1a1a;">Welcome to Pearlie</h1>
-            <p>Your account has been created to manage <strong>${clinicName}</strong> on Pearlie's clinic portal.</p>
-            
+            <p>Your account has been created to manage <strong>${escapeHtml(clinicName)}</strong> on Pearlie's clinic portal.</p>
+
             <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <p style="margin: 0 0 10px 0;"><strong>Your Login Credentials:</strong></p>
-              <p style="margin: 5px 0;">Email: <strong>${primaryContactEmail}</strong></p>
-              <p style="margin: 5px 0;">Password: <strong>${tempPassword}</strong></p>
+              <p style="margin: 5px 0;">Email: <strong>${escapeHtml(primaryContactEmail)}</strong></p>
+              <p style="margin: 5px 0;">Password: <strong>${escapeHtml(tempPassword)}</strong></p>
             </div>
             
             <a href="${loginUrl}" style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">

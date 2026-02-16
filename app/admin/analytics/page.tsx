@@ -21,8 +21,10 @@ import { Card } from "@/components/ui/card"
 import { AdminNav } from "@/components/admin/admin-nav"
 import { normalizeAnalyticsData } from "@/lib/analytics/normalize-analytics"
 import { AdminCardErrorBoundary } from "@/components/admin/admin-card-error-boundary"
+import { AnalyticsDateRange } from "@/components/admin/analytics-date-range"
 import { HelpCircle } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Suspense } from "react"
 
 function MetricWithTooltip({
   label,
@@ -47,8 +49,20 @@ function MetricWithTooltip({
   )
 }
 
-export default async function AnalyticsDashboard() {
+export default async function AnalyticsDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ days?: string }>
+}) {
+  const params = await searchParams
   const supabase = await createClient()
+
+  // Date range filtering — default to 30 days instead of all-time
+  const daysParam = params.days
+  const days = daysParam ? parseInt(daysParam, 10) : null
+  const dateFilter = days && days > 0
+    ? new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+    : null
 
   let rawData: {
     leads: any[] | null
@@ -65,12 +79,29 @@ export default async function AnalyticsDashboard() {
   }
 
   try {
+    // Build queries with optional date filtering
+    let leadsQuery = supabase.from("leads").select("*").order("created_at", { ascending: false })
+    let matchesQuery = supabase.from("matches").select("*").order("created_at", { ascending: false })
+    let eventsQuery = supabase.from("analytics_events").select("*").order("created_at", { ascending: false })
+    const clinicsQuery = supabase.from("clinics").select("id, name")
+    let matchResultsQuery = supabase.from("match_results").select("*")
+
+    if (dateFilter) {
+      leadsQuery = leadsQuery.gte("created_at", dateFilter)
+      matchesQuery = matchesQuery.gte("created_at", dateFilter)
+      eventsQuery = eventsQuery.gte("created_at", dateFilter)
+      matchResultsQuery = matchResultsQuery.gte("created_at", dateFilter)
+    }
+
+    // Always limit events to prevent memory overload
+    eventsQuery = eventsQuery.limit(5000)
+
     const [leadsRes, matchesRes, eventsRes, clinicsRes, matchResultsRes] = await Promise.all([
-      supabase.from("leads").select("*").order("created_at", { ascending: false }),
-      supabase.from("matches").select("*").order("created_at", { ascending: false }),
-      supabase.from("analytics_events").select("*").order("created_at", { ascending: false }).limit(10000),
-      supabase.from("clinics").select("id, name"),
-      supabase.from("match_results").select("*"),
+      leadsQuery,
+      matchesQuery,
+      eventsQuery,
+      clinicsQuery,
+      matchResultsQuery,
     ])
 
     rawData = {
@@ -96,7 +127,10 @@ export default async function AnalyticsDashboard() {
         {/* Desktop header with test buttons */}
         <div className="hidden md:flex items-center justify-between mb-6">
           <h1 className="text-xl md:text-2xl font-bold text-[#1a2332]">Analytics Dashboard</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <Suspense fallback={null}>
+              <AnalyticsDateRange />
+            </Suspense>
             <LiveFlowTestButton />
             <SelfTestButton />
             <AnalyticsSelfCheckButton />
@@ -106,6 +140,11 @@ export default async function AnalyticsDashboard() {
         {/* Mobile header */}
         <div className="md:hidden mb-4">
           <h1 className="text-lg font-bold text-[#1a2332] mb-3">Analytics Dashboard</h1>
+          <div className="flex flex-wrap gap-2 mb-3">
+            <Suspense fallback={null}>
+              <AnalyticsDateRange />
+            </Suspense>
+          </div>
           <div className="flex flex-wrap gap-2">
             <LiveFlowTestButton />
             <SelfTestButton />
@@ -212,8 +251,8 @@ export default async function AnalyticsDashboard() {
 
           <TabsContent value="clinics">
             <AdminCardErrorBoundary cardName="Clinic Performance">
-              <ClinicPerformanceTable 
-                events={analytics.events} 
+              <ClinicPerformanceTable
+                events={analytics.events}
                 clinicMap={analytics.clinicMap}
                 leads={analytics.leads}
                 matchResults={analytics.matchResults}

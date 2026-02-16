@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { Resend } from "resend"
 import { generateOTP, hashOTP, canSendOTP } from "@/lib/otp/generate"
-
-const resend = new Resend(process.env.RESEND_API_KEY)
-const OTP_SECRET = process.env.SUPABASE_JWT_SECRET || "fallback-secret-key"
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
+const OTP_SECRET = process.env.SUPABASE_JWT_SECRET
+if (!OTP_SECRET) throw new Error("SUPABASE_JWT_SECRET environment variable is required")
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     const otpHash = hashOTP(otp, OTP_SECRET)
     const now = new Date().toISOString()
     
-    console.log("[v0] OTP generated for lead:", leadId, "OTP:", otp, "Hash:", otpHash.substring(0, 16) + "...")
+    console.log("[OTP] Code generated for lead:", leadId)
 
     // Store OTP hash and update verification tracking FIRST before sending email
     const { error: updateError } = await supabase
@@ -69,8 +69,8 @@ export async function POST(request: NextRequest) {
 
     // Send OTP email via Resend (after DB is updated to ensure consistency)
     try {
-      await resend.emails.send({
-        from: "Pearlie <verify@pearlie.org>",
+      await sendEmailWithRetry({
+        from: EMAIL_FROM.NOREPLY,
         to: email,
         subject: "Your Pearlie verification code",
         html: `

@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { Resend } from "resend"
 import { STARTER_TAGS } from "@/lib/matching/tag-validation"
 import { verifyAdminAuth } from "@/lib/admin-auth"
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { escapeHtml } from "@/lib/escape-html"
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 export async function GET() {
   const auth = await verifyAdminAuth()
@@ -123,15 +123,15 @@ export async function PATCH(request: Request) {
 
       // Step 5: Send approval email
       try {
-        const emailResult = await resend.emails.send({
-          from: "Pearlie <clinics@pearlie.org>",
+        const emailResult = await sendEmailWithRetry({
+          from: EMAIL_FROM.CLINICS,
           to: entry.email,
           subject: "You're in — complete your clinic profile",
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #1a1a1a;">Welcome to Pearlie</h1>
-              <p>Hi ${entry.owner_name},</p>
-              <p>Great news — <strong>${entry.clinic_name}</strong> has been approved for early access to Pearlie.</p>
+              <p>Hi ${escapeHtml(entry.owner_name)},</p>
+              <p>Great news — <strong>${escapeHtml(entry.clinic_name)}</strong> has been approved for early access to Pearlie.</p>
               <p>You're now part of our founding clinic cohort. This means:</p>
               <ul>
                 <li>Priority placement in patient matches</li>
@@ -157,7 +157,7 @@ export async function PATCH(request: Request) {
           .from("waitlist_email_log")
           .update({
             status: "sent",
-            provider_message_id: emailResult?.data?.id,
+            provider_message_id: emailResult?.messageId,
           })
           .eq("id", emailLogId)
       } catch (emailError) {
@@ -184,15 +184,15 @@ export async function PATCH(request: Request) {
 
       // Step 5: Send rejection email
       try {
-        const emailResult = await resend.emails.send({
-          from: "Pearlie <clinics@pearlie.org>",
+        const emailResult = await sendEmailWithRetry({
+          from: EMAIL_FROM.CLINICS,
           to: entry.email,
           subject: "Your Pearlie application",
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #1a1a1a;">Thank you for applying</h1>
-              <p>Hi ${entry.owner_name},</p>
-              <p>Thank you for your interest in joining Pearlie with ${entry.clinic_name}.</p>
+              <p>Hi ${escapeHtml(entry.owner_name)},</p>
+              <p>Thank you for your interest in joining Pearlie with ${escapeHtml(entry.clinic_name)}.</p>
               <p>Unfortunately, we're unable to include your clinic in this cohort. This may be due to:</p>
               <ul>
                 <li>Geographic coverage priorities for this phase</li>
@@ -212,7 +212,7 @@ export async function PATCH(request: Request) {
           .from("waitlist_email_log")
           .update({
             status: "sent",
-            provider_message_id: emailResult?.data?.id,
+            provider_message_id: emailResult?.messageId,
           })
           .eq("id", emailLogId)
       } catch (emailError) {

@@ -54,7 +54,7 @@ export function ClinicsMap({ clinics, highlightedClinicId, onClinicHover, onClin
 
   if (!isClient || !L) {
     return (
-      <div className="w-full h-[600px] bg-muted rounded-lg flex items-center justify-center">
+      <div className="w-full h-[350px] md:h-[600px] bg-muted rounded-lg flex items-center justify-center">
         <div className="text-muted-foreground">Loading map...</div>
       </div>
     )
@@ -95,7 +95,7 @@ export function ClinicsMap({ clinics, highlightedClinicId, onClinicHover, onClin
     })
 
   return (
-    <div className="w-full h-[600px] rounded-lg overflow-hidden border shadow-sm">
+    <div className="w-full h-[350px] md:h-[600px] rounded-lg overflow-hidden border shadow-sm">
       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
       <MapContainer center={center} zoom={12} style={{ height: "100%", width: "100%" }} scrollWheelZoom={false}>
         <TileLayer

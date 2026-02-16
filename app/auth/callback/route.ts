@@ -4,8 +4,14 @@ import { NextResponse } from "next/server"
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
-  const next = searchParams.get("next") ?? "/clinic"
+  const nextParam = searchParams.get("next") ?? "/clinic"
   const error = searchParams.get("error")
+
+  // Prevent open redirect — only allow relative paths to known app routes
+  const ALLOWED_PREFIXES = ["/clinic", "/intake", "/patient", "/match", "/admin", "/booking"]
+  const next = (nextParam.startsWith("/") && !nextParam.startsWith("//") && ALLOWED_PREFIXES.some(p => nextParam.startsWith(p)))
+    ? nextParam
+    : "/clinic"
   const errorDescription = searchParams.get("error_description")
 
   // Determine error redirect based on the flow

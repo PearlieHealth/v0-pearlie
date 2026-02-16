@@ -4,26 +4,14 @@ export const dynamic = "force-dynamic"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
-import { Resend } from "resend"
 import { TIMING_LABELS, COST_APPROACH_LABELS, LOCATION_PREFERENCE_LABELS, ANXIETY_LEVEL_LABELS } from "@/lib/intake-form-config"
-
-function getResendClient() {
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) {
-    throw new Error("RESEND_API_KEY environment variable is not set")
-  }
-  return new Resend(apiKey)
-}
+import { escapeHtml } from "@/lib/escape-html"
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 export async function POST(request: Request) {
   try {
     const { leadId, clinicId, actionType } = await request.json()
-
-    console.log("[lead-actions] Environment check", {
-      hasResendKey: !!process.env.RESEND_API_KEY,
-      emailFrom: process.env.EMAIL_FROM,
-      appUrl: process.env.APP_URL,
-    })
 
     if (!leadId || !clinicId || !actionType) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -195,42 +183,27 @@ async function sendClinicNotification({
   const supabaseAdmin = createAdminClient()
 
   try {
-    const emailFrom = "Pearlie <hello@pearlie.org>"
-
-    if (!process.env.RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY environment variable is not set")
-    }
-
-    console.log("[lead-actions] Testing Resend API connectivity...")
-    const pingResponse = await fetch("https://api.resend.com/domains", {
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      },
-    })
-    console.log("[lead-actions] Resend API ping status:", pingResponse.status)
-
     const actionLabel = actionType === "click_book" ? "Book Consultation" : "Call Clinic"
     const subject = `New ${actionLabel} Request - ${lead.firstName} ${lead.lastName}`
     const html = generateEmailHTML(clinicName, actionType, lead)
 
     console.log("[lead-actions] Sending email", {
       to: recipientEmail,
-      from: emailFrom,
+      from: EMAIL_FROM.NOTIFICATIONS,
       subject,
       leadId,
       clinicId,
     })
 
-    const resend = getResendClient()
-    const { data, error } = await resend.emails.send({
-      from: emailFrom,
+    const result = await sendEmailWithRetry({
+      from: EMAIL_FROM.NOTIFICATIONS,
       to: recipientEmail,
       subject,
       html,
     })
 
-    if (error) {
-      console.error("[lead-actions] Resend API error:", error)
+    if (!result.success) {
+      console.error("[lead-actions] Email send failed:", result.error)
 
       await supabaseAdmin.from("email_logs").insert({
         clinic_id: clinicId,
@@ -238,13 +211,13 @@ async function sendClinicNotification({
         to_email: recipientEmail,
         subject,
         status: "failed",
-        error: error.message || "Unknown error",
+        error: result.error || "Unknown error",
       })
 
-      return { success: false, error: error.message }
+      return { success: false, error: result.error }
     }
 
-    console.log("[lead-actions] Email sent successfully, ID:", data?.id)
+    console.log("[lead-actions] Email sent successfully, ID:", result.messageId)
 
     await supabaseAdmin.from("email_logs").insert({
       clinic_id: clinicId,
@@ -252,7 +225,7 @@ async function sendClinicNotification({
       to_email: recipientEmail,
       subject,
       status: "sent",
-      provider_message_id: data?.id,
+      provider_message_id: result.messageId,
     })
 
     return { success: true }
@@ -318,7 +291,16 @@ function generateEmailHTML(
     weekends: "Weekends (Sat - Sun)",
   }
   const preferredTimesLabels = preferredTimes.map((t: string) => timeLabels[t] || t)
-  
+
+  // Escape all user-supplied values for safe HTML embedding
+  const safeClinicName = escapeHtml(clinicName || "")
+  const safeFirstName = escapeHtml(lead.firstName || "")
+  const safeLastName = escapeHtml(lead.lastName || "")
+  const safeEmail = escapeHtml(lead.email || "")
+  const safePhone = escapeHtml(lead.phone || "")
+  const safeTreatment = escapeHtml(lead.treatment || "")
+  const safePostcode = escapeHtml(lead.postcode || "")
+
   // Generate confirm/decline booking URLs
   const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
   const confirmUrl = lead.bookingToken ? `${appUrl}/booking/clinic-response?token=${lead.bookingToken}&action=confirm` : null
@@ -350,7 +332,7 @@ function generateEmailHTML(
         <div class="container">
           <div class="header">
             <h1 style="margin: 0; font-size: 24px;">New Patient Lead</h1>
-            <p style="margin: 10px 0 0; opacity: 0.9; font-size: 16px;">${clinicName}</p>
+            <p style="margin: 10px 0 0; opacity: 0.9; font-size: 16px;">${safeClinicName}</p>
           </div>
           <div class="content">
             <div class="badge">${actionLabel}</div>
@@ -363,24 +345,24 @@ function generateEmailHTML(
             <!-- Patient Details -->
             <div class="field">
               <div class="label">Patient Name</div>
-              <div class="value">${lead.firstName} ${lead.lastName}</div>
+              <div class="value">${safeFirstName} ${safeLastName}</div>
             </div>
             
             <div class="field">
               <div class="label">Contact</div>
               <div class="value">
-                ${lead.email ? `Email: ${lead.email}` : ""}${lead.email && lead.phone ? "<br>" : ""}${lead.phone ? `Phone: ${lead.phone}` : ""}
+                ${lead.email ? `Email: ${safeEmail}` : ""}${lead.email && lead.phone ? "<br>" : ""}${lead.phone ? `Phone: ${safePhone}` : ""}
               </div>
             </div>
             
             <div class="field">
               <div class="label">Treatment Interest</div>
-              <div class="value">${lead.treatment}</div>
+              <div class="value">${safeTreatment}</div>
             </div>
             
             <div class="field">
               <div class="label">Location</div>
-              <div class="value">${lead.postcode}${locationPref ? ` — ${LOCATION_PREFERENCE_LABELS[locationPref] || locationPref}` : ""}</div>
+              <div class="value">${safePostcode}${locationPref ? ` — ${escapeHtml(LOCATION_PREFERENCE_LABELS[locationPref] || locationPref)}` : ""}</div>
             </div>
             
             <!-- Timing & Budget Section -->
@@ -404,7 +386,7 @@ function generateEmailHTML(
             <div class="field">
               <div class="label">Preferred Appointment Times</div>
               <div class="value">
-                ${preferredTimesLabels.map((t: string) => `<span class="tag">${t}</span>`).join("")}
+                ${preferredTimesLabels.map((t: string) => `<span class="tag">${escapeHtml(t)}</span>`).join("")}
               </div>
             </div>
             ` : ""}
@@ -425,7 +407,7 @@ function generateEmailHTML(
             ${values.length > 0 ? `
             <div class="section-title">What Matters Most to This Patient</div>
             <div>
-              ${values.map((v: string) => `<span class="tag">${v}</span>`).join("")}
+              ${values.map((v: string) => `<span class="tag">${escapeHtml(v)}</span>`).join("")}
             </div>
             ` : ""}
             
@@ -433,7 +415,7 @@ function generateEmailHTML(
             ${blockers.length > 0 ? `
             <div class="section-title">Their Concerns</div>
             <div>
-              ${blockers.map((b: string) => `<span class="tag concern-tag">${b}</span>`).join("")}
+              ${blockers.map((b: string) => `<span class="tag concern-tag">${escapeHtml(b)}</span>`).join("")}
             </div>
             ` : ""}
             

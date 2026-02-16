@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { Resend } from "resend"
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { escapeHtml } from "@/lib/escape-html"
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 export async function POST(request: Request) {
   try {
@@ -93,15 +93,15 @@ export async function POST(request: Request) {
 
     // Send confirmation email on submission
     try {
-      await resend.emails.send({
-        from: "Pearlie <clinics@pearlie.org>",
+      await sendEmailWithRetry({
+        from: EMAIL_FROM.CLINICS,
         to: email.toLowerCase().trim(),
         subject: "We received your application",
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
             <h1 style="color: #1a1a1a;">Application Received</h1>
-            <p>Hi ${ownerName.trim()},</p>
-            <p>Thank you for applying to join Pearlie with <strong>${clinicName.trim()}</strong>.</p>
+            <p>Hi ${escapeHtml(ownerName.trim())},</p>
+            <p>Thank you for applying to join Pearlie with <strong>${escapeHtml(clinicName.trim())}</strong>.</p>
             <p>We're reviewing applications for our founding clinic cohort and will be in touch soon with next steps.</p>
             <p>What happens next:</p>
             <ul>

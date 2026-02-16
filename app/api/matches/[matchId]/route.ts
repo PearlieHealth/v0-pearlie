@@ -262,7 +262,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
         .limit(20)
 
       if (matchedClinicIds.length > 0) {
-        nearbyQuery = nearbyQuery.not("id", "in", `(${matchedClinicIds.map((id: string) => `"${id}"`).join(",")})`)
+        nearbyQuery = nearbyQuery.not("id", "in", `(${matchedClinicIds.join(",")})`)
       }
 
       const { data: nearbyClinics, error: nearbyError } = await nearbyQuery

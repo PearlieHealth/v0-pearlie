@@ -18,17 +18,17 @@ export default function FAQPage() {
       <MobileNavMenu />
 
       <main>
-        <section className="py-20 bg-background">
+        <section className="py-12 sm:py-20 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
               <div className="flex items-center gap-3 mb-6">
                 <HelpCircle className="w-8 h-8 text-primary" />
-                <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">Frequently asked questions</h1>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight">Frequently asked questions</h1>
               </div>
               <p className="text-lg text-muted-foreground mb-12">Everything you need to know about using Pearlie</p>
 
               <Accordion type="single" collapsible className="space-y-4">
-                <AccordionItem value="item-1" className="border border-border rounded-lg px-6">
+                <AccordionItem value="item-1" className="border border-border rounded-lg px-4 sm:px-6">
                   <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
                     Is Pearlie free to use?
                   </AccordionTrigger>
@@ -37,7 +37,7 @@ export default function FAQPage() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="item-2" className="border border-border rounded-lg px-6">
+                <AccordionItem value="item-2" className="border border-border rounded-lg px-4 sm:px-6">
                   <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
                     Does Pearlie provide dental advice?
                   </AccordionTrigger>
@@ -47,7 +47,7 @@ export default function FAQPage() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="item-3" className="border border-border rounded-lg px-6">
+                <AccordionItem value="item-3" className="border border-border rounded-lg px-4 sm:px-6">
                   <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
                     How are clinics selected?
                   </AccordionTrigger>
@@ -57,7 +57,7 @@ export default function FAQPage() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="item-4" className="border border-border rounded-lg px-6">
+                <AccordionItem value="item-4" className="border border-border rounded-lg px-4 sm:px-6">
                   <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
                     Do I have to book with a clinic?
                   </AccordionTrigger>
@@ -67,7 +67,7 @@ export default function FAQPage() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="item-5" className="border border-border rounded-lg px-6">
+                <AccordionItem value="item-5" className="border border-border rounded-lg px-4 sm:px-6">
                   <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
                     How does Pearlie make money?
                   </AccordionTrigger>
@@ -77,7 +77,7 @@ export default function FAQPage() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="item-6" className="border border-border rounded-lg px-6">
+                <AccordionItem value="item-6" className="border border-border rounded-lg px-4 sm:px-6">
                   <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
                     Are prices guaranteed?
                   </AccordionTrigger>
@@ -87,7 +87,7 @@ export default function FAQPage() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="item-7" className="border border-border rounded-lg px-6">
+                <AccordionItem value="item-7" className="border border-border rounded-lg px-4 sm:px-6">
                   <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
                     Does Pearlie replace my dentist?
                   </AccordionTrigger>
@@ -97,7 +97,7 @@ export default function FAQPage() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="item-8" className="border border-border rounded-lg px-6">
+                <AccordionItem value="item-8" className="border border-border rounded-lg px-4 sm:px-6">
                   <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
                     What happens to my data?
                   </AccordionTrigger>
@@ -107,7 +107,7 @@ export default function FAQPage() {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="item-9" className="border border-border rounded-lg px-6">
+                <AccordionItem value="item-9" className="border border-border rounded-lg px-4 sm:px-6">
                   <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
                     Is Pearlie part of the NHS?
                   </AccordionTrigger>
@@ -141,7 +141,7 @@ export default function FAQPage() {
       <footer className="border-t border-border bg-background py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8">
               <div className="md:col-span-1">
                 <div className="text-2xl font-semibold mb-4">Pearlie</div>
                 <p className="text-sm text-muted-foreground">Independent dental matching platform</p>
