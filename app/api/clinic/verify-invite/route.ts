@@ -50,7 +50,7 @@ export async function GET(request: Request) {
       invite: {
         email: invite.email,
         role: invite.role,
-        clinic_name: (invite.clinics as { name: string })?.name || "Unknown Clinic",
+        clinic_name: (invite.clinics as unknown as { name: string })?.name || "Unknown Clinic",
       },
     })
   } catch (error) {

@@ -61,6 +61,7 @@ type PlaceDetails = {
   location: { lat: number; lng: number } | null
   openingHours: Record<string, string>
   rating: number | null
+  reviewCount?: number
   photos: { url: string; attribution: string }[]
 }
 

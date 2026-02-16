@@ -14,13 +14,13 @@ interface MatchReasonsCardProps {
 }
 
 export function MatchReasonsCard({ matchResults, clinicMap }: MatchReasonsCardProps) {
-  const safeMatchResults = safeArray(matchResults)
+  const safeMatchResults = safeArray<{ reasons?: string[] | null; [key: string]: unknown }>(matchResults)
 
   // Explode all reasons and count occurrences
   const reasonCounts = new Map<string, number>()
 
   safeMatchResults.forEach((result) => {
-    const reasons = safeArray(result?.reasons)
+    const reasons = safeArray<string>(result?.reasons)
     reasons.forEach((reason) => {
       if (typeof reason === "string" && reason.trim()) {
         reasonCounts.set(reason, (reasonCounts.get(reason) || 0) + 1)

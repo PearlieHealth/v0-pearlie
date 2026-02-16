@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyOTPHash, isOTPExpired } from "@/lib/otp/generate"
 
-const OTP_SECRET = process.env.SUPABASE_JWT_SECRET
+const OTP_SECRET = process.env.SUPABASE_JWT_SECRET!
 if (!OTP_SECRET) throw new Error("SUPABASE_JWT_SECRET environment variable is required")
 
 export async function POST(request: NextRequest) {

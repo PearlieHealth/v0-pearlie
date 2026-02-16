@@ -718,7 +718,7 @@ export default function MatchPage() {
                             </div>
                           )}
                           <Card
-                            ref={(el) => (clinicRefs.current[clinic.id] = el)}
+                            ref={(el) => { clinicRefs.current[clinic.id] = el }}
                             data-clinic-id={clinic.id}
                             className="p-6 transition-all duration-200 ease-out hover:shadow-lg"
                           >
@@ -982,7 +982,7 @@ const categoryLabels: Record<string, string> = {
                                   {clinic.phone && (
                                     <Button
                                       onClick={() =>
-                                        handleClinicAction(clinic.id, match.lead_id, "click_call", undefined, clinic.phone)
+                                        handleClinicAction(clinic.id, match.lead_id ?? "", "click_call", undefined, clinic.phone ?? undefined)
                                       }
                                       variant="outline"
                                       className="flex-1 h-11 bg-transparent"
@@ -1011,7 +1011,7 @@ const categoryLabels: Record<string, string> = {
                 {/* Map View */}
                 {viewMode === "map" && (
                   <Suspense fallback={<div>Loading map...</div>}>
-                    <ClinicsMap clinics={allClinicsData} onClinicClick={handleMapClinicClick} />
+                    <ClinicsMap clinics={allClinicsData} highlightedClinicId={null} onClinicHover={() => {}} onClinicClick={handleMapClinicClick} />
                   </Suspense>
                 )}
               </div>

@@ -5,7 +5,13 @@ import { Lock, TrendingUp, Target, Clock, MapPin, BarChart3, RefreshCcw, Brain }
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
-export function AdvancedInsightsPreview() {
+export function AdvancedInsightsPreview(_props?: {
+  formCompletionRate?: string
+  clinicClickRate?: string
+  bookingRate?: string
+  avgClinicsViewed?: number
+  pctBookFromFirst?: number
+}) {
   const proFeatures = [
     {
       icon: Target,

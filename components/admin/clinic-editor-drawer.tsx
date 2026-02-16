@@ -31,19 +31,19 @@ interface GalleryItem {
 interface Clinic {
   id?: string
   name: string
-  city: string
-  address: string
-  postcode: string
-  phone: string
+  city?: string
+  address?: string
+  postcode?: string
+  phone?: string
   email?: string
   notification_email?: string
   website?: string
-  description: string
-  treatments: string[]
+  description?: string
+  treatments?: string[]
   languages?: string[]
-  price_range: string
-  opening_hours: string
-  is_archived: boolean
+  price_range?: string
+  opening_hours?: string | Record<string, any>
+  is_archived?: boolean
   is_live?: boolean
   verified?: boolean
   latitude?: number
@@ -58,6 +58,17 @@ interface Clinic {
   available_days?: string[]
   available_hours?: string[]
   accepts_same_day?: boolean
+  highlight_chips?: string[]
+  rating?: number
+  review_count?: number
+  featured?: boolean
+  accepts_nhs?: boolean
+  wheelchair_accessible?: boolean
+  parking_available?: boolean
+  facilities?: string[]
+  archived_at?: string | null
+  created_at?: string
+  updated_at?: string
 }
 
 // Common languages for dental clinics
@@ -91,6 +102,7 @@ interface ClinicEditorDrawerProps {
   open: boolean
   onClose: () => void
   clinic: Clinic | null
+  isCreating?: boolean
   onSave: (clinic: Clinic) => void
 }
 

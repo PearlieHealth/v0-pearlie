@@ -272,16 +272,20 @@ export async function applyExtractedTags(
 
     // Log the extraction for audit
     if (added.length > 0) {
-      await client.from("clinic_audit_log").insert({
-        action: "ai_tags_extracted",
-        entity_type: "clinic",
-        entity_id: clinicId,
-        details: {
-          added,
-          skipped,
-          timestamp: new Date().toISOString(),
-        },
-      }).catch(() => {}) // Don't fail on audit log error
+      try {
+        await client.from("clinic_audit_log").insert({
+          action: "ai_tags_extracted",
+          entity_type: "clinic",
+          entity_id: clinicId,
+          details: {
+            added,
+            skipped,
+            timestamp: new Date().toISOString(),
+          },
+        })
+      } catch {
+        // Don't fail on audit log error
+      }
     }
 
   } catch (error) {
