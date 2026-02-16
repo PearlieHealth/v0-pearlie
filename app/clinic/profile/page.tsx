@@ -215,7 +215,26 @@ export default function ClinicProfilePage() {
           accessibility_features: clinic.accessibility_features || [],
           key_selling_points: clinic.key_selling_points || [],
           finance_provider_names: clinic.finance_provider_names || [],
-          opening_hours: clinic.opening_hours || {},
+          opening_hours: (() => {
+            const saved = clinic.opening_hours || {}
+            const full: Record<string, { open: string; close: string; closed: boolean }> = {}
+            for (const day of ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]) {
+              const existing = saved[day] || saved[day.charAt(0).toUpperCase() + day.slice(1)]
+              if (existing && typeof existing === "object") {
+                full[day] = existing as { open: string; close: string; closed: boolean }
+              } else if (existing && typeof existing === "string") {
+                if (existing.toLowerCase() === "closed") {
+                  full[day] = { open: "", close: "", closed: true }
+                } else {
+                  const parts = existing.split("-")
+                  full[day] = { open: parts[0] || "09:00", close: parts[1] || "17:00", closed: false }
+                }
+              } else {
+                full[day] = { open: "09:00", close: "17:00", closed: false }
+              }
+            }
+            return full
+          })(),
           ideal_patient_tags: clinic.ideal_patient_tags || [],
           exclusion_tags: clinic.exclusion_tags || [],
           highlight_chips: clinic.highlight_chips || [],

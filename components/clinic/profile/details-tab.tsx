@@ -15,20 +15,12 @@ import {
   UserRound,
 } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { OpeningHoursCard } from "./opening-hours-card"
 import type { Clinic, ProviderProfile } from "./types"
 
 interface DetailsTabProps {
   clinic: Clinic
   providers: ProviderProfile[]
-}
-
-function formatHours(hours: string | { open: string; close: string; closed: boolean } | null | undefined): string {
-  if (!hours) return "—"
-  if (typeof hours === "string") return hours
-  if (typeof hours === "object") {
-    return hours.closed ? "Closed" : `${hours.open} – ${hours.close}`
-  }
-  return "—"
 }
 
 export function DetailsTab({ clinic, providers }: DetailsTabProps) {
@@ -65,41 +57,31 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
 
   return (
     <div className="space-y-8">
-      {/* Opening Hours + Links */}
-      {clinic.opening_hours && Object.keys(clinic.opening_hours).length > 0 && (
-        <section className="grid sm:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Office Hours</h2>
-            <div className="space-y-0">
-              {Object.entries(clinic.opening_hours).map(([day, hours]) => (
-                <div key={day} className="flex justify-between items-center py-2.5 border-b border-[#f0f0f0] last:border-b-0">
-                  <span className="font-medium text-emerald-700 capitalize">{day}</span>
-                  <span className="text-[#444]">{formatHours(hours)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Links</h2>
-            <div className="space-y-3">
-              {clinic.website && (
-                <a
-                  href={clinic.website.startsWith("http") ? clinic.website : `https://${clinic.website}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-[#444] hover:text-[#1a1a1a] transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span>Website</span>
-                </a>
-              )}
-              {clinic.phone && (
-                <a href={`tel:${clinic.phone}`} className="flex items-center gap-2 text-[#444] hover:text-[#1a1a1a] transition-colors">
-                  <Phone className="h-4 w-4" />
-                  <span>{clinic.phone}</span>
-                </a>
-              )}
-            </div>
+      {/* Opening Hours */}
+      <OpeningHoursCard openingHours={clinic.opening_hours} />
+
+      {/* Links */}
+      {(clinic.website || clinic.phone) && (
+        <section>
+          <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Links</h2>
+          <div className="space-y-3">
+            {clinic.website && (
+              <a
+                href={clinic.website.startsWith("http") ? clinic.website : `https://${clinic.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-[#444] hover:text-[#1a1a1a] transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span>Website</span>
+              </a>
+            )}
+            {clinic.phone && (
+              <a href={`tel:${clinic.phone}`} className="flex items-center gap-2 text-[#444] hover:text-[#1a1a1a] transition-colors">
+                <Phone className="h-4 w-4" />
+                <span>{clinic.phone}</span>
+              </a>
+            )}
           </div>
         </section>
       )}
