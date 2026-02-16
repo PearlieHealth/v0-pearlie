@@ -6,23 +6,15 @@ interface OpeningHoursCardProps {
   openingHours: Record<string, string | { open: string; close: string; closed: boolean }>
 }
 
-const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-const DAY_LABELS: Record<string, string> = {
-  monday: "Monday",
-  tuesday: "Tuesday",
-  wednesday: "Wednesday",
-  thursday: "Thursday",
-  friday: "Friday",
-  saturday: "Saturday",
-  sunday: "Sunday",
-  mon: "Monday",
-  tue: "Tuesday",
-  wed: "Wednesday",
-  thu: "Thursday",
-  fri: "Friday",
-  sat: "Saturday",
-  sun: "Sunday",
-}
+const CANONICAL_ORDER = [
+  { keys: ["monday", "mon"], label: "Monday" },
+  { keys: ["tuesday", "tue"], label: "Tuesday" },
+  { keys: ["wednesday", "wed"], label: "Wednesday" },
+  { keys: ["thursday", "thu"], label: "Thursday" },
+  { keys: ["friday", "fri"], label: "Friday" },
+  { keys: ["saturday", "sat"], label: "Saturday" },
+  { keys: ["sunday", "sun"], label: "Sunday" },
+]
 
 function formatHours(hours: string | { open: string; close: string; closed: boolean } | null | undefined): string {
   if (!hours) return "\u2014"
@@ -33,38 +25,35 @@ function formatHours(hours: string | { open: string; close: string; closed: bool
   return "\u2014"
 }
 
-function getTodayKey(): string {
-  const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
-  return days[new Date().getDay()]
-}
-
-function getShortTodayKey(): string {
-  const days = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
-  return days[new Date().getDay()]
+function getTodayIndex(): number {
+  // getDay: 0=Sunday, we need Monday=0
+  const d = new Date().getDay()
+  return d === 0 ? 6 : d - 1
 }
 
 export function OpeningHoursCard({ openingHours }: OpeningHoursCardProps) {
   if (!openingHours || Object.keys(openingHours).length === 0) return null
 
-  const todayFull = getTodayKey()
-  const todayShort = getShortTodayKey()
+  const todayIndex = getTodayIndex()
 
-  // Determine if keys are short (mon/tue) or long (monday/tuesday)
-  const keys = Object.keys(openingHours)
-  const usesShortKeys = keys.some((k) => ["mon", "tue", "wed", "thu", "fri", "sat", "sun"].includes(k.toLowerCase()))
-  const shortOrder = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
-  const orderToUse = usesShortKeys ? shortOrder : DAY_ORDER
+  // Build a case-insensitive lookup from the actual data keys
+  const lowerKeyMap: Record<string, string> = {}
+  for (const key of Object.keys(openingHours)) {
+    lowerKeyMap[key.toLowerCase()] = key
+  }
 
-  // Sort entries in day order
-  const sortedEntries = orderToUse
-    .filter((day) => openingHours[day] !== undefined || openingHours[day.toLowerCase()] !== undefined)
-    .map((day) => {
-      const key = openingHours[day] !== undefined ? day : day.toLowerCase()
-      return [key, openingHours[key]] as [string, typeof openingHours[string]]
-    })
+  // Match canonical days to actual data keys (case-insensitive)
+  const entries: { label: string; hours: typeof openingHours[string]; isToday: boolean }[] = []
+  for (let i = 0; i < CANONICAL_ORDER.length; i++) {
+    const { keys, label } = CANONICAL_ORDER[i]
+    const matchedKey = keys.find((k) => lowerKeyMap[k] !== undefined)
+    if (matchedKey) {
+      const actualKey = lowerKeyMap[matchedKey]
+      entries.push({ label, hours: openingHours[actualKey], isToday: i === todayIndex })
+    }
+  }
 
-  // If no ordered entries matched, fall back to raw order
-  const entries = sortedEntries.length > 0 ? sortedEntries : Object.entries(openingHours)
+  if (entries.length === 0) return null
 
   return (
     <div className="border border-[#e5e5e5] rounded-xl p-5">
@@ -73,17 +62,15 @@ export function OpeningHoursCard({ openingHours }: OpeningHoursCardProps) {
         <h3 className="font-bold text-[#1a1a1a] text-[15px]">Opening Hours</h3>
       </div>
       <div className="space-y-0">
-        {entries.map(([day, hours]) => {
-          const isToday = day.toLowerCase() === todayFull || day.toLowerCase() === todayShort
+        {entries.map(({ label, hours, isToday }) => {
           const isClosed = typeof hours === "object" && hours.closed
-          const label = DAY_LABELS[day.toLowerCase()] || day
 
           return (
             <div
-              key={day}
+              key={label}
               className={`flex justify-between items-center py-2 border-b border-[#f0f0f0] last:border-b-0 ${isToday ? "font-semibold" : ""}`}
             >
-              <span className={`text-sm capitalize ${isToday ? "text-[#1a1a1a]" : "text-[#666]"}`}>
+              <span className={`text-sm ${isToday ? "text-[#1a1a1a]" : "text-[#666]"}`}>
                 {label}
                 {isToday && (
                   <span className="ml-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">

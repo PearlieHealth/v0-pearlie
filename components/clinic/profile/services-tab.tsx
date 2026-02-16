@@ -4,20 +4,11 @@ import { useState } from "react"
 import {
   CheckCircle2,
   XCircle,
-  CreditCard,
   PoundSterling,
   ChevronDown,
 } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import type { Clinic, Lead } from "./types"
-
-// All possible treatments for dental clinics
-const ALL_TREATMENTS = [
-  "Dental Implants", "Composite Bonding", "Veneers", "Teeth Whitening",
-  "Invisalign", "Braces", "Checkups", "Cleaning", "Fillings",
-  "Extractions", "Root Canal", "Crowns", "Bridges", "Dentures",
-  "Emergency Care", "Sedation Dentistry",
-]
 
 const ALL_FACILITIES = [
   "Wheelchair Accessible", "Parking Available", "WiFi", "TV in Rooms",
@@ -34,11 +25,6 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
   const [showAllTreatments, setShowAllTreatments] = useState(false)
 
   const availableTreatments = clinic.treatments || []
-  const unavailableTreatments = ALL_TREATMENTS.filter(
-    (t) => !availableTreatments.some(
-      (at) => at.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(at.toLowerCase()),
-    ),
-  )
 
   const clinicFacilities = [...(clinic.facilities || [])]
   if (clinic.wheelchair_accessible) clinicFacilities.push("Wheelchair Accessible")
@@ -54,6 +40,20 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
     ? lead.treatment_interest.split(",").map((s) => s.trim()).filter(Boolean)
     : []
 
+  // Match patient's selected services against clinic's available treatments
+  const matchedPatientTreatments = leadSelectedServices.filter((service) =>
+    availableTreatments.some(
+      (at) => at.toLowerCase().includes(service.toLowerCase()) || service.toLowerCase().includes(at.toLowerCase()),
+    ),
+  )
+
+  // Treatments not selected by patient (shown under "Show all")
+  const otherTreatments = availableTreatments.filter(
+    (t) => !leadSelectedServices.some(
+      (s) => t.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(t.toLowerCase()),
+    ),
+  )
+
   // Filter priced categories
   const pricedCategories = (clinic.treatment_prices || [])
     .map((cat) => ({
@@ -62,30 +62,15 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
     }))
     .filter((cat) => cat.treatments.length > 0)
 
+  const hasPatientSelections = matchedPatientTreatments.length > 0
+
   return (
     <div className="space-y-8">
-      {/* Patient selected treatments */}
-      {leadSelectedServices.length > 0 && (
-        <section>
-          <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Your Selected Treatments</h2>
-          <div className="space-y-2">
-            {leadSelectedServices.map((service, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-                <span className="text-[#333] font-medium">{service}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* All Treatments */}
+      {/* Treatments */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold text-[#1a1a1a]">
-            {leadSelectedServices.length > 0 ? "All Treatments" : "Treatments Available"}
-          </h2>
-          {availableTreatments.length > 6 && (
+          <h2 className="text-lg font-bold text-[#1a1a1a]">Treatments Available</h2>
+          {(hasPatientSelections ? otherTreatments.length > 0 : availableTreatments.length > 6) && (
             <button
               type="button"
               onClick={() => setShowAllTreatments(!showAllTreatments)}
@@ -96,22 +81,34 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
             </button>
           )}
         </div>
+
+        {/* Default view: patient's matched treatments OR first 6 */}
         <div className="grid sm:grid-cols-2 gap-2">
-          {(showAllTreatments ? availableTreatments : availableTreatments.slice(0, 6)).map((treatment, idx) => (
-            <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
-              <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-              <span className="text-[15px]">{treatment}</span>
-            </div>
-          ))}
+          {hasPatientSelections ? (
+            matchedPatientTreatments.map((treatment, idx) => (
+              <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+                <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                <span className="text-[15px] font-medium">{treatment}</span>
+              </div>
+            ))
+          ) : (
+            availableTreatments.slice(0, 6).map((treatment, idx) => (
+              <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+                <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                <span className="text-[15px]">{treatment}</span>
+              </div>
+            ))
+          )}
         </div>
-        {showAllTreatments && unavailableTreatments.length > 0 && (
+
+        {/* Expanded: show remaining treatments */}
+        {showAllTreatments && (
           <div className="mt-4 pt-4 border-t border-[#f0f0f0]">
-            <h3 className="text-sm font-semibold text-[#999] mb-2">Not Listed</h3>
             <div className="grid sm:grid-cols-2 gap-2">
-              {unavailableTreatments.map((treatment, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-[#999] py-1">
-                  <XCircle className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-sm">{treatment}</span>
+              {(hasPatientSelections ? otherTreatments : availableTreatments.slice(6)).map((treatment, idx) => (
+                <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                  <span className="text-[15px]">{treatment}</span>
                 </div>
               ))}
             </div>
@@ -168,23 +165,6 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
           </p>
         </section>
       )}
-
-      {/* Insurance & Payment */}
-      <section className="flex items-start gap-4">
-        <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-[#f0f5f0] flex items-center justify-center">
-          <CreditCard className="h-5 w-5 text-emerald-600" />
-        </div>
-        <div>
-          <h3 className="font-bold text-[#1a1a1a]">
-            {clinic.accepts_nhs ? "NHS & Private Patients Accepted" : "Private Practice"}
-          </h3>
-          <p className="text-sm text-[#666] mt-1 leading-relaxed">
-            {clinic.accepts_nhs
-              ? `${clinic.name} accepts both NHS and private patients. Contact the clinic directly for pricing and insurance queries.`
-              : `${clinic.name} is a private dental practice offering flexible payment options. Contact them directly for pricing information.`}
-          </p>
-        </div>
-      </section>
 
       {/* Facilities — collapsed */}
       {availableFacilities.length > 0 && (

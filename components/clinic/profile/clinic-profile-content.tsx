@@ -4,12 +4,12 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   MapPin,
   ChevronLeft,
   ExternalLink,
   Shield,
-  CheckCircle2,
   Calendar,
   CreditCard,
   UserRound,
@@ -25,12 +25,10 @@ import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
 
 import { HighlightBadgeStrip } from "./highlight-badge-strip"
 import { PatientContextBanner } from "./patient-context-banner"
-import { GoogleReviewCard } from "./google-review-card"
-import { ClinicInfoCard } from "./clinic-info-card"
-import { OpeningHoursCard } from "./opening-hours-card"
-import { LanguagesSection } from "./languages-section"
+import { OverviewTab } from "./overview-tab"
 import { ServicesTab } from "./services-tab"
 import { ReviewsTab } from "./reviews-tab"
+import { DetailsTab } from "./details-tab"
 import type { Clinic, Lead, ProviderProfile } from "./types"
 
 export function ClinicProfileContent() {
@@ -312,90 +310,51 @@ export function ClinicProfileContent() {
               />
             )}
 
-            {/* Google Reviews */}
-            <GoogleReviewCard
-              rating={clinic.rating}
-              reviewCount={clinic.review_count}
-              googleRating={clinic.google_rating}
-              googleReviewCount={clinic.google_review_count}
-              googlePlaceId={clinic.google_place_id}
-              googleMapsUrl={clinic.google_maps_url}
-              featuredReview={clinic.featured_review}
-              compact
-            />
+            {/* Tab Navigation */}
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="w-full justify-start bg-transparent border-b border-[#e5e5e5] rounded-none h-auto p-0 gap-0 overflow-x-auto">
+                <TabsTrigger
+                  value="overview"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
+                >
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger
+                  value="services"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
+                >
+                  Services
+                </TabsTrigger>
+                <TabsTrigger
+                  value="reviews"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
+                >
+                  Reviews
+                </TabsTrigger>
+                <TabsTrigger
+                  value="details"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
+                >
+                  Details
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Pearlie Guarantee */}
-            {clinic.verified && (
-              <section className="flex items-center gap-4 bg-[#f0faf4] border border-emerald-200 rounded-xl p-5">
-                <div className="flex-shrink-0 h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <Shield className="h-6 w-6 text-emerald-600" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-[#1a1a1a]">Pearlie Guarantee</h3>
-                  <p className="text-sm text-[#666] mt-0.5">
-                    This clinic has been verified by Pearlie. Quality care, transparent pricing, and a trusted experience.
-                  </p>
-                </div>
-              </section>
-            )}
+              <TabsContent value="overview" className="pt-6">
+                <OverviewTab clinic={clinic} matchReasons={matchReasons} hasLead={!!lead} />
+              </TabsContent>
 
-            {/* Free Consultation */}
-            {clinic.offers_free_consultation && (
-              <section className="flex items-center gap-4 bg-[#f0f0ff] border border-indigo-200 rounded-xl p-5">
-                <div className="flex-shrink-0 h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
-                  <CheckCircle2 className="h-6 w-6 text-indigo-600" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-[#1a1a1a]">Free Consultation</h3>
-                  <p className="text-sm text-[#666] mt-0.5">
-                    This clinic offers a free initial consultation for cosmetic treatments and Invisalign.
-                  </p>
-                </div>
-              </section>
-            )}
+              <TabsContent value="services" className="pt-6">
+                <ServicesTab clinic={clinic} lead={lead} />
+              </TabsContent>
 
-            {/* Clinic Info Card */}
-            <ClinicInfoCard clinic={clinic} />
+              <TabsContent value="reviews" className="pt-6">
+                <ReviewsTab clinic={clinic} />
+              </TabsContent>
 
-            {/* Opening Hours */}
-            <OpeningHoursCard openingHours={clinic.opening_hours} />
-
-            {/* Languages Spoken */}
-            <LanguagesSection languages={clinic.languages || []} />
-
-            {/* About */}
-            {clinic.description && (
-              <section>
-                <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">About {clinic.name}</h2>
-                <p className="text-[#444] leading-relaxed whitespace-pre-line">
-                  {clinic.description}
-                </p>
-              </section>
-            )}
-
-            {/* Match Reasons */}
-            {lead && matchReasons.length > 0 && (
-              <section className="border border-[#e5e5e5] rounded-xl p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Shield className="w-5 h-5 text-[#999]" />
-                  <h3 className="font-semibold text-[#1a1a1a]">Why we matched you</h3>
-                </div>
-                <div className="space-y-2 text-sm text-[#333] leading-relaxed">
-                  {matchReasons.slice(0, 3).map((reason, idx) => (
-                    <p key={idx}>{reason}</p>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Divider */}
-            <div className="border-t border-[#e5e5e5]" />
-
-            {/* Services */}
-            <ServicesTab clinic={clinic} lead={lead} />
-
-            {/* Reviews */}
-            <ReviewsTab clinic={clinic} />
+              <TabsContent value="details" className="pt-6">
+                <DetailsTab clinic={clinic} providers={providers} />
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* RIGHT COLUMN - Sticky Sidebar */}

@@ -1,8 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Shield, CheckCircle2 } from "lucide-react"
+import { Shield, CheckCircle2, ShieldCheck } from "lucide-react"
 import { GoogleReviewCard } from "./google-review-card"
+import { OpeningHoursCard } from "./opening-hours-card"
+import { LanguagesSection } from "./languages-section"
 import type { Clinic } from "./types"
 
 interface OverviewTabProps {
@@ -28,18 +30,26 @@ export function OverviewTab({ clinic, matchReasons, hasLead }: OverviewTabProps)
         compact
       />
 
-      {/* Pearlie Guarantee */}
+      {/* Pearlie Guarantee — OpenCare-inspired style */}
       {clinic.verified && (
-        <section className="flex items-center gap-4 bg-[#f0faf4] border border-emerald-200 rounded-xl p-5">
-          <div className="flex-shrink-0 h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center">
-            <Shield className="h-6 w-6 text-emerald-600" />
+        <section className="border border-[#e5e5e5] rounded-xl overflow-hidden">
+          <div className="bg-[#1a1a1a] px-5 py-3 flex items-center gap-2.5">
+            <ShieldCheck className="h-5 w-5 text-white" />
+            <h3 className="font-semibold text-white text-[15px]">Pearlie Guarantee</h3>
           </div>
-          <div>
-            <h3 className="font-bold text-[#1a1a1a]">Pearlie Guarantee</h3>
-            <p className="text-sm text-[#666] mt-0.5">
-              This clinic has been verified by Pearlie. Quality care, transparent pricing, and a trusted experience.
-              If your new Pearlie dentist doesn&apos;t live up to your expectations, we&apos;ll cover your next consultation/check-up fee.
-            </p>
+          <div className="px-5 py-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-[18px] w-[18px] text-emerald-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-[#444] leading-relaxed">
+                This clinic has been verified by Pearlie for quality care and transparent pricing.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-[18px] w-[18px] text-emerald-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-[#444] leading-relaxed">
+                If your new Pearlie dentist doesn&apos;t meet your expectations, we&apos;ll cover your next consultation or check-up fee.
+              </p>
+            </div>
           </div>
         </section>
       )}
@@ -59,7 +69,13 @@ export function OverviewTab({ clinic, matchReasons, hasLead }: OverviewTabProps)
         </section>
       )}
 
-      {/* Why Choose Us */}
+      {/* Opening Hours */}
+      <OpeningHoursCard openingHours={clinic.opening_hours} />
+
+      {/* Languages Spoken */}
+      <LanguagesSection languages={clinic.languages || []} />
+
+      {/* About */}
       {clinic.description && (
         <section>
           <h2 className="text-xl font-bold text-[#1a1a1a] mb-3">About {clinic.name}</h2>
