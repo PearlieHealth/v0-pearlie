@@ -773,3 +773,172 @@ See [Section 5](#5-email-system).
 - `RESEND_API_KEY`
 - `GOOGLE_PLACES_API_KEY`
 - `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `ADMIN_SESSION_EPOCH`
+
+---
+
+## 11. Audit Findings & Fix Recommendations
+
+### Priority 1 — Critical Security
+
+#### 11.1 Overly Permissive RLS Policies
+
+**Finding:** Multiple tables allow unrestricted public INSERT (`WITH CHECK (true)`), including `messages`, `conversations`, `match_results`, `lead_actions`, and `match_sessions`. Anyone can write fake messages impersonating patients/clinics, create fake conversations, or spoof match scores.
+
+**Files:** `scripts/026_create_chat_tables.sql`, `scripts/019_update_clinic_filters_refined.sql`, `scripts/037_create_missing_tables.sql`
+
+**Fix:** Create a migration to tighten RLS policies — restrict INSERT on `messages` and `conversations` to authenticated users who belong to the conversation (clinic staff via `clinic_users`, or the lead's authenticated user). Restrict `match_results` INSERT to service-role only. The partial fix in `scripts/044_tighten_rls_policies.sql` only covers `clinic_invites` and `matches` UPDATE.
+
+#### 11.2 Unauthenticated Data-Modifying Endpoints
+
+**Finding:** Several POST endpoints that create or modify data have no auth checks:
+
+| Endpoint | Risk |
+|----------|------|
+| `POST /api/track` | Arbitrary analytics event spoofing |
+| `POST /api/analytics/track` | Same (duplicate endpoint) |
+| `POST /api/matches` (POST) | Create match records for any lead |
+| `POST /api/leads/direct` | Create leads for any clinic without verifying requester |
+| `POST /api/booking/request` | Spam booking emails to clinics |
+| `POST /api/booking/confirm` | Confirm bookings for any lead |
+
+**Fix:** Add Supabase auth checks (`supabase.auth.getUser()`) or at minimum token-based verification to all data-modifying endpoints. For analytics endpoints, consider signed tokens or session validation to prevent spoofing.
+
+### Priority 2 — High Security & Reliability
+
+#### 11.3 Missing Rate Limiting on Email-Sending Routes
+
+**Finding:** Routes that trigger email notifications lack rate limiting:
+- `POST /api/booking/request` — unlimited booking notification emails
+- `POST /api/booking/confirm` — unlimited confirmation emails
+- `POST /api/lead-actions` — unlimited clinic notification emails
+- `POST /api/chat/send` — unlimited chat messages (also triggers AI bot)
+
+**Fix:** Apply the existing `createRateLimiter()` from `lib/rate-limit.ts` to these endpoints. Suggested limits: 10 bookings/IP/hour, 20 messages/conversation/hour.
+
+#### 11.4 N+1 Query in Clinic Conversations
+
+**Finding:** `app/api/clinic/conversations/route.ts` (lines 48-72) runs **two queries per conversation** inside a `Promise.all(map(...))` — one for the lead details and one for the latest message. With 20 conversations, this is 40+ queries.
+
+**Fix:** Replace with a single Supabase query using relation syntax:
+```typescript
+.from("conversations")
+.select(`*, leads(first_name, last_name, email, treatment_interest), messages(content, sender_type)`)
+.eq("clinic_id", clinicId)
+.order("last_message_at", { ascending: false })
+```
+
+#### 11.5 Missing Database Constraints
+
+**Finding:** Critical columns lack NOT NULL, DEFAULT, or CHECK constraints:
+- `leads.latitude`/`longitude` — nullable but required for matching
+- `messages.status` — no DEFAULT or NOT NULL
+- `match_results.score` — no CHECK constraint (should be 0-100)
+- `lead_clinic_status.status` — no DEFAULT value
+
+**Fix:** Create a migration adding constraints:
+```sql
+ALTER TABLE match_results ADD CHECK (score >= 0 AND score <= 100);
+ALTER TABLE lead_clinic_status ALTER COLUMN status SET DEFAULT 'new';
+```
+
+#### 11.6 Missing Database Indexes
+
+**Finding:** Frequently queried columns lack indexes:
+
+| Table | Column(s) | Used In |
+|-------|-----------|---------|
+| `leads` | `user_id` | `/api/patient/matches` |
+| `messages` | `sender_type` | `/api/chat/messages` |
+| `conversations` | `status`, `created_at` | Multiple queries |
+| `match_results` | `lead_id, clinic_id` (composite) | `/api/matches/[matchId]` |
+
+**Fix:** Create a migration adding indexes.
+
+### Priority 3 — Medium Issues
+
+#### 11.7 In-Memory Rate Limiter Never Prunes
+
+**Finding:** Both `lib/rate-limit.ts` and `app/api/admin/auth/route.ts` use in-memory `Map`s for rate limiting. Expired entries are only deleted on next lookup (lazy deletion). Under botnet attack, the map grows without bound. Also resets on server restart in Vercel's serverless model.
+
+**Fix:** Add a periodic pruning function (e.g., every 100 requests, scan and delete expired entries). Cap map size at 10,000 entries. For production robustness, consider migrating to Upstash Redis.
+
+#### 11.8 Error Responses Leak Internal Details
+
+**Finding:**
+- `app/api/email-test/route.ts` returns full `error.stack` in response
+- `app/api/clinics/upload/route.ts` returns `error.message` for storage errors (leaks internal paths)
+- `app/api/track/route.ts` returns raw `error.message`
+
+**Fix:** Return generic error messages to clients. Log full details server-side. Remove `stack` from all API responses.
+
+#### 11.9 Stale Match Cache Not Invalidated
+
+**Finding:** Match reasons are cached in `match_results` columns and served directly from cache in `/api/matches/[matchId]/route.ts`. If clinic data changes (tags, specialties, availability), the cache continues serving stale results.
+
+**Fix:** Add a `cached_at` timestamp column. Force re-score if cache is >7 days old. Optionally, add a trigger/webhook that clears `match_results` cache when `clinics` row is updated.
+
+#### 11.10 Unbounded Export Query
+
+**Finding:** `app/api/admin/export/route.ts` hard-codes `LIMIT 10000` with no pagination or streaming. Could exhaust serverless memory.
+
+**Fix:** Implement cursor-based pagination (fetch in 1000-row batches) or use streaming response.
+
+#### 11.11 Inconsistent API Response Formats
+
+**Finding:** API routes use different response shapes — some return `{ error }`, others `{ success, error }`, others `{ data }`. Frontend must handle multiple formats.
+
+**Fix:** Standardize to a common envelope:
+```typescript
+{ success: boolean, data?: T, error?: { code: string, message: string } }
+```
+
+### Priority 4 — Low / Cleanup
+
+#### 11.12 Duplicate Analytics Endpoints
+
+**Finding:** Three overlapping event tracking endpoints exist:
+- `POST /api/track` → writes to `analytics_events`
+- `POST /api/analytics/track` → writes to `analytics_events`
+- `POST /api/events` → writes to `events` (legacy)
+
+**Fix:** Consolidate to a single canonical endpoint. Deprecate the others.
+
+#### 11.13 Debug Console.logs in Production
+
+**Finding:** `app/api/booking/request/route.ts` has excessive `console.log` statements (lines 65-67, 79, 83, 86) that log IDs and URLs.
+
+**Fix:** Remove or replace with structured logging.
+
+#### 11.14 File Upload MIME Type Validation
+
+**Finding:** Upload endpoints (`/api/clinics/upload`, `/api/admin/upload-clinic-photo`) validate Content-Type header but don't verify file magic bytes. Attackers could upload non-image files with spoofed MIME types.
+
+**Fix:** Add magic byte validation (check first bytes for JPEG `FF D8 FF`, PNG `89 50 4E 47`, WebP `52 49 46 46`).
+
+#### 11.15 Admin Upload Path Not Scoped to Clinic
+
+**Finding:** `app/api/admin/upload-clinic-photo/route.ts` uses `clinic-photos/${folder}/${filename}` where `folder` comes from the request body. An admin could overwrite another clinic's photos.
+
+**Fix:** Scope the upload path to include the clinic ID explicitly.
+
+---
+
+## Summary of Findings
+
+| # | Finding | Severity | Category |
+|---|---------|----------|----------|
+| 11.1 | Overly permissive RLS (public INSERT on messages, conversations, match_results) | **Critical** | Security |
+| 11.2 | Unauthenticated data-modifying endpoints (track, matches, booking) | **Critical** | Security |
+| 11.3 | Missing rate limiting on email-sending routes | **High** | Security |
+| 11.4 | N+1 query in clinic conversations (40+ queries for 20 conversations) | **High** | Performance |
+| 11.5 | Missing NOT NULL / CHECK constraints on critical columns | **High** | Data Integrity |
+| 11.6 | Missing database indexes on frequently queried columns | **High** | Performance |
+| 11.7 | In-memory rate limiter grows without bound | **Medium** | Reliability |
+| 11.8 | Error responses leak stack traces and internal details | **Medium** | Security |
+| 11.9 | Stale match cache not invalidated on data changes | **Medium** | Data Integrity |
+| 11.10 | Unbounded export query (10k rows, no pagination) | **Medium** | Performance |
+| 11.11 | Inconsistent API response formats | **Medium** | Maintainability |
+| 11.12 | Duplicate analytics endpoints | **Low** | Cleanup |
+| 11.13 | Debug console.logs in production routes | **Low** | Cleanup |
+| 11.14 | File upload MIME type not verified via magic bytes | **Low** | Security |
+| 11.15 | Admin upload path not scoped to clinic ID | **Low** | Security |
