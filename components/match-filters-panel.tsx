@@ -7,15 +7,13 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/s
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export interface FilterState {
+  distanceMiles: number | null    // 1.5, 5, or null (5+ / no limit)
   prioritiseDistance: boolean
-  distanceMiles: number | null
-  priceRanges: string[]
+  financeAvailable: boolean
+  freeConsultation: boolean
+  sedationAvailable: boolean
   verifiedOnly: boolean
   highRatingOnly: boolean
-  acceptsNhs: boolean
-  wheelchairAccessible: boolean
-  parkingAvailable: boolean
-  freeConsultation: boolean
 }
 
 interface MatchFiltersPanelProps {
@@ -24,11 +22,10 @@ interface MatchFiltersPanelProps {
   isMobile?: boolean
 }
 
-const DISTANCE_OPTIONS = [2, 5, 10, 15]
-const PRICE_OPTIONS = [
-  { value: "budget", label: "£" },
-  { value: "mid", label: "££" },
-  { value: "premium", label: "£££" },
+const DISTANCE_OPTIONS: Array<{ value: number | null; label: string }> = [
+  { value: 1.5, label: "1.5 mi" },
+  { value: 5, label: "5 mi" },
+  { value: null, label: "5+ mi" },
 ]
 
 export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }: MatchFiltersPanelProps) {
@@ -36,37 +33,54 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
     onFiltersChange({ ...filters, [key]: value })
   }
 
-  const togglePriceRange = (range: string) => {
-    const newRanges = filters.priceRanges.includes(range)
-      ? filters.priceRanges.filter((r) => r !== range)
-      : [...filters.priceRanges, range]
-    updateFilter("priceRanges", newRanges)
-  }
-
   const clearAllFilters = () => {
     onFiltersChange({
-      prioritiseDistance: false,
       distanceMiles: null,
-      priceRanges: [],
+      prioritiseDistance: false,
+      financeAvailable: false,
+      freeConsultation: false,
+      sedationAvailable: false,
       verifiedOnly: false,
       highRatingOnly: false,
-      acceptsNhs: false,
-      wheelchairAccessible: false,
-      parkingAvailable: false,
-      freeConsultation: false,
     })
   }
 
   const hasActiveFilters =
     filters.prioritiseDistance ||
     filters.distanceMiles !== null ||
-    filters.priceRanges.length > 0 ||
+    filters.financeAvailable ||
+    filters.freeConsultation ||
+    filters.sedationAvailable ||
     filters.verifiedOnly ||
-    filters.highRatingOnly ||
-    filters.acceptsNhs ||
-    filters.wheelchairAccessible ||
-    filters.parkingAvailable ||
-    filters.freeConsultation
+    filters.highRatingOnly
+
+  const activeFilterCount = [
+    filters.prioritiseDistance,
+    filters.distanceMiles !== null,
+    filters.financeAvailable,
+    filters.freeConsultation,
+    filters.sedationAvailable,
+    filters.verifiedOnly,
+    filters.highRatingOnly,
+  ].filter(Boolean).length
+
+  const handleDistanceClick = (option: { value: number | null; label: string }) => {
+    if (option.value === null) {
+      // "5+ mi" clears any active distance filter
+      updateFilter("distanceMiles", null)
+    } else {
+      // Toggle: click same value to deselect
+      updateFilter("distanceMiles", filters.distanceMiles === option.value ? null : option.value)
+    }
+  }
+
+  const isDistanceSelected = (option: { value: number | null }) => {
+    if (option.value === null) {
+      // 5+ is never "actively selected" in the filter state — it's the clear action
+      return false
+    }
+    return filters.distanceMiles === option.value
+  }
 
   const FilterContent = () => (
     <div className="flex flex-col h-full">
@@ -89,28 +103,25 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
 
         {/* Sections with consistent vertical rhythm */}
         <div className="space-y-6">
-          {/* Distance Section */}
+          {/* Location Section */}
           <div>
-            <h4 className="text-sm font-semibold text-foreground mb-2">Distance</h4>
-            <p className="text-xs text-muted-foreground leading-relaxed max-w-prose mb-3">
-              Hard filter by distance or toggle to prioritise nearby clinics
-            </p>
+            <h4 className="text-sm font-semibold text-foreground mb-3">Location</h4>
             <div className="flex flex-wrap gap-2">
-              {DISTANCE_OPTIONS.map((miles) => (
+              {DISTANCE_OPTIONS.map((option) => (
                 <button
-                  key={miles}
-                  onClick={() => updateFilter("distanceMiles", filters.distanceMiles === miles ? null : miles)}
+                  key={option.label}
+                  onClick={() => handleDistanceClick(option)}
                   className={`
                     h-10 px-4 rounded-full text-sm font-medium transition-colors
                     border
                     ${
-                      filters.distanceMiles === miles
+                      isDistanceSelected(option)
                         ? "bg-foreground text-background border-transparent"
                         : "bg-background text-foreground border-border hover:bg-muted"
                     }
                   `}
                 >
-                  Within {miles} mi
+                  {option.label}
                 </button>
               ))}
             </div>
@@ -133,27 +144,50 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
             </div>
           </div>
 
-          {/* Budget Section */}
+          {/* Payment Section */}
           <div className="pt-5 border-t border-border/50">
-            <h4 className="text-sm font-semibold text-foreground mb-2">Budget</h4>
-            <div className="flex gap-2">
-              {PRICE_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => togglePriceRange(option.value)}
-                  className={`
-                    flex-1 h-10 px-4 rounded-full text-sm font-medium transition-colors
-                    border
-                    ${
-                      filters.priceRanges.includes(option.value)
-                        ? "bg-foreground text-background border-transparent"
-                        : "bg-background text-foreground border-border hover:bg-muted"
-                    }
-                  `}
-                >
-                  {option.label}
-                </button>
-              ))}
+            <h4 className="text-sm font-semibold text-foreground mb-2">Payment</h4>
+            <div>
+              <button
+                onClick={() => updateFilter("financeAvailable", !filters.financeAvailable)}
+                className="w-full flex items-center justify-between py-3 border-b border-border/60 cursor-pointer"
+              >
+                <span className="text-sm text-foreground">Finance or payment plans</span>
+                <Switch
+                  checked={filters.financeAvailable}
+                  onCheckedChange={(checked) => updateFilter("financeAvailable", checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </button>
+              <button
+                onClick={() => updateFilter("freeConsultation", !filters.freeConsultation)}
+                className="w-full flex items-center justify-between py-3 cursor-pointer"
+              >
+                <span className="text-sm text-foreground">Free consultation</span>
+                <Switch
+                  checked={filters.freeConsultation}
+                  onCheckedChange={(checked) => updateFilter("freeConsultation", checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </button>
+            </div>
+          </div>
+
+          {/* Comfort Section */}
+          <div className="pt-5 border-t border-border/50">
+            <h4 className="text-sm font-semibold text-foreground mb-2">Comfort</h4>
+            <div>
+              <button
+                onClick={() => updateFilter("sedationAvailable", !filters.sedationAvailable)}
+                className="w-full flex items-center justify-between py-3 cursor-pointer"
+              >
+                <span className="text-sm text-foreground">Sedation available</span>
+                <Switch
+                  checked={filters.sedationAvailable}
+                  onCheckedChange={(checked) => updateFilter("sedationAvailable", checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </button>
             </div>
           </div>
 
@@ -175,8 +209,8 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
                       </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-[260px]">
                         <p className="text-sm">
-                          Verified clinics are partners with confirmed availability and matching tags. 
-                          Directory listings may appear under "Load more".
+                          Verified clinics are partners with confirmed availability and matching tags.
+                          Directory listings may appear under &ldquo;Load more&rdquo;.
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -192,50 +226,10 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
                 onClick={() => updateFilter("highRatingOnly", !filters.highRatingOnly)}
                 className="w-full flex items-center justify-between py-3 cursor-pointer"
               >
-                <span className="text-sm text-foreground">4.6+ rating & 50+ reviews</span>
+                <span className="text-sm text-foreground">Highly rated</span>
                 <Switch
                   checked={filters.highRatingOnly}
                   onCheckedChange={(checked) => updateFilter("highRatingOnly", checked)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </button>
-            </div>
-          </div>
-
-          {/* Practical Section */}
-          <div className="pt-5 border-t border-border/50">
-            <h4 className="text-sm font-semibold text-foreground mb-2">Practical</h4>
-            <div>
-              <button
-                onClick={() => updateFilter("parkingAvailable", !filters.parkingAvailable)}
-                className="w-full flex items-center justify-between py-3 border-b border-border/60 cursor-pointer"
-              >
-                <span className="text-sm text-foreground">Parking available</span>
-                <Switch
-                  checked={filters.parkingAvailable}
-                  onCheckedChange={(checked) => updateFilter("parkingAvailable", checked)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </button>
-              <button
-                onClick={() => updateFilter("wheelchairAccessible", !filters.wheelchairAccessible)}
-                className="w-full flex items-center justify-between py-3 border-b border-border/60 cursor-pointer"
-              >
-                <span className="text-sm text-foreground">Wheelchair accessible</span>
-                <Switch
-                  checked={filters.wheelchairAccessible}
-                  onCheckedChange={(checked) => updateFilter("wheelchairAccessible", checked)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </button>
-              <button
-                onClick={() => updateFilter("freeConsultation", !filters.freeConsultation)}
-                className="w-full flex items-center justify-between py-3 cursor-pointer"
-              >
-                <span className="text-sm text-foreground">Free consultation</span>
-                <Switch
-                  checked={filters.freeConsultation}
-                  onCheckedChange={(checked) => updateFilter("freeConsultation", checked)}
                   onClick={(e) => e.stopPropagation()}
                 />
               </button>
@@ -264,19 +258,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
             Filters
             {hasActiveFilters && (
               <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                {
-                  [
-                    filters.prioritiseDistance,
-                    filters.distanceMiles !== null,
-                    filters.priceRanges.length > 0,
-                    filters.verifiedOnly,
-                    filters.highRatingOnly,
-                    filters.acceptsNhs,
-                    filters.wheelchairAccessible,
-                    filters.parkingAvailable,
-                    filters.freeConsultation,
-                  ].filter(Boolean).length
-                }
+                {activeFilterCount}
               </span>
             )}
           </Button>

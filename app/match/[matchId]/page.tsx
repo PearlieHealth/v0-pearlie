@@ -112,14 +112,12 @@ export default function MatchPage() {
   const [leadEmail, setLeadEmail] = useState<string | null>(null)
   const [filters, setFilters] = useState<any>({
     distanceMiles: null,
-    priceRanges: [],
+    prioritiseDistance: false,
+    financeAvailable: false,
+    freeConsultation: false,
+    sedationAvailable: false,
     verifiedOnly: false,
     highRatingOnly: false,
-    acceptsNhs: false,
-    wheelchairAccessible: false,
-    parkingAvailable: false,
-    freeConsultation: false,
-    prioritiseDistance: false,
   })
 
   const handleClinicHover = (clinicId: string | null) => {
@@ -238,14 +236,30 @@ export default function MatchPage() {
   const filteredAndRankedClinics = (() => {
     let clinics = [...allClinicsData]
 
+    // Location
     if (filters.distanceMiles !== null) {
       clinics = clinics.filter((c) => !c.distance_miles || c.distance_miles <= filters.distanceMiles!)
     }
 
-    if (filters.priceRanges.length > 0) {
-      clinics = clinics.filter((c) => filters.priceRanges.includes(c.price_range))
+    // Payment
+    if (filters.financeAvailable) {
+      clinics = clinics.filter((c) =>
+        c.highlight_chips?.includes("finance_available") ||
+        c.highlight_chips?.includes("finance_0_percent") ||
+        c.highlight_chips?.includes("payment_plans")
+      )
     }
 
+    if (filters.freeConsultation) {
+      clinics = clinics.filter((c) => c.offers_free_consultation === true)
+    }
+
+    // Comfort
+    if (filters.sedationAvailable) {
+      clinics = clinics.filter((c) => c.highlight_chips?.includes("sedation_available"))
+    }
+
+    // Trust
     if (filters.verifiedOnly) {
       clinics = clinics.filter((c) => c.verified === true)
     }
@@ -254,22 +268,7 @@ export default function MatchPage() {
       clinics = clinics.filter((c) => c.rating >= 4.6 && c.review_count >= 50)
     }
 
-    if (filters.acceptsNhs) {
-      clinics = clinics.filter((c) => c.accepts_nhs === true)
-    }
-
-    if (filters.wheelchairAccessible) {
-      clinics = clinics.filter((c) => c.wheelchair_accessible === true)
-    }
-
-    if (filters.parkingAvailable) {
-      clinics = clinics.filter((c) => c.parking_available === true)
-    }
-
-    if (filters.freeConsultation) {
-      clinics = clinics.filter((c) => c.offers_free_consultation === true)
-    }
-
+    // Sorting
     if (filters.prioritiseDistance && clinics.length > 0) {
       clinics.sort((a, b) => {
         const distA = a.distance_miles ?? 999
