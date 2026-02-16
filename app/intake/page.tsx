@@ -41,6 +41,8 @@ import {
   SUPPORTED_REGION,
 } from "@/lib/intake-form-config"
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function IntakePage() {
   const router = useRouter()
   const { toast } = useToast()
@@ -145,8 +147,9 @@ export default function IntakePage() {
   const canContinueStep3 = formData.decisionValues.length > 0
   const canContinueStep5 = formData.conversionBlockerCodes.length > 0
   const canContinueStep5_5 = formData.preferred_times.length > 0
+  const isEmailValid = EMAIL_REGEX.test(formData.email.trim())
   const canContinueStep8 =
-    formData.firstName && formData.lastName && formData.email && formData.consentContact
+    formData.firstName && formData.lastName && formData.email && isEmailValid && formData.consentContact
 
   // Treatment toggle with emergency exclusivity
   const handleTreatmentToggle = (treatment: string) => {
@@ -1194,6 +1197,9 @@ export default function IntakePage() {
                         className="mt-2 h-14 text-lg rounded-xl"
                         placeholder="john@example.com"
                       />
+                      {formData.email && !EMAIL_REGEX.test(formData.email.trim()) && (
+                        <p className="text-sm text-red-500 mt-1">Please enter a valid email address</p>
+                      )}
                     </div>
 
                     <div>

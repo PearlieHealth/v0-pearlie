@@ -225,6 +225,8 @@ export async function POST(request: NextRequest) {
       console.error("[Chat] Failed to update conversation:", updateError)
     }
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+
     // Send email notification to clinic when patient sends a message
     if (senderType === "patient" && clinic.email) {
       try {
@@ -232,7 +234,6 @@ export async function POST(request: NextRequest) {
         if (!unsubscribed) {
           const safeName = escapeHtml(`${lead.first_name} ${lead.last_name}`)
           const safeContent = escapeHtml(trimmedContent.substring(0, 500)) + (trimmedContent.length > 500 ? "..." : "")
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
           const unsubFooter = generateUnsubscribeFooterHtml(
             generateUnsubscribeHeaders(clinic.email, "clinic_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
           )
@@ -277,6 +278,14 @@ export async function POST(request: NextRequest) {
     // Bot auto-responder: AI-powered greeting + suggestions (template fallback)
     const botMessages: any[] = []
     const useAI = clinic.bot_intelligence !== false
+    const escalationCtx = {
+      clinicEmail: clinic.email,
+      clinicName: clinic.name,
+      patientName: `${lead.first_name} ${lead.last_name}`.trim(),
+      messageContent: trimmedContent,
+      conversationId: conversation.id,
+      appUrl,
+    }
 
     if (senderType === "patient" && !conversation.bot_greeted) {
       try {
@@ -305,7 +314,7 @@ export async function POST(request: NextRequest) {
 
         // Try AI greeting (if enabled), fall back to template
         const aiGreeting = useAI
-          ? await generateIntelligentBotResponse("greeting", clinicCtx, leadCtx, recentMsgs)
+          ? await generateIntelligentBotResponse("greeting", clinicCtx, leadCtx, recentMsgs, escalationCtx)
           : null
         const greetingContent = aiGreeting || getBotGreeting(lead.first_name || "", clinic.name)
 
@@ -324,7 +333,7 @@ export async function POST(request: NextRequest) {
 
         // Try AI suggestions (if enabled), fall back to template
         const aiSuggestions = useAI
-          ? await generateIntelligentBotResponse("suggestions", clinicCtx, leadCtx, recentMsgs)
+          ? await generateIntelligentBotResponse("suggestions", clinicCtx, leadCtx, recentMsgs, escalationCtx)
           : null
         const suggestionsContent = aiSuggestions || getBotSuggestions(clinic.name)
 
@@ -401,7 +410,8 @@ export async function POST(request: NextRequest) {
                 has_bleeding: lead.has_bleeding,
                 additional_info: lead.additional_info,
               },
-              recentMsgs
+              recentMsgs,
+              escalationCtx
             )
           }
 

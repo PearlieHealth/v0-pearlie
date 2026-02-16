@@ -57,10 +57,7 @@ export async function GET() {
   } catch (error: any) {
     console.error("[email-test] Exception:", error)
     return NextResponse.json(
-      {
-        error: error.message,
-        stack: error.stack,
-      },
+      { error: "An internal error occurred" },
       { status: 500 },
     )
   }

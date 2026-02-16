@@ -87,7 +87,7 @@ export async function POST(request: Request) {
 
       if (error) {
         console.error("[v0] Event tracking failed:", error.message)
-        return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
+        return NextResponse.json({ ok: false, error: "Event tracking failed" }, { status: 500 })
       }
     } else {
       // For non-dedupable events, just insert
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
 
       if (error) {
         console.error("[v0] Event tracking failed:", error.message)
-        return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
+        return NextResponse.json({ ok: false, error: "Event tracking failed" }, { status: 500 })
       }
     }
 
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("[v0] Error in track endpoint:", error)
     return NextResponse.json(
-      { ok: false, error: error instanceof Error ? error.message : "Unknown error" },
+      { ok: false, error: "An unexpected error occurred" },
       { status: 500 },
     )
   }
