@@ -269,14 +269,14 @@ export function ClinicProfileContent() {
       </section>
 
       {/* Main content grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="grid lg:grid-cols-[1fr_380px] gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-4 sm:pt-6">
+        <div className="grid lg:grid-cols-[1fr_380px] gap-6 md:gap-8">
           {/* LEFT COLUMN */}
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             {/* Clinic Name + Address + Provider Photos */}
             <section className="flex items-start justify-between gap-6">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-[#1a1a1a] tracking-tight text-balance">{clinic.name}</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#1a1a1a] tracking-tight text-balance">{clinic.name}</h1>
                 <p className="text-[#444] mt-1">{clinic.address}</p>
                 <p className="text-[#444]">{clinic.city || ""}{clinic.city && clinic.postcode ? ", " : ""}{clinic.postcode}</p>
               </div>
@@ -315,25 +315,25 @@ export function ClinicProfileContent() {
               <TabsList className="w-full justify-start bg-transparent border-b border-[#e5e5e5] rounded-none h-auto p-0 gap-0 overflow-x-auto">
                 <TabsTrigger
                   value="overview"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
                 >
                   Overview
                 </TabsTrigger>
                 <TabsTrigger
                   value="services"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
                 >
                   Services
                 </TabsTrigger>
                 <TabsTrigger
                   value="reviews"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
                 >
                   Reviews
                 </TabsTrigger>
                 <TabsTrigger
                   value="details"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
                 >
                   Details
                 </TabsTrigger>
@@ -456,14 +456,14 @@ export function ClinicProfileContent() {
             onKeyDown={() => {}}
             role="presentation"
           />
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl h-[75vh] flex flex-col animate-in slide-in-from-bottom duration-300">
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[75dvh] h-[75vh] flex flex-col animate-in slide-in-from-bottom duration-300">
             <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
               <h3 className="font-semibold text-[#1a1a1a]">Message {clinic.name}</h3>
-              <button type="button" onClick={() => setShowMobileChat(false)} className="p-1 rounded-full hover:bg-[#f5f5f5]">
+              <button type="button" onClick={() => setShowMobileChat(false)} className="p-2 rounded-full hover:bg-[#f5f5f5]">
                 <X className="h-5 w-5 text-[#666]" />
               </button>
             </div>
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 flex flex-col">
               <EmbeddedClinicChat
                 leadId={lead?.id || leadIdParam || directLeadId || null}
                 clinicId={clinic.id}
@@ -511,13 +511,12 @@ export function ClinicProfileContent() {
 
       {/* Mobile sticky CTA */}
       {!showMobileChat && !showMobilePicker && (
-        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-white border-t border-[#e5e5e5] p-4 z-50 pointer-events-auto">
+        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-[#f8f5ff] to-white border-t border-[#907EFF]/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(144,126,255,0.12)]">
           <p className="text-xs text-[#666] text-center mb-2">No booking fees on Pearlie</p>
           <div className="flex gap-3 max-w-lg mx-auto">
             <Button
               size="lg"
-              variant="outline"
-              className="flex-1 border-[#e5e5e5] bg-transparent min-h-[48px] touch-manipulation"
+              className="flex-1 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] hover:from-[#805AD5] hover:to-[#D53F8C] text-white min-h-[48px] touch-manipulation shadow-md"
               onClick={() => setShowMobileChat(true)}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
@@ -525,7 +524,8 @@ export function ClinicProfileContent() {
             </Button>
             <Button
               size="lg"
-              className="flex-1 bg-[#1a1a1a] hover:bg-[#333] text-white min-h-[48px] touch-manipulation"
+              variant="outline"
+              className="flex-1 border-[#907EFF]/30 bg-white hover:bg-[#f8f5ff] text-[#1a1a1a] min-h-[48px] touch-manipulation"
               onClick={() => setShowMobilePicker(true)}
             >
               <Calendar className="h-4 w-4 mr-2" />

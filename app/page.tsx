@@ -24,7 +24,10 @@ interface LastMatch {
 }
 
 export default function Home() {
-  const [showLoading, setShowLoading] = useState(true)
+  const [showLoading, setShowLoading] = useState(() => {
+    if (typeof window === 'undefined') return true
+    return window.innerWidth >= 768 // Skip animation on mobile for instant content
+  })
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const [lastMatch, setLastMatch] = useState<LastMatch | null>(null)
@@ -82,13 +85,13 @@ export default function Home() {
 
           {/* Hero section - Purple/Pink design */}
           <section 
-            className="relative min-h-[70vh] lg:min-h-[75vh] flex items-center justify-center overflow-hidden pt-24 pb-16 lg:pb-20"
+            className="relative min-h-[60vh] md:min-h-[70vh] lg:min-h-[75vh] flex items-center justify-center overflow-hidden pt-20 pb-10 md:pt-24 md:pb-16 lg:pb-20"
             style={{
               background: "#FEFEFE"
             }}
           >
             {/* Floating orbs */}
-            <div className="absolute inset-0 z-0 pointer-events-none">
+            <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">
               <motion.div
                 className="absolute top-20 left-10 w-[600px] h-[600px] rounded-full blur-[140px]"
                 style={{
@@ -156,7 +159,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.1 }}
               >
-                <h1 className="text-4xl md:text-5xl lg:text-6xl leading-[1.15] font-semibold text-foreground mb-6">
+                <h1 className="text-3xl md:text-5xl lg:text-6xl leading-[1.15] font-semibold text-foreground mb-4 md:mb-6">
                   {/* Mobile: 3 lines (original) */}
                   <span className="md:hidden">
                     <span className="block">
@@ -214,7 +217,7 @@ export default function Home() {
 
               {/* Subheadline */}
               <motion.p
-                className="text-xl md:text-2xl text-foreground/80 mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
+                className="text-lg md:text-2xl text-foreground/80 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
@@ -290,9 +293,9 @@ export default function Home() {
           </section>
 
           {/* Trust bar - standalone section */}
-          <section className="py-6 border-y border-border/30 bg-white/80 backdrop-blur-sm">
+          <section className="py-6 border-y border-border/30 bg-white/90 md:bg-white/80 md:backdrop-blur-sm">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 max-w-3xl mx-auto">
+              <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 lg:gap-12 max-w-3xl mx-auto">
                 <div className="flex items-center gap-3">
                   <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
                     <MapPin className="w-4 h-4 text-primary" />
@@ -603,7 +606,7 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="grid md:grid-cols-3 gap-6">
-                  <Card className="p-8 border-0 shadow-lg rounded-3xl bg-white">
+                  <Card className="p-5 sm:p-8 border-0 shadow-lg rounded-3xl bg-white">
                     <div className="flex gap-1 mb-4">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} className="w-5 h-5 text-foreground fill-primary" />
@@ -618,7 +621,7 @@ export default function Home() {
                       <p className="text-sm text-muted-foreground">Clapham</p>
                     </div>
                   </Card>
-                  <Card className="p-8 border-0 shadow-lg rounded-3xl bg-white">
+                  <Card className="p-5 sm:p-8 border-0 shadow-lg rounded-3xl bg-white">
                     <div className="flex gap-1 mb-4">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} className="w-5 h-5 text-foreground fill-primary" />
@@ -633,7 +636,7 @@ export default function Home() {
                       <p className="text-sm text-muted-foreground">Shoreditch</p>
                     </div>
                   </Card>
-                  <Card className="p-8 border-0 shadow-lg rounded-3xl bg-white">
+                  <Card className="p-5 sm:p-8 border-0 shadow-lg rounded-3xl bg-white">
                     <div className="flex gap-1 mb-4">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} className="w-5 h-5 text-foreground fill-primary" />

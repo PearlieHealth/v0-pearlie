@@ -218,7 +218,7 @@ export default function OurMissionPage() {
               </Badge>
             </div>
             
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 text-balance">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 text-balance">
               Dental care shouldn't depend on luck.
             </h1>
             

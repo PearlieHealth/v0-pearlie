@@ -576,12 +576,12 @@ export default function MatchPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="rounded-full bg-black p-2">
-              <Heart className="w-5 h-5 text-white fill-white" />
+            <div className="rounded-full bg-black p-1.5 sm:p-2">
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white" />
             </div>
-            <span className="font-semibold text-xl">Pearlie</span>
+            <span className="font-semibold text-lg sm:text-xl">Pearlie</span>
           </Link>
         </div>
       </header>
@@ -742,7 +742,8 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                     alt={clinic.name}
                                     width={200}
                                     height={150}
-                                    className="rounded-lg object-cover w-full md:w-[200px] h-[150px]"
+                                    className="rounded-lg object-cover w-full md:w-[200px] h-[120px] sm:h-[150px]"
+                                    sizes="(max-width: 768px) 100vw, 200px"
                                   />
                                 ) : (
                                   <div className="w-full md:w-[200px] h-[150px] bg-muted rounded-lg flex items-center justify-center">
@@ -752,7 +753,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                 
                                 {/* Feature highlights - vertical column */}
                                 {clinic.highlight_chips && clinic.highlight_chips.length > 0 && (
-                                  <div className="flex flex-col gap-2 mt-4">
+                                  <div className="flex flex-wrap sm:flex-col gap-2 mt-4">
                                     {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
                                       const chipData = getChipData(chip)
                                       return (
@@ -776,7 +777,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                     <div>
                                       <h2 
                                         onClick={() => handleClinicClick(clinic.id, index)}
-                                        className="text-2xl font-bold mb-1 cursor-pointer text-foreground hover:text-primary transition-colors duration-200 underline decoration-primary/30 decoration-2 underline-offset-4 hover:decoration-primary"
+                                        className="text-xl sm:text-2xl font-bold mb-1 cursor-pointer text-foreground hover:text-primary transition-colors duration-200 underline decoration-primary/30 decoration-2 underline-offset-4 hover:decoration-primary"
                                       >
                                         {clinic.name}
                                       </h2>
@@ -813,7 +814,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                             <PopoverTrigger asChild>
                                               <button 
                                                 type="button"
-                                                className="flex items-center gap-1.5 text-primary font-semibold cursor-pointer px-2 py-1 -mx-2 -my-1 rounded-md hover:bg-primary/10 active:bg-primary/20 transition-colors touch-manipulation"
+                                                className="flex items-center gap-1.5 text-primary font-semibold cursor-pointer px-2 py-2.5 -mx-2 -my-2.5 rounded-md hover:bg-primary/10 active:bg-primary/20 transition-colors touch-manipulation"
                                                 onClick={(e) => e.stopPropagation()}
                                               >
                                                 <Sparkles className="w-4 h-4" />
@@ -971,7 +972,7 @@ const categoryLabels: Record<string, string> = {
                                 <div className="pt-3 border-t border-border/50 flex items-center gap-3">
                                   <Button
                                     variant="outline"
-                                    className="flex-1 bg-transparent"
+                                    className="flex-1 h-11 bg-transparent"
                                     asChild
                                   >
                                     <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}>
@@ -984,7 +985,7 @@ const categoryLabels: Record<string, string> = {
                                         handleClinicAction(clinic.id, match.lead_id, "click_call", undefined, clinic.phone)
                                       }
                                       variant="outline"
-                                      className="flex-1 bg-transparent"
+                                      className="flex-1 h-11 bg-transparent"
                                     >
                                       <Phone className="w-4 h-4" />
                                       Call Clinic

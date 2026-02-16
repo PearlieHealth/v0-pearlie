@@ -24,7 +24,7 @@ const withoutPearlieFeatures = [
 
 export function ComparisonTable() {
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-background to-secondary/20">
+    <section className="py-12 md:py-24 bg-gradient-to-b from-background to-secondary/20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
@@ -40,7 +40,7 @@ export function ComparisonTable() {
           {/* Side by Side Comparison Cards */}
           <div className="grid md:grid-cols-2 gap-6 mb-12">
             {/* With Pearlie Card */}
-            <div className="relative rounded-3xl border-2 border-primary bg-gradient-to-br from-primary/5 to-secondary/50 p-8 shadow-lg overflow-hidden">
+            <div className="relative rounded-3xl border-2 border-primary bg-gradient-to-br from-primary/5 to-secondary/50 p-5 sm:p-8 shadow-lg overflow-hidden">
               {/* Badge */}
               <div className="absolute top-4 right-4">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-white text-xs font-semibold">
@@ -74,7 +74,7 @@ export function ComparisonTable() {
             </div>
 
             {/* Without Pearlie Card */}
-            <div className="rounded-3xl border border-border bg-white p-8 shadow-sm">
+            <div className="rounded-3xl border border-border bg-white p-5 sm:p-8 shadow-sm">
               {/* Header */}
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
