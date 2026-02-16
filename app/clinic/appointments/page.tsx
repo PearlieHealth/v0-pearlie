@@ -62,6 +62,7 @@ interface Lead {
     id: string
     last_message_at: string
     unread_by_clinic: boolean
+    clinic_first_reply_at: string | null
   }
 }
 
@@ -151,7 +152,7 @@ export default function AppointmentsPage() {
         .order("created_at", { ascending: false }),
       supabase
         .from("conversations")
-        .select("id, lead_id, last_message_at, unread_by_clinic")
+        .select("id, lead_id, last_message_at, unread_by_clinic, clinic_first_reply_at")
         .eq("clinic_id", cId),
     ])
 
@@ -288,25 +289,34 @@ export default function AppointmentsPage() {
   })
 
   // Categorize leads (normalize status to uppercase for consistent comparison)
-  const newRequests = filteredLeads.filter((l) => {
-    const s = (l.status?.status || "NEW").toUpperCase()
-    return s === "NEW"
-  })
+  // Sort each section by oldest first (most urgent at top)
+  const newRequests = filteredLeads
+    .filter((l) => {
+      const s = (l.status?.status || "NEW").toUpperCase()
+      return s === "NEW"
+    })
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
-  const needsScheduling = filteredLeads.filter((l) => {
-    const s = l.status?.status?.toUpperCase()
-    return s === "CONTACTED" || s === "IN_PROGRESS"
-  })
+  const needsScheduling = filteredLeads
+    .filter((l) => {
+      const s = l.status?.status?.toUpperCase()
+      return s === "CONTACTED" || s === "IN_PROGRESS"
+    })
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
-  const needsConfirming = filteredLeads.filter((l) => {
-    const s = l.status?.status?.toUpperCase()
-    return s === "BOOKED_PENDING" || (s === "BOOKED_CONFIRMED" && l.booking)
-  })
+  const needsConfirming = filteredLeads
+    .filter((l) => {
+      const s = l.status?.status?.toUpperCase()
+      return s === "BOOKED_PENDING" || (s === "BOOKED_CONFIRMED" && l.booking)
+    })
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
-  const upcoming = filteredLeads.filter((l) => {
-    if (!l.booking) return false
-    return new Date(l.booking.appointment_datetime) > new Date()
-  })
+  const upcoming = filteredLeads
+    .filter((l) => {
+      if (!l.booking) return false
+      return new Date(l.booking.appointment_datetime) > new Date()
+    })
+    .sort((a, b) => new Date(a.booking!.appointment_datetime).getTime() - new Date(b.booking!.appointment_datetime).getTime())
 
   const history = filteredLeads.filter((l) => {
     const s = l.status?.status?.toUpperCase()
@@ -860,6 +870,7 @@ function LeadSection({
           {leads.map((lead) => {
             const treatment = getTreatmentLabel(lead.raw_answers?.treatment as string)
             const hasUnread = lead.conversation?.unread_by_clinic
+            const hasReplied = !!lead.conversation?.clinic_first_reply_at
             const isSelected = selectedLeads.has(lead.id)
             const source = lead.source || "match"
 
@@ -886,6 +897,11 @@ function LeadSection({
                       </p>
                       {hasUnread && (
                         <span className="w-2 h-2 rounded-full bg-[#7C3AED] flex-shrink-0" />
+                      )}
+                      {hasReplied && !hasUnread && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-green-50 text-green-700 border-green-200">
+                          Replied
+                        </Badge>
                       )}
                       {source === "direct_profile" && (
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">

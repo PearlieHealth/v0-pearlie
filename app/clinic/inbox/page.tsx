@@ -352,6 +352,11 @@ export default function ClinicInboxPage() {
                               {conv.latest_message}
                             </p>
                           )}
+                          {conv.unread_by_clinic && (
+                            <p className="text-xs text-violet-600 font-medium mt-0.5">
+                              New message from patient
+                            </p>
+                          )}
                         </div>
                         {conv.unread_by_clinic && (
                           <div className="flex-shrink-0 flex items-center gap-1">
@@ -416,18 +421,36 @@ export default function ClinicInboxPage() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {messages.map((message) => (
+                      {messages.map((message, idx) => {
+                        const prevMessage = idx > 0 ? messages[idx - 1] : null
+                        const showSenderLabel = message.sender_type !== "bot" && (
+                          !prevMessage || prevMessage.sender_type !== message.sender_type
+                        )
+
+                        return (
                         <div
                           key={message.id}
                           className={cn(
-                            "flex",
+                            "flex flex-col",
                             message.sender_type === "clinic"
-                              ? "justify-end"
+                              ? "items-end"
                               : message.sender_type === "bot"
-                              ? "justify-center"
-                              : "justify-start"
+                              ? "items-center"
+                              : "items-start"
                           )}
                         >
+                          {showSenderLabel && (
+                            <span className={cn(
+                              "text-[10px] font-medium mb-0.5 px-1",
+                              message.sender_type === "clinic"
+                                ? "text-teal-600"
+                                : "text-violet-600"
+                            )}>
+                              {message.sender_type === "clinic"
+                                ? "You"
+                                : `${selectedConversation.lead?.first_name || "Patient"} ${selectedConversation.lead?.last_name || ""}`.trim()}
+                            </span>
+                          )}
                           {message.sender_type === "bot" ? (
                             <div className="max-w-[80%] flex items-start gap-2 bg-gradient-to-r from-purple-50 to-teal-50 border border-purple-100/50 rounded-xl px-3 py-2">
                               <Heart className="w-3.5 h-3.5 text-purple-400 mt-0.5 flex-shrink-0" />
@@ -467,7 +490,8 @@ export default function ClinicInboxPage() {
                             </div>
                           )}
                         </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </ScrollArea>

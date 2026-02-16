@@ -38,6 +38,7 @@ export function ClinicProfileContent() {
   const matchId = searchParams?.get("matchId")
   const leadIdParam = searchParams?.get("leadId")
   const isPreview = searchParams?.get("preview") === "true"
+  const isReply = searchParams?.get("reply") === "1"
 
   const [clinic, setClinic] = useState<Clinic | null>(null)
   const [lead, setLead] = useState<Lead | null>(null)
@@ -49,6 +50,14 @@ export function ClinicProfileContent() {
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [showMobilePicker, setShowMobilePicker] = useState(false)
   const [directLeadId, setDirectLeadId] = useState<string | null>(null)
+
+  // Auto-open chat when patient arrives via email reply link
+  useEffect(() => {
+    if (isReply && leadIdParam) {
+      setShowChat(true)
+      setShowMobileChat(true)
+    }
+  }, [isReply, leadIdParam])
 
   useEffect(() => {
     const fetchData = async () => {

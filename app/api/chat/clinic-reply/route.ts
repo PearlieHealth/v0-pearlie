@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
                       <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${safeContent}</p>
                     </div>
                     <div style="text-align: center; margin-top: 30px;">
-                      <a href="${appUrl}/clinic/${clinic.id}"
+                      <a href="${appUrl}/clinic/${clinic.id}?leadId=${conversation.lead_id}&reply=1"
                          style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
                         View &amp; Reply
                       </a>
