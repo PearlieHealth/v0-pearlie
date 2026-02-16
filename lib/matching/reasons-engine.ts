@@ -774,6 +774,9 @@ export function buildMatchReasonsForMultipleClinics(
           fbIndex = (fbIndex + 1) % fallbackPool.length
           attempts++
         }
+        if (attempts >= fallbackPool.length) {
+          console.warn(`[reasons-engine] Fallback variant pool exhausted — reusing variant across clinics (pool size: ${fallbackPool.length})`)
+        }
         usedFallbackIndices.add(fbIndex)
         composedBullets.push(fallbackPool[fbIndex])
         tagsUsed.push(tagKey)
@@ -803,6 +806,9 @@ export function buildMatchReasonsForMultipleClinics(
       while (usedIndices.has(variantIndex) && attempts < pool.length) {
         variantIndex = (variantIndex + 1) % pool.length
         attempts++
+      }
+      if (attempts >= pool.length) {
+        console.warn(`[reasons-engine] Variant pool exhausted for ${tagKey} — reusing variant across clinics (pool size: ${pool.length})`)
       }
       usedIndices.add(variantIndex)
 

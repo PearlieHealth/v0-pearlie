@@ -20,6 +20,7 @@ import {
   Info,
   Shield,
   Clock,
+  MessageCircle,
 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
@@ -890,7 +891,7 @@ const categoryLabels: Record<string, string> = {
                                   <div className="flex items-center gap-2 mb-3">
                                     <Shield className="w-5 h-5 text-muted-foreground" />
                                     <h3 className="font-semibold text-foreground">
-                                      {clinic.tier === "directory"
+                                      {clinic.card_title || (clinic.tier === "directory"
                                         ? "About this clinic"
                                         : clinic.tier === "nearby"
                                           ? "Other option in your area"
@@ -898,7 +899,7 @@ const categoryLabels: Record<string, string> = {
                                             ? "Why this clinic"
                                             : index < 2
                                               ? "Why we matched you"
-                                              : "Could also be a good match"}
+                                              : "Could also be a good match")}
                                     </h3>
                                   </div>
 
@@ -988,6 +989,18 @@ const categoryLabels: Record<string, string> = {
                                     >
                                       <Phone className="w-4 h-4" />
                                       Call Clinic
+                                    </Button>
+                                  )}
+                                  {clinic.tier !== "directory" && (
+                                    <Button
+                                      variant="outline"
+                                      className="flex-1 bg-transparent"
+                                      asChild
+                                    >
+                                      <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>
+                                        <MessageCircle className="w-4 h-4" />
+                                        Message
+                                      </Link>
                                     </Button>
                                   )}
                                 </div>

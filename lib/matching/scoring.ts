@@ -260,7 +260,7 @@ function scoreAnxiety(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: number
     clinic.filterKeys.includes("TAG_CALM_REASSURING")
   
   // Score based on patient's anxiety level and clinic's support
-  if (anxietyLevel === "prefer-sedation" || anxietyLevel === "very_anxious" || anxietyLevel === "quite_anxious") {
+  if (anxietyLevel === "very_anxious" || anxietyLevel === "quite_anxious") {
     // Patient needs strong anxiety support (serious tier)
     if (hasSedation) {
       points = maxPoints // Sedation available = 100%
@@ -632,7 +632,7 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
 
     anxiety: {
       patientLevel: lead.anxietyLevel || null,
-      needsSedation: lead.anxietyLevel === "prefer-sedation",
+      needsSedation: lead.anxietyLevel === "very_anxious",
       hasSedation: (anxietyCat?.facts?.hasSedation as boolean) || false,
       hasAnxietySupport: (anxietyCat?.facts?.hasAnxietySupport as boolean) || false,
       matchedTags: (anxietyCat?.facts?.matchedTags as string[]) || [],

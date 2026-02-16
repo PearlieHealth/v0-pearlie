@@ -327,20 +327,26 @@ export const TREATMENT_REASON_TEMPLATES: Record<string, string[]> = {
 export const EMERGENCY_REASON_TEMPLATES = {
   availability: [
     "Available within your preferred timeframe.",
-    "Able to see urgent patients.",
+    "Able to see urgent patients quickly.",
     "Offers appointments aligned with your urgency.",
+    "Can accommodate emergency visits at short notice.",
+    "Prioritises urgent cases in their schedule.",
   ],
   distance: [
     "Conveniently located near you.",
     "Within your preferred travel distance.",
+    "Close to your location for quick access.",
   ],
   capability: [
     "Experienced in handling urgent dental concerns.",
     "Accepts emergency appointments.",
+    "Equipped to manage urgent dental issues effectively.",
+    "Has the facilities to treat emergency cases.",
   ],
   anxiety: [
-    "Experienced in supporting nervous patients.",
-    "Provides a calm approach for urgent visits.",
+    "Experienced in supporting nervous patients during urgent visits.",
+    "Provides a calm, reassuring approach for urgent care.",
+    "Gentle approach to help ease anxiety during emergency treatment.",
   ],
 }
 
