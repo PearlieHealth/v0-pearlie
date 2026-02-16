@@ -136,54 +136,79 @@ export default function AppointmentsPage() {
     setClinicId(cId)
 
     // Fetch match results - include source from leads
-    const { data: matchResults } = await supabase
-      .from("match_results")
-      .select(
+    // Fetch match results and ALL conversations for this clinic in parallel
+    const [{ data: matchResults }, { data: allConversations }] = await Promise.all([
+      supabase
+        .from("match_results")
+        .select(
+          `
+          lead_id,
+          created_at,
+          leads(id, first_name, last_name, email, phone, created_at, raw_answers, source)
         `
-        lead_id,
-        created_at,
-        leads(id, first_name, last_name, email, phone, created_at, raw_answers, source)
-      `
-      )
-      .eq("clinic_id", cId)
-      .order("created_at", { ascending: false })
+        )
+        .eq("clinic_id", cId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("conversations")
+        .select("id, lead_id, last_message_at, unread_by_clinic")
+        .eq("clinic_id", cId),
+    ])
 
-    if (!matchResults) {
+    if (!matchResults && !allConversations?.length) {
       setIsLoading(false)
       return
     }
 
-    const leadIds = matchResults.map((mr) => mr.lead_id)
-    if (leadIds.length === 0) {
+    // Build set of lead_ids from match_results
+    const matchLeadIds = new Set((matchResults || []).map((mr) => mr.lead_id))
+
+    // Find conversation-only leads (have conversations but no match_results)
+    const conversationOnlyLeadIds = (allConversations || [])
+      .map((c) => c.lead_id)
+      .filter((id) => !matchLeadIds.has(id))
+
+    // Fetch missing leads that only have conversations (no match_results)
+    let conversationOnlyLeads: any[] = []
+    if (conversationOnlyLeadIds.length > 0) {
+      const { data: extraLeads } = await supabase
+        .from("leads")
+        .select("id, first_name, last_name, email, phone, created_at, raw_answers, source")
+        .in("id", conversationOnlyLeadIds)
+      conversationOnlyLeads = extraLeads || []
+    }
+
+    // Combine all lead IDs for status/booking lookups
+    const allLeadIds = [
+      ...(matchResults || []).map((mr) => mr.lead_id),
+      ...conversationOnlyLeadIds,
+    ]
+
+    if (allLeadIds.length === 0) {
       setIsLoading(false)
       return
     }
 
-    // Fetch statuses, bookings, and conversations in parallel
-    const [{ data: statuses }, { data: bookings }, { data: conversations }] =
-      await Promise.all([
-        supabase
-          .from("lead_clinic_status")
-          .select("*")
-          .eq("clinic_id", cId)
-          .in("lead_id", leadIds),
-        supabase
-          .from("bookings")
-          .select("*")
-          .eq("clinic_id", cId)
-          .in("lead_id", leadIds),
-        supabase
-          .from("conversations")
-          .select("id, lead_id, last_message_at, unread_by_clinic")
-          .eq("clinic_id", cId)
-          .in("lead_id", leadIds),
-      ])
+    // Fetch statuses and bookings for all leads
+    const [{ data: statuses }, { data: bookings }] = await Promise.all([
+      supabase
+        .from("lead_clinic_status")
+        .select("*")
+        .eq("clinic_id", cId)
+        .in("lead_id", allLeadIds),
+      supabase
+        .from("bookings")
+        .select("*")
+        .eq("clinic_id", cId)
+        .in("lead_id", allLeadIds),
+    ])
 
     const statusMap = new Map(statuses?.map((s) => [s.lead_id, s]) || [])
     const bookingMap = new Map(bookings?.map((b) => [b.lead_id, b]) || [])
-    const convMap = new Map(conversations?.map((c) => [c.lead_id, c]) || [])
+    const convMap = new Map((allConversations || []).map((c) => [c.lead_id, c]))
 
-    const leadsData = matchResults
+    // Build leads from match_results
+    const matchLeads = (matchResults || [])
       .filter((mr) => mr.leads)
       .map((mr) => ({
         ...(mr.leads as unknown as Lead),
@@ -192,7 +217,16 @@ export default function AppointmentsPage() {
         conversation: convMap.get(mr.lead_id),
       }))
 
-    setLeads(leadsData)
+    // Add conversation-only leads (patients who messaged but have no match_results)
+    const extraLeads = conversationOnlyLeads.map((lead) => ({
+      ...lead,
+      source: lead.source || "conversation",
+      status: statusMap.get(lead.id),
+      booking: bookingMap.get(lead.id),
+      conversation: convMap.get(lead.id),
+    }))
+
+    setLeads([...matchLeads, ...extraLeads])
     setIsLoading(false)
   }, [])
 
