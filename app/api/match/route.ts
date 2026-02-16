@@ -4,7 +4,6 @@ import { geocodePostcode } from "@/lib/postcodes-io"
 import { buildLeadProfileFromDB, buildClinicProfile, rankClinics } from "@/lib/matching/engine"
 import { getLiveClinicFilter } from "@/lib/matching/clinic-status"
 import { buildMatchReasonsForMultipleClinics, getExplanationVersion } from "@/lib/matching/reasons-engine"
-import { Resend } from "resend"
 
 export async function POST(request: Request) {
   try {
@@ -196,39 +195,7 @@ export async function POST(request: Request) {
       // Don't throw — the match was created, results are non-critical
     }
 
-    // 10. Send "matches ready" email to patient (non-blocking)
-    try {
-      if (lead.email && process.env.RESEND_API_KEY) {
-        const resend = new Resend(process.env.RESEND_API_KEY)
-        const topClinicNames = rankedClinics.slice(0, 3).map(rc => rc.clinic.name)
-        const matchUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://pearlie.co.uk"}/match/${match.id}`
-        const firstName = lead.first_name || "there"
-
-        await resend.emails.send({
-          from: "Pearlie <matches@pearlie.co.uk>",
-          to: lead.email,
-          subject: `Your clinic matches are ready, ${firstName}`,
-          html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
-              <h1 style="font-size: 24px; color: #1a1a1a; margin-bottom: 16px;">Your matches are ready</h1>
-              <p style="font-size: 16px; color: #4a4a4a; line-height: 1.6;">Hi ${firstName},</p>
-              <p style="font-size: 16px; color: #4a4a4a; line-height: 1.6;">We've found ${rankedClinics.length} clinic${rankedClinics.length === 1 ? "" : "s"} that match your needs${topClinicNames.length > 0 ? `, including <strong>${topClinicNames.join("</strong>, <strong>")}</strong>` : ""}.</p>
-              <div style="text-align: center; margin: 32px 0;">
-                <a href="${matchUrl}" style="background-color: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;">View Your Matches</a>
-              </div>
-              <p style="font-size: 14px; color: #6b7280; line-height: 1.5;">You can also view your matches anytime at:<br/><a href="${matchUrl}" style="color: #2563eb;">${matchUrl}</a></p>
-              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
-              <p style="font-size: 12px; color: #9ca3af;">Pearlie — Finding you the right dental clinic</p>
-            </div>
-          `,
-        })
-        console.log(`[match] Match-ready email sent to ${lead.email}`)
-      }
-    } catch (emailErr) {
-      console.error("[match] Non-critical: failed to send match-ready email:", emailErr)
-    }
-
-    // 11. Build response in format frontend expects
+    // 10. Build response in format frontend expects
     const topClinics = rankedClinics.slice(0, 2).map((rc) => ({
       id: rc.clinic.id,
       name: rc.clinic.name,
