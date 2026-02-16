@@ -6,6 +6,9 @@ import { createRateLimiter } from "@/lib/rate-limit"
 // Rate limit: 5 lead submissions per email per 10 minutes
 const leadRateLimiter = createRateLimiter({ windowMs: 10 * 60 * 1000, maxAttempts: 5 })
 
+// Rate limit: 5 leads per IP per hour
+const leadIpLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, maxAttempts: 5 })
+
 async function geocodePostcode(postcode: string): Promise<{ latitude: number; longitude: number } | null> {
   try {
     const sanitized = postcode.replace(/\s/g, "").toUpperCase()
@@ -113,6 +116,16 @@ export async function POST(request: Request) {
   const supabase = createAdminClient()
 
   try {
+    // Rate limit by IP: 5 leads per hour
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
+    const ipCheck = leadIpLimiter.check(ip)
+    if (ipCheck.limited) {
+      return NextResponse.json(
+        { error: `Too many submissions. Please try again in ${ipCheck.retryAfterSecs} seconds.` },
+        { status: 429, headers: { "Retry-After": String(ipCheck.retryAfterSecs) } }
+      )
+    }
+
     const body = await request.json()
 
     const validation = validateLeadData(body)
@@ -233,6 +246,7 @@ export async function POST(request: Request) {
 
     // Record successful submission for rate limiting
     leadRateLimiter.record(rateLimitKey)
+    leadIpLimiter.record(ip)
 
     return NextResponse.json({ leadId: insertedLead.id }, { status: 201 })
   } catch (error) {

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { type NextRequest, NextResponse } from "next/server"
+import { isValidImageMagicBytes } from "@/lib/validate-image-bytes"
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,6 +64,14 @@ export async function POST(request: NextRequest) {
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer()
     const buffer = new Uint8Array(arrayBuffer)
+
+    // Validate magic bytes match a known image format
+    if (!isValidImageMagicBytes(buffer)) {
+      return NextResponse.json(
+        { error: "File does not appear to be a valid image. Only JPEG, PNG, and WebP are allowed." },
+        { status: 400 },
+      )
+    }
 
     // Upload to Supabase Storage using admin client (bypasses RLS/bucket policies)
     const { data, error } = await supabaseAdmin.storage.from("clinic-assets").upload(path, buffer, {
@@ -131,8 +140,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "No path provided" }, { status: 400 })
     }
 
-    // Security: only allow deletion of files in this clinic's folder
-    if (!path.includes(clinicUser.clinic_id)) {
+    // Security: only allow deletion of files in this clinic's folder (prefix check)
+    if (!path.startsWith(`clinic-photos/${clinicUser.clinic_id}/`)) {
       return NextResponse.json({ error: "Not authorized to delete this file" }, { status: 403 })
     }
 

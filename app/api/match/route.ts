@@ -4,9 +4,24 @@ import { geocodePostcode } from "@/lib/postcodes-io"
 import { buildLeadProfileFromDB, buildClinicProfile, rankClinics } from "@/lib/matching/engine"
 import { getLiveClinicFilter } from "@/lib/matching/clinic-status"
 import { buildMatchReasonsForMultipleClinics, getExplanationVersion } from "@/lib/matching/reasons-engine"
+import { createRateLimiter } from "@/lib/rate-limit"
+
+// 10 match requests per IP per hour
+const matchIpLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, maxAttempts: 10 })
 
 export async function POST(request: Request) {
   try {
+    // Rate limit by IP
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
+    const ipCheck = matchIpLimiter.check(ip)
+    if (ipCheck.limited) {
+      return NextResponse.json(
+        { error: `Too many requests. Please try again in ${ipCheck.retryAfterSecs} seconds.` },
+        { status: 429, headers: { "Retry-After": String(ipCheck.retryAfterSecs) } }
+      )
+    }
+    matchIpLimiter.record(ip)
+
     const supabase = createAdminClient()
     const body = await request.json()
     const { leadId } = body

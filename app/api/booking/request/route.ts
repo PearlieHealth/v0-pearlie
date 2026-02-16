@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { randomBytes } from "crypto"
+import { createRateLimiter } from "@/lib/rate-limit"
+
+// 10 booking requests per IP per hour
+const bookingIpLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, maxAttempts: 10 })
 
 export async function POST(request: Request) {
   try {
+    // Rate limit by IP
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
+    const ipCheck = bookingIpLimiter.check(ip)
+    if (ipCheck.limited) {
+      return NextResponse.json(
+        { error: `Too many requests. Please try again in ${ipCheck.retryAfterSecs} seconds.` },
+        { status: 429, headers: { "Retry-After": String(ipCheck.retryAfterSecs) } }
+      )
+    }
+    bookingIpLimiter.record(ip)
+
     const { clinicId, leadId, date, time } = await request.json()
 
     if (!clinicId || !leadId || !date || !time) {

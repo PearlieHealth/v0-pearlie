@@ -150,7 +150,10 @@ export async function GET() {
       return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ clinic })
+    // Filter out sensitive fields before returning to the client
+    const { booking_webhook_secret, email_forwarding_address, ...safeClinic } = clinic
+
+    return NextResponse.json({ clinic: safeClinic })
   } catch (error) {
     console.error("[Clinic Profile API] GET error:", error)
     return NextResponse.json({ error: "Server error" }, { status: 500 })

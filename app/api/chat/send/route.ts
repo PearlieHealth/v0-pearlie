@@ -7,8 +7,12 @@ import { generateIntelligentBotResponse } from "@/lib/chat-bot-ai"
 import { sendEmailWithRetry } from "@/lib/email-send"
 import { EMAIL_FROM } from "@/lib/email-config"
 import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders, isUnsubscribed } from "@/lib/unsubscribe"
+import { createRateLimiter } from "@/lib/rate-limit"
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+// 10 messages per conversation per minute
+const chatSendLimiter = createRateLimiter({ windowMs: 60 * 1000, maxAttempts: 10 })
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,6 +38,17 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Rate limit: 10 messages per conversation per minute
+    const conversationKey = `${leadId}:${clinicId}`
+    const { limited, retryAfterSecs } = chatSendLimiter.check(conversationKey)
+    if (limited) {
+      return NextResponse.json(
+        { error: `Too many messages. Please try again in ${retryAfterSecs} seconds.` },
+        { status: 429, headers: { "Retry-After": String(retryAfterSecs) } }
+      )
+    }
+    chatSendLimiter.record(conversationKey)
 
     // Clinic senders must be authenticated and belong to the clinic
     if (senderType === "clinic") {
