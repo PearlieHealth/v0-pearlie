@@ -130,16 +130,16 @@ export const Q10_ANXIETY_TAG_MAP: Record<string, string> = {
 }
 
 // =============================================================================
-// Centralized weight config (sum = 110; blockers only scored when patient has concerns, effective sum varies)
+// Centralized weight config (sum = 100)
 // =============================================================================
 export const WEIGHT_CONFIG = {
   treatment: 15, // Must-have: clinic offers requested treatment
   distance: 25, // Geographic proximity (NEVER used for reasons)
   priorities: 20, // Q4 priority tag matches
-  blockers: 10, // Q5 blocker support bonus (+ separate -15 complex case penalty)
+  blockers: 10, // Q5 blocker support (+ separate -15 complex case penalty)
   anxiety: 10, // Q10 anxiety accommodation
   cost: 15, // Q8 cost: price tier match + communication TAG match
-  availability: 15, // Appointment time slot compatibility
+  availability: 5, // Appointment time slot compatibility
 } as const
 
 export const CANONICAL_TAG_KEYS: string[] = [
