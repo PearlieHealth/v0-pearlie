@@ -361,6 +361,20 @@ export function ClinicProfileContent() {
           <div className="hidden lg:block">
             <div className="sticky top-24 space-y-4">
               <Card className="bg-white border-[#e5e5e5] overflow-hidden shadow-sm">
+                {clinic.offers_free_consultation && (
+                  <div className="bg-indigo-50 px-5 py-3.5 border-b border-indigo-100">
+                    <div className="flex items-start gap-2.5">
+                      <span className="text-lg leading-none mt-0.5">🎉</span>
+                      <div>
+                        <p className="text-sm font-semibold text-indigo-900">Free Consultation</p>
+                        <p className="text-xs text-indigo-700 mt-0.5 leading-relaxed">
+                          This clinic offers a free initial consultation for cosmetic treatments and Invisalign.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="px-6 pt-5 pb-3">
                   <h2 className="text-lg font-bold text-[#1a1a1a] text-center">
                     Request an appointment for free
