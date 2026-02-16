@@ -21,12 +21,15 @@ async function runInlineLiveFlowTest(
 ): Promise<{ status: "pass" | "fail" | "warn"; details: string }> {
   try {
     // Create test lead using v6 schema fields
+    // SW1A 1AA = Westminster, London (lat/lng required for distance scoring)
     const testLead = {
       first_name: "Pilot",
       last_name: "Check Test",
       email: `pilot-check-${Date.now()}@pearlie-test.local`,
       phone: "07000000000",
       postcode: "SW1A 1AA",
+      latitude: 51.5014,
+      longitude: -0.1419,
       treatment_interest: "Invisalign / Clear Aligners",
       decision_values: ["Clear pricing before treatment", "A calm, reassuring environment"],
       conversion_blocker: "NOT_WORTH_COST",

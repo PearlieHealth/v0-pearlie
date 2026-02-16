@@ -59,12 +59,15 @@ export async function POST() {
     })
 
     // Step 1: Create a synthetic lead using v6 schema fields
+    // SW1A 1AA = Westminster, London (lat/lng required for distance scoring)
     const testLead = {
       first_name: "Live",
       last_name: "Flow Test",
       email: `test-${Date.now()}@pearlie-test.local`,
       phone: "07000000000",
       postcode: "SW1A 1AA",
+      latitude: 51.5014,
+      longitude: -0.1419,
       treatment_interest: "Invisalign / Clear Aligners",
       decision_values: ["Clear pricing before treatment", "A calm, reassuring environment"],
       conversion_blocker: "NOT_WORTH_COST",
