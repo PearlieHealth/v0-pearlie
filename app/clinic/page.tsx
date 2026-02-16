@@ -143,12 +143,23 @@ export default function ClinicDashboardPage() {
       const clinicId = clinic.id
       const supabase = createBrowserClient()
 
-      // Fetch total count for pagination
-      const { count: matchCount } = await supabase
-        .from("match_results")
-        .select("*", { count: "exact", head: true })
-        .eq("clinic_id", clinicId)
+      // Fetch match_results count and conversation-only leads count in parallel
+      const [{ count: matchCount }, { data: allConversations }] = await Promise.all([
+        supabase
+          .from("match_results")
+          .select("*", { count: "exact", head: true })
+          .eq("clinic_id", clinicId),
+        supabase
+          .from("conversations")
+          .select("lead_id")
+          .eq("clinic_id", clinicId),
+      ])
 
+      // Count conversation-only leads (leads with conversations but no match_results)
+      const matchResultLeadIds = new Set<string>()
+      const conversationOnlyLeadIds: string[] = []
+
+      // We'll populate matchResultLeadIds from the paginated query below
       const total = matchCount || 0
       setTotalLeadCount(total)
 
@@ -171,7 +182,34 @@ export default function ClinicDashboardPage() {
         return
       }
 
-      const leadIds = matchResults.map((mr) => mr.lead_id)
+      // Get ALL match_result lead_ids to find conversation-only leads
+      const { data: allMatchLeadIds } = await supabase
+        .from("match_results")
+        .select("lead_id")
+        .eq("clinic_id", clinicId)
+
+      const allMatchSet = new Set((allMatchLeadIds || []).map((r) => r.lead_id))
+      const convOnlyIds = (allConversations || [])
+        .map((c) => c.lead_id)
+        .filter((id) => !allMatchSet.has(id))
+
+      // Fetch conversation-only leads
+      let convOnlyLeads: any[] = []
+      if (convOnlyIds.length > 0) {
+        const { data: extraLeads } = await supabase
+          .from("leads")
+          .select("id, first_name, last_name, email, created_at, raw_answers")
+          .in("id", convOnlyIds)
+        convOnlyLeads = extraLeads || []
+      }
+
+      // Update total count to include conversation-only leads
+      setTotalLeadCount(total + convOnlyIds.length)
+
+      const leadIds = [
+        ...matchResults.map((mr) => mr.lead_id),
+        ...convOnlyIds,
+      ]
 
       // Fetch statuses for this page
       const { data: statuses } = await supabase
@@ -185,14 +223,20 @@ export default function ClinicDashboardPage() {
       )
 
       // Build leads with status for display
-      const pageLeads = matchResults
+      const matchLeads = matchResults
         .filter((mr) => mr.leads)
         .map((mr) => ({
           ...(mr.leads as unknown as Lead),
           status: statusMap.get(mr.lead_id),
         }))
 
-      setRecentLeads(pageLeads)
+      // Add conversation-only leads
+      const extraLeads = convOnlyLeads.map((lead: any) => ({
+        ...lead,
+        status: statusMap.get(lead.id),
+      }))
+
+      setRecentLeads([...matchLeads, ...extraLeads])
 
       // Fetch stats using aggregation queries (not loading all leads)
       const now = new Date()

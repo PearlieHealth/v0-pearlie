@@ -137,6 +137,42 @@ export async function POST(request: NextRequest) {
         }
       } else {
         conversation = newConversation
+
+        // Ensure match_results entry exists so the clinic sees this lead in their
+        // appointments dashboard. Uses ignoreDuplicates to avoid overwriting existing
+        // match data from the matching engine.
+        await supabase
+          .from("match_results")
+          .upsert(
+            {
+              lead_id: leadId,
+              clinic_id: clinicId,
+              score: 0,
+              reasons: ["Patient initiated a conversation"],
+              tier: "conversation",
+              rank: 0,
+            },
+            { onConflict: "lead_id,clinic_id", ignoreDuplicates: true }
+          )
+          .then(({ error }) => {
+            if (error) console.error("[Chat] Failed to ensure match_results:", error)
+          })
+
+        // Ensure lead_clinic_status entry exists so the clinic's notification
+        // badge counts this lead and it appears in the correct status category.
+        await supabase
+          .from("lead_clinic_status")
+          .upsert(
+            {
+              lead_id: leadId,
+              clinic_id: clinicId,
+              status: "NEW",
+            },
+            { onConflict: "lead_id,clinic_id", ignoreDuplicates: true }
+          )
+          .then(({ error }) => {
+            if (error) console.error("[Chat] Failed to ensure lead_clinic_status:", error)
+          })
       }
     }
 
