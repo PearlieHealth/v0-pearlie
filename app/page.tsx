@@ -24,7 +24,10 @@ interface LastMatch {
 }
 
 export default function Home() {
-  const [showLoading, setShowLoading] = useState(true)
+  const [showLoading, setShowLoading] = useState(() => {
+    if (typeof window === 'undefined') return true
+    return window.innerWidth >= 768 // Skip animation on mobile for instant content
+  })
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const [lastMatch, setLastMatch] = useState<LastMatch | null>(null)
@@ -88,7 +91,7 @@ export default function Home() {
             }}
           >
             {/* Floating orbs */}
-            <div className="absolute inset-0 z-0 pointer-events-none">
+            <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">
               <motion.div
                 className="absolute top-20 left-10 w-[600px] h-[600px] rounded-full blur-[140px]"
                 style={{
@@ -290,7 +293,7 @@ export default function Home() {
           </section>
 
           {/* Trust bar - standalone section */}
-          <section className="py-6 border-y border-border/30 bg-white/80 backdrop-blur-sm">
+          <section className="py-6 border-y border-border/30 bg-white/90 md:bg-white/80 md:backdrop-blur-sm">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 max-w-3xl mx-auto">
                 <div className="flex items-center gap-3">

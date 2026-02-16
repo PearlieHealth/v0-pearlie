@@ -813,7 +813,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                             <PopoverTrigger asChild>
                                               <button 
                                                 type="button"
-                                                className="flex items-center gap-1.5 text-primary font-semibold cursor-pointer px-2 py-1 -mx-2 -my-1 rounded-md hover:bg-primary/10 active:bg-primary/20 transition-colors touch-manipulation"
+                                                className="flex items-center gap-1.5 text-primary font-semibold cursor-pointer px-2 py-2.5 -mx-2 -my-2.5 rounded-md hover:bg-primary/10 active:bg-primary/20 transition-colors touch-manipulation"
                                                 onClick={(e) => e.stopPropagation()}
                                               >
                                                 <Sparkles className="w-4 h-4" />
@@ -971,7 +971,7 @@ const categoryLabels: Record<string, string> = {
                                 <div className="pt-3 border-t border-border/50 flex items-center gap-3">
                                   <Button
                                     variant="outline"
-                                    className="flex-1 bg-transparent"
+                                    className="flex-1 h-11 bg-transparent"
                                     asChild
                                   >
                                     <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}>
@@ -984,7 +984,7 @@ const categoryLabels: Record<string, string> = {
                                         handleClinicAction(clinic.id, match.lead_id, "click_call", undefined, clinic.phone)
                                       }
                                       variant="outline"
-                                      className="flex-1 bg-transparent"
+                                      className="flex-1 h-11 bg-transparent"
                                     >
                                       <Phone className="w-4 h-4" />
                                       Call Clinic

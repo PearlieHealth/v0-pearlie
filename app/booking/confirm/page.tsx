@@ -200,7 +200,7 @@ export default function BookingConfirmPage() {
       {/* Header */}
       <header className="bg-card border-b border-border">
         <div className="max-w-xl mx-auto px-4 py-4">
-          <Link href={`/match/${leadId}`} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href={`/match/${leadId}`} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors min-h-[44px]">
             <ArrowLeft className="w-4 h-4" />
             Back to results
           </Link>

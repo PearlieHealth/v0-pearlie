@@ -55,6 +55,16 @@ export function ClinicDatePicker({
   const [startIndex, setStartIndex] = useState(0)
   const [selectedDateIndex, setSelectedDateIndex] = useState<number | null>(null)
   const [hasAutoSelected, setHasAutoSelected] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(7)
+
+  // Show fewer date columns on mobile for larger touch targets
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)')
+    setVisibleCount(mq.matches ? 5 : 7)
+    const handler = (e: MediaQueryListEvent) => setVisibleCount(e.matches ? 5 : 7)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
   
   // Generate next 14 days
   const dates = useMemo(() => {
@@ -124,15 +134,15 @@ export function ClinicDatePicker({
     }).length
   }
   
-  // Visible dates (show 7 at a time)
-  const visibleDates = dates.slice(startIndex, startIndex + 7)
+  // Visible dates (responsive: 5 on mobile, 7 on desktop)
+  const visibleDates = dates.slice(startIndex, startIndex + visibleCount)
   
   const handlePrev = () => {
     setStartIndex(Math.max(0, startIndex - 1))
   }
   
   const handleNext = () => {
-    setStartIndex(Math.min(dates.length - 7, startIndex + 1))
+    setStartIndex(Math.min(dates.length - visibleCount, startIndex + 1))
   }
   
   const handleDateSelect = (index: number) => {
@@ -207,7 +217,7 @@ export function ClinicDatePicker({
           size="icon"
           className="h-8 w-8 shrink-0"
           onClick={handleNext}
-          disabled={startIndex >= dates.length - 7}
+          disabled={startIndex >= dates.length - visibleCount}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

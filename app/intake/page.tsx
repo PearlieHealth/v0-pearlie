@@ -567,7 +567,7 @@ export default function IntakePage() {
 
       {/* Floating background orb */}
       <motion.div
-        className="fixed -top-40 -right-40 w-[500px] h-[500px] rounded-full opacity-20 pointer-events-none blur-[100px]"
+        className="fixed -top-40 -right-40 w-[500px] h-[500px] rounded-full opacity-20 pointer-events-none blur-[100px] hidden md:block"
         style={{
           background: "radial-gradient(circle, rgba(144, 126, 255, 0.3) 0%, transparent 70%)"
         }}
@@ -1195,7 +1195,7 @@ export default function IntakePage() {
 
                   {/* Trust indicators */}
                   <motion.div
-                    className="flex items-center justify-center gap-6 pt-4 text-sm text-[#323141]/50"
+                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#323141]/50"
                     initial={hasAnimated ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: hasAnimated ? 0 : 0.7 }}
