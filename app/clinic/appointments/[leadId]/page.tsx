@@ -229,7 +229,7 @@ export default function AppointmentDetailPage() {
     if (matchData) setMatchResult(matchData as MatchResult)
     if (statusData) {
       setStatus(statusData)
-      setEditStatus(statusData.status)
+      setEditStatus((statusData.status || "NEW").toUpperCase())
     }
     if (bookingData) setBooking(bookingData)
     if (convData) {

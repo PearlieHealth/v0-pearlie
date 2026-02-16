@@ -120,30 +120,14 @@ export default function AppointmentsPage() {
   const fetchData = useCallback(async () => {
     const supabase = createBrowserClient()
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    if (!session) return
-
-    // Get clinic ID
-    let cId: string | null = null
-
-    const { data: portalUser } = await supabase
-      .from("clinic_portal_users")
-      .select("clinic_ids")
-      .eq("email", session.user.email)
-      .single()
-
-    if (portalUser?.clinic_ids?.[0]) {
-      cId = portalUser.clinic_ids[0]
-    } else {
-      const { data: clinicUser } = await supabase
-        .from("clinic_users")
-        .select("clinic_id")
-        .eq("user_id", session.user.id)
-        .single()
-      cId = clinicUser?.clinic_id || null
+    // Use server-side API to get clinic ID (consistent with clinic-shell)
+    const profileRes = await fetch("/api/clinic/profile")
+    if (!profileRes.ok) {
+      setIsLoading(false)
+      return
     }
+    const { clinic } = await profileRes.json()
+    const cId = clinic?.id as string | null
 
     if (!cId) {
       setIsLoading(false)
@@ -257,7 +241,7 @@ export default function AppointmentsPage() {
 
     // Status filter
     if (filterStatus !== "all") {
-      const status = l.status?.status || "NEW"
+      const status = (l.status?.status || "NEW").toUpperCase()
       if (status !== filterStatus) return false
     }
 
@@ -269,19 +253,19 @@ export default function AppointmentsPage() {
     return true
   })
 
-  // Categorize leads
+  // Categorize leads (normalize status to uppercase for consistent comparison)
   const newRequests = filteredLeads.filter((l) => {
-    const s = l.status?.status || "NEW"
+    const s = (l.status?.status || "NEW").toUpperCase()
     return s === "NEW"
   })
 
   const needsScheduling = filteredLeads.filter((l) => {
-    const s = l.status?.status
+    const s = l.status?.status?.toUpperCase()
     return s === "CONTACTED" || s === "IN_PROGRESS"
   })
 
   const needsConfirming = filteredLeads.filter((l) => {
-    const s = l.status?.status
+    const s = l.status?.status?.toUpperCase()
     return s === "BOOKED_PENDING" || (s === "BOOKED_CONFIRMED" && l.booking)
   })
 
@@ -291,7 +275,7 @@ export default function AppointmentsPage() {
   })
 
   const history = filteredLeads.filter((l) => {
-    const s = l.status?.status
+    const s = l.status?.status?.toUpperCase()
     return (
       s === "ATTENDED" ||
       s === "CLOSED" ||
