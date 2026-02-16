@@ -139,46 +139,54 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
       {clinic.before_after_images && clinic.before_after_images.length > 0 && (
         <section>
           <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Before & After</h2>
-          <div className="grid sm:grid-cols-2 gap-6">
+          <div className="space-y-6">
             {clinic.before_after_images
               .filter((pair) => pair.before_url || pair.after_url)
               .map((pair, idx) => (
-                <div key={idx} className="space-y-2">
+                <div key={idx} className="border border-[#e5e5e5] rounded-xl overflow-hidden">
                   {pair.treatment && (
-                    <p className="text-sm font-semibold text-[#1a1a1a]">{pair.treatment}</p>
+                    <div className="px-4 py-2.5 bg-[#fafafa] border-b border-[#e5e5e5]">
+                      <p className="text-sm font-semibold text-[#1a1a1a]">{pair.treatment}</p>
+                    </div>
                   )}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2">
                     {pair.before_url && (
-                      <div className="relative aspect-square rounded-lg overflow-hidden bg-[#f0f0f0]">
-                        <Image
-                          src={pair.before_url}
-                          alt={`Before${pair.treatment ? ` - ${pair.treatment}` : ""}`}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 640px) 45vw, 25vw"
-                        />
-                        <span className="absolute bottom-2 left-2 text-xs font-medium bg-black/60 text-white px-2 py-0.5 rounded-full">
+                      <div className="relative bg-[#f5f5f5]">
+                        <div className="relative aspect-[4/3]">
+                          <Image
+                            src={pair.before_url}
+                            alt={`Before${pair.treatment ? ` - ${pair.treatment}` : ""}`}
+                            fill
+                            className="object-contain"
+                            sizes="(max-width: 640px) 50vw, 30vw"
+                          />
+                        </div>
+                        <span className="absolute top-2.5 left-2.5 text-xs font-semibold bg-[#1a1a1a]/70 text-white px-2.5 py-1 rounded-md">
                           Before
                         </span>
                       </div>
                     )}
                     {pair.after_url && (
-                      <div className="relative aspect-square rounded-lg overflow-hidden bg-[#f0f0f0]">
-                        <Image
-                          src={pair.after_url}
-                          alt={`After${pair.treatment ? ` - ${pair.treatment}` : ""}`}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 640px) 45vw, 25vw"
-                        />
-                        <span className="absolute bottom-2 left-2 text-xs font-medium bg-black/60 text-white px-2 py-0.5 rounded-full">
+                      <div className="relative bg-[#f5f5f5] border-l border-[#e5e5e5]">
+                        <div className="relative aspect-[4/3]">
+                          <Image
+                            src={pair.after_url}
+                            alt={`After${pair.treatment ? ` - ${pair.treatment}` : ""}`}
+                            fill
+                            className="object-contain"
+                            sizes="(max-width: 640px) 50vw, 30vw"
+                          />
+                        </div>
+                        <span className="absolute top-2.5 left-2.5 text-xs font-semibold bg-emerald-600/80 text-white px-2.5 py-1 rounded-md">
                           After
                         </span>
                       </div>
                     )}
                   </div>
                   {pair.description && (
-                    <p className="text-xs text-[#666]">{pair.description}</p>
+                    <div className="px-4 py-2.5 border-t border-[#e5e5e5]">
+                      <p className="text-sm text-[#666]">{pair.description}</p>
+                    </div>
                   )}
                 </div>
               ))}
