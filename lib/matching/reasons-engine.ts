@@ -741,6 +741,22 @@ export function buildMatchReasonsForMultipleClinics(
   const usedFallbackIndices = new Set<number>()
 
   for (const clinic of clinics) {
+    // Skip clinics without matchFacts (e.g. directory listings with no scoring data)
+    if (!clinic.matchFacts) {
+      const fallbackReasons = getSafeFallbackReasons(clinic.clinicId, clinic.fallbackOffset, false)
+      results.set(clinic.clinicId, {
+        reasons: fallbackReasons,
+        composed: {
+          bullets: fallbackReasons.map(r => r.text),
+          longBullets: fallbackReasons.map(r => r.text),
+          tagsUsed: fallbackReasons.map(r => r.tagKey || "FALLBACK_AVAILABILITY"),
+          templatesUsed: fallbackReasons.map((_, i) => `fallback_safe_${i}`),
+          confidence: 0,
+        },
+      })
+      continue
+    }
+
     // Step 1: Build reasons using existing per-clinic logic
     const reasons = buildMatchReasons(
       clinic.matchFacts,
