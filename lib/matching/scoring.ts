@@ -91,6 +91,13 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
     totalScore = Math.max(0, totalScore - complexCasePenalty)
   }
 
+  // Sedation penalty: -15 if patient is very anxious (likely needs sedation) and clinic doesn't offer it
+  let sedationPenalty = 0
+  if (lead.anxietyLevel === "very_anxious" && !clinic.filterKeys.includes("TAG_SEDATION_AVAILABLE")) {
+    sedationPenalty = 15
+    totalScore = Math.max(0, totalScore - sedationPenalty)
+  }
+
   // Calculate contribution weights for each category
   categories.forEach((cat) => {
     cat.weight = totalScore > 0 ? cat.points / totalScore : 0
@@ -105,6 +112,7 @@ export function scoreClinic(lead: LeadAnswer, clinic: ClinicProfile): MatchScore
     categories,
     distanceMiles,
     complexCasePenalty,
+    sedationPenalty,
   }
 }
 
@@ -675,6 +683,7 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
       maxPossible: breakdown.maxPossible,
       percent: breakdown.percent,
       complexCasePenalty: breakdown.complexCasePenalty || 0,
+      sedationPenalty: breakdown.sedationPenalty || 0,
     },
 
     clinicTags: clinic.filterKeys,

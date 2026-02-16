@@ -90,6 +90,7 @@ export interface MatchScoreBreakdown {
   categories: ScoreCategoryBreakdown[]
   distanceMiles?: number
   complexCasePenalty?: number // -15 if WORRIED_COMPLEX selected and clinic lacks TAG_COMPLEX_CASES_WELCOME
+  sedationPenalty?: number // -15 if very_anxious patient and clinic lacks TAG_SEDATION_AVAILABLE
 }
 
 /**
@@ -196,6 +197,7 @@ export interface MatchFacts {
     maxPossible: number
     percent: number
     complexCasePenalty?: number // -15 if applied
+    sedationPenalty?: number // -15 if applied
   }
 
   // All clinic tags for fallback selection
