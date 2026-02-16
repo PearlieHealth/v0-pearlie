@@ -3,7 +3,7 @@
 import React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Input } from "@/components/ui/input"
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -38,6 +38,7 @@ import {
   MONTHLY_PAYMENT_OPTIONS,
   BUDGET_HANDLING_OPTIONS,
   PREFERRED_TIME_OPTIONS,
+  SUPPORTED_REGION,
 } from "@/lib/intake-form-config"
 
 export default function IntakePage() {
@@ -47,6 +48,7 @@ export default function IntakePage() {
   const [direction, setDirection] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formStarted, setFormStarted] = useState(false)
+  const formStartTimeRef = useRef<number>(Date.now())
   const [animatedSteps, setAnimatedSteps] = useState<Set<number>>(new Set())
   const [outsideLondonArea, setOutsideLondonArea] = useState<string | null>(null)
 
@@ -171,10 +173,17 @@ export default function IntakePage() {
 
   useEffect(() => {
     if (!formStarted) {
-      trackEvent("form_started", {})
+      formStartTimeRef.current = Date.now()
+      trackEvent("form_started", {
+        meta: {
+          flow: isEmergency ? "emergency" : "planning",
+          is_returning: !!localStorage.getItem("pearlie_form_draft"),
+          ...(Object.keys(utmParams).length > 0 ? { utm: utmParams } : {}),
+        },
+      })
       setFormStarted(true)
     }
-  }, [formStarted])
+  }, [formStarted, isEmergency, utmParams])
 
   // Mark current step as animated after a short delay (once intro plays)
   useEffect(() => {
@@ -195,11 +204,26 @@ export default function IntakePage() {
     const handleBeforeUnload = () => {
       if (step < 8) {
         const sessionId = localStorage.getItem("pearlie_session_id") || crypto.randomUUID()
+        const timeSpentSeconds = Math.round((Date.now() - formStartTimeRef.current) / 1000)
+        const stepsCompleted = stepOrder.indexOf(step)
+        const completionPercent = Math.round(((stepsCompleted + 1) / stepOrder.length) * 100)
         const payload = JSON.stringify({
           session_id: sessionId,
           event_name: "form_abandoned",
           step_name: getStepName(step),
-          meta: { last_step: step, treatments: formData.treatments, postcode: formData.postcode ? "entered" : "not_entered", flow: isEmergency ? "emergency" : "planning" },
+          meta: {
+            last_step: step,
+            step_name: getStepName(step),
+            flow: isEmergency ? "emergency" : "planning",
+            time_spent_seconds: timeSpentSeconds,
+            completion_percent: completionPercent,
+            treatments_count: formData.treatments.length,
+            postcode_entered: !!formData.postcode,
+            anxiety_level: formData.anxiety_level || null,
+            cost_approach: formData.costApproach || null,
+            blockers_count: formData.conversionBlockerCodes.length,
+            priorities_count: formData.decisionValues.length,
+          },
         })
         if (navigator.sendBeacon) {
           navigator.sendBeacon("/api/track", new Blob([payload], { type: "application/json" }))
@@ -208,7 +232,7 @@ export default function IntakePage() {
     }
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
-  }, [step, formData, isEmergency])
+  }, [step, stepOrder, formData, isEmergency])
 
   // P2: Capture UTM params on mount
   useEffect(() => {
@@ -235,7 +259,6 @@ export default function IntakePage() {
             const targetStep = parsed.step
             setTimeout(() => {
               setStep(targetStep)
-              setRestoredFromDraft(true)
             }, 100)
           }
         } else {
@@ -1268,7 +1291,7 @@ export default function IntakePage() {
           <AlertDialogHeader>
             <AlertDialogTitle>We're not in your area yet</AlertDialogTitle>
             <AlertDialogDescription className="text-base leading-relaxed">
-              We're currently serving patients in <span className="font-semibold text-foreground">London</span> only.
+              We're currently serving patients in <span className="font-semibold text-foreground">{SUPPORTED_REGION}</span> only.
               {outsideLondonArea && (
                 <> It looks like you're in <span className="font-semibold text-foreground">{outsideLondonArea}</span>.</>
               )}

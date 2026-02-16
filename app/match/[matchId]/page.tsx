@@ -305,30 +305,6 @@ export default function MatchPage() {
     return null
   }
 
-  const handleLoadMore = async () => {
-    // This function is no longer directly used for loading more clinics,
-    // but kept for potential future use or analytics.
-    trackEvent("load_more_clicked", {
-      meta: {
-        current_shown: visibleClinics.length,
-      },
-    })
-
-    fetch("/api/events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        matchId,
-        eventType: "view",
-        metadata: { timestamp: new Date().toISOString() },
-      }),
-    }).catch(() => {
-      // Fail silently
-    })
-
-    // The logic for loading more clinics is now handled by setVisibleClinicsCount
-  }
-
   const handleClinicClick = (clinicId: string, index: number) => {
     const clinic = displayedClinics.find((c) => c.id === clinicId)
     const positionInList = displayedClinics.findIndex((c) => c.id === clinicId)
