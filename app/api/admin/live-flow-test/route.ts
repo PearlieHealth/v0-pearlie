@@ -58,26 +58,36 @@ export async function POST() {
       },
     })
 
-    // Step 1: Create a synthetic lead using minimal + extended data
+    // Step 1: Create a synthetic lead using v6 schema fields
     const testLead = {
       first_name: "Live",
       last_name: "Flow Test",
       email: `test-${Date.now()}@pearlie-test.local`,
       phone: "07000000000",
       postcode: "SW1A 1AA",
-      treatment_interest: "invisalign",
-      decision_values: ["clear-explanation", "calm-environment"],
-      blocker: "cost-concerns",
-      conversion_blocker: "COST_CONCERNS",
-      anxiety_level: "quite-anxious",
-      budget_range: "monthly_payments",
+      treatment_interest: "Invisalign / Clear Aligners",
+      decision_values: ["Clear pricing before treatment", "A calm, reassuring environment"],
+      conversion_blocker: "NOT_WORTH_COST",
+      conversion_blocker_codes: ["NOT_WORTH_COST", "BAD_EXPERIENCE"],
+      anxiety_level: "quite_anxious",
+      cost_approach: "comfort_range",
+      timing_preference: "few_weeks",
+      preferred_times: ["morning", "afternoon"],
+      location_preference: "near_home_work",
+      schema_version: 6,
       form_version: FORM_VERSION,
       raw_answers: {
-        q1: "invisalign",
-        q4: ["clear-explanation", "calm-environment"],
-        q5: ["COST_CONCERNS", "NERVOUS_ANXIOUS"],
-        q8: "monthly_payments",
-        q10: "quite-anxious",
+        treatments_selected: ["Invisalign / Clear Aligners"],
+        is_emergency: false,
+        location_preference: "near_home_work",
+        postcode: "SW1A 1AA",
+        values: ["Clear pricing before treatment", "A calm, reassuring environment"],
+        blocker: ["NOT_WORTH_COST", "BAD_EXPERIENCE"],
+        timing: "few_weeks",
+        preferred_times: ["morning", "afternoon"],
+        cost_approach: "comfort_range",
+        anxiety_level: "quite_anxious",
+        form_version: FORM_VERSION,
       },
     }
 

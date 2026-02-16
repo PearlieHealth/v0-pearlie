@@ -20,21 +20,36 @@ async function runInlineLiveFlowTest(
   supabase: Awaited<ReturnType<typeof createClient>>,
 ): Promise<{ status: "pass" | "fail" | "warn"; details: string }> {
   try {
-    // Create test lead
+    // Create test lead using v6 schema fields
     const testLead = {
       first_name: "Pilot",
       last_name: "Check Test",
       email: `pilot-check-${Date.now()}@pearlie-test.local`,
       phone: "07000000000",
       postcode: "SW1A 1AA",
-      treatment_interest: "invisalign",
+      treatment_interest: "Invisalign / Clear Aligners",
+      decision_values: ["Clear pricing before treatment", "A calm, reassuring environment"],
+      conversion_blocker: "NOT_WORTH_COST",
+      conversion_blocker_codes: ["NOT_WORTH_COST"],
+      anxiety_level: "quite_anxious",
+      cost_approach: "comfort_range",
+      timing_preference: "few_weeks",
+      preferred_times: ["morning", "afternoon"],
+      location_preference: "near_home_work",
+      schema_version: 6,
       form_version: FORM_VERSION,
       raw_answers: {
-        q1: "invisalign",
-        q4: ["clear-explanation"],
-        q5: ["COST_CONCERNS"],
-        q8: "monthly_payments",
-        q10: "quite-anxious",
+        treatments_selected: ["Invisalign / Clear Aligners"],
+        is_emergency: false,
+        location_preference: "near_home_work",
+        postcode: "SW1A 1AA",
+        values: ["Clear pricing before treatment", "A calm, reassuring environment"],
+        blocker: ["NOT_WORTH_COST"],
+        timing: "few_weeks",
+        preferred_times: ["morning", "afternoon"],
+        cost_approach: "comfort_range",
+        anxiety_level: "quite_anxious",
+        form_version: FORM_VERSION,
       },
     }
 
