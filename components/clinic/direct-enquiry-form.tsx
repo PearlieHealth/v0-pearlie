@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2, ArrowRight, User, Mail, Phone, Shield } from "lucide-react"
 import { OTPVerification } from "@/components/otp-verification"
+import { trackEvent, setLeadId as setAnalyticsLeadId } from "@/lib/analytics"
 
 const TREATMENT_OPTIONS = [
   "Dental Implants",
@@ -70,6 +71,12 @@ export function DirectEnquiryForm({ clinicId, clinicName, onLeadCreated }: Direc
 
       const data = await response.json()
       setLeadId(data.leadId)
+      setAnalyticsLeadId(data.leadId)
+      trackEvent("lead_submitted", {
+        leadId: data.leadId,
+        clinicId,
+        meta: { source: "direct_profile", treatment: treatment || null },
+      })
       setStep("verify")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.")
@@ -84,7 +91,14 @@ export function DirectEnquiryForm({ clinicId, clinicName, onLeadCreated }: Direc
         <OTPVerification
           leadId={leadId}
           email={email.trim()}
-          onVerified={() => onLeadCreated(leadId)}
+          onVerified={() => {
+            trackEvent("email_verified", {
+              leadId,
+              clinicId,
+              meta: { source: "direct_profile" },
+            })
+            onLeadCreated(leadId)
+          }}
           onBack={() => setStep("form")}
         />
       </div>

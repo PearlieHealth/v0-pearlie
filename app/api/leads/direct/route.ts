@@ -6,6 +6,8 @@ import { createAdminClient } from "@/lib/supabase/admin"
  * Creates a lightweight lead from a direct clinic profile visit.
  * Only collects name, email, phone, treatment interest, and urgency.
  * Skips the full intake questionnaire.
+ * Also creates match_results + lead_clinic_status rows so the clinic
+ * sees this lead in their dashboard, and tracks the analytics event.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -71,6 +73,52 @@ export async function POST(request: NextRequest) {
       console.error("[leads/direct] Error creating lead:", insertError)
       return NextResponse.json({ error: "Failed to create enquiry" }, { status: 500 })
     }
+
+    // Create match_results row so the clinic sees this lead in their dashboard.
+    // Direct profile leads get score=100 and rank=1 since the patient chose this clinic.
+    const matchResultPromise = supabase
+      .from("match_results")
+      .insert({
+        lead_id: lead.id,
+        clinic_id: clinicId,
+        score: 100,
+        rank: 1,
+        reasons: ["Patient enquired directly from your profile"],
+        tier: "direct",
+        match_reasons_composed: "Patient enquired directly from your clinic profile.",
+      })
+      .then(({ error }) => {
+        if (error) console.error("[leads/direct] Failed to create match_result:", error)
+      })
+
+    // Create lead_clinic_status row so the clinic can track this lead's status
+    const statusPromise = supabase
+      .from("lead_clinic_status")
+      .insert({
+        lead_id: lead.id,
+        clinic_id: clinicId,
+        status: "new",
+      })
+      .then(({ error }) => {
+        if (error) console.error("[leads/direct] Failed to create lead_clinic_status:", error)
+      })
+
+    // Track analytics event server-side
+    const analyticsPromise = supabase
+      .from("analytics_events")
+      .insert({
+        event_name: "lead_submitted",
+        lead_id: lead.id,
+        clinic_id: clinicId,
+        page: `/clinic/${clinicId}`,
+        metadata: { source: "direct_profile", treatment: treatmentInterest || null },
+      })
+      .then(({ error }) => {
+        if (error) console.error("[leads/direct] Failed to track analytics:", error)
+      })
+
+    // Run these in parallel - don't block the response on non-critical writes
+    await Promise.allSettled([matchResultPromise, statusPromise, analyticsPromise])
 
     return NextResponse.json({
       leadId: lead.id,

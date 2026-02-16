@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { validateUKPostcode } from "@/lib/postcodes-io"
 import { AlertCircle } from "lucide-react"
+import { SUPPORTED_REGION, REGION_NOT_AVAILABLE_MESSAGE } from "@/lib/intake-form-config"
 
 interface PostcodeInputProps {
   value: string
@@ -57,8 +58,8 @@ export function PostcodeInput({ value, onChange, onValidChange, onOutsideLondon 
           const region = data.result?.region || ""
           const area = data.result?.admin_district || region
 
-          if (region !== "London") {
-            setError("We're currently only serving patients in London")
+          if (region !== SUPPORTED_REGION) {
+            setError(REGION_NOT_AVAILABLE_MESSAGE)
             onValidChangeRef.current?.(false)
             onOutsideLondonRef.current?.(area)
           } else {

@@ -3,7 +3,7 @@
 import React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Input } from "@/components/ui/input"
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -38,6 +38,7 @@ import {
   MONTHLY_PAYMENT_OPTIONS,
   BUDGET_HANDLING_OPTIONS,
   PREFERRED_TIME_OPTIONS,
+  SUPPORTED_REGION,
 } from "@/lib/intake-form-config"
 
 export default function IntakePage() {
@@ -47,8 +48,11 @@ export default function IntakePage() {
   const [direction, setDirection] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formStarted, setFormStarted] = useState(false)
+  const formStartTimeRef = useRef<number>(Date.now())
   const [animatedSteps, setAnimatedSteps] = useState<Set<number>>(new Set())
   const [outsideLondonArea, setOutsideLondonArea] = useState<string | null>(null)
+
+  const [utmParams, setUtmParams] = useState<Record<string, string>>({})
 
   const [formData, setFormData] = useState({
     treatments: [] as string[],
@@ -142,7 +146,7 @@ export default function IntakePage() {
   const canContinueStep5 = formData.conversionBlockerCodes.length > 0
   const canContinueStep5_5 = formData.preferred_times.length > 0
   const canContinueStep8 =
-    formData.firstName && formData.lastName && (formData.email || formData.phone) && formData.consentContact
+    formData.firstName && formData.lastName && formData.email && formData.consentContact
 
   // Treatment toggle with emergency exclusivity
   const handleTreatmentToggle = (treatment: string) => {
@@ -202,10 +206,17 @@ export default function IntakePage() {
 
   useEffect(() => {
     if (!formStarted) {
-      trackEvent("form_started", {})
+      formStartTimeRef.current = Date.now()
+      trackEvent("form_started", {
+        meta: {
+          flow: isEmergency ? "emergency" : "planning",
+          is_returning: !!localStorage.getItem("pearlie_form_draft"),
+          ...(Object.keys(utmParams).length > 0 ? { utm: utmParams } : {}),
+        },
+      })
       setFormStarted(true)
     }
-  }, [formStarted])
+  }, [formStarted, isEmergency, utmParams])
 
   // Mark current step as animated after a short delay (once intro plays)
   useEffect(() => {
@@ -226,11 +237,26 @@ export default function IntakePage() {
     const handleBeforeUnload = () => {
       if (step < 8) {
         const sessionId = localStorage.getItem("pearlie_session_id") || crypto.randomUUID()
+        const timeSpentSeconds = Math.round((Date.now() - formStartTimeRef.current) / 1000)
+        const stepsCompleted = stepOrder.indexOf(step)
+        const completionPercent = Math.round(((stepsCompleted + 1) / stepOrder.length) * 100)
         const payload = JSON.stringify({
           session_id: sessionId,
           event_name: "form_abandoned",
           step_name: getStepName(step),
-          meta: { last_step: step, treatments: formData.treatments, postcode: formData.postcode ? "entered" : "not_entered", flow: isEmergency ? "emergency" : "planning" },
+          meta: {
+            last_step: step,
+            step_name: getStepName(step),
+            flow: isEmergency ? "emergency" : "planning",
+            time_spent_seconds: timeSpentSeconds,
+            completion_percent: completionPercent,
+            treatments_count: formData.treatments.length,
+            postcode_entered: !!formData.postcode,
+            anxiety_level: formData.anxiety_level || null,
+            cost_approach: formData.costApproach || null,
+            blockers_count: formData.conversionBlockerCodes.length,
+            priorities_count: formData.decisionValues.length,
+          },
         })
         if (navigator.sendBeacon) {
           navigator.sendBeacon("/api/track", new Blob([payload], { type: "application/json" }))
@@ -239,7 +265,58 @@ export default function IntakePage() {
     }
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
-  }, [step, formData, isEmergency])
+  }, [step, stepOrder, formData, isEmergency])
+
+  // P2: Capture UTM params on mount
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const utm: Record<string, string> = {}
+      for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"]) {
+        const val = params.get(key)
+        if (val) utm[key] = val
+      }
+      if (Object.keys(utm).length > 0) setUtmParams(utm)
+    } catch {}
+  }, [])
+
+  // I1: Restore form data from localStorage on mount (if draft < 2 hours old)
+  useEffect(() => {
+    try {
+      const draft = localStorage.getItem("pearlie_form_draft")
+      if (draft) {
+        const parsed = JSON.parse(draft)
+        if (Date.now() - parsed.savedAt < 2 * 60 * 60 * 1000) {
+          setFormData(parsed.formData)
+          if (parsed.step !== undefined) {
+            const targetStep = parsed.step
+            setTimeout(() => {
+              setStep(targetStep)
+            }, 100)
+          }
+        } else {
+          localStorage.removeItem("pearlie_form_draft")
+        }
+      }
+    } catch {
+      localStorage.removeItem("pearlie_form_draft")
+    }
+  }, [])
+
+  // I1: Save form data to localStorage on change (debounced 500ms)
+  useEffect(() => {
+    if (!formStarted && formData.treatments.length === 0) return // Don't save empty initial state
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem("pearlie_form_draft", JSON.stringify({
+          formData,
+          step,
+          savedAt: Date.now(),
+        }))
+      } catch {}
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [formData, step, formStarted])
 
   const getStepName = (stepNum: number) => {
     if (isEmergency) {
@@ -332,6 +409,7 @@ export default function IntakePage() {
         consent_marketing: formData.consentMarketing,
         form_version: FORM_VERSION,
         submitted_at: new Date().toISOString(),
+        ...utmParams, // P2: Include UTM tracking params
       }
 
       const leadRes = await fetch("/api/leads", {
@@ -386,18 +464,38 @@ export default function IntakePage() {
         },
       })
 
-      const matchRes = await fetch("/api/match", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId }),
-      })
+      // M3: Match creation with retry (3 attempts, exponential backoff)
+      let matchData = null
+      let lastMatchError = ""
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const matchRes = await fetch("/api/match", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ leadId }),
+          })
+          if (matchRes.ok) {
+            matchData = await matchRes.json()
+            break
+          }
+          lastMatchError = `Match failed (${matchRes.status})`
+          if (matchRes.status < 500) break // Don't retry client errors
+        } catch (e) {
+          lastMatchError = "Network error during matching"
+        }
+        if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)))
+      }
 
-      if (!matchRes.ok) throw new Error("Failed to create match")
-      const matchData = await matchRes.json()
-      const matchId = matchData.matchId
-      if (!matchId) throw new Error("No match ID returned")
+      if (!matchData?.matchId) {
+        // Store leadId for potential manual retry
+        localStorage.setItem("pearlie_failed_lead_id", leadId)
+        throw new Error(lastMatchError || "Failed to create match after 3 attempts")
+      }
 
-      router.push(`/match/${matchId}`)
+      // I1: Clear form draft after successful submission
+      localStorage.removeItem("pearlie_form_draft")
+
+      router.push(`/match/${matchData.matchId}`)
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : "Unknown error"
       console.error("Intake submit error:", errMsg)
@@ -1227,7 +1325,7 @@ export default function IntakePage() {
           <AlertDialogHeader>
             <AlertDialogTitle>We're not in your area yet</AlertDialogTitle>
             <AlertDialogDescription className="text-base leading-relaxed">
-              We're currently serving patients in <span className="font-semibold text-foreground">London</span> only.
+              We're currently serving patients in <span className="font-semibold text-foreground">{SUPPORTED_REGION}</span> only.
               {outsideLondonArea && (
                 <> It looks like you're in <span className="font-semibold text-foreground">{outsideLondonArea}</span>.</>
               )}
