@@ -223,16 +223,16 @@
         "Offers appointments aligned with your urgency."
       ]
     },
-    "emergency_distance": {
-      "label": "Emergency Distance",
-      "tagKeys": ["EMERGENCY_DISTANCE"],
+    "emergency_general": {
+      "label": "Emergency General",
+      "tagKeys": ["EMERGENCY_CAPABILITY"],
       "shortVariants": [
-        "Conveniently located near you.",
-        "Within your preferred travel distance."
+        "Experienced in handling urgent dental concerns.",
+        "Accepts emergency appointments."
       ],
       "longVariants": [
-        "Conveniently located near you.",
-        "Within your preferred travel distance."
+        "Experienced in handling urgent dental concerns.",
+        "Accepts emergency appointments."
       ]
     },
     "emergency_capability": {
@@ -261,19 +261,19 @@
     }
   },
   "fallbackSentences": [
-    "Conveniently located near you.",
-    "Within your preferred travel distance.",
     "Offers appointments aligned with your availability.",
     "Open during hours that suit your schedule.",
-    "Well-reviewed by other patients in your area.",
-    "A clinic focused on patient comfort and care."
+    "Well-reviewed by other patients.",
+    "A clinic focused on patient comfort and care.",
+    "Known for a welcoming and friendly team.",
+    "A trusted practice with a strong track record."
   ],
   "fallbackLongSentences": [
-    "Conveniently located near you.",
-    "Within your preferred travel distance.",
     "Offers appointments aligned with your availability.",
     "Open during hours that suit your schedule.",
-    "Well-reviewed by other patients in your area.",
-    "A clinic focused on patient comfort and care."
+    "Well-reviewed by other patients.",
+    "A clinic focused on patient comfort and care.",
+    "Known for a welcoming and friendly team.",
+    "A trusted practice with a strong track record."
   ]
 }

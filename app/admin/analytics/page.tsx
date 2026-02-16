@@ -31,6 +31,7 @@ import { Card } from "@/components/ui/card"
 import { AdminNav } from "@/components/admin/admin-nav"
 import { normalizeAnalyticsData } from "@/lib/analytics/normalize-analytics"
 import { AdminCardErrorBoundary } from "@/components/admin/admin-card-error-boundary"
+import { SCHEMA_VERSION } from "@/lib/intake-form-config"
 
 export default async function AnalyticsDashboard({
   searchParams,
@@ -114,6 +115,18 @@ export default async function AnalyticsDashboard({
   }
 
   const analytics = normalizeAnalyticsData(rawData)
+
+  // Filter leads to current form version for form-specific analytics
+  // Old form versions have different options that clutter the results
+  const currentFormLeads = analytics.leads.filter(
+    (lead: any) => lead?.schema_version >= SCHEMA_VERSION
+  )
+
+  // Filter match results to only include results for current-form leads
+  const currentFormLeadIds = new Set(currentFormLeads.map((l: any) => l?.id).filter(Boolean))
+  const currentFormMatchResults = analytics.matchResults.filter(
+    (mr: any) => currentFormLeadIds.has(mr?.lead_id)
+  )
 
   // Fetch previous period data for delta comparison (only when a date range is active)
   let prevAnalytics: typeof analytics | null = null
@@ -271,53 +284,53 @@ export default async function AnalyticsDashboard({
             </div>
           </TabsContent>
 
-          {/* TAB 2: PATIENT INSIGHTS */}
+          {/* TAB 2: PATIENT INSIGHTS (uses currentFormLeads to exclude old form versions) */}
           <TabsContent value="psychology">
             <div className="grid gap-4 md:gap-6 md:grid-cols-2">
               <AdminCardErrorBoundary cardName="Outcome Priorities">
-                <OutcomePrioritiesCard leads={analytics.leads} />
+                <OutcomePrioritiesCard leads={currentFormLeads} />
               </AdminCardErrorBoundary>
 
               <AdminCardErrorBoundary cardName="Match Reasons">
-                <MatchReasonsCard matchResults={analytics.matchResults} />
+                <MatchReasonsCard matchResults={currentFormMatchResults} />
               </AdminCardErrorBoundary>
             </div>
 
             <div className="mt-4 md:mt-6">
               <AdminCardErrorBoundary cardName="Patient Intent Breakdown">
-                <PatientIntentBreakdownCard leads={analytics.leads} />
+                <PatientIntentBreakdownCard leads={currentFormLeads} />
               </AdminCardErrorBoundary>
             </div>
 
             <div className="grid gap-4 md:gap-6 md:grid-cols-2 mt-4 md:mt-6">
               <AdminCardErrorBoundary cardName="Blocker Analysis">
-                <BlockerAnalysisCard leads={analytics.leads} />
+                <BlockerAnalysisCard leads={currentFormLeads} />
               </AdminCardErrorBoundary>
 
               <AdminCardErrorBoundary cardName="Flow Split">
-                <FlowSplitCard leads={analytics.leads} />
+                <FlowSplitCard leads={currentFormLeads} />
               </AdminCardErrorBoundary>
             </div>
 
             <div className="grid gap-4 md:gap-6 md:grid-cols-2 mt-4 md:mt-6">
               <AdminCardErrorBoundary cardName="Finance Insights">
-                <FinanceInsightsCard leads={analytics.leads} />
+                <FinanceInsightsCard leads={currentFormLeads} />
               </AdminCardErrorBoundary>
 
               <AdminCardErrorBoundary cardName="Location Preference">
-                <LocationPreferenceCard leads={analytics.leads} />
+                <LocationPreferenceCard leads={currentFormLeads} />
               </AdminCardErrorBoundary>
             </div>
 
             <div className="grid gap-4 md:gap-6 md:grid-cols-2 mt-4 md:mt-6">
               <AdminCardErrorBoundary cardName="Preferred Times">
-                <PreferredTimesCard leads={analytics.leads} />
+                <PreferredTimesCard leads={currentFormLeads} />
               </AdminCardErrorBoundary>
             </div>
 
             <div className="mt-4 md:mt-6">
               <AdminCardErrorBoundary cardName="Cross-Segment Intelligence">
-                <CrossSegmentCard leads={analytics.leads} />
+                <CrossSegmentCard leads={currentFormLeads} />
               </AdminCardErrorBoundary>
             </div>
           </TabsContent>

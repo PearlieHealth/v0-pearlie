@@ -325,13 +325,9 @@ export const TREATMENT_REASON_TEMPLATES: Record<string, string[]> = {
 // =============================================================================
 export const EMERGENCY_REASON_TEMPLATES = {
   availability: [
-    "Available within your preferred timeframe.",
     "Able to see urgent patients.",
     "Offers appointments aligned with your urgency.",
-  ],
-  distance: [
-    "Conveniently located near you.",
-    "Within your preferred travel distance.",
+    "Ready to accommodate emergency visits.",
   ],
   capability: [
     "Experienced in handling urgent dental concerns.",
@@ -364,39 +360,40 @@ export const PROFILE_HIGHLIGHT_TAGS = [
 // Priority: lower number = used first
 // =============================================================================
 // Logistics-only fallback reasons — ONLY appear when not enough other reasons exist
+// IMPORTANT: Must NOT contain distance words (mile, km, near, close to, nearby, within)
 export const FALLBACK_REASONS: Array<{
   key: string
   text: string
   priority: number
 }> = [
   {
-    key: "FALLBACK_CONVENIENT_LOCATION",
-    text: "Conveniently located near you.",
-    priority: 1,
-  },
-  {
-    key: "FALLBACK_TRAVEL_DISTANCE",
-    text: "Within your preferred travel distance.",
-    priority: 2,
-  },
-  {
     key: "FALLBACK_AVAILABILITY",
     text: "Offers appointments aligned with your availability.",
-    priority: 3,
+    priority: 1,
   },
   {
     key: "FALLBACK_SCHEDULE_FIT",
     text: "Open during hours that suit your schedule.",
-    priority: 4,
+    priority: 2,
   },
   {
     key: "FALLBACK_WELL_REVIEWED",
-    text: "Well-reviewed by other patients in your area.",
-    priority: 5,
+    text: "Well-reviewed by other patients.",
+    priority: 3,
   },
   {
     key: "FALLBACK_PATIENT_COMFORT",
     text: "A clinic focused on patient comfort and care.",
+    priority: 4,
+  },
+  {
+    key: "FALLBACK_WELCOMING_TEAM",
+    text: "Known for a welcoming and friendly team.",
+    priority: 5,
+  },
+  {
+    key: "FALLBACK_TRUSTED_PRACTICE",
+    text: "A trusted practice with a strong track record.",
     priority: 6,
   },
 ]
