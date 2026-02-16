@@ -83,7 +83,7 @@ export default function PilotChecklistPage() {
 
   return (
     <div className="min-h-screen bg-[#fafaf9]">
-      <AdminNav currentPath="/admin/pilot-checklist" />
+      <AdminNav />
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}

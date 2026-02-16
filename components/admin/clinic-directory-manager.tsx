@@ -48,7 +48,7 @@ interface Clinic {
   facilities?: string[]
   opening_hours?: any
   is_archived?: boolean
-  archived_at?: string
+  archived_at?: string | null
   created_at: string
   updated_at: string
 }
@@ -429,7 +429,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
         onClose={() => setIsDrawerOpen(false)}
         clinic={selectedClinic}
         isCreating={isCreating}
-        onSave={handleSave}
+        onSave={(clinic) => handleSave(clinic as Clinic)}
       />
     </div>
   )

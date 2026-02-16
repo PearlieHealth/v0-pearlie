@@ -350,7 +350,7 @@ export function EnhancedLeadsTable({ leads }: { leads?: Lead[] }) {
                                 <div>
                                   <span className="font-medium text-muted-foreground block mb-2">What Matters Most</span>
                                   <div className="flex flex-wrap gap-2">
-                                    {getValues(lead).map((value, i) => (
+                                    {getValues(lead).map((value: string, i: number) => (
                                       <Badge key={i} variant="outline">{value}</Badge>
                                     ))}
                                   </div>
@@ -362,7 +362,7 @@ export function EnhancedLeadsTable({ leads }: { leads?: Lead[] }) {
                                 <div>
                                   <span className="font-medium text-muted-foreground block mb-2">Concerns / Blockers</span>
                                   <div className="flex flex-wrap gap-2">
-                                    {getBlockers(lead).map((blocker, i) => (
+                                    {getBlockers(lead).map((blocker: string, i: number) => (
                                       <Badge key={i} variant="secondary">{blocker}</Badge>
                                     ))}
                                   </div>

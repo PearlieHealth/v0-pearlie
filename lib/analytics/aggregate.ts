@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getTreatmentValue } from "./treatment-values"
 
 export type AnalyticsMetrics = {
   // Core funnel metrics
@@ -34,15 +35,6 @@ export type AnalyticsMetrics = {
   events: any[]
 }
 
-const TREATMENT_VALUES: Record<string, number> = {
-  "Dental Implants": 2500,
-  Invisalign: 3500,
-  "Composite Bonding": 800,
-  Veneers: 6000,
-  "Teeth Whitening": 400,
-  "Dental Hygiene": 80,
-  "General Dentistry": 150,
-}
 
 export async function aggregateAnalytics(dateFrom?: Date, dateTo?: Date): Promise<AnalyticsMetrics> {
   const supabase = createAdminClient()
@@ -101,21 +93,22 @@ export async function aggregateAnalytics(dateFrom?: Date, dateTo?: Date): Promis
     matchesToClicksPct = Math.min(100, Math.max(0, (clinicClickers / matchesShownLeads) * 100))
   }
 
-  // Revenue calculation
+  // Revenue calculation (uses getTreatmentValue for consistent pricing with treatment-values.ts)
   const treatmentBreakdown: Record<string, { count: number; value: number }> = {}
   let totalRevenue = 0
 
   leads.forEach((lead) => {
     const treatment = lead.treatment_interest
-    if (treatment && TREATMENT_VALUES[treatment]) {
-      const value = TREATMENT_VALUES[treatment]
-      totalRevenue += value
+    if (treatment) {
+      const tv = getTreatmentValue(treatment)
+      const midValue = tv.midPence / 100 // convert pence to pounds
+      totalRevenue += midValue
 
       if (!treatmentBreakdown[treatment]) {
         treatmentBreakdown[treatment] = { count: 0, value: 0 }
       }
       treatmentBreakdown[treatment].count++
-      treatmentBreakdown[treatment].value += value
+      treatmentBreakdown[treatment].value += midValue
     }
   })
 

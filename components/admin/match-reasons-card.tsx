@@ -14,7 +14,7 @@ interface MatchReasonsCardProps {
 }
 
 export function MatchReasonsCard({ matchResults, clinicMap }: MatchReasonsCardProps) {
-  const safeMatchResults = safeArray(matchResults)
+  const safeMatchResults = safeArray<{ reasons?: string[] | null; [key: string]: unknown }>(matchResults)
 
   // Explode all reasons and count occurrences
   const reasonCounts = new Map<string, number>()

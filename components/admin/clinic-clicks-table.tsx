@@ -22,7 +22,7 @@ interface ClinicClicksTableProps {
 export function ClinicClicksTable({ events, clinicMap }: ClinicClicksTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
-  const safeEvents = safeArray(events)
+  const safeEvents = safeArray<{ id?: string; lead_id?: string; clinic_id?: string; event_name?: string; created_at?: string; [key: string]: unknown }>(events)
   const safeClinicMap = clinicMap instanceof Map ? clinicMap : new Map<string, string>()
 
   // Transform events into click data

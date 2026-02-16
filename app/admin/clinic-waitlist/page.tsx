@@ -94,9 +94,13 @@ export default function ClinicWaitlistPage() {
         setActionDialog(null)
         setSelectedEntry(null)
         setAdminNotes("")
+      } else {
+        console.error("Failed to update waitlist entry, status:", response.status)
+        alert("Failed to update waitlist entry. Please try again.")
       }
     } catch (error) {
       console.error("Failed to update waitlist entry:", error)
+      alert("Network error updating waitlist entry. Please try again.")
     } finally {
       setProcessing(false)
     }

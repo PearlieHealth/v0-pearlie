@@ -60,6 +60,7 @@ export default async function AnalyticsDashboard({
     prevDateTo = dateFrom
   }
 
+  let fetchError: string | null = null
   let rawData: {
     leads: any[] | null
     matches: any[] | null
@@ -106,6 +107,7 @@ export default async function AnalyticsDashboard({
     }
   } catch (error) {
     console.error("[Analytics] Database fetch error:", error)
+    fetchError = "Failed to load analytics data. Please refresh the page."
   }
 
   const analytics = normalizeAnalyticsData(rawData)
@@ -134,10 +136,16 @@ export default async function AnalyticsDashboard({
 
   return (
     <div className="min-h-screen bg-[#fafaf9]">
-      <AdminNav currentPath="/admin/analytics" />
+      <AdminNav />
 
       <main className="container mx-auto px-4 py-6 max-w-7xl">
         <QAStatusBanner />
+
+        {fetchError && (
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-4 text-sm">
+            {fetchError}
+          </div>
+        )}
 
         {/* Desktop header with test buttons */}
         <div className="hidden md:flex items-center justify-between mb-6">
@@ -346,13 +354,7 @@ export default async function AnalyticsDashboard({
 
             <div className="mt-4 md:mt-6">
               <AdminCardErrorBoundary cardName="Advanced Insights">
-                <AdvancedInsightsPreview
-                  formCompletionRate={analytics.formCompletionRate}
-                  clinicClickRate={analytics.clinicClickRate}
-                  bookingRate={analytics.bookingRate}
-                  avgClinicsViewed={analytics.avgClinicsViewed}
-                  pctBookFromFirst={analytics.pctBookFromFirst}
-                />
+                <AdvancedInsightsPreview />
               </AdminCardErrorBoundary>
             </div>
           </TabsContent>
