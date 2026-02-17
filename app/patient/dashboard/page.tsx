@@ -26,7 +26,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { BookingDialog } from "@/components/clinic/booking-dialog"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
 import { format } from "date-fns"
 
@@ -126,7 +125,6 @@ export default function PatientDashboard() {
   const [otherClinics, setOtherClinics] = useState<ClinicInfo[]>([])
   const [showOtherClinics, setShowOtherClinics] = useState(false)
   const [loadingClinics, setLoadingClinics] = useState(false)
-  const [showBookingDialog, setShowBookingDialog] = useState(false)
   const [showMatchHistory, setShowMatchHistory] = useState(false)
   const [loadingMoreMatches, setLoadingMoreMatches] = useState(false)
 
@@ -562,10 +560,10 @@ export default function PatientDashboard() {
                     </div>
                   )}
 
-                  {/* Primary CTA */}
+                  {/* Primary CTA — placeholder, booking flow TBD */}
                   <Button
                     className="w-full bg-[#907EFF] hover:bg-[#7C6AE8] text-white h-11 text-base font-semibold rounded-xl"
-                    onClick={() => setShowBookingDialog(true)}
+                    disabled
                   >
                     <Calendar className="w-4 h-4 mr-2" />
                     Book appointment
@@ -1028,19 +1026,6 @@ export default function PatientDashboard() {
         </div>
       </div>
 
-      {/* Booking dialog */}
-      {showBookingDialog && recommendedClinic && latestMatchLead && (
-        <BookingDialog
-          leadId={latestMatch!.lead_id}
-          clinicId={recommendedClinic.id}
-          patientName={`${latestMatchLead.first_name} ${latestMatchLead.last_name}`}
-          onClose={() => setShowBookingDialog(false)}
-          onSuccess={() => {
-            setShowBookingDialog(false)
-            fetchDashboard()
-          }}
-        />
-      )}
     </div>
   )
 }
