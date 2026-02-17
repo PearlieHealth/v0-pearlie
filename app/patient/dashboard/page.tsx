@@ -608,6 +608,10 @@ export default function PatientDashboard() {
 
   function handleSelectClinic(clinicId: string) {
     setSelectedClinicId(clinicId)
+    // On desktop, also open the clinic's conversation in the right panel
+    if (!isMobile) {
+      openConversationForClinic(clinicId)
+    }
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
@@ -775,7 +779,7 @@ export default function PatientDashboard() {
       </header>
 
       {/* Main content: split view */}
-      <div className="flex-1 max-w-[1400px] w-full mx-auto flex">
+      <div className="flex-1 max-w-[1400px] w-full mx-auto flex" style={{ height: "calc(100vh - 57px)" }}>
 
         {/* ══════ LEFT COLUMN: Your Match ══════ */}
         <div className="flex-1 min-w-0 lg:max-w-[58%] overflow-y-auto px-3 py-4 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
