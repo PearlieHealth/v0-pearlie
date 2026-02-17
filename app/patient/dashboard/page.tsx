@@ -27,9 +27,7 @@ import { BookingCard } from "@/components/match/booking-card"
 import { OtherClinicCard } from "@/components/match/other-clinic-card"
 import { useIsMobile } from "@/components/ui/use-mobile"
 import {
-  Drawer,
-  DrawerContent,
-  DrawerTitle,
+  // Drawer removed — mobile chat uses a plain fixed overlay for iOS keyboard compatibility
 } from "@/components/ui/drawer"
 
 // ── Types ────────────────────────────────────────────────────────
@@ -347,55 +345,15 @@ export default function PatientDashboard() {
     }
   }, [mobileChatOpen, scrollChatToBottom])
 
-  // Reset zoom when chat drawer opens to prevent layout issues
-  // and track visual viewport height for keyboard avoidance
-  const [drawerHeight, setDrawerHeight] = useState<number | null>(null)
+  // Lock body scroll when mobile chat is open
   useEffect(() => {
-    if (!mobileChatOpen) {
-      setDrawerHeight(null)
-      return
-    }
-    // Reset any pinch-zoom the user may have applied
-    const viewport = document.querySelector('meta[name="viewport"]')
-    if (viewport) {
-      viewport.setAttribute(
-        "content",
-        "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
-      )
-    }
-
-    // Track visual viewport to shrink drawer when keyboard opens
-    const vv = window.visualViewport
-    if (vv) {
-      const onResize = () => {
-        // Use 92% of visual viewport height (capped at 85% of full viewport)
-        setDrawerHeight(Math.min(vv.height * 0.92, window.innerHeight * 0.85))
-        // Keep messages scrolled to bottom when keyboard opens
-        scrollChatToBottom(false)
-      }
-      onResize() // set initial
-      vv.addEventListener("resize", onResize)
-      vv.addEventListener("scroll", onResize)
-      return () => {
-        vv.removeEventListener("resize", onResize)
-        vv.removeEventListener("scroll", onResize)
-        if (viewport) {
-          viewport.setAttribute(
-            "content",
-            "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
-          )
-        }
-      }
-    }
-
+    if (!mobileChatOpen) return
+    // Prevent body scroll behind the chat overlay
+    const scrollY = window.scrollY
+    document.body.style.overflow = "hidden"
     return () => {
-      // Restore normal viewport
-      if (viewport) {
-        viewport.setAttribute(
-          "content",
-          "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
-        )
-      }
+      document.body.style.overflow = ""
+      window.scrollTo(0, scrollY)
     }
   }, [mobileChatOpen])
 
@@ -990,7 +948,7 @@ export default function PatientDashboard() {
             ? "fixed inset-0 z-40 bg-[#f8f7f4] flex flex-col"
             : "hidden lg:flex"
           }
-        `} style={mobileInboxOpen ? { height: "100vh", paddingTop: "57px" } : undefined}>
+        `} style={mobileInboxOpen ? { height: "100dvh", paddingTop: "57px" } : undefined}>
 
           {/* Mobile back button */}
           {mobileInboxOpen && (
@@ -1225,149 +1183,158 @@ export default function PatientDashboard() {
         </div>
       </div>
 
-      {/* ══════ MOBILE: Chat Bottom Sheet Drawer ══════ */}
-      {isMobile && (
-        <Drawer open={mobileChatOpen} onOpenChange={setMobileChatOpen} shouldScaleBackground={false}>
-          <DrawerContent className="!mt-0 flex flex-col rounded-t-2xl" style={{ display: "flex", flexDirection: "column", overflow: "hidden", maxHeight: drawerHeight ? `${drawerHeight}px` : "85vh", height: drawerHeight ? `${drawerHeight}px` : "85vh" }}>
-            <DrawerTitle className="sr-only">Chat with {chatHeaderName || "clinic"}</DrawerTitle>
-
-            {/* Header */}
-            <div className="flex-shrink-0 border-b border-border/30 bg-white px-4 pt-1 pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 min-w-0">
-                  {chatHeaderImage ? (
-                    <div className="relative h-9 w-9 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100 ring-2 ring-[#907EFF]/20">
-                      <Image src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover" />
-                    </div>
-                  ) : (
-                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#907EFF] to-[#7C6AE8] flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm font-semibold">
-                        {(chatHeaderName || "C").charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate text-left">{chatHeaderName || "Clinic"}</p>
-                    <p className="text-[11px] text-muted-foreground">Usually replies quickly</p>
+      {/* ══════ MOBILE: Chat Full-Screen Overlay ══════ */}
+      {/* Plain fixed overlay instead of Vaul Drawer — avoids CSS transform
+          context that breaks iOS Safari keyboard / fixed positioning */}
+      {isMobile && mobileChatOpen && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col bg-white"
+          style={{ height: "100dvh" }}
+        >
+          {/* Header — no transforms */}
+          <div className="flex-shrink-0 border-b border-border/30 bg-white px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                {chatHeaderImage ? (
+                  <div className="relative h-9 w-9 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100 ring-2 ring-[#907EFF]/20">
+                    <Image src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover" />
                   </div>
+                ) : (
+                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#907EFF] to-[#7C6AE8] flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm font-semibold">
+                      {(chatHeaderName || "C").charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate text-left">{chatHeaderName || "Clinic"}</p>
+                  <p className="text-[11px] text-muted-foreground">Usually replies quickly</p>
                 </div>
-                <button
-                  onClick={() => setMobileChatOpen(false)}
-                  className="text-muted-foreground hover:text-foreground p-1.5 -mr-1 rounded-full hover:bg-muted/60 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
               </div>
+              <button
+                onClick={() => setMobileChatOpen(false)}
+                className="text-muted-foreground hover:text-foreground p-1.5 -mr-1 rounded-full hover:bg-muted/60 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
+          </div>
 
-            {/* Messages */}
-            <div ref={mobileMessagesRef} data-vaul-no-drag className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 min-h-0 bg-[#fafaf8]" style={{ WebkitOverflowScrolling: "touch" }}>
-              {loadingMessages ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-5 h-5 animate-spin text-[#907EFF]" />
+          {/* Messages — flex-1 takes remaining space, scrollable */}
+          <div
+            ref={mobileMessagesRef}
+            className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 min-h-0 bg-[#fafaf8]"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
+            {loadingMessages ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-5 h-5 animate-spin text-[#907EFF]" />
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="text-center py-10 space-y-3">
+                <div className="h-12 w-12 rounded-full bg-[#907EFF]/10 flex items-center justify-center mx-auto">
+                  <MessageCircle className="w-6 h-6 text-[#907EFF]" />
                 </div>
-              ) : messages.length === 0 ? (
-                <div className="text-center py-10 space-y-3">
-                  <div className="h-12 w-12 rounded-full bg-[#907EFF]/10 flex items-center justify-center mx-auto">
-                    <MessageCircle className="w-6 h-6 text-[#907EFF]" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-[#323141]/80">
-                      Chat with {chatHeaderName || "the clinic"}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Ask any questions or request an appointment
-                    </p>
-                  </div>
+                <div>
+                  <p className="text-sm font-medium text-[#323141]/80">
+                    Chat with {chatHeaderName || "the clinic"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Ask any questions or request an appointment
+                  </p>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {messages.map((msg) => (
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex ${msg.sender_type === "patient" ? "justify-end" : "justify-start"}`}
+                  >
                     <div
-                      key={msg.id}
-                      className={`flex ${msg.sender_type === "patient" ? "justify-end" : "justify-start"}`}
+                      className={`max-w-[82%] rounded-2xl px-3.5 py-2 ${
+                        msg.sender_type === "patient"
+                          ? "bg-gradient-to-br from-[#907EFF] to-[#8070F0] text-white rounded-br-md"
+                          : msg.sender_type === "bot"
+                          ? "bg-white border border-[#e9e5f5] rounded-bl-md shadow-sm"
+                          : "bg-white rounded-bl-md shadow-sm"
+                      }`}
                     >
-                      <div
-                        className={`max-w-[82%] rounded-2xl px-3.5 py-2 ${
-                          msg.sender_type === "patient"
-                            ? "bg-gradient-to-br from-[#907EFF] to-[#8070F0] text-white rounded-br-md"
-                            : msg.sender_type === "bot"
-                            ? "bg-white border border-[#e9e5f5] rounded-bl-md shadow-sm"
-                            : "bg-white rounded-bl-md shadow-sm"
-                        }`}
-                      >
-                        {msg.sender_type === "bot" && (
-                          <p className="text-[9px] text-[#907EFF]/60 mb-0.5 flex items-center gap-1">
-                            <Heart className="w-2.5 h-2.5 fill-[#907EFF]/40 text-[#907EFF]/40" />
-                            Pearlie
-                          </p>
-                        )}
-                        <p className={`text-[14px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-[#323141]/70" : ""}`}>
-                          {msg.content}
-                        </p>
-                        <p className={`text-[10px] mt-1 ${
-                          msg.sender_type === "patient" ? "text-white/50 text-right" : "text-muted-foreground/60"
-                        }`}>
-                          {formatTime(msg.created_at)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  {(otherTyping || botTyping) && (
-                    <div className="flex justify-start">
-                      <div className="bg-white border border-[#e9e5f5] rounded-2xl rounded-bl-md px-4 py-2.5 shadow-sm">
-                        <p className="text-[9px] text-[#907EFF]/60 mb-1 flex items-center gap-1">
+                      {msg.sender_type === "bot" && (
+                        <p className="text-[9px] text-[#907EFF]/60 mb-0.5 flex items-center gap-1">
                           <Heart className="w-2.5 h-2.5 fill-[#907EFF]/40 text-[#907EFF]/40" />
                           Pearlie
                         </p>
-                        <div className="flex gap-1">
-                          <span className="w-2 h-2 bg-[#907EFF]/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                          <span className="w-2 h-2 bg-[#907EFF]/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                          <span className="w-2 h-2 bg-[#907EFF]/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                        </div>
+                      )}
+                      <p className={`text-[14px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-[#323141]/70" : ""}`}>
+                        {msg.content}
+                      </p>
+                      <p className={`text-[10px] mt-1 ${
+                        msg.sender_type === "patient" ? "text-white/50 text-right" : "text-muted-foreground/60"
+                      }`}>
+                        {formatTime(msg.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {(otherTyping || botTyping) && (
+                  <div className="flex justify-start">
+                    <div className="bg-white border border-[#e9e5f5] rounded-2xl rounded-bl-md px-4 py-2.5 shadow-sm">
+                      <p className="text-[9px] text-[#907EFF]/60 mb-1 flex items-center gap-1">
+                        <Heart className="w-2.5 h-2.5 fill-[#907EFF]/40 text-[#907EFF]/40" />
+                        Pearlie
+                      </p>
+                      <div className="flex gap-1">
+                        <span className="w-2 h-2 bg-[#907EFF]/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <span className="w-2 h-2 bg-[#907EFF]/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <span className="w-2 h-2 bg-[#907EFF]/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                       </div>
                     </div>
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-              )}
-            </div>
-
-            {/* Quick prompts */}
-            {messages.length === 0 && (
-              <div className="flex gap-2 px-3 py-2.5 overflow-x-auto flex-shrink-0 border-t border-border/30 bg-white">
-                {QUICK_PROMPTS.map((prompt) => (
-                  <button
-                    key={prompt}
-                    onClick={() => setNewMessage(prompt)}
-                    className="text-[12px] text-[#907EFF] border border-[#907EFF]/25 rounded-full px-3 py-1.5 hover:bg-[#907EFF]/5 active:bg-[#907EFF]/10 transition-colors whitespace-nowrap flex-shrink-0"
-                  >
-                    {prompt}
-                  </button>
-                ))}
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
               </div>
             )}
+          </div>
 
-            {/* Composer */}
-            <form onSubmit={handleSend} data-vaul-no-drag className="flex items-center gap-2 px-3 py-3 border-t border-border/30 flex-shrink-0 bg-white" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 12px), 12px)" }}>
-              <Input
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 text-base rounded-xl bg-[#f5f5f3] border-0 h-10 focus-visible:ring-[#907EFF]/30"
-                disabled={isSending}
-              />
-              <Button
-                type="submit"
-                size="icon"
-                disabled={!newMessage.trim() || isSending}
-                className="bg-[#907EFF] hover:bg-[#7C6AE8] text-white h-10 w-10 rounded-xl shrink-0 active:scale-95 transition-transform"
-              >
-                {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              </Button>
-            </form>
-          </DrawerContent>
-        </Drawer>
+          {/* Quick prompts */}
+          {messages.length === 0 && (
+            <div className="flex gap-2 px-3 py-2.5 overflow-x-auto flex-shrink-0 border-t border-border/30 bg-white">
+              {QUICK_PROMPTS.map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => setNewMessage(prompt)}
+                  className="text-[12px] text-[#907EFF] border border-[#907EFF]/25 rounded-full px-3 py-1.5 hover:bg-[#907EFF]/5 active:bg-[#907EFF]/10 transition-colors whitespace-nowrap flex-shrink-0"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Composer — flex-shrink-0 at bottom, safe area padding */}
+          <form
+            onSubmit={handleSend}
+            className="flex items-center gap-2 px-3 py-3 border-t border-border/30 flex-shrink-0 bg-white"
+            style={{ paddingBottom: "max(env(safe-area-inset-bottom, 12px), 12px)" }}
+          >
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 text-base rounded-xl bg-[#f5f5f3] border-0 h-10 focus-visible:ring-[#907EFF]/30"
+              disabled={isSending}
+            />
+            <Button
+              type="submit"
+              size="icon"
+              disabled={!newMessage.trim() || isSending}
+              className="bg-[#907EFF] hover:bg-[#7C6AE8] text-white h-10 w-10 rounded-xl shrink-0 active:scale-95 transition-transform"
+            >
+              {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            </Button>
+          </form>
+        </div>
       )}
 
       {/* ══════ MOBILE: Sticky Bottom Action Bar ══════ */}
