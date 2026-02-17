@@ -835,7 +835,7 @@ export default function PatientDashboard() {
 
           {/* Inbox list (top portion) */}
           <div className="border-b border-border/60 flex-shrink-0 max-h-[35%] overflow-y-auto">
-            <div className="px-4 py-3 flex items-center justify-between bg-white/80 sticky top-0 z-10 backdrop-blur-sm">
+            <div className="px-4 py-3 flex items-center justify-between sticky top-0 z-10">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-[#907EFF]" />
                 <h2 className="font-semibold text-[#323141] text-sm">Messages</h2>
@@ -903,7 +903,7 @@ export default function PatientDashboard() {
           </div>
 
           {/* Chat thread (bottom portion) */}
-          <div className="flex-1 flex flex-col min-h-0 bg-white/60">
+          <div className="flex-1 flex flex-col min-h-0">
             {!selectedConv ? (
               <div className="flex-1 flex items-center justify-center text-muted-foreground">
                 <p className="text-sm">Select a conversation</p>
@@ -911,7 +911,7 @@ export default function PatientDashboard() {
             ) : (
               <>
                 {/* Chat header */}
-                <div className="px-4 py-3 border-b border-border/60 bg-white/80 backdrop-blur-sm flex items-center justify-between flex-shrink-0">
+                <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between flex-shrink-0">
                   <div className="flex items-center gap-2 min-w-0">
                     {selectedConv.clinics?.images?.[0] ? (
                       <div className="relative h-7 w-7 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
@@ -992,7 +992,7 @@ export default function PatientDashboard() {
                 </ScrollArea>
 
                 {/* Quick prompts */}
-                <div className="flex gap-1.5 px-4 py-2 overflow-x-auto flex-shrink-0 border-t border-border/40 bg-white/60">
+                <div className="flex gap-1.5 px-4 py-2 overflow-x-auto flex-shrink-0 border-t border-border/40">
                   {QUICK_PROMPTS.map((prompt) => (
                     <button
                       key={prompt}
@@ -1005,7 +1005,7 @@ export default function PatientDashboard() {
                 </div>
 
                 {/* Composer */}
-                <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/60 bg-white flex-shrink-0">
+                <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/40 flex-shrink-0">
                   <Input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
