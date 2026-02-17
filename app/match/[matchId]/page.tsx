@@ -119,6 +119,7 @@ export default function MatchPage() {
     verifiedOnly: false,
     highRatingOnly: false,
   })
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const handleClinicHover = (clinicId: string | null) => {
     setHighlightedClinicId(clinicId)
@@ -232,6 +233,22 @@ export default function MatchPage() {
       fetchInitialMatches()
     }
   }, [matchId]) // Remove userLocation dependency since API handles distance now
+
+  // Fetch unread message count for notification badge
+  useEffect(() => {
+    fetch("/api/patient/conversations")
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.conversations) {
+          const total = data.conversations.reduce(
+            (sum: number, c: { unread_count_patient?: number }) => sum + (c.unread_count_patient || 0),
+            0
+          )
+          setUnreadCount(total)
+        }
+      })
+      .catch(() => {}) // Silently fail — user may not be authenticated
+  }, [])
 
   const filteredAndRankedClinics = (() => {
     let clinics = [...allClinicsData]
@@ -563,7 +580,14 @@ export default function MatchPage() {
             href="/patient/messages"
             className="relative flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            <MessageCircle className="w-5 h-5" />
+            <div className="relative">
+              <MessageCircle className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
             <span className="hidden sm:inline">Messages</span>
           </Link>
         </div>

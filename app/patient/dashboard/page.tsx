@@ -189,8 +189,8 @@ export default function PatientDashboard() {
           </Link>
           <div className="flex items-center gap-3">
             {totalUnread > 0 && (
-              <span className="bg-[#907EFF] text-white text-xs font-semibold px-2 py-1 rounded-full">
-                {totalUnread} new
+              <span className="bg-red-500 text-white text-xs font-bold min-w-[20px] h-5 px-1.5 rounded-full inline-flex items-center justify-center">
+                {totalUnread}
               </span>
             )}
             <button
@@ -233,7 +233,7 @@ export default function PatientDashboard() {
             >
               {tab.label}
               {tab.badge ? (
-                <span className="bg-[#907EFF] text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                <span className="bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
                   {tab.badge}
                 </span>
               ) : null}
@@ -316,7 +316,7 @@ export default function PatientDashboard() {
                               {conv.clinics?.name || "Clinic"}
                             </p>
                             {conv.unread_by_patient && (
-                              <span className="w-2 h-2 rounded-full bg-[#907EFF]" />
+                              <span className="w-2 h-2 rounded-full bg-red-500" />
                             )}
                           </div>
                           <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -381,7 +381,7 @@ export default function PatientDashboard() {
                                 {conv.clinics?.name || "Clinic"}
                               </p>
                               {conv.unread_by_patient && (
-                                <span className="w-2.5 h-2.5 rounded-full bg-[#907EFF]" />
+                                <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
                               )}
                             </div>
                             <p className="text-sm text-muted-foreground">

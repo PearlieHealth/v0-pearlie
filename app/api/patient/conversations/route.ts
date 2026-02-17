@@ -16,11 +16,20 @@ export async function GET() {
     // Find all leads for this user (by user_id or email match)
     const { data: leads } = await admin
       .from("leads")
-      .select("id")
+      .select("id, user_id")
       .or(`user_id.eq.${user.id},email.eq.${user.email}`)
 
     if (!leads || leads.length === 0) {
       return NextResponse.json({ conversations: [] })
+    }
+
+    // Link any unlinked leads to this user
+    const unlinkedLeads = leads.filter((l) => !l.user_id)
+    if (unlinkedLeads.length > 0) {
+      await admin
+        .from("leads")
+        .update({ user_id: user.id })
+        .in("id", unlinkedLeads.map((l) => l.id))
     }
 
     const leadIds = leads.map((l) => l.id)

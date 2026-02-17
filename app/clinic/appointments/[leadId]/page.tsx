@@ -100,7 +100,7 @@ interface Conversation {
 interface Message {
   id: string
   content: string
-  sender_type: "patient" | "clinic"
+  sender_type: "patient" | "clinic" | "bot"
   created_at: string
 }
 
@@ -1046,40 +1046,59 @@ export default function AppointmentDetailPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={cn(
-                        "flex",
-                        msg.sender_type === "clinic"
-                          ? "justify-end"
-                          : "justify-start"
-                      )}
-                    >
+                  {messages.map((msg, idx) => {
+                    const prevMsg = idx > 0 ? messages[idx - 1] : null
+                    const showBotLabel = msg.sender_type === "bot" && (!prevMsg || prevMsg.sender_type !== "bot")
+
+                    return (
                       <div
+                        key={msg.id}
                         className={cn(
-                          "max-w-[85%] rounded-2xl px-4 py-2.5",
+                          "flex flex-col",
                           msg.sender_type === "clinic"
-                            ? "bg-[#7C3AED] text-white rounded-br-sm"
-                            : "bg-muted rounded-bl-sm"
+                            ? "items-end"
+                            : "items-start"
                         )}
                       >
-                        <p className="text-sm whitespace-pre-wrap">
-                          {msg.content}
-                        </p>
-                        <p
+                        {showBotLabel && (
+                          <span className="text-[10px] font-medium mb-0.5 px-1 text-purple-500 flex items-center gap-1">
+                            <Heart className="w-2.5 h-2.5 fill-purple-400 text-purple-400" />
+                            Pearlie
+                          </span>
+                        )}
+                        <div
                           className={cn(
-                            "text-xs mt-1",
+                            "max-w-[85%] rounded-2xl px-4 py-2.5",
                             msg.sender_type === "clinic"
-                              ? "text-white/60"
-                              : "text-muted-foreground"
+                              ? "bg-[#7C3AED] text-white rounded-br-sm"
+                              : msg.sender_type === "bot"
+                              ? "bg-gradient-to-br from-purple-50 to-fuchsia-50 border border-purple-100 rounded-bl-sm"
+                              : "bg-muted rounded-bl-sm"
                           )}
                         >
-                          {format(new Date(msg.created_at), "h:mm a")}
-                        </p>
+                          <p className={cn(
+                            "text-sm whitespace-pre-wrap",
+                            msg.sender_type === "bot" && "text-neutral-600"
+                          )}>
+                            {msg.content}
+                          </p>
+                          {msg.sender_type === "bot" && (
+                            <p className="text-[9px] text-purple-400/70 mt-1 italic">Automated message</p>
+                          )}
+                          <p
+                            className={cn(
+                              "text-xs mt-1",
+                              msg.sender_type === "clinic"
+                                ? "text-white/60"
+                                : "text-muted-foreground"
+                            )}
+                          >
+                            {format(new Date(msg.created_at), "h:mm a")}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </ScrollArea>

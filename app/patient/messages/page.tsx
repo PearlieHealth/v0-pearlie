@@ -468,11 +468,11 @@ export default function PatientMessagesPage() {
                     {conv.unread_by_patient && (
                       <div className="flex-shrink-0">
                         {(conv.unread_count_patient || 0) > 0 ? (
-                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#907EFF] text-white text-[10px] font-semibold px-1.5">
+                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1.5">
                             {conv.unread_count_patient}
                           </span>
                         ) : (
-                          <div className="h-2.5 w-2.5 rounded-full bg-[#907EFF]" />
+                          <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
                         )}
                       </div>
                     )}
@@ -640,11 +640,11 @@ export default function PatientMessagesPage() {
                       {conv.unread_by_patient && (
                         <div className="flex-shrink-0 mt-1">
                           {(conv.unread_count_patient || 0) > 0 ? (
-                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#907EFF] text-white text-[10px] font-semibold px-1.5">
+                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1.5">
                               {conv.unread_count_patient}
                             </span>
                           ) : (
-                            <div className="h-2.5 w-2.5 rounded-full bg-[#907EFF]" />
+                            <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
                           )}
                         </div>
                       )}
