@@ -719,12 +719,23 @@ export default function PatientDashboard() {
 
           {/* Match context header */}
           {latestMatchLead && (
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs sm:text-sm text-[#323141]/60 min-w-0">
-                <span className="font-medium text-[#323141]/80">{latestMatchLead.treatment_interest || "Dental enquiry"}</span>
-                {latestMatchLead.postcode && <> <span className="text-[#323141]/30 mx-0.5">&middot;</span> <span className="text-[#323141]/50">{latestMatchLead.postcode}</span></>}
-              </p>
-              <Link href="/intake" className="text-xs text-[#907EFF] hover:underline flex-shrink-0 font-medium">
+            <div className="bg-white rounded-xl border border-border/40 shadow-sm px-3.5 py-2.5 sm:px-4 sm:py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#907EFF]/15 to-[#907EFF]/5 flex items-center justify-center flex-shrink-0">
+                  <Search className="w-4 h-4 text-[#907EFF]" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm sm:text-base font-semibold text-[#323141] truncate">
+                    {latestMatchLead.treatment_interest || "Dental enquiry"}
+                  </p>
+                  {latestMatchLead.postcode && (
+                    <p className="text-[11px] sm:text-xs text-muted-foreground">
+                      Near {latestMatchLead.postcode}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <Link href="/intake" className="text-xs text-[#907EFF] hover:underline flex-shrink-0 font-medium whitespace-nowrap">
                 New search
               </Link>
             </div>
