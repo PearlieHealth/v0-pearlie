@@ -1,0 +1,677 @@
+"use client"
+
+import { useEffect, useState, useRef, useCallback } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
+import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
+import { useIsMobile } from "@/hooks/use-mobile"
+import {
+  Heart,
+  Loader2,
+  MessageCircle,
+  Send,
+  ArrowLeft,
+  LogOut,
+  Check,
+  CheckCheck,
+  ChevronLeft,
+} from "lucide-react"
+import Link from "next/link"
+
+interface Conversation {
+  id: string
+  clinic_id: string
+  lead_id: string
+  status: string
+  last_message_at: string
+  unread_by_patient: boolean
+  unread_count_patient: number
+  clinics: { id: string; name: string; images?: string[] } | null
+  latest_message: string | null
+  latest_message_sender: string | null
+}
+
+interface Message {
+  id: string
+  content: string
+  sender_type: "patient" | "clinic" | "bot"
+  status?: "sent" | "delivered" | "read"
+  created_at: string
+}
+
+export default function PatientMessagesPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const conversationIdParam = searchParams?.get("conversationId")
+  const isMobile = useIsMobile()
+
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [newMessage, setNewMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const autoSelectedRef = useRef(false)
+  // Store clinicId and leadId from the messages API response
+  const [activeClinicId, setActiveClinicId] = useState<string | null>(null)
+  const [activeLeadId, setActiveLeadId] = useState<string | null>(null)
+
+  // ── Auth check ───────────────────────────────────────────────────
+  useEffect(() => {
+    async function checkAuth() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        const returnUrl = `/patient/messages${conversationIdParam ? `?conversationId=${conversationIdParam}` : ""}`
+        router.replace(`/patient/login?next=${encodeURIComponent(returnUrl)}`)
+        return
+      }
+      fetchConversations()
+    }
+    checkAuth()
+  }, [])
+
+  // ── Realtime: messages in the active conversation ────────────────
+  const handleNewMessage = useCallback((msg: RealtimeMessage) => {
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === msg.id)) return prev
+      return [...prev, msg as unknown as Message].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )
+    })
+  }, [])
+
+  const handleStatusChange = useCallback((msgId: string, status: string) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, status: status as Message["status"] } : m))
+    )
+  }, [])
+
+  const { otherTyping: clinicTyping, sendTyping } = useChatChannel({
+    conversationId: selectedConversation?.id || null,
+    userType: "patient",
+    onNewMessage: handleNewMessage,
+    onStatusChange: handleStatusChange,
+    enabled: !!selectedConversation,
+  })
+
+  // ── Fallback polling ─────────────────────────────────────────────
+  useEffect(() => {
+    if (!selectedConversation) return
+    const interval = setInterval(() => fetchMessagesForConversation(selectedConversation.id), 30000)
+    return () => clearInterval(interval)
+  }, [selectedConversation])
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [messages])
+
+  // Auto-select conversation from URL param
+  useEffect(() => {
+    if (conversationIdParam && conversations.length > 0 && !autoSelectedRef.current) {
+      const conv = conversations.find((c) => c.id === conversationIdParam)
+      if (conv) {
+        autoSelectedRef.current = true
+        selectConversation(conv)
+      }
+    }
+  }, [conversations, conversationIdParam])
+
+  // ── Data fetching ────────────────────────────────────────────────
+  async function fetchConversations() {
+    try {
+      const response = await fetch("/api/patient/conversations")
+      if (response.ok) {
+        const data = await response.json()
+        setConversations(data.conversations || [])
+      } else if (response.status === 401) {
+        router.replace("/patient/login")
+      }
+    } catch {
+      // Silently fail
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function fetchMessagesForConversation(conversationId: string) {
+    try {
+      const response = await fetch(`/api/patient/conversations/${conversationId}/messages`)
+      if (response.ok) {
+        const data = await response.json()
+        setMessages(data.messages || [])
+        setActiveClinicId(data.clinicId || null)
+        setActiveLeadId(data.leadId || null)
+      }
+    } catch {
+      // Silently fail
+    }
+  }
+
+  async function selectConversation(conv: Conversation) {
+    setSelectedConversation(conv)
+    setIsLoadingMessages(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`/api/patient/conversations/${conv.id}/messages`)
+      if (response.ok) {
+        const data = await response.json()
+        setMessages(data.messages || [])
+        setActiveClinicId(data.clinicId || null)
+        setActiveLeadId(data.leadId || null)
+        // Mark as read locally
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === conv.id ? { ...c, unread_by_patient: false, unread_count_patient: 0 } : c
+          )
+        )
+      }
+    } catch {
+      setError("Failed to load messages")
+    } finally {
+      setIsLoadingMessages(false)
+    }
+  }
+
+  async function handleSend(e: React.FormEvent) {
+    e.preventDefault()
+    if (!selectedConversation || !newMessage.trim() || isSending) return
+
+    setIsSending(true)
+    setError(null)
+
+    try {
+      const response = await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadId: activeLeadId || selectedConversation.lead_id,
+          clinicId: activeClinicId || selectedConversation.clinic_id,
+          content: newMessage.trim(),
+          senderType: "patient",
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setMessages((prev) => [...prev, data.message])
+        setNewMessage("")
+        // Queue bot messages with typing delay
+        if (data.botMessages?.length) {
+          data.botMessages.forEach((botMsg: Message, i: number) => {
+            setTimeout(() => {
+              setMessages((prev) => {
+                if (prev.some((m) => m.id === botMsg.id)) return prev
+                return [...prev, botMsg].sort(
+                  (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                )
+              })
+            }, (i + 1) * 1500)
+          })
+        }
+      } else if (response.status === 403) {
+        setError("Please verify your email before sending messages.")
+      } else {
+        const errData = await response.json().catch(() => ({}))
+        setError(errData.error || "Failed to send message.")
+      }
+    } catch {
+      setError("Something went wrong. Please try again.")
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  const handleSignOut = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.replace("/patient/login")
+  }
+
+  // ── Formatting helpers ───────────────────────────────────────────
+  const formatTime = (date: string | null) => {
+    if (!date) return ""
+    const d = new Date(date)
+    if (isNaN(d.getTime())) return ""
+    const now = new Date()
+    const diffHours = (now.getTime() - d.getTime()) / (1000 * 60 * 60)
+    if (diffHours < 24) return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+    if (diffHours < 168) return d.toLocaleDateString("en-GB", { weekday: "short" })
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+  }
+
+  const formatMessageTime = (date: string) =>
+    new Date(date).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+
+  const formatDate = (date: string) => {
+    const d = new Date(date)
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+    if (d.toDateString() === today.toDateString()) return "Today"
+    if (d.toDateString() === yesterday.toDateString()) return "Yesterday"
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+  }
+
+  const StatusIcon = ({ status }: { status?: string }) => {
+    if (!status || status === "sent") return <Check className="h-2.5 w-2.5 text-[#777]" />
+    if (status === "delivered") return <CheckCheck className="h-2.5 w-2.5 text-[#777]" />
+    return <CheckCheck className="h-2.5 w-2.5 text-teal-500" />
+  }
+
+  const getClinicInitial = (name: string | undefined) => (name ? name.charAt(0).toUpperCase() : "C")
+
+  const totalUnread = conversations.reduce((sum, c) => sum + (c.unread_count_patient || 0), 0)
+
+  // Group messages by date
+  const groupedMessages = messages.reduce<Record<string, Message[]>>((groups, message) => {
+    const date = formatDate(message.created_at)
+    if (!groups[date]) groups[date] = []
+    groups[date].push(message)
+    return groups
+  }, {})
+
+  // ── Loading state ────────────────────────────────────────────────
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#f8f7f4] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#907EFF]" />
+      </div>
+    )
+  }
+
+  // ── Mobile: show chat full screen when conversation selected ─────
+  if (isMobile && selectedConversation) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        {/* Mobile chat header */}
+        <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
+          <button
+            onClick={() => setSelectedConversation(null)}
+            className="p-1 -ml-1 text-[#666] hover:text-[#1a1a1a]"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex-shrink-0 h-9 w-9 rounded-full bg-[#907EFF] flex items-center justify-center">
+              <span className="text-white text-sm font-semibold">
+                {getClinicInitial(selectedConversation.clinics?.name)}
+              </span>
+            </div>
+            <div className="min-w-0">
+              <Link
+                href={`/clinic/${selectedConversation.clinic_id}?leadId=${selectedConversation.lead_id}`}
+                className="font-semibold text-[#1a1a1a] text-sm truncate block hover:underline"
+              >
+                {selectedConversation.clinics?.name || "Clinic"}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3 bg-[#fafafa]">
+          {isLoadingMessages ? (
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="h-5 w-5 animate-spin text-[#999]" />
+            </div>
+          ) : (
+            renderMessages()
+          )}
+        </div>
+
+        {/* Typing indicator */}
+        {clinicTyping && (
+          <div className="px-3 py-1.5 bg-white">
+            <div className="flex items-center gap-2 text-[11px] text-[#999]">
+              <span className="flex gap-0.5">
+                <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              </span>
+              {selectedConversation.clinics?.name || "Clinic"} is typing...
+            </div>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="px-3 py-2 bg-red-50 border-t border-red-100">
+            <p className="text-xs text-red-600">{error}</p>
+          </div>
+        )}
+
+        {/* Input */}
+        <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white overflow-hidden">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => {
+                setNewMessage(e.target.value)
+                sendTyping()
+                if (error) setError(null)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSend(e)
+                }
+              }}
+              placeholder="Type a message..."
+              className="flex-1 min-w-0 text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
+              disabled={isSending}
+            />
+            <button
+              type="submit"
+              disabled={!newMessage.trim() || isSending}
+              className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#333] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isSending ? (
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    )
+  }
+
+  // ── Render messages helper ───────────────────────────────────────
+  function renderMessages() {
+    if (messages.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-center py-12">
+          <MessageCircle className="h-8 w-8 text-[#ccc] mb-2" />
+          <p className="text-sm font-medium text-[#666]">No messages yet</p>
+        </div>
+      )
+    }
+
+    return Object.entries(groupedMessages).map(([date, dateMessages]) => (
+      <div key={date}>
+        <div className="flex items-center justify-center mb-3">
+          <span className="text-[10px] text-[#999] bg-[#eee] px-2 py-0.5 rounded-full">{date}</span>
+        </div>
+        <div className="space-y-2">
+          {dateMessages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${
+                msg.sender_type === "patient"
+                  ? "justify-end"
+                  : msg.sender_type === "bot"
+                  ? "justify-center"
+                  : "justify-start"
+              }`}
+            >
+              {msg.sender_type === "bot" ? (
+                <div className="max-w-[90%] flex items-start gap-2 bg-gradient-to-r from-purple-50 to-teal-50 border border-purple-100/50 rounded-xl px-3 py-2">
+                  <Heart className="w-3 h-3 text-purple-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-[11px] text-[#555] whitespace-pre-wrap">{msg.content}</p>
+                </div>
+              ) : (
+                <div
+                  className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
+                    msg.sender_type === "patient"
+                      ? "bg-[#1a1a1a] text-white rounded-br-md"
+                      : "bg-white border border-[#e5e5e5] text-[#333] rounded-bl-md"
+                  }`}
+                >
+                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                  <div
+                    className={`flex items-center gap-1 mt-1 ${
+                      msg.sender_type === "patient" ? "text-[#999] justify-end" : "text-[#aaa]"
+                    }`}
+                  >
+                    <span className="text-[10px]">{formatMessageTime(msg.created_at)}</span>
+                    {msg.sender_type === "patient" && <StatusIcon status={msg.status} />}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    ))
+  }
+
+  // ── Desktop layout + mobile conversation list ────────────────────
+  return (
+    <div className="min-h-screen bg-[#f8f7f4]">
+      {/* Header */}
+      <header className="bg-white border-b sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="rounded-full bg-black p-2">
+                <Heart className="w-5 h-5 text-white fill-white" />
+              </div>
+              <span className="font-semibold text-xl">Pearlie</span>
+            </Link>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/patient/dashboard"
+              className="text-sm text-[#666] hover:text-[#1a1a1a] transition-colors hidden sm:block"
+            >
+              Dashboard
+            </Link>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-2 text-sm text-[#666] hover:text-[#1a1a1a] transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 py-6">
+        {/* Mobile: back link */}
+        <div className="mb-4 lg:hidden">
+          <Link
+            href="/patient/dashboard"
+            className="flex items-center gap-1 text-sm text-[#666] hover:text-[#1a1a1a]"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back to dashboard
+          </Link>
+        </div>
+
+        <h1 className="text-2xl font-bold text-[#323141] mb-6 flex items-center gap-2">
+          <MessageCircle className="w-6 h-6 text-[#907EFF]" />
+          Messages
+          {totalUnread > 0 && (
+            <span className="bg-[#907EFF] text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+              {totalUnread}
+            </span>
+          )}
+        </h1>
+
+        {conversations.length === 0 ? (
+          <div className="bg-white rounded-xl border border-[#e5e5e5] p-12 text-center">
+            <MessageCircle className="h-12 w-12 text-[#ccc] mx-auto mb-3" />
+            <p className="text-[#666] font-medium">No conversations yet</p>
+            <p className="text-sm text-[#999] mt-1">
+              Message a clinic from your match results to start chatting.
+            </p>
+            <Link
+              href="/patient/dashboard"
+              className="inline-block mt-4 text-sm text-[#907EFF] hover:underline"
+            >
+              Go to dashboard
+            </Link>
+          </div>
+        ) : (
+          <div className="grid lg:grid-cols-[380px_1fr] gap-6">
+            {/* Conversation List */}
+            <div className="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden">
+              <div className="divide-y divide-[#e5e5e5]">
+                {conversations.map((conv) => (
+                  <button
+                    key={conv.id}
+                    onClick={() => selectConversation(conv)}
+                    className={`w-full p-4 text-left hover:bg-[#fafafa] transition-colors ${
+                      selectedConversation?.id === conv.id ? "bg-[#f5f3ff]" : ""
+                    } ${conv.unread_by_patient ? "bg-[#f8f5ff]" : ""}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[#907EFF] flex items-center justify-center">
+                        <span className="text-white text-sm font-semibold">
+                          {getClinicInitial(conv.clinics?.name)}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="font-semibold text-[#323141] text-sm truncate">
+                            {conv.clinics?.name || "Clinic"}
+                          </p>
+                          <span className="text-[10px] text-[#999] flex-shrink-0 ml-2">
+                            {formatTime(conv.last_message_at)}
+                          </span>
+                        </div>
+                        {conv.latest_message && (
+                          <p className="text-xs text-[#666] truncate mt-1">
+                            {conv.latest_message_sender === "patient" ? "You: " : ""}
+                            {conv.latest_message}
+                          </p>
+                        )}
+                      </div>
+                      {conv.unread_by_patient && (
+                        <div className="flex-shrink-0 mt-1">
+                          {(conv.unread_count_patient || 0) > 0 ? (
+                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#907EFF] text-white text-[10px] font-semibold px-1.5">
+                              {conv.unread_count_patient}
+                            </span>
+                          ) : (
+                            <div className="h-2.5 w-2.5 rounded-full bg-[#907EFF]" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Chat Panel (desktop only) */}
+            <div className="hidden lg:flex bg-white rounded-xl border border-[#e5e5e5] overflow-hidden flex-col" style={{ height: "calc(100vh - 220px)", minHeight: "500px" }}>
+              {!selectedConversation ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-[#999]">
+                  <MessageCircle className="h-12 w-12 text-[#ddd] mb-3" />
+                  <p className="font-medium text-[#666]">Select a conversation</p>
+                  <p className="text-sm">Choose a conversation to view messages</p>
+                </div>
+              ) : (
+                <>
+                  {/* Chat header */}
+                  <div className="flex-shrink-0 border-b border-[#e5e5e5] px-5 py-3 flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-[#907EFF] flex items-center justify-center">
+                      <span className="text-white text-sm font-semibold">
+                        {getClinicInitial(selectedConversation.clinics?.name)}
+                      </span>
+                    </div>
+                    <div>
+                      <Link
+                        href={`/clinic/${selectedConversation.clinic_id}?leadId=${selectedConversation.lead_id}`}
+                        className="font-semibold text-[#1a1a1a] hover:underline"
+                      >
+                        {selectedConversation.clinics?.name || "Clinic"}
+                      </Link>
+                      <p className="text-xs text-[#999]">
+                        <Link
+                          href={`/clinic/${selectedConversation.clinic_id}?leadId=${selectedConversation.lead_id}`}
+                          className="hover:underline"
+                        >
+                          View clinic profile
+                        </Link>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Messages */}
+                  <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#fafafa] min-h-0">
+                    {isLoadingMessages ? (
+                      <div className="flex items-center justify-center h-full">
+                        <Loader2 className="h-5 w-5 animate-spin text-[#999]" />
+                      </div>
+                    ) : (
+                      renderMessages()
+                    )}
+                  </div>
+
+                  {/* Typing indicator */}
+                  {clinicTyping && (
+                    <div className="px-4 py-1.5 bg-white">
+                      <div className="flex items-center gap-2 text-[11px] text-[#999]">
+                        <span className="flex gap-0.5">
+                          <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <span className="w-1 h-1 bg-[#999] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                        </span>
+                        {selectedConversation.clinics?.name || "Clinic"} is typing...
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Error */}
+                  {error && (
+                    <div className="px-4 py-2 bg-red-50 border-t border-red-100">
+                      <p className="text-xs text-red-600">{error}</p>
+                    </div>
+                  )}
+
+                  {/* Input */}
+                  <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 bg-white overflow-hidden">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newMessage}
+                        onChange={(e) => {
+                          setNewMessage(e.target.value)
+                          sendTyping()
+                          if (error) setError(null)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault()
+                            handleSend(e)
+                          }
+                        }}
+                        placeholder="Type a message..."
+                        className="flex-1 min-w-0 text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
+                        disabled={isSending}
+                      />
+                      <button
+                        type="submit"
+                        disabled={!newMessage.trim() || isSending}
+                        className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#333] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {isSending ? (
+                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  )
+}

@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { email } = await request.json()
+    const { email, next } = await request.json()
 
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 })
@@ -55,7 +55,14 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient()
     const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
-    const redirectTo = `${appUrl}/auth/callback?next=/patient/dashboard`
+
+    // Validate the next parameter against allowed prefixes (same as auth/callback)
+    const ALLOWED_PREFIXES = ["/clinic", "/intake", "/patient", "/match", "/admin", "/booking"]
+    const sanitizedNext = (
+      next && typeof next === "string" && next.startsWith("/") && !next.startsWith("//") &&
+      ALLOWED_PREFIXES.some((p: string) => next.startsWith(p))
+    ) ? next : "/patient/dashboard"
+    const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(sanitizedNext)}`
 
     // Check if user exists in Supabase auth; if not, create them first
     const { data: existingUsers } = await supabase.auth.admin.listUsers()

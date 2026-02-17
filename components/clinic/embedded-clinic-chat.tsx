@@ -224,7 +224,7 @@ export function EmbeddedClinicChat({
   if (!isOpen) return null
 
   return (
-    <div className={hideHeader ? "bg-white flex flex-col h-full" : "border border-[#e5e5e5] rounded-xl overflow-hidden bg-white"}>
+    <div className={hideHeader ? "bg-white flex flex-col h-full overflow-hidden" : "border border-[#e5e5e5] rounded-xl overflow-hidden bg-white"}>
       {/* Header */}
       {!hideHeader && (
         <div className="bg-[#1a1a1a] px-4 py-3 flex items-center justify-between">
@@ -326,6 +326,18 @@ export function EmbeddedClinicChat({
       </div>
       )}
 
+      {/* Inbox link - shown when conversation exists */}
+      {leadId && conversationId && (
+        <div className="px-3 py-1.5 bg-white border-t border-[#e5e5e5]">
+          <a
+            href={`/patient/messages?conversationId=${conversationId}`}
+            className="text-[11px] text-[#907EFF] hover:underline"
+          >
+            Open full conversation in inbox
+          </a>
+        </div>
+      )}
+
       {/* Typing indicator, error, and input - only shown when we have a leadId */}
       {leadId && (
         <>
@@ -348,7 +360,7 @@ export function EmbeddedClinicChat({
             </div>
           )}
 
-          <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white">
+          <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white overflow-hidden">
             <div className="flex items-center gap-2">
               <input
                 type="text"
