@@ -741,7 +741,7 @@ export default function PatientDashboard() {
   // ── Render ───────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#f8f7f4] flex flex-col">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#f8f7f4] flex flex-col">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
@@ -796,7 +796,7 @@ export default function PatientDashboard() {
       </header>
 
       {/* Main content: split view */}
-      <div className="flex-1 max-w-[1400px] w-full mx-auto flex lg:overflow-hidden" style={{ height: "calc(100vh - 57px)" }}>
+      <div className="flex-1 max-w-[1400px] w-full mx-auto flex lg:min-h-0">
 
         {/* ══════ LEFT COLUMN: Your Match ══════ */}
         <div className="flex-1 min-w-0 lg:max-w-[58%] overflow-y-auto px-3 py-4 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
@@ -985,12 +985,12 @@ export default function PatientDashboard() {
 
         {/* ══════ RIGHT COLUMN: Inbox ══════ */}
         <div className={`
-          lg:w-[42%] lg:flex-shrink-0 lg:border-l lg:border-border/60 lg:flex lg:flex-col lg:bg-[#f8f7f4] lg:h-full lg:overflow-hidden
+          lg:w-[42%] lg:flex-shrink-0 lg:border-l lg:border-border/60 lg:flex lg:flex-col lg:bg-[#f8f7f4] lg:overflow-hidden
           ${mobileInboxOpen
             ? "fixed inset-0 z-40 bg-[#f8f7f4] flex flex-col"
             : "hidden lg:flex"
           }
-        `} style={mobileInboxOpen ? { height: "calc(100vh - 57px)" } : undefined}>
+        `} style={mobileInboxOpen ? { height: "100vh", paddingTop: "57px" } : undefined}>
 
           {/* Mobile back button */}
           {mobileInboxOpen && (
