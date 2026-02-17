@@ -34,6 +34,7 @@ interface ClinicSidebarProps {
   userRole: "CLINIC_USER" | "CLINIC_ADMIN" | "CORPORATE_ADMIN"
   newLeadsCount?: number
   unrepliedCount?: number
+  unreadMessagesCount?: number
 }
 
 const navItems = [
@@ -42,6 +43,13 @@ const navItems = [
     label: "Dashboard",
     icon: LayoutDashboard,
     roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
+  },
+  {
+    href: "/clinic/inbox",
+    label: "Inbox",
+    icon: MessageCircle,
+    roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
+    badgeKey: "messages" as const,
   },
   {
     href: "/clinic/appointments",
@@ -76,7 +84,7 @@ const navItems = [
   },
 ]
 
-export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 0, unrepliedCount = 0 }: ClinicSidebarProps) {
+export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 0, unrepliedCount = 0, unreadMessagesCount = 0 }: ClinicSidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
 
@@ -145,7 +153,11 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
               (item.href !== "/clinic" && pathname.startsWith(item.href))
             const Icon = item.icon
 
-            const showRedDot = item.badge && unrepliedCount > 0
+            // Badge logic: Appointments shows unreplied/new leads, Inbox shows unread messages
+            const showAppointmentBadge = item.badge && unrepliedCount > 0
+            const showMessagesBadge = (item as any).badgeKey === "messages" && unreadMessagesCount > 0
+            const badgeCount = showAppointmentBadge ? unrepliedCount : showMessagesBadge ? unreadMessagesCount : 0
+            const hasBadge = showAppointmentBadge || showMessagesBadge
 
             const linkContent = (
               <Link
@@ -160,21 +172,21 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
               >
                 <div className="relative flex-shrink-0">
                   <Icon className="h-5 w-5" />
-                  {showRedDot && collapsed && (
+                  {hasBadge && collapsed && (
                     <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                      {unrepliedCount > 9 ? "9+" : unrepliedCount}
+                      {badgeCount > 9 ? "9+" : badgeCount}
                     </span>
                   )}
                 </div>
                 {!collapsed && (
                   <>
                     <span className="flex-1">{item.label}</span>
-                    {showRedDot && (
+                    {hasBadge && (
                       <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
-                        {unrepliedCount > 99 ? "99+" : unrepliedCount}
+                        {badgeCount > 99 ? "99+" : badgeCount}
                       </span>
                     )}
-                    {item.badge && !showRedDot && newLeadsCount > 0 && (
+                    {item.badge && !showAppointmentBadge && newLeadsCount > 0 && (
                       <Badge variant="secondary" className="h-5 px-1.5 text-xs">
                         {newLeadsCount}
                       </Badge>
@@ -190,12 +202,12 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
                   <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
                   <TooltipContent side="right" className="flex items-center gap-2">
                     {item.label}
-                    {item.badge && unrepliedCount > 0 && (
+                    {hasBadge && (
                       <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
-                        {unrepliedCount}
+                        {badgeCount}
                       </span>
                     )}
-                    {item.badge && unrepliedCount === 0 && newLeadsCount > 0 && (
+                    {item.badge && !showAppointmentBadge && newLeadsCount > 0 && (
                       <Badge variant="secondary" className="h-5 px-1.5 text-xs">
                         {newLeadsCount}
                       </Badge>
