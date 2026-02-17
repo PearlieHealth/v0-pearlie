@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, ChevronDown } from "lucide-react"
+import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users } from "lucide-react"
 import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import Image from "next/image"
@@ -19,8 +19,6 @@ import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config
 // Homepage treatment list derived from the canonical config (not hardcoded)
 const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT)
 
-const dynamicWords = ["perfect", "right", "trusted", "ideal"]
-
 const marqueeItems = [
   { text: "Trusted UK Clinics", icon: <Shield className="w-3.5 h-3.5" /> },
   { text: "Free Clinic Matching", icon: <Sparkles className="w-3.5 h-3.5" /> },
@@ -35,67 +33,12 @@ const marqueeItemsDark = [
   { text: "Free to Use", icon: <Sparkles className="w-3.5 h-3.5" /> },
 ]
 
-interface LastMatch {
-  matchId: string
-  clinicCount: number
-  treatment: string
-  createdAt: string
-}
-
 export default function Home() {
   const [showLoading, setShowLoading] = useState(() => {
     if (typeof window === 'undefined') return true
     return window.innerWidth >= 768 // Skip animation on mobile for instant content
   })
-  const [currentWordIndex, setCurrentWordIndex] = useState(0)
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-  const [lastMatch, setLastMatch] = useState<LastMatch | null>(null)
   const treatments = HOMEPAGE_TREATMENTS
-
-  // Check for previous match results in localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("pearlie_last_match")
-      if (stored) {
-        const data = JSON.parse(stored) as LastMatch
-        const MAX_MATCH_AGE_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
-        const age = Date.now() - new Date(data.createdAt).getTime()
-        if (age < MAX_MATCH_AGE_MS && data.matchId) {
-          setLastMatch(data)
-        } else {
-          // Clean up stale entry
-          localStorage.removeItem("pearlie_last_match")
-        }
-      }
-    } catch {
-      localStorage.removeItem("pearlie_last_match")
-    }
-  }, [])
-
-  // Check for reduced motion preference
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
-    setPrefersReducedMotion(mediaQuery.matches)
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
-    mediaQuery.addEventListener("change", handler)
-    return () => mediaQuery.removeEventListener("change", handler)
-  }, [])
-
-  // Rotate words every 4000ms (slower, less distracting)
-  useEffect(() => {
-    if (prefersReducedMotion) return
-    const interval = setInterval(() => {
-      setCurrentWordIndex((prev) => (prev + 1) % dynamicWords.length)
-    }, 4000)
-    return () => clearInterval(interval)
-  }, [prefersReducedMotion])
-
-  const featuredClinics = [
-    { name: "Smile Studio London", area: "Shoreditch", tags: ["Invisalign", "Cosmetic"] },
-    { name: "Camden Dental Care", area: "Camden", tags: ["NHS", "Emergency"] },
-    { name: "Chelsea Smiles", area: "Chelsea", tags: ["Veneers", "Whitening"] },
-    { name: "Brixton Dental Practice", area: "Brixton", tags: ["Family", "Implants"] },
-  ]
 
   return (
     <>
@@ -107,165 +50,82 @@ export default function Home() {
       <div className={`min-h-screen ${showLoading ? 'invisible' : 'visible'}`}>
           <MainNav />
 
-          {/* Hero section — background image with dark overlay */}
-          <section
-            className="relative min-h-[60vh] md:min-h-[75vh] lg:min-h-[90vh] flex items-center justify-center overflow-hidden pt-28 pb-16 md:pt-32 md:pb-24"
-          >
-            {/* Background image */}
-            <Image
-              src="/hero-clinic.webp"
-              alt="Modern dental clinic"
-              fill
-              className="object-cover"
-              priority
-            />
-            {/* Dark overlay for text readability */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/55" />
+          {/* Hero section — calm, split layout */}
+          <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 lg:pt-44 lg:pb-28 bg-gradient-to-b from-[#faf8f5] to-white overflow-hidden">
+            <div className="container mx-auto px-6 lg:px-8">
+              <div className="max-w-6xl mx-auto">
 
-            {/* Content */}
-            <div className="relative z-10 max-w-[880px] mx-auto px-6 text-center">
-              {/* Trust Badge */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="mb-8"
-              >
-                <span className="inline-flex items-center gap-2 text-sm text-white bg-white/15 backdrop-blur-xl px-5 py-2.5 rounded-full border border-white/20 shadow-lg">
-                  <Shield className="w-4 h-4 text-[#0fbcb0]" />
-                  Verified dental clinics across the UK
-                </span>
-              </motion.div>
+                {/* Desktop: Video LEFT, Text RIGHT */}
+                <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
 
-              {/* Headline */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.1 }}
-              >
-                <h1 className="text-4xl md:text-5xl lg:text-6xl leading-[1.15] font-bold text-[#F8F1E7] mb-4 md:mb-6">
-                  {/* Mobile: 2 lines - "Where [word]" / "dental care begins." */}
-                  <span className="md:hidden">
-                    <span className="block">
-                      Where{" "}
-                      <span className="inline-block relative">
-                        <AnimatePresence mode="wait">
-                          <motion.span
-                            key={currentWordIndex}
-                            className="inline-block text-[#0fbcb0] font-bold"
-                            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
-                            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-                          >
-                            {dynamicWords[currentWordIndex]}
-                          </motion.span>
-                        </AnimatePresence>
-                      </span>
-                    </span>
-                    <span className="block">dental care begins.</span>
-                  </span>
-                  {/* Desktop: 2 lines - "[word] dental care" stays on one line */}
-                  <span className="hidden md:block">
-                    <span className="block whitespace-nowrap">
-                      Where{" "}
-                      <span className="inline-block relative">
-                        <AnimatePresence mode="wait">
-                          <motion.span
-                            key={`desktop-${currentWordIndex}`}
-                            className="inline-block text-[#0fbcb0] font-bold"
-                            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
-                            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-                          >
-                            {dynamicWords[currentWordIndex]}
-                          </motion.span>
-                        </AnimatePresence>
-                      </span>{" "}
-                      dental care
-                    </span>
-                    <span className="block">begins.</span>
-                  </span>
-                </h1>
-              </motion.div>
-
-              {/* Subheadline */}
-              <motion.p
-                className="text-lg md:text-2xl text-white/90 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                We match you with the right dental clinic based on what actually matters to you.
-              </motion.p>
-
-              {/* CTAs */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-              >
-                {lastMatch ? (
-                  <div className="flex flex-col sm:flex-row items-stretch justify-center gap-4 max-w-xl mx-auto">
-                    <Link
-                      href={`/match/${lastMatch.matchId}`}
-                      className="flex-1 group flex items-center gap-4 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 shadow-md hover:shadow-lg hover:border-[#0fbcb0]/60 transition-all text-left"
+                  {/* Video — desktop left, mobile below text */}
+                  <motion.div
+                    className="order-2 lg:order-1 flex-1 w-full max-w-md lg:max-w-none"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
+                  >
+                    <video
+                      autoPlay
+                      muted
+                      playsInline
+                      className="w-full h-auto rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.06)]"
                     >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[15px] font-semibold text-[#222]">Return to previous match</p>
-                        <p className="text-xs text-[#666] mt-0.5 leading-snug">View the clinics we recommended in your last search</p>
-                      </div>
-                      <ArrowRight className="w-5 h-5 text-[#0fbcb0] flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                    </Link>
-                    <Link
-                      href="/intake"
-                      className="flex-1 group flex items-center gap-4 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 shadow-md hover:shadow-lg hover:border-[#0fbcb0]/60 transition-all text-left"
+                      <source src="/pearlie-hero.mp4" type="video/mp4" />
+                    </video>
+                  </motion.div>
+
+                  {/* Text content — desktop right, mobile first */}
+                  <div className="order-1 lg:order-2 flex-1 text-center lg:text-left">
+                    <motion.h1
+                      className="text-4xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[1.15] font-bold text-[#222] mb-6"
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 0.1 }}
                     >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[15px] font-semibold text-[#222]">Start a new search</p>
-                        <p className="text-xs text-[#666] mt-0.5 leading-snug">Answer a new set of questions and get matched with clinics</p>
-                      </div>
-                      <ArrowRight className="w-5 h-5 text-[#0fbcb0] flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                    </Link>
+                      When dental care finally feels right.
+                    </motion.h1>
+
+                    <motion.p
+                      className="text-lg md:text-xl text-[#666] mb-10 leading-relaxed max-w-lg mx-auto lg:mx-0"
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 0.2 }}
+                    >
+                      Matching you with the right clinic for your needs, preferences, and timing — not just whoever is closest.
+                    </motion.p>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 0.3 }}
+                      className="flex flex-col items-center lg:items-start gap-4"
+                    >
+                      <Button
+                        size="lg"
+                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white w-full sm:w-auto px-10 py-5 h-auto rounded-full font-semibold hover:shadow-lg transition-all shadow-md text-lg border-0"
+                        asChild
+                      >
+                        <Link href="/intake">
+                          Find your match
+                          <ArrowRight className="ml-2 w-5 h-5" />
+                        </Link>
+                      </Button>
+
+                      <button
+                        onClick={() => {
+                          document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
+                        }}
+                        className="text-sm text-[#999] hover:text-[#666] transition-colors font-medium"
+                      >
+                        How it works
+                      </button>
+                    </motion.div>
                   </div>
-                ) : (
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <Button
-                      size="lg"
-                      className="bg-[#0fbcb0] hover:bg-[#0da399] text-white w-full sm:w-auto px-10 py-5 sm:py-4 h-auto rounded-full font-semibold hover:shadow-xl transition-all shadow-lg text-lg sm:text-base border-0"
-                      asChild
-                    >
-                      <Link href="/intake">
-                        Find my clinic
-                        <ArrowRight className="ml-2 w-5 h-5" />
-                      </Link>
-                    </Button>
 
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="text-white hover:text-white w-full sm:w-auto px-10 py-5 sm:py-4 h-auto rounded-full transition-all border-2 border-white/70 bg-transparent hover:bg-white/10 text-lg sm:text-base font-medium"
-                      onClick={() => {
-                        document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
-                      }}
-                    >
-                      How it works
-                    </Button>
-                  </div>
-                )}
-              </motion.div>
-
+                </div>
+              </div>
             </div>
-
-            {/* Scroll indicator */}
-            <motion.div
-              className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden md:block"
-              animate={prefersReducedMotion ? {} : { y: [0, 8, 0] }}
-              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-            >
-              <ChevronDown className="w-6 h-6 text-white/40" />
-            </motion.div>
           </section>
 
           {/* Scrolling Marquee - right below hero */}
