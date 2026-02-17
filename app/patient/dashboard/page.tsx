@@ -349,18 +349,7 @@ export default function PatientDashboard() {
         "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
       )
     }
-    // Prevent body scroll behind the drawer
-    document.body.style.overflow = "hidden"
-    document.body.style.position = "fixed"
-    document.body.style.width = "100%"
-    document.body.style.top = `-${window.scrollY}px`
     return () => {
-      document.body.style.overflow = ""
-      document.body.style.position = ""
-      document.body.style.width = ""
-      const scrollY = document.body.style.top
-      document.body.style.top = ""
-      window.scrollTo(0, parseInt(scrollY || "0") * -1)
       // Restore normal viewport
       if (viewport) {
         viewport.setAttribute(
@@ -1187,7 +1176,7 @@ export default function PatientDashboard() {
 
       {/* ══════ MOBILE: Chat Bottom Sheet Drawer ══════ */}
       {isMobile && (
-        <Drawer open={mobileChatOpen} onOpenChange={setMobileChatOpen} handleOnly shouldScaleBackground={false}>
+        <Drawer open={mobileChatOpen} onOpenChange={setMobileChatOpen} shouldScaleBackground={false}>
           <DrawerContent className="!max-h-[85vh] !h-[85vh] !mt-0 flex flex-col rounded-t-2xl" style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <DrawerTitle className="sr-only">Chat with {chatHeaderName || "clinic"}</DrawerTitle>
 

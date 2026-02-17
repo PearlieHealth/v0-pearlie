@@ -455,47 +455,66 @@ export function BookingCard({
 
   return (
     <Card className="overflow-hidden transition-all duration-300 shadow-sm">
-      {/* Top section: image left, details right */}
-      <div className="flex flex-col sm:flex-row">
-        {/* Image + badge */}
-        <div className="relative flex-shrink-0 w-full sm:w-40 md:w-48 h-40 sm:h-auto sm:min-h-[220px] bg-muted">
-          {clinic.images && clinic.images.length > 0 ? (
-            <Image
-              src={clinic.images[0] || "/placeholder.svg"}
-              alt={clinic.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 640px) 100vw, 200px"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <MapPin className="w-10 h-10 text-muted-foreground" />
-            </div>
-          )}
-          {/* Badge overlay */}
-          <div className="absolute top-2.5 left-2.5 sm:top-2 sm:left-2">
-            <span className={`inline-block px-2.5 py-1 sm:py-0.5 rounded-full text-[11px] sm:text-xs font-semibold shadow-sm ${badgeStyle}`}>
-              {badge}
-            </span>
+      {/* Map header with clinic photo overlay */}
+      <div className="relative w-full h-[140px] sm:h-[160px] bg-[#e5e5e5]">
+        {clinic.latitude && clinic.longitude && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? (
+          <iframe
+            title={`${clinic.name} location`}
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}&zoom=15`}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#f0eef8] to-[#e8e5f0]">
+            <MapPin className="w-8 h-8 text-[#907EFF]/40" />
           </div>
-          {/* Match % overlay */}
-          {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-            <div className="absolute bottom-2.5 left-2.5 sm:bottom-2 sm:left-2">
-              <span className="inline-flex items-center gap-1 bg-white/95 backdrop-blur-sm text-primary font-semibold text-xs px-2.5 py-1 sm:py-0.5 rounded-full shadow-sm">
+        )}
+        {/* Badge overlay — top right */}
+        <div className="absolute top-2.5 right-2.5 sm:top-2 sm:right-2">
+          <span className={`inline-block px-2.5 py-1 sm:py-0.5 rounded-full text-[11px] sm:text-xs font-semibold shadow-sm ${badgeStyle}`}>
+            {badge}
+          </span>
+        </div>
+        {/* Clinic photo circle — bottom left, overlapping into details */}
+        <div className="absolute -bottom-6 left-3.5 sm:left-5 z-10">
+          <div className="relative h-14 w-14 sm:h-16 sm:w-16 rounded-full overflow-hidden border-[3px] border-white shadow-md bg-white">
+            {clinic.images && clinic.images.length > 0 ? (
+              <Image
+                src={clinic.images[0] || "/placeholder.svg"}
+                alt={clinic.name}
+                fill
+                className="object-cover"
+                sizes="64px"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#907EFF] to-[#7C6AE8]">
+                <span className="text-white text-lg font-bold">
+                  {clinic.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Details section */}
+      <div className="px-3.5 pt-9 pb-3 sm:px-5 sm:pt-10 sm:pb-4 space-y-2.5 sm:space-y-3">
+        {/* Name + match % + meta */}
+        <div>
+          <div className="flex items-start justify-between gap-2">
+            <h2 className="text-base sm:text-xl font-bold text-foreground leading-tight">
+              {clinic.name}
+            </h2>
+            {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
+              <span className="inline-flex items-center gap-1 bg-[#907EFF]/10 text-[#907EFF] font-semibold text-xs px-2.5 py-1 rounded-full flex-shrink-0">
                 <Sparkles className="w-3 h-3" />
                 {clinic.match_percentage}%
               </span>
-            </div>
-          )}
-        </div>
-
-        {/* Right side: details */}
-        <div className="flex-1 px-3.5 py-3 sm:p-5 space-y-2.5 sm:space-y-3">
-          {/* Name + meta */}
-          <div>
-            <h2 className="text-base sm:text-xl font-bold text-foreground leading-tight mb-1">
-              {clinic.name}
-            </h2>
+            )}
+          </div>
             <div className="flex items-center gap-2 sm:gap-2.5 text-xs text-muted-foreground flex-wrap">
               {clinic.rating > 0 && (
                 <div className="flex items-center gap-1">
@@ -602,7 +621,6 @@ export function BookingCard({
             </div>
           )}
         </div>
-      </div>
 
       {/* Bottom section: CTAs, match info, reasons, details */}
       <div className="px-3.5 sm:px-5 pb-3.5 sm:pb-5 space-y-3 sm:space-y-4">
