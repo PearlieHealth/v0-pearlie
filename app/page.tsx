@@ -107,196 +107,160 @@ export default function Home() {
       <div className={`min-h-screen ${showLoading ? 'invisible' : 'visible'}`}>
           <MainNav />
 
-          {/* Hero section — split layout with teal gradient + woman cutout */}
+          {/* Hero section — background image with dark overlay */}
           <section
-            className="relative min-h-[85vh] md:min-h-[80vh] lg:min-h-[90vh] overflow-hidden bg-gradient-to-br from-[#004443] via-[#00534f] to-[#003835]"
+            className="relative min-h-[60vh] md:min-h-[75vh] lg:min-h-[90vh] flex items-center justify-center overflow-hidden pt-28 pb-16 md:pt-32 md:pb-24"
           >
-            {/* Decorative background elements */}
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-[#0fbcb0]/[0.06] blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[#0fbcb0]/[0.04] blur-[80px] pointer-events-none" />
+            {/* Background image */}
+            <Image
+              src="/hero-clinic.webp"
+              alt="Modern dental clinic"
+              fill
+              className="object-cover"
+              priority
+            />
+            {/* Dark overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/55" />
 
-            <div className="relative z-10 container mx-auto px-6 lg:px-8 h-full">
-              <div className="flex flex-col lg:flex-row items-center lg:items-end min-h-[85vh] md:min-h-[80vh] lg:min-h-[90vh]">
+            {/* Content */}
+            <div className="relative z-10 max-w-[880px] mx-auto px-6 text-center">
+              {/* Trust Badge */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="mb-8"
+              >
+                <span className="inline-flex items-center gap-2 text-sm text-white bg-white/15 backdrop-blur-xl px-5 py-2.5 rounded-full border border-white/20 shadow-lg">
+                  <Shield className="w-4 h-4 text-[#0fbcb0]" />
+                  Verified dental clinics across the UK
+                </span>
+              </motion.div>
 
-                {/* Left side — Text content */}
-                <div className="flex-1 flex flex-col justify-center pt-32 pb-8 lg:pt-0 lg:pb-24 text-center lg:text-left max-w-xl lg:max-w-[560px]">
-                  {/* Trust Badge */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="mb-6 md:mb-8"
-                  >
-                    <span className="inline-flex items-center gap-2 text-sm text-white bg-white/10 backdrop-blur-xl px-5 py-2.5 rounded-full border border-white/15">
-                      <Shield className="w-4 h-4 text-[#0fbcb0]" />
-                      Verified dental clinics across the UK
+              {/* Headline */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.1 }}
+              >
+                <h1 className="text-4xl md:text-5xl lg:text-6xl leading-[1.15] font-bold text-[#F8F1E7] mb-4 md:mb-6">
+                  {/* Mobile: 2 lines - "Where [word]" / "dental care begins." */}
+                  <span className="md:hidden">
+                    <span className="block">
+                      Where{" "}
+                      <span className="inline-block relative">
+                        <AnimatePresence mode="wait">
+                          <motion.span
+                            key={currentWordIndex}
+                            className="inline-block text-[#0fbcb0] font-bold"
+                            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
+                            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+                          >
+                            {dynamicWords[currentWordIndex]}
+                          </motion.span>
+                        </AnimatePresence>
+                      </span>
                     </span>
-                  </motion.div>
+                    <span className="block">dental care begins.</span>
+                  </span>
+                  {/* Desktop: 2 lines - "[word] dental care" stays on one line */}
+                  <span className="hidden md:block">
+                    <span className="block whitespace-nowrap">
+                      Where{" "}
+                      <span className="inline-block relative">
+                        <AnimatePresence mode="wait">
+                          <motion.span
+                            key={`desktop-${currentWordIndex}`}
+                            className="inline-block text-[#0fbcb0] font-bold"
+                            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
+                            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+                          >
+                            {dynamicWords[currentWordIndex]}
+                          </motion.span>
+                        </AnimatePresence>
+                      </span>{" "}
+                      dental care
+                    </span>
+                    <span className="block">begins.</span>
+                  </span>
+                </h1>
+              </motion.div>
 
-                  {/* Headline */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.1 }}
-                  >
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl leading-[1.12] font-bold text-white mb-5 md:mb-6">
-                      {/* Mobile: 2 lines */}
-                      <span className="md:hidden">
-                        <span className="block">
-                          Where{" "}
-                          <span className="inline-block relative">
-                            <AnimatePresence mode="wait">
-                              <motion.span
-                                key={currentWordIndex}
-                                className="inline-block text-[#0fbcb0] font-bold"
-                                initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
-                                transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-                              >
-                                {dynamicWords[currentWordIndex]}
-                              </motion.span>
-                            </AnimatePresence>
-                          </span>
-                        </span>
-                        <span className="block">dental care begins.</span>
-                      </span>
-                      {/* Desktop: left-aligned */}
-                      <span className="hidden md:block">
-                        <span className="block whitespace-nowrap">
-                          Where{" "}
-                          <span className="inline-block relative">
-                            <AnimatePresence mode="wait">
-                              <motion.span
-                                key={`desktop-${currentWordIndex}`}
-                                className="inline-block text-[#0fbcb0] font-bold"
-                                initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
-                                transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-                              >
-                                {dynamicWords[currentWordIndex]}
-                              </motion.span>
-                            </AnimatePresence>
-                          </span>{" "}
-                          dental care
-                        </span>
-                        <span className="block">begins.</span>
-                      </span>
-                    </h1>
-                  </motion.div>
+              {/* Subheadline */}
+              <motion.p
+                className="text-lg md:text-2xl text-white/90 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                We match you with the right dental clinic based on what actually matters to you.
+              </motion.p>
 
-                  {/* Subheadline */}
-                  <motion.p
-                    className="text-lg md:text-xl text-white/80 mb-8 md:mb-10 leading-relaxed font-medium max-w-md mx-auto lg:mx-0"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                  >
-                    We match you with the right dental clinic based on what actually matters to you.
-                  </motion.p>
-
-                  {/* CTAs */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                  >
-                    {lastMatch ? (
-                      <div className="flex flex-col sm:flex-row items-stretch justify-center lg:justify-start gap-4 max-w-xl">
-                        <Link
-                          href={`/match/${lastMatch.matchId}`}
-                          className="flex-1 group flex items-center gap-4 bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-5 py-4 hover:bg-white/15 transition-all text-left"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[15px] font-semibold text-white">Return to previous match</p>
-                            <p className="text-xs text-white/60 mt-0.5 leading-snug">View the clinics we recommended in your last search</p>
-                          </div>
-                          <ArrowRight className="w-5 h-5 text-[#0fbcb0] flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                        </Link>
-                        <Link
-                          href="/intake"
-                          className="flex-1 group flex items-center gap-4 bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-5 py-4 hover:bg-white/15 transition-all text-left"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[15px] font-semibold text-white">Start a new search</p>
-                            <p className="text-xs text-white/60 mt-0.5 leading-snug">Answer a new set of questions and get matched with clinics</p>
-                          </div>
-                          <ArrowRight className="w-5 h-5 text-[#0fbcb0] flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                        </Link>
+              {/* CTAs */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+              >
+                {lastMatch ? (
+                  <div className="flex flex-col sm:flex-row items-stretch justify-center gap-4 max-w-xl mx-auto">
+                    <Link
+                      href={`/match/${lastMatch.matchId}`}
+                      className="flex-1 group flex items-center gap-4 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 shadow-md hover:shadow-lg hover:border-[#0fbcb0]/60 transition-all text-left"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[15px] font-semibold text-[#222]">Return to previous match</p>
+                        <p className="text-xs text-[#666] mt-0.5 leading-snug">View the clinics we recommended in your last search</p>
                       </div>
-                    ) : (
-                      <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                        <Button
-                          size="lg"
-                          className="bg-[#0fbcb0] hover:bg-[#0da399] text-white w-full sm:w-auto px-10 py-5 sm:py-4 h-auto rounded-full font-semibold hover:shadow-xl transition-all shadow-lg text-lg sm:text-base border-0"
-                          asChild
-                        >
-                          <Link href="/intake">
-                            Find my clinic
-                            <ArrowRight className="ml-2 w-5 h-5" />
-                          </Link>
-                        </Button>
-
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          className="text-white hover:text-white w-full sm:w-auto px-10 py-5 sm:py-4 h-auto rounded-full transition-all border-2 border-white/30 bg-transparent hover:bg-white/10 text-lg sm:text-base font-medium"
-                          onClick={() => {
-                            document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
-                          }}
-                        >
-                          How it works
-                        </Button>
+                      <ArrowRight className="w-5 h-5 text-[#0fbcb0] flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                    <Link
+                      href="/intake"
+                      className="flex-1 group flex items-center gap-4 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 shadow-md hover:shadow-lg hover:border-[#0fbcb0]/60 transition-all text-left"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[15px] font-semibold text-[#222]">Start a new search</p>
+                        <p className="text-xs text-[#666] mt-0.5 leading-snug">Answer a new set of questions and get matched with clinics</p>
                       </div>
-                    )}
-                  </motion.div>
-                </div>
-
-                {/* Right side — Woman cutout image */}
-                <motion.div
-                  className="hidden lg:flex flex-1 items-end justify-center relative self-end"
-                  initial={{ opacity: 0, x: 30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 1, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-                >
-                  <div className="relative w-full max-w-[480px] xl:max-w-[540px]">
-                    <Image
-                      src="/hero-woman-cutout.png"
-                      alt="Smiling patient"
-                      width={1024}
-                      height={1024}
-                      className="w-full h-auto object-contain"
-                      priority
-                    />
+                      <ArrowRight className="w-5 h-5 text-[#0fbcb0] flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
                   </div>
-                </motion.div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <Button
+                      size="lg"
+                      className="bg-[#0fbcb0] hover:bg-[#0da399] text-white w-full sm:w-auto px-10 py-5 sm:py-4 h-auto rounded-full font-semibold hover:shadow-xl transition-all shadow-lg text-lg sm:text-base border-0"
+                      asChild
+                    >
+                      <Link href="/intake">
+                        Find my clinic
+                        <ArrowRight className="ml-2 w-5 h-5" />
+                      </Link>
+                    </Button>
 
-                {/* Mobile — Woman image below text */}
-                <motion.div
-                  className="lg:hidden flex justify-center w-full -mb-1"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
-                >
-                  <div className="relative w-64 sm:w-80">
-                    <Image
-                      src="/hero-woman-cutout.png"
-                      alt="Smiling patient"
-                      width={1024}
-                      height={1024}
-                      className="w-full h-auto object-contain"
-                      priority
-                    />
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="text-white hover:text-white w-full sm:w-auto px-10 py-5 sm:py-4 h-auto rounded-full transition-all border-2 border-white/70 bg-transparent hover:bg-white/10 text-lg sm:text-base font-medium"
+                      onClick={() => {
+                        document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
+                      }}
+                    >
+                      How it works
+                    </Button>
                   </div>
-                </motion.div>
+                )}
+              </motion.div>
 
-              </div>
             </div>
 
             {/* Scroll indicator */}
             <motion.div
-              className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden md:block z-10"
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden md:block"
               animate={prefersReducedMotion ? {} : { y: [0, 8, 0] }}
               transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
             >
