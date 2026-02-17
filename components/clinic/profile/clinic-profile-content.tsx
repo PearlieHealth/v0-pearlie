@@ -214,7 +214,7 @@ export function ClinicProfileContent() {
     <div className="min-h-screen bg-white pb-24 lg:pb-8">
       {/* Preview banner */}
       {isPreview && (
-        <div className="bg-[#7C3AED] text-white sticky top-0 z-30">
+        <div className="bg-[#0fbcb0] text-white sticky top-0 z-30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
@@ -224,7 +224,7 @@ export function ClinicProfileContent() {
             <Button
               size="sm"
               variant="secondary"
-              className="h-7 text-xs bg-white text-[#7C3AED] hover:bg-white/90"
+              className="h-7 text-xs bg-white text-[#0fbcb0] hover:bg-white/90"
               onClick={() => { window.location.href = "/clinic/profile" }}
             >
               <Pencil className="h-3 w-3 mr-1.5" />
@@ -520,12 +520,12 @@ export function ClinicProfileContent() {
 
       {/* Mobile sticky CTA */}
       {!showMobileChat && !showMobilePicker && (
-        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-[#f8f5ff] to-white border-t border-[#907EFF]/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(144,126,255,0.12)]">
+        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-[#F8F1E7] to-white border-t border-[#0fbcb0]/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(15,188,176,0.12)]">
           <p className="text-xs text-[#666] text-center mb-2">No booking fees on Pearlie</p>
           <div className="flex gap-3 max-w-lg mx-auto">
             <Button
               size="lg"
-              className="flex-1 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] hover:from-[#805AD5] hover:to-[#D53F8C] text-white min-h-[48px] touch-manipulation shadow-md"
+              className="flex-1 bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation shadow-md"
               onClick={() => setShowMobileChat(true)}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
@@ -534,7 +534,7 @@ export function ClinicProfileContent() {
             <Button
               size="lg"
               variant="outline"
-              className="flex-1 border-[#907EFF]/30 bg-white hover:bg-[#f8f5ff] text-[#1a1a1a] min-h-[48px] touch-manipulation"
+              className="flex-1 border-[#0fbcb0]/30 bg-white hover:bg-[#F8F1E7] text-[#1a1a1a] min-h-[48px] touch-manipulation"
               onClick={() => setShowMobilePicker(true)}
             >
               <Calendar className="h-4 w-4 mr-2" />

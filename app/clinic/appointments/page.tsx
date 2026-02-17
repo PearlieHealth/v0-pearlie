@@ -470,7 +470,7 @@ export default function AppointmentsPage() {
               className={cn(
                 "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
                 activeTab === tab.key
-                  ? "border-[#7C3AED] text-[#7C3AED]"
+                  ? "border-[#0fbcb0] text-[#0fbcb0]"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               )}
             >
@@ -481,7 +481,7 @@ export default function AppointmentsPage() {
                   className={cn(
                     "text-xs px-2 py-0.5 rounded-full font-medium",
                     activeTab === tab.key
-                      ? "bg-[#F5F0FF] text-[#7C3AED]"
+                      ? "bg-[#F8F1E7] text-[#0fbcb0]"
                       : "bg-muted text-muted-foreground"
                   )}
                 >
@@ -506,7 +506,7 @@ export default function AppointmentsPage() {
             variant={showFilters ? "default" : "outline"}
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className={cn("gap-1.5", showFilters ? "bg-[#7C3AED] hover:bg-[#6D28D9] text-white" : "bg-transparent")}
+            className={cn("gap-1.5", showFilters ? "bg-[#0fbcb0] hover:bg-[#0da399] text-white" : "bg-transparent")}
           >
             <Filter className="w-4 h-4" />
             Filters
@@ -588,10 +588,10 @@ export default function AppointmentsPage() {
 
       {/* Bulk Actions Bar */}
       {selectedLeads.size > 0 && (
-        <div className="flex items-center justify-between bg-[#F5F0FF] border border-[#7C3AED]/20 rounded-lg px-4 py-3">
+        <div className="flex items-center justify-between bg-[#F8F1E7] border border-[#0fbcb0]/20 rounded-lg px-4 py-3">
           <div className="flex items-center gap-2">
-            <CheckSquare className="w-4 h-4 text-[#7C3AED]" />
-            <span className="text-sm font-medium text-[#7C3AED]">
+            <CheckSquare className="w-4 h-4 text-[#0fbcb0]" />
+            <span className="text-sm font-medium text-[#0fbcb0]">
               {selectedLeads.size} selected
             </span>
             <Button
@@ -621,7 +621,7 @@ export default function AppointmentsPage() {
             </Select>
             <Button
               size="sm"
-              className="h-8 text-xs bg-[#7C3AED] hover:bg-[#6D28D9] text-white"
+              className="h-8 text-xs bg-[#0fbcb0] hover:bg-[#0da399] text-white"
               disabled={isBulkUpdating || !bulkAction}
               onClick={() => {
                 if (bulkAction) handleBulkStatusUpdate(bulkAction)
@@ -643,7 +643,7 @@ export default function AppointmentsPage() {
             leads={newRequests}
             actionLabel="Respond"
             actionIcon={<MessageSquare className="w-4 h-4" />}
-            actionColor="bg-[#7C3AED] hover:bg-[#6D28D9] text-white"
+            actionColor="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
             onAction={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
             onView={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
             showElapsed
@@ -659,7 +659,7 @@ export default function AppointmentsPage() {
             leads={needsScheduling}
             actionLabel="Schedule"
             actionIcon={<CalendarCheck className="w-4 h-4" />}
-            actionColor="bg-[#7C3AED] hover:bg-[#6D28D9] text-white"
+            actionColor="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
             onAction={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
             onView={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
             showElapsed
@@ -859,7 +859,7 @@ function LeadSection({
         <Checkbox
           checked={allSelected}
           onCheckedChange={() => onSelectAll(leadIds)}
-          className="data-[state=checked]:bg-[#7C3AED] data-[state=checked]:border-[#7C3AED]"
+          className="data-[state=checked]:bg-[#0fbcb0] data-[state=checked]:border-[#0fbcb0]"
         />
         <h3 className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
           {title} ({count})
@@ -879,8 +879,8 @@ function LeadSection({
                 key={lead.id}
                 className={cn(
                   "flex items-center justify-between p-4 hover:bg-muted/30 transition-colors",
-                  hasUnread && "bg-[#F5F0FF]/50",
-                  isSelected && "bg-[#F5F0FF]/80"
+                  hasUnread && "bg-[#F8F1E7]/50",
+                  isSelected && "bg-[#F8F1E7]/80"
                 )}
               >
                 <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -888,7 +888,7 @@ function LeadSection({
                     checked={isSelected}
                     onCheckedChange={() => onToggleSelect(lead.id)}
                     onClick={(e) => e.stopPropagation()}
-                    className="data-[state=checked]:bg-[#7C3AED] data-[state=checked]:border-[#7C3AED]"
+                    className="data-[state=checked]:bg-[#0fbcb0] data-[state=checked]:border-[#0fbcb0]"
                   />
                   <div>
                     <div className="flex items-center gap-2">
@@ -896,7 +896,7 @@ function LeadSection({
                         {lead.first_name} {lead.last_name}
                       </p>
                       {hasUnread && (
-                        <span className="w-2 h-2 rounded-full bg-[#7C3AED] flex-shrink-0" />
+                        <span className="w-2 h-2 rounded-full bg-[#0fbcb0] flex-shrink-0" />
                       )}
                       {hasReplied && !hasUnread && (
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-green-50 text-green-700 border-green-200">

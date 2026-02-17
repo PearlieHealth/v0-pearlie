@@ -156,7 +156,7 @@ export default function PatientDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f8f7f4] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#907EFF]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#0fbcb0]" />
       </div>
     )
   }
@@ -185,7 +185,7 @@ export default function PatientDashboard() {
           </Link>
           <div className="flex items-center gap-3">
             {totalUnread > 0 && (
-              <span className="bg-[#907EFF] text-white text-xs font-semibold px-2 py-1 rounded-full">
+              <span className="bg-[#0fbcb0] text-white text-xs font-semibold px-2 py-1 rounded-full">
                 {totalUnread} new
               </span>
             )}
@@ -203,23 +203,23 @@ export default function PatientDashboard() {
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         {/* Welcome */}
         <div>
-          <h1 className="text-2xl font-bold text-[#323141]">
+          <h1 className="text-2xl font-bold text-[#222]">
             Hi{data?.user?.name ? `, ${data.user.name.split(" ")[0]}` : ""}
           </h1>
-          <p className="text-[#323141]/70 mt-1">Here are your clinic matches and conversations.</p>
+          <p className="text-[#222]/70 mt-1">Here are your clinic matches and conversations.</p>
         </div>
 
         {/* Matches Section */}
         <section>
-          <h2 className="text-lg font-semibold text-[#323141] mb-4 flex items-center gap-2">
-            <Search className="w-5 h-5 text-[#907EFF]" />
+          <h2 className="text-lg font-semibold text-[#222] mb-4 flex items-center gap-2">
+            <Search className="w-5 h-5 text-[#0fbcb0]" />
             Your matches
           </h2>
 
           {(!data?.matches || data.matches.length === 0) ? (
             <Card className="p-8 text-center">
               <p className="text-muted-foreground mb-4">No matches yet.</p>
-              <Button asChild className="bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0">
+              <Button asChild className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0">
                 <Link href="/intake">Find your clinic match</Link>
               </Button>
             </Card>
@@ -232,7 +232,7 @@ export default function PatientDashboard() {
                     <Card className="p-5 hover:shadow-md transition-shadow cursor-pointer">
                       <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                          <p className="font-semibold text-[#323141]">
+                          <p className="font-semibold text-[#222]">
                             {lead?.treatment_interest || "Dental enquiry"}
                           </p>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -251,7 +251,7 @@ export default function PatientDashboard() {
                               })}
                             </span>
                           </div>
-                          <p className="text-sm text-[#907EFF] font-medium">
+                          <p className="text-sm text-[#0fbcb0] font-medium">
                             {match.clinic_ids?.length || 0} clinics matched
                           </p>
                         </div>
@@ -289,11 +289,11 @@ export default function PatientDashboard() {
 
         {/* Conversations Section */}
         <section>
-          <h2 className="text-lg font-semibold text-[#323141] mb-4 flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-[#907EFF]" />
+          <h2 className="text-lg font-semibold text-[#222] mb-4 flex items-center gap-2">
+            <MessageCircle className="w-5 h-5 text-[#0fbcb0]" />
             Your conversations
             {totalUnread > 0 && (
-              <span className="bg-[#907EFF] text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+              <span className="bg-[#0fbcb0] text-white text-xs font-semibold px-2 py-0.5 rounded-full">
                 {totalUnread}
               </span>
             )}
@@ -312,15 +312,15 @@ export default function PatientDashboard() {
                   key={conv.id}
                   href={`/clinic/${conv.clinic_id}?leadId=${conv.lead_id}`}
                 >
-                  <Card className={`p-5 hover:shadow-md transition-shadow cursor-pointer ${conv.unread_by_patient ? "border-[#907EFF]/30 bg-[#F8F5FF]/30" : ""}`}>
+                  <Card className={`p-5 hover:shadow-md transition-shadow cursor-pointer ${conv.unread_by_patient ? "border-[#0fbcb0]/30 bg-[#F8F1E7]/30" : ""}`}>
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-[#323141]">
+                          <p className="font-semibold text-[#222]">
                             {conv.clinics?.name || "Clinic"}
                           </p>
                           {conv.unread_by_patient && (
-                            <span className="w-2.5 h-2.5 rounded-full bg-[#907EFF]" />
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#0fbcb0]" />
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">

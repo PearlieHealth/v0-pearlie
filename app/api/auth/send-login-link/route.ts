@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
             </p>
 
             <div style="text-align: center; margin-bottom: 24px;">
-              <a href="${magicLink}" style="display: inline-block; background: linear-gradient(to right, #907EFF, #ED64A6); color: white; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 12px;">
+              <a href="${magicLink}" style="display: inline-block; background: #0fbcb0; color: white; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 12px;">
                 Sign in to Pearlie
               </a>
             </div>

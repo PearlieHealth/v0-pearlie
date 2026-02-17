@@ -214,7 +214,7 @@ export function DirectEnquiryForm({ clinicId, clinicName, onLeadCreated }: Direc
                 onClick={() => setUrgency(opt.value)}
                 className={`flex-1 text-[11px] py-1.5 px-2 rounded-full border transition-colors ${
                   urgency === opt.value
-                    ? "border-[#907EFF] bg-[#907EFF]/10 text-[#907EFF] font-medium"
+                    ? "border-[#0fbcb0] bg-[#0fbcb0]/10 text-[#0fbcb0] font-medium"
                     : "border-[#ddd] text-[#666] hover:border-[#bbb]"
                 }`}
               >

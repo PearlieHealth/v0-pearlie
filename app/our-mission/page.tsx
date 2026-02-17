@@ -79,7 +79,7 @@ function StatCard({
   return (
     <Card className="bg-white border-border/50 hover:shadow-md transition-shadow">
       <CardContent className="p-6">
-        <div className="text-3xl md:text-4xl font-bold text-[#9F7AEA] mb-2">{value}</div>
+        <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0] mb-2">{value}</div>
         <div className="text-lg font-semibold text-foreground mb-1">{label}</div>
         <p className="text-sm text-muted-foreground mb-3">{context}</p>
         <a 
@@ -102,7 +102,7 @@ function CareTierCard({
   tag,
   includes,
   promise,
-  tagColor = "bg-[#9F7AEA]"
+  tagColor = "bg-[#0fbcb0]"
 }: {
   title: string
   tag: string
@@ -111,7 +111,7 @@ function CareTierCard({
   tagColor?: string
 }) {
   return (
-    <Card className="bg-white border-2 border-border/50 hover:border-[#9F7AEA]/30 transition-all h-full">
+    <Card className="bg-white border-2 border-border/50 hover:border-[#0fbcb0]/30 transition-all h-full">
       <CardHeader className="pb-4">
         <Badge className={`${tagColor} text-white w-fit mb-2`}>{tag}</Badge>
         <CardTitle className="text-xl">{title}</CardTitle>
@@ -126,7 +126,7 @@ function CareTierCard({
           ))}
         </ul>
         <div className="pt-4 border-t border-border/50">
-          <p className="text-sm font-medium text-[#9F7AEA] italic">"{promise}"</p>
+          <p className="text-sm font-medium text-[#0fbcb0] italic">"{promise}"</p>
         </div>
       </CardContent>
     </Card>
@@ -190,13 +190,13 @@ export default function OurMissionPage() {
         <div 
           className="absolute inset-0 z-0"
           style={{
-            background: "linear-gradient(180deg, #F7F9F8 0%, #FEFEFE 50%, #F9F7FC 100%)"
+            background: "linear-gradient(180deg, #F8F1E7 0%, #ffffff 50%, #F8F1E7 100%)"
           }}
         />
-        <div 
+        <div
           className="absolute inset-0 z-0 opacity-40"
           style={{
-            background: "linear-gradient(135deg, var(--iridescent-pink) 0%, var(--iridescent-lavender) 50%, var(--iridescent-teal) 100%)"
+            background: "linear-gradient(135deg, #F8F1E7 0%, #ffffff 50%, rgba(15,188,176,0.1) 100%)"
           }}
         />
         
@@ -229,7 +229,7 @@ export default function OurMissionPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
-                className="bg-[#9F7AEA] hover:bg-[#805AD5] text-white px-8 py-6 h-auto rounded-full text-lg"
+                className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-8 py-6 h-auto rounded-full text-lg"
                 asChild
               >
                 <Link href="/intake">
@@ -240,7 +240,7 @@ export default function OurMissionPage() {
               <Button 
                 size="lg" 
                 variant="outline"
-                className="border-[#9F7AEA] text-[#9F7AEA] hover:bg-[#9F7AEA]/10 px-8 py-6 h-auto rounded-full text-lg bg-transparent"
+                className="border-[#0fbcb0] text-[#0fbcb0] hover:bg-[#0fbcb0]/10 px-8 py-6 h-auto rounded-full text-lg bg-transparent"
                 asChild
               >
                 <Link href="/for-clinics">
@@ -281,7 +281,7 @@ export default function OurMissionPage() {
             {/* Charts Section */}
             <div className="mt-16 grid md:grid-cols-2 gap-8">
               {/* Chart 1: What people do */}
-              <Card className="bg-[#F9F7FC] border-0">
+              <Card className="bg-[#F8F1E7] border-0">
                 <CardHeader>
                   <CardTitle className="text-lg">What people do when they can't get NHS dental care</CardTitle>
                 </CardHeader>
@@ -294,7 +294,7 @@ export default function OurMissionPage() {
                       </div>
                       <div className="h-8 bg-gray-200 rounded-full overflow-hidden">
                         <motion.div 
-                          className="h-full bg-[#9F7AEA] rounded-full"
+                          className="h-full bg-[#0fbcb0] rounded-full"
                           initial={{ width: 0 }}
                           whileInView={{ width: "69%" }}
                           transition={{ duration: 1, ease: "easeOut" }}
@@ -309,7 +309,7 @@ export default function OurMissionPage() {
                       </div>
                       <div className="h-8 bg-gray-200 rounded-full overflow-hidden">
                         <motion.div 
-                          className="h-full bg-[#ED64A6] rounded-full"
+                          className="h-full bg-[#dbc03a] rounded-full"
                           initial={{ width: 0 }}
                           whileInView={{ width: "26%" }}
                           transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
@@ -325,7 +325,7 @@ export default function OurMissionPage() {
               </Card>
 
               {/* Chart 2: Unmet need */}
-              <Card className="bg-[#F9F7FC] border-0">
+              <Card className="bg-[#F8F1E7] border-0">
                 <CardHeader>
                   <CardTitle className="text-lg">Unmet dental need in England</CardTitle>
                 </CardHeader>
@@ -338,7 +338,7 @@ export default function OurMissionPage() {
                       </div>
                       <div className="h-8 bg-gray-200 rounded-full overflow-hidden">
                         <motion.div 
-                          className="h-full bg-[#9F7AEA] rounded-full"
+                          className="h-full bg-[#0fbcb0] rounded-full"
                           initial={{ width: 0 }}
                           whileInView={{ width: "100%" }}
                           transition={{ duration: 1, ease: "easeOut" }}
@@ -353,7 +353,7 @@ export default function OurMissionPage() {
                       </div>
                       <div className="h-8 bg-gray-200 rounded-full overflow-hidden">
                         <motion.div 
-                          className="h-full bg-[#667EEA] rounded-full"
+                          className="h-full bg-[#3c8481] rounded-full"
                           initial={{ width: 0 }}
                           whileInView={{ width: "43%" }}
                           transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
@@ -368,7 +368,7 @@ export default function OurMissionPage() {
                       </div>
                       <div className="h-8 bg-gray-200 rounded-full overflow-hidden">
                         <motion.div 
-                          className="h-full bg-[#ED64A6] rounded-full"
+                          className="h-full bg-[#dbc03a] rounded-full"
                           initial={{ width: 0 }}
                           whileInView={{ width: "41%" }}
                           transition={{ duration: 1, ease: "easeOut", delay: 0.4 }}
@@ -389,7 +389,7 @@ export default function OurMissionPage() {
       </section>
 
       {/* What the Care Fund Covers */}
-      <section className="py-16 md:py-24 bg-[#F9F7FC]">
+      <section className="py-16 md:py-24 bg-[#F8F1E7]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
@@ -416,7 +416,7 @@ export default function OurMissionPage() {
                   "Advice + prescriptions when clinically indicated"
                 ]}
                 promise="Relief and stabilisation — not a full treatment plan."
-                tagColor="bg-[#9F7AEA]"
+                tagColor="bg-[#0fbcb0]"
               />
               
               <CareTierCard
@@ -430,7 +430,7 @@ export default function OurMissionPage() {
                   "One visit only"
                 ]}
                 promise="One visit. One problem. Clinician-led."
-                tagColor="bg-[#667EEA]"
+                tagColor="bg-[#3c8481]"
               />
               
               <CareTierCard
@@ -511,10 +511,10 @@ export default function OurMissionPage() {
                 }
               ].map((item, i) => (
                 <div key={i} className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-[#9F7AEA]/10 flex items-center justify-center mx-auto mb-4">
-                    <item.icon className="w-8 h-8 text-[#9F7AEA]" />
+                  <div className="w-16 h-16 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center mx-auto mb-4">
+                    <item.icon className="w-8 h-8 text-[#0fbcb0]" />
                   </div>
-                  <div className="text-sm text-[#9F7AEA] font-semibold mb-2">Step {item.step}</div>
+                  <div className="text-sm text-[#0fbcb0] font-semibold mb-2">Step {item.step}</div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
                   <p className="text-sm text-muted-foreground">{item.description}</p>
                   {i < 2 && (
@@ -528,7 +528,7 @@ export default function OurMissionPage() {
       </section>
 
       {/* Live Impact Section */}
-      <section className="py-16 md:py-24 bg-[#F9F7FC]">
+      <section className="py-16 md:py-24 bg-[#F8F1E7]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
@@ -548,7 +548,7 @@ export default function OurMissionPage() {
               ].map((item, i) => (
                 <Card key={i} className="bg-white border-0 shadow-sm text-center">
                   <CardContent className="py-6">
-                    <div className="text-3xl md:text-4xl font-bold text-[#9F7AEA]">
+                    <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">
                       <AnimatedCounter target={item.value} suffix={item.suffix} />
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">{item.label}</div>
@@ -587,7 +587,7 @@ export default function OurMissionPage() {
                     "Full clinical decision-making control"
                   ].map((benefit, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-[#9F7AEA] mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
                       <span className="text-foreground">{benefit}</span>
                     </li>
                   ))}
@@ -595,7 +595,7 @@ export default function OurMissionPage() {
 
                 <Button 
                   size="lg" 
-                  className="bg-[#9F7AEA] hover:bg-[#805AD5] text-white px-8 rounded-full"
+                  className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-8 rounded-full"
                   asChild
                 >
                   <Link href="/for-clinics">
@@ -606,7 +606,7 @@ export default function OurMissionPage() {
               </div>
 
               {/* Care Partner Badge Preview */}
-              <div className="bg-[#F9F7FC] rounded-2xl p-8">
+              <div className="bg-[#F8F1E7] rounded-2xl p-8">
                 <Card className="bg-white shadow-lg">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
@@ -616,14 +616,14 @@ export default function OurMissionPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold text-foreground">Example Dental Practice</h3>
-                          <Badge className="bg-[#9F7AEA] text-white text-xs">
+                          <Badge className="bg-[#0fbcb0] text-white text-xs">
                             <Heart className="w-3 h-3 mr-1 fill-white" />
                             Care Partner
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground mb-2">London, UK</p>
-                        <p className="text-xs text-muted-foreground bg-[#F9F7FC] rounded-lg p-3 mt-3">
-                          <Shield className="w-4 h-4 text-[#9F7AEA] inline mr-1" />
+                        <p className="text-xs text-muted-foreground bg-[#F8F1E7] rounded-lg p-3 mt-3">
+                          <Shield className="w-4 h-4 text-[#0fbcb0] inline mr-1" />
                           This clinic allocates limited Care Fund appointments for essential dental care for patients in need.
                         </p>
                       </div>
@@ -637,7 +637,7 @@ export default function OurMissionPage() {
       </section>
 
       {/* Patient Qualification CTA */}
-      <section className="py-16 md:py-24 bg-[#9F7AEA]">
+      <section className="py-16 md:py-24 bg-[#0fbcb0]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -649,7 +649,7 @@ export default function OurMissionPage() {
             
             <Button 
               size="lg" 
-              className="bg-white text-[#9F7AEA] hover:bg-gray-100 px-8 py-6 h-auto rounded-full text-lg"
+              className="bg-white text-[#0fbcb0] hover:bg-gray-100 px-8 py-6 h-auto rounded-full text-lg"
               asChild
             >
               <Link href="/intake">
@@ -685,7 +685,7 @@ export default function OurMissionPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="rounded-full bg-[#E8E4F0] p-1.5">
+              <div className="rounded-full bg-[#F8F1E7] p-1.5">
                 <Heart className="w-4 h-4 text-foreground fill-foreground" />
               </div>
               <span className="font-semibold text-foreground">Pearlie</span>

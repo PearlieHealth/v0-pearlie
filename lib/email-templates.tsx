@@ -33,7 +33,7 @@ export function generateInviteEmailHTML({
       <body style="font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background: #f9fafb;">
         <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
           <div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
-            <div style="background: linear-gradient(135deg, #2F7F77 0%, #3d9a91 100%); color: white; padding: 40px 30px; text-align: center;">
+            <div style="background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 40px 30px; text-align: center;">
               <h1 style="margin: 0; font-size: 28px; font-weight: 600;">Welcome to Pearlie</h1>
               <p style="margin: 10px 0 0; opacity: 0.9; font-size: 16px;">Your clinic portal is ready</p>
             </div>
@@ -48,7 +48,7 @@ export function generateInviteEmailHTML({
                 Click the button below to set up your account and start receiving patient leads.
               </p>
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${inviteUrl}" style="display: inline-block; background: #2F7F77; color: white !important; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Set Up Your Account</a>
+                <a href="${inviteUrl}" style="display: inline-block; background: #0fbcb0; color: white !important; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Set Up Your Account</a>
               </div>
               <div style="margin-top: 30px; padding: 20px; background: #f3f4f6; border-radius: 8px; font-size: 14px; color: #6b7280; word-break: break-all;">
                 <strong>Or copy this link:</strong><br>
@@ -62,7 +62,7 @@ export function generateInviteEmailHTML({
           </div>
           <div style="text-align: center; padding: 30px; color: #9ca3af; font-size: 14px;">
             <p>Pearlie - Better patients, better outcomes</p>
-            <p><a href="https://pearlie.org" style="color: #2F7F77; text-decoration: none;">pearlie.org</a></p>
+            <p><a href="https://pearlie.org" style="color: #0fbcb0; text-decoration: none;">pearlie.org</a></p>
           </div>
         </div>
       </body>
@@ -94,7 +94,7 @@ export function generatePasswordResetEmailHTML({
       <body style="font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background: #f9fafb;">
         <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
           <div style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
-            <div style="background: linear-gradient(135deg, #2F7F77 0%, #3d9a91 100%); color: white; padding: 40px 30px; text-align: center;">
+            <div style="background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 40px 30px; text-align: center;">
               <h1 style="margin: 0; font-size: 28px; font-weight: 600;">Reset Your Password</h1>
               <p style="margin: 10px 0 0; opacity: 0.9; font-size: 16px;">Pearlie Clinic Portal</p>
             </div>
@@ -107,7 +107,7 @@ export function generatePasswordResetEmailHTML({
                 Click the button below to create a new password.
               </p>
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${resetUrl}" style="display: inline-block; background: #2F7F77; color: white !important; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Reset Password</a>
+                <a href="${resetUrl}" style="display: inline-block; background: #0fbcb0; color: white !important; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Reset Password</a>
               </div>
               <div style="margin-top: 30px; padding: 20px; background: #f3f4f6; border-radius: 8px; font-size: 14px; color: #6b7280; word-break: break-all;">
                 <strong>Or copy this link:</strong><br>
@@ -121,7 +121,7 @@ export function generatePasswordResetEmailHTML({
           </div>
           <div style="text-align: center; padding: 30px; color: #9ca3af; font-size: 14px;">
             <p>Pearlie - Better patients, better outcomes</p>
-            <p><a href="https://pearlie.org" style="color: #2F7F77; text-decoration: none;">pearlie.org</a></p>
+            <p><a href="https://pearlie.org" style="color: #0fbcb0; text-decoration: none;">pearlie.org</a></p>
           </div>
         </div>
       </body>
