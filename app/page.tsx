@@ -83,7 +83,7 @@ export default function Home() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
                     >
-                      When dental care finally feels right.
+                      When dental care finally feels <span className="text-[#0fbcb0]">right</span>.
                     </motion.h1>
 
                     <motion.p
