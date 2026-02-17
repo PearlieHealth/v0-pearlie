@@ -4,13 +4,11 @@ import { useEffect, useState, useRef, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
-import { useIsMobile } from "@/hooks/use-mobile"
 import {
   Heart,
   Loader2,
   MessageCircle,
   Send,
-  ArrowLeft,
   LogOut,
   Check,
   CheckCheck,
@@ -43,7 +41,7 @@ export default function PatientMessagesPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const conversationIdParam = searchParams?.get("conversationId")
-  const isMobile = useIsMobile()
+  const [isMobile, setIsMobile] = useState(false)
 
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
@@ -58,6 +56,15 @@ export default function PatientMessagesPage() {
   // Store clinicId and leadId from the messages API response
   const [activeClinicId, setActiveClinicId] = useState<string | null>(null)
   const [activeLeadId, setActiveLeadId] = useState<string | null>(null)
+
+  // ── Match lg: breakpoint (1024px) for mobile/tablet layout ──────
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 1023px)")
+    const onChange = () => setIsMobile(mql.matches)
+    onChange()
+    mql.addEventListener("change", onChange)
+    return () => mql.removeEventListener("change", onChange)
+  }, [])
 
   // ── Auth check ───────────────────────────────────────────────────
   useEffect(() => {
@@ -281,7 +288,7 @@ export default function PatientMessagesPage() {
   // ── Loading state ────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f8f7f4] flex items-center justify-center">
+      <div className="flex items-center justify-center h-[100dvh] bg-[#f8f7f4]">
         <Loader2 className="w-8 h-8 animate-spin text-[#907EFF]" />
       </div>
     )
@@ -290,7 +297,7 @@ export default function PatientMessagesPage() {
   // ── Mobile: show chat full screen when conversation selected ─────
   if (isMobile && selectedConversation) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="fixed inset-0 z-50 bg-white flex flex-col h-[100dvh]">
         {/* Mobile chat header */}
         <div className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
           <button
@@ -386,6 +393,98 @@ export default function PatientMessagesPage() {
     )
   }
 
+  // ── Mobile: conversation list (app-like, edge-to-edge) ──────────
+  if (isMobile) {
+    return (
+      <div className="flex flex-col h-[100dvh] bg-white">
+        {/* Compact header */}
+        <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
+          <div className="flex items-center gap-3">
+            <Link href="/patient/dashboard" className="p-1 -ml-1 text-[#666] hover:text-[#1a1a1a]">
+              <ChevronLeft className="h-5 w-5" />
+            </Link>
+            <h1 className="font-semibold text-[#323141] text-lg flex items-center gap-2">
+              Messages
+              {totalUnread > 0 && (
+                <span className="bg-[#907EFF] text-white text-[11px] font-semibold px-1.5 py-0.5 rounded-full">
+                  {totalUnread}
+                </span>
+              )}
+            </h1>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="p-2 text-[#666] hover:text-[#1a1a1a] transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+
+        {conversations.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
+            <MessageCircle className="h-10 w-10 text-[#ccc] mb-2" />
+            <p className="text-[#666] font-medium">No conversations yet</p>
+            <p className="text-sm text-[#999] mt-1">
+              Message a clinic from your match results to start chatting.
+            </p>
+            <Link href="/patient/dashboard" className="mt-4 text-sm text-[#907EFF] hover:underline">
+              Go to dashboard
+            </Link>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto">
+            <div className="divide-y divide-[#f0f0f0]">
+              {conversations.map((conv) => (
+                <button
+                  key={conv.id}
+                  onClick={() => selectConversation(conv)}
+                  className={`w-full px-4 py-3.5 text-left active:bg-[#f5f3ff] transition-colors ${
+                    conv.unread_by_patient ? "bg-[#faf8ff]" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 h-12 w-12 rounded-full bg-[#907EFF] flex items-center justify-center">
+                      <span className="text-white text-base font-semibold">
+                        {getClinicInitial(conv.clinics?.name)}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className={`text-[15px] truncate ${conv.unread_by_patient ? "font-semibold text-[#1a1a1a]" : "font-medium text-[#323141]"}`}>
+                          {conv.clinics?.name || "Clinic"}
+                        </p>
+                        <span className="text-[11px] text-[#999] flex-shrink-0 ml-2">
+                          {formatTime(conv.last_message_at)}
+                        </span>
+                      </div>
+                      {conv.latest_message && (
+                        <p className={`text-[13px] truncate mt-0.5 ${conv.unread_by_patient ? "text-[#333]" : "text-[#888]"}`}>
+                          {conv.latest_message_sender === "patient" ? "You: " : ""}
+                          {conv.latest_message}
+                        </p>
+                      )}
+                    </div>
+                    {conv.unread_by_patient && (
+                      <div className="flex-shrink-0">
+                        {(conv.unread_count_patient || 0) > 0 ? (
+                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#907EFF] text-white text-[10px] font-semibold px-1.5">
+                            {conv.unread_count_patient}
+                          </span>
+                        ) : (
+                          <div className="h-2.5 w-2.5 rounded-full bg-[#907EFF]" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   // ── Render messages helper ───────────────────────────────────────
   function renderMessages() {
     if (messages.length === 0) {
@@ -445,7 +544,7 @@ export default function PatientMessagesPage() {
     ))
   }
 
-  // ── Desktop layout + mobile conversation list ────────────────────
+  // ── Desktop layout ──────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#f8f7f4]">
       {/* Header */}
@@ -478,17 +577,6 @@ export default function PatientMessagesPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6">
-        {/* Mobile: back link */}
-        <div className="mb-4 lg:hidden">
-          <Link
-            href="/patient/dashboard"
-            className="flex items-center gap-1 text-sm text-[#666] hover:text-[#1a1a1a]"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Back to dashboard
-          </Link>
-        </div>
-
         <h1 className="text-2xl font-bold text-[#323141] mb-6 flex items-center gap-2">
           <MessageCircle className="w-6 h-6 text-[#907EFF]" />
           Messages
@@ -514,7 +602,7 @@ export default function PatientMessagesPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid lg:grid-cols-[380px_1fr] gap-6">
+          <div className="grid grid-cols-[380px_1fr] gap-6">
             {/* Conversation List */}
             <div className="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden">
               <div className="divide-y divide-[#e5e5e5]">
@@ -566,7 +654,7 @@ export default function PatientMessagesPage() {
             </div>
 
             {/* Chat Panel (desktop only) */}
-            <div className="hidden lg:flex bg-white rounded-xl border border-[#e5e5e5] overflow-hidden flex-col" style={{ height: "calc(100vh - 220px)", minHeight: "500px" }}>
+            <div className="flex bg-white rounded-xl border border-[#e5e5e5] overflow-hidden flex-col" style={{ height: "calc(100vh - 220px)", minHeight: "500px" }}>
               {!selectedConversation ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-[#999]">
                   <MessageCircle className="h-12 w-12 text-[#ddd] mb-3" />
