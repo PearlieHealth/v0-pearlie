@@ -240,6 +240,7 @@ export default function PatientMessagesPage() {
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
+    try { localStorage.removeItem("pearlie_last_match") } catch {}
     router.replace("/patient/login")
   }
 
