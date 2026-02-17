@@ -171,6 +171,9 @@ export default function PatientDashboard() {
   const ctaRef = useRef<HTMLDivElement | null>(null)
   const [showStickyBar, setShowStickyBar] = useState(false)
 
+  // Track clinics where an appointment has already been requested (prevent spam)
+  const [appointmentRequestedClinics, setAppointmentRequestedClinics] = useState<Set<string>>(new Set())
+
   // "Pending chat" — when user clicks message on a clinic with no conversation yet.
   // We show the chat UI with this clinicId+leadId so they can type, and the
   // conversation is created lazily when they actually send the first message.
@@ -301,6 +304,18 @@ export default function PatientDashboard() {
   }, [messages])
 
   // Mobile: observe CTA buttons to show/hide sticky bottom bar
+  // Delay showing sticky bar after drawer closes to avoid overlap animation
+  const [stickyBarDeferred, setStickyBarDeferred] = useState(false)
+  useEffect(() => {
+    if (mobileChatOpen) {
+      setStickyBarDeferred(false)
+      return
+    }
+    // Wait for drawer close animation to finish before showing sticky bar
+    const timer = setTimeout(() => setStickyBarDeferred(true), 350)
+    return () => clearTimeout(timer)
+  }, [mobileChatOpen])
+
   useEffect(() => {
     if (!isMobile) { setShowStickyBar(false); return }
     const el = ctaRef.current
@@ -494,12 +509,54 @@ export default function PatientDashboard() {
     if (selectedClinicId) openConversationForClinic(selectedClinicId)
   }, [selectedClinicId, inboxConversations, allClinics, activeLeadId, isMobile])
 
-  const handleRequestAppointment = useCallback((message: string) => {
-    if (!selectedClinicId) return
-    // Pre-fill the message input, then open the chat
-    setNewMessage(message)
+  const handleRequestAppointment = useCallback(async (message: string) => {
+    if (!selectedClinicId || !activeLeadId) return
+
+    // Mark this clinic as having an appointment requested
+    setAppointmentRequestedClinics((prev) => new Set(prev).add(selectedClinicId))
+
+    // Open the chat UI first so the user sees it
     openConversationForClinic(selectedClinicId)
-  }, [selectedClinicId, inboxConversations, allClinics, activeLeadId, isMobile])
+
+    // Auto-send the message via API (same endpoint as normal chat)
+    try {
+      const res = await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadId: activeLeadId,
+          clinicId: selectedClinicId,
+          content: message,
+          senderType: "patient",
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setMessages((prev) => [...prev, data.message])
+
+        // If new conversation was created, update state
+        if (data.conversationId && !inboxConversations.find((c) => c.clinic_id === selectedClinicId)) {
+          setSelectedConvId(data.conversationId)
+          setPendingChatClinic(null)
+          fetchInbox()
+        }
+
+        // Handle bot auto-replies
+        if (data.botMessages?.length) {
+          data.botMessages.forEach((botMsg: Message, i: number) => {
+            setTimeout(() => {
+              setMessages((prev) => {
+                if (prev.some((m) => m.id === botMsg.id)) return prev
+                return [...prev, botMsg]
+              })
+            }, (i + 1) * 1500)
+          })
+        }
+      }
+    } catch (err) {
+      console.error("Failed to send appointment request:", err)
+    }
+  }, [selectedClinicId, activeLeadId, inboxConversations, allClinics, isMobile])
 
   const totalUnread = inboxConversations.reduce((sum, c) => sum + (c.unread_count_patient || 0), 0)
   const hasMoreMatches = data ? data.matches.length < (data.matchesTotal || 0) : false
@@ -657,6 +714,7 @@ export default function PatientDashboard() {
                 isTopMatch={isTopMatch}
                 onMessageClick={handleMessageClick}
                 onRequestAppointment={handleRequestAppointment}
+                appointmentRequested={appointmentRequestedClinics.has(selectedClinic.id)}
                 ctaRef={ctaRef}
               />
             </div>
@@ -1152,7 +1210,7 @@ export default function PatientDashboard() {
       )}
 
       {/* ══════ MOBILE: Sticky Bottom Action Bar ══════ */}
-      {isMobile && selectedClinic && !mobileChatOpen && (
+      {isMobile && selectedClinic && !mobileChatOpen && stickyBarDeferred && (
         <div
           className={`fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-border/40 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-4 py-3 pb-6 transition-all duration-300 ${
             showStickyBar ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"

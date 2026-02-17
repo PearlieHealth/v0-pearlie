@@ -76,6 +76,8 @@ interface BookingCardProps {
   onMessageClick: () => void
   /** Called when patient confirms an appointment request — receives the pre-filled message */
   onRequestAppointment?: (message: string) => void
+  /** Whether an appointment has already been requested for this clinic */
+  appointmentRequested?: boolean
   /** Ref to the CTA buttons container so the parent can track scroll visibility */
   ctaRef?: React.RefObject<HTMLDivElement | null>
 }
@@ -425,6 +427,7 @@ export function BookingCard({
   isTopMatch,
   onMessageClick,
   onRequestAppointment,
+  appointmentRequested,
   ctaRef,
 }: BookingCardProps) {
   const [showMoreDetails, setShowMoreDetails] = useState(false)
@@ -613,7 +616,7 @@ export function BookingCard({
             <MessageCircle className="w-4 h-4 mr-2" />
             Message clinic
           </Button>
-          {onRequestAppointment && (
+          {onRequestAppointment && !appointmentRequested && (
             <Button
               variant="outline"
               className="w-full h-10 rounded-xl text-sm font-medium border-[#907EFF]/30 text-[#907EFF] hover:bg-[#907EFF]/5 active:scale-[0.98] transition-transform"
@@ -627,6 +630,12 @@ export function BookingCard({
               <CalendarCheck className="w-4 h-4 mr-2" />
               {showApptPicker ? "Cancel" : "Request appointment"}
             </Button>
+          )}
+          {appointmentRequested && (
+            <p className="text-[11px] text-center text-green-600 font-medium flex items-center justify-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Appointment request sent
+            </p>
           )}
         </div>
 
@@ -836,7 +845,7 @@ export function BookingCard({
               <MessageCircle className="w-4 h-4 mr-2" />
               Message clinic
             </Button>
-            {onRequestAppointment && (
+            {onRequestAppointment && !appointmentRequested && (
               <Button
                 variant="outline"
                 className="flex-1 h-11 rounded-xl text-sm font-medium border-[#907EFF]/30 text-[#907EFF] hover:bg-[#907EFF]/5"
@@ -852,9 +861,16 @@ export function BookingCard({
               </Button>
             )}
           </div>
-          <p className="text-xs text-center text-muted-foreground">
-            No pressure — ask a question or request an appointment.
-          </p>
+          {appointmentRequested ? (
+            <p className="text-xs text-center text-green-600 font-medium flex items-center justify-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Appointment request sent — the clinic will confirm availability.
+            </p>
+          ) : (
+            <p className="text-xs text-center text-muted-foreground">
+              No pressure — ask a question or request an appointment.
+            </p>
+          )}
 
           {/* Desktop: Appointment picker */}
           {showApptPicker && onRequestAppointment && (
