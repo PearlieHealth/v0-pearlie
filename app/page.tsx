@@ -260,14 +260,6 @@ export default function Home() {
                 )}
               </motion.div>
 
-              <motion.p
-                className="text-sm text-white/70 mt-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-              >
-                Free • No sign-up required
-              </motion.p>
             </div>
 
             {/* Scroll indicator */}
@@ -279,6 +271,9 @@ export default function Home() {
               <ChevronDown className="w-6 h-6 text-white/40" />
             </motion.div>
           </section>
+
+          {/* Scrolling Marquee - right below hero */}
+          <ScrollingMarquee items={marqueeItems} speed={35} />
 
           {/* Trust bar - standalone section */}
           <section className="py-8 border-y border-border/30 bg-white">
@@ -311,9 +306,6 @@ export default function Home() {
               </div>
             </div>
           </section>
-
-          {/* Scrolling Marquee */}
-          <ScrollingMarquee items={marqueeItems} speed={35} />
 
           {/* Trusted clinics section */}
           <section className="py-16 md:py-28 lg:py-32 bg-[#F8F1E7]">
