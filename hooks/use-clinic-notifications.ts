@@ -223,8 +223,8 @@ export function useClinicNotifications({ clinicId, enabled = true }: UseClinicNo
                 ? `${msg.patientName}: ${(msg.content || "").substring(0, 60)}...`
                 : (msg.content || "New message from patient").substring(0, 80),
               action: {
-                label: "Open chat",
-                onClick: () => window.location.assign("/clinic/inbox"),
+                label: "View",
+                onClick: () => window.location.assign("/clinic/appointments"),
               },
               duration: 8000,
             })

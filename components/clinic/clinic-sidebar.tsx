@@ -18,7 +18,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Heart,
-  MessageCircle,
 } from "lucide-react"
 import {
   Tooltip,
@@ -43,13 +42,6 @@ const navItems = [
     label: "Dashboard",
     icon: LayoutDashboard,
     roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
-  },
-  {
-    href: "/clinic/inbox",
-    label: "Inbox",
-    icon: MessageCircle,
-    roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
-    badgeKey: "messages" as const,
   },
   {
     href: "/clinic/appointments",
@@ -153,11 +145,10 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
               (item.href !== "/clinic" && pathname.startsWith(item.href))
             const Icon = item.icon
 
-            // Badge logic: Appointments shows unreplied/new leads, Inbox shows unread messages
-            const showAppointmentBadge = item.badge && unrepliedCount > 0
-            const showMessagesBadge = (item as any).badgeKey === "messages" && unreadMessagesCount > 0
-            const badgeCount = showAppointmentBadge ? unrepliedCount : showMessagesBadge ? unreadMessagesCount : 0
-            const hasBadge = showAppointmentBadge || showMessagesBadge
+            // Badge logic: Appointments shows combined count of unreplied + unread messages
+            const combinedCount = unrepliedCount + unreadMessagesCount
+            const hasBadge = item.badge && combinedCount > 0
+            const badgeCount = combinedCount
 
             const linkContent = (
               <Link
@@ -186,7 +177,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
                         {badgeCount > 99 ? "99+" : badgeCount}
                       </span>
                     )}
-                    {item.badge && !showAppointmentBadge && newLeadsCount > 0 && (
+                    {item.badge && !hasBadge && newLeadsCount > 0 && (
                       <Badge variant="secondary" className="h-5 px-1.5 text-xs">
                         {newLeadsCount}
                       </Badge>
@@ -207,7 +198,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
                         {badgeCount}
                       </span>
                     )}
-                    {item.badge && !showAppointmentBadge && newLeadsCount > 0 && (
+                    {item.badge && !hasBadge && newLeadsCount > 0 && (
                       <Badge variant="secondary" className="h-5 px-1.5 text-xs">
                         {newLeadsCount}
                       </Badge>

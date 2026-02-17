@@ -62,7 +62,10 @@ interface Lead {
     id: string
     last_message_at: string
     unread_by_clinic: boolean
+    unread_count_clinic?: number
     clinic_first_reply_at: string | null
+    latest_message?: string | null
+    latest_message_sender?: string | null
   }
 }
 
@@ -152,7 +155,7 @@ export default function AppointmentsPage() {
         .order("created_at", { ascending: false }),
       supabase
         .from("conversations")
-        .select("id, lead_id, last_message_at, unread_by_clinic, clinic_first_reply_at")
+        .select("id, lead_id, last_message_at, unread_by_clinic, unread_count_clinic, clinic_first_reply_at")
         .eq("clinic_id", cId),
     ])
 
@@ -206,7 +209,40 @@ export default function AppointmentsPage() {
 
     const statusMap = new Map(statuses?.map((s) => [s.lead_id, s]) || [])
     const bookingMap = new Map(bookings?.map((b) => [b.lead_id, b]) || [])
-    const convMap = new Map((allConversations || []).map((c) => [c.lead_id, c]))
+
+    // Fetch latest message per conversation for previews
+    const convIds = (allConversations || []).map((c) => c.id)
+    const latestMessageMap = new Map<string, { content: string; sender_type: string }>()
+    if (convIds.length > 0) {
+      // Fetch the most recent message per conversation using a batch approach
+      const { data: recentMessages } = await supabase
+        .from("messages")
+        .select("conversation_id, content, sender_type, created_at")
+        .in("conversation_id", convIds)
+        .order("created_at", { ascending: false })
+
+      // Deduplicate to get only the latest per conversation
+      for (const msg of recentMessages || []) {
+        if (!latestMessageMap.has(msg.conversation_id)) {
+          latestMessageMap.set(msg.conversation_id, {
+            content: (msg.content || "").substring(0, 100),
+            sender_type: msg.sender_type,
+          })
+        }
+      }
+    }
+
+    // Build conversation map with latest message attached
+    const convMap = new Map(
+      (allConversations || []).map((c) => {
+        const latestMsg = latestMessageMap.get(c.id)
+        return [c.lead_id, {
+          ...c,
+          latest_message: latestMsg?.content || null,
+          latest_message_sender: latestMsg?.sender_type || null,
+        }]
+      })
+    )
 
     // Build leads from match_results
     const matchLeads = (matchResults || [])
@@ -332,9 +368,9 @@ export default function AppointmentsPage() {
   const todoCount = newRequests.length + needsScheduling.length + needsConfirming.length
 
   const tabs = [
-    { key: "todos" as Tab, label: "To Do's", count: todoCount, icon: Inbox },
-    { key: "upcoming" as Tab, label: "Upcoming", count: upcoming.length, icon: CalendarDays },
-    { key: "history" as Tab, label: "History", count: history.length, icon: History },
+    { key: "todos" as Tab, label: "New Requests", count: todoCount, icon: Inbox },
+    { key: "upcoming" as Tab, label: "Scheduled", count: upcoming.length, icon: CalendarDays },
+    { key: "history" as Tab, label: "Completed", count: history.length, icon: History },
   ]
 
   // Bulk actions
@@ -445,7 +481,7 @@ export default function AppointmentsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Appointments</h1>
           <p className="text-muted-foreground">
-            Manage patient requests, schedule appointments, and track progress
+            Patient requests, messages, scheduling, and progress — all in one place
           </p>
         </div>
         <Button
@@ -702,9 +738,9 @@ export default function AppointmentsPage() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                 <CalendarDays className="w-12 h-12 mb-3 text-muted-foreground/40" />
-                <p className="text-lg font-medium mb-1">No upcoming appointments</p>
+                <p className="text-lg font-medium mb-1">No scheduled appointments</p>
                 <p className="text-sm">
-                  Confirmed appointments will show here
+                  Confirmed appointments will appear here
                 </p>
               </CardContent>
             </Card>
@@ -759,9 +795,9 @@ export default function AppointmentsPage() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                 <History className="w-12 h-12 mb-3 text-muted-foreground/40" />
-                <p className="text-lg font-medium mb-1">No history yet</p>
+                <p className="text-lg font-medium mb-1">No completed cases yet</p>
                 <p className="text-sm">
-                  Past appointments and closed leads will appear here
+                  Attended appointments and closed cases will appear here
                 </p>
               </CardContent>
             </Card>
@@ -890,13 +926,15 @@ function LeadSection({
                     onClick={(e) => e.stopPropagation()}
                     className="data-[state=checked]:bg-[#7C3AED] data-[state=checked]:border-[#7C3AED]"
                   />
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-semibold">
                         {lead.first_name} {lead.last_name}
                       </p>
                       {hasUnread && (
-                        <span className="w-2 h-2 rounded-full bg-[#7C3AED] flex-shrink-0" />
+                        <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                          {lead.conversation?.unread_count_clinic || 1}
+                        </span>
                       )}
                       {hasReplied && !hasUnread && (
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-green-50 text-green-700 border-green-200">
@@ -910,10 +948,29 @@ function LeadSection({
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">{treatment}</p>
+                    {lead.conversation?.latest_message && (
+                      <p className={cn(
+                        "text-xs truncate mt-0.5 max-w-[300px]",
+                        hasUnread ? "text-[#323141] font-medium" : "text-muted-foreground"
+                      )}>
+                        <span className="text-muted-foreground">
+                          {lead.conversation.latest_message_sender === "clinic" ? "You: " : lead.conversation.latest_message_sender === "bot" ? "Pearlie: " : ""}
+                        </span>
+                        {lead.conversation.latest_message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
+                  {lead.conversation?.last_message_at && (
+                    <div className="flex items-center gap-1 text-muted-foreground" title="Has messages">
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span className="text-xs">
+                        {formatDistanceToNow(new Date(lead.conversation.last_message_at), { addSuffix: true })}
+                      </span>
+                    </div>
+                  )}
                   {showElapsed && (
                     <div className="flex items-center gap-1.5 min-w-[80px]">
                       <Clock className="w-4 h-4 text-muted-foreground" />
