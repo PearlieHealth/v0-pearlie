@@ -1,10 +1,12 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Heart,
   Loader2,
@@ -15,12 +17,19 @@ import {
   Search,
   ChevronRight,
   ChevronDown,
-  ChevronUp,
+  Star,
+  CheckCircle2,
+  Sparkles,
+  Send,
+  ArrowLeft,
 } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
+import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
 import { BookingCard } from "@/components/match/booking-card"
 import { OtherClinicCard } from "@/components/match/other-clinic-card"
-import { InlineChatPanel } from "@/components/match/inline-chat-panel"
+
+// ── Types ────────────────────────────────────────────────────────
 
 interface Lead {
   id: string
@@ -50,6 +59,8 @@ interface Conversation {
   unread_by_patient: boolean
   unread_count_patient: number
   clinics: { id: string; name: string; images?: string[] } | null
+  latest_message?: string | null
+  latest_message_sender?: string | null
 }
 
 interface DashboardData {
@@ -61,7 +72,7 @@ interface DashboardData {
   conversationsTotal: number
 }
 
-interface MatchClinic {
+interface ClinicInfo {
   id: string
   slug?: string
   name: string
@@ -103,24 +114,63 @@ interface MatchClinic {
   opening_hours?: Record<string, any>
 }
 
+interface Message {
+  id: string
+  content: string
+  sender_type: "patient" | "clinic" | "bot"
+  status?: "sent" | "delivered" | "read"
+  created_at: string
+}
+
 const PAGE_SIZE = 10
+
+const QUICK_PROMPTS = [
+  "Do you have availability today?",
+  "How much is an emergency appointment?",
+  "Can I come after work?",
+]
+
+// ── Component ────────────────────────────────────────────────────
 
 export default function PatientDashboard() {
   const router = useRouter()
+
+  // Core data
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [loadingMoreMatches, setLoadingMoreMatches] = useState(false)
-  const [loadingMoreConvs, setLoadingMoreConvs] = useState(false)
 
-  // Booking card state
-  const [matchClinics, setMatchClinics] = useState<MatchClinic[]>([])
+  // Clinic data for booking card
+  const [allClinics, setAllClinics] = useState<ClinicInfo[]>([])
   const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null)
-  const [activeMatchId, setActiveMatchId] = useState<string | null>(null)
-  const [activeLeadId, setActiveLeadId] = useState<string | null>(null)
+  const [showOtherClinics, setShowOtherClinics] = useState(false)
   const [loadingClinics, setLoadingClinics] = useState(false)
-  const [showOlderMatches, setShowOlderMatches] = useState(false)
-  const [showChat, setShowChat] = useState(false)
+  const [showMatchHistory, setShowMatchHistory] = useState(false)
+  const [loadingMoreMatches, setLoadingMoreMatches] = useState(false)
+  const [activeMatchId, setActiveMatchId] = useState<string | null>(null)
+
+  // Inbox state
+  const [inboxConversations, setInboxConversations] = useState<Conversation[]>([])
+  const [selectedConvId, setSelectedConvId] = useState<string | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [loadingMessages, setLoadingMessages] = useState(false)
+  const [newMessage, setNewMessage] = useState("")
+  const [isSending, setIsSending] = useState(false)
+  const [mobileInboxOpen, setMobileInboxOpen] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+
+  const selectedConv = inboxConversations.find((c) => c.id === selectedConvId) || null
+
+  // Derived: selected clinic and other clinics
+  const selectedClinic = allClinics.find((c) => c.id === selectedClinicId) || null
+  const otherClinics = allClinics.filter((c) => c.id !== selectedClinicId)
+  const isTopMatch = selectedClinicId === allClinics[0]?.id
+  const latestMatch = data?.matches?.[0] || null
+  const latestMatchLead = latestMatch ? data?.leads?.find((l) => l.id === latestMatch.lead_id) : null
+  const activeLeadId = latestMatch?.lead_id || null
+
+  // ── Data fetching ────────────────────────────────────────────
 
   useEffect(() => {
     fetchDashboard()
@@ -130,29 +180,22 @@ export default function PatientDashboard() {
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.replace("/patient/login")
-        return
-      }
+      if (!user) { router.replace("/patient/login"); return }
 
       const res = await fetch(`/api/patient/matches?matchesLimit=${PAGE_SIZE}&convsLimit=${PAGE_SIZE}`)
       if (!res.ok) {
-        if (res.status === 401) {
-          router.replace("/patient/login")
-          return
-        }
+        if (res.status === 401) { router.replace("/patient/login"); return }
         throw new Error("Failed to load dashboard")
       }
 
       const dashboardData = await res.json()
       setData(dashboardData)
 
-      // Auto-load clinic details for the most recent match
-      if (dashboardData.matches && dashboardData.matches.length > 0) {
-        const latestMatch = dashboardData.matches[0]
-        await fetchMatchClinics(latestMatch.id, latestMatch.lead_id)
-      }
+      const latest = dashboardData.matches?.[0]
+      if (latest) fetchClinicDetails(latest.id)
+
+      // Fetch inbox conversations (with message previews)
+      fetchInbox()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
@@ -160,90 +203,217 @@ export default function PatientDashboard() {
     }
   }
 
-  async function fetchMatchClinics(matchId: string, leadId: string) {
+  async function fetchClinicDetails(matchId: string) {
     setLoadingClinics(true)
     try {
       const res = await fetch(`/api/matches/${matchId}`)
-      if (!res.ok) return
-
-      const matchData = await res.json()
-      if (matchData.clinics && matchData.clinics.length > 0) {
-        // Filter to verified matched clinics (not directory/nearby listings)
-        const verifiedClinics = matchData.clinics.filter(
-          (c: MatchClinic) => c.tier !== "directory" && c.tier !== "nearby" && !c.is_directory_listing
-        )
-        const clinicsToUse = verifiedClinics.length > 0 ? verifiedClinics : matchData.clinics
-
-        setMatchClinics(clinicsToUse)
-        setSelectedClinicId(clinicsToUse[0]?.id || null)
-        setActiveMatchId(matchId)
-        setActiveLeadId(leadId)
+      if (res.ok) {
+        const matchData = await res.json()
+        const clinics = matchData.clinics || []
+        if (clinics.length > 0) {
+          // Prefer verified matched clinics
+          const verified = clinics.filter(
+            (c: ClinicInfo) => c.tier !== "directory" && c.tier !== "nearby" && !c.is_directory_listing
+          )
+          const clinicsToUse = verified.length > 0 ? verified : clinics
+          setAllClinics(clinicsToUse)
+          setSelectedClinicId(clinicsToUse[0]?.id || null)
+          setActiveMatchId(matchId)
+        }
       }
     } catch (err) {
-      console.error("Failed to load match clinics:", err)
+      console.error("Failed to fetch clinic details:", err)
     } finally {
       setLoadingClinics(false)
     }
   }
+
+  async function fetchInbox() {
+    try {
+      const res = await fetch("/api/patient/conversations")
+      if (res.ok) {
+        const { conversations } = await res.json()
+        setInboxConversations(conversations || [])
+
+        // Auto-select: most recent unread, or first conversation
+        if (!selectedConvId && conversations?.length > 0) {
+          const firstUnread = conversations.find((c: Conversation) => c.unread_by_patient)
+          setSelectedConvId(firstUnread?.id || conversations[0].id)
+        }
+      }
+    } catch {}
+  }
+
+  // ── Conversation messages ────────────────────────────────────
+
+  const fetchConvMessages = useCallback(async (convId: string) => {
+    setLoadingMessages(true)
+    try {
+      const res = await fetch(`/api/patient/conversations/${convId}/messages`)
+      if (res.ok) {
+        const data = await res.json()
+        setMessages(data.messages || [])
+        // Update inbox to mark as read locally
+        setInboxConversations((prev) =>
+          prev.map((c) =>
+            c.id === convId ? { ...c, unread_by_patient: false, unread_count_patient: 0 } : c
+          )
+        )
+      }
+    } catch (err) {
+      console.error("Failed to fetch messages:", err)
+    } finally {
+      setLoadingMessages(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (selectedConvId) fetchConvMessages(selectedConvId)
+  }, [selectedConvId, fetchConvMessages])
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
+  // ── Real-time chat ───────────────────────────────────────────
+
+  const handleNewRealtimeMessage = useCallback((msg: RealtimeMessage) => {
+    if (msg.conversation_id !== selectedConvId) {
+      // Update inbox unread count for other conversations
+      setInboxConversations((prev) =>
+        prev.map((c) =>
+          c.id === msg.conversation_id
+            ? {
+                ...c,
+                unread_by_patient: true,
+                unread_count_patient: (c.unread_count_patient || 0) + 1,
+                latest_message: msg.content?.substring(0, 100),
+                latest_message_sender: msg.sender_type,
+                last_message_at: msg.created_at,
+              }
+            : c
+        )
+      )
+      return
+    }
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === msg.id)) return prev
+      return [...prev, msg].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )
+    })
+  }, [selectedConvId])
+
+  const handleStatusChange = useCallback((msgId: string, status: string) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, status: status as Message["status"] } : m))
+    )
+  }, [])
+
+  const { otherTyping } = useChatChannel({
+    conversationId: selectedConvId,
+    userType: "patient",
+    onNewMessage: handleNewRealtimeMessage,
+    onStatusChange: handleStatusChange,
+    enabled: !!selectedConvId,
+  })
+
+  // ── Send message ─────────────────────────────────────────────
+
+  async function handleSend(e?: React.FormEvent) {
+    e?.preventDefault()
+    if (!newMessage.trim() || !selectedConv || isSending) return
+
+    setIsSending(true)
+    try {
+      const res = await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadId: selectedConv.lead_id,
+          clinicId: selectedConv.clinic_id,
+          content: newMessage.trim(),
+          senderType: "patient",
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setMessages((prev) => [...prev, data.message])
+        setNewMessage("")
+
+        // Update inbox preview
+        setInboxConversations((prev) =>
+          prev.map((c) =>
+            c.id === selectedConv.id
+              ? { ...c, latest_message: newMessage.trim().substring(0, 100), latest_message_sender: "patient", last_message_at: new Date().toISOString() }
+              : c
+          )
+        )
+
+        // Handle bot auto-replies with delay
+        if (data.botMessages?.length) {
+          data.botMessages.forEach((botMsg: Message, i: number) => {
+            setTimeout(() => {
+              setMessages((prev) => {
+                if (prev.some((m) => m.id === botMsg.id)) return prev
+                return [...prev, botMsg]
+              })
+            }, (i + 1) * 1500)
+          })
+        }
+      }
+    } catch (err) {
+      console.error("Failed to send message:", err)
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────
 
   async function loadMoreMatches() {
     if (!data) return
     setLoadingMoreMatches(true)
     try {
       const offset = data.matches.length
-      const res = await fetch(
-        `/api/patient/matches?matchesLimit=${PAGE_SIZE}&matchesOffset=${offset}&convsLimit=0`
-      )
+      const res = await fetch(`/api/patient/matches?matchesLimit=${PAGE_SIZE}&matchesOffset=${offset}&convsLimit=0`)
       if (res.ok) {
         const moreData = await res.json()
-        setData({
-          ...data,
-          matches: [...data.matches, ...(moreData.matches || [])],
-        })
+        setData({ ...data, matches: [...data.matches, ...(moreData.matches || [])] })
       }
-    } catch (err) {
-      console.error("Failed to load more matches:", err)
-    } finally {
-      setLoadingMoreMatches(false)
-    }
-  }
-
-  async function loadMoreConversations() {
-    if (!data) return
-    setLoadingMoreConvs(true)
-    try {
-      const offset = data.conversations.length
-      const res = await fetch(
-        `/api/patient/matches?matchesLimit=0&convsLimit=${PAGE_SIZE}&convsOffset=${offset}`
-      )
-      if (res.ok) {
-        const moreData = await res.json()
-        setData({
-          ...data,
-          conversations: [...data.conversations, ...(moreData.conversations || [])],
-        })
-      }
-    } catch (err) {
-      console.error("Failed to load more conversations:", err)
-    } finally {
-      setLoadingMoreConvs(false)
-    }
+    } catch {} finally { setLoadingMoreMatches(false) }
   }
 
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
+    try { localStorage.removeItem("pearlie_last_match") } catch {}
     router.replace("/patient/login")
   }
 
-  const handleSelectClinic = useCallback((clinicId: string) => {
+  function openConversationForClinic(clinicId: string) {
+    const conv = inboxConversations.find((c) => c.clinic_id === clinicId)
+    if (conv) {
+      setSelectedConvId(conv.id)
+      setMobileInboxOpen(true)
+    } else {
+      // No conversation yet — open inbox so they can start one
+      setMobileInboxOpen(true)
+    }
+  }
+
+  function handleSelectClinic(clinicId: string) {
     setSelectedClinicId(clinicId)
-    setShowChat(true)
-  }, [])
+    // Auto-open the conversation for this clinic
+    openConversationForClinic(clinicId)
+    // Scroll to top on mobile
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
   const handleMessageClick = useCallback(() => {
-    setShowChat(true)
-  }, [])
+    if (selectedClinicId) openConversationForClinic(selectedClinicId)
+  }, [selectedClinicId, inboxConversations])
 
   const handleBookSlot = useCallback((date: Date, time: string) => {
     if (!selectedClinicId || !activeLeadId) return
@@ -251,21 +421,16 @@ export default function PatientDashboard() {
     window.location.href = `/booking/confirm?clinicId=${selectedClinicId}&leadId=${activeLeadId}&date=${dateStr}&time=${time}`
   }, [selectedClinicId, activeLeadId])
 
-  const totalUnread = data?.conversations?.reduce((sum, c) => sum + (c.unread_count_patient || 0), 0) || 0
-
+  const totalUnread = inboxConversations.reduce((sum, c) => sum + (c.unread_count_patient || 0), 0)
   const hasMoreMatches = data ? data.matches.length < (data.matchesTotal || 0) : false
-  const hasMoreConvs = data ? data.conversations.length < (data.conversationsTotal || 0) : false
 
-  // Derived: selected clinic and other clinics
-  const selectedClinic = matchClinics.find((c) => c.id === selectedClinicId) || null
-  const otherClinics = matchClinics.filter((c) => c.id !== selectedClinicId)
-  const isTopMatch = selectedClinicId === matchClinics[0]?.id
+  function formatTime(dateStr: string): string {
+    try {
+      return new Date(dateStr).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+    } catch { return "" }
+  }
 
-  // Older matches (excluding the active one being shown as booking card)
-  const olderMatches = data?.matches?.slice(1) || []
-
-  // Lead info for the active match
-  const activeLead = data?.leads?.find((l) => l.id === activeLeadId)
+  // ── Loading / Error states ───────────────────────────────────
 
   if (loading) {
     return (
@@ -286,73 +451,101 @@ export default function PatientDashboard() {
     )
   }
 
+  // ── Render ───────────────────────────────────────────────────
+
   return (
-    <div className="min-h-screen bg-[#f8f7f4]">
+    <div className="min-h-screen bg-[#f8f7f4] flex flex-col">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="rounded-full bg-black p-2">
-              <Heart className="w-5 h-5 text-white fill-white" />
+        <div className="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="rounded-full bg-black p-1.5">
+                <Heart className="w-4 h-4 text-white fill-white" />
+              </div>
+              <span className="font-semibold text-lg">Pearlie</span>
+            </Link>
+            <div className="hidden sm:block text-sm text-[#323141]/50">
+              Hi{data?.user?.name ? `, ${data.user.name.split(" ")[0]}` : ""} <span className="text-[#323141]/30 mx-1">&middot;</span> {data?.user?.email}
             </div>
-            <span className="font-semibold text-xl">Pearlie</span>
-          </Link>
+          </div>
           <div className="flex items-center gap-3">
-            {totalUnread > 0 && (
-              <span className="bg-[#907EFF] text-white text-xs font-semibold px-2 py-1 rounded-full">
-                {totalUnread} new
-              </span>
-            )}
+            {/* Mobile inbox toggle */}
+            <button
+              onClick={() => setMobileInboxOpen(!mobileInboxOpen)}
+              className="lg:hidden relative flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <div className="relative">
+                <MessageCircle className="w-5 h-5" />
+                {totalUnread > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
+                    {totalUnread}
+                  </span>
+                )}
+              </div>
+            </button>
             <button
               onClick={handleSignOut}
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              Sign out
+              <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Welcome */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#323141]">
-            Hi{data?.user?.name ? `, ${data.user.name.split(" ")[0]}` : ""}
-          </h1>
-          {activeLead ? (
-            <p className="text-[#323141]/70 mt-1">
-              Your recommended clinic for <span className="font-medium">{activeLead.treatment_interest || "your dental enquiry"}</span>
-            </p>
-          ) : (
-            <p className="text-[#323141]/70 mt-1">Here are your clinic matches and conversations.</p>
+      {/* Main content: split view */}
+      <div className="flex-1 max-w-[1400px] w-full mx-auto flex">
+
+        {/* ══════ LEFT COLUMN: Your Match ══════ */}
+        <div className="flex-1 min-w-0 lg:max-w-[58%] overflow-y-auto p-4 lg:p-6 space-y-6">
+
+          {/* Match context header */}
+          {latestMatchLead && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-[#323141]/60">
+                Latest search: <span className="font-medium text-[#323141]/80">{latestMatchLead.treatment_interest || "Dental enquiry"}</span>
+                {latestMatchLead.postcode && <> <span className="text-[#323141]/30">&middot;</span> {latestMatchLead.postcode}</>}
+              </p>
+              <Link href="/intake" className="text-xs text-[#907EFF] hover:underline flex-shrink-0">
+                New search
+              </Link>
+            </div>
           )}
-        </div>
 
-        {/* No matches state */}
-        {(!data?.matches || data.matches.length === 0) && (
-          <Card className="p-8 text-center mb-8">
-            <p className="text-muted-foreground mb-4">No matches yet.</p>
-            <Button asChild className="bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0">
-              <Link href="/intake">Find your clinic match</Link>
-            </Button>
-          </Card>
-        )}
+          {/* ─── HERO: Booking Card for selected clinic ──────────── */}
+          {!latestMatch ? (
+            <Card className="p-8 text-center">
+              <Search className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
+              <h2 className="font-semibold text-[#323141] text-lg mb-2">Find your perfect clinic</h2>
+              <p className="text-muted-foreground mb-5 text-sm">
+                Tell us what you need and we&apos;ll recommend the best clinic for you.
+              </p>
+              <Button asChild className="bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0">
+                <Link href="/intake">Get matched</Link>
+              </Button>
+            </Card>
+          ) : loadingClinics && !selectedClinic ? (
+            <Card className="p-10 flex flex-col items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-[#907EFF] mb-3" />
+              <p className="text-sm text-muted-foreground">Finding your best match...</p>
+            </Card>
+          ) : selectedClinic ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#907EFF]" />
+                <h2 className="text-sm font-semibold text-[#323141]/70 uppercase tracking-wide">
+                  {isTopMatch ? "Recommended for you" : "Selected clinic"}
+                </h2>
+              </div>
+              <p className="text-xs text-muted-foreground -mt-1">
+                {isTopMatch
+                  ? "Chosen based on availability, distance, and fit for your needs"
+                  : "Click another clinic below to switch back"}
+              </p>
 
-        {/* Loading clinics for booking card */}
-        {loadingClinics && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin text-[#907EFF] mr-3" />
-            <span className="text-muted-foreground">Loading your clinic recommendations...</span>
-          </div>
-        )}
-
-        {/* Booking Card Layout - Two columns on desktop */}
-        {selectedClinic && !loadingClinics && (
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 mb-8">
-            {/* Left column: Booking card + other clinics */}
-            <div className="flex-1 min-w-0 space-y-6">
-              {/* Booking Card for selected clinic */}
+              {/* The booking card with at-a-glance info */}
               <BookingCard
                 clinic={selectedClinic}
                 isTopMatch={isTopMatch}
@@ -361,232 +554,332 @@ export default function PatientDashboard() {
                 onMessageClick={handleMessageClick}
                 onBookSlot={handleBookSlot}
               />
-
-              {/* Other suitable clinics */}
-              {otherClinics.length > 0 && (
-                <section>
-                  <h3 className="text-base font-semibold text-[#323141] mb-3">
-                    Other suitable clinics
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {otherClinics.map((clinic) => (
-                      <OtherClinicCard
-                        key={clinic.id}
-                        clinic={clinic}
-                        isSelected={clinic.id === selectedClinicId}
-                        onClick={() => handleSelectClinic(clinic.id)}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
             </div>
+          ) : latestMatch ? (
+            <Link href={`/match/${latestMatch.id}`}>
+              <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer border-[#907EFF]/20 bg-gradient-to-br from-white to-[#f8f5ff]">
+                <span className="text-xs font-medium text-[#907EFF] bg-[#907EFF]/10 px-2 py-0.5 rounded-full">Your latest match</span>
+                <p className="font-semibold text-[#323141] text-lg mt-2">{latestMatchLead?.treatment_interest || "Dental enquiry"}</p>
+                <p className="text-sm text-[#907EFF] font-medium mt-1">View your {latestMatch.clinic_ids?.length || 0} matched clinics &rarr;</p>
+              </Card>
+            </Link>
+          ) : null}
 
-            {/* Right column: Chat panel (desktop), hidden on mobile */}
-            <div className="hidden lg:block w-full lg:w-[380px] flex-shrink-0">
-              <div className="sticky top-24">
-                <Card className="overflow-hidden h-[600px] flex flex-col">
-                  {activeLeadId && selectedClinicId && (
-                    <InlineChatPanel
-                      leadId={activeLeadId}
-                      clinicId={selectedClinicId}
-                      clinicName={selectedClinic.name}
-                      isEmailVerified={activeLead?.is_verified}
+          {/* ─── OTHER CLINICS (click to swap) ─────────────────── */}
+          {otherClinics.length > 0 && latestMatch && (
+            <section>
+              <button
+                onClick={() => setShowOtherClinics(!showOtherClinics)}
+                className="flex items-center justify-between w-full text-left"
+              >
+                <h2 className="text-sm font-semibold text-[#323141]/70 uppercase tracking-wide">
+                  Other suitable clinics ({otherClinics.length})
+                </h2>
+                <ChevronDown className={`w-4 h-4 text-[#323141]/50 transition-transform ${showOtherClinics ? "rotate-180" : ""}`} />
+              </button>
+
+              {!showOtherClinics ? (
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {otherClinics.slice(0, 4).map((clinic) => (
+                    <OtherClinicCard
+                      key={clinic.id}
+                      clinic={clinic}
+                      isSelected={clinic.id === selectedClinicId}
+                      onClick={() => handleSelectClinic(clinic.id)}
                     />
-                  )}
-                </Card>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Mobile chat panel - collapsible */}
-        {selectedClinic && showChat && activeLeadId && (
-          <div className="lg:hidden mb-8">
-            <Card className="overflow-hidden h-[450px] flex flex-col">
-              <InlineChatPanel
-                leadId={activeLeadId}
-                clinicId={selectedClinicId!}
-                clinicName={selectedClinic.name}
-                isEmailVerified={activeLead?.is_verified}
-              />
-            </Card>
-          </div>
-        )}
-
-        {/* Older Matches Section */}
-        {olderMatches.length > 0 && (
-          <section className="mb-8">
-            <button
-              type="button"
-              onClick={() => setShowOlderMatches(!showOlderMatches)}
-              className="flex items-center gap-2 text-sm font-semibold text-[#323141] mb-3 hover:text-[#907EFF] transition-colors"
-            >
-              <Search className="w-4 h-4 text-[#907EFF]" />
-              Previous matches ({olderMatches.length})
-              {showOlderMatches ? (
-                <ChevronUp className="w-4 h-4" />
+                  ))}
+                </div>
               ) : (
-                <ChevronDown className="w-4 h-4" />
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {otherClinics.map((clinic) => (
+                    <OtherClinicCard
+                      key={clinic.id}
+                      clinic={clinic}
+                      isSelected={clinic.id === selectedClinicId}
+                      onClick={() => handleSelectClinic(clinic.id)}
+                    />
+                  ))}
+                </div>
               )}
-            </button>
 
-            {showOlderMatches && (
-              <div className="space-y-3">
-                {olderMatches.map((match) => {
-                  const lead = data?.leads?.find((l) => l.id === match.lead_id)
-                  return (
-                    <Card
-                      key={match.id}
-                      className="p-5 hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => fetchMatchClinics(match.id, match.lead_id)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <p className="font-semibold text-[#323141]">
-                            {lead?.treatment_interest || "Dental enquiry"}
-                          </p>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            {lead?.postcode && (
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5" />
-                                {lead.postcode}
-                              </span>
-                            )}
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3.5 h-3.5" />
-                              {new Date(match.created_at).toLocaleDateString("en-GB", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              })}
+              {otherClinics.length > 4 && !showOtherClinics && (
+                <button onClick={() => setShowOtherClinics(true)} className="mt-2 text-sm text-[#907EFF] hover:underline">
+                  View all {otherClinics.length} clinics
+                </button>
+              )}
+            </section>
+          )}
+
+          {/* ─── MATCH HISTORY ────────────────────────────────── */}
+          {data?.matches && data.matches.length > 0 && (
+            <section>
+              <button
+                onClick={() => setShowMatchHistory(!showMatchHistory)}
+                className="flex items-center justify-between w-full text-left"
+              >
+                <h2 className="text-sm font-semibold text-[#323141]/50 uppercase tracking-wide">
+                  Match history ({data.matchesTotal || data.matches.length})
+                </h2>
+                <ChevronDown className={`w-4 h-4 text-[#323141]/30 transition-transform ${showMatchHistory ? "rotate-180" : ""}`} />
+              </button>
+
+              {showMatchHistory && (
+                <div className="mt-2 space-y-1">
+                  {data.matches.map((match) => {
+                    const lead = data.leads.find((l) => l.id === match.lead_id)
+                    const isCurrent = match.id === activeMatchId
+                    return (
+                      <Card
+                        key={match.id}
+                        className={`px-3 py-2 hover:shadow-sm transition-shadow cursor-pointer ${isCurrent ? "border-[#907EFF]/30 bg-[#f8f5ff]/50" : ""}`}
+                        onClick={() => {
+                          if (!isCurrent) fetchClinicDetails(match.id)
+                        }}
+                      >
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="text-muted-foreground text-xs w-14 flex-shrink-0">
+                              {new Date(match.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                             </span>
+                            <span className="text-[#323141] font-medium truncate">{lead?.treatment_interest || "Dental enquiry"}</span>
+                            <span className="text-xs text-muted-foreground flex-shrink-0">{match.clinic_ids?.length || 0} matched</span>
+                            {isCurrent && <span className="text-[10px] text-[#907EFF] font-medium flex-shrink-0">Current</span>}
                           </div>
-                          <p className="text-sm text-[#907EFF] font-medium">
-                            {match.clinic_ids?.length || 0} clinics matched
-                          </p>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                         </div>
-                        <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    </Card>
-                  )
-                })}
+                      </Card>
+                    )
+                  })}
+                  {hasMoreMatches && (
+                    <button onClick={loadMoreMatches} disabled={loadingMoreMatches} className="text-xs text-[#907EFF] hover:underline mt-1">
+                      {loadingMoreMatches ? "Loading..." : "Load more"}
+                    </button>
+                  )}
+                </div>
+              )}
+            </section>
+          )}
 
-                {hasMoreMatches && (
-                  <div className="text-center pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={loadMoreMatches}
-                      disabled={loadingMoreMatches}
-                      className="text-xs"
-                    >
-                      {loadingMoreMatches ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                          Loading...
-                        </>
-                      ) : (
-                        `Load more (${(data?.matchesTotal || 0) - (data?.matches?.length || 0)} remaining)`
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </section>
-        )}
+          {/* New search */}
+          <div className="text-center pt-2 pb-4">
+            <Button asChild variant="outline" size="sm" className="rounded-2xl text-sm">
+              <Link href="/intake">
+                <Search className="w-3.5 h-3.5 mr-1.5" />
+                Start a new search
+              </Link>
+            </Button>
+          </div>
+        </div>
 
-        {/* Conversations Section */}
-        {data?.conversations && data.conversations.length > 0 && (
-          <section className="mb-8">
-            <h2 className="text-lg font-semibold text-[#323141] mb-4 flex items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-[#907EFF]" />
-              Your conversations
+        {/* ══════ RIGHT COLUMN: Inbox ══════ */}
+        {/* Desktop: always visible. Mobile: overlay when toggled. */}
+        <div className={`
+          lg:w-[42%] lg:border-l lg:border-border/60 lg:flex lg:flex-col lg:relative lg:bg-[#f8f7f4]
+          ${mobileInboxOpen
+            ? "fixed inset-0 z-40 bg-[#f8f7f4] flex flex-col"
+            : "hidden lg:flex"
+          }
+        `} style={{ height: "calc(100vh - 57px)" }}>
+
+          {/* Mobile back button */}
+          {mobileInboxOpen && (
+            <div className="lg:hidden flex items-center gap-2 px-4 py-3 border-b">
+              <button onClick={() => setMobileInboxOpen(false)} className="text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <span className="font-semibold text-[#323141]">Messages</span>
               {totalUnread > 0 && (
-                <span className="bg-[#907EFF] text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                <span className="bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
                   {totalUnread}
                 </span>
               )}
-            </h2>
+            </div>
+          )}
 
-            <div className="space-y-3">
-              {data.conversations.map((conv) => (
-                <Card
-                  key={conv.id}
-                  className={`p-5 hover:shadow-md transition-shadow cursor-pointer ${conv.unread_by_patient ? "border-[#907EFF]/30 bg-[#F8F5FF]/30" : ""}`}
-                  onClick={() => {
-                    // If this conversation's clinic is in our current match, select it
-                    const matchClinic = matchClinics.find((c) => c.id === conv.clinic_id)
-                    if (matchClinic) {
-                      handleSelectClinic(conv.clinic_id)
-                    } else {
-                      // Navigate to the clinic page for conversations from other matches
-                      window.location.href = `/clinic/${conv.clinic_id}?leadId=${conv.lead_id}`
-                    }
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-[#323141]">
+          {/* Inbox list (top portion) */}
+          <div className="border-b border-border/60 flex-shrink-0 max-h-[35%] overflow-y-auto">
+            <div className="px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4 text-[#907EFF]" />
+                <h2 className="font-semibold text-[#323141] text-sm">Messages</h2>
+                {totalUnread > 0 && (
+                  <span className="bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
+                    {totalUnread}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {inboxConversations.length === 0 ? (
+              <div className="px-4 pb-4 text-center">
+                <MessageCircle className="w-8 h-8 text-[#ccc] mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Questions before booking? Message the clinic here.</p>
+              </div>
+            ) : (
+              <div>
+                {inboxConversations.map((conv) => (
+                  <button
+                    key={conv.id}
+                    onClick={() => setSelectedConvId(conv.id)}
+                    className={`w-full text-left px-4 py-2.5 hover:bg-[#f8f7f4] transition-colors flex items-center gap-2.5 ${
+                      selectedConvId === conv.id ? "bg-[#f8f5ff] border-l-2 border-[#907EFF]" : ""
+                    }`}
+                  >
+                    {conv.clinics?.images?.[0] ? (
+                      <div className="relative h-8 w-8 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
+                        <Image src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-[#907EFF] flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-semibold">
+                          {(conv.clinics?.name || "C").charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className={`text-sm truncate ${conv.unread_by_patient ? "font-semibold text-[#323141]" : "font-medium text-[#323141]/80"}`}>
                           {conv.clinics?.name || "Clinic"}
                         </p>
-                        {conv.unread_by_patient && (
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#907EFF]" />
+                        <span className="text-[10px] text-muted-foreground flex-shrink-0 ml-2">
+                          {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mt-0.5">
+                        <p className="text-xs text-muted-foreground truncate pr-2">
+                          {conv.latest_message || "No messages yet"}
+                        </p>
+                        {conv.unread_by_patient && conv.unread_count_patient > 0 && (
+                          <span className="bg-red-500 text-white text-[9px] font-bold min-w-[14px] h-3.5 px-1 rounded-full inline-flex items-center justify-center flex-shrink-0">
+                            {conv.unread_count_patient}
+                          </span>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Last message:{" "}
-                        {conv.last_message_at
-                          ? new Date(conv.last_message_at).toLocaleDateString("en-GB", {
-                              day: "numeric",
-                              month: "short",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : "No messages yet"}
-                      </p>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                </Card>
-              ))}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-              {hasMoreConvs && (
-                <div className="text-center pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={loadMoreConversations}
-                    disabled={loadingMoreConvs}
-                    className="text-xs"
-                  >
-                    {loadingMoreConvs ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                        Loading...
-                      </>
+          {/* Chat thread (bottom portion) */}
+          <div className="flex-1 flex flex-col min-h-0">
+            {!selectedConv ? (
+              <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                <p className="text-sm">Select a conversation</p>
+              </div>
+            ) : (
+              <>
+                {/* Chat header */}
+                <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between flex-shrink-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {selectedConv.clinics?.images?.[0] ? (
+                      <div className="relative h-7 w-7 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
+                        <Image src={selectedConv.clinics.images[0]} alt={selectedConv.clinics.name || "Clinic"} fill className="object-cover" />
+                      </div>
                     ) : (
-                      `Load more (${(data?.conversationsTotal || 0) - data.conversations.length} remaining)`
+                      <div className="h-7 w-7 rounded-full bg-[#907EFF] flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-[10px] font-semibold">
+                          {(selectedConv.clinics?.name || "C").charAt(0).toUpperCase()}
+                        </span>
+                      </div>
                     )}
-                  </Button>
+                    <p className="font-semibold text-[#323141] text-sm truncate">{selectedConv.clinics?.name || "Clinic"}</p>
+                  </div>
                 </div>
-              )}
-            </div>
-          </section>
-        )}
 
-        {/* Start new search */}
-        <div className="text-center pt-4">
-          <Button asChild variant="outline" size="lg" className="rounded-2xl">
-            <Link href="/intake">
-              <Search className="w-4 h-4 mr-2" />
-              Start a new search
-            </Link>
-          </Button>
+                {/* Messages */}
+                <ScrollArea className="flex-1 px-4 py-3" ref={scrollAreaRef}>
+                  {loadingMessages ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-5 h-5 animate-spin text-[#907EFF]" />
+                    </div>
+                  ) : messages.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-muted-foreground">No messages yet. Send the first message!</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {messages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`flex ${msg.sender_type === "patient" ? "justify-end" : "justify-start"}`}
+                        >
+                          <div
+                            className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${
+                              msg.sender_type === "patient"
+                                ? "bg-[#907EFF] text-white rounded-br-sm"
+                                : msg.sender_type === "bot"
+                                ? "bg-[#f5f3ff] border border-[#e9e5f5] rounded-bl-sm"
+                                : "bg-[#f0f0f0] rounded-bl-sm"
+                            }`}
+                          >
+                            {msg.sender_type === "bot" && (
+                              <p className="text-[9px] text-[#907EFF]/60 mb-0.5 flex items-center gap-1">
+                                <Heart className="w-2.5 h-2.5 fill-[#907EFF]/40 text-[#907EFF]/40" />
+                                Pearlie
+                              </p>
+                            )}
+                            <p className={`text-sm whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-[#323141]/70" : ""}`}>
+                              {msg.content}
+                            </p>
+                            <p className={`text-[10px] mt-0.5 ${
+                              msg.sender_type === "patient" ? "text-white/60" : "text-muted-foreground"
+                            }`}>
+                              {formatTime(msg.created_at)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                      {otherTyping && (
+                        <div className="flex justify-start">
+                          <div className="bg-[#f0f0f0] rounded-2xl rounded-bl-sm px-4 py-2">
+                            <span className="text-sm text-muted-foreground animate-pulse">typing...</span>
+                          </div>
+                        </div>
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  )}
+                </ScrollArea>
+
+                {/* Quick prompts */}
+                <div className="flex gap-1.5 px-4 py-2 overflow-x-auto flex-shrink-0 border-t border-border/40">
+                  {QUICK_PROMPTS.map((prompt) => (
+                    <button
+                      key={prompt}
+                      onClick={() => setNewMessage(prompt)}
+                      className="text-[11px] text-[#907EFF] border border-[#907EFF]/30 rounded-full px-2.5 py-1 hover:bg-[#907EFF]/5 transition-colors whitespace-nowrap flex-shrink-0"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Composer */}
+                <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/40 flex-shrink-0">
+                  <Input
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Type a message..."
+                    className="flex-1 text-sm"
+                    disabled={isSending}
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={!newMessage.trim() || isSending}
+                    className="bg-[#907EFF] hover:bg-[#7C6AE8] text-white h-9 w-9"
+                  >
+                    {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  </Button>
+                </form>
+              </>
+            )}
+          </div>
         </div>
-      </main>
+      </div>
+
     </div>
   )
 }
