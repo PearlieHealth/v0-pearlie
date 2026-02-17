@@ -330,7 +330,7 @@ export function EmbeddedClinicChat({
       {leadId && conversationId && (
         <div className="px-3 py-1.5 bg-white border-t border-[#e5e5e5]">
           <a
-            href="/patient/dashboard"
+            href="/patient/login?next=/patient/dashboard"
             className="text-[11px] text-[#907EFF] hover:underline"
           >
             Open full conversation in inbox

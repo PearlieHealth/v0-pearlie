@@ -188,11 +188,11 @@ export default function PatientDashboard() {
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.replace("/patient/login"); return }
+      if (!user) { router.replace("/patient/login?next=/patient/dashboard"); return }
 
       const res = await fetch(`/api/patient/matches?matchesLimit=${PAGE_SIZE}&convsLimit=${PAGE_SIZE}`)
       if (!res.ok) {
-        if (res.status === 401) { router.replace("/patient/login"); return }
+        if (res.status === 401) { router.replace("/patient/login?next=/patient/dashboard"); return }
         throw new Error("Failed to load dashboard")
       }
 
