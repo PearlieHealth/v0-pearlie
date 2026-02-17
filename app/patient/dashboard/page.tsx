@@ -18,7 +18,6 @@ import {
   Sparkles,
   Send,
   ArrowLeft,
-  CalendarCheck,
   X,
 } from "lucide-react"
 import Link from "next/link"
@@ -495,15 +494,6 @@ export default function PatientDashboard() {
     if (selectedClinicId) openConversationForClinic(selectedClinicId)
   }, [selectedClinicId, inboxConversations, allClinics, activeLeadId, isMobile])
 
-  const handleBookClick = useCallback(() => {
-    // If clinic has a profile page, navigate there. Otherwise, open message.
-    if (selectedClinic?.slug) {
-      window.open(`/clinic/${selectedClinic.slug}`, "_blank")
-    } else {
-      handleMessageClick()
-    }
-  }, [selectedClinic, handleMessageClick])
-
   const totalUnread = inboxConversations.reduce((sum, c) => sum + (c.unread_count_patient || 0), 0)
   const hasMoreMatches = data ? data.matches.length < (data.matchesTotal || 0) : false
 
@@ -657,7 +647,6 @@ export default function PatientDashboard() {
                 clinic={selectedClinic}
                 isTopMatch={isTopMatch}
                 onMessageClick={handleMessageClick}
-                onBookClick={handleBookClick}
                 ctaRef={ctaRef}
               />
             </div>
@@ -1144,21 +1133,13 @@ export default function PatientDashboard() {
 
       {/* ══════ MOBILE: Sticky Bottom Action Bar ══════ */}
       {isMobile && showStickyBar && selectedClinic && !mobileChatOpen && (
-        <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 flex gap-2 pb-6">
+        <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 pb-6">
           <Button
-            className="flex-1 h-10 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
-            onClick={handleBookClick}
-          >
-            <CalendarCheck className="w-4 h-4 mr-1.5" />
-            Book
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1 h-10 text-sm font-medium"
+            className="w-full h-10 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
             onClick={handleMessageClick}
           >
             <MessageCircle className="w-4 h-4 mr-1.5" />
-            Message
+            Message clinic
           </Button>
         </div>
       )}

@@ -16,7 +16,6 @@ import {
   ChevronDown,
   ChevronUp,
   MessageCircle,
-  CalendarCheck,
   Zap,
   Stethoscope,
   PoundSterling,
@@ -72,7 +71,6 @@ interface BookingCardProps {
   clinic: Clinic
   isTopMatch: boolean
   onMessageClick: () => void
-  onBookClick?: () => void
   /** Ref to the CTA buttons container so the parent can track scroll visibility */
   ctaRef?: React.RefObject<HTMLDivElement | null>
 }
@@ -184,7 +182,6 @@ export function BookingCard({
   clinic,
   isTopMatch,
   onMessageClick,
-  onBookClick,
   ctaRef,
 }: BookingCardProps) {
   const [showMoreDetails, setShowMoreDetails] = useState(false)
@@ -358,33 +355,18 @@ export function BookingCard({
       {/* Bottom section: CTAs, match info, reasons, details */}
       <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4">
 
-        {/* ── MOBILE CTAs: Book + Message right after clinic summary ── */}
-        <div ref={ctaRef} className="sm:hidden space-y-2 pt-1">
-          {clinic.slug ? (
-            <Button
-              className="w-full h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
-              onClick={onBookClick}
-            >
-              <CalendarCheck className="w-4 h-4 mr-2" />
-              Book appointment
-            </Button>
-          ) : (
-            <Button
-              className="w-full h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
-              onClick={onMessageClick}
-            >
-              <CalendarCheck className="w-4 h-4 mr-2" />
-              Book appointment
-            </Button>
-          )}
+        {/* ── MOBILE CTA: Message clinic right after clinic summary ── */}
+        <div ref={ctaRef} className="sm:hidden pt-1">
           <Button
-            variant="outline"
-            className="w-full h-10 text-sm font-medium"
+            className="w-full h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
             onClick={onMessageClick}
           >
             <MessageCircle className="w-4 h-4 mr-2" />
             Message clinic
           </Button>
+          <p className="text-xs text-center text-muted-foreground mt-2">
+            Ask a question or request an appointment.
+          </p>
         </div>
 
         {/* ── Match breakdown ── */}
