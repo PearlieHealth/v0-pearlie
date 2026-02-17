@@ -174,7 +174,16 @@ export default function PatientDashboard() {
   const [showStickyBar, setShowStickyBar] = useState(false)
 
   // Track clinics where an appointment has already been requested (prevent spam)
-  const [appointmentRequestedClinics, setAppointmentRequestedClinics] = useState<Set<string>>(new Set())
+  // Persist to localStorage so it survives page refreshes
+  const [appointmentRequestedClinics, setAppointmentRequestedClinics] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set<string>()
+    try {
+      const stored = localStorage.getItem("pearlie_appt_requested")
+      return stored ? new Set<string>(JSON.parse(stored)) : new Set<string>()
+    } catch {
+      return new Set<string>()
+    }
+  })
 
   // "Pending chat" — when user clicks message on a clinic with no conversation yet.
   // We show the chat UI with this clinicId+leadId so they can type, and the
@@ -538,7 +547,9 @@ export default function PatientDashboard() {
               setBotTyping(false)
               setMessages((prev) => {
                 if (prev.some((m) => m.id === botMsg.id)) return prev
-                return [...prev, botMsg]
+                return [...prev, botMsg].sort(
+                  (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                )
               })
               // If there are more messages coming, show typing again after a beat
               if (i < data.botMessages.length - 1) {
@@ -623,7 +634,11 @@ export default function PatientDashboard() {
     if (!selectedClinicId || !activeLeadId) return
 
     // Mark this clinic as having an appointment requested
-    setAppointmentRequestedClinics((prev) => new Set(prev).add(selectedClinicId))
+    setAppointmentRequestedClinics((prev) => {
+      const next = new Set(prev).add(selectedClinicId)
+      try { localStorage.setItem("pearlie_appt_requested", JSON.stringify([...next])) } catch {}
+      return next
+    })
 
     // Open the chat UI first so the user sees it
     openConversationForClinic(selectedClinicId)
@@ -665,7 +680,9 @@ export default function PatientDashboard() {
               setBotTyping(false)
               setMessages((prev) => {
                 if (prev.some((m) => m.id === botMsg.id)) return prev
-                return [...prev, botMsg]
+                return [...prev, botMsg].sort(
+                  (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                )
               })
               if (i < data.botMessages.length - 1) {
                 setTimeout(() => setBotTyping(true), gapBetween)
