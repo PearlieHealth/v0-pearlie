@@ -31,7 +31,10 @@ export function MainNav() {
 
   return (
     <header className="fixed top-5 left-4 right-4 md:left-8 md:right-8 z-50">
-      <div className="bg-white rounded-[3.4vw] shadow-[0_2px_10px_rgba(0,0,0,0.08)] px-4 sm:px-6 py-3">
+      <div className="relative overflow-hidden rounded-[3.4vw] bg-white/65 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.07),0_1.5px_6px_rgba(0,0,0,0.04),inset_0_1px_0_rgba(255,255,255,0.5)] px-4 sm:px-6 py-3">
+        {/* Liquid glass specular highlight */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-4 top-[1px] h-8 bg-gradient-to-b from-white/30 to-transparent rounded-t-[3.4vw]" />
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
@@ -43,14 +46,14 @@ export function MainNav() {
 
           {/* Toggle - For Patients / For Clinics */}
           <div className="hidden md:flex items-center">
-            <div className="flex items-center bg-[#F8F1E7]/60 rounded-full p-1 border border-[#e8e8e8]">
+            <div className="flex items-center bg-white/30 backdrop-blur-md rounded-full p-1 border border-white/40">
               <button
                 onClick={() => handleToggle("patients")}
                 className={cn(
                   "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300",
                   isForPatients
-                    ? "bg-white text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "bg-white/80 backdrop-blur-sm text-foreground shadow-[0_1px_4px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.7)]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/20",
                 )}
               >
                 For Patients
@@ -60,8 +63,8 @@ export function MainNav() {
                 className={cn(
                   "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300",
                   isForClinics
-                    ? "bg-white text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "bg-white/80 backdrop-blur-sm text-foreground shadow-[0_1px_4px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.7)]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/20",
                 )}
               >
                 For Clinics
@@ -97,7 +100,7 @@ export function MainNav() {
             </Link>
             <Button
               size="lg"
-              className="text-sm px-6 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-md hover:shadow-lg transition-all border-0"
+              className="text-sm px-6 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-[0_2px_8px_rgba(15,188,176,0.3),0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_16px_rgba(15,188,176,0.4),0_2px_6px_rgba(0,0,0,0.1)] transition-all border-0"
               asChild
             >
               <Link href="/intake">Find my clinic</Link>
