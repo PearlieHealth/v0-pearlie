@@ -426,6 +426,9 @@ export default function ClinicInboxPage() {
                         const showSenderLabel = message.sender_type !== "bot" && (
                           !prevMessage || prevMessage.sender_type !== message.sender_type
                         )
+                        const showBotLabel = message.sender_type === "bot" && (
+                          !prevMessage || prevMessage.sender_type !== "bot"
+                        )
 
                         return (
                         <div
@@ -451,10 +454,18 @@ export default function ClinicInboxPage() {
                                 : `${selectedConversation.lead?.first_name || "Patient"} ${selectedConversation.lead?.last_name || ""}`.trim()}
                             </span>
                           )}
+                          {showBotLabel && (
+                            <span className="text-[10px] font-medium mb-0.5 px-1 text-purple-500">
+                              Pearlie
+                            </span>
+                          )}
                           {message.sender_type === "bot" ? (
                             <div className="max-w-[80%] flex items-start gap-2 bg-gradient-to-r from-purple-50 to-teal-50 border border-purple-100/50 rounded-xl px-3 py-2">
                               <Heart className="w-3.5 h-3.5 text-purple-400 mt-0.5 flex-shrink-0" />
-                              <p className="text-xs text-neutral-500 whitespace-pre-wrap">{message.content}</p>
+                              <div>
+                                <p className="text-xs text-neutral-500 whitespace-pre-wrap">{message.content}</p>
+                                <p className="text-[9px] text-purple-400/70 mt-1 italic">Automated message</p>
+                              </div>
                             </div>
                           ) : (
                             <div

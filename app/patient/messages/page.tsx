@@ -41,6 +41,7 @@ export default function PatientMessagesPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const conversationIdParam = searchParams?.get("conversationId")
+  const isValidConversationId = conversationIdParam && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(conversationIdParam)
   const [isMobile, setIsMobile] = useState(false)
 
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -72,7 +73,7 @@ export default function PatientMessagesPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        const returnUrl = `/patient/messages${conversationIdParam ? `?conversationId=${conversationIdParam}` : ""}`
+        const returnUrl = `/patient/messages${isValidConversationId ? `?conversationId=${conversationIdParam}` : ""}`
         router.replace(`/patient/login?next=${encodeURIComponent(returnUrl)}`)
         return
       }
@@ -121,7 +122,7 @@ export default function PatientMessagesPage() {
 
   // Auto-select conversation from URL param
   useEffect(() => {
-    if (conversationIdParam && conversations.length > 0 && !autoSelectedRef.current) {
+    if (isValidConversationId && conversations.length > 0 && !autoSelectedRef.current) {
       const conv = conversations.find((c) => c.id === conversationIdParam)
       if (conv) {
         autoSelectedRef.current = true

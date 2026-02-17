@@ -207,6 +207,9 @@ export default function PatientDashboard() {
             Hi{data?.user?.name ? `, ${data.user.name.split(" ")[0]}` : ""}
           </h1>
           <p className="text-[#323141]/70 mt-1">Here are your clinic matches and conversations.</p>
+          {data?.user?.email && (
+            <p className="text-sm text-[#323141]/50 mt-1">Logged in as {data.user.email}</p>
+          )}
         </div>
 
         {/* Matches Section */}
