@@ -562,37 +562,88 @@ export default function PatientDashboard() {
                     </div>
                   )}
 
-                  {/* Primary CTAs */}
-                  <div className="flex gap-3 pt-1">
-                    <Button
-                      className="flex-1 bg-[#907EFF] hover:bg-[#7C6AE8] text-white h-11 text-base font-semibold rounded-xl"
-                      onClick={() => setShowBookingDialog(true)}
-                    >
-                      <Calendar className="w-4 h-4 mr-2" />
-                      Book appointment
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1 h-11 rounded-xl"
-                      onClick={() => {
-                        openConversationForClinic(recommendedClinic.id)
-                      }}
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Message clinic
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Link
-                      href={recommendedClinic.slug ? `/clinic/${recommendedClinic.slug}` : `/match/${latestMatch.id}`}
-                      className="text-sm text-[#907EFF] hover:underline"
-                    >
-                      View full profile
-                    </Link>
-                    <p className="text-xs text-muted-foreground">
-                      No pressure — message first if you prefer.
-                    </p>
-                  </div>
+                  {/* Primary CTA */}
+                  <Button
+                    className="w-full bg-[#907EFF] hover:bg-[#7C6AE8] text-white h-11 text-base font-semibold rounded-xl"
+                    onClick={() => setShowBookingDialog(true)}
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Book appointment
+                  </Button>
+
+                  {/* Conversation preview / messaging prompt */}
+                  {(() => {
+                    const heroConv = inboxConversations.find((c) => c.clinic_id === recommendedClinic.id)
+                    if (heroConv && heroConv.latest_message) {
+                      const isClinicWaiting = heroConv.latest_message_sender === "clinic" || heroConv.latest_message_sender === "bot"
+                      return (
+                        <button
+                          onClick={() => openConversationForClinic(recommendedClinic.id)}
+                          className="w-full text-left"
+                        >
+                          <div className="bg-[#f8f7f4] rounded-xl p-3.5 space-y-2.5 hover:bg-[#f0eef4] transition-colors">
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs font-semibold text-[#323141]/70">
+                                {isClinicWaiting ? "Waiting for your reply" : "Continue messaging"}
+                              </p>
+                              {heroConv.unread_count_patient > 0 && (
+                                <span className="bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
+                                  {heroConv.unread_count_patient}
+                                </span>
+                              )}
+                            </div>
+                            {/* Mini message preview */}
+                            <div className="flex items-start gap-2.5">
+                              <div className="h-6 w-6 rounded-full bg-[#907EFF]/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span className="text-[9px] font-semibold text-[#907EFF]">
+                                  {heroConv.latest_message_sender === "patient" ? "You" : (recommendedClinic.name.charAt(0))}
+                                </span>
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs text-[#323141]/50 mb-0.5">
+                                  {heroConv.latest_message_sender === "patient" ? "You" : heroConv.latest_message_sender === "bot" ? "Pearlie" : recommendedClinic.name}
+                                </p>
+                                <p className="text-sm text-[#323141]/80 line-clamp-2">{heroConv.latest_message}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between pt-0.5">
+                              <span className="text-xs text-muted-foreground">
+                                {heroConv.last_message_at ? format(new Date(heroConv.last_message_at), "h:mm a") : ""}
+                              </span>
+                              <span className="text-xs font-semibold text-[#907EFF] flex items-center gap-1">
+                                Reply <ChevronRight className="w-3 h-3" />
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    }
+                    // No existing conversation — show start prompt
+                    return (
+                      <button
+                        onClick={() => openConversationForClinic(recommendedClinic.id)}
+                        className="w-full text-left"
+                      >
+                        <div className="bg-[#f8f7f4] rounded-xl p-3.5 hover:bg-[#f0eef4] transition-colors flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <MessageCircle className="w-4 h-4 text-[#907EFF]" />
+                            <div>
+                              <p className="text-sm font-medium text-[#323141]/80">Have a question first?</p>
+                              <p className="text-xs text-muted-foreground">Message the clinic before booking</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-[#907EFF]" />
+                        </div>
+                      </button>
+                    )
+                  })()}
+
+                  <Link
+                    href={recommendedClinic.slug ? `/clinic/${recommendedClinic.slug}` : `/match/${latestMatch.id}`}
+                    className="text-xs text-[#907EFF] hover:underline block text-center"
+                  >
+                    View full profile
+                  </Link>
                 </div>
               </Card>
             </div>
