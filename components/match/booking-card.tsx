@@ -21,6 +21,9 @@ import {
   PoundSterling,
   Accessibility,
   CarFront,
+  CalendarCheck,
+  ArrowLeft,
+  Check,
 } from "lucide-react"
 import Image from "next/image"
 import { getChipData } from "@/lib/chipData"
@@ -71,6 +74,8 @@ interface BookingCardProps {
   clinic: Clinic
   isTopMatch: boolean
   onMessageClick: () => void
+  /** Called when patient confirms an appointment request — receives the pre-filled message */
+  onRequestAppointment?: (message: string) => void
   /** Ref to the CTA buttons container so the parent can track scroll visibility */
   ctaRef?: React.RefObject<HTMLDivElement | null>
 }
@@ -178,14 +183,258 @@ function MatchBreakdownContent({
   )
 }
 
+const DAY_NAMES_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+interface AvailableDate {
+  date: Date
+  dayLabel: string     // "Mon"
+  dayFull: string      // "Monday"
+  dateStr: string      // "17 Feb"
+  dateSuffix: string   // "17th February"
+  isToday: boolean
+  openTime: string | null
+  closeTime: string | null
+}
+
+function getAvailableDates(clinic: Clinic): AvailableDate[] {
+  const dates: AvailableDate[] = []
+  const now = new Date()
+
+  for (let i = 0; i < 14 && dates.length < 7; i++) {
+    const d = new Date(now)
+    d.setDate(d.getDate() + i)
+    const jsDayIndex = d.getDay()
+    const canonicalIdx = jsDayIndex === 0 ? 6 : jsDayIndex - 1
+    const canonical = CANONICAL_DAYS[canonicalIdx]
+    if (!canonical) continue
+
+    let isOpen = true
+    let openTime: string | null = null
+    let closeTime: string | null = null
+
+    if (clinic.opening_hours && Object.keys(clinic.opening_hours).length > 0) {
+      const lowerKeyMap: Record<string, string> = {}
+      for (const key of Object.keys(clinic.opening_hours)) {
+        lowerKeyMap[key.toLowerCase()] = key
+      }
+      const matchedKey = canonical.keys.find((k) => lowerKeyMap[k] !== undefined)
+      if (!matchedKey) {
+        isOpen = false
+      } else {
+        const hours = clinic.opening_hours[lowerKeyMap[matchedKey]]
+        if (!hours || (typeof hours === "object" && hours.closed)) {
+          isOpen = false
+        } else if (typeof hours === "object") {
+          openTime = hours.open || null
+          closeTime = hours.close || null
+        }
+      }
+    } else if (clinic.available_days && clinic.available_days.length > 0) {
+      const dayLower = canonical.keys.map((k) => k.toLowerCase())
+      const hasDay = clinic.available_days.some((ad) =>
+        dayLower.includes(ad.toLowerCase())
+      )
+      if (!hasDay) isOpen = false
+    }
+
+    if (!isOpen) continue
+
+    const dayNum = d.getDate()
+    const suffix = dayNum === 1 || dayNum === 21 || dayNum === 31 ? "st"
+      : dayNum === 2 || dayNum === 22 ? "nd"
+      : dayNum === 3 || dayNum === 23 ? "rd"
+      : "th"
+    const monthFull = d.toLocaleDateString("en-GB", { month: "long" })
+
+    dates.push({
+      date: d,
+      dayLabel: canonical.label,
+      dayFull: DAY_NAMES_FULL[jsDayIndex],
+      dateStr: d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+      dateSuffix: `${dayNum}${suffix} ${monthFull}`,
+      isToday: i === 0,
+      openTime,
+      closeTime,
+    })
+  }
+  return dates
+}
+
+function generateTimeSlots(
+  openTime: string | null,
+  closeTime: string | null,
+  availableHours?: string[]
+): string[] {
+  if (availableHours && availableHours.length > 0) {
+    return availableHours
+  }
+
+  const parseTime = (t: string): number => {
+    const parts = t.replace(/\s/g, "").match(/^(\d{1,2}):?(\d{2})?\s*(am|pm)?$/i)
+    if (!parts) return -1
+    let h = parseInt(parts[1], 10)
+    const m = parseInt(parts[2] || "0", 10)
+    if (parts[3]) {
+      if (parts[3].toLowerCase() === "pm" && h !== 12) h += 12
+      if (parts[3].toLowerCase() === "am" && h === 12) h = 0
+    }
+    return h * 60 + m
+  }
+
+  const startMinutes = openTime ? parseTime(openTime) : 9 * 60
+  const endMinutes = closeTime ? parseTime(closeTime) : 17 * 60
+  const start = startMinutes >= 0 ? startMinutes : 9 * 60
+  const end = endMinutes > start ? endMinutes : 17 * 60
+
+  const slots: string[] = []
+  for (let m = start; m < end; m += 60) {
+    const h = Math.floor(m / 60)
+    const min = m % 60
+    const period = h >= 12 ? "pm" : "am"
+    const displayH = h > 12 ? h - 12 : h === 0 ? 12 : h
+    slots.push(`${displayH}:${min.toString().padStart(2, "0")}${period}`)
+  }
+  return slots
+}
+
+function AppointmentPicker({
+  clinic,
+  step,
+  selectedDay,
+  selectedTime,
+  onSelectDay,
+  onSelectTime,
+  onBack,
+  onConfirm,
+}: {
+  clinic: Clinic
+  step: "day" | "time" | "confirm"
+  selectedDay: AvailableDate | null
+  selectedTime: string | null
+  onSelectDay: (day: AvailableDate) => void
+  onSelectTime: (time: string) => void
+  onBack: () => void
+  onConfirm: () => void
+}) {
+  const availableDates = getAvailableDates(clinic)
+  const timeSlots = selectedDay
+    ? generateTimeSlots(selectedDay.openTime, selectedDay.closeTime, clinic.available_hours)
+    : []
+
+  return (
+    <div className="border border-[#907EFF]/20 rounded-xl bg-[#faf9ff] p-3 animate-in slide-in-from-top-2 duration-200">
+      {/* Step indicator */}
+      <div className="flex items-center gap-2 mb-3">
+        {step !== "day" && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-[#907EFF] hover:text-[#7C6AE8] p-0.5 -ml-0.5"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+        )}
+        <div className="flex items-center gap-1.5">
+          <CalendarCheck className="w-3.5 h-3.5 text-[#907EFF]" />
+          <span className="text-xs font-semibold text-[#323141]/70">
+            {step === "day" && "Select a day"}
+            {step === "time" && `${selectedDay?.dayLabel} ${selectedDay?.dateStr} — pick a time`}
+            {step === "confirm" && "Confirm your request"}
+          </span>
+        </div>
+      </div>
+
+      {/* Day selection */}
+      {step === "day" && (
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
+          {availableDates.map((day) => (
+            <button
+              key={day.dateStr}
+              type="button"
+              onClick={() => onSelectDay(day)}
+              className="flex flex-col items-center gap-0.5 py-2 px-1 rounded-lg border border-border/40 bg-white hover:border-[#907EFF]/50 hover:bg-[#907EFF]/5 active:scale-95 transition-all text-center"
+            >
+              <span className="text-[10px] font-medium text-muted-foreground">
+                {day.isToday ? "Today" : day.dayLabel}
+              </span>
+              <span className="text-xs font-semibold text-[#323141]">
+                {day.date.getDate()}
+              </span>
+              <span className="text-[9px] text-muted-foreground">
+                {day.date.toLocaleDateString("en-GB", { month: "short" })}
+              </span>
+            </button>
+          ))}
+          {availableDates.length === 0 && (
+            <p className="col-span-full text-xs text-muted-foreground text-center py-3">
+              No available days found. Try messaging the clinic directly.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Time selection */}
+      {step === "time" && (
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+          {timeSlots.map((time) => (
+            <button
+              key={time}
+              type="button"
+              onClick={() => onSelectTime(time)}
+              className="py-2 px-2 rounded-lg border border-border/40 bg-white hover:border-[#907EFF]/50 hover:bg-[#907EFF]/5 active:scale-95 transition-all text-xs font-medium text-[#323141] text-center"
+            >
+              {time}
+            </button>
+          ))}
+          {timeSlots.length === 0 && (
+            <p className="col-span-full text-xs text-muted-foreground text-center py-3">
+              No time slots available. Try messaging the clinic directly.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Confirmation */}
+      {step === "confirm" && selectedDay && selectedTime && (
+        <div className="space-y-3">
+          <div className="bg-white rounded-lg border border-border/40 p-3 text-center">
+            <p className="text-sm font-semibold text-[#323141]">
+              {selectedDay.dayFull} {selectedDay.dateSuffix}
+            </p>
+            <p className="text-lg font-bold text-[#907EFF] mt-0.5">{selectedTime}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">at {clinic.name}</p>
+          </div>
+          <Button
+            className="w-full h-10 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm rounded-xl active:scale-[0.98] transition-transform"
+            onClick={onConfirm}
+          >
+            <Check className="w-4 h-4 mr-2" />
+            Confirm and send request
+          </Button>
+          <p className="text-[10px] text-center text-muted-foreground">
+            This sends a message to the clinic — they&apos;ll confirm availability.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function BookingCard({
   clinic,
   isTopMatch,
   onMessageClick,
+  onRequestAppointment,
   ctaRef,
 }: BookingCardProps) {
   const [showMoreDetails, setShowMoreDetails] = useState(false)
   const [showMatchBreakdown, setShowMatchBreakdown] = useState(false)
+
+  // Appointment picker state
+  const [showApptPicker, setShowApptPicker] = useState(false)
+  const [apptStep, setApptStep] = useState<"day" | "time" | "confirm">("day")
+  const [selectedApptDay, setSelectedApptDay] = useState<AvailableDate | null>(null)
+  const [selectedApptTime, setSelectedApptTime] = useState<string | null>(null)
 
   const todayHours = getTodayHours(clinic.opening_hours)
   const shortArea = getShortArea(clinic.postcode)
@@ -202,11 +451,11 @@ export function BookingCard({
   const maxReasons = clinic.is_emergency ? 2 : 3
 
   return (
-    <Card className="overflow-hidden transition-all duration-300">
+    <Card className="overflow-hidden transition-all duration-300 shadow-sm">
       {/* Top section: image left, details right */}
       <div className="flex flex-col sm:flex-row">
         {/* Image + badge */}
-        <div className="relative flex-shrink-0 w-full sm:w-40 md:w-48 h-36 sm:h-auto sm:min-h-[220px] bg-muted">
+        <div className="relative flex-shrink-0 w-full sm:w-40 md:w-48 h-40 sm:h-auto sm:min-h-[220px] bg-muted">
           {clinic.images && clinic.images.length > 0 ? (
             <Image
               src={clinic.images[0] || "/placeholder.svg"}
@@ -221,15 +470,15 @@ export function BookingCard({
             </div>
           )}
           {/* Badge overlay */}
-          <div className="absolute top-2 left-2">
-            <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${badgeStyle}`}>
+          <div className="absolute top-2.5 left-2.5 sm:top-2 sm:left-2">
+            <span className={`inline-block px-2.5 py-1 sm:py-0.5 rounded-full text-[11px] sm:text-xs font-semibold shadow-sm ${badgeStyle}`}>
               {badge}
             </span>
           </div>
           {/* Match % overlay */}
           {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-            <div className="absolute bottom-2 left-2">
-              <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm text-primary font-semibold text-xs px-2 py-0.5 rounded-full shadow-sm">
+            <div className="absolute bottom-2.5 left-2.5 sm:bottom-2 sm:left-2">
+              <span className="inline-flex items-center gap-1 bg-white/95 backdrop-blur-sm text-primary font-semibold text-xs px-2.5 py-1 sm:py-0.5 rounded-full shadow-sm">
                 <Sparkles className="w-3 h-3" />
                 {clinic.match_percentage}%
               </span>
@@ -238,18 +487,18 @@ export function BookingCard({
         </div>
 
         {/* Right side: details */}
-        <div className="flex-1 p-4 sm:p-5 space-y-3">
+        <div className="flex-1 px-3.5 py-3 sm:p-5 space-y-2.5 sm:space-y-3">
           {/* Name + meta */}
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-foreground leading-tight mb-1.5">
+            <h2 className="text-base sm:text-xl font-bold text-foreground leading-tight mb-1">
               {clinic.name}
             </h2>
-            <div className="flex items-center gap-2.5 text-xs text-muted-foreground flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-2.5 text-xs text-muted-foreground flex-wrap">
               {clinic.rating > 0 && (
                 <div className="flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
                   <span className="font-medium">{clinic.rating}</span>
-                  <span>({clinic.review_count})</span>
+                  <span className="text-muted-foreground/60">({clinic.review_count})</span>
                 </div>
               )}
               {clinic.verified && (
@@ -268,10 +517,10 @@ export function BookingCard({
           </div>
 
           {/* Quick details grid */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+          <div className="grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-1.5 text-xs">
             {clinic.languages_spoken && clinic.languages_spoken.length > 0 && (
               <div className="flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <Globe className="w-3.5 h-3.5 text-muted-foreground/70 flex-shrink-0" />
                 <span className="text-muted-foreground truncate">
                   {clinic.languages_spoken.slice(0, 2).join(", ")}
                   {clinic.languages_spoken.length > 2 && ` +${clinic.languages_spoken.length - 2}`}
@@ -281,14 +530,14 @@ export function BookingCard({
 
             {todayHours && (
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <Clock className="w-3.5 h-3.5 text-muted-foreground/70 flex-shrink-0" />
                 <span className="text-muted-foreground truncate">{todayHours}</span>
               </div>
             )}
 
             {shortArea && (
               <div className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <MapPin className="w-3.5 h-3.5 text-muted-foreground/70 flex-shrink-0" />
                 <span className="text-muted-foreground">{shortArea}</span>
               </div>
             )}
@@ -316,14 +565,14 @@ export function BookingCard({
 
             {clinic.price_range && (
               <div className="flex items-center gap-1.5">
-                <PoundSterling className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <PoundSterling className="w-3.5 h-3.5 text-muted-foreground/70 flex-shrink-0" />
                 <span className="text-muted-foreground">{formatPriceRange(clinic.price_range)}</span>
               </div>
             )}
 
             {clinic.treatments && clinic.treatments.length > 0 && (
               <div className="flex items-center gap-1.5">
-                <Stethoscope className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <Stethoscope className="w-3.5 h-3.5 text-muted-foreground/70 flex-shrink-0" />
                 <span className="text-muted-foreground truncate">
                   {clinic.treatments.slice(0, 2).join(", ")}
                   {clinic.treatments.length > 2 && ` +${clinic.treatments.length - 2}`}
@@ -340,7 +589,7 @@ export function BookingCard({
                 return (
                   <span
                     key={chip}
-                    className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full border border-border/40"
+                    className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full border border-border/30"
                   >
                     {chipData.icon}
                     {chipData.label}
@@ -353,21 +602,60 @@ export function BookingCard({
       </div>
 
       {/* Bottom section: CTAs, match info, reasons, details */}
-      <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4">
+      <div className="px-3.5 sm:px-5 pb-3.5 sm:pb-5 space-y-3 sm:space-y-4">
 
-        {/* ── MOBILE CTA: Message clinic right after clinic summary ── */}
-        <div ref={ctaRef} className="sm:hidden pt-1">
+        {/* ── MOBILE CTA: Message + Request appointment ── */}
+        <div ref={ctaRef} className="sm:hidden space-y-2">
           <Button
-            className="w-full h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
+            className="w-full h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm rounded-xl shadow-sm active:scale-[0.98] transition-transform"
             onClick={onMessageClick}
           >
             <MessageCircle className="w-4 h-4 mr-2" />
             Message clinic
           </Button>
-          <p className="text-xs text-center text-muted-foreground mt-2">
-            Ask a question or request an appointment.
-          </p>
+          {onRequestAppointment && (
+            <Button
+              variant="outline"
+              className="w-full h-10 rounded-xl text-sm font-medium border-[#907EFF]/30 text-[#907EFF] hover:bg-[#907EFF]/5 active:scale-[0.98] transition-transform"
+              onClick={() => {
+                setShowApptPicker(!showApptPicker)
+                setApptStep("day")
+                setSelectedApptDay(null)
+                setSelectedApptTime(null)
+              }}
+            >
+              <CalendarCheck className="w-4 h-4 mr-2" />
+              {showApptPicker ? "Cancel" : "Request appointment"}
+            </Button>
+          )}
         </div>
+
+        {/* ── MOBILE: Appointment picker ── */}
+        {showApptPicker && onRequestAppointment && (
+          <AppointmentPicker
+            clinic={clinic}
+            step={apptStep}
+            selectedDay={selectedApptDay}
+            selectedTime={selectedApptTime}
+            onSelectDay={(day) => { setSelectedApptDay(day); setApptStep("time") }}
+            onSelectTime={(time) => { setSelectedApptTime(time); setApptStep("confirm") }}
+            onBack={() => {
+              if (apptStep === "confirm") { setApptStep("time"); setSelectedApptTime(null) }
+              else if (apptStep === "time") { setApptStep("day"); setSelectedApptDay(null) }
+              else { setShowApptPicker(false) }
+            }}
+            onConfirm={() => {
+              if (selectedApptDay && selectedApptTime) {
+                const msg = `Hi! I'd like to request an appointment on ${selectedApptDay.dayFull} ${selectedApptDay.dateSuffix} at ${selectedApptTime}. Would this time be available?`
+                setShowApptPicker(false)
+                setApptStep("day")
+                setSelectedApptDay(null)
+                setSelectedApptTime(null)
+                onRequestAppointment(msg)
+              }
+            }}
+          />
+        )}
 
         {/* ── Match breakdown ── */}
         {clinic.match_percentage && clinic.match_breakdown && clinic.match_breakdown.length > 0 && (
@@ -413,14 +701,14 @@ export function BookingCard({
 
         {/* Why we matched you */}
         {reasons.length > 0 && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-          <div className="border border-border/50 rounded-lg p-3 bg-background">
+          <div className="border border-border/40 rounded-xl p-3 bg-gradient-to-br from-white to-[#faf9ff]">
             <div className="flex items-center gap-2 mb-2">
-              <Shield className="w-4 h-4 text-muted-foreground" />
-              <h3 className="font-semibold text-sm text-foreground">
+              <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#907EFF]/60" />
+              <h3 className="font-semibold text-xs sm:text-sm text-foreground">
                 {clinic.card_title || "Why we matched you"}
               </h3>
             </div>
-            <div className="space-y-1.5 text-sm text-foreground leading-relaxed">
+            <div className="space-y-1 sm:space-y-1.5 text-xs sm:text-sm text-foreground/80 leading-relaxed">
               {reasons.slice(0, maxReasons).map((sentence, i) => (
                 <p key={i}>{sentence}</p>
               ))}
@@ -538,18 +826,62 @@ export function BookingCard({
           )}
         </div>
 
-        {/* CTA — Desktop: Message clinic (stays at bottom) */}
-        <div className="hidden sm:block space-y-2 pt-3 border-t border-border/50">
-          <Button
-            className="w-full h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
-            onClick={onMessageClick}
-          >
-            <MessageCircle className="w-4 h-4 mr-2" />
-            Message clinic
-          </Button>
+        {/* CTA — Desktop: Message + Request appointment */}
+        <div className="hidden sm:block space-y-2 pt-3 border-t border-border/40">
+          <div className="flex gap-2">
+            <Button
+              className="flex-1 h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm rounded-xl"
+              onClick={onMessageClick}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Message clinic
+            </Button>
+            {onRequestAppointment && (
+              <Button
+                variant="outline"
+                className="flex-1 h-11 rounded-xl text-sm font-medium border-[#907EFF]/30 text-[#907EFF] hover:bg-[#907EFF]/5"
+                onClick={() => {
+                  setShowApptPicker(!showApptPicker)
+                  setApptStep("day")
+                  setSelectedApptDay(null)
+                  setSelectedApptTime(null)
+                }}
+              >
+                <CalendarCheck className="w-4 h-4 mr-2" />
+                {showApptPicker ? "Cancel" : "Request appointment"}
+              </Button>
+            )}
+          </div>
           <p className="text-xs text-center text-muted-foreground">
             No pressure — ask a question or request an appointment.
           </p>
+
+          {/* Desktop: Appointment picker */}
+          {showApptPicker && onRequestAppointment && (
+            <AppointmentPicker
+              clinic={clinic}
+              step={apptStep}
+              selectedDay={selectedApptDay}
+              selectedTime={selectedApptTime}
+              onSelectDay={(day) => { setSelectedApptDay(day); setApptStep("time") }}
+              onSelectTime={(time) => { setSelectedApptTime(time); setApptStep("confirm") }}
+              onBack={() => {
+                if (apptStep === "confirm") { setApptStep("time"); setSelectedApptTime(null) }
+                else if (apptStep === "time") { setApptStep("day"); setSelectedApptDay(null) }
+                else { setShowApptPicker(false) }
+              }}
+              onConfirm={() => {
+                if (selectedApptDay && selectedApptTime) {
+                  const msg = `Hi! I'd like to request an appointment on ${selectedApptDay.dayFull} ${selectedApptDay.dateSuffix} at ${selectedApptTime}. Would this time be available?`
+                  setShowApptPicker(false)
+                  setApptStep("day")
+                  setSelectedApptDay(null)
+                  setSelectedApptTime(null)
+                  onRequestAppointment(msg)
+                }
+              }}
+            />
+          )}
         </div>
       </div>
     </Card>

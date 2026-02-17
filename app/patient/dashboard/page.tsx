@@ -494,6 +494,13 @@ export default function PatientDashboard() {
     if (selectedClinicId) openConversationForClinic(selectedClinicId)
   }, [selectedClinicId, inboxConversations, allClinics, activeLeadId, isMobile])
 
+  const handleRequestAppointment = useCallback((message: string) => {
+    if (!selectedClinicId) return
+    // Pre-fill the message input, then open the chat
+    setNewMessage(message)
+    openConversationForClinic(selectedClinicId)
+  }, [selectedClinicId, inboxConversations, allClinics, activeLeadId, isMobile])
+
   const totalUnread = inboxConversations.reduce((sum, c) => sum + (c.unread_count_patient || 0), 0)
   const hasMoreMatches = data ? data.matches.length < (data.matchesTotal || 0) : false
 
@@ -516,8 +523,11 @@ export default function PatientDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f8f7f4] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#907EFF]" />
+      <div className="min-h-screen bg-[#f8f7f4] flex flex-col items-center justify-center gap-3">
+        <div className="rounded-full bg-black p-2.5">
+          <Heart className="w-5 h-5 text-white fill-white" />
+        </div>
+        <Loader2 className="w-5 h-5 animate-spin text-[#907EFF]" />
       </div>
     )
   }
@@ -539,24 +549,23 @@ export default function PatientDashboard() {
     <div className="min-h-screen bg-[#f8f7f4] flex flex-col">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2.5">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link href="/" className="flex items-center gap-2">
               <div className="rounded-full bg-black p-1.5">
-                <Heart className="w-4 h-4 text-white fill-white" />
+                <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white fill-white" />
               </div>
-              <span className="font-semibold text-lg">Pearlie</span>
+              <span className="font-semibold text-base sm:text-lg">Pearlie</span>
             </Link>
             <div className="hidden sm:block text-sm text-[#323141]/50">
               Hi{data?.user?.name ? `, ${data.user.name.split(" ")[0]}` : ""} <span className="text-[#323141]/30 mx-1">&middot;</span> {data?.user?.email}
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-3 sm:gap-3">
             {/* Mobile inbox toggle */}
             <button
               onClick={() => {
                 if (isMobile) {
-                  // On mobile: open chat drawer. Select most recent conversation if none selected.
                   if (!selectedConvId && !pendingChatClinic && inboxConversations.length > 0) {
                     setSelectedConvId(inboxConversations[0].id)
                   }
@@ -565,23 +574,21 @@ export default function PatientDashboard() {
                   setMobileInboxOpen(!mobileInboxOpen)
                 }
               }}
-              className="lg:hidden relative flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              className="lg:hidden relative flex items-center justify-center h-9 w-9 rounded-full hover:bg-muted/60 active:bg-muted transition-colors"
             >
-              <div className="relative">
-                <MessageCircle className="w-5 h-5" />
-                {totalUnread > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
-                    {totalUnread}
-                  </span>
-                )}
-              </div>
+              <MessageCircle className="w-5 h-5 text-[#323141]/60" />
+              {totalUnread > 0 && (
+                <span className="absolute top-0.5 right-0.5 bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
+                  {totalUnread}
+                </span>
+              )}
             </button>
-            {/* Sign out — desktop: icon + text, mobile: avatar initial */}
+            {/* Sign out — desktop: icon + text, mobile: avatar */}
             <button
               onClick={handleSignOut}
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              <div className="sm:hidden h-7 w-7 rounded-full bg-[#907EFF] flex items-center justify-center flex-shrink-0">
+              <div className="sm:hidden h-8 w-8 rounded-full bg-gradient-to-br from-[#907EFF] to-[#7C6AE8] flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform">
                 <span className="text-white text-xs font-semibold">
                   {(data?.user?.name || data?.user?.email || "U").charAt(0).toUpperCase()}
                 </span>
@@ -597,16 +604,16 @@ export default function PatientDashboard() {
       <div className="flex-1 max-w-[1400px] w-full mx-auto flex">
 
         {/* ══════ LEFT COLUMN: Your Match ══════ */}
-        <div className="flex-1 min-w-0 lg:max-w-[58%] overflow-y-auto p-4 lg:p-6 space-y-6">
+        <div className="flex-1 min-w-0 lg:max-w-[58%] overflow-y-auto px-3 py-4 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
 
           {/* Match context header */}
           {latestMatchLead && (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-[#323141]/60">
-                Latest search: <span className="font-medium text-[#323141]/80">{latestMatchLead.treatment_interest || "Dental enquiry"}</span>
-                {latestMatchLead.postcode && <> <span className="text-[#323141]/30">&middot;</span> {latestMatchLead.postcode}</>}
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs sm:text-sm text-[#323141]/60 min-w-0">
+                <span className="font-medium text-[#323141]/80">{latestMatchLead.treatment_interest || "Dental enquiry"}</span>
+                {latestMatchLead.postcode && <> <span className="text-[#323141]/30 mx-0.5">&middot;</span> <span className="text-[#323141]/50">{latestMatchLead.postcode}</span></>}
               </p>
-              <Link href="/intake" className="text-xs text-[#907EFF] hover:underline flex-shrink-0">
+              <Link href="/intake" className="text-xs text-[#907EFF] hover:underline flex-shrink-0 font-medium">
                 New search
               </Link>
             </div>
@@ -630,23 +637,26 @@ export default function PatientDashboard() {
               <p className="text-sm text-muted-foreground">Finding your best match...</p>
             </Card>
           ) : selectedClinic ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#907EFF]" />
-                <h2 className="text-sm font-semibold text-[#323141]/70 uppercase tracking-wide">
-                  {isTopMatch ? "Recommended for you" : "Selected clinic"}
-                </h2>
+            <div className="space-y-2 sm:space-y-3">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#907EFF]" />
+                  <h2 className="text-xs sm:text-sm font-semibold text-[#323141]/70 uppercase tracking-wide">
+                    {isTopMatch ? "Recommended for you" : "Selected clinic"}
+                  </h2>
+                </div>
+                <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
+                  {isTopMatch
+                    ? "Based on availability, distance, and your needs"
+                    : "Tap another clinic below to switch back"}
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground -mt-1">
-                {isTopMatch
-                  ? "Chosen based on availability, distance, and fit for your needs"
-                  : "Click another clinic below to switch back"}
-              </p>
 
               <BookingCard
                 clinic={selectedClinic}
                 isTopMatch={isTopMatch}
                 onMessageClick={handleMessageClick}
+                onRequestAppointment={handleRequestAppointment}
                 ctaRef={ctaRef}
               />
             </div>
@@ -665,16 +675,16 @@ export default function PatientDashboard() {
             <section>
               <button
                 onClick={() => setShowOtherClinics(!showOtherClinics)}
-                className="flex items-center justify-between w-full text-left"
+                className="flex items-center justify-between w-full text-left py-1"
               >
-                <h2 className="text-sm font-semibold text-[#323141]/70 uppercase tracking-wide">
-                  Other suitable clinics ({otherClinics.length})
+                <h2 className="text-xs sm:text-sm font-semibold text-[#323141]/70 uppercase tracking-wide">
+                  Other clinics ({otherClinics.length})
                 </h2>
-                <ChevronDown className={`w-4 h-4 text-[#323141]/50 transition-transform ${showOtherClinics ? "rotate-180" : ""}`} />
+                <ChevronDown className={`w-4 h-4 text-[#323141]/50 transition-transform duration-200 ${showOtherClinics ? "rotate-180" : ""}`} />
               </button>
 
               {!showOtherClinics ? (
-                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="mt-2 sm:mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {otherClinics.slice(0, 4).map((clinic) => (
                     <OtherClinicCard
                       key={clinic.id}
@@ -685,7 +695,7 @@ export default function PatientDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="mt-2 sm:mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {otherClinics.map((clinic) => (
                     <OtherClinicCard
                       key={clinic.id}
@@ -698,7 +708,7 @@ export default function PatientDashboard() {
               )}
 
               {otherClinics.length > 4 && !showOtherClinics && (
-                <button onClick={() => setShowOtherClinics(true)} className="mt-2 text-sm text-[#907EFF] hover:underline">
+                <button onClick={() => setShowOtherClinics(true)} className="mt-2 text-xs sm:text-sm text-[#907EFF] hover:underline font-medium">
                   View all {otherClinics.length} clinics
                 </button>
               )}
@@ -710,34 +720,34 @@ export default function PatientDashboard() {
             <section>
               <button
                 onClick={() => setShowMatchHistory(!showMatchHistory)}
-                className="flex items-center justify-between w-full text-left"
+                className="flex items-center justify-between w-full text-left py-1"
               >
-                <h2 className="text-sm font-semibold text-[#323141]/50 uppercase tracking-wide">
+                <h2 className="text-xs sm:text-sm font-semibold text-[#323141]/50 uppercase tracking-wide">
                   Match history ({data.matchesTotal || data.matches.length})
                 </h2>
-                <ChevronDown className={`w-4 h-4 text-[#323141]/30 transition-transform ${showMatchHistory ? "rotate-180" : ""}`} />
+                <ChevronDown className={`w-4 h-4 text-[#323141]/30 transition-transform duration-200 ${showMatchHistory ? "rotate-180" : ""}`} />
               </button>
 
               {showMatchHistory && (
-                <div className="mt-2 space-y-1">
+                <div className="mt-2 space-y-1.5">
                   {data.matches.map((match) => {
                     const lead = data.leads.find((l) => l.id === match.lead_id)
                     const isCurrent = match.id === activeMatchId
                     return (
                       <Card
                         key={match.id}
-                        className={`px-3 py-2 hover:shadow-sm transition-shadow cursor-pointer ${isCurrent ? "border-[#907EFF]/30 bg-[#f8f5ff]/50" : ""}`}
+                        className={`px-3 py-2.5 hover:shadow-sm transition-all cursor-pointer active:scale-[0.99] ${isCurrent ? "border-[#907EFF]/30 bg-[#f8f5ff]/50" : ""}`}
                         onClick={() => {
                           if (!isCurrent) fetchClinicDetails(match.id)
                         }}
                       >
                         <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <span className="text-muted-foreground text-xs w-14 flex-shrink-0">
+                          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <span className="text-muted-foreground text-[11px] sm:text-xs w-12 sm:w-14 flex-shrink-0">
                               {new Date(match.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                             </span>
-                            <span className="text-[#323141] font-medium truncate">{lead?.treatment_interest || "Dental enquiry"}</span>
-                            <span className="text-xs text-muted-foreground flex-shrink-0">{match.clinic_ids?.length || 0} matched</span>
+                            <span className="text-[#323141] font-medium text-sm truncate">{lead?.treatment_interest || "Dental enquiry"}</span>
+                            <span className="text-[11px] sm:text-xs text-muted-foreground flex-shrink-0">{match.clinic_ids?.length || 0} matched</span>
                             {isCurrent && <span className="text-[10px] text-[#907EFF] font-medium flex-shrink-0">Current</span>}
                           </div>
                           <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -746,7 +756,7 @@ export default function PatientDashboard() {
                     )
                   })}
                   {hasMoreMatches && (
-                    <button onClick={loadMoreMatches} disabled={loadingMoreMatches} className="text-xs text-[#907EFF] hover:underline mt-1">
+                    <button onClick={loadMoreMatches} disabled={loadingMoreMatches} className="text-xs text-[#907EFF] hover:underline mt-1 font-medium">
                       {loadingMoreMatches ? "Loading..." : "Load more"}
                     </button>
                   )}
@@ -756,8 +766,8 @@ export default function PatientDashboard() {
           )}
 
           {/* New search */}
-          <div className="text-center pt-2 pb-4">
-            <Button asChild variant="outline" size="sm" className="rounded-2xl text-sm">
+          <div className={`text-center pt-2 ${isMobile && showStickyBar ? "pb-20" : "pb-4"}`}>
+            <Button asChild variant="outline" size="sm" className="rounded-full text-xs sm:text-sm h-9 px-4">
               <Link href="/intake">
                 <Search className="w-3.5 h-3.5 mr-1.5" />
                 Start a new search
@@ -1003,32 +1013,32 @@ export default function PatientDashboard() {
       {/* ══════ MOBILE: Chat Bottom Sheet Drawer ══════ */}
       {isMobile && (
         <Drawer open={mobileChatOpen} onOpenChange={setMobileChatOpen}>
-          <DrawerContent className="!max-h-[80vh] !h-[80vh] !mt-0 flex flex-col rounded-t-2xl">
-            {/* Drag handle is built into DrawerContent */}
+          <DrawerContent className="!max-h-[85vh] !h-[85vh] !mt-0 flex flex-col rounded-t-2xl overflow-hidden">
             <DrawerTitle className="sr-only">Chat with {chatHeaderName || "clinic"}</DrawerTitle>
 
             {/* Header */}
-            <div className="flex-shrink-0 border-b border-border/40 px-4 pt-1 pb-3">
+            <div className="flex-shrink-0 border-b border-border/30 bg-white px-4 pt-1 pb-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
                   {chatHeaderImage ? (
-                    <div className="relative h-8 w-8 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
+                    <div className="relative h-9 w-9 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100 ring-2 ring-[#907EFF]/20">
                       <Image src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover" />
                     </div>
                   ) : (
-                    <div className="h-8 w-8 rounded-full bg-[#907EFF] flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-xs font-semibold">
+                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#907EFF] to-[#7C6AE8] flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-sm font-semibold">
                         {(chatHeaderName || "C").charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground truncate text-left">{chatHeaderName || "Clinic"}</p>
+                    <p className="text-[11px] text-muted-foreground">Usually replies quickly</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setMobileChatOpen(false)}
-                  className="text-muted-foreground hover:text-foreground p-1 -mr-1"
+                  className="text-muted-foreground hover:text-foreground p-1.5 -mr-1 rounded-full hover:bg-muted/60 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1036,35 +1046,39 @@ export default function PatientDashboard() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0">
+            <div className="flex-1 overflow-y-auto px-3 py-3 min-h-0 bg-[#fafaf8]">
               {loadingMessages ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-5 h-5 animate-spin text-[#907EFF]" />
                 </div>
               ) : messages.length === 0 ? (
-                <div className="text-center py-8 space-y-2">
-                  <MessageCircle className="w-8 h-8 text-[#ccc] mx-auto" />
-                  <p className="text-sm font-medium text-[#323141]/70">
-                    Chat with {chatHeaderName || "the clinic"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Ask any questions or request an appointment.
-                  </p>
+                <div className="text-center py-10 space-y-3">
+                  <div className="h-12 w-12 rounded-full bg-[#907EFF]/10 flex items-center justify-center mx-auto">
+                    <MessageCircle className="w-6 h-6 text-[#907EFF]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[#323141]/80">
+                      Chat with {chatHeaderName || "the clinic"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Ask any questions or request an appointment
+                    </p>
+                  </div>
                 </div>
               ) : (
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   {messages.map((msg) => (
                     <div
                       key={msg.id}
                       className={`flex ${msg.sender_type === "patient" ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${
+                        className={`max-w-[82%] rounded-2xl px-3.5 py-2 ${
                           msg.sender_type === "patient"
-                            ? "bg-[#907EFF] text-white rounded-br-sm"
+                            ? "bg-gradient-to-br from-[#907EFF] to-[#8070F0] text-white rounded-br-md"
                             : msg.sender_type === "bot"
-                            ? "bg-[#f5f3ff] border border-[#e9e5f5] rounded-bl-sm"
-                            : "bg-[#f0f0f0] rounded-bl-sm"
+                            ? "bg-white border border-[#e9e5f5] rounded-bl-md shadow-sm"
+                            : "bg-white rounded-bl-md shadow-sm"
                         }`}
                       >
                         {msg.sender_type === "bot" && (
@@ -1073,11 +1087,11 @@ export default function PatientDashboard() {
                             Pearlie
                           </p>
                         )}
-                        <p className={`text-sm whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-[#323141]/70" : ""}`}>
+                        <p className={`text-[14px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-[#323141]/70" : ""}`}>
                           {msg.content}
                         </p>
-                        <p className={`text-[10px] mt-0.5 ${
-                          msg.sender_type === "patient" ? "text-white/60" : "text-muted-foreground"
+                        <p className={`text-[10px] mt-1 ${
+                          msg.sender_type === "patient" ? "text-white/50 text-right" : "text-muted-foreground/60"
                         }`}>
                           {formatTime(msg.created_at)}
                         </p>
@@ -1086,8 +1100,12 @@ export default function PatientDashboard() {
                   ))}
                   {otherTyping && (
                     <div className="flex justify-start">
-                      <div className="bg-[#f0f0f0] rounded-2xl rounded-bl-sm px-4 py-2">
-                        <span className="text-sm text-muted-foreground animate-pulse">typing...</span>
+                      <div className="bg-white rounded-2xl rounded-bl-md px-4 py-2.5 shadow-sm">
+                        <div className="flex gap-1">
+                          <span className="w-2 h-2 bg-[#323141]/20 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <span className="w-2 h-2 bg-[#323141]/20 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <span className="w-2 h-2 bg-[#323141]/20 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1097,32 +1115,34 @@ export default function PatientDashboard() {
             </div>
 
             {/* Quick prompts */}
-            <div className="flex gap-1.5 px-4 py-2 overflow-x-auto flex-shrink-0 border-t border-border/40">
-              {QUICK_PROMPTS.map((prompt) => (
-                <button
-                  key={prompt}
-                  onClick={() => setNewMessage(prompt)}
-                  className="text-[11px] text-[#907EFF] border border-[#907EFF]/30 rounded-full px-2.5 py-1 hover:bg-[#907EFF]/5 transition-colors whitespace-nowrap flex-shrink-0"
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
+            {messages.length === 0 && (
+              <div className="flex gap-2 px-3 py-2.5 overflow-x-auto flex-shrink-0 border-t border-border/30 bg-white">
+                {QUICK_PROMPTS.map((prompt) => (
+                  <button
+                    key={prompt}
+                    onClick={() => setNewMessage(prompt)}
+                    className="text-[12px] text-[#907EFF] border border-[#907EFF]/25 rounded-full px-3 py-1.5 hover:bg-[#907EFF]/5 active:bg-[#907EFF]/10 transition-colors whitespace-nowrap flex-shrink-0"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Composer */}
-            <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/40 flex-shrink-0 pb-6">
+            <form onSubmit={handleSend} className="flex gap-2 px-3 py-3 border-t border-border/30 flex-shrink-0 pb-6 bg-white">
               <Input
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type a message..."
-                className="flex-1 text-sm"
+                className="flex-1 text-sm rounded-xl bg-[#f5f5f3] border-0 h-10 focus-visible:ring-[#907EFF]/30"
                 disabled={isSending}
               />
               <Button
                 type="submit"
                 size="icon"
                 disabled={!newMessage.trim() || isSending}
-                className="bg-[#907EFF] hover:bg-[#7C6AE8] text-white h-9 w-9"
+                className="bg-[#907EFF] hover:bg-[#7C6AE8] text-white h-10 w-10 rounded-xl shrink-0 active:scale-95 transition-transform"
               >
                 {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </Button>
@@ -1132,14 +1152,18 @@ export default function PatientDashboard() {
       )}
 
       {/* ══════ MOBILE: Sticky Bottom Action Bar ══════ */}
-      {isMobile && showStickyBar && selectedClinic && !mobileChatOpen && (
-        <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 pb-6">
+      {isMobile && selectedClinic && !mobileChatOpen && (
+        <div
+          className={`fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-border/40 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-4 py-3 pb-6 transition-all duration-300 ${
+            showStickyBar ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
+          }`}
+        >
           <Button
-            className="w-full h-10 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
+            className="w-full h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm rounded-xl shadow-sm active:scale-[0.98] transition-transform"
             onClick={handleMessageClick}
           >
             <MessageCircle className="w-4 h-4 mr-1.5" />
-            Message clinic
+            Message {selectedClinic.name.split(" ")[0]}
           </Button>
         </div>
       )}
