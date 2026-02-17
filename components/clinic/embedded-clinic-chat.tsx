@@ -330,7 +330,7 @@ export function EmbeddedClinicChat({
       {leadId && conversationId && (
         <div className="px-3 py-1.5 bg-white border-t border-[#e5e5e5]">
           <a
-            href={`/patient/messages?conversationId=${conversationId}`}
+            href="/patient/dashboard"
             className="text-[11px] text-[#907EFF] hover:underline"
           >
             Open full conversation in inbox
@@ -377,7 +377,7 @@ export function EmbeddedClinicChat({
                   }
                 }}
                 placeholder="Type a message..."
-                className="flex-1 min-w-0 text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
+                className="flex-1 min-w-0 text-[16px] sm:text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
                 disabled={isSending}
               />
               <button
