@@ -30,7 +30,6 @@ import { useIsMobile } from "@/components/ui/use-mobile"
 import {
   Drawer,
   DrawerContent,
-  DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
 
@@ -1015,9 +1014,12 @@ export default function PatientDashboard() {
       {/* ══════ MOBILE: Chat Bottom Sheet Drawer ══════ */}
       {isMobile && (
         <Drawer open={mobileChatOpen} onOpenChange={setMobileChatOpen}>
-          <DrawerContent className="max-h-[85vh] flex flex-col">
+          <DrawerContent className="!max-h-[80vh] !h-[80vh] !mt-0 flex flex-col rounded-t-2xl">
             {/* Drag handle is built into DrawerContent */}
-            <DrawerHeader className="flex-shrink-0 border-b border-border/40 pb-3">
+            <DrawerTitle className="sr-only">Chat with {chatHeaderName || "clinic"}</DrawerTitle>
+
+            {/* Header */}
+            <div className="flex-shrink-0 border-b border-border/40 px-4 pt-1 pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5 min-w-0">
                   {chatHeaderImage ? (
@@ -1032,20 +1034,20 @@ export default function PatientDashboard() {
                     </div>
                   )}
                   <div className="min-w-0">
-                    <DrawerTitle className="text-sm truncate">{chatHeaderName || "Clinic"}</DrawerTitle>
+                    <p className="text-sm font-semibold text-foreground truncate text-left">{chatHeaderName || "Clinic"}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setMobileChatOpen(false)}
-                  className="text-muted-foreground hover:text-foreground p-1"
+                  className="text-muted-foreground hover:text-foreground p-1 -mr-1"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
-            </DrawerHeader>
+            </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 px-4 py-3 min-h-0">
+            <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0">
               {loadingMessages ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-5 h-5 animate-spin text-[#907EFF]" />
@@ -1103,7 +1105,7 @@ export default function PatientDashboard() {
                   <div ref={messagesEndRef} />
                 </div>
               )}
-            </ScrollArea>
+            </div>
 
             {/* Quick prompts */}
             <div className="flex gap-1.5 px-4 py-2 overflow-x-auto flex-shrink-0 border-t border-border/40">
