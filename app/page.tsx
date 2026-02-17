@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge"
 import { LoadingAnimation } from "@/components/loading-animation"
 import StatsCard from "@/components/stats-card"
 import ClinicCarousel from "@/components/clinic-carousel"
-import { ScrollReveal } from "@/components/scroll-reveal"
 import { ScrollingMarquee } from "@/components/scrolling-marquee"
 import { SiteFooter } from "@/components/site-footer"
 import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config"
@@ -144,8 +143,8 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.1 }}
               >
-                <h1 className="text-3xl md:text-5xl lg:text-6xl leading-[1.15] font-bold text-[#F8F1E7] mb-4 md:mb-6">
-                  {/* Mobile: 3 lines */}
+                <h1 className="text-4xl md:text-5xl lg:text-6xl leading-[1.15] font-bold text-[#F8F1E7] mb-4 md:mb-6">
+                  {/* Mobile: 2 lines - "Where [word]" / "dental care begins." */}
                   <span className="md:hidden">
                     <span className="block">
                       Where{" "}
@@ -164,8 +163,7 @@ export default function Home() {
                         </AnimatePresence>
                       </span>
                     </span>
-                    <span className="block">dental care</span>
-                    <span className="block">begins.</span>
+                    <span className="block">dental care begins.</span>
                   </span>
                   {/* Desktop: 2 lines - "[word] dental care" stays on one line */}
                   <span className="hidden md:block">
@@ -233,23 +231,21 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button
-                        size="lg"
-                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-10 py-4 h-auto rounded-full font-medium hover:shadow-xl transition-all shadow-lg text-base border-0"
-                        asChild
-                      >
-                        <Link href="/intake">
-                          Find my clinic
-                          <ArrowRight className="ml-2 w-5 h-5" />
-                        </Link>
-                      </Button>
-                    </motion.div>
+                    <Button
+                      size="lg"
+                      className="bg-[#0fbcb0] hover:bg-[#0da399] text-white w-full sm:w-auto px-10 py-5 sm:py-4 h-auto rounded-full font-semibold hover:shadow-xl transition-all shadow-lg text-lg sm:text-base border-0"
+                      asChild
+                    >
+                      <Link href="/intake">
+                        Find my clinic
+                        <ArrowRight className="ml-2 w-5 h-5" />
+                      </Link>
+                    </Button>
 
                     <Button
                       variant="outline"
                       size="lg"
-                      className="text-white hover:text-white px-10 py-4 h-auto rounded-full transition-all border-2 border-white/70 bg-transparent hover:bg-white/10 text-base font-medium"
+                      className="text-white hover:text-white w-full sm:w-auto px-10 py-5 sm:py-4 h-auto rounded-full transition-all border-2 border-white/70 bg-transparent hover:bg-white/10 text-lg sm:text-base font-medium"
                       onClick={() => {
                         document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
                       }}
@@ -279,30 +275,24 @@ export default function Home() {
           <section className="py-8 border-y border-border/30 bg-white">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 lg:gap-12 max-w-3xl mx-auto">
-                <ScrollReveal delay={0}>
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
-                      <MapPin className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="text-sm text-foreground font-medium leading-tight">UK-focused</span>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
+                    <MapPin className="w-4 h-4 text-primary" />
                   </div>
-                </ScrollReveal>
-                <ScrollReveal delay={0.1}>
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
-                      <Shield className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="text-sm text-foreground font-medium leading-tight">Independent</span>
+                  <span className="text-sm text-foreground font-medium leading-tight">UK-focused</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
+                    <Shield className="w-4 h-4 text-primary" />
                   </div>
-                </ScrollReveal>
-                <ScrollReveal delay={0.2}>
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
-                      <Heart className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="text-sm text-foreground font-medium leading-tight">Dentist-led</span>
+                  <span className="text-sm text-foreground font-medium leading-tight">Independent</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
+                    <Heart className="w-4 h-4 text-primary" />
                   </div>
-                </ScrollReveal>
+                  <span className="text-sm text-foreground font-medium leading-tight">Dentist-led</span>
+                </div>
               </div>
             </div>
           </section>
@@ -313,12 +303,10 @@ export default function Home() {
               <div className="max-w-6xl mx-auto">
                 <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
                   {/* Clinic Carousel */}
-                  <ScrollReveal direction="left">
-                    <ClinicCarousel />
-                  </ScrollReveal>
+                  <ClinicCarousel />
 
                   {/* Content */}
-                  <ScrollReveal direction="right" className="lg:pl-4">
+                  <div className="lg:pl-4">
                     <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6 text-foreground text-balance">
                       Qualified, vetted dental clinics you can trust
                     </h2>
@@ -340,32 +328,28 @@ export default function Home() {
                           desc: "Clinics rated highly by patients for comfort, results, and experience — so you know what to expect before you book.",
                         },
                       ].map((item, i) => (
-                        <ScrollReveal key={i} delay={0.1 * (i + 1)}>
-                          <div className="flex items-start gap-3 p-3 rounded-xl transition-all duration-300 hover:bg-white/70 hover:shadow-sm">
-                            <div className="rounded-full bg-white p-1.5 mt-0.5 shadow-sm">
-                              <CheckCircle2 className="w-4 h-4 text-primary" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-foreground">{item.title}</p>
-                              <p className="text-sm text-muted-foreground">{item.desc}</p>
-                            </div>
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl">
+                          <div className="rounded-full bg-white p-1.5 mt-0.5 shadow-sm">
+                            <CheckCircle2 className="w-4 h-4 text-primary" />
                           </div>
-                        </ScrollReveal>
+                          <div>
+                            <p className="font-medium text-foreground">{item.title}</p>
+                            <p className="text-sm text-muted-foreground">{item.desc}</p>
+                          </div>
+                        </div>
                       ))}
                     </div>
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button
-                        size="lg"
-                        className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all group border-0"
-                        asChild
-                      >
-                        <Link href="/intake">
-                          Find my clinic
-                          <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                      </Button>
-                    </motion.div>
-                  </ScrollReveal>
+                    <Button
+                      size="lg"
+                      className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all group border-0"
+                      asChild
+                    >
+                      <Link href="/intake">
+                        Find my clinic
+                        <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -376,22 +360,22 @@ export default function Home() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
                 {/* Section header */}
-                <ScrollReveal className="text-center mb-16 md:mb-24">
+                <div className="text-center mb-16 md:mb-24">
                   <span className="overline block mb-3">How It Works</span>
                   <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">
                     Three simple steps
                   </h2>
-                </ScrollReveal>
+                </div>
 
                 {/* Step 1 - Image Left, Text Right */}
                 <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 mb-20 md:mb-32">
                   {/* Illustration */}
-                  <ScrollReveal direction="left" className="flex-1 flex justify-center lg:justify-end">
+                  <div className="flex-1 flex justify-center lg:justify-end">
                     <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
                       {/* Step number */}
                       <span className="absolute -top-6 -left-2 lg:-left-8 text-7xl lg:text-8xl font-bold text-primary/[0.07] select-none leading-none z-0">01</span>
                       {/* Phone mockup with form illustration */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
                         <div className="bg-white rounded-2xl p-5 shadow-sm">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center">
@@ -420,9 +404,9 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-                  </ScrollReveal>
+                  </div>
                   {/* Text content */}
-                  <ScrollReveal direction="right" className="flex-1 text-center lg:text-left">
+                  <div className="flex-1 text-center lg:text-left">
                     <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
                       Tell us what matters to you
                     </h3>
@@ -430,18 +414,18 @@ export default function Home() {
                       Answer a few quick questions about what you're looking for and what's important to you, at your own
                       pace.
                     </p>
-                  </ScrollReveal>
+                  </div>
                 </div>
 
                 {/* Step 2 - Text Left, Image Right */}
                 <div className="flex flex-col lg:flex-row-reverse items-center gap-8 lg:gap-16 mb-20 md:mb-32">
                   {/* Illustration */}
-                  <ScrollReveal direction="right" className="flex-1 flex justify-center lg:justify-start">
+                  <div className="flex-1 flex justify-center lg:justify-start">
                     <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
                       {/* Step number */}
                       <span className="absolute -top-6 -right-2 lg:-right-8 text-7xl lg:text-8xl font-bold text-primary/[0.07] select-none leading-none z-0">02</span>
                       {/* Phone mockup with clinic cards */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
                         <div className="space-y-4">
                           {/* Clinic card 1 */}
                           <div className="bg-white rounded-2xl p-4 shadow-sm border border-border/60">
@@ -488,9 +472,9 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-                  </ScrollReveal>
+                  </div>
                   {/* Text content */}
-                  <ScrollReveal direction="left" className="flex-1 text-center lg:text-left">
+                  <div className="flex-1 text-center lg:text-left">
                     <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
                       We recommend two carefully matched clinics
                     </h3>
@@ -498,18 +482,18 @@ export default function Home() {
                       Based on your answers, we'll recommend two trusted clinics near you that fit your preferences, so
                       you're not overwhelmed with options.
                     </p>
-                  </ScrollReveal>
+                  </div>
                 </div>
 
                 {/* Step 3 - Image Left, Text Right */}
                 <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
                   {/* Illustration */}
-                  <ScrollReveal direction="left" className="flex-1 flex justify-center lg:justify-end">
+                  <div className="flex-1 flex justify-center lg:justify-end">
                     <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
                       {/* Step number */}
                       <span className="absolute -top-6 -left-2 lg:-left-8 text-7xl lg:text-8xl font-bold text-primary/[0.07] select-none leading-none z-0">03</span>
                       {/* Phone mockup with booking */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
                         <div className="bg-white rounded-2xl p-5 shadow-sm">
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
@@ -545,9 +529,9 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-                  </ScrollReveal>
+                  </div>
                   {/* Text content */}
-                  <ScrollReveal direction="right" className="flex-1 text-center lg:text-left">
+                  <div className="flex-1 text-center lg:text-left">
                     <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
                       You choose if and when to book
                     </h3>
@@ -555,7 +539,7 @@ export default function Home() {
                       Review your options, explore each clinic, and book directly with the one that feels right for you. No
                       pressure. No obligation.
                     </p>
-                  </ScrollReveal>
+                  </div>
                 </div>
               </div>
             </div>
@@ -571,26 +555,24 @@ export default function Home() {
             <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-[#0fbcb0]/[0.08] blur-2xl pointer-events-none" />
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-              <ScrollReveal className="max-w-3xl mx-auto text-center">
+              <div className="max-w-3xl mx-auto text-center">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-balance">
                   Ready to find the right dental clinic for you?
                 </h2>
                 <p className="text-lg md:text-xl mb-10 opacity-90 leading-relaxed">
                   Answer a few quick questions and we&apos;ll match you with trusted clinics near you.
                 </p>
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="inline-block">
-                  <Button
-                    size="lg"
-                    className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-xl hover:shadow-[0_0_30px_rgba(15,188,176,0.3)] transition-all text-lg font-semibold border-0"
-                    asChild
-                  >
-                    <Link href="/intake">
-                      Find my clinic
-                      <ArrowRight className="ml-2 w-5 h-5" />
-                    </Link>
-                  </Button>
-                </motion.div>
-              </ScrollReveal>
+                <Button
+                  size="lg"
+                  className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-xl hover:shadow-2xl transition-all text-lg font-semibold border-0"
+                  asChild
+                >
+                  <Link href="/intake">
+                    Find my clinic
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Link>
+                </Button>
+              </div>
             </div>
           </section>
 
@@ -598,7 +580,7 @@ export default function Home() {
           <section className="py-16 md:py-28 lg:py-32 bg-[#F8F1E7]">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
-                <ScrollReveal className="text-center mb-12 md:mb-16">
+                <div className="text-center mb-12 md:mb-16">
                   <span className="overline block mb-3">What Patients Say</span>
                   <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-foreground">
                     Trusted by patients across the UK
@@ -606,7 +588,7 @@ export default function Home() {
                   <p className="text-lg text-muted-foreground">
                     Real experiences from people who found the right clinic for them
                   </p>
-                </ScrollReveal>
+                </div>
                 <div className="grid md:grid-cols-3 gap-6">
                   {[
                     {
@@ -628,29 +610,27 @@ export default function Home() {
                       initial: "A",
                     },
                   ].map((testimonial, i) => (
-                    <ScrollReveal key={i} delay={i * 0.15}>
-                      <Card className="p-5 sm:p-8 border-0 shadow-lg rounded-3xl bg-white hover:shadow-xl hover:-translate-y-2 transition-all duration-500 h-full">
-                        {/* Decorative quote */}
-                        <span className="text-5xl text-primary/10 font-serif leading-none block -mb-2" aria-hidden="true">&ldquo;</span>
-                        <div className="flex gap-1 mb-4">
-                          {[...Array(5)].map((_, j) => (
-                            <Star key={j} className="w-5 h-5 text-foreground fill-primary" />
-                          ))}
+                    <Card key={i} className="p-5 sm:p-8 border-0 shadow-lg rounded-3xl bg-white h-full">
+                      {/* Decorative quote */}
+                      <span className="text-5xl text-primary/10 font-serif leading-none block -mb-2" aria-hidden="true">&ldquo;</span>
+                      <div className="flex gap-1 mb-4">
+                        {[...Array(5)].map((_, j) => (
+                          <Star key={j} className="w-5 h-5 text-foreground fill-primary" />
+                        ))}
+                      </div>
+                      <p className="text-muted-foreground leading-relaxed mb-6">
+                        &ldquo;{testimonial.text}&rdquo;
+                      </p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                          {testimonial.initial}
                         </div>
-                        <p className="text-muted-foreground leading-relaxed mb-6">
-                          &ldquo;{testimonial.text}&rdquo;
-                        </p>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                            {testimonial.initial}
-                          </div>
-                          <div>
-                            <p className="font-bold text-foreground">{testimonial.name}</p>
-                            <p className="text-sm text-muted-foreground">{testimonial.location}</p>
-                          </div>
+                        <div>
+                          <p className="font-bold text-foreground">{testimonial.name}</p>
+                          <p className="text-sm text-muted-foreground">{testimonial.location}</p>
                         </div>
-                      </Card>
-                    </ScrollReveal>
+                      </div>
+                    </Card>
                   ))}
                 </div>
               </div>
