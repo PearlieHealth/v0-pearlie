@@ -3,9 +3,8 @@ import { useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users } from "lucide-react"
+import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, ChevronDown } from "lucide-react"
 import Link from "next/link"
-import { CookieSettingsButton } from "@/components/cookie-settings-button"
 import { MainNav } from "@/components/main-nav"
 import Image from "next/image"
 import { ComparisonTable } from "@/components/comparison-table"
@@ -13,12 +12,29 @@ import { Badge } from "@/components/ui/badge"
 import { LoadingAnimation } from "@/components/loading-animation"
 import StatsCard from "@/components/stats-card"
 import ClinicCarousel from "@/components/clinic-carousel"
+import { ScrollReveal } from "@/components/scroll-reveal"
+import { ScrollingMarquee } from "@/components/scrolling-marquee"
+import { SiteFooter } from "@/components/site-footer"
 import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config"
 
 // Homepage treatment list derived from the canonical config (not hardcoded)
 const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT)
 
 const dynamicWords = ["perfect", "right", "trusted", "ideal"]
+
+const marqueeItems = [
+  { text: "Trusted UK Clinics", icon: <Shield className="w-3.5 h-3.5" /> },
+  { text: "Free Clinic Matching", icon: <Sparkles className="w-3.5 h-3.5" /> },
+  { text: "No Sign-Up Required", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+  { text: "Verified Dental Practices", icon: <Heart className="w-3.5 h-3.5" /> },
+]
+
+const marqueeItemsDark = [
+  { text: "Verified Clinics", icon: <Shield className="w-3.5 h-3.5" /> },
+  { text: "Patient-First", icon: <Heart className="w-3.5 h-3.5" /> },
+  { text: "Independent & Trusted", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+  { text: "Free to Use", icon: <Sparkles className="w-3.5 h-3.5" /> },
+]
 
 interface LastMatch {
   matchId: string
@@ -94,7 +110,7 @@ export default function Home() {
 
           {/* Hero section — background image with dark overlay */}
           <section
-            className="relative min-h-[60vh] md:min-h-[70vh] lg:min-h-[80vh] flex items-center justify-center overflow-hidden pt-28 pb-12 md:pt-32 md:pb-20"
+            className="relative min-h-[60vh] md:min-h-[75vh] lg:min-h-[90vh] flex items-center justify-center overflow-hidden pt-28 pb-16 md:pt-32 md:pb-24"
           >
             {/* Background image */}
             <Image
@@ -217,16 +233,18 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <Button
-                      size="lg"
-                      className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-10 py-4 h-auto rounded-full font-medium hover:shadow-xl transition-all shadow-lg text-base border-0"
-                      asChild
-                    >
-                      <Link href="/intake">
-                        Find my clinic
-                        <ArrowRight className="ml-2 w-5 h-5" />
-                      </Link>
-                    </Button>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button
+                        size="lg"
+                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-10 py-4 h-auto rounded-full font-medium hover:shadow-xl transition-all shadow-lg text-base border-0"
+                        asChild
+                      >
+                        <Link href="/intake">
+                          Find my clinic
+                          <ArrowRight className="ml-2 w-5 h-5" />
+                        </Link>
+                      </Button>
+                    </motion.div>
 
                     <Button
                       variant="outline"
@@ -251,44 +269,64 @@ export default function Home() {
                 Free • No sign-up required
               </motion.p>
             </div>
+
+            {/* Scroll indicator */}
+            <motion.div
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden md:block"
+              animate={prefersReducedMotion ? {} : { y: [0, 8, 0] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            >
+              <ChevronDown className="w-6 h-6 text-white/40" />
+            </motion.div>
           </section>
 
           {/* Trust bar - standalone section */}
-          <section className="py-6 border-y border-border/30 bg-white">
+          <section className="py-8 border-y border-border/30 bg-white">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 lg:gap-12 max-w-3xl mx-auto">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
-                    <MapPin className="w-4 h-4 text-primary" />
+                <ScrollReveal delay={0}>
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
+                      <MapPin className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-sm text-foreground font-medium leading-tight">UK-focused</span>
                   </div>
-                  <span className="text-sm text-foreground font-medium leading-tight">UK-focused</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
-                    <Shield className="w-4 h-4 text-primary" />
+                </ScrollReveal>
+                <ScrollReveal delay={0.1}>
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
+                      <Shield className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-sm text-foreground font-medium leading-tight">Independent</span>
                   </div>
-                  <span className="text-sm text-foreground font-medium leading-tight">Independent</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
-                    <Heart className="w-4 h-4 text-primary" />
+                </ScrollReveal>
+                <ScrollReveal delay={0.2}>
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
+                      <Heart className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-sm text-foreground font-medium leading-tight">Dentist-led</span>
                   </div>
-                  <span className="text-sm text-foreground font-medium leading-tight">Dentist-led</span>
-                </div>
+                </ScrollReveal>
               </div>
             </div>
           </section>
 
-          {/* Trusted clinics section - standalone */}
-          <section className="py-16 md:py-24 bg-white">
+          {/* Scrolling Marquee */}
+          <ScrollingMarquee items={marqueeItems} speed={35} />
+
+          {/* Trusted clinics section */}
+          <section className="py-16 md:py-28 lg:py-32 bg-[#F8F1E7]">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
-                <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
                   {/* Clinic Carousel */}
-                  <ClinicCarousel />
+                  <ScrollReveal direction="left">
+                    <ClinicCarousel />
+                  </ScrollReveal>
 
                   {/* Content */}
-                  <div className="lg:pl-8">
+                  <ScrollReveal direction="right" className="lg:pl-4">
                     <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6 text-foreground text-balance">
                       Qualified, vetted dental clinics you can trust
                     </h2>
@@ -296,72 +334,72 @@ export default function Home() {
                       Access a carefully curated network of clinics reviewed for clinical quality, communication, patient experience, and transparency. Helping you make confident, informed dental decisions.
                     </p>
                     <div className="space-y-4 mb-8">
-                      <div className="flex items-start gap-3">
-                        <div className="rounded-full bg-secondary p-1.5 mt-0.5">
-                          <CheckCircle2 className="w-4 h-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">Patient-first clinics</p>
-                          <p className="text-sm text-muted-foreground">
-                            Clinics selected for their communication style, empathy, and patient-centred care, so you feel heard, respected, and supported at every step.
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <div className="rounded-full bg-secondary p-1.5 mt-0.5">
-                          <CheckCircle2 className="w-4 h-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">Transparent & ethical care</p>
-                          <p className="text-sm text-muted-foreground">Clear explanations, honest recommendations, and upfront pricing</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <div className="rounded-full bg-secondary p-1.5 mt-0.5">
-                          <CheckCircle2 className="w-4 h-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">Highly rated clinics</p>
-                          <p className="text-sm text-muted-foreground">
-                            Clinics rated highly by patients for comfort, results, and experience — so you know what to expect before you book.
-                          </p>
-                        </div>
-                      </div>
+                      {[
+                        {
+                          title: "Patient-first clinics",
+                          desc: "Clinics selected for their communication style, empathy, and patient-centred care, so you feel heard, respected, and supported at every step.",
+                        },
+                        {
+                          title: "Transparent & ethical care",
+                          desc: "Clear explanations, honest recommendations, and upfront pricing",
+                        },
+                        {
+                          title: "Highly rated clinics",
+                          desc: "Clinics rated highly by patients for comfort, results, and experience — so you know what to expect before you book.",
+                        },
+                      ].map((item, i) => (
+                        <ScrollReveal key={i} delay={0.1 * (i + 1)}>
+                          <div className="flex items-start gap-3 p-3 rounded-xl transition-all duration-300 hover:bg-white/70 hover:shadow-sm">
+                            <div className="rounded-full bg-white p-1.5 mt-0.5 shadow-sm">
+                              <CheckCircle2 className="w-4 h-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground">{item.title}</p>
+                              <p className="text-sm text-muted-foreground">{item.desc}</p>
+                            </div>
+                          </div>
+                        </ScrollReveal>
+                      ))}
                     </div>
-                    <Button
-                      size="lg"
-                      className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all group border-0"
-                      asChild
-                    >
-                      <Link href="/intake">
-                        Find my clinic
-                        <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </Link>
-                    </Button>
-                  </div>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button
+                        size="lg"
+                        className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all group border-0"
+                        asChild
+                      >
+                        <Link href="/intake">
+                          Find my clinic
+                          <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                      </Button>
+                    </motion.div>
+                  </ScrollReveal>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* How it works section - standalone */}
-          <section id="how-it-works" className="py-20 md:py-28 bg-white relative overflow-hidden">
+          {/* How it works section */}
+          <section id="how-it-works" className="py-20 md:py-32 lg:py-36 bg-white relative overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
                 {/* Section header */}
-                <div className="text-center mb-16 md:mb-20">
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
-                    How it works
+                <ScrollReveal className="text-center mb-16 md:mb-24">
+                  <span className="overline block mb-3">How It Works</span>
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+                    Three simple steps
                   </h2>
-                </div>
+                </ScrollReveal>
 
                 {/* Step 1 - Image Left, Text Right */}
-                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 mb-16 md:mb-24">
+                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 mb-20 md:mb-32">
                   {/* Illustration */}
-                  <div className="flex-1 flex justify-center lg:justify-end">
+                  <ScrollReveal direction="left" className="flex-1 flex justify-center lg:justify-end">
                     <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
+                      {/* Step number */}
+                      <span className="absolute -top-6 -left-2 lg:-left-8 text-7xl lg:text-8xl font-bold text-primary/[0.07] select-none leading-none z-0">01</span>
                       {/* Phone mockup with form illustration */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500">
                         <div className="bg-white rounded-2xl p-5 shadow-sm">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center">
@@ -390,9 +428,9 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </ScrollReveal>
                   {/* Text content */}
-                  <div className="flex-1 text-center lg:text-left">
+                  <ScrollReveal direction="right" className="flex-1 text-center lg:text-left">
                     <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
                       Tell us what matters to you
                     </h3>
@@ -400,16 +438,18 @@ export default function Home() {
                       Answer a few quick questions about what you're looking for and what's important to you, at your own
                       pace.
                     </p>
-                  </div>
+                  </ScrollReveal>
                 </div>
 
                 {/* Step 2 - Text Left, Image Right */}
-                <div className="flex flex-col lg:flex-row-reverse items-center gap-8 lg:gap-16 mb-16 md:mb-24">
+                <div className="flex flex-col lg:flex-row-reverse items-center gap-8 lg:gap-16 mb-20 md:mb-32">
                   {/* Illustration */}
-                  <div className="flex-1 flex justify-center lg:justify-start">
+                  <ScrollReveal direction="right" className="flex-1 flex justify-center lg:justify-start">
                     <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
+                      {/* Step number */}
+                      <span className="absolute -top-6 -right-2 lg:-right-8 text-7xl lg:text-8xl font-bold text-primary/[0.07] select-none leading-none z-0">02</span>
                       {/* Phone mockup with clinic cards */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500">
                         <div className="space-y-4">
                           {/* Clinic card 1 */}
                           <div className="bg-white rounded-2xl p-4 shadow-sm border border-border/60">
@@ -456,9 +496,9 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </ScrollReveal>
                   {/* Text content */}
-                  <div className="flex-1 text-center lg:text-left">
+                  <ScrollReveal direction="left" className="flex-1 text-center lg:text-left">
                     <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
                       We recommend two carefully matched clinics
                     </h3>
@@ -466,16 +506,18 @@ export default function Home() {
                       Based on your answers, we'll recommend two trusted clinics near you that fit your preferences, so
                       you're not overwhelmed with options.
                     </p>
-                  </div>
+                  </ScrollReveal>
                 </div>
 
                 {/* Step 3 - Image Left, Text Right */}
                 <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
                   {/* Illustration */}
-                  <div className="flex-1 flex justify-center lg:justify-end">
+                  <ScrollReveal direction="left" className="flex-1 flex justify-center lg:justify-end">
                     <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
+                      {/* Step number */}
+                      <span className="absolute -top-6 -left-2 lg:-left-8 text-7xl lg:text-8xl font-bold text-primary/[0.07] select-none leading-none z-0">03</span>
                       {/* Phone mockup with booking */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-500">
                         <div className="bg-white rounded-2xl p-5 shadow-sm">
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
@@ -511,9 +553,9 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </ScrollReveal>
                   {/* Text content */}
-                  <div className="flex-1 text-center lg:text-left">
+                  <ScrollReveal direction="right" className="flex-1 text-center lg:text-left">
                     <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
                       You choose if and when to book
                     </h3>
@@ -521,7 +563,7 @@ export default function Home() {
                       Review your options, explore each clinic, and book directly with the one that feels right for you. No
                       pressure. No obligation.
                     </p>
-                  </div>
+                  </ScrollReveal>
                 </div>
               </div>
             </div>
@@ -531,93 +573,103 @@ export default function Home() {
           <ComparisonTable />
 
           {/* CTA section - dark teal background */}
-          <section className="py-20 md:py-24 bg-[#004443] text-white">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="max-w-3xl mx-auto text-center">
+          <section className="py-24 md:py-32 lg:py-36 bg-[#004443] text-white relative overflow-hidden">
+            {/* Decorative background blobs */}
+            <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-white/[0.03] blur-3xl pointer-events-none" />
+            <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-[#0fbcb0]/[0.08] blur-2xl pointer-events-none" />
+
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+              <ScrollReveal className="max-w-3xl mx-auto text-center">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-balance">
                   Ready to find the right dental clinic for you?
                 </h2>
-                <p className="text-lg md:text-xl mb-8 opacity-90 leading-relaxed">
-                  Answer a few quick questions and we'll match you with trusted clinics near you.
+                <p className="text-lg md:text-xl mb-10 opacity-90 leading-relaxed">
+                  Answer a few quick questions and we&apos;ll match you with trusted clinics near you.
                 </p>
-                <Button
-                  size="lg"
-                  className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-xl hover:shadow-2xl transition-all text-lg font-semibold border-0"
-                  asChild
-                >
-                  <Link href="/intake">
-                    Find my clinic
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Link>
-                </Button>
-              </div>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="inline-block">
+                  <Button
+                    size="lg"
+                    className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-xl hover:shadow-[0_0_30px_rgba(15,188,176,0.3)] transition-all text-lg font-semibold border-0"
+                    asChild
+                  >
+                    <Link href="/intake">
+                      Find my clinic
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Link>
+                  </Button>
+                </motion.div>
+              </ScrollReveal>
             </div>
           </section>
 
-          {/* Testimonials section - standalone */}
-          <section className="py-16 md:py-20 bg-background">
+          {/* Testimonials section */}
+          <section className="py-16 md:py-28 lg:py-32 bg-[#F8F1E7]">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
-                <div className="text-center mb-12">
+                <ScrollReveal className="text-center mb-12 md:mb-16">
+                  <span className="overline block mb-3">What Patients Say</span>
                   <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-foreground">
-                    What patients say
+                    Trusted by patients across the UK
                   </h2>
                   <p className="text-lg text-muted-foreground">
                     Real experiences from people who found the right clinic for them
                   </p>
-                </div>
+                </ScrollReveal>
                 <div className="grid md:grid-cols-3 gap-6">
-                  <Card className="p-5 sm:p-8 border-0 shadow-lg rounded-3xl bg-white">
-                    <div className="flex gap-1 mb-4">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 text-foreground fill-primary" />
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed mb-6">
-                      "The matching was spot-on! Found a fantastic clinic near me that specialized in nervous patients.
-                      Couldn't be happier with the service."
-                    </p>
-                    <div>
-                      <p className="font-bold text-foreground">Sophie</p>
-                      <p className="text-sm text-muted-foreground">Clapham</p>
-                    </div>
-                  </Card>
-                  <Card className="p-5 sm:p-8 border-0 shadow-lg rounded-3xl bg-white">
-                    <div className="flex gap-1 mb-4">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 text-foreground fill-primary" />
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed mb-6">
-                      "Saved me hours of research. The clinics they matched me with were ideal for my cosmetic work and
-                      budget. Really impressed!"
-                    </p>
-                    <div>
-                      <p className="font-bold text-foreground">James</p>
-                      <p className="text-sm text-muted-foreground">Shoreditch</p>
-                    </div>
-                  </Card>
-                  <Card className="p-5 sm:p-8 border-0 shadow-lg rounded-3xl bg-white">
-                    <div className="flex gap-1 mb-4">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 text-foreground fill-primary" />
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed mb-6">
-                      "Finally, someone who gets it! No more scrolling through dozens of clinic websites. Quick, easy, and
-                      exactly what I needed."
-                    </p>
-                    <div>
-                      <p className="font-bold text-foreground">Amara</p>
-                      <p className="text-sm text-muted-foreground">Camden</p>
-                    </div>
-                  </Card>
+                  {[
+                    {
+                      text: "The matching was spot-on! Found a fantastic clinic near me that specialized in nervous patients. Couldn't be happier with the service.",
+                      name: "Sophie",
+                      location: "Clapham",
+                      initial: "S",
+                    },
+                    {
+                      text: "Saved me hours of research. The clinics they matched me with were ideal for my cosmetic work and budget. Really impressed!",
+                      name: "James",
+                      location: "Shoreditch",
+                      initial: "J",
+                    },
+                    {
+                      text: "Finally, someone who gets it! No more scrolling through dozens of clinic websites. Quick, easy, and exactly what I needed.",
+                      name: "Amara",
+                      location: "Camden",
+                      initial: "A",
+                    },
+                  ].map((testimonial, i) => (
+                    <ScrollReveal key={i} delay={i * 0.15}>
+                      <Card className="p-5 sm:p-8 border-0 shadow-lg rounded-3xl bg-white hover:shadow-xl hover:-translate-y-2 transition-all duration-500 h-full">
+                        {/* Decorative quote */}
+                        <span className="text-5xl text-primary/10 font-serif leading-none block -mb-2" aria-hidden="true">&ldquo;</span>
+                        <div className="flex gap-1 mb-4">
+                          {[...Array(5)].map((_, j) => (
+                            <Star key={j} className="w-5 h-5 text-foreground fill-primary" />
+                          ))}
+                        </div>
+                        <p className="text-muted-foreground leading-relaxed mb-6">
+                          &ldquo;{testimonial.text}&rdquo;
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                            {testimonial.initial}
+                          </div>
+                          <div>
+                            <p className="font-bold text-foreground">{testimonial.name}</p>
+                            <p className="text-sm text-muted-foreground">{testimonial.location}</p>
+                          </div>
+                        </div>
+                      </Card>
+                    </ScrollReveal>
+                  ))}
                 </div>
               </div>
             </div>
           </section>
 
-          <CookieSettingsButton />
+          {/* Dark scrolling marquee before footer */}
+          <ScrollingMarquee items={marqueeItemsDark} speed={40} variant="dark" />
+
+          {/* Footer */}
+          <SiteFooter />
       </div>
     </>
   )
