@@ -18,12 +18,21 @@ import {
   Sparkles,
   Send,
   ArrowLeft,
+  CalendarCheck,
+  X,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
 import { BookingCard } from "@/components/match/booking-card"
 import { OtherClinicCard } from "@/components/match/other-clinic-card"
+import { useIsMobile } from "@/components/ui/use-mobile"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -156,6 +165,14 @@ export default function PatientDashboard() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
+  // Mobile: chat drawer state
+  const isMobile = useIsMobile()
+  const [mobileChatOpen, setMobileChatOpen] = useState(false)
+
+  // Mobile: sticky bar visibility — tracks when CTAs scroll out of view
+  const ctaRef = useRef<HTMLDivElement | null>(null)
+  const [showStickyBar, setShowStickyBar] = useState(false)
+
   // "Pending chat" — when user clicks message on a clinic with no conversation yet.
   // We show the chat UI with this clinicId+leadId so they can type, and the
   // conversation is created lazily when they actually send the first message.
@@ -284,6 +301,19 @@ export default function PatientDashboard() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  // Mobile: observe CTA buttons to show/hide sticky bottom bar
+  useEffect(() => {
+    if (!isMobile) { setShowStickyBar(false); return }
+    const el = ctaRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyBar(!entry.isIntersecting),
+      { threshold: 0 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [isMobile, selectedClinic])
 
   // ── Real-time chat ───────────────────────────────────────────
 
@@ -448,7 +478,13 @@ export default function PatientDashboard() {
         setMessages([])
       }
     }
-    setMobileInboxOpen(true)
+
+    // Mobile: open chat drawer; Desktop: open sidebar inbox
+    if (isMobile) {
+      setMobileChatOpen(true)
+    } else {
+      setMobileInboxOpen(true)
+    }
   }
 
   function handleSelectClinic(clinicId: string) {
@@ -458,7 +494,16 @@ export default function PatientDashboard() {
 
   const handleMessageClick = useCallback(() => {
     if (selectedClinicId) openConversationForClinic(selectedClinicId)
-  }, [selectedClinicId, inboxConversations, allClinics, activeLeadId])
+  }, [selectedClinicId, inboxConversations, allClinics, activeLeadId, isMobile])
+
+  const handleBookClick = useCallback(() => {
+    // If clinic has a profile page, navigate there. Otherwise, open message.
+    if (selectedClinic?.slug) {
+      window.open(`/clinic/${selectedClinic.slug}`, "_blank")
+    } else {
+      handleMessageClick()
+    }
+  }, [selectedClinic, handleMessageClick])
 
   const totalUnread = inboxConversations.reduce((sum, c) => sum + (c.unread_count_patient || 0), 0)
   const hasMoreMatches = data ? data.matches.length < (data.matchesTotal || 0) : false
@@ -520,7 +565,17 @@ export default function PatientDashboard() {
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Mobile inbox toggle */}
             <button
-              onClick={() => setMobileInboxOpen(!mobileInboxOpen)}
+              onClick={() => {
+                if (isMobile) {
+                  // On mobile: open chat drawer. Select most recent conversation if none selected.
+                  if (!selectedConvId && !pendingChatClinic && inboxConversations.length > 0) {
+                    setSelectedConvId(inboxConversations[0].id)
+                  }
+                  setMobileChatOpen(true)
+                } else {
+                  setMobileInboxOpen(!mobileInboxOpen)
+                }
+              }}
               className="lg:hidden relative flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
             >
               <div className="relative">
@@ -603,6 +658,8 @@ export default function PatientDashboard() {
                 clinic={selectedClinic}
                 isTopMatch={isTopMatch}
                 onMessageClick={handleMessageClick}
+                onBookClick={handleBookClick}
+                ctaRef={ctaRef}
               />
             </div>
           ) : latestMatch ? (
@@ -954,6 +1011,155 @@ export default function PatientDashboard() {
           </div>
         </div>
       </div>
+
+      {/* ══════ MOBILE: Chat Bottom Sheet Drawer ══════ */}
+      {isMobile && (
+        <Drawer open={mobileChatOpen} onOpenChange={setMobileChatOpen}>
+          <DrawerContent className="max-h-[85vh] flex flex-col">
+            {/* Drag handle is built into DrawerContent */}
+            <DrawerHeader className="flex-shrink-0 border-b border-border/40 pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  {chatHeaderImage ? (
+                    <div className="relative h-8 w-8 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
+                      <Image src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover" />
+                    </div>
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-[#907EFF] flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-semibold">
+                        {(chatHeaderName || "C").charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <DrawerTitle className="text-sm truncate">{chatHeaderName || "Clinic"}</DrawerTitle>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setMobileChatOpen(false)}
+                  className="text-muted-foreground hover:text-foreground p-1"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </DrawerHeader>
+
+            {/* Messages */}
+            <ScrollArea className="flex-1 px-4 py-3 min-h-0">
+              {loadingMessages ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-5 h-5 animate-spin text-[#907EFF]" />
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="text-center py-8 space-y-2">
+                  <MessageCircle className="w-8 h-8 text-[#ccc] mx-auto" />
+                  <p className="text-sm font-medium text-[#323141]/70">
+                    Chat with {chatHeaderName || "the clinic"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Ask any questions or request an appointment.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.sender_type === "patient" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${
+                          msg.sender_type === "patient"
+                            ? "bg-[#907EFF] text-white rounded-br-sm"
+                            : msg.sender_type === "bot"
+                            ? "bg-[#f5f3ff] border border-[#e9e5f5] rounded-bl-sm"
+                            : "bg-[#f0f0f0] rounded-bl-sm"
+                        }`}
+                      >
+                        {msg.sender_type === "bot" && (
+                          <p className="text-[9px] text-[#907EFF]/60 mb-0.5 flex items-center gap-1">
+                            <Heart className="w-2.5 h-2.5 fill-[#907EFF]/40 text-[#907EFF]/40" />
+                            Pearlie
+                          </p>
+                        )}
+                        <p className={`text-sm whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-[#323141]/70" : ""}`}>
+                          {msg.content}
+                        </p>
+                        <p className={`text-[10px] mt-0.5 ${
+                          msg.sender_type === "patient" ? "text-white/60" : "text-muted-foreground"
+                        }`}>
+                          {formatTime(msg.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {otherTyping && (
+                    <div className="flex justify-start">
+                      <div className="bg-[#f0f0f0] rounded-2xl rounded-bl-sm px-4 py-2">
+                        <span className="text-sm text-muted-foreground animate-pulse">typing...</span>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </ScrollArea>
+
+            {/* Quick prompts */}
+            <div className="flex gap-1.5 px-4 py-2 overflow-x-auto flex-shrink-0 border-t border-border/40">
+              {QUICK_PROMPTS.map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => setNewMessage(prompt)}
+                  className="text-[11px] text-[#907EFF] border border-[#907EFF]/30 rounded-full px-2.5 py-1 hover:bg-[#907EFF]/5 transition-colors whitespace-nowrap flex-shrink-0"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+
+            {/* Composer */}
+            <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/40 flex-shrink-0 pb-6">
+              <Input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-1 text-sm"
+                disabled={isSending}
+              />
+              <Button
+                type="submit"
+                size="icon"
+                disabled={!newMessage.trim() || isSending}
+                className="bg-[#907EFF] hover:bg-[#7C6AE8] text-white h-9 w-9"
+              >
+                {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </Button>
+            </form>
+          </DrawerContent>
+        </Drawer>
+      )}
+
+      {/* ══════ MOBILE: Sticky Bottom Action Bar ══════ */}
+      {isMobile && showStickyBar && selectedClinic && !mobileChatOpen && (
+        <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-sm border-t border-border/60 px-4 py-3 flex gap-2 pb-6">
+          <Button
+            className="flex-1 h-10 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
+            onClick={handleBookClick}
+          >
+            <CalendarCheck className="w-4 h-4 mr-1.5" />
+            Book
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1 h-10 text-sm font-medium"
+            onClick={handleMessageClick}
+          >
+            <MessageCircle className="w-4 h-4 mr-1.5" />
+            Message
+          </Button>
+        </div>
+      )}
 
     </div>
   )

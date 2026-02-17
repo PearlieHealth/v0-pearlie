@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
   MessageCircle,
+  CalendarCheck,
   Zap,
   Stethoscope,
   PoundSterling,
@@ -71,6 +72,9 @@ interface BookingCardProps {
   clinic: Clinic
   isTopMatch: boolean
   onMessageClick: () => void
+  onBookClick?: () => void
+  /** Ref to the CTA buttons container so the parent can track scroll visibility */
+  ctaRef?: React.RefObject<HTMLDivElement | null>
 }
 
 const CANONICAL_DAYS = [
@@ -129,12 +133,62 @@ const categoryLabels: Record<string, string> = {
   availability: "Appointment times",
 }
 
+function MatchBreakdownContent({
+  breakdown,
+  percentage,
+}: {
+  breakdown: Array<{ category: string; points: number; maxPoints: number }>
+  percentage: number
+}) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <h4 className="font-semibold text-sm text-foreground">How we calculated your match</h4>
+        <p className="text-xs text-muted-foreground mt-1">
+          This shows how well this clinic fits <span className="font-medium">your preferences</span>.
+        </p>
+      </div>
+      <div className="space-y-2.5">
+        {breakdown.map((item) => {
+          const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
+          const stars = Math.round(ratio * 5)
+          return (
+            <div key={item.category} className="flex items-center justify-between gap-2">
+              <span className="text-xs text-muted-foreground">
+                {categoryLabels[item.category] || item.category}
+              </span>
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={`w-3 h-3 ${
+                      s <= stars ? "fill-amber-400 text-amber-400" : "fill-muted text-muted"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div className="pt-2 border-t border-border">
+        <p className="text-[10px] text-muted-foreground">
+          More stars = stronger match to what you told us matters.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export function BookingCard({
   clinic,
   isTopMatch,
   onMessageClick,
+  onBookClick,
+  ctaRef,
 }: BookingCardProps) {
   const [showMoreDetails, setShowMoreDetails] = useState(false)
+  const [showMatchBreakdown, setShowMatchBreakdown] = useState(false)
 
   const todayHours = getTodayHours(clinic.opening_hours)
   const shortArea = getShortArea(clinic.postcode)
@@ -155,7 +209,7 @@ export function BookingCard({
       {/* Top section: image left, details right */}
       <div className="flex flex-col sm:flex-row">
         {/* Image + badge */}
-        <div className="relative flex-shrink-0 w-full sm:w-40 md:w-48 h-44 sm:h-auto sm:min-h-[220px] bg-muted">
+        <div className="relative flex-shrink-0 w-full sm:w-40 md:w-48 h-36 sm:h-auto sm:min-h-[220px] bg-muted">
           {clinic.images && clinic.images.length > 0 ? (
             <Image
               src={clinic.images[0] || "/placeholder.svg"}
@@ -301,60 +355,78 @@ export function BookingCard({
         </div>
       </div>
 
-      {/* Bottom section: match info, reasons, CTAs */}
+      {/* Bottom section: CTAs, match info, reasons, details */}
       <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4">
-        {/* Match breakdown popover */}
+
+        {/* ── MOBILE CTAs: Book + Message right after clinic summary ── */}
+        <div ref={ctaRef} className="sm:hidden space-y-2 pt-1">
+          {clinic.slug ? (
+            <Button
+              className="w-full h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
+              onClick={onBookClick}
+            >
+              <CalendarCheck className="w-4 h-4 mr-2" />
+              Book appointment
+            </Button>
+          ) : (
+            <Button
+              className="w-full h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
+              onClick={onMessageClick}
+            >
+              <CalendarCheck className="w-4 h-4 mr-2" />
+              Book appointment
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            className="w-full h-10 text-sm font-medium"
+            onClick={onMessageClick}
+          >
+            <MessageCircle className="w-4 h-4 mr-2" />
+            Message clinic
+          </Button>
+        </div>
+
+        {/* ── Match breakdown ── */}
         {clinic.match_percentage && clinic.match_breakdown && clinic.match_breakdown.length > 0 && (
-          <Popover>
-            <PopoverTrigger asChild>
+          <>
+            {/* Desktop: popover */}
+            <div className="hidden sm:block">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 text-primary font-semibold text-sm cursor-pointer px-2 py-1.5 -mx-2 rounded-md hover:bg-primary/10 active:bg-primary/20 transition-colors touch-manipulation"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>{clinic.match_percentage}% match — see breakdown</span>
+                    <Info className="w-4 h-4 text-primary/70" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-4" align="start" side="bottom">
+                  <MatchBreakdownContent breakdown={clinic.match_breakdown} percentage={clinic.match_percentage} />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Mobile: collapsible accordion (collapsed by default) */}
+            <div className="sm:hidden">
               <button
                 type="button"
-                className="flex items-center gap-1.5 text-primary font-semibold text-sm cursor-pointer px-2 py-1.5 -mx-2 rounded-md hover:bg-primary/10 active:bg-primary/20 transition-colors touch-manipulation"
+                onClick={() => setShowMatchBreakdown(!showMatchBreakdown)}
+                className="flex items-center gap-1.5 text-primary font-semibold text-sm cursor-pointer px-2 py-1.5 -mx-2 rounded-md hover:bg-primary/10 active:bg-primary/20 transition-colors touch-manipulation w-full"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>{clinic.match_percentage}% match — see breakdown</span>
-                <Info className="w-4 h-4 text-primary/70" />
+                <span className="flex-1 text-left">{clinic.match_percentage}% match</span>
+                {showMatchBreakdown ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-4" align="start" side="bottom">
-              <div className="space-y-3">
-                <div>
-                  <h4 className="font-semibold text-sm text-foreground">How we calculated your match</h4>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    This shows how well this clinic fits <span className="font-medium">your preferences</span>.
-                  </p>
+              {showMatchBreakdown && (
+                <div className="px-2 pt-2 pb-1 animate-in slide-in-from-top-2 duration-200">
+                  <MatchBreakdownContent breakdown={clinic.match_breakdown} percentage={clinic.match_percentage} />
                 </div>
-                <div className="space-y-2.5">
-                  {clinic.match_breakdown.map((item) => {
-                    const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
-                    const stars = Math.round(ratio * 5)
-                    return (
-                      <div key={item.category} className="flex items-center justify-between gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          {categoryLabels[item.category] || item.category}
-                        </span>
-                        <div className="flex items-center gap-0.5">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <Star
-                              key={s}
-                              className={`w-3 h-3 ${
-                                s <= stars ? "fill-amber-400 text-amber-400" : "fill-muted text-muted"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-                <div className="pt-2 border-t border-border">
-                  <p className="text-[10px] text-muted-foreground">
-                    More stars = stronger match to what you told us matters.
-                  </p>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+              )}
+            </div>
+          </>
         )}
 
         {/* Why we matched you */}
@@ -484,8 +556,8 @@ export function BookingCard({
           )}
         </div>
 
-        {/* CTA — Message clinic */}
-        <div className="space-y-2 pt-3 border-t border-border/50">
+        {/* CTA — Desktop: Message clinic (stays at bottom) */}
+        <div className="hidden sm:block space-y-2 pt-3 border-t border-border/50">
           <Button
             className="w-full h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
             onClick={onMessageClick}
