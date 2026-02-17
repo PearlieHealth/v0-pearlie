@@ -240,6 +240,19 @@ export async function POST(request: NextRequest) {
       console.error("[Chat] Failed to update conversation:", updateError)
     }
 
+    // Broadcast the new message for real-time delivery (bypasses RLS)
+    try {
+      const broadcastChannel = supabase.channel(`chat:${conversation.id}`)
+      await broadcastChannel.send({
+        type: "broadcast",
+        event: "new_message",
+        payload: { message },
+      })
+      await supabase.removeChannel(broadcastChannel)
+    } catch (broadcastError) {
+      console.error("[Chat] Broadcast error:", broadcastError)
+    }
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
 
     // Send email notification to clinic when patient sends a message
@@ -448,6 +461,21 @@ export async function POST(request: NextRequest) {
         }
       } catch (followUpError) {
         console.error("[Chat] Bot follow-up error:", followUpError)
+      }
+    }
+
+    // Broadcast bot messages for real-time delivery
+    for (const botMsg of botMessages) {
+      try {
+        const broadcastChannel = supabase.channel(`chat:${conversation.id}`)
+        await broadcastChannel.send({
+          type: "broadcast",
+          event: "new_message",
+          payload: { message: botMsg },
+        })
+        await supabase.removeChannel(broadcastChannel)
+      } catch (broadcastError) {
+        console.error("[Chat] Bot broadcast error:", broadcastError)
       }
     }
 

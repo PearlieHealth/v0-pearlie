@@ -17,12 +17,14 @@ import {
   ChevronUp,
   Calendar,
   MessageCircle,
-  Users,
   Zap,
+  Stethoscope,
+  PoundSterling,
+  Accessibility,
+  CarFront,
 } from "lucide-react"
 import Image from "next/image"
 import { getChipData } from "@/lib/chipData"
-import { ClinicDatePicker } from "@/components/clinic-date-picker"
 
 interface Clinic {
   id: string
@@ -110,9 +112,15 @@ function getTodayHours(openingHours?: Record<string, any>): string | null {
 
 function getShortArea(postcode: string): string {
   if (!postcode) return ""
-  // UK postcodes: extract outward code (e.g., "W14" from "W14 8QZ")
   const parts = postcode.trim().split(" ")
   return parts[0] || postcode
+}
+
+function formatPriceRange(range: string): string {
+  if (range === "budget") return "Budget-friendly"
+  if (range === "mid") return "Mid-range"
+  if (range === "premium") return "Premium"
+  return range || "Mid-range"
 }
 
 const categoryLabels: Record<string, string> = {
@@ -151,150 +159,144 @@ export function BookingCard({
 
   return (
     <Card className="overflow-hidden transition-all duration-300">
-      {/* Top: Smaller image banner */}
-      <div className="relative h-32 sm:h-40 w-full bg-muted">
-        {clinic.images && clinic.images.length > 0 ? (
-          <Image
-            src={clinic.images[0] || "/placeholder.svg"}
-            alt={clinic.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 600px"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <MapPin className="w-12 h-12 text-muted-foreground" />
-          </div>
-        )}
-        {/* Badge overlay */}
-        <div className="absolute top-3 left-3">
-          <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${badgeStyle}`}>
-            {badge}
-          </span>
-        </div>
-        {/* Match % overlay */}
-        {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-          <div className="absolute top-3 right-3">
-            <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm text-primary font-semibold text-sm px-3 py-1 rounded-full shadow-sm">
-              <Sparkles className="w-3.5 h-3.5" />
-              {clinic.match_percentage}% match
+      {/* Top section: image left, details right */}
+      <div className="flex flex-col sm:flex-row">
+        {/* Image + badge */}
+        <div className="relative flex-shrink-0 w-full sm:w-40 md:w-48 h-44 sm:h-auto sm:min-h-[220px] bg-muted">
+          {clinic.images && clinic.images.length > 0 ? (
+            <Image
+              src={clinic.images[0] || "/placeholder.svg"}
+              alt={clinic.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, 200px"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <MapPin className="w-10 h-10 text-muted-foreground" />
+            </div>
+          )}
+          {/* Badge overlay */}
+          <div className="absolute top-2 left-2">
+            <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${badgeStyle}`}>
+              {badge}
             </span>
           </div>
-        )}
-      </div>
-
-      <div className="p-5 sm:p-6 space-y-5">
-        {/* Clinic name + meta */}
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
-            {clinic.name}
-          </h2>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
-            {clinic.rating > 0 && (
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="font-medium">{clinic.rating}</span>
-                <span>({clinic.review_count})</span>
-              </div>
-            )}
-            {clinic.verified && (
-              <div className="flex items-center gap-1 text-green-600">
-                <CheckCircle2 className="w-4 h-4" />
-                <span className="font-medium">Verified</span>
-              </div>
-            )}
-            {clinic.distance_miles !== undefined && (
-              <div className="flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5" />
-                <span>~{clinic.distance_miles.toFixed(1)} mi</span>
-              </div>
-            )}
-          </div>
+          {/* Match % overlay */}
+          {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
+            <div className="absolute bottom-2 left-2">
+              <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm text-primary font-semibold text-xs px-2 py-0.5 rounded-full shadow-sm">
+                <Sparkles className="w-3 h-3" />
+                {clinic.match_percentage}%
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Clinic at a glance */}
-        <div className="border border-border/60 rounded-xl p-4 bg-muted/20 space-y-3">
-          <h3 className="text-sm font-semibold text-foreground">Clinic at a glance</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Languages */}
+        {/* Right side: details */}
+        <div className="flex-1 p-4 sm:p-5 space-y-3">
+          {/* Name + meta */}
+          <div>
+            <h2 className="text-lg sm:text-xl font-bold text-foreground leading-tight mb-1.5">
+              {clinic.name}
+            </h2>
+            <div className="flex items-center gap-2.5 text-xs text-muted-foreground flex-wrap">
+              {clinic.rating > 0 && (
+                <div className="flex items-center gap-1">
+                  <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                  <span className="font-medium">{clinic.rating}</span>
+                  <span>({clinic.review_count})</span>
+                </div>
+              )}
+              {clinic.verified && (
+                <div className="flex items-center gap-0.5 text-green-600">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span className="font-medium">Verified</span>
+                </div>
+              )}
+              {clinic.distance_miles !== undefined && (
+                <div className="flex items-center gap-0.5">
+                  <MapPin className="w-3 h-3" />
+                  <span>~{clinic.distance_miles.toFixed(1)} mi</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Quick details grid */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
             {clinic.languages_spoken && clinic.languages_spoken.length > 0 && (
-              <div className="flex items-start gap-2.5">
-                <Globe className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Languages</p>
-                  <p className="text-sm font-medium text-foreground">
-                    {clinic.languages_spoken.slice(0, 3).join(", ")}
-                    {clinic.languages_spoken.length > 3 && ` +${clinic.languages_spoken.length - 3}`}
-                  </p>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <span className="text-muted-foreground truncate">
+                  {clinic.languages_spoken.slice(0, 2).join(", ")}
+                  {clinic.languages_spoken.length > 2 && ` +${clinic.languages_spoken.length - 2}`}
+                </span>
               </div>
             )}
 
-            {/* Opening times today */}
             {todayHours && (
-              <div className="flex items-start gap-2.5">
-                <Clock className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Today</p>
-                  <p className="text-sm font-medium text-foreground">{todayHours}</p>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <span className="text-muted-foreground truncate">{todayHours}</span>
               </div>
             )}
 
-            {/* Address area */}
             {shortArea && (
-              <div className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Area</p>
-                  <p className="text-sm font-medium text-foreground">{shortArea}</p>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <span className="text-muted-foreground">{shortArea}</span>
               </div>
             )}
 
-            {/* Same-day emergency */}
             {clinic.accepts_same_day && (
-              <div className="flex items-start gap-2.5">
-                <Zap className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Availability</p>
-                  <p className="text-sm font-medium text-foreground">Same-day appointments</p>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                <span className="text-muted-foreground">Same-day</span>
               </div>
             )}
 
-            {/* Free consultation */}
             {clinic.offers_free_consultation && (
-              <div className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Consultation</p>
-                  <p className="text-sm font-medium text-foreground">Free consultation</p>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
+                <span className="text-muted-foreground">Free consult</span>
               </div>
             )}
 
-            {/* NHS */}
             {clinic.accepts_nhs && (
-              <div className="flex items-start gap-2.5">
-                <Shield className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">NHS</p>
-                  <p className="text-sm font-medium text-foreground">NHS available</p>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                <span className="text-muted-foreground">NHS available</span>
+              </div>
+            )}
+
+            {clinic.price_range && (
+              <div className="flex items-center gap-1.5">
+                <PoundSterling className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <span className="text-muted-foreground">{formatPriceRange(clinic.price_range)}</span>
+              </div>
+            )}
+
+            {clinic.treatments && clinic.treatments.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <Stethoscope className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <span className="text-muted-foreground truncate">
+                  {clinic.treatments.slice(0, 2).join(", ")}
+                  {clinic.treatments.length > 2 && ` +${clinic.treatments.length - 2}`}
+                </span>
               </div>
             )}
           </div>
 
           {/* Feature chips */}
           {clinic.highlight_chips && clinic.highlight_chips.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-border/40">
-              {clinic.highlight_chips.slice(0, 4).map((chip) => {
+            <div className="flex flex-wrap gap-1.5">
+              {clinic.highlight_chips.slice(0, 3).map((chip) => {
                 const chipData = getChipData(chip)
                 return (
                   <span
                     key={chip}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-background px-2.5 py-1 rounded-full border border-border/50"
+                    className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full border border-border/40"
                   >
                     {chipData.icon}
                     {chipData.label}
@@ -304,14 +306,17 @@ export function BookingCard({
             </div>
           )}
         </div>
+      </div>
 
+      {/* Bottom section: match info, reasons, CTAs */}
+      <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4">
         {/* Match breakdown popover */}
         {clinic.match_percentage && clinic.match_breakdown && clinic.match_breakdown.length > 0 && (
           <Popover>
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="flex items-center gap-1.5 text-primary font-semibold text-sm cursor-pointer px-2 py-2 -mx-2 rounded-md hover:bg-primary/10 active:bg-primary/20 transition-colors touch-manipulation"
+                className="flex items-center gap-1.5 text-primary font-semibold text-sm cursor-pointer px-2 py-1.5 -mx-2 rounded-md hover:bg-primary/10 active:bg-primary/20 transition-colors touch-manipulation"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>{clinic.match_percentage}% match — see breakdown</span>
@@ -361,14 +366,14 @@ export function BookingCard({
 
         {/* Why we matched you */}
         {reasons.length > 0 && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-          <div className="border border-border/50 rounded-lg p-4 bg-background">
-            <div className="flex items-center gap-2 mb-3">
-              <Shield className="w-5 h-5 text-muted-foreground" />
-              <h3 className="font-semibold text-foreground">
+          <div className="border border-border/50 rounded-lg p-3 bg-background">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-4 h-4 text-muted-foreground" />
+              <h3 className="font-semibold text-sm text-foreground">
                 {clinic.card_title || "Why we matched you"}
               </h3>
             </div>
-            <div className="space-y-2 text-sm text-foreground leading-relaxed">
+            <div className="space-y-1.5 text-sm text-foreground leading-relaxed">
               {reasons.slice(0, maxReasons).map((sentence, i) => (
                 <p key={i}>{sentence}</p>
               ))}
@@ -381,7 +386,7 @@ export function BookingCard({
           <button
             type="button"
             onClick={() => setShowMoreDetails(!showMoreDetails)}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full py-2"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full py-1.5"
           >
             {showMoreDetails ? (
               <ChevronUp className="w-4 h-4" />
@@ -448,42 +453,49 @@ export function BookingCard({
                 </div>
               )}
 
-              {/* Accessibility */}
-              <div className="flex flex-wrap gap-2">
-                {clinic.wheelchair_accessible && (
-                  <span className="text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">
-                    Wheelchair accessible
-                  </span>
-                )}
-                {clinic.parking_available && (
-                  <span className="text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">
-                    Parking available
-                  </span>
-                )}
-              </div>
+              {/* Treatments */}
+              {clinic.treatments && clinic.treatments.length > 0 && (
+                <div className="space-y-1.5">
+                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Stethoscope className="w-4 h-4 text-muted-foreground" />
+                    Treatments
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {clinic.treatments.map((t) => (
+                      <span key={t} className="text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground capitalize">
+                        {t.replace(/_/g, " ")}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Accessibility & facilities */}
+              {(clinic.wheelchair_accessible || clinic.parking_available) && (
+                <div className="flex flex-wrap gap-2">
+                  {clinic.wheelchair_accessible && (
+                    <span className="inline-flex items-center gap-1.5 text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">
+                      <Accessibility className="w-3 h-3" />
+                      Wheelchair accessible
+                    </span>
+                  )}
+                  {clinic.parking_available && (
+                    <span className="inline-flex items-center gap-1.5 text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">
+                      <CarFront className="w-3 h-3" />
+                      Parking available
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* Date Picker */}
-        <div className="pt-2 border-t border-border/50">
-          <ClinicDatePicker
-            availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
-            availableHours={
-              clinic.available_hours || [
-                "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
-              ]
-            }
-            acceptsSameDay={clinic.accepts_same_day || false}
-            onSelectSlot={onBookSlot}
-          />
-        </div>
-
         {/* CTAs — Booking-first */}
-        <div className="space-y-3 pt-3 border-t border-border/50">
+        <div className="space-y-2 pt-3 border-t border-border/50">
           <div className="flex gap-3">
             <Button
-              className="flex-1 h-12 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-base"
+              className="flex-1 h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm"
               onClick={() =>
                 onBookSlot(new Date(), clinic.available_hours?.[0] || "09:00")
               }
@@ -493,7 +505,7 @@ export function BookingCard({
             </Button>
             <Button
               variant="outline"
-              className="flex-1 h-12 bg-transparent"
+              className="flex-1 h-11 bg-transparent text-sm"
               onClick={onMessageClick}
             >
               <MessageCircle className="w-4 h-4 mr-2" />

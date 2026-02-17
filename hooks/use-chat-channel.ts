@@ -100,6 +100,23 @@ export function useChatChannel({
       }
     )
 
+    // ── Server-side broadcast: instant message delivery (bypasses RLS) ──
+    channel.on("broadcast" as any, { event: "new_message" }, (payload: any) => {
+      const msg = payload.payload?.message as RealtimeMessage | undefined
+      if (msg && msg.sender_type !== userType) {
+        onNewMessageRef.current?.(msg)
+
+        // Auto-acknowledge delivery (skip for bot messages)
+        if (msg.sender_type !== "bot") {
+          fetch("/api/chat/mark-delivered", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messageIds: [msg.id] }),
+          }).catch(() => {})
+        }
+      }
+    })
+
     // ── Typing indicators (ephemeral broadcast – no DB writes) ───
     channel.on("broadcast" as any, { event: "typing" }, (payload: any) => {
       const senderType = payload.payload?.sender_type

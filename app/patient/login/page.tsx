@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { GoogleSignInButton } from "@/components/google-sign-in-button"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,8 @@ import Link from "next/link"
 
 export default function PatientLoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextParam = searchParams?.get("next")
   const [email, setEmail] = useState("")
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -24,7 +26,7 @@ export default function PatientLoginPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        router.replace("/patient/dashboard")
+        router.replace(nextParam || "/patient/dashboard")
       } else {
         setCheckingAuth(false)
       }
@@ -41,7 +43,7 @@ export default function PatientLoginPage() {
       const res = await fetch("/api/auth/send-login-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, next: nextParam || undefined }),
       })
 
       if (!res.ok) {
@@ -100,7 +102,7 @@ export default function PatientLoginPage() {
           <div className="space-y-6">
             {/* Google sign-in */}
             <GoogleSignInButton
-              redirectTo={`${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=/patient/dashboard`}
+              redirectTo={`${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=${encodeURIComponent(nextParam || "/patient/dashboard")}`}
             />
 
             {/* Divider */}
