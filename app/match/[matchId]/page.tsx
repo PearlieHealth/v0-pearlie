@@ -550,14 +550,14 @@ export default function MatchPage() {
   const match = { lead_id: leadId } // Assuming match object is needed for clinic actions
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-card border-b sticky top-0 z-50">
+    <div className="min-h-screen bg-gradient-to-b from-[#004443] via-[#00534f] to-[#004443]">
+      <header className="bg-[#003835] border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="rounded-full bg-black p-1.5 sm:p-2">
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white" />
+            <div className="rounded-full bg-white p-1.5 sm:p-2">
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-[#0fbcb0] fill-[#0fbcb0]" />
             </div>
-            <span className="font-semibold text-lg sm:text-xl">Pearlie</span>
+            <span className="font-semibold text-lg sm:text-xl text-white">Pearlie</span>
           </Link>
         </div>
       </header>
@@ -566,8 +566,8 @@ export default function MatchPage() {
         {loading && (
           <div className="space-y-6">
             <div className="text-center py-12">
-              <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary mb-4" />
-              <p className="text-muted-foreground text-lg">Finding your clinic matches...</p>
+              <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#0fbcb0] mb-4" />
+              <p className="text-white/70 text-lg">Finding your clinic matches...</p>
             </div>
             <div className="grid gap-6">
               {[1, 2, 3].map((i) => (
@@ -580,11 +580,11 @@ export default function MatchPage() {
         {!loading && error && (
           <Empty>
             <EmptyHeader>
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10 mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-destructive" />
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/10 mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-red-400" />
               </div>
-              <EmptyTitle>Unable to load matches</EmptyTitle>
-              <EmptyDescription>{error}</EmptyDescription>
+              <EmptyTitle className="text-white">Unable to load matches</EmptyTitle>
+              <EmptyDescription className="text-white/60">{error}</EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Button onClick={() => window.location.reload()} variant="default">
@@ -597,11 +597,11 @@ export default function MatchPage() {
         {!loading && !error && allClinicsData.length === 0 && (
           <Empty>
             <EmptyHeader>
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-muted mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-muted-foreground" />
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/10 mx-auto mb-4">
+                <MapPin className="w-8 h-8 text-white/50" />
               </div>
-              <EmptyTitle>No matching clinics found</EmptyTitle>
-              <EmptyDescription>
+              <EmptyTitle className="text-white">No matching clinics found</EmptyTitle>
+              <EmptyDescription className="text-white/60">
                 We couldn't find clinics matching your criteria right now. We're growing our network — check back soon or try a different postcode.
               </EmptyDescription>
             </EmptyHeader>
@@ -616,12 +616,12 @@ export default function MatchPage() {
         {!loading && !error && allClinicsData.length > 0 && (
           <>
             {showExpansionBanner && (
-              <Alert className="mb-8 border-primary/20 bg-primary/5">
-                <Info className="h-5 w-5 text-primary" />
+              <Alert className="mb-8 border-[#0fbcb0]/30 bg-white/10 backdrop-blur-sm">
+                <Info className="h-5 w-5 text-[#0fbcb0]" />
                 <AlertDescription className="ml-2">
                   <div className="space-y-2">
-                    <p className="font-semibold text-lg text-foreground">We're expanding to your area</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-semibold text-lg text-white">We're expanding to your area</p>
+                    <p className="text-sm text-white/70">
                       We're launching London first. You can still explore clinics nearby
                       {minDistanceMiles && <> (closest is ~{minDistanceMiles.toFixed(1)} miles away)</>}
                       and we'll notify you as we expand.
@@ -646,7 +646,7 @@ export default function MatchPage() {
 
                 {/* View Toggle */}
                 <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center gap-2 bg-card rounded-lg p-1 border">
+                  <div className="flex items-center gap-2 bg-white rounded-lg p-1 border border-white/20 shadow-sm">
                     <Button
                       variant={viewMode === "list" ? "default" : "ghost"}
                       size="sm"
@@ -669,7 +669,7 @@ export default function MatchPage() {
                     )}
                   </div>
 
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-white/60">
                     {visibleClinics.length} of {displayedClinics.length}{" "}
                     {displayedClinics.length === 1 ? "clinic" : "clinics"}
                   </p>
@@ -687,8 +687,8 @@ export default function MatchPage() {
                       return (
                         <div key={clinic.id}>
                           {isFirstNonVerified && (
-                            <div className="py-4 border-t border-border">
-                              <p className="text-sm text-muted-foreground text-center">
+                            <div className="py-4 border-t border-white/10">
+                              <p className="text-sm text-white/50 text-center">
                                 Other clinics (not verified by Pearlie)
                               </p>
                             </div>
@@ -988,7 +988,7 @@ const categoryLabels: Record<string, string> = {
                     })}
                     {hasMoreClinics && viewMode === "list" && (
                       <div className="flex justify-center mt-6">
-                        <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="lg">
+                        <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="lg" className="border-white/20 text-white hover:bg-white/10 hover:text-white">
                           Show more clinics
                         </Button>
                       </div>

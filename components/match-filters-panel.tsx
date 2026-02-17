@@ -253,7 +253,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
     return (
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+          <Button variant="outline" size="sm" className="gap-2 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white">
             <SlidersHorizontal className="h-4 w-4" />
             Filters
             {hasActiveFilters && (
