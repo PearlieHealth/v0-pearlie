@@ -159,6 +159,7 @@ export default function PatientDashboard() {
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [newMessage, setNewMessage] = useState("")
   const [isSending, setIsSending] = useState(false)
+  const [botTyping, setBotTyping] = useState(false)
   const [mobileInboxOpen, setMobileInboxOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -321,12 +322,12 @@ export default function PatientDashboard() {
     }
   }, [])
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages change or typing indicator shows
   useEffect(() => {
     // Small delay so DOM has rendered the new message
     const timer = setTimeout(() => scrollChatToBottom(true), 50)
     return () => clearTimeout(timer)
-  }, [messages, scrollChatToBottom])
+  }, [messages, botTyping, scrollChatToBottom])
 
   // Scroll to bottom when mobile drawer opens (instant, no animation)
   useEffect(() => {
@@ -381,6 +382,10 @@ export default function PatientDashboard() {
         )
       )
       return
+    }
+    // Clear bot typing when a bot/clinic message arrives via realtime
+    if (msg.sender_type === "bot" || msg.sender_type === "clinic") {
+      setBotTyping(false)
     }
     setMessages((prev) => {
       if (prev.some((m) => m.id === msg.id)) return prev
@@ -464,15 +469,30 @@ export default function PatientDashboard() {
           )
         }
 
-        // Handle bot auto-replies with delay
+        // Handle bot auto-replies with typing indicator then message
         if (data.botMessages?.length) {
+          // Show typing indicator immediately after patient sends
+          setBotTyping(true)
+          let cumulativeDelay = 0
           data.botMessages.forEach((botMsg: Message, i: number) => {
+            // Show typing for 1.2s, then reveal message
+            const typingDuration = 1200
+            const gapBetween = 400 // small gap between messages
+            const showAt = cumulativeDelay + typingDuration
+            cumulativeDelay = showAt + gapBetween
+
             setTimeout(() => {
+              // Briefly hide typing, add message
+              setBotTyping(false)
               setMessages((prev) => {
                 if (prev.some((m) => m.id === botMsg.id)) return prev
                 return [...prev, botMsg]
               })
-            }, (i + 1) * 1500)
+              // If there are more messages coming, show typing again after a beat
+              if (i < data.botMessages.length - 1) {
+                setTimeout(() => setBotTyping(true), gapBetween)
+              }
+            }, showAt)
           })
         }
       }
@@ -1053,10 +1073,18 @@ export default function PatientDashboard() {
                           </div>
                         </div>
                       ))}
-                      {otherTyping && (
+                      {(otherTyping || botTyping) && (
                         <div className="flex justify-start">
-                          <div className="bg-[#f0f0f0] rounded-2xl rounded-bl-sm px-4 py-2">
-                            <span className="text-sm text-muted-foreground animate-pulse">typing...</span>
+                          <div className="bg-[#f5f3ff] border border-[#e9e5f5] rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm">
+                            <p className="text-[9px] text-[#907EFF]/60 mb-1 flex items-center gap-1">
+                              <Heart className="w-2.5 h-2.5 fill-[#907EFF]/40 text-[#907EFF]/40" />
+                              Pearlie
+                            </p>
+                            <div className="flex gap-1">
+                              <span className="w-1.5 h-1.5 bg-[#907EFF]/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                              <span className="w-1.5 h-1.5 bg-[#907EFF]/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                              <span className="w-1.5 h-1.5 bg-[#907EFF]/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                            </div>
                           </div>
                         </div>
                       )}
@@ -1105,7 +1133,7 @@ export default function PatientDashboard() {
       {/* ══════ MOBILE: Chat Bottom Sheet Drawer ══════ */}
       {isMobile && (
         <Drawer open={mobileChatOpen} onOpenChange={setMobileChatOpen}>
-          <DrawerContent className="!max-h-[85vh] !h-[85vh] !mt-0 flex flex-col rounded-t-2xl overflow-hidden" style={{ display: "flex", flexDirection: "column" }}>
+          <DrawerContent className="!max-h-[85dvh] !h-[85dvh] !mt-0 flex flex-col rounded-t-2xl" style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <DrawerTitle className="sr-only">Chat with {chatHeaderName || "clinic"}</DrawerTitle>
 
             {/* Header */}
@@ -1190,13 +1218,17 @@ export default function PatientDashboard() {
                       </div>
                     </div>
                   ))}
-                  {otherTyping && (
+                  {(otherTyping || botTyping) && (
                     <div className="flex justify-start">
-                      <div className="bg-white rounded-2xl rounded-bl-md px-4 py-2.5 shadow-sm">
+                      <div className="bg-white border border-[#e9e5f5] rounded-2xl rounded-bl-md px-4 py-2.5 shadow-sm">
+                        <p className="text-[9px] text-[#907EFF]/60 mb-1 flex items-center gap-1">
+                          <Heart className="w-2.5 h-2.5 fill-[#907EFF]/40 text-[#907EFF]/40" />
+                          Pearlie
+                        </p>
                         <div className="flex gap-1">
-                          <span className="w-2 h-2 bg-[#323141]/20 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                          <span className="w-2 h-2 bg-[#323141]/20 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                          <span className="w-2 h-2 bg-[#323141]/20 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                          <span className="w-2 h-2 bg-[#907EFF]/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <span className="w-2 h-2 bg-[#907EFF]/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <span className="w-2 h-2 bg-[#907EFF]/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                         </div>
                       </div>
                     </div>
@@ -1222,12 +1254,12 @@ export default function PatientDashboard() {
             )}
 
             {/* Composer */}
-            <form onSubmit={handleSend} className="flex gap-2 px-3 py-3 border-t border-border/30 flex-shrink-0 pb-6 bg-white">
+            <form onSubmit={handleSend} className="flex items-center gap-2 px-3 py-3 border-t border-border/30 flex-shrink-0 bg-white" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 12px), 12px)" }}>
               <Input
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type a message..."
-                className="flex-1 text-sm rounded-xl bg-[#f5f5f3] border-0 h-10 focus-visible:ring-[#907EFF]/30"
+                className="flex-1 text-base rounded-xl bg-[#f5f5f3] border-0 h-10 focus-visible:ring-[#907EFF]/30"
                 disabled={isSending}
               />
               <Button
