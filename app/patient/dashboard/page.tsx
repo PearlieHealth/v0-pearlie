@@ -517,7 +517,7 @@ export default function PatientDashboard() {
               Hi{data?.user?.name ? `, ${data.user.name.split(" ")[0]}` : ""} <span className="text-[#323141]/30 mx-1">&middot;</span> {data?.user?.email}
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Mobile inbox toggle */}
             <button
               onClick={() => setMobileInboxOpen(!mobileInboxOpen)}
@@ -532,11 +532,17 @@ export default function PatientDashboard() {
                 )}
               </div>
             </button>
+            {/* Sign out — desktop: icon + text, mobile: avatar initial */}
             <button
               onClick={handleSignOut}
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              <LogOut className="w-4 h-4" />
+              <div className="sm:hidden h-7 w-7 rounded-full bg-[#907EFF] flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-xs font-semibold">
+                  {(data?.user?.name || data?.user?.email || "U").charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <LogOut className="w-4 h-4 hidden sm:block" />
               <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
