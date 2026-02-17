@@ -338,6 +338,39 @@ export default function PatientDashboard() {
     }
   }, [mobileChatOpen, scrollChatToBottom])
 
+  // Reset zoom when chat drawer opens to prevent layout issues
+  useEffect(() => {
+    if (!mobileChatOpen) return
+    // Reset any pinch-zoom the user may have applied
+    const viewport = document.querySelector('meta[name="viewport"]')
+    if (viewport) {
+      viewport.setAttribute(
+        "content",
+        "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+      )
+    }
+    // Prevent body scroll behind the drawer
+    document.body.style.overflow = "hidden"
+    document.body.style.position = "fixed"
+    document.body.style.width = "100%"
+    document.body.style.top = `-${window.scrollY}px`
+    return () => {
+      document.body.style.overflow = ""
+      document.body.style.position = ""
+      document.body.style.width = ""
+      const scrollY = document.body.style.top
+      document.body.style.top = ""
+      window.scrollTo(0, parseInt(scrollY || "0") * -1)
+      // Restore normal viewport
+      if (viewport) {
+        viewport.setAttribute(
+          "content",
+          "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
+        )
+      }
+    }
+  }, [mobileChatOpen])
+
   // Mobile: observe CTA buttons to show/hide sticky bottom bar
   // Delay showing sticky bar after drawer closes to avoid overlap animation
   const [stickyBarDeferred, setStickyBarDeferred] = useState(false)
@@ -595,15 +628,26 @@ export default function PatientDashboard() {
           fetchInbox()
         }
 
-        // Handle bot auto-replies
+        // Handle bot auto-replies with typing indicator
         if (data.botMessages?.length) {
+          setBotTyping(true)
+          let cumulativeDelay = 0
           data.botMessages.forEach((botMsg: Message, i: number) => {
+            const typingDuration = 1200
+            const gapBetween = 400
+            const showAt = cumulativeDelay + typingDuration
+            cumulativeDelay = showAt + gapBetween
+
             setTimeout(() => {
+              setBotTyping(false)
               setMessages((prev) => {
                 if (prev.some((m) => m.id === botMsg.id)) return prev
                 return [...prev, botMsg]
               })
-            }, (i + 1) * 1500)
+              if (i < data.botMessages.length - 1) {
+                setTimeout(() => setBotTyping(true), gapBetween)
+              }
+            }, showAt)
           })
         }
       }
@@ -1143,8 +1187,8 @@ export default function PatientDashboard() {
 
       {/* ══════ MOBILE: Chat Bottom Sheet Drawer ══════ */}
       {isMobile && (
-        <Drawer open={mobileChatOpen} onOpenChange={setMobileChatOpen}>
-          <DrawerContent className="!max-h-[85dvh] !h-[85dvh] !mt-0 flex flex-col rounded-t-2xl" style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <Drawer open={mobileChatOpen} onOpenChange={setMobileChatOpen} handleOnly shouldScaleBackground={false}>
+          <DrawerContent className="!max-h-[85vh] !h-[85vh] !mt-0 flex flex-col rounded-t-2xl" style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <DrawerTitle className="sr-only">Chat with {chatHeaderName || "clinic"}</DrawerTitle>
 
             {/* Header */}
@@ -1177,7 +1221,7 @@ export default function PatientDashboard() {
             </div>
 
             {/* Messages */}
-            <div ref={mobileMessagesRef} className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 min-h-0 bg-[#fafaf8]" style={{ WebkitOverflowScrolling: "touch" }}>
+            <div ref={mobileMessagesRef} data-vaul-no-drag className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 min-h-0 bg-[#fafaf8]" style={{ WebkitOverflowScrolling: "touch" }}>
               {loadingMessages ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-5 h-5 animate-spin text-[#907EFF]" />
@@ -1265,7 +1309,7 @@ export default function PatientDashboard() {
             )}
 
             {/* Composer */}
-            <form onSubmit={handleSend} className="flex items-center gap-2 px-3 py-3 border-t border-border/30 flex-shrink-0 bg-white" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 12px), 12px)" }}>
+            <form onSubmit={handleSend} data-vaul-no-drag className="flex items-center gap-2 px-3 py-3 border-t border-border/30 flex-shrink-0 bg-white" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 12px), 12px)" }}>
               <Input
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
@@ -1297,8 +1341,8 @@ export default function PatientDashboard() {
             className="w-full h-11 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 font-semibold text-sm rounded-xl shadow-sm active:scale-[0.98] transition-transform"
             onClick={handleMessageClick}
           >
-            <MessageCircle className="w-4 h-4 mr-1.5" />
-            Message {selectedClinic.name.split(" ")[0]}
+            <MessageCircle className="w-4 h-4 mr-1.5 flex-shrink-0" />
+            <span className="truncate">Message {selectedClinic.name}</span>
           </Button>
         </div>
       )}
