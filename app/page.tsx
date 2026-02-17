@@ -12,7 +12,7 @@ import { ComparisonTable } from "@/components/comparison-table"
 import { Badge } from "@/components/ui/badge"
 import { LoadingAnimation } from "@/components/loading-animation"
 import StatsCard from "@/components/stats-card"
-import ClinicCarousel from "@/components/clinic-carousel" // Import the ClinicCarousel component
+import ClinicCarousel from "@/components/clinic-carousel"
 import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config"
 
 // Homepage treatment list derived from the canonical config (not hardcoded)
@@ -87,65 +87,25 @@ export default function Home() {
       <AnimatePresence>
         {showLoading && <LoadingAnimation onComplete={() => setShowLoading(false)} />}
       </AnimatePresence>
-      
+
       {/* Content is always rendered underneath - loading screen slides up like a curtain to reveal it */}
       <div className={`min-h-screen ${showLoading ? 'invisible' : 'visible'}`}>
           <MainNav />
 
-          {/* Hero section - Purple/Pink design */}
-          <section 
-            className="relative min-h-[60vh] md:min-h-[70vh] lg:min-h-[75vh] flex items-center justify-center overflow-hidden pt-20 pb-10 md:pt-24 md:pb-16 lg:pb-20"
-            style={{
-              background: "#FEFEFE"
-            }}
+          {/* Hero section — background image with dark overlay */}
+          <section
+            className="relative min-h-[60vh] md:min-h-[70vh] lg:min-h-[80vh] flex items-center justify-center overflow-hidden pt-28 pb-12 md:pt-32 md:pb-20"
           >
-            {/* Floating orbs */}
-            <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">
-              <motion.div
-                className="absolute top-20 left-10 w-[600px] h-[600px] rounded-full blur-[140px]"
-                style={{
-                  background: "radial-gradient(circle, rgba(144, 126, 255, 0.06) 0%, rgba(237, 100, 166, 0.04) 50%, transparent 70%)"
-                }}
-                animate={prefersReducedMotion ? {} : { x: [0, 50, 0], y: [0, 70, 0], scale: [1, 1.1, 1] }}
-                transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <motion.div
-                className="absolute bottom-20 right-10 w-[600px] h-[600px] rounded-full blur-[140px]"
-                style={{
-                  background: "radial-gradient(circle, rgba(237, 100, 166, 0.05) 0%, rgba(144, 126, 255, 0.04) 50%, transparent 70%)"
-                }}
-                animate={prefersReducedMotion ? {} : { x: [0, -50, 0], y: [0, -70, 0], scale: [1, 1.15, 1] }}
-                transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <motion.div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-[120px]"
-                style={{
-                  background: "radial-gradient(circle, rgba(248, 245, 255, 0.3) 0%, transparent 60%)"
-                }}
-                animate={prefersReducedMotion ? {} : { scale: [1, 1.2, 1], opacity: [0.3, 0.4, 0.3] }}
-                transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-              />
-            </div>
-            
-            {/* Floating decorative icons */}
-            <motion.div
-              className="absolute top-1/2 -translate-y-1/2 left-12 hidden lg:block"
-              animate={prefersReducedMotion ? {} : { y: [0, -20, 0], rotate: [0, 5, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#907EFF] to-[#ED64A6] p-5 shadow-2xl">
-                <Sparkles className="w-full h-full text-white" />
-              </div>
-            </motion.div>
-            <motion.div
-              className="absolute top-32 right-20 hidden lg:block"
-              animate={prefersReducedMotion ? {} : { y: [0, 20, 0], rotate: [0, -5, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <div className="w-24 h-24 rounded-3xl bg-white p-6 shadow-xl">
-                <Heart className="w-full h-full text-[#907EFF] fill-[#907EFF]" />
-              </div>
-            </motion.div>
+            {/* Background image */}
+            <Image
+              src="/hero-clinic.webp"
+              alt="Modern dental clinic"
+              fill
+              className="object-cover"
+              priority
+            />
+            {/* Dark overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/55" />
 
             {/* Content */}
             <div className="relative z-10 max-w-[880px] mx-auto px-6 text-center">
@@ -156,8 +116,8 @@ export default function Home() {
                 transition={{ duration: 0.6 }}
                 className="mb-8"
               >
-                <span className="inline-flex items-center gap-2 text-sm text-[#323141] bg-white/70 backdrop-blur-xl px-5 py-2.5 rounded-full border border-white/40 shadow-lg ring-1 ring-black/5">
-                  <Shield className="w-4 h-4 text-[#907EFF]" />
+                <span className="inline-flex items-center gap-2 text-sm text-white bg-white/15 backdrop-blur-xl px-5 py-2.5 rounded-full border border-white/20 shadow-lg">
+                  <Shield className="w-4 h-4 text-[#0fbcb0]" />
                   Verified dental clinics across the UK
                 </span>
               </motion.div>
@@ -168,8 +128,8 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.1 }}
               >
-                <h1 className="text-3xl md:text-5xl lg:text-6xl leading-[1.15] font-semibold text-foreground mb-4 md:mb-6">
-                  {/* Mobile: 3 lines (original) */}
+                <h1 className="text-3xl md:text-5xl lg:text-6xl leading-[1.15] font-bold text-[#F8F1E7] mb-4 md:mb-6">
+                  {/* Mobile: 3 lines */}
                   <span className="md:hidden">
                     <span className="block">
                       Where{" "}
@@ -177,11 +137,7 @@ export default function Home() {
                         <AnimatePresence mode="wait">
                           <motion.span
                             key={currentWordIndex}
-                            className="inline-block bg-[length:200%_auto] bg-gradient-to-r from-[#9F7AEA] via-[#ED64A6] to-[#667EEA] bg-clip-text text-transparent font-semibold"
-                            style={{
-                              backgroundSize: "200% auto",
-                              animation: "iridescent-shift 8s linear infinite"
-                            }}
+                            className="inline-block text-[#0fbcb0] font-bold"
                             initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
@@ -203,11 +159,7 @@ export default function Home() {
                         <AnimatePresence mode="wait">
                           <motion.span
                             key={`desktop-${currentWordIndex}`}
-                            className="inline-block bg-[length:200%_auto] bg-gradient-to-r from-[#9F7AEA] via-[#ED64A6] to-[#667EEA] bg-clip-text text-transparent font-semibold"
-                            style={{
-                              backgroundSize: "200% auto",
-                              animation: "iridescent-shift 8s linear infinite"
-                            }}
+                            className="inline-block text-[#0fbcb0] font-bold"
                             initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
@@ -226,7 +178,7 @@ export default function Home() {
 
               {/* Subheadline */}
               <motion.p
-                className="text-lg md:text-2xl text-foreground/80 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
+                className="text-lg md:text-2xl text-white/90 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
@@ -244,30 +196,30 @@ export default function Home() {
                   <div className="flex flex-col sm:flex-row items-stretch justify-center gap-4 max-w-xl mx-auto">
                     <Link
                       href={`/match/${lastMatch.matchId}`}
-                      className="flex-1 group flex items-center gap-4 bg-white border border-[#907EFF]/30 rounded-2xl px-5 py-4 shadow-md hover:shadow-lg hover:border-[#907EFF]/60 transition-all text-left"
+                      className="flex-1 group flex items-center gap-4 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 shadow-md hover:shadow-lg hover:border-[#0fbcb0]/60 transition-all text-left"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-[15px] font-semibold text-[#323141]">Return to previous match</p>
+                        <p className="text-[15px] font-semibold text-[#222]">Return to previous match</p>
                         <p className="text-xs text-[#666] mt-0.5 leading-snug">View the clinics we recommended in your last search</p>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-[#907EFF] flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                      <ArrowRight className="w-5 h-5 text-[#0fbcb0] flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                     <Link
                       href="/intake"
-                      className="flex-1 group flex items-center gap-4 bg-white border border-[#907EFF]/30 rounded-2xl px-5 py-4 shadow-md hover:shadow-lg hover:border-[#907EFF]/60 transition-all text-left"
+                      className="flex-1 group flex items-center gap-4 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 shadow-md hover:shadow-lg hover:border-[#0fbcb0]/60 transition-all text-left"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-[15px] font-semibold text-[#323141]">Start a new search</p>
+                        <p className="text-[15px] font-semibold text-[#222]">Start a new search</p>
                         <p className="text-xs text-[#666] mt-0.5 leading-snug">Answer a new set of questions and get matched with clinics</p>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-[#907EFF] flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                      <ArrowRight className="w-5 h-5 text-[#0fbcb0] flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                   </div>
                 ) : (
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Button
                       size="lg"
-                      className="bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white px-10 py-4 h-auto rounded-full font-medium hover:shadow-xl transition-all shadow-lg text-base border-0"
+                      className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-10 py-4 h-auto rounded-full font-medium hover:shadow-xl transition-all shadow-lg text-base border-0"
                       asChild
                     >
                       <Link href="/intake">
@@ -279,7 +231,7 @@ export default function Home() {
                     <Button
                       variant="outline"
                       size="lg"
-                      className="text-[#323141] hover:text-[#323141] px-10 py-4 h-auto rounded-full transition-all border-2 border-[#907EFF] bg-white hover:bg-[#F8F5FF] text-base font-medium"
+                      className="text-white hover:text-white px-10 py-4 h-auto rounded-full transition-all border-2 border-white/70 bg-transparent hover:bg-white/10 text-base font-medium"
                       onClick={() => {
                         document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
                       }}
@@ -291,7 +243,7 @@ export default function Home() {
               </motion.div>
 
               <motion.p
-                className="text-sm text-muted-foreground mt-4"
+                className="text-sm text-white/70 mt-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.5 }}
@@ -302,7 +254,7 @@ export default function Home() {
           </section>
 
           {/* Trust bar - standalone section */}
-          <section className="py-6 border-y border-border/30 bg-white/90 md:bg-white/80 md:backdrop-blur-sm">
+          <section className="py-6 border-y border-border/30 bg-white">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 lg:gap-12 max-w-3xl mx-auto">
                 <div className="flex items-center gap-3">
@@ -378,7 +330,7 @@ export default function Home() {
                     </div>
                     <Button
                       size="lg"
-                      className="text-base px-8 h-14 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white rounded-full shadow-lg hover:shadow-xl transition-all group border-0"
+                      className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all group border-0"
                       asChild
                     >
                       <Link href="/intake">
@@ -578,8 +530,8 @@ export default function Home() {
           {/* Comparison table - standalone */}
           <ComparisonTable />
 
-          {/* CTA section - standalone */}
-          <section className="py-20 md:py-24 bg-gradient-to-br from-foreground to-foreground/90 text-white">
+          {/* CTA section - dark teal background */}
+          <section className="py-20 md:py-24 bg-[#004443] text-white">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-3xl mx-auto text-center">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-balance">
@@ -590,7 +542,7 @@ export default function Home() {
                 </p>
                 <Button
                   size="lg"
-                  className="text-base px-10 h-16 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white rounded-full shadow-xl hover:shadow-2xl transition-all text-lg font-semibold border-0"
+                  className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-xl hover:shadow-2xl transition-all text-lg font-semibold border-0"
                   asChild
                 >
                   <Link href="/intake">

@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Connect with trusted dental clinics in your area",
     start_url: "/",
     display: "standalone",
-    background_color: "#FEFEFE",
-    theme_color: "#907EFF",
+    background_color: "#ffffff",
+    theme_color: "#0fbcb0",
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
       { src: "/apple-icon.jpg", sizes: "180x180", type: "image/jpeg" },

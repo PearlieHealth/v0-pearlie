@@ -26,7 +26,7 @@ export function MobileNavMenu() {
       <SheetContent
         side="right"
         hideCloseButton
-        className="w-full max-w-[300px] sm:max-w-[350px] p-0 border-l border-border/50 bg-[#fafaf9]"
+        className="w-full max-w-[300px] sm:max-w-[350px] p-0 border-l border-border/50 bg-white"
       >
         {/* Header with logo and custom close button */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border/50">

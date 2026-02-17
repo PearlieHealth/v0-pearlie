@@ -4,34 +4,36 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Iridescent Pearl color palette */
-  --primary: #F5F0FF;
-  --primary-hover: #E8DFFF;
-  --primary-foreground: #1F2D2B;
-  --secondary: #F5F3FF;
-  --secondary-foreground: #1F2D2B;
-  --foreground: #1F2D2B;
-  --muted-foreground: #5F6F6C;
-  --background: #F7F9F8;
-  --border: #E8E4F0;
+  /* Teal & Cream color palette — inspired by The London Dental Centre */
+  --primary: #0fbcb0;
+  --primary-hover: #0da399;
+  --primary-foreground: #ffffff;
+  --secondary: #F8F1E7;
+  --secondary-foreground: #333333;
+  --foreground: #222222;
+  --muted-foreground: #666666;
+  --background: #ffffff;
+  --border: #e8e8e8;
   --card: #ffffff;
-  --card-foreground: #1F2D2B;
+  --card-foreground: #222222;
   --popover: #ffffff;
-  --popover-foreground: #1F2D2B;
-  --muted: #F5F3FF;
-  --accent: #F5F0FF;
-  --accent-foreground: #1F2D2B;
-  
-  /* Iridescent Colors */
-  --iridescent-pink: rgba(255, 230, 240, 0.4);
-  --iridescent-lavender: rgba(240, 235, 255, 0.4);
-  --iridescent-teal: rgba(47, 127, 119, 0.15);
-  --iridescent-blue: rgba(200, 230, 255, 0.3);
-  --deep-teal: #2F7F77;
+  --popover-foreground: #222222;
+  --muted: #F8F1E7;
+  --accent: #F8F1E7;
+  --accent-foreground: #222222;
+
+  /* Teal palette */
+  --teal: #0fbcb0;
+  --teal-dark: #3c8481;
+  --teal-hover: #0da399;
+  --cream: #F8F1E7;
+  --dark-teal-bg: #004443;
+
+  --deep-teal: #0fbcb0;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: #ffffff;
-  --input: #d0e3eb;
-  --ring: #2F7F77;
+  --input: #e8e8e8;
+  --ring: #0fbcb0;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -84,7 +86,7 @@
 }
 
 @theme inline {
-  --font-sans: "Geist", "Geist Fallback";
+  --font-sans: "Cabin", "Cabin Fallback";
   --font-mono: "Geist Mono", "Geist Mono Fallback";
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -131,9 +133,6 @@
   body {
     @apply bg-background text-foreground;
   }
-
-  /* Removed forced white text rules that prevented dark text on light backgrounds */
-  /* Inputs will now respect Tailwind color classes from components */
 }
 
 /* Hide scrollbar for horizontal scroll */
@@ -146,51 +145,6 @@
   display: none;
 }
 
-/* Warm animated background gradients */
-@keyframes gradient-drift-1 {
-  0%,
-  100% {
-    transform: translate(0%, 0%) scale(1);
-    opacity: 0.15;
-  }
-  33% {
-    transform: translate(5%, -8%) scale(1.1);
-    opacity: 0.2;
-  }
-  66% {
-    transform: translate(-3%, 5%) scale(0.95);
-    opacity: 0.18;
-  }
-}
-
-@keyframes gradient-drift-2 {
-  0%,
-  100% {
-    transform: translate(0%, 0%) scale(1);
-    opacity: 0.12;
-  }
-  40% {
-    transform: translate(-6%, 4%) scale(1.08);
-    opacity: 0.18;
-  }
-  80% {
-    transform: translate(4%, -6%) scale(0.98);
-    opacity: 0.15;
-  }
-}
-
-@keyframes gradient-drift-3 {
-  0%,
-  100% {
-    transform: translate(0%, 0%) scale(1);
-    opacity: 0.1;
-  }
-  50% {
-    transform: translate(3%, 7%) scale(1.05);
-    opacity: 0.16;
-  }
-}
-
 /* Static fallback for reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .animated-gradient {
@@ -199,7 +153,7 @@
   }
 }
 
-/* Added subtle animations for calm background movement */
+/* Subtle floating animation for decorative elements */
 @keyframes float {
   0%,
   100% {
@@ -207,32 +161,5 @@
   }
   50% {
     transform: translate(20px, -20px) scale(1.05);
-  }
-}
-
-/* Shining gradient animation for hero text - single pass */
-@keyframes gradient-shine {
-  0% {
-    background-position: 100% center;
-  }
-  100% {
-    background-position: 0% center;
-  }
-}
-
-.animate-gradient-shine {
-  animation: gradient-shine 2s ease-out forwards;
-}
-
-/* Iridescent gradient shift animation */
-@keyframes iridescent-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
   }
 }

@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
 import { Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNavMenu } from "@/components/mobile-nav-menu"
@@ -11,15 +10,6 @@ import { cn } from "@/lib/utils"
 export function MainNav() {
   const pathname = usePathname()
   const router = useRouter()
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
-    }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
 
   const isForClinics = pathname === "/for-clinics"
   const isForPatients = pathname === "/" || pathname === "/intake"
@@ -40,24 +30,20 @@ export function MainNav() {
   }
 
   return (
-    <header 
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        scrolled 
-          ? "bg-white/90 backdrop-blur-md border-b border-border/50 shadow-sm" 
-          : "bg-transparent"
-      )}
-    >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+    <header className="fixed top-5 left-4 right-4 md:left-8 md:right-8 z-50">
+      <div className="bg-white rounded-[3.4vw] shadow-[0_2px_10px_rgba(0,0,0,0.08)] px-4 sm:px-6 py-3">
+        <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-[#907EFF] to-[#ED64A6] bg-clip-text text-transparent">Pearlie</span>
+          <Link href="/" className="flex items-center gap-2">
+            <div className="rounded-full bg-[#0fbcb0] p-1.5">
+              <Heart className="w-4 h-4 text-white fill-white" />
+            </div>
+            <span className="text-2xl font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
           </Link>
 
           {/* Toggle - For Patients / For Clinics */}
           <div className="hidden md:flex items-center">
-            <div className="flex items-center bg-[#F5F3FF]/60 rounded-full p-1 border border-[#E8E4F0]">
+            <div className="flex items-center bg-[#F8F1E7]/60 rounded-full p-1 border border-[#e8e8e8]">
               <button
                 onClick={() => handleToggle("patients")}
                 className={cn(
@@ -92,8 +78,8 @@ export function MainNav() {
                 className={cn(
                   "px-4 py-2 text-sm font-medium transition-all duration-200",
                   pathname === link.href
-                    ? "text-primary"
-                    : "text-foreground/70 hover:text-foreground",
+                    ? "text-[#0fbcb0]"
+                    : "text-[#333] hover:text-[#0fbcb0]",
                 )}
               >
                 {link.label}
@@ -105,13 +91,13 @@ export function MainNav() {
           <div className="hidden md:flex items-center gap-3">
             <Link
               href="/patient/login"
-              className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
+              className="text-sm font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
             >
               My account
             </Link>
             <Button
               size="lg"
-              className="text-sm px-6 bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white rounded-full shadow-lg hover:shadow-xl transition-all border-0"
+              className="text-sm px-6 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-md hover:shadow-lg transition-all border-0"
               asChild
             >
               <Link href="/intake">Find my clinic</Link>
