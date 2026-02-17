@@ -162,6 +162,7 @@ export default function PatientDashboard() {
   const [mobileInboxOpen, setMobileInboxOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const mobileMessagesRef = useRef<HTMLDivElement>(null)
 
   // Mobile: chat drawer state
   const isMobile = useIsMobile()
@@ -298,10 +299,43 @@ export default function PatientDashboard() {
     }
   }, [selectedConvId, fetchConvMessages])
 
+  // Scroll chat to bottom — uses the container's scrollTop to stay within the drawer
+  const scrollChatToBottom = useCallback((smooth = true) => {
+    // Mobile drawer
+    if (mobileMessagesRef.current) {
+      const el = mobileMessagesRef.current
+      if (smooth) {
+        el.scrollTo({ top: el.scrollHeight, behavior: "smooth" })
+      } else {
+        el.scrollTop = el.scrollHeight
+      }
+    }
+    // Desktop sidebar
+    if (scrollAreaRef.current) {
+      const el = scrollAreaRef.current
+      if (smooth) {
+        el.scrollTo({ top: el.scrollHeight, behavior: "smooth" })
+      } else {
+        el.scrollTop = el.scrollHeight
+      }
+    }
+  }, [])
+
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    // Small delay so DOM has rendered the new message
+    const timer = setTimeout(() => scrollChatToBottom(true), 50)
+    return () => clearTimeout(timer)
+  }, [messages, scrollChatToBottom])
+
+  // Scroll to bottom when mobile drawer opens (instant, no animation)
+  useEffect(() => {
+    if (mobileChatOpen && messages.length > 0) {
+      // Wait for drawer open animation to settle
+      const timer = setTimeout(() => scrollChatToBottom(false), 200)
+      return () => clearTimeout(timer)
+    }
+  }, [mobileChatOpen, scrollChatToBottom])
 
   // Mobile: observe CTA buttons to show/hide sticky bottom bar
   // Delay showing sticky bar after drawer closes to avoid overlap animation
@@ -1071,7 +1105,7 @@ export default function PatientDashboard() {
       {/* ══════ MOBILE: Chat Bottom Sheet Drawer ══════ */}
       {isMobile && (
         <Drawer open={mobileChatOpen} onOpenChange={setMobileChatOpen}>
-          <DrawerContent className="!max-h-[85vh] !h-[85vh] !mt-0 flex flex-col rounded-t-2xl overflow-hidden">
+          <DrawerContent className="!max-h-[85vh] !h-[85vh] !mt-0 flex flex-col rounded-t-2xl overflow-hidden" style={{ display: "flex", flexDirection: "column" }}>
             <DrawerTitle className="sr-only">Chat with {chatHeaderName || "clinic"}</DrawerTitle>
 
             {/* Header */}
@@ -1104,7 +1138,7 @@ export default function PatientDashboard() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-3 py-3 min-h-0 bg-[#fafaf8]">
+            <div ref={mobileMessagesRef} className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 min-h-0 bg-[#fafaf8]" style={{ WebkitOverflowScrolling: "touch" }}>
               {loadingMessages ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-5 h-5 animate-spin text-[#907EFF]" />
