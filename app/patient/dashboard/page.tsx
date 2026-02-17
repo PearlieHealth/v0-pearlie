@@ -594,11 +594,19 @@ export default function PatientDashboard() {
                             </div>
                             {/* Mini message preview */}
                             <div className="flex items-start gap-2.5">
-                              <div className="h-6 w-6 rounded-full bg-[#907EFF]/15 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <span className="text-[9px] font-semibold text-[#907EFF]">
-                                  {heroConv.latest_message_sender === "patient" ? "You" : (recommendedClinic.name.charAt(0))}
-                                </span>
-                              </div>
+                              {heroConv.latest_message_sender === "patient" ? (
+                                <div className="h-6 w-6 rounded-full bg-[#907EFF]/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <span className="text-[9px] font-semibold text-[#907EFF]">You</span>
+                                </div>
+                              ) : recommendedClinic.images?.[0] ? (
+                                <div className="relative h-6 w-6 rounded-full overflow-hidden flex-shrink-0 mt-0.5 bg-neutral-100">
+                                  <Image src={recommendedClinic.images[0]} alt={recommendedClinic.name} fill className="object-cover" />
+                                </div>
+                              ) : (
+                                <div className="h-6 w-6 rounded-full bg-[#907EFF]/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <span className="text-[9px] font-semibold text-[#907EFF]">{recommendedClinic.name.charAt(0)}</span>
+                                </div>
+                              )}
                               <div className="min-w-0 flex-1">
                                 <p className="text-xs text-[#323141]/50 mb-0.5">
                                   {heroConv.latest_message_sender === "patient" ? "You" : heroConv.latest_message_sender === "bot" ? "Pearlie" : recommendedClinic.name}
@@ -674,11 +682,23 @@ export default function PatientDashboard() {
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {otherClinics.slice(0, 3).map((clinic) => (
                     <Link key={clinic.id} href={clinic.slug ? `/clinic/${clinic.slug}` : `/match/${latestMatch.id}`}>
-                      <Card className="p-3 hover:shadow-sm transition-shadow cursor-pointer">
-                        <p className="font-medium text-[#323141] text-sm truncate">{clinic.name}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {clinic.distance_miles != null ? `${clinic.distance_miles.toFixed(1)} miles` : clinic.postcode}
-                        </p>
+                      <Card className="overflow-hidden hover:shadow-sm transition-shadow cursor-pointer">
+                        {clinic.images?.[0] && (
+                          <div className="relative w-full h-20 bg-neutral-100">
+                            <Image src={clinic.images[0]} alt={clinic.name} fill className="object-cover" />
+                          </div>
+                        )}
+                        <div className="p-3">
+                          <p className="font-medium text-[#323141] text-sm truncate">{clinic.name}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                            {clinic.distance_miles != null && <span>{clinic.distance_miles.toFixed(1)} mi</span>}
+                            {clinic.rating > 0 && (
+                              <span className="flex items-center gap-0.5">
+                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />{clinic.rating.toFixed(1)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </Card>
                     </Link>
                   ))}
@@ -738,24 +758,28 @@ export default function PatientDashboard() {
                 onClick={() => setShowMatchHistory(!showMatchHistory)}
                 className="flex items-center justify-between w-full text-left"
               >
-                <h2 className="text-sm font-semibold text-[#323141]/50 uppercase tracking-wide">Match history</h2>
+                <h2 className="text-sm font-semibold text-[#323141]/50 uppercase tracking-wide">
+                  Match history ({data.matchesTotal || data.matches.length})
+                </h2>
                 <ChevronDown className={`w-4 h-4 text-[#323141]/30 transition-transform ${showMatchHistory ? "rotate-180" : ""}`} />
               </button>
 
               {showMatchHistory && (
                 <div className="mt-2 space-y-1">
-                  {data.matches.map((match) => {
+                  {data.matches.map((match, idx) => {
                     const lead = data.leads.find((l) => l.id === match.lead_id)
+                    const isCurrent = idx === 0 && recommendedClinic
                     return (
                       <Link key={match.id} href={`/match/${match.id}`}>
-                        <Card className="px-3 py-2 hover:shadow-sm transition-shadow cursor-pointer">
+                        <Card className={`px-3 py-2 hover:shadow-sm transition-shadow cursor-pointer ${isCurrent ? "border-[#907EFF]/30 bg-[#f8f5ff]/50" : ""}`}>
                           <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
                               <span className="text-muted-foreground text-xs w-14 flex-shrink-0">
                                 {new Date(match.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                               </span>
                               <span className="text-[#323141] font-medium truncate">{lead?.treatment_interest || "Dental enquiry"}</span>
                               <span className="text-xs text-muted-foreground flex-shrink-0">{match.clinic_ids?.length || 0} matched</span>
+                              {isCurrent && <span className="text-[10px] text-[#907EFF] font-medium flex-shrink-0">Current</span>}
                             </div>
                             <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                           </div>
@@ -787,9 +811,9 @@ export default function PatientDashboard() {
         {/* ══════ RIGHT COLUMN: Inbox ══════ */}
         {/* Desktop: always visible. Mobile: overlay when toggled. */}
         <div className={`
-          lg:w-[42%] lg:border-l lg:flex lg:flex-col lg:relative lg:bg-white
+          lg:w-[42%] lg:border-l lg:border-border/60 lg:flex lg:flex-col lg:relative lg:bg-[#f8f7f4]
           ${mobileInboxOpen
-            ? "fixed inset-0 z-40 bg-white flex flex-col"
+            ? "fixed inset-0 z-40 bg-[#f8f7f4] flex flex-col"
             : "hidden lg:flex"
           }
         `} style={{ height: "calc(100vh - 57px)" }}>
@@ -810,10 +834,11 @@ export default function PatientDashboard() {
           )}
 
           {/* Inbox list (top portion) */}
-          <div className="border-b flex-shrink-0 max-h-[35%] overflow-y-auto">
-            <div className="px-4 py-3 flex items-center justify-between">
+          <div className="border-b border-border/60 flex-shrink-0 max-h-[35%] overflow-y-auto">
+            <div className="px-4 py-3 flex items-center justify-between bg-white/80 sticky top-0 z-10 backdrop-blur-sm">
               <div className="flex items-center gap-2">
-                <h2 className="font-semibold text-[#323141] text-sm">Inbox</h2>
+                <MessageCircle className="w-4 h-4 text-[#907EFF]" />
+                <h2 className="font-semibold text-[#323141] text-sm">Messages</h2>
                 {totalUnread > 0 && (
                   <span className="bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
                     {totalUnread}
@@ -840,11 +865,17 @@ export default function PatientDashboard() {
                       selectedConvId === conv.id ? "bg-[#f8f5ff] border-l-2 border-[#907EFF]" : ""
                     }`}
                   >
-                    <div className="h-8 w-8 rounded-full bg-[#907EFF] flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-xs font-semibold">
-                        {(conv.clinics?.name || "C").charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+                    {conv.clinics?.images?.[0] ? (
+                      <div className="relative h-8 w-8 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
+                        <Image src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-[#907EFF] flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-semibold">
+                          {(conv.clinics?.name || "C").charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">
                         <p className={`text-sm truncate ${conv.unread_by_patient ? "font-semibold text-[#323141]" : "font-medium text-[#323141]/80"}`}>
@@ -872,7 +903,7 @@ export default function PatientDashboard() {
           </div>
 
           {/* Chat thread (bottom portion) */}
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col min-h-0 bg-white/60">
             {!selectedConv ? (
               <div className="flex-1 flex items-center justify-center text-muted-foreground">
                 <p className="text-sm">Select a conversation</p>
@@ -880,13 +911,19 @@ export default function PatientDashboard() {
             ) : (
               <>
                 {/* Chat header */}
-                <div className="px-4 py-3 border-b flex items-center justify-between flex-shrink-0">
+                <div className="px-4 py-3 border-b border-border/60 bg-white/80 backdrop-blur-sm flex items-center justify-between flex-shrink-0">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="h-7 w-7 rounded-full bg-[#907EFF] flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-[10px] font-semibold">
-                        {(selectedConv.clinics?.name || "C").charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+                    {selectedConv.clinics?.images?.[0] ? (
+                      <div className="relative h-7 w-7 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
+                        <Image src={selectedConv.clinics.images[0]} alt={selectedConv.clinics.name || "Clinic"} fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <div className="h-7 w-7 rounded-full bg-[#907EFF] flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-[10px] font-semibold">
+                          {(selectedConv.clinics?.name || "C").charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                     <p className="font-semibold text-[#323141] text-sm truncate">{selectedConv.clinics?.name || "Clinic"}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
@@ -921,16 +958,19 @@ export default function PatientDashboard() {
                               msg.sender_type === "patient"
                                 ? "bg-[#907EFF] text-white rounded-br-sm"
                                 : msg.sender_type === "bot"
-                                ? "bg-gradient-to-br from-purple-50 to-fuchsia-50 border border-purple-100 rounded-bl-sm"
+                                ? "bg-[#f5f3ff] border border-[#e9e5f5] rounded-bl-sm"
                                 : "bg-[#f0f0f0] rounded-bl-sm"
                             }`}
                           >
-                            <p className={`text-sm whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-neutral-600" : ""}`}>
+                            {msg.sender_type === "bot" && (
+                              <p className="text-[9px] text-[#907EFF]/60 mb-0.5 flex items-center gap-1">
+                                <Heart className="w-2.5 h-2.5 fill-[#907EFF]/40 text-[#907EFF]/40" />
+                                Pearlie
+                              </p>
+                            )}
+                            <p className={`text-sm whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-[#323141]/70" : ""}`}>
                               {msg.content}
                             </p>
-                            {msg.sender_type === "bot" && (
-                              <p className="text-[9px] text-purple-400/70 mt-0.5 italic">Automated</p>
-                            )}
                             <p className={`text-[10px] mt-0.5 ${
                               msg.sender_type === "patient" ? "text-white/60" : "text-muted-foreground"
                             }`}>
@@ -952,7 +992,7 @@ export default function PatientDashboard() {
                 </ScrollArea>
 
                 {/* Quick prompts */}
-                <div className="flex gap-1.5 px-4 py-2 overflow-x-auto flex-shrink-0 border-t">
+                <div className="flex gap-1.5 px-4 py-2 overflow-x-auto flex-shrink-0 border-t border-border/40 bg-white/60">
                   {QUICK_PROMPTS.map((prompt) => (
                     <button
                       key={prompt}
@@ -965,7 +1005,7 @@ export default function PatientDashboard() {
                 </div>
 
                 {/* Composer */}
-                <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t flex-shrink-0">
+                <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/60 bg-white flex-shrink-0">
                   <Input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
