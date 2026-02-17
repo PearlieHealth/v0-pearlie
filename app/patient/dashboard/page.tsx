@@ -339,8 +339,13 @@ export default function PatientDashboard() {
   }, [mobileChatOpen, scrollChatToBottom])
 
   // Reset zoom when chat drawer opens to prevent layout issues
+  // and track visual viewport height for keyboard avoidance
+  const [drawerHeight, setDrawerHeight] = useState<number | null>(null)
   useEffect(() => {
-    if (!mobileChatOpen) return
+    if (!mobileChatOpen) {
+      setDrawerHeight(null)
+      return
+    }
     // Reset any pinch-zoom the user may have applied
     const viewport = document.querySelector('meta[name="viewport"]')
     if (viewport) {
@@ -349,6 +354,31 @@ export default function PatientDashboard() {
         "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
       )
     }
+
+    // Track visual viewport to shrink drawer when keyboard opens
+    const vv = window.visualViewport
+    if (vv) {
+      const onResize = () => {
+        // Use 92% of visual viewport height (capped at 85% of full viewport)
+        setDrawerHeight(Math.min(vv.height * 0.92, window.innerHeight * 0.85))
+        // Keep messages scrolled to bottom when keyboard opens
+        scrollChatToBottom(false)
+      }
+      onResize() // set initial
+      vv.addEventListener("resize", onResize)
+      vv.addEventListener("scroll", onResize)
+      return () => {
+        vv.removeEventListener("resize", onResize)
+        vv.removeEventListener("scroll", onResize)
+        if (viewport) {
+          viewport.setAttribute(
+            "content",
+            "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
+          )
+        }
+      }
+    }
+
     return () => {
       // Restore normal viewport
       if (viewport) {
@@ -1177,7 +1207,7 @@ export default function PatientDashboard() {
       {/* ══════ MOBILE: Chat Bottom Sheet Drawer ══════ */}
       {isMobile && (
         <Drawer open={mobileChatOpen} onOpenChange={setMobileChatOpen} shouldScaleBackground={false}>
-          <DrawerContent className="!max-h-[85vh] !h-[85vh] !mt-0 flex flex-col rounded-t-2xl" style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <DrawerContent className="!mt-0 flex flex-col rounded-t-2xl" style={{ display: "flex", flexDirection: "column", overflow: "hidden", maxHeight: drawerHeight ? `${drawerHeight}px` : "85vh", height: drawerHeight ? `${drawerHeight}px` : "85vh" }}>
             <DrawerTitle className="sr-only">Chat with {chatHeaderName || "clinic"}</DrawerTitle>
 
             {/* Header */}
