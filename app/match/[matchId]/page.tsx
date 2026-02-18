@@ -729,22 +729,28 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                             {/* Card body */}
                             <div className="p-5 sm:p-6 lg:p-4 lg:pt-3">
-                              {/* Match % badge — below photo */}
-                              {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-                                <div className="mb-2">
+                              {/* Clinic name + match % inline */}
+                              <div className="flex items-start justify-between gap-3 mb-2 lg:mb-1">
+                                <h2
+                                  onClick={() => handleClinicClick(clinic.id, index)}
+                                  className="text-lg sm:text-xl lg:text-lg font-bold cursor-pointer text-[#004443] hover:text-[#004443]/80 transition-colors duration-200 leading-tight"
+                                >
+                                  {clinic.name}
+                                </h2>
+                                {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       <button
                                         type="button"
-                                        className="flex items-center gap-1.5 font-bold text-sm cursor-pointer px-3 py-1.5 rounded-full bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
+                                        className="flex-shrink-0 flex items-center gap-1 font-bold text-sm cursor-pointer px-2.5 py-1 rounded-full bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
                                         onClick={(e) => e.stopPropagation()}
                                       >
-                                        <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
-                                        <span>{clinic.match_percentage}% match</span>
-                                        <Info className="w-3.5 h-3.5 text-[#004443]/40" />
+                                        <Sparkles className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                                        <span>{clinic.match_percentage}%</span>
+                                        <Info className="w-3 h-3 text-[#004443]/40" />
                                       </button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-72 p-4" align="start" side="bottom">
+                                    <PopoverContent className="w-72 p-4" align="end" side="bottom">
                                       <div className="space-y-3">
                                         <div>
                                           <h4 className="font-semibold text-sm text-[#004443]">How we calculated your match</h4>
@@ -800,15 +806,8 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                       </div>
                                     </PopoverContent>
                                   </Popover>
-                                </div>
-                              )}
-                              {/* Clinic name */}
-                              <h2
-                                onClick={() => handleClinicClick(clinic.id, index)}
-                                className="text-lg sm:text-xl lg:text-lg font-bold cursor-pointer text-[#004443] hover:text-[#004443]/80 transition-colors duration-200 leading-tight mb-2 lg:mb-1"
-                              >
-                                {clinic.name}
-                              </h2>
+                                )}
+                              </div>
 
                               {/* Rating, verified, distance */}
                               <div className="flex items-center gap-3 text-sm lg:text-xs text-muted-foreground flex-wrap mb-3 lg:mb-2">
