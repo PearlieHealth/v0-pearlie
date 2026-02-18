@@ -61,7 +61,7 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 lg:pt-44 lg:pb-28 bg-gradient-to-b from-[#ece5dc] via-[#f3ede6] to-[#f8f4ef] overflow-hidden">
+          <section className="relative pt-24 pb-10 md:pt-28 md:pb-14 lg:pt-32 lg:pb-16 bg-gradient-to-b from-[#ece5dc] via-[#f3ede6] to-[#f8f4ef] overflow-hidden">
             <div className="container mx-auto px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
 
@@ -113,7 +113,7 @@ export default function Home() {
                     </motion.h1>
 
                     <motion.p
-                      className="text-lg md:text-xl text-[#666] mb-10 leading-relaxed max-w-lg mx-auto lg:mx-0"
+                      className="text-lg md:text-xl text-[#666] mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
@@ -125,11 +125,11 @@ export default function Home() {
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.3 }}
-                      className="flex flex-col items-center lg:items-start gap-4"
+                      className="flex flex-row items-center justify-center lg:justify-start gap-4"
                     >
                       <Button
                         size="lg"
-                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white w-full sm:w-auto px-10 py-5 h-auto rounded-full font-semibold hover:shadow-lg transition-all shadow-md text-lg border-0"
+                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-10 py-5 h-auto rounded-full font-semibold hover:shadow-lg transition-all shadow-md text-lg border-0"
                         asChild
                       >
                         <Link href="/intake">
@@ -142,7 +142,7 @@ export default function Home() {
                         onClick={() => {
                           document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
                         }}
-                        className="text-sm text-[#999] hover:text-[#666] transition-colors font-medium"
+                        className="px-6 py-3 h-auto rounded-full font-semibold text-lg text-[#555] hover:text-[#222] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all"
                       >
                         How it works
                       </button>
