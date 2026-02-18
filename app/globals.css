@@ -183,6 +183,23 @@
   .marquee-track {
     animation: none !important;
   }
+  .marquee-vertical-track {
+    animation: none !important;
+  }
+}
+
+/* Vertical scrolling marquee (clinic photos) */
+@keyframes marquee-vertical {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+.marquee-vertical-track {
+  animation: marquee-vertical var(--marquee-speed, 25s) linear infinite;
 }
 
 /* Section overline label */

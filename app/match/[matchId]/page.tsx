@@ -695,19 +695,19 @@ export default function MatchPage() {
                             data-clinic-id={clinic.id}
                             className="overflow-hidden transition-all duration-200 ease-out hover:shadow-lg border-0 shadow-sm bg-white rounded-2xl"
                           >
-                            {/* Full-width photo banner */}
-                            <div className="relative">
+                            {/* Photo banner — full width mobile, 75% width desktop */}
+                            <div className="relative lg:w-3/4">
                               {clinic.images && clinic.images.length > 0 ? (
                                 <Image
                                   src={clinic.images[0] || "/placeholder.svg"}
                                   alt={clinic.name}
                                   width={600}
                                   height={200}
-                                  className="w-full h-[140px] sm:h-[180px] lg:h-[135px] object-cover"
-                                  sizes="(max-width: 768px) 100vw, 600px"
+                                  className="w-full h-[140px] sm:h-[180px] object-cover lg:rounded-br-2xl"
+                                  sizes="(max-width: 768px) 100vw, 450px"
                                 />
                               ) : (
-                                <div className="w-full h-[140px] sm:h-[180px] lg:h-[135px] bg-[#faf8f3] flex items-center justify-center">
+                                <div className="w-full h-[140px] sm:h-[180px] bg-[#faf8f3] flex items-center justify-center lg:rounded-br-2xl">
                                   <MapPin className="w-10 h-10 text-[#004443]/20" />
                                 </div>
                               )}
@@ -802,7 +802,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                               {/* Clinic name */}
                               <h2
                                 onClick={() => handleClinicClick(clinic.id, index)}
-                                className="text-lg sm:text-xl lg:text-lg font-bold cursor-pointer text-[#004443] hover:text-[#004443]/80 transition-colors duration-200 leading-tight mb-1.5 lg:mb-1"
+                                className="text-lg sm:text-xl lg:text-lg font-bold cursor-pointer text-[#004443] hover:text-[#004443]/80 transition-colors duration-200 leading-tight mb-2 lg:mb-1"
                               >
                                 {clinic.name}
                               </h2>
@@ -845,14 +845,14 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                               {/* Why we matched you - teal border only, no fill */}
                               <div className="rounded-xl p-3.5 lg:p-3 border border-[#0fbcb0]/30 mb-4 lg:mb-3">
-                                <h3 className="font-semibold text-xs text-[#0fbcb0] mb-1.5">
+                                <h3 className="font-semibold text-xs lg:text-sm text-[#0fbcb0] mb-1.5">
                                   {clinic.card_title || (clinic.tier === "directory"
                                     ? "About this clinic"
                                     : clinic.tier === "nearby"
                                       ? "Other option in your area"
                                       : "Why we matched you")}
                                 </h3>
-                                <div className="space-y-1.5 text-xs text-[#1a1a1a] leading-relaxed">
+                                <div className="space-y-1.5 text-xs lg:text-sm text-[#1a1a1a] leading-relaxed">
                                   {clinic.tier === "directory" || clinic.is_directory_listing ? (
                                     <>
                                       <p>This clinic is listed in our directory and may be able to help with your dental needs.</p>
