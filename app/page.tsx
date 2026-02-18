@@ -157,9 +157,8 @@ export default function Home() {
               <div className="max-w-6xl mx-auto">
                 {/* Section header */}
                 <div className="text-center mb-16 md:mb-24">
-                  <span className="overline block mb-3">How It Works</span>
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-                    Three simple steps
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-[#004443]">
+                    How It Works
                   </h2>
                 </div>
 
@@ -169,9 +168,9 @@ export default function Home() {
                   <div className="flex-1 flex justify-center lg:justify-end">
                     <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
                       {/* Step number */}
-                      <span className="absolute -top-6 -left-2 lg:-left-8 text-7xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">01</span>
+                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-9xl font-bold text-[#004443]/20 select-none leading-none z-0">01</span>
                       {/* Phone mockup with form illustration */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                      <div className="relative bg-[#004443] rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
                         <div className="bg-white rounded-2xl p-5 shadow-sm">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center">
@@ -219,9 +218,9 @@ export default function Home() {
                   <div className="flex-1 flex justify-center lg:justify-start">
                     <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
                       {/* Step number */}
-                      <span className="absolute -top-6 -right-2 lg:-right-8 text-7xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">02</span>
+                      <span className="absolute -top-6 -right-2 lg:-right-8 text-8xl lg:text-9xl font-bold text-[#004443]/20 select-none leading-none z-0">02</span>
                       {/* Phone mockup with clinic cards */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                      <div className="relative bg-[#004443] rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
                         <div className="space-y-4">
                           {/* Clinic card 1 */}
                           <div className="bg-white rounded-2xl p-4 shadow-sm border border-border/60">
@@ -287,9 +286,9 @@ export default function Home() {
                   <div className="flex-1 flex justify-center lg:justify-end">
                     <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
                       {/* Step number */}
-                      <span className="absolute -top-6 -left-2 lg:-left-8 text-7xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">03</span>
+                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-9xl font-bold text-[#004443]/20 select-none leading-none z-0">03</span>
                       {/* Phone mockup with booking */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                      <div className="relative bg-[#004443] rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
                         <div className="bg-white rounded-2xl p-5 shadow-sm">
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
@@ -319,9 +318,9 @@ export default function Home() {
                               </div>
                             ))}
                           </div>
-                          <Button className="w-full bg-primary hover:bg-[var(--primary-hover)] text-white rounded-xl h-10 text-sm" asChild>
-                            <Link href="/intake">Request appointment</Link>
-                          </Button>
+                          <div className="w-full bg-primary text-white rounded-xl h-10 text-sm flex items-center justify-center font-medium">
+                            Book appointment
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -331,10 +330,20 @@ export default function Home() {
                     <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
                       You choose if and when to book
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
+                    <p className="text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0 mb-6">
                       Review your options, explore each clinic, and book directly with the one that feels right for you. No
                       pressure. No obligation.
                     </p>
+                    <Button
+                      size="lg"
+                      className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all group border-0"
+                      asChild
+                    >
+                      <Link href="/intake">
+                        Request appointment
+                        <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -407,9 +416,8 @@ export default function Home() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-12 md:mb-16">
-                  <span className="overline block mb-3">What Patients Say</span>
-                  <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-foreground">
-                    Trusted by patients across the UK
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 text-[#004443]">
+                    What Patients Say
                   </h2>
                   <p className="text-lg text-muted-foreground">
                     Real experiences from people who found the right clinic for them

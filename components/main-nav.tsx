@@ -35,10 +35,10 @@ export function MainNav() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="rounded-full bg-[#0fbcb0] p-1.5">
+            <div className="rounded-full bg-[#004443] p-1.5">
               <Heart className="w-4 h-4 text-white fill-white" />
             </div>
-            <span className="text-2xl font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
+            <span className="text-2xl font-bold tracking-tight text-[#004443]">Pearlie</span>
           </Link>
 
           {/* Toggle - For Patients / For Clinics */}
@@ -78,8 +78,8 @@ export function MainNav() {
                 className={cn(
                   "px-4 py-2 text-sm font-medium transition-all duration-200",
                   pathname === link.href
-                    ? "text-[#0fbcb0]"
-                    : "text-[#333] hover:text-[#0fbcb0]",
+                    ? "text-[#004443]"
+                    : "text-[#333] hover:text-[#004443]",
                 )}
               >
                 {link.label}
@@ -91,7 +91,7 @@ export function MainNav() {
           <div className="hidden md:flex items-center gap-3">
             <Link
               href="/patient/login"
-              className="text-sm font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
+              className="text-sm font-medium text-[#333] hover:text-[#004443] transition-colors"
             >
               My account
             </Link>
