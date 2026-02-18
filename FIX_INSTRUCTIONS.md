@@ -713,6 +713,155 @@ Do these in order. Each one is independently deployable.
 
 ---
 
+## PHASE 5: Additional Fixes (added after initial 15)
+
+### Fix A1 — Inbox goes stale: no polling for new/updated conversations
+
+**Problem:** The inbox conversation list (`inboxConversations`) is fetched once on page load via `fetchInbox()`. After that, it only re-fetches when the patient sends a first message (creating a new conversation). If a clinic sends the patient a message in a conversation that isn't currently selected, or starts a brand new conversation, the inbox sidebar never updates — no new conversation appears, no preview text changes, no unread badge increments. The patient has to refresh the whole page to see it.
+
+Compare this with the **message polling** (Fix H5) which re-fetches *messages* for the *selected conversation* every 30s. That doesn't help the inbox list itself.
+
+**File:** `app/patient/dashboard/page.tsx`
+
+**Add a new `useEffect` right after the existing H5 polling effect (around line 437 on the fix branch).** This is the inbox equivalent:
+
+```javascript
+// Fallback polling: re-fetch inbox conversations every 30s so new conversations
+// and updated previews/unread counts appear without a full page refresh.
+useEffect(() => {
+  const interval = setInterval(() => {
+    fetchInbox()
+  }, 30000)
+  return () => clearInterval(interval)
+}, [])
+```
+
+**Why this is safe:** `fetchInbox` is already called on mount and after first-message sends. This just calls it periodically. It does NOT auto-select a conversation (the `if (!selectedConvId && conversations?.length > 0)` guard inside `fetchInbox` only fires when no conversation is selected). So it won't interrupt the patient if they're mid-chat. The clinic side is completely unaffected — this is a pure read operation.
+
+**ELI5:** Imagine you're chatting with Clinic A, and Clinic B sends you a message. Without this fix, you'd never know until you refreshed the page. Now the inbox checks for updates every 30 seconds.
+
+---
+
+### Fix A2 — Realtime subscription for inbox updates (better than polling alone)
+
+**Problem:** Fix A1 (polling) gets updates within 30 seconds, but realtime would be instant. The `useConversationUpdates` hook in `hooks/use-chat-channel.ts` already exists and is used by the clinic inbox — but it filters by `clinic_id`, not `lead_id`. The patient side needs a similar subscription filtered by lead.
+
+**File:** `hooks/use-chat-channel.ts`
+
+**Add a new hook at the bottom of the file** (after the existing `useConversationUpdates`):
+
+```typescript
+// ─────────────────────────────────────────────────────────────────
+// Patient inbox: listen for conversation changes for this patient's lead.
+// Fires when unread counts change, new conversations are created, etc.
+// ─────────────────────────────────────────────────────────────────
+
+interface UsePatientConversationUpdatesOptions {
+  leadId: string | null
+  onUpdate: () => void
+  enabled?: boolean
+}
+
+export function usePatientConversationUpdates({
+  leadId,
+  onUpdate,
+  enabled = true,
+}: UsePatientConversationUpdatesOptions) {
+  const onUpdateRef = useRef(onUpdate)
+  onUpdateRef.current = onUpdate
+
+  useEffect(() => {
+    if (!leadId || !enabled) return
+
+    const supabase = createBrowserClient()
+
+    const channel = supabase
+      .channel(`patient-convs:${leadId}`)
+      .on(
+        "postgres_changes" as any,
+        {
+          event: "*",
+          schema: "public",
+          table: "conversations",
+          filter: `lead_id=eq.${leadId}`,
+        },
+        () => {
+          onUpdateRef.current()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [leadId, enabled])
+}
+```
+
+**Then in `app/patient/dashboard/page.tsx`,** import and use it.
+
+**Step 1 — Update the import (line 26 on fix branch):**
+```javascript
+import { useChatChannel, usePatientConversationUpdates, type RealtimeMessage } from "@/hooks/use-chat-channel"
+```
+
+**Step 2 — Add the hook call after the existing `useChatChannel` call (around line 428 on fix branch):**
+```javascript
+// Realtime: re-fetch inbox when any conversation for this patient changes
+usePatientConversationUpdates({
+  leadId: activeLeadId,
+  onUpdate: fetchInbox,
+  enabled: !!activeLeadId,
+})
+```
+
+**Why this is safe:** This creates a new realtime channel `patient-convs:{leadId}` that only listens (read-only). It doesn't conflict with any clinic-side channels (those use `clinic-convs:{clinicId}`). When a conversation updates (clinic sends a message, unread counts change), it triggers `fetchInbox()` which is the same safe read-only function already called on page load. The `fetchInbox` function does NOT auto-select conversations when one is already selected, so it won't interrupt the patient mid-chat.
+
+**Note on Supabase RLS:** The `conversations` table needs to allow patients to receive postgres_changes for their own conversations. If Realtime is restricted by RLS, this subscription may silently fail — in which case the polling from Fix A1 is the safety net. Both fixes should be implemented together.
+
+**ELI5:** Fix A1 checks your inbox every 30 seconds like checking your mailbox. Fix A2 is like having a doorbell — you know instantly when something new arrives. We do both because the doorbell might not always work (wifi issues).
+
+---
+
+### Fix A3 — Mark-as-read is already working (no fix needed — clarification)
+
+**NOT A BUG.** On closer inspection, mark-as-read persistence already works correctly:
+
+- The `GET /api/patient/conversations/{id}/messages` endpoint (which `fetchConvMessages` calls) **automatically persists** read status server-side:
+  - Sets `conversations.unread_by_patient = false` and `conversations.unread_count_patient = 0`
+  - Batch-updates all clinic messages to `status: "read"` with a `read_at` timestamp
+- The local state update in `fetchConvMessages` (`setInboxConversations(...)`) is just mirroring what the server already did
+
+So when a patient opens a conversation in the dashboard, the clinic side correctly sees messages go from "delivered" to "read". No additional fix needed.
+
+The `useChatChannel` hook (already active on the dashboard at line 422) also handles **mark-as-delivered** — when a clinic message arrives via realtime, lines 76-81 and 110-115 of the hook automatically call `/api/chat/mark-delivered`. This works for the currently-selected conversation.
+
+---
+
+## Updated Summary — Implementation Order
+
+| # | Fix | File(s) | Effort | Status |
+|---|-----|---------|--------|--------|
+| 1 | C3: Remove empty import | dashboard/page.tsx | 1 min | DONE |
+| 2 | C1: Mobile clinic switch chat sync | dashboard/page.tsx | 10 min | DONE |
+| 3 | C2: Auth check on patient sends | api/chat/send/route.ts | 10 min | DONE |
+| 4 | H1: Add sendTyping to dashboard | dashboard/page.tsx | 2 min | DONE |
+| 5 | H2: Error feedback on send failure | dashboard/page.tsx | 10 min | DONE |
+| 6 | H3: Booking CTA on mobile sticky bar | dashboard/page.tsx | 5 min | DONE |
+| 7 | H4: Quick prompts after first message | dashboard/page.tsx | 1 min | DONE |
+| 8 | H5: Fallback polling | dashboard/page.tsx | 2 min | DONE |
+| 9 | H7: Remove stale useCallback | dashboard/page.tsx | 5 min | DONE |
+| 10 | H8: Remove hardcoded reply time | dashboard/page.tsx | 1 min | DONE |
+| 11 | M2: Inbox header background | dashboard/page.tsx | 1 min | DONE |
+| 12 | M6: Missing hours in appt picker | booking-card.tsx | 5 min | DONE |
+| 13 | M7: Price range default | booking-card.tsx | 1 min | DONE |
+| 14 | M4: Atomic unread count | api/chat/send/route.ts + migration | 10-20 min | DONE |
+| 15 | L7: Fix clinic profile links | messages/page.tsx | 5 min | DONE |
+| **16** | **A1: Inbox polling (30s)** | **dashboard/page.tsx** | **2 min** | **TODO** |
+| **17** | **A2: Realtime inbox subscription** | **use-chat-channel.ts + dashboard/page.tsx** | **10 min** | **TODO** |
+
+---
+
 ## What NOT to do
 
 1. **Do NOT modify any clinic-side files** (listed above)
