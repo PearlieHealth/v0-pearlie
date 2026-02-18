@@ -695,19 +695,20 @@ export default function MatchPage() {
                             data-clinic-id={clinic.id}
                             className="overflow-hidden transition-all duration-200 ease-out hover:shadow-lg border-0 shadow-sm bg-white rounded-2xl"
                           >
-                            {/* Photo banner — full width mobile, 75% width desktop */}
-                            <div className="relative lg:w-3/4">
+                            {/* Photo banner — flush on mobile, inset with rounded edges on desktop */}
+                            <div className="lg:px-4 lg:pt-4">
+                              <div className="relative">
                               {clinic.images && clinic.images.length > 0 ? (
                                 <Image
                                   src={clinic.images[0] || "/placeholder.svg"}
                                   alt={clinic.name}
                                   width={600}
                                   height={200}
-                                  className="w-full h-[140px] sm:h-[180px] object-cover lg:rounded-br-2xl"
-                                  sizes="(max-width: 768px) 100vw, 450px"
+                                  className="w-full h-[140px] sm:h-[180px] lg:h-[135px] object-cover lg:rounded-xl"
+                                  sizes="(max-width: 768px) 100vw, 600px"
                                 />
                               ) : (
-                                <div className="w-full h-[140px] sm:h-[180px] bg-[#faf8f3] flex items-center justify-center lg:rounded-br-2xl">
+                                <div className="w-full h-[140px] sm:h-[180px] lg:h-[135px] bg-[#faf8f3] flex items-center justify-center lg:rounded-xl">
                                   <MapPin className="w-10 h-10 text-[#004443]/20" />
                                 </div>
                               )}
@@ -795,6 +796,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   </Popover>
                                 </div>
                               )}
+                              </div>
                             </div>
 
                             {/* Card body */}
