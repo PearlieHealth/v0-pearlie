@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect, useState, type ReactNode } from "react"
+import { useRef, type ReactNode } from "react"
 import { motion, useInView } from "framer-motion"
 
 interface ScrollRevealProps {
@@ -27,19 +27,6 @@ export function ScrollReveal({
 }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-80px" })
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
-    setPrefersReducedMotion(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
-    mq.addEventListener("change", handler)
-    return () => mq.removeEventListener("change", handler)
-  }, [])
-
-  if (prefersReducedMotion) {
-    return <div className={className}>{children}</div>
-  }
 
   const offset = directionOffsets[direction]
 
