@@ -24,8 +24,7 @@ export async function GET(
       .single()
 
     if (clinicError || !clinic?.google_place_id) {
-      console.error("[google-reviews] No google_place_id for clinic:", clinicId, "error:", clinicError?.message)
-      return NextResponse.json({ reviews: [], debug: { reason: "no_place_id", clinicId, error: clinicError?.message } })
+      return NextResponse.json({ reviews: [] })
     }
 
     const placeId = clinic.google_place_id
@@ -47,8 +46,7 @@ export async function GET(
     // Fetch from Google Places API (new)
     const apiKey = process.env.GOOGLE_PLACES_API_KEY
     if (!apiKey) {
-      console.error("[google-reviews] GOOGLE_PLACES_API_KEY not set")
-      return NextResponse.json({ reviews: [], debug: { reason: "no_api_key" } })
+      return NextResponse.json({ reviews: [] })
     }
 
     const googleRes = await fetch(
@@ -62,13 +60,12 @@ export async function GET(
     )
 
     if (!googleRes.ok) {
-      const errorText = await googleRes.text()
-      console.error("[google-reviews] Google API error:", googleRes.status, errorText)
+      console.error("[google-reviews] Google API error:", googleRes.status)
       // Return cached data if available, even if stale
       if (cached?.reviews) {
-        return NextResponse.json({ reviews: cached.reviews, debug: { reason: "api_error_cached", status: googleRes.status } })
+        return NextResponse.json({ reviews: cached.reviews })
       }
-      return NextResponse.json({ reviews: [], debug: { reason: "api_error", status: googleRes.status, error: errorText.slice(0, 200) } })
+      return NextResponse.json({ reviews: [] })
     }
 
     const googleData = await googleRes.json()
