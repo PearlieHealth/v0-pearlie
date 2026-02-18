@@ -26,16 +26,16 @@ export function ScrollingMarquee({ items, speed = 30, variant = "light" }: Scrol
   }, [])
 
   const isDark = variant === "dark"
-  const bgClass = isDark ? "bg-[#004443]" : "bg-[#F8F1E7]"
-  const textClass = isDark ? "text-white/80" : "text-[#004443]"
-  const separatorClass = isDark ? "text-[#0fbcb0]/40" : "text-[#0fbcb0]/30"
+  const bgClass = isDark ? "bg-[#004443]" : "bg-[#0fbcb0]"
+  const textClass = isDark ? "text-white/80" : "text-white"
+  const separatorClass = isDark ? "text-[#0fbcb0]/40" : "text-white/40"
 
   if (prefersReducedMotion) {
     return (
-      <div className={`${bgClass} py-4 overflow-hidden`}>
+      <div className={`${bgClass} py-5 overflow-hidden`}>
         <div className="flex items-center justify-center gap-6 flex-wrap px-4">
           {items.map((item, i) => (
-            <span key={i} className={`flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] ${textClass}`}>
+            <span key={i} className={`flex items-center gap-2 text-sm font-bold uppercase tracking-[0.15em] ${textClass}`}>
               {item.icon}
               {item.text}
             </span>
@@ -49,16 +49,16 @@ export function ScrollingMarquee({ items, speed = 30, variant = "light" }: Scrol
   const renderItems = () =>
     items.map((item, i) => (
       <span key={i} className="flex items-center gap-4 sm:gap-6 shrink-0">
-        <span className={`flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] whitespace-nowrap ${textClass}`}>
+        <span className={`flex items-center gap-2 text-sm font-bold uppercase tracking-[0.15em] whitespace-nowrap ${textClass}`}>
           {item.icon}
           {item.text}
         </span>
-        <Heart className={`w-3 h-3 ${separatorClass} fill-current shrink-0`} />
+        <Heart className={`w-3.5 h-3.5 ${separatorClass} fill-current shrink-0`} />
       </span>
     ))
 
   return (
-    <div className={`${bgClass} py-4 overflow-hidden`} aria-hidden="true">
+    <div className={`${bgClass} py-5 overflow-hidden`} aria-hidden="true">
       <div
         className="flex items-center gap-4 sm:gap-6 marquee-track"
         style={{ "--marquee-speed": `${speed}s` } as React.CSSProperties}
