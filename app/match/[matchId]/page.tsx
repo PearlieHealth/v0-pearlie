@@ -1,7 +1,7 @@
 "use client"
 
 
-import { useState, useEffect, useRef, Suspense, lazy } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -36,7 +36,7 @@ import { createClient } from "@/lib/supabase/client"
 import { getChipData } from "@/lib/chipData"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 
-const GoogleClinicsMap = lazy(() => import("@/components/google-clinics-map").then((mod) => ({ default: mod.GoogleClinicsMap })))
+import { GoogleClinicsMap } from "@/components/google-clinics-map"
 
 interface Clinic {
   id: string
@@ -97,7 +97,7 @@ export default function MatchPage() {
   const matchId = params?.matchId as string
 
   const [allClinicsData, setAllClinicsData] = useState<Clinic[]>([])
-  const [visibleClinicsCount, setVisibleClinicsCount] = useState(2)
+  const [visibleClinicsCount, setVisibleClinicsCount] = useState(3)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"list" | "map">("list")
@@ -301,6 +301,7 @@ export default function MatchPage() {
     if (clinic.tier === "nearby") return "Nearby option"
     if (index === 0) return "Top match"
     if (index === 1) return "Strong alternative"
+    if (index === 2) return "Great option"
     return null
   }
 
@@ -667,11 +668,9 @@ export default function MatchPage() {
                 {/* Mobile map view */}
                 {viewMode === "map" && (
                   <div className="lg:hidden mb-4">
-                    <Suspense fallback={<div className="h-[300px] bg-white rounded-2xl animate-pulse" />}>
-                      <div className="h-[300px] rounded-2xl overflow-hidden shadow-sm border border-border/50">
-                        <GoogleClinicsMap clinics={allClinicsData} highlightedClinicId={highlightedClinicId} onClinicHover={handleClinicHover} onClinicClick={handleMapClinicClick} />
-                      </div>
-                    </Suspense>
+                    <div className="h-[300px] rounded-2xl overflow-hidden shadow-sm border border-border/50">
+                      <GoogleClinicsMap clinics={allClinicsData} highlightedClinicId={highlightedClinicId} onClinicHover={handleClinicHover} onClinicClick={handleMapClinicClick} />
+                    </div>
                   </div>
                 )}
 
@@ -933,20 +932,96 @@ const categoryLabels: Record<string, string> = {
                 </div>
               </div>
 
-              {/* RIGHT: Map + Filters (desktop only) */}
+              {/* RIGHT: Map + Filters + Trust (desktop only) */}
               <aside className="hidden lg:block flex-1 max-w-[480px] order-2">
                 <div className="sticky top-24 space-y-4">
                   {/* Map - square */}
                   {userLocation && (
-                    <Suspense fallback={<div className="aspect-square bg-white rounded-2xl animate-pulse" />}>
-                      <div className="aspect-square rounded-2xl overflow-hidden shadow-sm border border-border/50">
-                        <GoogleClinicsMap clinics={allClinicsData} highlightedClinicId={highlightedClinicId} onClinicHover={handleClinicHover} onClinicClick={handleMapClinicClick} />
-                      </div>
-                    </Suspense>
+                    <div className="aspect-square rounded-2xl overflow-hidden shadow-sm border border-border/50">
+                      <GoogleClinicsMap clinics={allClinicsData} highlightedClinicId={highlightedClinicId} onClinicHover={handleClinicHover} onClinicClick={handleMapClinicClick} />
+                    </div>
                   )}
 
                   {/* Filters - compact under map */}
                   <MatchFiltersPanel filters={filters} onFiltersChange={setFilters} />
+
+                  {/* Trust & Standards */}
+                  <div className="rounded-2xl bg-[#004443] p-5 shadow-lg">
+                    <h3 className="text-[15px] font-bold text-white leading-snug mb-1.5">
+                      Not seeing every dentist near you? Here&apos;s why.
+                    </h3>
+                    <p className="text-xs text-white/70 leading-relaxed mb-4">
+                      We carefully select and recommend clinics that meet our standards for quality, transparency, and patient care.
+                    </p>
+
+                    <div className="space-y-3.5">
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <Shield className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Verified &amp; Compliant</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            All clinics are verified and must hold active professional registration and regulatory compliance.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <MessageCircle className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Interviewed by Pearlie</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            We conduct a comprehensive review with the dentist and their staff to understand how the practice operates and delivers care.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <Star className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Consistent Patient Feedback</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            We prioritise clinics with strong, consistent patient reviews and clear evidence of patient satisfaction.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Transparent &amp; Clear Communication</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            Clinics must provide clear treatment information, honest communication, and upfront guidance on care options.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Match-Based Recommendations</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            We recommend clinics based on your needs, preferences, urgency, and availability — not just who is closest.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3.5 border-t border-white/10">
+                      <p className="text-xs text-white/50 leading-relaxed italic">
+                        We prioritise quality and fit over quantity — so you can feel confident in your choice.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </aside>
             </div>
