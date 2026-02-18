@@ -59,6 +59,7 @@ function ReviewSkeleton() {
 export function ReviewsTab({ clinic, clinicId }: ReviewsTabProps) {
   const [googleReviews, setGoogleReviews] = useState<GoogleReview[]>([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [expandedReviews, setExpandedReviews] = useState<Set<number>>(new Set())
 
   const googleReviewsUrl = clinic.google_place_id
@@ -72,9 +73,16 @@ export function ReviewsTab({ clinic, clinicId }: ReviewsTabProps) {
         if (res.ok) {
           const data = await res.json()
           setGoogleReviews(data.reviews || [])
+          if (data.error) {
+            console.warn("[ReviewsTab] API returned error:", data.error, data.detail)
+            setFetchError(data.error)
+          }
+        } else {
+          setFetchError(`http_${res.status}`)
         }
-      } catch {
-        // Graceful fallback — just show the summary card
+      } catch (err) {
+        console.error("[ReviewsTab] Fetch failed:", err)
+        setFetchError("network_error")
       } finally {
         setLoading(false)
       }
@@ -167,6 +175,15 @@ export function ReviewsTab({ clinic, clinicId }: ReviewsTabProps) {
             })}
           </div>
         </section>
+      ) : fetchError ? (
+        <div className="text-sm text-[#999] py-4">
+          {fetchError === "no_google_place_id" && "Google profile not linked yet."}
+          {fetchError === "api_key_missing" && "Google Places API key not configured."}
+          {fetchError === "google_api_error" && "Could not load Google reviews right now."}
+          {fetchError === "clinic_lookup_failed" && "Could not find clinic data."}
+          {!["no_google_place_id", "api_key_missing", "google_api_error", "clinic_lookup_failed"].includes(fetchError) &&
+            "Could not load reviews."}
+        </div>
       ) : null}
 
       {/* Google reviews CTA */}
