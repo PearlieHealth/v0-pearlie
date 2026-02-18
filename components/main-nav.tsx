@@ -31,7 +31,7 @@ export function MainNav() {
 
   return (
     <header className="fixed top-5 left-4 right-4 md:left-8 md:right-8 z-50">
-      <div className="rounded-[3.4vw] bg-white border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] px-4 sm:px-6 py-3">
+      <div className="rounded-[3.4vw] bg-[#F8F1E7] border border-[#F8F1E7] shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] px-4 sm:px-6 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
