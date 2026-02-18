@@ -9,7 +9,6 @@ import {
   MapPin,
   ChevronLeft,
   ExternalLink,
-  Shield,
   Calendar,
   CreditCard,
   UserRound,
@@ -17,6 +16,7 @@ import {
   X,
   Eye,
   Pencil,
+  ImageIcon,
 } from "lucide-react"
 import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
@@ -50,6 +50,7 @@ export function ClinicProfileContent() {
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [showMobilePicker, setShowMobilePicker] = useState(false)
   const [directLeadId, setDirectLeadId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState("overview")
 
   // Auto-open chat when patient arrives via email reply link
   useEffect(() => {
@@ -311,6 +312,18 @@ export function ClinicProfileContent() {
               <HighlightBadgeStrip chips={clinic.highlight_chips} />
             )}
 
+            {/* Before & After Trust Badge */}
+            {clinic.before_after_images && clinic.before_after_images.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveTab("details")}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 text-sm font-medium text-[#004443] hover:bg-[#0fbcb0]/10 transition-colors"
+              >
+                <ImageIcon className="h-3.5 w-3.5 text-[#0fbcb0]" />
+                Before &amp; After Cases Available
+              </button>
+            )}
+
             {/* Patient Context Banner */}
             {lead && (
               <PatientContextBanner
@@ -320,7 +333,7 @@ export function ClinicProfileContent() {
             )}
 
             {/* Tab Navigation */}
-            <Tabs defaultValue="overview" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full justify-start bg-transparent border-b border-[#e5e5e5] rounded-none h-auto p-0 gap-0 overflow-x-auto">
                 <TabsTrigger
                   value="overview"
@@ -332,7 +345,7 @@ export function ClinicProfileContent() {
                   value="services"
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
                 >
-                  Services
+                  Fees
                 </TabsTrigger>
                 <TabsTrigger
                   value="reviews"
@@ -349,7 +362,7 @@ export function ClinicProfileContent() {
               </TabsList>
 
               <TabsContent value="overview" className="pt-6">
-                <OverviewTab clinic={clinic} matchReasons={matchReasons} hasLead={!!lead} />
+                <OverviewTab clinic={clinic} matchReasons={matchReasons} hasLead={!!lead} lead={lead} onSwitchToDetails={() => setActiveTab("details")} />
               </TabsContent>
 
               <TabsContent value="services" className="pt-6">
@@ -357,7 +370,7 @@ export function ClinicProfileContent() {
               </TabsContent>
 
               <TabsContent value="reviews" className="pt-6">
-                <ReviewsTab clinic={clinic} />
+                <ReviewsTab clinic={clinic} clinicId={clinic.id} />
               </TabsContent>
 
               <TabsContent value="details" className="pt-6">
@@ -370,32 +383,27 @@ export function ClinicProfileContent() {
           <div className="hidden lg:block">
             <div className="sticky top-24 space-y-4">
               <Card className="bg-white border-[#e5e5e5] overflow-hidden shadow-sm">
-                {clinic.offers_free_consultation && (
-                  <div className="bg-indigo-50 px-5 py-3.5 border-b border-indigo-100">
-                    <div className="flex items-start gap-2.5">
-                      <span className="text-lg leading-none mt-0.5">🎉</span>
-                      <div>
-                        <p className="text-sm font-semibold text-indigo-900">Free Consultation</p>
-                        <p className="text-xs text-indigo-700 mt-0.5 leading-relaxed">
-                          This clinic offers a free initial consultation for cosmetic treatments and Invisalign.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="px-6 pt-5 pb-3">
-                  <h2 className="text-lg font-bold text-[#1a1a1a] text-center">
-                    Request an appointment for free
+                <div className="bg-[#004443] px-5 py-3.5">
+                  <h2 className="text-base font-bold text-white text-center">
+                    Request an appointment
                   </h2>
-                  <p className="text-sm text-[#666] text-center mt-1">
+                  <p className="text-xs text-white/70 text-center mt-0.5">
                     No booking fees on Pearlie
                   </p>
                 </div>
 
-                <div className="border-t border-[#e5e5e5]" />
+                {clinic.offers_free_consultation && (
+                  <div className="bg-[#0fbcb0]/10 px-4 py-3 border-b border-[#0fbcb0]/20">
+                    <div>
+                      <p className="text-sm font-semibold text-[#004443]">Free Consultation</p>
+                      <p className="text-xs text-[#004443]/70 mt-0.5 leading-relaxed">
+                        Free initial consultation for cosmetic treatments and Invisalign.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
-                <div className="p-6 space-y-4">
+                <div className="p-4 space-y-3">
                   <div id="clinic-date-picker">
                     <ClinicDatePicker
                       availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
@@ -407,7 +415,7 @@ export function ClinicProfileContent() {
 
                   <Button
                     size="lg"
-                    className="w-full bg-[#1a1a1a] hover:bg-[#333] text-white"
+                    className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white"
                     onClick={() => setShowChat(!showChat)}
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
@@ -434,19 +442,16 @@ export function ClinicProfileContent() {
                 </div>
               </Card>
 
-              {/* Match reasons card */}
+              {/* Match reasons card — mirrors match results page card */}
               {matchId && matchReasons.length > 0 && (
-                <div className="border border-[#e5e5e5] rounded-lg p-4 bg-white">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Shield className="w-5 h-5 text-[#999]" />
-                    <h3 className="font-semibold text-[#1a1a1a]">Why we matched you</h3>
-                  </div>
-                  <div className="space-y-3 text-sm text-[#333] leading-relaxed">
+                <div className="rounded-xl p-3.5 border border-[#0fbcb0]/30">
+                  <h3 className="font-semibold text-sm text-[#0fbcb0] mb-1.5">Why we matched you</h3>
+                  <div className="space-y-1.5 text-sm text-[#1a1a1a] leading-relaxed">
                     {matchReasons.slice(0, 3).map((reason, idx) => (
                       <p key={idx}>{reason}</p>
                     ))}
                   </div>
-                  <p className="text-xs text-[#999] mt-4 pt-3 border-t border-[#e5e5e5]">
+                  <p className="text-xs text-[#999] mt-3 pt-2.5 border-t border-[#e5e5e5]">
                     Thoughtfully matched based on your answers.
                   </p>
                 </div>

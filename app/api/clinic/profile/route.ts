@@ -19,6 +19,7 @@ const EDITABLE_FIELDS = new Set([
   "finance_provider_names", "ideal_patient_tags", "exclusion_tags",
   "highlight_chips", "images", "before_after_images",
   "offers_free_consultation", "show_treatment_prices", "treatment_prices",
+  "google_place_id", "google_rating", "google_review_count", "google_maps_url",
 ])
 
 // Array fields with their max items
