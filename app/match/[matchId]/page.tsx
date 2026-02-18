@@ -551,18 +551,33 @@ export default function MatchPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f1e7]">
-      <header className="bg-[#004443] border-b border-[#003835] sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="rounded-full bg-white p-1.5 sm:p-2">
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-[#0fbcb0] fill-[#0fbcb0]" />
+      {/* Glass nav matching landing page */}
+      <header className="fixed top-3 left-3 right-3 md:top-5 md:left-8 md:right-8 z-50">
+        <div className="rounded-[3.4vw] bg-white/70 backdrop-blur-[40px] backdrop-saturate-[1.4] border border-white/30 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] px-4 sm:px-6 py-2.5">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="rounded-full bg-[#0fbcb0] p-1.5">
+                <Heart className="w-4 h-4 text-white fill-white" />
+              </div>
+              <span className="text-xl font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
+            </Link>
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-muted-foreground hidden sm:block">
+                {displayedClinics.length} {displayedClinics.length === 1 ? "clinic" : "clinics"} matched
+              </p>
+              <Button
+                size="sm"
+                className="text-sm px-5 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-sm hover:shadow-md transition-all border-0"
+                asChild
+              >
+                <Link href="/intake">New search</Link>
+              </Button>
             </div>
-            <span className="font-semibold text-lg sm:text-xl text-[#0fbcb0]">Pearlie</span>
-          </Link>
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-20 md:pt-24 pb-8">
         {loading && (
           <div className="space-y-6">
             <div className="text-center py-12">
@@ -631,68 +646,51 @@ export default function MatchPage() {
               </Alert>
             )}
 
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-              {/* Desktop Sidebar - Hidden on mobile */}
-              <aside className="hidden lg:block w-full lg:w-80 flex-shrink-0">
-                <MatchFiltersPanel filters={filters} onFiltersChange={setFilters} />
-              </aside>
-
-              {/* Main Content Area */}
-              <div className="flex-1 min-w-0">
-                {/* Mobile Filter Button */}
-                <div className="mb-6 lg:hidden">
+            <div className="flex flex-col lg:flex-row gap-5 lg:gap-6">
+              {/* LEFT: Clinic Cards */}
+              <div className="flex-1 min-w-0 order-2 lg:order-1">
+                {/* Mobile: filter button + map toggle */}
+                <div className="flex items-center gap-2 mb-4 lg:hidden">
                   <MatchFiltersPanel filters={filters} onFiltersChange={setFilters} isMobile />
-                </div>
-
-                {/* View Toggle */}
-                <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center gap-1 bg-white rounded-lg p-1 border border-[#004443]/15 shadow-sm">
+                  {userLocation && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setViewMode("list")}
-                      className={`gap-2 ${viewMode === "list" ? "bg-[#004443] text-white hover:bg-[#004443] hover:text-white" : "text-[#004443] border border-[#004443]/20 hover:bg-[#004443]/5"}`}
+                      onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
+                      className="gap-1.5 text-[#004443] border border-[#004443]/20 hover:bg-[#004443]/5"
                     >
-                      <List className="w-4 h-4" />
-                      List
+                      {viewMode === "map" ? <><List className="w-4 h-4" /> List</> : <><Map className="w-4 h-4" /> Map</>}
                     </Button>
-                    {userLocation && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setViewMode("map")}
-                        className={`gap-2 ${viewMode === "map" ? "bg-[#004443] text-white hover:bg-[#004443] hover:text-white" : "text-[#004443] border border-[#004443]/20 hover:bg-[#004443]/5"}`}
-                      >
-                        <Map className="w-4 h-4" />
-                        Map
-                      </Button>
-                    )}
-                  </div>
-
-                  <p className="text-sm text-muted-foreground">
-                    {visibleClinics.length} of {displayedClinics.length}{" "}
-                    {displayedClinics.length === 1 ? "clinic" : "clinics"}
-                  </p>
+                  )}
                 </div>
 
-                {/* List View */}
-                {viewMode === "list" && (
-                  <div className="space-y-6">
-                    {visibleClinics.map((clinic, index) => {
-                      // Check if this is the first non-verified clinic to show divider
-                      const isFirstNonVerified = 
-                        !clinic.verified && 
-                        (index === 0 || visibleClinics.slice(0, index).every(c => c.verified));
-                      
-                      return (
-                        <div key={clinic.id}>
-                          {isFirstNonVerified && (
-                            <div className="py-4 border-t border-[#004443]/10">
-                              <p className="text-sm text-muted-foreground text-center">
-                                Other clinics (not verified by Pearlie)
-                              </p>
-                            </div>
-                          )}
+                {/* Mobile map view */}
+                {viewMode === "map" && (
+                  <div className="lg:hidden mb-4">
+                    <Suspense fallback={<div className="h-[300px] bg-white rounded-2xl animate-pulse" />}>
+                      <div className="h-[300px] rounded-2xl overflow-hidden shadow-sm">
+                        <ClinicsMap clinics={allClinicsData} highlightedClinicId={highlightedClinicId} onClinicHover={handleClinicHover} onClinicClick={handleMapClinicClick} />
+                      </div>
+                    </Suspense>
+                  </div>
+                )}
+
+                {/* Clinic cards list */}
+                <div className="space-y-4">
+                  {visibleClinics.map((clinic, index) => {
+                    const isFirstNonVerified =
+                      !clinic.verified &&
+                      (index === 0 || visibleClinics.slice(0, index).every(c => c.verified));
+
+                    return (
+                      <div key={clinic.id}>
+                        {isFirstNonVerified && (
+                          <div className="py-3 border-t border-[#004443]/10">
+                            <p className="text-xs text-muted-foreground text-center">
+                              Other clinics (not verified by Pearlie)
+                            </p>
+                          </div>
+                        )}
                           <Card
                             ref={(el) => { clinicRefs.current[clinic.id] = el }}
                             data-clinic-id={clinic.id}
@@ -925,23 +923,32 @@ const categoryLabels: Record<string, string> = {
                         </div>
                       )
                     })}
-                    {hasMoreClinics && viewMode === "list" && (
-                      <div className="flex justify-center mt-6">
-                        <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="lg" className="border-[#004443]/20 text-[#004443] hover:bg-[#004443]/5 bg-white rounded-full">
-                          Show more clinics
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Map View */}
-                {viewMode === "map" && (
-                  <Suspense fallback={<div>Loading map...</div>}>
-                    <ClinicsMap clinics={allClinicsData} highlightedClinicId={null} onClinicHover={() => {}} onClinicClick={handleMapClinicClick} />
-                  </Suspense>
-                )}
+                  {hasMoreClinics && (
+                    <div className="flex justify-center mt-4">
+                      <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="sm" className="border-[#004443]/20 text-[#004443] hover:bg-[#004443]/5 bg-white rounded-full text-sm">
+                        Show more clinics
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* RIGHT: Map + Filters (desktop only) */}
+              <aside className="hidden lg:block w-[380px] flex-shrink-0 order-2">
+                <div className="sticky top-24 space-y-4">
+                  {/* Map - square */}
+                  {userLocation && (
+                    <Suspense fallback={<div className="aspect-square bg-white rounded-2xl animate-pulse" />}>
+                      <div className="aspect-square rounded-2xl overflow-hidden shadow-sm border border-border/50">
+                        <ClinicsMap clinics={allClinicsData} highlightedClinicId={highlightedClinicId} onClinicHover={handleClinicHover} onClinicClick={handleMapClinicClick} />
+                      </div>
+                    </Suspense>
+                  )}
+
+                  {/* Filters - compact under map */}
+                  <MatchFiltersPanel filters={filters} onFiltersChange={setFilters} />
+                </div>
+              </aside>
             </div>
           </>
         )}

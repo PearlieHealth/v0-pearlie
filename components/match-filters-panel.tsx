@@ -85,10 +85,10 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
   const FilterContent = () => (
     <div className="flex flex-col h-full">
       {/* Scrollable content area */}
-      <div className="flex-1 overflow-y-auto px-6 md:px-7 py-6 md:py-7">
+      <div className="flex-1 overflow-y-auto px-4 md:px-0 py-4 md:py-0">
         {/* Title row with clear button */}
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold tracking-tight">Search filters</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold tracking-tight text-[#004443]">Filters</h3>
           {hasActiveFilters && (
             <Button
               variant="ghost"
@@ -102,17 +102,17 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
         </div>
 
         {/* Sections with consistent vertical rhythm */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Location Section */}
           <div>
-            <h4 className="text-sm font-semibold text-foreground mb-3">Location</h4>
-            <div className="flex flex-wrap gap-2">
+            <h4 className="text-xs font-semibold text-foreground mb-2">Location</h4>
+            <div className="flex flex-wrap gap-1.5">
               {DISTANCE_OPTIONS.map((option) => (
                 <button
                   key={option.label}
                   onClick={() => handleDistanceClick(option)}
                   className={`
-                    h-10 px-4 rounded-full text-sm font-medium transition-colors
+                    h-8 px-3 rounded-full text-xs font-medium transition-colors
                     border
                     ${
                       isDistanceSelected(option)
@@ -126,15 +126,15 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
               ))}
             </div>
             {/* Prioritise toggle */}
-            <div className="mt-4 pt-3 border-t border-border/60">
+            <div className="mt-2 pt-2 border-t border-border/60">
               <div
                 role="button"
                 tabIndex={0}
                 onClick={() => updateFilter("prioritiseDistance", !filters.prioritiseDistance)}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") updateFilter("prioritiseDistance", !filters.prioritiseDistance) }}
-                className="w-full flex items-center justify-between py-3 cursor-pointer"
+                className="w-full flex items-center justify-between py-2 cursor-pointer"
               >
-                <span className="text-sm text-foreground">Prioritise closer clinics</span>
+                <span className="text-xs text-foreground">Prioritise closer</span>
                 <Switch
                   checked={filters.prioritiseDistance}
                   onCheckedChange={(checked) => updateFilter("prioritiseDistance", checked)}
@@ -145,14 +145,14 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
           </div>
 
           {/* Payment Section */}
-          <div className="pt-5 border-t border-border/50">
-            <h4 className="text-sm font-semibold text-foreground mb-2">Payment</h4>
+          <div className="pt-3 border-t border-border/50">
+            <h4 className="text-xs font-semibold text-foreground mb-1">Payment</h4>
             <div>
               <button
                 onClick={() => updateFilter("financeAvailable", !filters.financeAvailable)}
-                className="w-full flex items-center justify-between py-3 border-b border-border/60 cursor-pointer"
+                className="w-full flex items-center justify-between py-2 border-b border-border/60 cursor-pointer"
               >
-                <span className="text-sm text-foreground">Finance or payment plans</span>
+                <span className="text-xs text-foreground">Finance / payment plans</span>
                 <Switch
                   checked={filters.financeAvailable}
                   onCheckedChange={(checked) => updateFilter("financeAvailable", checked)}
@@ -161,9 +161,9 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
               </button>
               <button
                 onClick={() => updateFilter("freeConsultation", !filters.freeConsultation)}
-                className="w-full flex items-center justify-between py-3 cursor-pointer"
+                className="w-full flex items-center justify-between py-2 cursor-pointer"
               >
-                <span className="text-sm text-foreground">Free consultation</span>
+                <span className="text-xs text-foreground">Free consultation</span>
                 <Switch
                   checked={filters.freeConsultation}
                   onCheckedChange={(checked) => updateFilter("freeConsultation", checked)}
@@ -174,14 +174,14 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
           </div>
 
           {/* Comfort Section */}
-          <div className="pt-5 border-t border-border/50">
-            <h4 className="text-sm font-semibold text-foreground mb-2">Comfort</h4>
+          <div className="pt-3 border-t border-border/50">
+            <h4 className="text-xs font-semibold text-foreground mb-1">Comfort</h4>
             <div>
               <button
                 onClick={() => updateFilter("sedationAvailable", !filters.sedationAvailable)}
-                className="w-full flex items-center justify-between py-3 cursor-pointer"
+                className="w-full flex items-center justify-between py-2 cursor-pointer"
               >
-                <span className="text-sm text-foreground">Sedation available</span>
+                <span className="text-xs text-foreground">Sedation available</span>
                 <Switch
                   checked={filters.sedationAvailable}
                   onCheckedChange={(checked) => updateFilter("sedationAvailable", checked)}
@@ -192,17 +192,17 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
           </div>
 
           {/* Trust Section */}
-          <div className="pt-5 border-t border-border/50">
-            <h4 className="text-sm font-semibold text-foreground mb-2">Trust</h4>
+          <div className="pt-3 border-t border-border/50">
+            <h4 className="text-xs font-semibold text-foreground mb-1">Trust</h4>
             <div>
               <TooltipProvider>
                 <button
                   onClick={() => updateFilter("verifiedOnly", !filters.verifiedOnly)}
-                  className="w-full flex items-center justify-between py-3 border-b border-border/60 cursor-pointer"
+                  className="w-full flex items-center justify-between py-2 border-b border-border/60 cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
                     <BadgeCheck className={`h-4 w-4 ${filters.verifiedOnly ? "text-green-600" : "text-muted-foreground"}`} />
-                    <span className="text-sm text-foreground">Verified only</span>
+                    <span className="text-xs text-foreground">Verified only</span>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
@@ -224,9 +224,9 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
               </TooltipProvider>
               <button
                 onClick={() => updateFilter("highRatingOnly", !filters.highRatingOnly)}
-                className="w-full flex items-center justify-between py-3 cursor-pointer"
+                className="w-full flex items-center justify-between py-2 cursor-pointer"
               >
-                <span className="text-sm text-foreground">Highly rated</span>
+                <span className="text-xs text-foreground">Highly rated</span>
                 <Switch
                   checked={filters.highRatingOnly}
                   onCheckedChange={(checked) => updateFilter("highRatingOnly", checked)}
@@ -275,10 +275,10 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
     )
   }
 
-  // Desktop sidebar
+  // Desktop sidebar — compact card
   return (
-    <div className="bg-card border rounded-lg sticky top-24 overflow-hidden">
-      <div className="p-6">
+    <div className="bg-white border border-border/50 rounded-2xl shadow-sm overflow-hidden">
+      <div className="p-4">
         <FilterContent />
       </div>
     </div>
