@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CheckCircle2, ShieldCheck, ChevronDown } from "lucide-react"
+import { CheckCircle2, ShieldCheck, ChevronDown, ArrowRight } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { GoogleReviewCard } from "./google-review-card"
 import { LanguagesSection } from "./languages-section"
@@ -12,9 +12,10 @@ interface OverviewTabProps {
   matchReasons: string[]
   hasLead: boolean
   lead: Lead | null
+  onSwitchToDetails?: () => void
 }
 
-export function OverviewTab({ clinic, matchReasons, hasLead, lead }: OverviewTabProps) {
+export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDetails }: OverviewTabProps) {
   const [descriptionExpanded, setDescriptionExpanded] = useState(false)
   const [showAllTreatments, setShowAllTreatments] = useState(false)
 
@@ -37,6 +38,7 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead }: OverviewTab
   )
 
   const hasPatientSelections = matchedPatientTreatments.length > 0
+  const hasBeforeAfters = (clinic.before_after_images?.length ?? 0) > 0
 
   // Build display list: matched treatments first (bold), then others
   const displayTreatments = hasPatientSelections
@@ -72,6 +74,12 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead }: OverviewTab
     {
       question: "How can I book an appointment?",
       answer: `You can message ${clinic.name} directly through Pearlie to arrange an appointment, or simply request a visit by choosing from the available times.`,
+    },
+    {
+      question: "Can I see before and after photos of treatments?",
+      answer: hasBeforeAfters
+        ? "Yes — this clinic has shared before and after case photos with patient consent. You can view them in the Details section. Results vary depending on individual clinical needs, oral health, and treatment complexity."
+        : `This clinic does not currently display before and after photos publicly. You can request examples directly through the enquiry form.`,
     },
   ]
 
@@ -193,6 +201,16 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead }: OverviewTab
               </AccordionTrigger>
               <AccordionContent>
                 <p className="text-sm text-[#666] leading-relaxed">{faq.answer}</p>
+                {faq.question === "Can I see before and after photos of treatments?" && hasBeforeAfters && onSwitchToDetails && (
+                  <button
+                    type="button"
+                    onClick={onSwitchToDetails}
+                    className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-[#004443] hover:text-[#0fbcb0] transition-colors"
+                  >
+                    View Smile Results
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </AccordionContent>
             </AccordionItem>
           ))}

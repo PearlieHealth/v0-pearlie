@@ -16,6 +16,7 @@ import {
   X,
   Eye,
   Pencil,
+  ImageIcon,
 } from "lucide-react"
 import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
@@ -49,6 +50,7 @@ export function ClinicProfileContent() {
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [showMobilePicker, setShowMobilePicker] = useState(false)
   const [directLeadId, setDirectLeadId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState("overview")
 
   // Auto-open chat when patient arrives via email reply link
   useEffect(() => {
@@ -310,6 +312,18 @@ export function ClinicProfileContent() {
               <HighlightBadgeStrip chips={clinic.highlight_chips} />
             )}
 
+            {/* Before & After Trust Badge */}
+            {clinic.before_after_images && clinic.before_after_images.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveTab("details")}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 text-sm font-medium text-[#004443] hover:bg-[#0fbcb0]/10 transition-colors"
+              >
+                <ImageIcon className="h-3.5 w-3.5 text-[#0fbcb0]" />
+                Before &amp; After Cases Available
+              </button>
+            )}
+
             {/* Patient Context Banner */}
             {lead && (
               <PatientContextBanner
@@ -319,7 +333,7 @@ export function ClinicProfileContent() {
             )}
 
             {/* Tab Navigation */}
-            <Tabs defaultValue="overview" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full justify-start bg-transparent border-b border-[#e5e5e5] rounded-none h-auto p-0 gap-0 overflow-x-auto">
                 <TabsTrigger
                   value="overview"
@@ -348,7 +362,7 @@ export function ClinicProfileContent() {
               </TabsList>
 
               <TabsContent value="overview" className="pt-6">
-                <OverviewTab clinic={clinic} matchReasons={matchReasons} hasLead={!!lead} lead={lead} />
+                <OverviewTab clinic={clinic} matchReasons={matchReasons} hasLead={!!lead} lead={lead} onSwitchToDetails={() => setActiveTab("details")} />
               </TabsContent>
 
               <TabsContent value="services" className="pt-6">
