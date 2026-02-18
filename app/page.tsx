@@ -21,7 +21,7 @@ const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREA
 
 const marqueeItems = [
   { text: "Trusted UK Clinics", icon: <Shield className="w-3.5 h-3.5" /> },
-  { text: "Free Clinic Matching", icon: <Sparkles className="w-3.5 h-3.5" /> },
+  { text: "Free To Use", icon: <Sparkles className="w-3.5 h-3.5" /> },
   { text: "Independent", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
   { text: "Verified Dental Practices", icon: <Heart className="w-3.5 h-3.5" /> },
 ]
@@ -351,7 +351,7 @@ export default function Home() {
                   {/* Content */}
                   <div className="lg:pl-4">
                     <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6 text-foreground text-balance">
-                      Qualified, vetted dental clinics you can trust
+                      Qualified, vetted dental clinics you can <span className="text-[#0fbcb0]">trust</span>
                     </h2>
                     <p className="text-lg text-muted-foreground leading-relaxed mb-6">
                       Access a carefully curated network of clinics reviewed for clinical quality, communication, patient experience, and transparency. Helping you make confident, informed dental decisions.

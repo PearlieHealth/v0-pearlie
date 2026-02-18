@@ -26,27 +26,26 @@ export function GoogleClinicsMap({
 }: GoogleClinicsMapProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY
 
-  const { center, zoom } = useMemo(() => {
-    const validClinics = clinics.filter((c) => c.latitude && c.longitude)
+  const { center, zoom, validClinics } = useMemo(() => {
+    const valid = clinics.filter((c) => c.latitude && c.longitude)
 
-    if (validClinics.length === 0) {
-      return { center: { lat: 51.5074, lng: -0.1278 }, zoom: 12 }
+    if (valid.length === 0) {
+      return { center: { lat: 51.5074, lng: -0.1278 }, zoom: 12, validClinics: valid }
     }
 
-    if (validClinics.length === 1) {
+    if (valid.length === 1) {
       return {
-        center: { lat: validClinics[0].latitude!, lng: validClinics[0].longitude! },
+        center: { lat: valid[0].latitude!, lng: valid[0].longitude! },
         zoom: 14,
+        validClinics: valid,
       }
     }
 
-    // Calculate geographic center of all clinics
-    const avgLat = validClinics.reduce((sum, c) => sum + c.latitude!, 0) / validClinics.length
-    const avgLng = validClinics.reduce((sum, c) => sum + c.longitude!, 0) / validClinics.length
+    const avgLat = valid.reduce((sum, c) => sum + c.latitude!, 0) / valid.length
+    const avgLng = valid.reduce((sum, c) => sum + c.longitude!, 0) / valid.length
 
-    // Calculate zoom based on spread
-    const latSpread = Math.max(...validClinics.map((c) => c.latitude!)) - Math.min(...validClinics.map((c) => c.latitude!))
-    const lngSpread = Math.max(...validClinics.map((c) => c.longitude!)) - Math.min(...validClinics.map((c) => c.longitude!))
+    const latSpread = Math.max(...valid.map((c) => c.latitude!)) - Math.min(...valid.map((c) => c.latitude!))
+    const lngSpread = Math.max(...valid.map((c) => c.longitude!)) - Math.min(...valid.map((c) => c.longitude!))
     const maxSpread = Math.max(latSpread, lngSpread)
 
     let zoomLevel = 13
@@ -55,7 +54,7 @@ export function GoogleClinicsMap({
     else if (maxSpread > 0.05) zoomLevel = 13
     else zoomLevel = 14
 
-    return { center: { lat: avgLat, lng: avgLng }, zoom: zoomLevel }
+    return { center: { lat: avgLat, lng: avgLng }, zoom: zoomLevel, validClinics: valid }
   }, [clinics])
 
   if (!apiKey) {
@@ -79,17 +78,23 @@ export function GoogleClinicsMap({
     )
   }
 
-  const embedSrc = `https://www.google.com/maps/embed/v1/view?key=${apiKey}&center=${center.lat},${center.lng}&zoom=${zoom}&maptype=roadmap`
+  // Build marker params for each clinic with coordinates
+  const markerParams = validClinics
+    .map((c) => `${c.latitude},${c.longitude}`)
+    .join("|")
+
+  const markers = validClinics.length > 0
+    ? `&markers=color:0x0fbcb0|${markerParams}`
+    : ""
+
+  const staticSrc = `https://maps.googleapis.com/maps/api/staticmap?center=${center.lat},${center.lng}&zoom=${zoom}&size=640x480&scale=2&maptype=roadmap${markers}&key=${apiKey}`
 
   return (
-    <iframe
-      title="Clinic locations"
-      width="100%"
-      height="100%"
-      style={{ border: 0 }}
+    <img
+      src={staticSrc}
+      alt="Map showing clinic locations"
+      className="w-full h-full object-cover"
       loading="lazy"
-      referrerPolicy="no-referrer-when-downgrade"
-      src={embedSrc}
     />
   )
 }

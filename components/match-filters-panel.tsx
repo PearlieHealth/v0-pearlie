@@ -275,9 +275,9 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
     )
   }
 
-  // Desktop sidebar — compact card
+  // Desktop sidebar — compact card, constrained width so toggles stay close
   return (
-    <div className="bg-white border border-border/50 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-white border border-border/50 rounded-2xl shadow-sm overflow-hidden max-w-[280px]">
       <div className="p-4">
         <FilterContent />
       </div>
