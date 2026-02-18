@@ -693,230 +693,229 @@ export default function MatchPage() {
                           <Card
                             ref={(el) => { clinicRefs.current[clinic.id] = el }}
                             data-clinic-id={clinic.id}
-                            className="p-4 sm:p-5 transition-all duration-200 ease-out hover:shadow-lg border-0 shadow-sm bg-white rounded-2xl"
+                            className="overflow-hidden transition-all duration-200 ease-out hover:shadow-lg border-0 shadow-sm bg-white rounded-2xl"
                           >
-                            {getClinicLabel(clinic, index) && (
-                              <div className="mb-2.5">
-                                <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_listing
-                                      ? "bg-muted text-muted-foreground"
-                                      : "bg-[#0fbcb0] text-white"
-                                }`}>
-                                  {getClinicLabel(clinic, index)}
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Row 1: Photo + Name/Meta side by side */}
-                            <div className="flex gap-3 sm:gap-4 mb-3">
-                              {/* Image */}
-                              <div className="flex-shrink-0">
-                                {clinic.images && clinic.images.length > 0 ? (
-                                  <Image
-                                    src={clinic.images[0] || "/placeholder.svg"}
-                                    alt={clinic.name}
-                                    width={170}
-                                    height={110}
-                                    className="rounded-xl object-cover w-[140px] h-[90px] sm:w-[170px] sm:h-[110px]"
-                                    sizes="170px"
-                                  />
-                                ) : (
-                                  <div className="w-[140px] h-[90px] sm:w-[170px] sm:h-[110px] bg-[#faf8f3] rounded-xl flex items-center justify-center">
-                                    <MapPin className="w-8 h-8 text-[#004443]/30" />
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Name + meta + chips */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-2">
-                                  <h2
-                                    onClick={() => handleClinicClick(clinic.id, index)}
-                                    className="text-base sm:text-lg font-bold cursor-pointer text-[#004443] hover:text-[#004443]/80 transition-colors duration-200 leading-tight"
-                                  >
-                                    {clinic.name}
-                                  </h2>
-                                  {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <button
-                                          type="button"
-                                          className="flex items-center gap-1.5 text-[#004443] font-bold text-sm cursor-pointer px-3 py-1 rounded-full border border-[#004443]/20 bg-[#0fbcb0]/10 hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation whitespace-nowrap flex-shrink-0"
-                                          onClick={(e) => e.stopPropagation()}
-                                        >
-                                          <Sparkles className="w-3.5 h-3.5" />
-                                          <span>{clinic.match_percentage}%</span>
-                                        </button>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-72 p-4" align="end" side="bottom">
-                                        <div className="space-y-3">
-                                          <div>
-                                            <h4 className="font-semibold text-sm text-[#004443]">How we calculated your match</h4>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                              This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.
-                                            </p>
-                                          </div>
-                                          {clinic.match_breakdown && clinic.match_breakdown.length > 0 ? (
-                                            <div className="space-y-2.5">
-                                              {clinic.match_breakdown.map((item) => {
-                                                const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
-                                                const stars = Math.round(ratio * 5)
-const categoryLabels: Record<string, string> = {
-                                  treatment: "Treatment match",
-                                  priorities: "Your priorities",
-                                  blockers: "Concerns addressed",
-                                  anxiety: "Anxiety support",
-                                  cost: "Cost & value fit",
-                                  distance: "Location",
-                                  availability: "Appointment times",
-                                }
-                                                return (
-                                                  <div key={item.category} className="flex items-center justify-between gap-2">
-                                                    <span className="text-xs text-muted-foreground">
-                                                      {categoryLabels[item.category] || item.category}
-                                                    </span>
-                                                    <div className="flex items-center gap-0.5">
-                                                      {[1, 2, 3, 4, 5].map((star) => (
-                                                        <Star
-                                                          key={star}
-                                                          className={`w-3 h-3 ${
-                                                            star <= stars
-                                                              ? "fill-amber-400 text-amber-400"
-                                                              : "fill-muted text-muted"
-                                                          }`}
-                                                        />
-                                                      ))}
-                                                    </div>
-                                                  </div>
-                                                )
-                                              })}
-                                            </div>
-                                          ) : (
-                                            <p className="text-xs text-muted-foreground">
-                                              Based on your answers about treatment, priorities, and preferences.
-                                            </p>
-                                          )}
-                                          <div className="pt-2 border-t border-border">
-                                            <p className="text-[10px] text-muted-foreground">
-                                              More stars = stronger match to what you told us matters.
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </PopoverContent>
-                                    </Popover>
-                                  )}
+                            {/* Full-width photo banner */}
+                            <div className="relative">
+                              {clinic.images && clinic.images.length > 0 ? (
+                                <Image
+                                  src={clinic.images[0] || "/placeholder.svg"}
+                                  alt={clinic.name}
+                                  width={600}
+                                  height={200}
+                                  className="w-full h-[140px] sm:h-[180px] object-cover"
+                                  sizes="(max-width: 768px) 100vw, 600px"
+                                />
+                              ) : (
+                                <div className="w-full h-[140px] sm:h-[180px] bg-[#faf8f3] flex items-center justify-center">
+                                  <MapPin className="w-10 h-10 text-[#004443]/20" />
                                 </div>
-
-                                {/* Rating, verified, distance */}
-                                <div className="flex items-center gap-2.5 text-xs text-muted-foreground flex-wrap mt-1">
-                                  <div className="flex items-center gap-1">
-                                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="font-medium text-foreground">{clinic.rating}</span>
-                                    <span>({clinic.review_count})</span>
-                                  </div>
-                                  {clinic.verified && (
-                                    <div className="flex items-center gap-1 text-[#0fbcb0]">
-                                      <CheckCircle2 className="w-3 h-3" />
-                                      <span className="font-medium">Verified</span>
-                                    </div>
-                                  )}
-                                  {clinic.distance_miles !== undefined && (
-                                    <div className="flex items-center gap-1">
-                                      <MapPin className="w-3 h-3 text-[#004443]" />
-                                      <span>~{clinic.distance_miles.toFixed(1)} mi</span>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Feature chips */}
-                                {clinic.highlight_chips && clinic.highlight_chips.length > 0 && (
-                                  <div className="flex flex-wrap gap-1 mt-1.5">
-                                    {clinic.highlight_chips.slice(0, 3).map((chip: string) => {
-                                      const chipData = getChipData(chip)
-                                      return (
-                                        <span key={chip} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border border-[#004443]/15 text-[#004443] bg-[#004443]/5">
-                                          {chipData.icon}
-                                          {chipData.label}
-                                        </span>
-                                      )
-                                    })}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Row 2: Why we matched you - full width */}
-                            <div className="rounded-lg p-3 bg-[#faf8f3] border-l-[3px] border-[#0fbcb0] mb-3">
-                              <h3 className="font-semibold text-xs text-[#0fbcb0] mb-1.5">
-                                {clinic.card_title || (clinic.tier === "directory"
-                                  ? "About this clinic"
-                                  : clinic.tier === "nearby"
-                                    ? "Other option in your area"
-                                    : "Why we matched you")}
-                              </h3>
-                              <div className="space-y-1.5 text-xs text-[#1a1a1a] leading-relaxed">
-                                {clinic.tier === "directory" || clinic.is_directory_listing ? (
-                                  <>
-                                    <p>This clinic is listed in our directory and may be able to help with your dental needs.</p>
-                                    {clinic.distance_miles && (
-                                      <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
-                                    )}
-                                  </>
-                                ) : clinic.tier === "nearby" ? (
-                                  <>
-                                    <p>This clinic is located nearby and may be able to help with your dental needs.</p>
-                                    {clinic.distance_miles && (
-                                      <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
-                                    )}
-                                  </>
-                                ) : (
-                                  (() => {
-                                    const reasons = clinic.match_reasons_composed && clinic.match_reasons_composed.length > 0
-                                      ? clinic.match_reasons_composed
-                                      : clinic.match_reasons && clinic.match_reasons.length > 0
-                                        ? clinic.match_reasons
-                                        : []
-                                    const maxReasons = clinic.is_emergency ? 2 : 3
-                                    return reasons.slice(0, maxReasons).map((sentence: string, i: number) => (
-                                      <p key={i}>{sentence}</p>
-                                    ))
-                                  })()
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Row 3: Availability */}
-                            <div className="mb-3">
-                              <ClinicDatePicker
-                                availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
-                                availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
-                                acceptsSameDay={clinic.accepts_same_day || false}
-                                onSelectSlot={(date, time) => {
-                                  const dateStr = date.toISOString().split("T")[0]
-                                  window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&time=${time}`
-                                }}
-                              />
-                            </div>
-
-                            {/* Row 4: CTA */}
-                            <div className="flex items-center gap-3">
-                              {clinic.tier !== "directory" && (
-                                <Button
-                                  className="flex-1 h-10 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
-                                  asChild
-                                >
-                                  <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>
-                                    <MessageCircle className="w-4 h-4 mr-1.5" />
-                                    Message Clinic
-                                  </Link>
-                                </Button>
                               )}
-                              <Link
-                                href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}
-                                className="text-sm font-medium text-[#004443] hover:text-[#004443]/70 transition-colors"
+                              {/* Label overlay on image */}
+                              {getClinicLabel(clinic, index) && (
+                                <div className="absolute top-3 left-3">
+                                  <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${
+clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_listing
+                                        ? "bg-white/90 text-muted-foreground"
+                                        : "bg-[#0fbcb0] text-white"
+                                  }`}>
+                                    {getClinicLabel(clinic, index)}
+                                  </span>
+                                </div>
+                              )}
+                              {/* Match % overlay on image */}
+                              {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
+                                <div className="absolute top-3 right-3">
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <button
+                                        type="button"
+                                        className="flex items-center gap-1.5 font-bold text-base cursor-pointer px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm text-[#004443] shadow-sm hover:bg-white transition-colors touch-manipulation"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
+                                        <span>{clinic.match_percentage}%</span>
+                                      </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-72 p-4" align="end" side="bottom">
+                                      <div className="space-y-3">
+                                        <div>
+                                          <h4 className="font-semibold text-sm text-[#004443]">How we calculated your match</h4>
+                                          <p className="text-xs text-muted-foreground mt-1">
+                                            This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.
+                                          </p>
+                                        </div>
+                                        {clinic.match_breakdown && clinic.match_breakdown.length > 0 ? (
+                                          <div className="space-y-2.5">
+                                            {clinic.match_breakdown.map((item) => {
+                                              const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
+                                              const stars = Math.round(ratio * 5)
+                                              const categoryLabels: Record<string, string> = {
+                                                treatment: "Treatment match",
+                                                priorities: "Your priorities",
+                                                blockers: "Concerns addressed",
+                                                anxiety: "Anxiety support",
+                                                cost: "Cost & value fit",
+                                                distance: "Location",
+                                                availability: "Appointment times",
+                                              }
+                                              return (
+                                                <div key={item.category} className="flex items-center justify-between gap-2">
+                                                  <span className="text-xs text-muted-foreground">
+                                                    {categoryLabels[item.category] || item.category}
+                                                  </span>
+                                                  <div className="flex items-center gap-0.5">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                      <Star
+                                                        key={star}
+                                                        className={`w-3 h-3 ${
+                                                          star <= stars
+                                                            ? "fill-amber-400 text-amber-400"
+                                                            : "fill-muted text-muted"
+                                                        }`}
+                                                      />
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                              )
+                                            })}
+                                          </div>
+                                        ) : (
+                                          <p className="text-xs text-muted-foreground">
+                                            Based on your answers about treatment, priorities, and preferences.
+                                          </p>
+                                        )}
+                                        <div className="pt-2 border-t border-border">
+                                          <p className="text-[10px] text-muted-foreground">
+                                            More stars = stronger match to what you told us matters.
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Card body */}
+                            <div className="p-5 sm:p-6">
+                              {/* Clinic name */}
+                              <h2
+                                onClick={() => handleClinicClick(clinic.id, index)}
+                                className="text-lg sm:text-xl font-bold cursor-pointer text-[#004443] hover:text-[#004443]/80 transition-colors duration-200 leading-tight mb-2"
                               >
-                                View Profile
-                              </Link>
+                                {clinic.name}
+                              </h2>
+
+                              {/* Rating, verified, distance */}
+                              <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap mb-3">
+                                <div className="flex items-center gap-1">
+                                  <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                                  <span className="font-medium text-foreground">{clinic.rating}</span>
+                                  <span>({clinic.review_count})</span>
+                                </div>
+                                {clinic.verified && (
+                                  <div className="flex items-center gap-1 text-[#0fbcb0]">
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span className="font-medium">Verified</span>
+                                  </div>
+                                )}
+                                {clinic.distance_miles !== undefined && (
+                                  <div className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-[#004443]" />
+                                    <span>~{clinic.distance_miles.toFixed(1)} mi</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Feature chips */}
+                              {clinic.highlight_chips && clinic.highlight_chips.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5 mb-4">
+                                  {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
+                                    const chipData = getChipData(chip)
+                                    return (
+                                      <span key={chip} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-[#004443]/15 text-[#004443] bg-[#004443]/5">
+                                        {chipData.icon}
+                                        {chipData.label}
+                                      </span>
+                                    )
+                                  })}
+                                </div>
+                              )}
+
+                              {/* Why we matched you - teal border only, no fill */}
+                              <div className="rounded-xl p-3.5 border border-[#0fbcb0]/30 mb-4">
+                                <h3 className="font-semibold text-xs text-[#0fbcb0] mb-1.5">
+                                  {clinic.card_title || (clinic.tier === "directory"
+                                    ? "About this clinic"
+                                    : clinic.tier === "nearby"
+                                      ? "Other option in your area"
+                                      : "Why we matched you")}
+                                </h3>
+                                <div className="space-y-1.5 text-xs text-[#1a1a1a] leading-relaxed">
+                                  {clinic.tier === "directory" || clinic.is_directory_listing ? (
+                                    <>
+                                      <p>This clinic is listed in our directory and may be able to help with your dental needs.</p>
+                                      {clinic.distance_miles && (
+                                        <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
+                                      )}
+                                    </>
+                                  ) : clinic.tier === "nearby" ? (
+                                    <>
+                                      <p>This clinic is located nearby and may be able to help with your dental needs.</p>
+                                      {clinic.distance_miles && (
+                                        <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
+                                      )}
+                                    </>
+                                  ) : (
+                                    (() => {
+                                      const reasons = clinic.match_reasons_composed && clinic.match_reasons_composed.length > 0
+                                        ? clinic.match_reasons_composed
+                                        : clinic.match_reasons && clinic.match_reasons.length > 0
+                                          ? clinic.match_reasons
+                                          : []
+                                      const maxReasons = clinic.is_emergency ? 2 : 3
+                                      return reasons.slice(0, maxReasons).map((sentence: string, i: number) => (
+                                        <p key={i}>{sentence}</p>
+                                      ))
+                                    })()
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Availability */}
+                              <div className="mb-4">
+                                <ClinicDatePicker
+                                  availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
+                                  availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
+                                  acceptsSameDay={clinic.accepts_same_day || false}
+                                  onSelectSlot={(date, time) => {
+                                    const dateStr = date.toISOString().split("T")[0]
+                                    window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&time=${time}`
+                                  }}
+                                />
+                              </div>
+
+                              {/* CTA */}
+                              <div className="flex items-center gap-3">
+                                {clinic.tier !== "directory" && (
+                                  <Button
+                                    className="flex-1 h-11 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
+                                    asChild
+                                  >
+                                    <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>
+                                      <MessageCircle className="w-4 h-4 mr-1.5" />
+                                      Message Clinic
+                                    </Link>
+                                  </Button>
+                                )}
+                                <Link
+                                  href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}
+                                  className="text-sm font-medium text-[#004443] hover:text-[#004443]/70 transition-colors"
+                                >
+                                  View Profile
+                                </Link>
+                              </div>
                             </div>
                           </Card>
                         </div>
