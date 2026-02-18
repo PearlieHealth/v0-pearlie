@@ -101,7 +101,7 @@ export default function Home() {
                       playsInline
                       className="w-full h-auto rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.06)]"
                     >
-                      <source src="/images/Pearli-smile-teeth.mp4" type="video/mp4" />
+                      <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
                     </video>
                   </motion.div>
 
