@@ -71,7 +71,7 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead }: OverviewTab
     },
     {
       question: "How can I book an appointment?",
-      answer: `You can book an appointment by ${clinic.website ? "visiting their website or " : ""}${clinic.phone ? `calling them on ${clinic.phone}` : "contacting them directly"}.`,
+      answer: `You can message ${clinic.name} directly through Pearlie to arrange an appointment, or simply request a visit by choosing from the available times.`,
     },
   ]
 
@@ -91,23 +91,38 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead }: OverviewTab
 
       {/* Pearlie Guarantee */}
       {clinic.verified && (
-        <section className="border border-[#e5e5e5] rounded-xl overflow-hidden">
-          <div className="bg-[#004443] px-5 py-3 flex items-center gap-2.5">
-            <ShieldCheck className="h-5 w-5 text-white" />
-            <h3 className="font-semibold text-white text-[15px]">Pearlie Guarantee</h3>
+        <section className="rounded-2xl bg-[#004443] p-5 shadow-lg">
+          <div className="flex items-center gap-2.5 mb-2">
+            <ShieldCheck className="h-6 w-6 text-[#0fbcb0]" />
+            <h3 className="text-xl font-bold text-white">Pearlie Guarantee</h3>
           </div>
-          <div className="px-5 py-4 space-y-3">
-            <div className="flex items-start gap-3">
-              <CheckCircle2 className="h-[18px] w-[18px] text-emerald-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-[#444] leading-relaxed">
-                This clinic has been verified by Pearlie for quality care and transparent pricing.
-              </p>
+          <p className="text-xs text-white/70 leading-relaxed mb-4">
+            Every clinic on Pearlie is held to our quality standards — and backed by our promise to you.
+          </p>
+
+          <div className="space-y-3.5">
+            <div className="flex gap-2.5">
+              <div className="flex-shrink-0 mt-0.5">
+                <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+              </div>
+              <div>
+                <p className="text-[13px] font-semibold text-white">Verified for Quality</p>
+                <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                  This clinic has been verified by Pearlie for quality care and transparent pricing.
+                </p>
+              </div>
             </div>
-            <div className="flex items-start gap-3">
-              <CheckCircle2 className="h-[18px] w-[18px] text-emerald-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-[#444] leading-relaxed">
-                If your new Pearlie dentist doesn&apos;t meet your expectations, we&apos;ll cover your next consultation or check-up fee.
-              </p>
+
+            <div className="flex gap-2.5">
+              <div className="flex-shrink-0 mt-0.5">
+                <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+              </div>
+              <div>
+                <p className="text-[13px] font-semibold text-white">Satisfaction Promise</p>
+                <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                  If your new Pearlie dentist doesn&apos;t meet your expectations, we&apos;ll cover your next consultation or check-up fee.
+                </p>
+              </div>
             </div>
           </div>
         </section>

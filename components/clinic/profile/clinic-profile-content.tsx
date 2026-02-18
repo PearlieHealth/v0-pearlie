@@ -380,14 +380,11 @@ export function ClinicProfileContent() {
 
                 {clinic.offers_free_consultation && (
                   <div className="bg-[#0fbcb0]/10 px-4 py-3 border-b border-[#0fbcb0]/20">
-                    <div className="flex items-start gap-2.5">
-                      <span className="text-lg leading-none mt-0.5">🎉</span>
-                      <div>
-                        <p className="text-sm font-semibold text-[#004443]">Free Consultation</p>
-                        <p className="text-xs text-[#004443]/70 mt-0.5 leading-relaxed">
-                          Free initial consultation for cosmetic treatments and Invisalign.
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#004443]">Free Consultation</p>
+                      <p className="text-xs text-[#004443]/70 mt-0.5 leading-relaxed">
+                        Free initial consultation for cosmetic treatments and Invisalign.
+                      </p>
                     </div>
                   </div>
                 )}

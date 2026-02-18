@@ -120,21 +120,23 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
       {clinic.show_treatment_prices && pricedCategories.length > 0 && (
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-[#F8F1E7] flex items-center justify-center">
-              <PoundSterling className="h-4 w-4 text-[#0fbcb0]" />
+            <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-[#004443]/10 flex items-center justify-center">
+              <PoundSterling className="h-4 w-4 text-[#004443]" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#1a1a1a]">Treatment Prices</h2>
+              <h2 className="text-lg font-bold text-[#004443]">Treatment Prices</h2>
               <p className="text-xs text-[#666]">Prices are a guide. Your dentist will confirm costs before treatment.</p>
             </div>
           </div>
           <Accordion type="multiple" className="w-full">
             {pricedCategories.map((category, catIdx) => (
               <AccordionItem key={catIdx} value={`pricing-${catIdx}`}>
-                <AccordionTrigger className="text-[15px] font-semibold text-[#1a1a1a] hover:no-underline py-3">
-                  {category.category}
-                  <span className="text-xs text-[#999] font-normal ml-2">
-                    {category.treatments.length} treatment{category.treatments.length !== 1 ? "s" : ""}
+                <AccordionTrigger className="text-[15px] font-semibold text-[#004443] hover:no-underline py-3 [&>svg]:text-[#004443] [&>svg]:bg-[#004443]/10 [&>svg]:rounded-full [&>svg]:p-0.5 [&>svg]:size-5">
+                  <span className="flex items-center gap-2">
+                    {category.category}
+                    <span className="text-xs text-[#004443]/60 font-normal">
+                      {category.treatments.length}
+                    </span>
                   </span>
                 </AccordionTrigger>
                 <AccordionContent>
