@@ -234,7 +234,7 @@ export default function Home() {
                   <div className="flex-1 flex justify-center lg:justify-end">
                     <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
                       {/* Step number */}
-                      <span className="absolute -top-6 -left-2 lg:-left-8 text-7xl lg:text-8xl font-bold text-primary/[0.07] select-none leading-none z-0">01</span>
+                      <span className="absolute -top-6 -left-2 lg:-left-8 text-7xl lg:text-8xl font-bold text-[#0fbcb0]/20 select-none leading-none z-0">01</span>
                       {/* Phone mockup with form illustration */}
                       <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
                         <div className="bg-white rounded-2xl p-5 shadow-sm">
@@ -284,7 +284,7 @@ export default function Home() {
                   <div className="flex-1 flex justify-center lg:justify-start">
                     <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
                       {/* Step number */}
-                      <span className="absolute -top-6 -right-2 lg:-right-8 text-7xl lg:text-8xl font-bold text-primary/[0.07] select-none leading-none z-0">02</span>
+                      <span className="absolute -top-6 -right-2 lg:-right-8 text-7xl lg:text-8xl font-bold text-[#0fbcb0]/20 select-none leading-none z-0">02</span>
                       {/* Phone mockup with clinic cards */}
                       <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
                         <div className="space-y-4">
@@ -352,7 +352,7 @@ export default function Home() {
                   <div className="flex-1 flex justify-center lg:justify-end">
                     <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
                       {/* Step number */}
-                      <span className="absolute -top-6 -left-2 lg:-left-8 text-7xl lg:text-8xl font-bold text-primary/[0.07] select-none leading-none z-0">03</span>
+                      <span className="absolute -top-6 -left-2 lg:-left-8 text-7xl lg:text-8xl font-bold text-[#0fbcb0]/20 select-none leading-none z-0">03</span>
                       {/* Phone mockup with booking */}
                       <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
                         <div className="bg-white rounded-2xl p-5 shadow-sm">
