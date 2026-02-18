@@ -71,7 +71,7 @@ export default function Home() {
                       playsInline
                       className="w-full h-auto rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.06)]"
                     >
-                      <source src="/pearlie-hero.mp4" type="video/mp4" />
+                      <source src="/images/Pearlie_cinematic_portrait_of_a_calm_woman_sitting_near_a_win_66b0addb-5a9b-4d7c-96e2-e10e2783ea90_2.mp4" type="video/mp4" />
                     </video>
                   </motion.div>
 
