@@ -46,7 +46,7 @@ export function LoadingAnimation({ onComplete }: LoadingAnimationProps) {
       <div className="flex items-center gap-3">
         {/* Animated tooth-to-heart icon */}
         <motion.div
-          className="bg-[#E8E4F0] rounded-full p-3 w-14 h-14 flex items-center justify-center"
+          className="bg-[#F8F1E7] rounded-full p-3 w-14 h-14 flex items-center justify-center"
           initial={{ scale: 1 }}
           animate={{ scale: [1, 1.05, 1] }}
           transition={{

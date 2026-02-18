@@ -1,9 +1,6 @@
 "use client"
 
 import { useEffect } from "react"
-import { Geist } from "next/font/google"
-
-const geist = Geist({ subsets: ["latin"] })
 
 export default function GlobalError({
   error,
@@ -18,7 +15,13 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body className={`${geist.className} antialiased`}>
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body style={{ fontFamily: "'Cabin', sans-serif" }} className="antialiased">
         <div className="min-h-screen bg-white flex items-center justify-center p-4">
           <div className="max-w-md w-full text-center space-y-6">
             <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto">

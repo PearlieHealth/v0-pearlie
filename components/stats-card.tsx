@@ -56,17 +56,17 @@ export default function StatsCard({ value, suffix = "", prefix = "", label, icon
       transition={{ duration: 0.5, delay }}
       className="relative group"
     >
-      <div className="bg-gradient-to-br from-white to-secondary/30 rounded-2xl p-6 border border-primary/10 shadow-sm hover:shadow-md transition-all duration-300 hover:border-primary/20">
+      <div className="bg-gradient-to-br from-white to-secondary/30 rounded-2xl p-6 border border-primary/10 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 hover:border-primary/20">
         <div className="flex items-start justify-between mb-4">
           <div className="p-2.5 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
             {icon}
           </div>
         </div>
         <div className="space-y-1">
-          <div className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
+          <div className="text-5xl md:text-6xl font-bold text-foreground tracking-tight">
             {prefix}{formatNumber(count)}{suffix}
           </div>
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
         </div>
       </div>
     </motion.div>

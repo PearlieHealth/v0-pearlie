@@ -103,7 +103,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
         )}>
           {!collapsed && (
             <Link href="/clinic" className="flex items-center gap-2.5">
-              <div className="rounded-full bg-[#E8E4F0] p-1.5">
+              <div className="rounded-full bg-[#F8F1E7] p-1.5">
                 <Heart className="w-4 h-4 text-foreground fill-foreground" />
               </div>
               <span className="font-semibold text-lg">Pearlie</span>
@@ -111,7 +111,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
           )}
           {collapsed && (
             <Link href="/clinic">
-              <div className="rounded-full bg-[#E8E4F0] p-1.5">
+              <div className="rounded-full bg-[#F8F1E7] p-1.5">
                 <Heart className="w-4 h-4 text-foreground fill-foreground" />
               </div>
             </Link>
@@ -153,7 +153,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
                   isActive
-                    ? "bg-[#F5F0FF] text-[#7C3AED] font-medium"
+                    ? "bg-[#F8F1E7] text-[#0fbcb0] font-medium"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   collapsed && "justify-center px-2"
                 )}

@@ -534,10 +534,10 @@ export default function IntakePage() {
         group relative w-full p-4 sm:p-5 md:p-6 rounded-2xl border-2 text-left ${className}
         transition-all duration-200 ease-out
         ${selected
-          ? "border-[#907EFF] bg-[#F8F5FF] shadow-md"
+          ? "border-[#0fbcb0] bg-[#F8F1E7] shadow-md"
           : disabled
             ? "border-border/50 bg-muted/30 opacity-50 cursor-not-allowed"
-            : "border-border bg-white hover:border-[#907EFF]/50 hover:shadow-md active:scale-[0.98]"
+            : "border-border bg-white hover:border-[#0fbcb0]/50 hover:shadow-md active:scale-[0.98]"
         }
       `}
     >
@@ -547,7 +547,7 @@ export default function IntakePage() {
             className={`
               w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0
               transition-all duration-200
-              ${selected ? "border-[#907EFF] bg-gradient-to-br from-[#907EFF] to-[#ED64A6]" : "border-input group-hover:border-[#907EFF]/50"}
+              ${selected ? "border-[#0fbcb0] bg-[#0fbcb0]" : "border-input group-hover:border-[#0fbcb0]/50"}
             `}
           >
             {selected && (
@@ -558,11 +558,11 @@ export default function IntakePage() {
           </div>
         )}
         <div className="flex-1">
-          <span className={`text-lg md:text-xl font-medium block ${selected ? "text-[#323141]" : "text-[#323141]"}`}>
+          <span className={`text-lg md:text-xl font-medium block ${selected ? "text-[#222]" : "text-[#222]"}`}>
             {children}
           </span>
           {hint && (
-            <span className={`text-sm mt-1 block ${selected ? "text-[#907EFF]" : "text-[#323141]/50"}`}>
+            <span className={`text-sm mt-1 block ${selected ? "text-[#0fbcb0]" : "text-[#222]/50"}`}>
               {hint}
             </span>
           )}
@@ -572,7 +572,7 @@ export default function IntakePage() {
             className={`
               w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0
               transition-all duration-200
-              ${selected ? "border-[#9F7AEA] bg-[#9F7AEA]" : "border-input group-hover:border-[#9F7AEA]/50"}
+              ${selected ? "border-[#0fbcb0] bg-[#0fbcb0]" : "border-input group-hover:border-[#0fbcb0]/50"}
             `}
           >
             {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
@@ -594,7 +594,7 @@ export default function IntakePage() {
   const StepHeader = ({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) => (
     <div className="text-center space-y-4">
       <motion.div
-        className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-[#907EFF] to-[#ED64A6] text-white mb-2 shadow-2xl"
+        className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[#0fbcb0] text-white mb-2 shadow-2xl"
         initial={hasAnimated ? false : { scale: 0, rotate: -180 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", duration: 0.6 }}
@@ -602,7 +602,7 @@ export default function IntakePage() {
         {icon}
       </motion.div>
       <motion.h1
-        className="text-3xl md:text-4xl font-bold text-[#323141] tracking-tight text-balance"
+        className="text-3xl md:text-4xl font-bold text-[#222] tracking-tight text-balance"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.1 }}
@@ -610,7 +610,7 @@ export default function IntakePage() {
         {title}
       </motion.h1>
       <motion.p
-        className="text-[#323141]/70 text-lg"
+        className="text-[#222]/70 text-lg"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.2 }}
@@ -627,7 +627,7 @@ export default function IntakePage() {
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 hover:shadow-xl transition-all"
+        className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
         size="lg"
       >
         {label}
@@ -636,7 +636,7 @@ export default function IntakePage() {
   )
 
   return (
-    <div className="min-h-screen bg-[#FEFEFE] flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-[#ffffff] flex flex-col relative overflow-hidden">
       {/* Header with progress */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -651,15 +651,15 @@ export default function IntakePage() {
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="w-32 h-2 bg-[#F8F5FF] rounded-full overflow-hidden">
+            <div className="w-32 h-2 bg-[#F8F1E7] rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-gradient-to-r from-[#907EFF] to-[#ED64A6] rounded-full"
+                className="h-full bg-[#0fbcb0] hover:bg-[#0da399] rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
             </div>
-            <span className="text-sm font-medium text-[#323141]/70">{progressPercent}%</span>
+            <span className="text-sm font-medium text-[#222]/70">{progressPercent}%</span>
           </div>
 
           <div className="w-16" />
@@ -670,7 +670,7 @@ export default function IntakePage() {
       <motion.div
         className="fixed -top-40 -right-40 w-[500px] h-[500px] rounded-full opacity-20 pointer-events-none blur-[100px] hidden md:block"
         style={{
-          background: "radial-gradient(circle, rgba(144, 126, 255, 0.3) 0%, transparent 70%)"
+          background: "radial-gradient(circle, rgba(15, 188, 176, 0.3) 0%, transparent 70%)"
         }}
         animate={{
           x: [0, 30, -20, 0],
@@ -957,17 +957,17 @@ export default function IntakePage() {
                             w-full p-5 rounded-2xl border-2 transition-all duration-200 text-center
                             ${
                               formData.preferred_times.includes(option.value)
-                                ? "border-[#907EFF] bg-[#F8F5FF] ring-1 ring-[#907EFF]/20"
-                                : "border-border bg-card hover:border-[#907EFF]/50 hover:bg-[#F8F5FF]/50"
+                                ? "border-[#0fbcb0] bg-[#F8F1E7] ring-1 ring-[#0fbcb0]/20"
+                                : "border-border bg-card hover:border-[#0fbcb0]/50 hover:bg-[#F8F1E7]/50"
                             }
                           `}
                         >
                           <div className="flex flex-col items-center gap-2">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-gradient-to-br from-[#907EFF] to-[#ED64A6] text-white" : "bg-[#F8F5FF] text-[#907EFF]"}`}>
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#F8F1E7] text-[#0fbcb0]"}`}>
                               {option.value === "weekend" ? <Calendar className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                             </div>
-                            <span className="font-semibold text-[#323141]">{option.label}</span>
-                            <span className="text-sm text-[#323141]/60">{option.time}</span>
+                            <span className="font-semibold text-[#222]">{option.label}</span>
+                            <span className="text-sm text-[#222]/60">{option.time}</span>
                           </div>
                         </motion.button>
                       </motion.div>
@@ -1117,7 +1117,7 @@ export default function IntakePage() {
                     {formData.strictBudgetMode === "share_range" && (
                       <motion.div
                         {...fadeUp(0.1)}
-                        className="p-5 md:p-6 rounded-2xl border-2 border-[#907EFF] bg-[#F8F5FF]"
+                        className="p-5 md:p-6 rounded-2xl border-2 border-[#0fbcb0] bg-[#F8F1E7]"
                       >
                         <Label className="text-lg font-medium text-foreground">Enter your approximate budget or range (optional)</Label>
                         <div className="relative mt-3">
@@ -1226,11 +1226,11 @@ export default function IntakePage() {
                         />
                         <span className="text-sm text-foreground leading-relaxed">
                           I agree to be contacted by matched clinics about my enquiry and accept the{" "}
-                          <a href="/terms" className="text-primary hover:underline">
+                          <a href="/terms" className="text-[#3c8481] underline hover:text-[#0fbcb0]">
                             Terms
                           </a>{" "}
                           and{" "}
-                          <a href="/privacy" className="text-primary hover:underline">
+                          <a href="/privacy" className="text-[#3c8481] underline hover:text-[#0fbcb0]">
                             Privacy Policy
                           </a>
                           .
@@ -1267,7 +1267,7 @@ export default function IntakePage() {
                       <button
                         type="button"
                         disabled
-                        className="w-full h-14 flex items-center justify-center gap-3 rounded-2xl border-2 border-border bg-white text-[#323141] font-semibold text-lg opacity-50 cursor-not-allowed"
+                        className="w-full h-14 flex items-center justify-center gap-3 rounded-2xl border-2 border-border bg-white text-[#222] font-semibold text-lg opacity-50 cursor-not-allowed"
                       >
                         <svg className="w-5 h-5" viewBox="0 0 24 24">
                           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -1282,7 +1282,7 @@ export default function IntakePage() {
 
                   <motion.div {...fadeUp(0.5)} className="flex items-center gap-4">
                     <div className="flex-1 h-px bg-border" />
-                    <span className="text-sm text-[#323141]/50 font-medium">or</span>
+                    <span className="text-sm text-[#222]/50 font-medium">or</span>
                     <div className="flex-1 h-px bg-border" />
                   </motion.div> */}
 
@@ -1290,7 +1290,7 @@ export default function IntakePage() {
                     <Button
                       type="submit"
                       disabled={!canContinueStep8 || isSubmitting}
-                      className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0 hover:shadow-xl transition-all"
+                      className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
                       size="lg"
                     >
                       {isSubmitting ? "Finding your matches..." : "Get my clinic matches"}
@@ -1299,7 +1299,7 @@ export default function IntakePage() {
 
                   {/* Trust indicators */}
                   <motion.div
-                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#323141]/50"
+                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#222]/50"
                     initial={hasAnimated ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: hasAnimated ? 0 : 0.7 }}
@@ -1339,7 +1339,7 @@ export default function IntakePage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction className="bg-gradient-to-r from-[#907EFF] to-[#ED64A6] text-white border-0">
+            <AlertDialogAction className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0">
               Got it
             </AlertDialogAction>
           </AlertDialogFooter>

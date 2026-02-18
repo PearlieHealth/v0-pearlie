@@ -128,7 +128,7 @@ export default function GoogleCompletePage() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-[#FEFEFE] flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-[#ffffff] flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-md text-center">
         <Link href="/" className="inline-flex items-center justify-center gap-2.5 mb-8">
           <div className="rounded-full bg-black p-2">
@@ -142,17 +142,17 @@ export default function GoogleCompletePage() {
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto">
               <AlertCircle className="w-8 h-8 text-red-600" />
             </div>
-            <h1 className="text-xl font-semibold text-[#323141]">Something went wrong</h1>
-            <p className="text-[#323141]/70">{error}</p>
+            <h1 className="text-xl font-semibold text-[#222]">Something went wrong</h1>
+            <p className="text-[#222]/70">{error}</p>
             <Button asChild className="mt-4">
               <Link href="/intake">Back to form</Link>
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
-            <Loader2 className="w-10 h-10 animate-spin mx-auto text-[#907EFF]" />
-            <h1 className="text-xl font-semibold text-[#323141]">{status}</h1>
-            <p className="text-[#323141]/70">This will only take a moment.</p>
+            <Loader2 className="w-10 h-10 animate-spin mx-auto text-[#0fbcb0]" />
+            <h1 className="text-xl font-semibold text-[#222]">{status}</h1>
+            <p className="text-[#222]/70">This will only take a moment.</p>
           </div>
         )}
       </div>

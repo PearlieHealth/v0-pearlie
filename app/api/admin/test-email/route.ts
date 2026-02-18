@@ -84,7 +84,7 @@ function generateTestEmailHTML(
           body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #1f2937; }
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
           .test-banner { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: 600; }
-          .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
+          .header { background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
           .content { background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
           .badge { display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; margin-bottom: 10px; }
           .field { margin-bottom: 15px; }

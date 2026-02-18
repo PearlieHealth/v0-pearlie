@@ -18,7 +18,7 @@ export function MobileNavMenu() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden h-10 w-10">
+        <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 rounded-full hover:bg-black/[0.04]">
           <Menu className="h-6 w-6" />
           <span className="sr-only">Toggle menu</span>
         </Button>
@@ -26,7 +26,7 @@ export function MobileNavMenu() {
       <SheetContent
         side="right"
         hideCloseButton
-        className="w-full max-w-[300px] sm:max-w-[350px] p-0 border-l border-border/50 bg-[#fafaf9]"
+        className="w-full max-w-[300px] sm:max-w-[350px] p-0 border-l border-border/50 bg-white"
       >
         {/* Header with logo and custom close button */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border/50">

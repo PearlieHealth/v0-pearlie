@@ -120,8 +120,8 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
       {clinic.show_treatment_prices && pricedCategories.length > 0 && (
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-[#f5f0ff] flex items-center justify-center">
-              <PoundSterling className="h-4 w-4 text-[#7c3aed]" />
+            <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-[#F8F1E7] flex items-center justify-center">
+              <PoundSterling className="h-4 w-4 text-[#0fbcb0]" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-[#1a1a1a]">Treatment Prices</h2>

@@ -393,7 +393,7 @@ export default function AppointmentDetailPage() {
   if (isLoading || !lead) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C3AED]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0fbcb0]" />
       </div>
     )
   }
@@ -414,7 +414,7 @@ export default function AppointmentDetailPage() {
       <Button
         variant="ghost"
         size="sm"
-        className="w-fit mb-4 text-[#7C3AED] hover:text-[#6D28D9] hover:bg-[#F5F0FF] shrink-0"
+        className="w-fit mb-4 text-[#0fbcb0] hover:text-[#0da399] hover:bg-[#F8F1E7] shrink-0"
         onClick={() => router.push("/clinic/appointments")}
       >
         <ArrowLeft className="w-4 h-4 mr-1" />
@@ -555,7 +555,7 @@ export default function AppointmentDetailPage() {
               return (
                 <div>
                   <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                    <Heart className="w-4 h-4 text-[#7C3AED]" />
+                    <Heart className="w-4 h-4 text-[#0fbcb0]" />
                     Patient Intent
                   </h3>
                   <div className="space-y-3">
@@ -714,15 +714,15 @@ export default function AppointmentDetailPage() {
             {matchResult && (
               <div>
                 <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#7C3AED]" />
+                  <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
                   Match Score
                 </h3>
 
                 {/* Overall percentage */}
                 {matchResult.score !== undefined && matchResult.score > 0 && (
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="flex items-center justify-center w-14 h-14 rounded-full border-2 border-[#7C3AED]">
-                      <span className="text-lg font-bold text-[#7C3AED]">{matchResult.score}%</span>
+                    <div className="flex items-center justify-center w-14 h-14 rounded-full border-2 border-[#0fbcb0]">
+                      <span className="text-lg font-bold text-[#0fbcb0]">{matchResult.score}%</span>
                     </div>
                     <div>
                       <p className="text-sm font-medium">Match Percentage</p>
@@ -754,7 +754,7 @@ export default function AppointmentDetailPage() {
                           </div>
                           <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                             <div
-                              className="h-full rounded-full bg-[#7C3AED]"
+                              className="h-full rounded-full bg-[#0fbcb0]"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
@@ -798,7 +798,7 @@ export default function AppointmentDetailPage() {
                       className={cn(
                         "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2",
                         i <= progressIndex
-                          ? "bg-[#7C3AED] border-[#7C3AED] text-white"
+                          ? "bg-[#0fbcb0] border-[#0fbcb0] text-white"
                           : "border-muted-foreground/30 text-muted-foreground"
                       )}
                     >
@@ -812,7 +812,7 @@ export default function AppointmentDetailPage() {
                       className={cn(
                         "text-xs mt-1.5 text-center",
                         i <= progressIndex
-                          ? "text-[#7C3AED] font-medium"
+                          ? "text-[#0fbcb0] font-medium"
                           : "text-muted-foreground"
                       )}
                     >
@@ -823,7 +823,7 @@ export default function AppointmentDetailPage() {
                     <div
                       className={cn(
                         "h-0.5 flex-1 -mt-5",
-                        i < progressIndex ? "bg-[#7C3AED]" : "bg-muted-foreground/20"
+                        i < progressIndex ? "bg-[#0fbcb0]" : "bg-muted-foreground/20"
                       )}
                     />
                   )}
@@ -834,7 +834,7 @@ export default function AppointmentDetailPage() {
             {/* Schedule / Status Card */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-[#7C3AED]">
+                <CardTitle className="text-[#0fbcb0]">
                   {booking ? "Appointment Details" : "Schedule Appointment"}
                 </CardTitle>
               </CardHeader>
@@ -968,7 +968,7 @@ export default function AppointmentDetailPage() {
                         size="sm"
                         onClick={handleAddNote}
                         disabled={!newNote.trim() || isSaving}
-                        className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white"
+                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
                       >
                         Save Note
                       </Button>
@@ -1060,7 +1060,7 @@ export default function AppointmentDetailPage() {
                         className={cn(
                           "max-w-[85%] rounded-2xl px-4 py-2.5",
                           msg.sender_type === "clinic"
-                            ? "bg-[#7C3AED] text-white rounded-br-sm"
+                            ? "bg-[#0fbcb0] text-white rounded-br-sm"
                             : "bg-muted rounded-bl-sm"
                         )}
                       >
@@ -1145,7 +1145,7 @@ export default function AppointmentDetailPage() {
                     type="submit"
                     size="icon"
                     disabled={!newMessage.trim() || isSending}
-                    className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white"
+                    className="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
                   >
                     {isSending ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

@@ -1,7 +1,7 @@
 "use client"
 
 
-import { useState, useEffect, useRef, Suspense, lazy } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -36,7 +36,7 @@ import { createClient } from "@/lib/supabase/client"
 import { getChipData } from "@/lib/chipData"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 
-const ClinicsMap = lazy(() => import("@/components/clinics-map").then((mod) => ({ default: mod.ClinicsMap })))
+import { GoogleClinicsMap } from "@/components/google-clinics-map"
 
 interface Clinic {
   id: string
@@ -97,7 +97,7 @@ export default function MatchPage() {
   const matchId = params?.matchId as string
 
   const [allClinicsData, setAllClinicsData] = useState<Clinic[]>([])
-  const [visibleClinicsCount, setVisibleClinicsCount] = useState(2)
+  const [visibleClinicsCount, setVisibleClinicsCount] = useState(3)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"list" | "map">("list")
@@ -301,6 +301,7 @@ export default function MatchPage() {
     if (clinic.tier === "nearby") return "Nearby option"
     if (index === 0) return "Top match"
     if (index === 1) return "Strong alternative"
+    if (index === 2) return "Great option"
     return null
   }
 
@@ -461,7 +462,7 @@ export default function MatchPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f8f7f4]">
+      <div className="min-h-screen bg-[#faf8f3]">
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-muted rounded w-2/3" />
@@ -478,7 +479,7 @@ export default function MatchPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#f8f7f4] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#faf8f3] flex items-center justify-center p-4">
         <Empty>
           <EmptyHeader>
             <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
@@ -499,7 +500,7 @@ export default function MatchPage() {
     // Show loading if Google auto-verify is in progress
     if (googleVerifying) {
       return (
-        <div className="min-h-screen bg-[#f8f7f4] flex items-center justify-center">
+        <div className="min-h-screen bg-[#faf8f3] flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary mb-4" />
             <p className="text-muted-foreground">Verifying your Google account...</p>
@@ -509,7 +510,7 @@ export default function MatchPage() {
     }
 
     return (
-      <div className="min-h-screen bg-[#f8f7f4]">
+      <div className="min-h-screen bg-[#faf8f3]">
         <div className="max-w-lg mx-auto px-4 py-12">
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center justify-center gap-2.5 mb-6">
@@ -550,23 +551,38 @@ export default function MatchPage() {
   const match = { lead_id: leadId } // Assuming match object is needed for clinic actions
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-card border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="rounded-full bg-black p-1.5 sm:p-2">
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white" />
+    <div className="min-h-screen bg-[#faf8f3]">
+      {/* Glass nav matching landing page */}
+      <header className="fixed top-3 left-3 right-3 md:top-5 md:left-8 md:right-8 z-50">
+        <div className="rounded-[3.4vw] bg-white/70 backdrop-blur-[40px] backdrop-saturate-[1.4] border border-white/30 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] px-4 sm:px-6 py-2.5">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="rounded-full bg-[#0fbcb0] p-1.5">
+                <Heart className="w-4 h-4 text-white fill-white" />
+              </div>
+              <span className="text-xl font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
+            </Link>
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-muted-foreground hidden sm:block">
+                {displayedClinics.length} {displayedClinics.length === 1 ? "clinic" : "clinics"} matched
+              </p>
+              <Button
+                size="sm"
+                className="text-sm px-5 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-sm hover:shadow-md transition-all border-0"
+                asChild
+              >
+                <Link href="/intake">New search</Link>
+              </Button>
             </div>
-            <span className="font-semibold text-lg sm:text-xl">Pearlie</span>
-          </Link>
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-20 md:pt-24 pb-8">
         {loading && (
           <div className="space-y-6">
             <div className="text-center py-12">
-              <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary mb-4" />
+              <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#004443] mb-4" />
               <p className="text-muted-foreground text-lg">Finding your clinic matches...</p>
             </div>
             <div className="grid gap-6">
@@ -580,11 +596,11 @@ export default function MatchPage() {
         {!loading && error && (
           <Empty>
             <EmptyHeader>
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10 mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-destructive" />
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-red-500" />
               </div>
-              <EmptyTitle>Unable to load matches</EmptyTitle>
-              <EmptyDescription>{error}</EmptyDescription>
+              <EmptyTitle className="text-[#004443]">Unable to load matches</EmptyTitle>
+              <EmptyDescription className="text-muted-foreground">{error}</EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Button onClick={() => window.location.reload()} variant="default">
@@ -597,11 +613,11 @@ export default function MatchPage() {
         {!loading && !error && allClinicsData.length === 0 && (
           <Empty>
             <EmptyHeader>
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-muted mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-muted-foreground" />
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-[#004443]/10 mx-auto mb-4">
+                <MapPin className="w-8 h-8 text-[#004443]/50" />
               </div>
-              <EmptyTitle>No matching clinics found</EmptyTitle>
-              <EmptyDescription>
+              <EmptyTitle className="text-[#004443]">No matching clinics found</EmptyTitle>
+              <EmptyDescription className="text-muted-foreground">
                 We couldn't find clinics matching your criteria right now. We're growing our network — check back soon or try a different postcode.
               </EmptyDescription>
             </EmptyHeader>
@@ -616,11 +632,11 @@ export default function MatchPage() {
         {!loading && !error && allClinicsData.length > 0 && (
           <>
             {showExpansionBanner && (
-              <Alert className="mb-8 border-primary/20 bg-primary/5">
-                <Info className="h-5 w-5 text-primary" />
+              <Alert className="mb-8 border-[#004443]/20 bg-white shadow-sm">
+                <Info className="h-5 w-5 text-[#004443]" />
                 <AlertDescription className="ml-2">
                   <div className="space-y-2">
-                    <p className="font-semibold text-lg text-foreground">We're expanding to your area</p>
+                    <p className="font-semibold text-lg text-[#004443]">We're expanding to your area</p>
                     <p className="text-sm text-muted-foreground">
                       We're launching London first. You can still explore clinics nearby
                       {minDistanceMiles && <> (closest is ~{minDistanceMiles.toFixed(1)} miles away)</>}
@@ -631,378 +647,464 @@ export default function MatchPage() {
               </Alert>
             )}
 
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-              {/* Desktop Sidebar - Hidden on mobile */}
-              <aside className="hidden lg:block w-full lg:w-80 flex-shrink-0">
-                <MatchFiltersPanel filters={filters} onFiltersChange={setFilters} />
-              </aside>
-
-              {/* Main Content Area */}
-              <div className="flex-1 min-w-0">
-                {/* Mobile Filter Button */}
-                <div className="mb-6 lg:hidden">
+            <div className="flex flex-col lg:flex-row gap-5 lg:gap-8">
+              {/* LEFT: Clinic Cards */}
+              <div className="flex-1 min-w-0 order-2 lg:order-1">
+                {/* Mobile: filter button + map toggle */}
+                <div className="flex items-center gap-2 mb-4 lg:hidden">
                   <MatchFiltersPanel filters={filters} onFiltersChange={setFilters} isMobile />
-                </div>
-
-                {/* View Toggle */}
-                <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center gap-2 bg-card rounded-lg p-1 border">
+                  {userLocation && (
                     <Button
-                      variant={viewMode === "list" ? "default" : "ghost"}
+                      variant="ghost"
                       size="sm"
-                      onClick={() => setViewMode("list")}
-                      className="gap-2"
+                      onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
+                      className="gap-1.5 text-[#004443] border border-[#004443]/20 hover:bg-[#004443]/5"
                     >
-                      <List className="w-4 h-4" />
-                      List
+                      {viewMode === "map" ? <><List className="w-4 h-4" /> List</> : <><Map className="w-4 h-4" /> Map</>}
                     </Button>
-                    {userLocation && (
-                      <Button
-                        variant={viewMode === "map" ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => setViewMode("map")}
-                        className="gap-2"
-                      >
-                        <Map className="w-4 h-4" />
-                        Map
-                      </Button>
-                    )}
-                  </div>
-
-                  <p className="text-sm text-muted-foreground">
-                    {visibleClinics.length} of {displayedClinics.length}{" "}
-                    {displayedClinics.length === 1 ? "clinic" : "clinics"}
-                  </p>
+                  )}
                 </div>
 
-                {/* List View */}
-                {viewMode === "list" && (
-                  <div className="space-y-6">
-                    {visibleClinics.map((clinic, index) => {
-                      // Check if this is the first non-verified clinic to show divider
-                      const isFirstNonVerified = 
-                        !clinic.verified && 
-                        (index === 0 || visibleClinics.slice(0, index).every(c => c.verified));
-                      
-                      return (
-                        <div key={clinic.id}>
-                          {isFirstNonVerified && (
-                            <div className="py-4 border-t border-border">
-                              <p className="text-sm text-muted-foreground text-center">
-                                Other clinics (not verified by Pearlie)
-                              </p>
-                            </div>
-                          )}
+                {/* Mobile map view */}
+                {viewMode === "map" && (
+                  <div className="lg:hidden mb-4">
+                    <div className="h-[300px] rounded-2xl overflow-hidden shadow-sm border border-border/50">
+                      <GoogleClinicsMap clinics={allClinicsData} highlightedClinicId={highlightedClinicId} onClinicHover={handleClinicHover} onClinicClick={handleMapClinicClick} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Clinic cards list */}
+                <div className="space-y-4">
+                  {visibleClinics.map((clinic, index) => {
+                    const isFirstNonVerified =
+                      !clinic.verified &&
+                      (index === 0 || visibleClinics.slice(0, index).every(c => c.verified));
+
+                    return (
+                      <div key={clinic.id}>
+                        {isFirstNonVerified && (
+                          <div className="py-3 border-t border-[#004443]/10">
+                            <p className="text-xs text-muted-foreground text-center">
+                              Other clinics (not verified by Pearlie)
+                            </p>
+                          </div>
+                        )}
                           <Card
                             ref={(el) => { clinicRefs.current[clinic.id] = el }}
                             data-clinic-id={clinic.id}
-                            className="p-6 transition-all duration-200 ease-out hover:shadow-lg"
+                            className="overflow-hidden transition-all duration-200 ease-out hover:shadow-lg border-0 shadow-sm bg-white rounded-2xl"
                           >
-                            {getClinicLabel(clinic, index) && (
-                              <div className="mb-4">
-                                <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                            {/* Photo banner — flush on mobile, inset with rounded edges on desktop */}
+                            <div className="lg:px-4 lg:pt-4">
+                              <div className="relative">
+                              {clinic.images && clinic.images.length > 0 ? (
+                                <Image
+                                  src={clinic.images[0] || "/placeholder.svg"}
+                                  alt={clinic.name}
+                                  width={600}
+                                  height={200}
+                                  className="w-full h-[140px] sm:h-[180px] lg:h-[135px] object-cover lg:rounded-xl"
+                                  sizes="(max-width: 768px) 100vw, 600px"
+                                />
+                              ) : (
+                                <div className="w-full h-[140px] sm:h-[180px] lg:h-[135px] bg-[#faf8f3] flex items-center justify-center lg:rounded-xl">
+                                  <MapPin className="w-10 h-10 text-[#004443]/20" />
+                                </div>
+                              )}
+                              {/* Label overlay on image */}
+                              {getClinicLabel(clinic, index) && (
+                                <div className="absolute top-3 left-3">
+                                  <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${
 clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_listing
-                                      ? "bg-muted text-muted-foreground"
-                                      : "bg-primary text-primary-foreground"
-                                }`}>
-                                  {getClinicLabel(clinic, index)}
-                                </span>
+                                        ? "bg-white/90 text-muted-foreground"
+                                        : "bg-[#0fbcb0] text-white"
+                                  }`}>
+                                    {getClinicLabel(clinic, index)}
+                                  </span>
+                                </div>
+                              )}
                               </div>
-                            )}
+                            </div>
 
-                            <div className="flex flex-col md:flex-row gap-6">
-                              <div className="flex-shrink-0 space-y-3">
-                                {clinic.images && clinic.images.length > 0 ? (
-                                  <Image
-                                    src={clinic.images[0] || "/placeholder.svg"}
-                                    alt={clinic.name}
-                                    width={200}
-                                    height={150}
-                                    className="rounded-lg object-cover w-full md:w-[200px] h-[120px] sm:h-[150px]"
-                                    sizes="(max-width: 768px) 100vw, 200px"
-                                  />
-                                ) : (
-                                  <div className="w-full md:w-[200px] h-[150px] bg-muted rounded-lg flex items-center justify-center">
-                                    <MapPin className="w-12 h-12 text-muted-foreground" />
-                                  </div>
-                                )}
-                                
-                                {/* Feature highlights - vertical column */}
-                                {clinic.highlight_chips && clinic.highlight_chips.length > 0 && (
-                                  <div className="flex flex-wrap sm:flex-col gap-2 mt-4">
-                                    {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
-                                      const chipData = getChipData(chip)
-                                      return (
-                                        <div key={chip} className="flex items-center gap-2.5">
-                                          <div className="w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center flex-shrink-0">
-                                            {chipData.icon}
-                                          </div>
-                                          <span className="text-xs font-medium text-muted-foreground">
-                                            {chipData.label}
-                                          </span>
-                                        </div>
-                                      )
-                                    })}
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="flex-1 space-y-4">
-                                <div>
-                                  <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                      <h2 
-                                        onClick={() => handleClinicClick(clinic.id, index)}
-                                        className="text-xl sm:text-2xl font-bold mb-1 cursor-pointer text-foreground hover:text-primary transition-colors duration-200 underline decoration-primary/30 decoration-2 underline-offset-4 hover:decoration-primary"
+                            {/* Card body */}
+                            <div className="p-5 sm:p-6 lg:p-4 lg:pt-3">
+                              {/* Clinic name + match % inline */}
+                              <div className="flex items-start justify-between gap-3 mb-2 lg:mb-1">
+                                <h2
+                                  onClick={() => handleClinicClick(clinic.id, index)}
+                                  className="text-lg sm:text-xl lg:text-lg font-bold cursor-pointer text-[#004443] hover:text-[#004443]/80 transition-colors duration-200 leading-tight"
+                                >
+                                  {clinic.name}
+                                </h2>
+                                {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <button
+                                        type="button"
+                                        className="flex-shrink-0 flex items-center gap-1 font-bold text-sm cursor-pointer px-2.5 py-1 rounded-full bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
+                                        onClick={(e) => e.stopPropagation()}
                                       >
-                                        {clinic.name}
-                                      </h2>
-                                      <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                                        <div className="flex items-center gap-1">
-                                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                          <span className="font-medium">{clinic.rating}</span>
-                                          <span>({clinic.review_count} reviews)</span>
+                                        <Sparkles className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                                        <span>{clinic.match_percentage}%</span>
+                                        <Info className="w-3 h-3 text-[#004443]/40" />
+                                      </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-72 p-4" align="end" side="bottom">
+                                      <div className="space-y-3">
+                                        <div>
+                                          <h4 className="font-semibold text-sm text-[#004443]">How we calculated your match</h4>
+                                          <p className="text-xs text-muted-foreground mt-1">
+                                            This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.
+                                          </p>
                                         </div>
-                                        {clinic.verified ? (
-                                          <div className="flex items-center gap-1 text-green-600">
-                                            <CheckCircle2 className="w-4 h-4" />
-                                            <span className="font-medium">Verified partner</span>
+                                        {clinic.match_breakdown && clinic.match_breakdown.length > 0 ? (
+                                          <div className="space-y-2.5">
+                                            {clinic.match_breakdown.map((item) => {
+                                              const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
+                                              const stars = Math.round(ratio * 5)
+                                              const categoryLabels: Record<string, string> = {
+                                                treatment: "Treatment match",
+                                                priorities: "Your priorities",
+                                                blockers: "Concerns addressed",
+                                                anxiety: "Anxiety support",
+                                                cost: "Cost & value fit",
+                                                distance: "Location",
+                                                availability: "Appointment times",
+                                              }
+                                              return (
+                                                <div key={item.category} className="flex items-center justify-between gap-2">
+                                                  <span className="text-xs text-muted-foreground">
+                                                    {categoryLabels[item.category] || item.category}
+                                                  </span>
+                                                  <div className="flex items-center gap-0.5">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                      <Star
+                                                        key={star}
+                                                        className={`w-3 h-3 ${
+                                                          star <= stars
+                                                            ? "fill-amber-400 text-amber-400"
+                                                            : "fill-muted text-muted"
+                                                        }`}
+                                                      />
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                              )
+                                            })}
                                           </div>
                                         ) : (
-                                          <div className="flex items-center gap-1 text-muted-foreground">
-                                            <span className="text-xs">Directory listing</span>
-                                          </div>
+                                          <p className="text-xs text-muted-foreground">
+                                            Based on your answers about treatment, priorities, and preferences.
+                                          </p>
                                         )}
-                                        {clinic.offers_free_consultation && (
-                                          <div className="flex items-center gap-1 text-indigo-600">
-                                            <CheckCircle2 className="w-4 h-4" />
-                                            <span className="font-medium">Free consultation</span>
-                                          </div>
-                                        )}
-                                        {clinic.distance_miles !== undefined && (
-                                          <div className="flex items-center gap-1">
-                                            <MapPin className="w-4 h-4" />
-                                            <span>~{clinic.distance_miles.toFixed(1)} miles away</span>
-                                          </div>
-                                        )}
-                                        {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-                                          <Popover>
-                                            <PopoverTrigger asChild>
-                                              <button 
-                                                type="button"
-                                                className="flex items-center gap-1.5 text-primary font-semibold cursor-pointer px-2 py-2.5 -mx-2 -my-2.5 rounded-md hover:bg-primary/10 active:bg-primary/20 transition-colors touch-manipulation"
-                                                onClick={(e) => e.stopPropagation()}
-                                              >
-                                                <Sparkles className="w-4 h-4" />
-                                                <span>{clinic.match_percentage}% match</span>
-                                                <Info className="w-4 h-4 text-primary/70" />
-                                              </button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-72 p-4" align="end" side="bottom">
-                                              <div className="space-y-3">
-                                                <div>
-                                                  <h4 className="font-semibold text-sm text-foreground">How we calculated your match</h4>
-                                                  <p className="text-xs text-muted-foreground mt-1">
-                                                    This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.
-                                                  </p>
-                                                </div>
-                                                
-                                                {clinic.match_breakdown && clinic.match_breakdown.length > 0 ? (
-                                                  <div className="space-y-2.5">
-                                                    {clinic.match_breakdown.map((item) => {
-                                                      const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
-                                                      const stars = Math.round(ratio * 5)
-const categoryLabels: Record<string, string> = {
-                                  treatment: "Treatment match",
-                                  priorities: "Your priorities",
-                                  blockers: "Concerns addressed",
-                                  anxiety: "Anxiety support",
-                                  cost: "Cost & value fit",
-                                  distance: "Location",
-                                  availability: "Appointment times",
-                                }
-                                                      return (
-                                                        <div key={item.category} className="flex items-center justify-between gap-2">
-                                                          <span className="text-xs text-muted-foreground">
-                                                            {categoryLabels[item.category] || item.category}
-                                                          </span>
-                                                          <div className="flex items-center gap-0.5">
-                                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                              <Star
-                                                                key={star}
-                                                                className={`w-3 h-3 ${
-                                                                  star <= stars
-                                                                    ? "fill-amber-400 text-amber-400"
-                                                                    : "fill-muted text-muted"
-                                                                }`}
-                                                              />
-                                                            ))}
-                                                          </div>
-                                                        </div>
-                                                      )
-                                                    })}
-                                                  </div>
-                                                ) : (
-                                                  <p className="text-xs text-muted-foreground">
-                                                    Based on your answers about treatment, priorities, and preferences.
-                                                  </p>
-                                                )}
-                                                
-                                                <div className="pt-2 border-t border-border">
-                                                  <p className="text-[10px] text-muted-foreground">
-                                                    More stars = stronger match to what you told us matters.
-                                                  </p>
-                                                </div>
-                                              </div>
-                                            </PopoverContent>
-                                          </Popover>
-                                        )}
+                                        <div className="pt-2 border-t border-border">
+                                          <p className="text-[10px] text-muted-foreground">
+                                            More stars = stronger match to what you told us matters.
+                                          </p>
+                                        </div>
                                       </div>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Why we matched you section */}
-                                <div className="border border-border/50 rounded-lg p-4 bg-background">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <Shield className="w-5 h-5 text-muted-foreground" />
-                                    <h3 className="font-semibold text-foreground">
-                                      {clinic.card_title || (clinic.tier === "directory"
-                                        ? "About this clinic"
-                                        : clinic.tier === "nearby"
-                                          ? "Other option in your area"
-                                          : clinic.is_emergency
-                                            ? "Why this clinic"
-                                            : index < 2
-                                              ? "Why we matched you"
-                                              : "Could also be a good match")}
-                                    </h3>
-                                  </div>
-
-                                  {/* Match reasons - Use composed sentences if available, fallback to raw */}
-                                  <div className="space-y-3 text-sm text-foreground leading-relaxed">
-                                    {clinic.tier === "directory" || clinic.is_directory_listing ? (
-                                      <>
-                                        <p>This clinic is listed in our directory and may be able to help with your dental needs.</p>
-                                        {clinic.distance_miles && (
-                                          <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
-                                        )}
-                                        <p className="text-xs text-muted-foreground mt-2">
-                                          {clinic.verified === false 
-                                            ? "This clinic hasn't been verified yet, so we can't show personalised match information."
-                                            : "This clinic hasn't completed our matching profile yet."}
-                                        </p>
-                                      </>
-                                    ) : clinic.tier === "nearby" ? (
-                                      <>
-                                        <p>This clinic is located nearby and may be able to help with your dental needs.</p>
-                                        {clinic.distance_miles && (
-                                          <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
-                                        )}
-                                      </>
-                                    ) : (
-                                      (() => {
-                                        // Get reasons from the engine (already correct count: 2 for emergency, 3 for planning)
-                                        const reasons = clinic.match_reasons_composed && clinic.match_reasons_composed.length > 0
-                                          ? clinic.match_reasons_composed
-                                          : clinic.match_reasons && clinic.match_reasons.length > 0
-                                            ? clinic.match_reasons
-                                            : []
-
-                                        // Max reasons: 2 for emergency, 3 for planning
-                                        const maxReasons = clinic.is_emergency ? 2 : 3
-
-                                        return reasons.slice(0, maxReasons).map((sentence: string, i: number) => (
-                                          <p key={i}>{sentence}</p>
-                                        ))
-                                      })()
-                                    )}
-                                  </div>
-
-                                  {/* Social proof message */}
-                                  <p className="text-xs text-muted-foreground mt-4 pt-3 border-t border-border/50">
-                                    Most patients book one of these clinics
-                                  </p>
-                                </div>
-
-                                {/* Clinic description */}
-                                {clinic.description && (
-                                  <p className="text-muted-foreground text-sm leading-relaxed">{clinic.description}</p>
+                                    </PopoverContent>
+                                  </Popover>
                                 )}
+                              </div>
 
-                                {/* Date Picker for Appointment Booking */}
-                                <div className="pt-2 border-t border-border/50">
-                                  <ClinicDatePicker
-                                    availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
-                                    availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
-                                    acceptsSameDay={clinic.accepts_same_day || false}
-                                    onSelectSlot={(date, time) => {
-                                      // Navigate to booking confirmation page
-                                      const dateStr = date.toISOString().split("T")[0]
-                                      window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&time=${time}`
-                                    }}
-                                  />
+                              {/* Rating, verified, distance */}
+                              <div className="flex items-center gap-3 text-sm lg:text-xs text-muted-foreground flex-wrap mb-3 lg:mb-2">
+                                <div className="flex items-center gap-1">
+                                  <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                                  <span className="font-medium text-foreground">{clinic.rating}</span>
+                                  <span>({clinic.review_count})</span>
                                 </div>
+                                {clinic.verified && (
+                                  <div className="flex items-center gap-1 text-[#0fbcb0]">
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span className="font-medium">Verified</span>
+                                  </div>
+                                )}
+                                {clinic.distance_miles !== undefined && (
+                                  <div className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-[#004443]" />
+                                    <span>~{clinic.distance_miles.toFixed(1)} mi</span>
+                                  </div>
+                                )}
+                              </div>
 
-                                {/* Bottom Actions */}
-                                <div className="pt-3 border-t border-border/50 flex items-center gap-3">
+                              {/* Feature chips */}
+                              {clinic.highlight_chips && clinic.highlight_chips.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5 mb-4 lg:mb-3">
+                                  {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
+                                    const chipData = getChipData(chip)
+                                    return (
+                                      <span key={chip} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-[#004443]/15 text-[#004443] bg-[#004443]/5">
+                                        {chipData.icon}
+                                        {chipData.label}
+                                      </span>
+                                    )
+                                  })}
+                                </div>
+                              )}
+
+                              {/* Why we matched you - teal border only, no fill */}
+                              <div className="rounded-xl p-3.5 lg:p-3 border border-[#0fbcb0]/30 mb-4 lg:mb-3">
+                                <h3 className="font-semibold text-xs lg:text-sm text-[#0fbcb0] mb-1.5">
+                                  {clinic.card_title || (clinic.tier === "directory"
+                                    ? "About this clinic"
+                                    : clinic.tier === "nearby"
+                                      ? "Other option in your area"
+                                      : "Why we matched you")}
+                                </h3>
+                                <div className="space-y-1.5 text-xs lg:text-sm text-[#1a1a1a] leading-relaxed">
+                                  {clinic.tier === "directory" || clinic.is_directory_listing ? (
+                                    <>
+                                      <p>This clinic is listed in our directory and may be able to help with your dental needs.</p>
+                                      {clinic.distance_miles && (
+                                        <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
+                                      )}
+                                    </>
+                                  ) : clinic.tier === "nearby" ? (
+                                    <>
+                                      <p>This clinic is located nearby and may be able to help with your dental needs.</p>
+                                      {clinic.distance_miles && (
+                                        <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
+                                      )}
+                                    </>
+                                  ) : (
+                                    (() => {
+                                      const reasons = clinic.match_reasons_composed && clinic.match_reasons_composed.length > 0
+                                        ? clinic.match_reasons_composed
+                                        : clinic.match_reasons && clinic.match_reasons.length > 0
+                                          ? clinic.match_reasons
+                                          : []
+                                      const maxReasons = clinic.is_emergency ? 2 : 3
+                                      return reasons.slice(0, maxReasons).map((sentence: string, i: number) => (
+                                        <p key={i}>{sentence}</p>
+                                      ))
+                                    })()
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Availability */}
+                              <div className="mb-4 lg:mb-3">
+                                <ClinicDatePicker
+                                  availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
+                                  availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
+                                  acceptsSameDay={clinic.accepts_same_day || false}
+                                  onSelectSlot={(date, time) => {
+                                    const dateStr = date.toISOString().split("T")[0]
+                                    window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&time=${time}`
+                                  }}
+                                />
+                              </div>
+
+                              {/* CTA */}
+                              <div className="flex items-center gap-3">
+                                {clinic.tier !== "directory" && (
                                   <Button
-                                    variant="outline"
-                                    className="flex-1 h-11 bg-transparent"
+                                    className="flex-1 h-11 lg:h-10 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
                                     asChild
                                   >
-                                    <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}>
-                                      View Profile
+                                    <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>
+                                      <MessageCircle className="w-4 h-4 mr-1.5" />
+                                      Message Clinic
                                     </Link>
                                   </Button>
-                                  {clinic.phone && (
-                                    <Button
-                                      onClick={() =>
-                                        handleClinicAction(clinic.id, match.lead_id ?? "", "click_call", undefined, clinic.phone ?? undefined)
-                                      }
-                                      variant="outline"
-                                      className="flex-1 h-11 bg-transparent"
-                                    >
-                                      <Phone className="w-4 h-4" />
-                                      Call Clinic
-                                    </Button>
-                                  )}
-                                  {clinic.tier !== "directory" && (
-                                    <Button
-                                      variant="outline"
-                                      className="flex-1 bg-transparent"
-                                      asChild
-                                    >
-                                      <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>
-                                        <MessageCircle className="w-4 h-4" />
-                                        Message
-                                      </Link>
-                                    </Button>
-                                  )}
-                                </div>
+                                )}
+                                <Link
+                                  href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}
+                                  className="text-sm font-medium text-[#004443] hover:text-[#004443]/70 transition-colors"
+                                >
+                                  View Profile
+                                </Link>
                               </div>
                             </div>
                           </Card>
+
+                        {/* Mobile trust box — shown after 4th clinic */}
+                        {index === 3 && (
+                          <div className="lg:hidden mt-4 rounded-2xl bg-[#004443] p-5 shadow-lg">
+                            <h3 className="text-[15px] font-bold text-white leading-snug mb-1.5">
+                              Not seeing every dentist near you? Here&apos;s why.
+                            </h3>
+                            <p className="text-xs text-white/70 leading-relaxed mb-4">
+                              We carefully select and recommend clinics that meet our standards for quality, transparency, and patient care.
+                            </p>
+
+                            <div className="space-y-3.5">
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <Shield className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Verified &amp; Compliant</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    All clinics are verified and must hold active professional registration and regulatory compliance.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <MessageCircle className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Interviewed by Pearlie</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    We conduct a comprehensive review with the dentist and their staff to understand how the practice operates and delivers care.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <Star className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Consistent Patient Feedback</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    We prioritise clinics with strong, consistent patient reviews and clear evidence of patient satisfaction.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Transparent &amp; Clear Communication</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    Clinics must provide clear treatment information, honest communication, and upfront guidance on care options.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Match-Based Recommendations</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    We recommend clinics based on your needs, preferences, urgency, and availability — not just who is closest.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 pt-3.5 border-t border-white/10">
+                              <p className="text-xs text-white/50 leading-relaxed italic">
+                                We prioritise quality and fit over quantity — so you can feel confident in your choice.
+                              </p>
+                            </div>
+                          </div>
+                        )}
                         </div>
                       )
                     })}
-                    {hasMoreClinics && viewMode === "list" && (
-                      <div className="flex justify-center mt-6">
-                        <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="lg">
-                          Show more clinics
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Map View */}
-                {viewMode === "map" && (
-                  <Suspense fallback={<div>Loading map...</div>}>
-                    <ClinicsMap clinics={allClinicsData} highlightedClinicId={null} onClinicHover={() => {}} onClinicClick={handleMapClinicClick} />
-                  </Suspense>
-                )}
+                  {hasMoreClinics && (
+                    <div className="flex justify-center mt-4">
+                      <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="sm" className="border-[#004443]/20 text-[#004443] hover:bg-[#004443]/5 bg-white rounded-full text-sm">
+                        Show more clinics
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* RIGHT: Map + Filters + Trust (desktop only) */}
+              <aside className="hidden lg:block flex-1 max-w-[480px] order-2">
+                <div className="sticky top-24 space-y-4">
+                  {/* Map - square */}
+                  {userLocation && (
+                    <div className="aspect-square rounded-2xl overflow-hidden shadow-sm border border-border/50">
+                      <GoogleClinicsMap clinics={allClinicsData} highlightedClinicId={highlightedClinicId} onClinicHover={handleClinicHover} onClinicClick={handleMapClinicClick} />
+                    </div>
+                  )}
+
+                  {/* Filters - compact under map */}
+                  <MatchFiltersPanel filters={filters} onFiltersChange={setFilters} />
+
+                  {/* Trust & Standards */}
+                  <div className="rounded-2xl bg-[#004443] p-5 shadow-lg">
+                    <h3 className="text-[15px] font-bold text-white leading-snug mb-1.5">
+                      Not seeing every dentist near you? Here&apos;s why.
+                    </h3>
+                    <p className="text-xs text-white/70 leading-relaxed mb-4">
+                      We carefully select and recommend clinics that meet our standards for quality, transparency, and patient care.
+                    </p>
+
+                    <div className="space-y-3.5">
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <Shield className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Verified &amp; Compliant</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            All clinics are verified and must hold active professional registration and regulatory compliance.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <MessageCircle className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Interviewed by Pearlie</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            We conduct a comprehensive review with the dentist and their staff to understand how the practice operates and delivers care.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <Star className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Consistent Patient Feedback</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            We prioritise clinics with strong, consistent patient reviews and clear evidence of patient satisfaction.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Transparent &amp; Clear Communication</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            Clinics must provide clear treatment information, honest communication, and upfront guidance on care options.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Match-Based Recommendations</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            We recommend clinics based on your needs, preferences, urgency, and availability — not just who is closest.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3.5 border-t border-white/10">
+                      <p className="text-xs text-white/50 leading-relaxed italic">
+                        We prioritise quality and fit over quantity — so you can feel confident in your choice.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </aside>
             </div>
           </>
         )}

@@ -44,8 +44,8 @@ export function GoogleSignInButton({ redirectTo, onBeforeSignIn, className = "" 
       disabled={isLoading}
       className={`
         w-full h-14 flex items-center justify-center gap-3 rounded-2xl border-2 border-border
-        bg-white text-[#323141] font-semibold text-lg
-        hover:bg-[#F8F5FF] hover:border-[#907EFF]/50 hover:shadow-md
+        bg-white text-[#222] font-semibold text-lg
+        hover:bg-[#F8F1E7] hover:border-[#0fbcb0]/50 hover:shadow-md
         active:scale-[0.98] transition-all duration-200
         disabled:opacity-50 disabled:cursor-not-allowed
         ${className}
