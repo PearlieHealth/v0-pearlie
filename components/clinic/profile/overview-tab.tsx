@@ -136,33 +136,70 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
         </section>
       )}
 
-      {/* Services */}
+      {/* Treatment Focus — matched treatments shown prominently, rest collapsed */}
       {availableTreatments.length > 0 && (
         <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-[#1a1a1a]">Services</h2>
-            {showToggle && (
+          <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">
+            {hasPatientSelections ? "Treatment Focus" : "Services"}
+          </h2>
+
+          {/* Matched treatments (from patient form) */}
+          {hasPatientSelections && (
+            <div className="grid sm:grid-cols-2 gap-2 mb-3">
+              {matchedPatientTreatments.map((treatment, idx) => (
+                <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+                  <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
+                  <span className="text-[15px] font-medium">{treatment}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Other treatments — collapsed by default when patient has selections */}
+          {hasPatientSelections && otherTreatments.length > 0 ? (
+            <div>
               <button
                 type="button"
                 onClick={() => setShowAllTreatments(!showAllTreatments)}
                 className="inline-flex items-center gap-1 text-sm font-medium text-[#666] hover:text-[#1a1a1a] transition-colors"
               >
-                {showAllTreatments ? "Show less" : `Show all ${displayTreatments.length}`}
+                {showAllTreatments ? "Hide other services" : `+${otherTreatments.length} other services`}
                 <ChevronDown className={`h-4 w-4 transition-transform ${showAllTreatments ? "rotate-180" : ""}`} />
               </button>
-            )}
-          </div>
-          <div className="grid sm:grid-cols-2 gap-2">
-            {visibleTreatments.map((treatment, idx) => {
-              const isMatched = hasPatientSelections && matchedPatientTreatments.includes(treatment)
-              return (
-                <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
-                  <CheckCircle2 className={`h-5 w-5 flex-shrink-0 ${isMatched ? "text-emerald-500" : "text-emerald-500"}`} />
-                  <span className={`text-[15px] ${isMatched ? "font-medium" : ""}`}>{treatment}</span>
+              {showAllTreatments && (
+                <div className="grid sm:grid-cols-2 gap-2 mt-2">
+                  {otherTreatments.map((treatment, idx) => (
+                    <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+                      <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
+                      <span className="text-[15px]">{treatment}</span>
+                    </div>
+                  ))}
                 </div>
-              )
-            })}
-          </div>
+              )}
+            </div>
+          ) : !hasPatientSelections ? (
+            /* No patient context — show all with show more toggle */
+            <>
+              <div className="grid sm:grid-cols-2 gap-2">
+                {(showAllTreatments ? availableTreatments : availableTreatments.slice(0, 6)).map((treatment, idx) => (
+                  <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+                    <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
+                    <span className="text-[15px]">{treatment}</span>
+                  </div>
+                ))}
+              </div>
+              {availableTreatments.length > 6 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllTreatments(!showAllTreatments)}
+                  className="inline-flex items-center gap-1 text-sm font-medium text-[#666] hover:text-[#1a1a1a] transition-colors mt-2"
+                >
+                  {showAllTreatments ? "Show less" : `Show all ${availableTreatments.length}`}
+                  <ChevronDown className={`h-4 w-4 transition-transform ${showAllTreatments ? "rotate-180" : ""}`} />
+                </button>
+              )}
+            </>
+          ) : null}
         </section>
       )}
 

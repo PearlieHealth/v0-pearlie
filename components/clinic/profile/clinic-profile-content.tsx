@@ -442,18 +442,16 @@ export function ClinicProfileContent() {
                 </div>
               </Card>
 
-              {/* Match reasons card */}
+              {/* Match reasons card — mirrors match results page card */}
               {matchId && matchReasons.length > 0 && (
-                <div className="border border-[#0fbcb0]/30 rounded-xl p-4 bg-white">
-                  <div className="flex items-center gap-2 mb-3">
-                    <h3 className="font-semibold text-[#0fbcb0]">Why we matched you</h3>
-                  </div>
-                  <div className="space-y-3 text-sm text-[#333] leading-relaxed">
+                <div className="rounded-xl p-3.5 border border-[#0fbcb0]/30">
+                  <h3 className="font-semibold text-sm text-[#0fbcb0] mb-1.5">Why we matched you</h3>
+                  <div className="space-y-1.5 text-sm text-[#1a1a1a] leading-relaxed">
                     {matchReasons.slice(0, 3).map((reason, idx) => (
                       <p key={idx}>{reason}</p>
                     ))}
                   </div>
-                  <p className="text-xs text-[#999] mt-4 pt-3 border-t border-[#e5e5e5]">
+                  <p className="text-xs text-[#999] mt-3 pt-2.5 border-t border-[#e5e5e5]">
                     Thoughtfully matched based on your answers.
                   </p>
                 </div>
