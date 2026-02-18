@@ -1,20 +1,79 @@
 "use client"
 
 import { useState } from "react"
-import { Shield, CheckCircle2, ShieldCheck } from "lucide-react"
+import { CheckCircle2, ShieldCheck, ChevronDown } from "lucide-react"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { GoogleReviewCard } from "./google-review-card"
-import { OpeningHoursCard } from "./opening-hours-card"
 import { LanguagesSection } from "./languages-section"
-import type { Clinic } from "./types"
+import type { Clinic, Lead } from "./types"
 
 interface OverviewTabProps {
   clinic: Clinic
   matchReasons: string[]
   hasLead: boolean
+  lead: Lead | null
 }
 
-export function OverviewTab({ clinic, matchReasons, hasLead }: OverviewTabProps) {
+export function OverviewTab({ clinic, matchReasons, hasLead, lead }: OverviewTabProps) {
   const [descriptionExpanded, setDescriptionExpanded] = useState(false)
+  const [showAllTreatments, setShowAllTreatments] = useState(false)
+
+  // Services matching logic (reused from ServicesTab)
+  const availableTreatments = clinic.treatments || []
+  const leadSelectedServices = lead?.treatment_interest
+    ? lead.treatment_interest.split(",").map((s) => s.trim()).filter(Boolean)
+    : []
+
+  const matchedPatientTreatments = leadSelectedServices.filter((service) =>
+    availableTreatments.some(
+      (at) => at.toLowerCase().includes(service.toLowerCase()) || service.toLowerCase().includes(at.toLowerCase()),
+    ),
+  )
+
+  const otherTreatments = availableTreatments.filter(
+    (t) => !leadSelectedServices.some(
+      (s) => t.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(t.toLowerCase()),
+    ),
+  )
+
+  const hasPatientSelections = matchedPatientTreatments.length > 0
+
+  // Build display list: matched treatments first (bold), then others
+  const displayTreatments = hasPatientSelections
+    ? [...matchedPatientTreatments, ...otherTreatments]
+    : availableTreatments
+
+  const visibleCount = 6
+  const showToggle = displayTreatments.length > visibleCount
+  const visibleTreatments = showAllTreatments ? displayTreatments : displayTreatments.slice(0, visibleCount)
+
+  // FAQs (relocated from details tab)
+  const faqs = [
+    {
+      question: `Where is ${clinic.name} located?`,
+      answer: `${clinic.name} is located at ${clinic.address}, ${clinic.postcode}${clinic.city ? `, ${clinic.city}` : ""}.`,
+    },
+    {
+      question: `What treatments are available at ${clinic.name}?`,
+      answer: `${clinic.name} offers a range of dental treatments including: ${clinic.treatments.slice(0, 5).join(", ")}${(clinic.treatments?.length || 0) > 5 ? ` and ${clinic.treatments.length - 5} more services` : ""}.`,
+    },
+    {
+      question: `Does ${clinic.name} accept NHS patients?`,
+      answer: clinic.accepts_nhs
+        ? `Yes, ${clinic.name} accepts NHS patients alongside private treatments.`
+        : `${clinic.name} is a private dental practice. Contact them directly for pricing information.`,
+    },
+    {
+      question: "What are the opening hours?",
+      answer: clinic.opening_hours && Object.keys(clinic.opening_hours).length > 0
+        ? "Opening hours vary by day. Please check the Details tab or contact the clinic directly."
+        : `Please contact ${clinic.name} directly to confirm their opening hours.`,
+    },
+    {
+      question: "How can I book an appointment?",
+      answer: `You can book an appointment by ${clinic.website ? "visiting their website or " : ""}${clinic.phone ? `calling them on ${clinic.phone}` : "contacting them directly"}.`,
+    },
+  ]
 
   return (
     <div className="space-y-8">
@@ -30,10 +89,10 @@ export function OverviewTab({ clinic, matchReasons, hasLead }: OverviewTabProps)
         compact
       />
 
-      {/* Pearlie Guarantee — OpenCare-inspired style */}
+      {/* Pearlie Guarantee */}
       {clinic.verified && (
         <section className="border border-[#e5e5e5] rounded-xl overflow-hidden">
-          <div className="bg-[#1a1a1a] px-5 py-3 flex items-center gap-2.5">
+          <div className="bg-[#004443] px-5 py-3 flex items-center gap-2.5">
             <ShieldCheck className="h-5 w-5 text-white" />
             <h3 className="font-semibold text-white text-[15px]">Pearlie Guarantee</h3>
           </div>
@@ -54,8 +113,35 @@ export function OverviewTab({ clinic, matchReasons, hasLead }: OverviewTabProps)
         </section>
       )}
 
-      {/* Opening Hours */}
-      <OpeningHoursCard openingHours={clinic.opening_hours} />
+      {/* Services */}
+      {availableTreatments.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-bold text-[#1a1a1a]">Services</h2>
+            {showToggle && (
+              <button
+                type="button"
+                onClick={() => setShowAllTreatments(!showAllTreatments)}
+                className="inline-flex items-center gap-1 text-sm font-medium text-[#666] hover:text-[#1a1a1a] transition-colors"
+              >
+                {showAllTreatments ? "Show less" : `Show all ${displayTreatments.length}`}
+                <ChevronDown className={`h-4 w-4 transition-transform ${showAllTreatments ? "rotate-180" : ""}`} />
+              </button>
+            )}
+          </div>
+          <div className="grid sm:grid-cols-2 gap-2">
+            {visibleTreatments.map((treatment, idx) => {
+              const isMatched = hasPatientSelections && matchedPatientTreatments.includes(treatment)
+              return (
+                <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+                  <CheckCircle2 className={`h-5 w-5 flex-shrink-0 ${isMatched ? "text-emerald-500" : "text-emerald-500"}`} />
+                  <span className={`text-[15px] ${isMatched ? "font-medium" : ""}`}>{treatment}</span>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Languages Spoken */}
       <LanguagesSection languages={clinic.languages || []} />
@@ -81,12 +167,28 @@ export function OverviewTab({ clinic, matchReasons, hasLead }: OverviewTabProps)
         </section>
       )}
 
-      {/* Match reasons (if lead exists) */}
+      {/* FAQs */}
+      <section>
+        <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Frequently Asked Questions</h2>
+        <Accordion type="single" collapsible className="w-full">
+          {faqs.map((faq, idx) => (
+            <AccordionItem key={idx} value={`faq-${idx}`}>
+              <AccordionTrigger className="text-[15px] font-medium text-[#1a1a1a] hover:no-underline text-left py-3">
+                {faq.question}
+              </AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-[#666] leading-relaxed">{faq.answer}</p>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </section>
+
+      {/* Match reasons — mobile only */}
       {hasLead && matchReasons.length > 0 && (
-        <section className="border border-[#e5e5e5] rounded-xl p-5">
+        <section className="lg:hidden border border-[#0fbcb0]/30 rounded-xl p-5">
           <div className="flex items-center gap-2 mb-3">
-            <Shield className="w-5 h-5 text-[#999]" />
-            <h3 className="font-semibold text-[#1a1a1a]">Why we matched you</h3>
+            <h3 className="font-semibold text-[#0fbcb0]">Why we matched you</h3>
           </div>
           <div className="space-y-2 text-sm text-[#333] leading-relaxed">
             {matchReasons.slice(0, 3).map((reason, idx) => (
