@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users } from "lucide-react"
+import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, RotateCcw, Search } from "lucide-react"
 import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import Image from "next/image"
@@ -29,12 +29,38 @@ const marqueeItems = [
 const rotatingWords = ["right", "easy", "simple", "clear", "effortless"]
 
 
+interface LastMatch {
+  matchId: string
+  clinicCount: number
+  treatment: string
+  createdAt: string
+}
+
 export default function Home() {
   const [showLoading, setShowLoading] = useState(() => {
     if (typeof window === 'undefined') return true
     return window.innerWidth >= 768 // Skip animation on mobile for instant content
   })
   const treatments = HOMEPAGE_TREATMENTS
+
+  const [lastMatch, setLastMatch] = useState<LastMatch | null>(null)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("pearlie_last_match")
+      if (stored) {
+        const data = JSON.parse(stored) as LastMatch
+        const MAX_MATCH_AGE_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
+        const age = Date.now() - new Date(data.createdAt).getTime()
+        if (age < MAX_MATCH_AGE_MS && data.matchId) {
+          setLastMatch(data)
+        } else {
+          localStorage.removeItem("pearlie_last_match")
+        }
+      }
+    } catch {
+      localStorage.removeItem("pearlie_last_match")
+    }
+  }, [])
 
   const [wordIndex, setWordIndex] = useState(0)
   useEffect(() => {
@@ -119,27 +145,59 @@ export default function Home() {
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.3 }}
-                      className="flex flex-row items-center justify-center lg:justify-start gap-4"
                     >
-                      <Button
-                        size="lg"
-                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-10 py-5 h-auto rounded-full font-semibold hover:shadow-lg transition-all shadow-md text-lg border-0"
-                        asChild
-                      >
-                        <Link href="/intake">
-                          Find my clinic
-                          <ArrowRight className="ml-2 w-5 h-5" />
-                        </Link>
-                      </Button>
+                      {lastMatch ? (
+                        <div className="flex flex-col sm:flex-row items-stretch justify-center lg:justify-start gap-3 max-w-xl">
+                          <Link
+                            href={`/match/${lastMatch.matchId}`}
+                            className="flex-1 group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all"
+                          >
+                            <div className="w-10 h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
+                              <RotateCcw className="w-5 h-5 text-[#0fbcb0]" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[15px] font-semibold text-[#222]">Return to your matches</p>
+                              <p className="text-xs text-[#666] mt-0.5 leading-snug">View the clinics we matched you with</p>
+                            </div>
+                            <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
+                          </Link>
+                          <Link
+                            href="/intake"
+                            className="flex-1 group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#bbb] transition-all"
+                          >
+                            <div className="w-10 h-10 rounded-full bg-[#F8F1E7] flex items-center justify-center flex-shrink-0">
+                              <Search className="w-5 h-5 text-[#004443]" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[15px] font-semibold text-[#222]">Start a new search</p>
+                              <p className="text-xs text-[#666] mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
+                            </div>
+                            <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className="flex flex-row items-center justify-center lg:justify-start gap-4">
+                          <Button
+                            size="lg"
+                            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-10 py-5 h-auto rounded-full font-semibold hover:shadow-lg transition-all shadow-md text-lg border-0"
+                            asChild
+                          >
+                            <Link href="/intake">
+                              Find my clinic
+                              <ArrowRight className="ml-2 w-5 h-5" />
+                            </Link>
+                          </Button>
 
-                      <button
-                        onClick={() => {
-                          document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
-                        }}
-                        className="px-6 py-3 h-auto rounded-full font-semibold text-lg text-[#555] hover:text-[#222] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all"
-                      >
-                        How it works
-                      </button>
+                          <button
+                            onClick={() => {
+                              document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
+                            }}
+                            className="px-6 py-3 h-auto rounded-full font-semibold text-lg text-[#555] hover:text-[#222] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all"
+                          >
+                            How it works
+                          </button>
+                        </div>
+                      )}
                     </motion.div>
                   </div>
 

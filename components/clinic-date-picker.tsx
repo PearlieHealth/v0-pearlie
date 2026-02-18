@@ -231,13 +231,13 @@ export function ClinicDatePicker({
           </p>
           
           {availableSlots.length > 0 ? (
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
               {availableSlots.map((slot) => (
                 <Button
                   key={slot.key}
                   variant="outline"
                   size="sm"
-                  className="w-full text-xs px-2 bg-transparent hover:bg-[#004443] hover:text-white hover:border-[#004443] transition-colors"
+                  className="min-w-[80px] bg-transparent hover:bg-[#004443] hover:text-white hover:border-[#004443] transition-colors"
                   onClick={() => handleTimeSelect(slot.key)}
                 >
                   {slot.label}

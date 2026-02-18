@@ -7,24 +7,23 @@ import { MainNav } from "@/components/main-nav"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Heart, 
-  Shield, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  Heart,
+  Shield,
+  CheckCircle2,
+  XCircle,
   ArrowRight,
   Clock,
-  MapPin,
   Users,
   Calendar,
   Stethoscope,
-  Sparkles,
   Building2,
   TrendingUp,
   AlertCircle,
   ExternalLink,
   ChevronRight
 } from "lucide-react"
+import { SiteFooter } from "@/components/site-footer"
 
 // Animated counter component
 function AnimatedCounter({ 
@@ -680,22 +679,7 @@ export default function OurMissionPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 bg-white border-t border-border">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="rounded-full bg-[#F8F1E7] p-1.5">
-                <Heart className="w-4 h-4 text-foreground fill-foreground" />
-              </div>
-              <span className="font-semibold text-foreground">Pearlie</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              © 2026 Pearlie. Making dental care accessible.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }

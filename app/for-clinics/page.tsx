@@ -6,10 +6,11 @@ export const metadata: Metadata = {
   description: "Join Pearlie to receive matched patients looking for your dental services. Priority placement, quality leads, and zero upfront cost.",
 }
 import { Card } from "@/components/ui/card"
-import { ArrowRight, Heart, CheckCircle2, X, Star, TrendingUp, Users, Eye } from "lucide-react"
+import { ArrowRight, CheckCircle2, X, Star, TrendingUp, Users, Eye } from "lucide-react"
 import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import { ClinicWaitlistForm } from "@/components/clinic-waitlist-form"
+import { SiteFooter } from "@/components/site-footer"
 
 export default function ForClinicsPage() {
   return (
@@ -287,35 +288,7 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="border-t border-border bg-white py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <Link href="/" className="flex items-center gap-2.5">
-                <div className="rounded-full bg-primary p-2">
-                  <Heart className="w-4 h-4 text-white fill-white" />
-                </div>
-                <span className="text-lg font-semibold text-foreground">Pearlie</span>
-              </Link>
-              <div className="flex items-center gap-8 text-sm text-muted-foreground">
-                <Link href="/" className="hover:text-foreground transition-colors">
-                  For Patients
-                </Link>
-                <Link href="/privacy" className="hover:text-foreground transition-colors">
-                  Privacy
-                </Link>
-                <a href="mailto:hello@pearlie.org" className="hover:text-foreground transition-colors">
-                  hello@pearlie.org
-                </a>
-              </div>
-            </div>
-            <div className="mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Pearlie. Built for better patient decisions.
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }

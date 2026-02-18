@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { MainNav } from "@/components/main-nav"
 import { ClinicNetworkGrid } from "@/components/clinic-network-grid"
-import { CookieSettingsButton } from "@/components/cookie-settings-button"
+import { SiteFooter } from "@/components/site-footer"
 
 export const metadata = {
   title: "About Pearlie | Independent Dental Matching Platform",
@@ -241,75 +241,7 @@ export default function AboutPage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-white py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8">
-              <div className="md:col-span-1">
-                <div className="text-2xl font-semibold mb-4">Pearlie</div>
-                <p className="text-sm text-muted-foreground">Independent dental matching platform</p>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-4">Platform</h3>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>
-                    <Link href="/about" className="hover:text-foreground transition-colors">
-                      About
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/faq" className="hover:text-foreground transition-colors">
-                      FAQ
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/for-clinics" className="hover:text-foreground transition-colors">
-                      For Clinics
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-4">Legal</h3>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>
-                    <Link href="/privacy" className="hover:text-foreground transition-colors">
-                      Privacy Policy
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/terms" className="hover:text-foreground transition-colors">
-                      Terms of Use
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-4">Contact</h3>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>
-                    <Link href="/contact" className="hover:text-foreground transition-colors">
-                      Contact Us
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="pt-8 border-t border-border">
-              <p className="text-xs text-muted-foreground leading-relaxed max-w-4xl">
-                Pearlie is an independent dental matching platform and does not provide medical or dental advice. All
-                diagnosis and treatment decisions are made by independent dental clinics. Pearlie is not affiliated with
-                or endorsed by the NHS.
-              </p>
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">© 2026 Pearlie. All rights reserved.</span>
-                <CookieSettingsButton />
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }
