@@ -703,11 +703,11 @@ export default function MatchPage() {
                                   alt={clinic.name}
                                   width={600}
                                   height={200}
-                                  className="w-full h-[140px] sm:h-[180px] object-cover"
+                                  className="w-full h-[140px] sm:h-[180px] lg:h-[135px] object-cover"
                                   sizes="(max-width: 768px) 100vw, 600px"
                                 />
                               ) : (
-                                <div className="w-full h-[140px] sm:h-[180px] bg-[#faf8f3] flex items-center justify-center">
+                                <div className="w-full h-[140px] sm:h-[180px] lg:h-[135px] bg-[#faf8f3] flex items-center justify-center">
                                   <MapPin className="w-10 h-10 text-[#004443]/20" />
                                 </div>
                               )}
@@ -730,7 +730,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                     <PopoverTrigger asChild>
                                       <button
                                         type="button"
-                                        className="flex items-center gap-1.5 font-bold text-base cursor-pointer px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm text-[#004443] shadow-sm hover:bg-white transition-colors touch-manipulation"
+                                        className="flex items-center gap-1.5 font-bold text-base lg:text-sm cursor-pointer px-3 py-1.5 lg:py-1 rounded-full bg-white/90 backdrop-blur-sm text-[#004443] shadow-sm hover:bg-white transition-colors touch-manipulation"
                                         onClick={(e) => e.stopPropagation()}
                                       >
                                         <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
@@ -798,17 +798,17 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                             </div>
 
                             {/* Card body */}
-                            <div className="p-5 sm:p-6">
+                            <div className="p-5 sm:p-6 lg:p-4 lg:pt-3">
                               {/* Clinic name */}
                               <h2
                                 onClick={() => handleClinicClick(clinic.id, index)}
-                                className="text-lg sm:text-xl font-bold cursor-pointer text-[#004443] hover:text-[#004443]/80 transition-colors duration-200 leading-tight mb-2"
+                                className="text-lg sm:text-xl lg:text-lg font-bold cursor-pointer text-[#004443] hover:text-[#004443]/80 transition-colors duration-200 leading-tight mb-1.5 lg:mb-1"
                               >
                                 {clinic.name}
                               </h2>
 
                               {/* Rating, verified, distance */}
-                              <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap mb-3">
+                              <div className="flex items-center gap-3 text-sm lg:text-xs text-muted-foreground flex-wrap mb-3 lg:mb-2">
                                 <div className="flex items-center gap-1">
                                   <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
                                   <span className="font-medium text-foreground">{clinic.rating}</span>
@@ -830,7 +830,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                               {/* Feature chips */}
                               {clinic.highlight_chips && clinic.highlight_chips.length > 0 && (
-                                <div className="flex flex-wrap gap-1.5 mb-4">
+                                <div className="flex flex-wrap gap-1.5 mb-4 lg:mb-3">
                                   {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
                                     const chipData = getChipData(chip)
                                     return (
@@ -844,7 +844,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                               )}
 
                               {/* Why we matched you - teal border only, no fill */}
-                              <div className="rounded-xl p-3.5 border border-[#0fbcb0]/30 mb-4">
+                              <div className="rounded-xl p-3.5 lg:p-3 border border-[#0fbcb0]/30 mb-4 lg:mb-3">
                                 <h3 className="font-semibold text-xs text-[#0fbcb0] mb-1.5">
                                   {clinic.card_title || (clinic.tier === "directory"
                                     ? "About this clinic"
@@ -884,7 +884,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                               </div>
 
                               {/* Availability */}
-                              <div className="mb-4">
+                              <div className="mb-4 lg:mb-3">
                                 <ClinicDatePicker
                                   availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
                                   availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
@@ -900,7 +900,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                               <div className="flex items-center gap-3">
                                 {clinic.tier !== "directory" && (
                                   <Button
-                                    className="flex-1 h-11 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
+                                    className="flex-1 h-11 lg:h-10 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
                                     asChild
                                   >
                                     <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>
@@ -918,6 +918,86 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                               </div>
                             </div>
                           </Card>
+
+                        {/* Mobile trust box — shown after 4th clinic */}
+                        {index === 3 && (
+                          <div className="lg:hidden mt-4 rounded-2xl bg-[#004443] p-5 shadow-lg">
+                            <h3 className="text-[15px] font-bold text-white leading-snug mb-1.5">
+                              Not seeing every dentist near you? Here&apos;s why.
+                            </h3>
+                            <p className="text-xs text-white/70 leading-relaxed mb-4">
+                              We carefully select and recommend clinics that meet our standards for quality, transparency, and patient care.
+                            </p>
+
+                            <div className="space-y-3.5">
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <Shield className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Verified &amp; Compliant</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    All clinics are verified and must hold active professional registration and regulatory compliance.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <MessageCircle className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Interviewed by Pearlie</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    We conduct a comprehensive review with the dentist and their staff to understand how the practice operates and delivers care.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <Star className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Consistent Patient Feedback</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    We prioritise clinics with strong, consistent patient reviews and clear evidence of patient satisfaction.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Transparent &amp; Clear Communication</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    Clinics must provide clear treatment information, honest communication, and upfront guidance on care options.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Match-Based Recommendations</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    We recommend clinics based on your needs, preferences, urgency, and availability — not just who is closest.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 pt-3.5 border-t border-white/10">
+                              <p className="text-xs text-white/50 leading-relaxed italic">
+                                We prioritise quality and fit over quantity — so you can feel confident in your choice.
+                              </p>
+                            </div>
+                          </div>
+                        )}
                         </div>
                       )
                     })}
