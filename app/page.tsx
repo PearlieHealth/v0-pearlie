@@ -437,6 +437,9 @@ export default function Home() {
             </div>
           </section>
 
+          {/* Dark scrolling marquee — flows from CTA section */}
+          <ScrollingMarquee items={marqueeItemsDark} speed={40} variant="dark" />
+
           {/* Testimonials section */}
           <section className="py-16 md:py-28 lg:py-32 bg-[#F8F1E7]">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -497,9 +500,6 @@ export default function Home() {
               </div>
             </div>
           </section>
-
-          {/* Dark scrolling marquee before footer */}
-          <ScrollingMarquee items={marqueeItemsDark} speed={40} variant="dark" />
 
           {/* Footer */}
           <SiteFooter />
