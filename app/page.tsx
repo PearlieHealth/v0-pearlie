@@ -26,6 +26,8 @@ const marqueeItems = [
   { text: "Verified Dental Practices", icon: <Heart className="w-3.5 h-3.5" /> },
 ]
 
+const rotatingWords = ["right", "easy", "simple", "clear", "effortless"]
+
 const marqueeItemsDark = [
   { text: "Verified Clinics", icon: <Shield className="w-3.5 h-3.5" /> },
   { text: "Patient-First", icon: <Heart className="w-3.5 h-3.5" /> },
@@ -39,6 +41,14 @@ export default function Home() {
     return window.innerWidth >= 768 // Skip animation on mobile for instant content
   })
   const treatments = HOMEPAGE_TREATMENTS
+
+  const [wordIndex, setWordIndex] = useState(0)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWordIndex((i) => (i + 1) % rotatingWords.length)
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <>
@@ -83,7 +93,23 @@ export default function Home() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
                     >
-                      When dental care finally feels <span className="text-[#0fbcb0]">right</span>.
+                      Where finding a dentist finally feels{" "}
+                      <span className="inline-block relative overflow-hidden align-bottom" style={{ height: "1.15em" }}>
+                        {/* Invisible sizer to hold width of current word */}
+                        <span className="invisible">{rotatingWords[wordIndex]}</span>
+                        <AnimatePresence mode="wait">
+                          <motion.span
+                            key={rotatingWords[wordIndex]}
+                            className="absolute inset-0 text-[#0fbcb0]"
+                            initial={{ y: "100%", opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: "-100%", opacity: 0 }}
+                            transition={{ duration: 0.4, ease: "easeInOut" }}
+                          >
+                            {rotatingWords[wordIndex]}
+                          </motion.span>
+                        </AnimatePresence>
+                      </span>.
                     </motion.h1>
 
                     <motion.p
