@@ -61,7 +61,7 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative pt-24 pb-10 md:pt-28 md:pb-14 lg:pt-32 lg:pb-16 bg-gradient-to-b from-[#ece5dc] via-[#f3ede6] to-[#f8f4ef] overflow-hidden">
+          <section className="relative pt-24 pb-10 md:pt-28 md:pb-14 lg:pt-32 lg:pb-16 bg-gradient-to-b from-[#e2d9cf] via-[#ebe4db] to-[#f1ece5] overflow-hidden">
             <div className="container mx-auto px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
 
@@ -133,7 +133,7 @@ export default function Home() {
                         asChild
                       >
                         <Link href="/intake">
-                          Find your match
+                          Find my clinic
                           <ArrowRight className="ml-2 w-5 h-5" />
                         </Link>
                       </Button>
