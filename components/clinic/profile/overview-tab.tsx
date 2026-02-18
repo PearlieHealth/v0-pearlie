@@ -25,29 +25,10 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
     ? lead.treatment_interest.split(",").map((s) => s.trim()).filter(Boolean)
     : []
 
-  const matchedPatientTreatments = leadSelectedServices.filter((service) =>
-    availableTreatments.some(
-      (at) => at.toLowerCase().includes(service.toLowerCase()) || service.toLowerCase().includes(at.toLowerCase()),
-    ),
-  )
-
-  const otherTreatments = availableTreatments.filter(
-    (t) => !leadSelectedServices.some(
-      (s) => t.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(t.toLowerCase()),
-    ),
-  )
-
-  const hasPatientSelections = matchedPatientTreatments.length > 0
+  // Use patient's selected treatments directly as Treatment Focus
+  // (backend matching already validated the clinic can handle these)
+  const hasPatientSelections = leadSelectedServices.length > 0
   const hasBeforeAfters = (clinic.before_after_images?.length ?? 0) > 0
-
-  // Build display list: matched treatments first (bold), then others
-  const displayTreatments = hasPatientSelections
-    ? [...matchedPatientTreatments, ...otherTreatments]
-    : availableTreatments
-
-  const visibleCount = 6
-  const showToggle = displayTreatments.length > visibleCount
-  const visibleTreatments = showAllTreatments ? displayTreatments : displayTreatments.slice(0, visibleCount)
 
   // FAQs (relocated from details tab)
   const faqs = [
@@ -137,16 +118,16 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
       )}
 
       {/* Treatment Focus — matched treatments shown prominently, rest collapsed */}
-      {availableTreatments.length > 0 && (
+      {(availableTreatments.length > 0 || hasPatientSelections) && (
         <section>
           <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">
             {hasPatientSelections ? "Treatment Focus" : "Services"}
           </h2>
 
-          {/* Matched treatments (from patient form) */}
+          {/* Patient's selected treatments shown prominently */}
           {hasPatientSelections && (
             <div className="grid sm:grid-cols-2 gap-2 mb-3">
-              {matchedPatientTreatments.map((treatment, idx) => (
+              {leadSelectedServices.map((treatment, idx) => (
                 <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
                   <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
                   <span className="text-[15px] font-medium">{treatment}</span>
@@ -155,20 +136,20 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
             </div>
           )}
 
-          {/* Other treatments — collapsed by default when patient has selections */}
-          {hasPatientSelections && otherTreatments.length > 0 ? (
+          {/* All clinic services — collapsed when patient has selections */}
+          {hasPatientSelections && availableTreatments.length > 0 ? (
             <div>
               <button
                 type="button"
                 onClick={() => setShowAllTreatments(!showAllTreatments)}
                 className="inline-flex items-center gap-1 text-sm font-medium text-[#666] hover:text-[#1a1a1a] transition-colors"
               >
-                {showAllTreatments ? "Hide other services" : `+${otherTreatments.length} other services`}
+                {showAllTreatments ? "Hide other services" : `+${availableTreatments.length} other services`}
                 <ChevronDown className={`h-4 w-4 transition-transform ${showAllTreatments ? "rotate-180" : ""}`} />
               </button>
               {showAllTreatments && (
                 <div className="grid sm:grid-cols-2 gap-2 mt-2">
-                  {otherTreatments.map((treatment, idx) => (
+                  {availableTreatments.map((treatment, idx) => (
                     <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
                       <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
                       <span className="text-[15px]">{treatment}</span>
