@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState, type ReactNode } from "react"
-import { Heart } from "lucide-react"
 
 interface MarqueeItem {
   text: string
@@ -28,7 +27,7 @@ export function ScrollingMarquee({ items, speed = 30, variant = "light" }: Scrol
   const isDark = variant === "dark"
   const bgClass = isDark ? "bg-[#004443]" : "bg-[#0fbcb0]"
   const textClass = isDark ? "text-white/80" : "text-white"
-  const separatorClass = isDark ? "text-[#0fbcb0]/40" : "text-white/40"
+
 
   if (prefersReducedMotion) {
     return (
@@ -48,25 +47,24 @@ export function ScrollingMarquee({ items, speed = 30, variant = "light" }: Scrol
   // Render content row — duplicated for seamless looping
   const renderItems = () =>
     items.map((item, i) => (
-      <span key={i} className="flex items-center gap-4 sm:gap-6 shrink-0">
+      <span key={i} className="flex items-center gap-2 shrink-0 mx-6 sm:mx-10">
         <span className={`flex items-center gap-2 text-sm font-bold uppercase tracking-[0.15em] whitespace-nowrap ${textClass}`}>
           {item.icon}
           {item.text}
         </span>
-        <Heart className={`w-3.5 h-3.5 ${separatorClass} fill-current shrink-0`} />
       </span>
     ))
 
   return (
     <div className={`${bgClass} py-5 overflow-hidden`} aria-hidden="true">
       <div
-        className="flex items-center gap-4 sm:gap-6 marquee-track"
+        className="flex items-center marquee-track"
         style={{ "--marquee-speed": `${speed}s` } as React.CSSProperties}
       >
-        <div className="flex items-center gap-4 sm:gap-6 shrink-0 marquee-content">
+        <div className="flex items-center shrink-0 marquee-content">
           {renderItems()}
         </div>
-        <div className="flex items-center gap-4 sm:gap-6 shrink-0 marquee-content">
+        <div className="flex items-center shrink-0 marquee-content">
           {renderItems()}
         </div>
       </div>
