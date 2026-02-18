@@ -319,8 +319,8 @@ export default function Home() {
                               </div>
                             ))}
                           </div>
-                          <Button className="w-full bg-primary hover:bg-[var(--primary-hover)] text-white rounded-xl h-10 text-sm">
-                            Book appointment
+                          <Button className="w-full bg-primary hover:bg-[var(--primary-hover)] text-white rounded-xl h-10 text-sm" asChild>
+                            <Link href="/intake">Request appointment</Link>
                           </Button>
                         </div>
                       </div>
