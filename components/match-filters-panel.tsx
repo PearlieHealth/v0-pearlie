@@ -102,7 +102,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
         </div>
 
         {/* Sections with consistent vertical rhythm */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Location Section */}
           <div>
             <h4 className="text-xs font-semibold text-foreground mb-2">Location</h4>
@@ -132,7 +132,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
                 tabIndex={0}
                 onClick={() => updateFilter("prioritiseDistance", !filters.prioritiseDistance)}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") updateFilter("prioritiseDistance", !filters.prioritiseDistance) }}
-                className="w-full flex items-center justify-between py-2 cursor-pointer"
+                className="w-full flex items-center justify-between py-1.5 gap-4 cursor-pointer"
               >
                 <span className="text-xs text-foreground">Prioritise closer</span>
                 <Switch
@@ -145,7 +145,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
           </div>
 
           {/* Payment Section */}
-          <div className="pt-3 border-t border-border/50">
+          <div className="pt-2 border-t border-border/50">
             <h4 className="text-xs font-semibold text-foreground mb-1">Payment</h4>
             <div>
               <button
@@ -161,7 +161,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
               </button>
               <button
                 onClick={() => updateFilter("freeConsultation", !filters.freeConsultation)}
-                className="w-full flex items-center justify-between py-2 cursor-pointer"
+                className="w-full flex items-center justify-between py-1.5 gap-4 cursor-pointer"
               >
                 <span className="text-xs text-foreground">Free consultation</span>
                 <Switch
@@ -174,12 +174,12 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
           </div>
 
           {/* Comfort Section */}
-          <div className="pt-3 border-t border-border/50">
+          <div className="pt-2 border-t border-border/50">
             <h4 className="text-xs font-semibold text-foreground mb-1">Comfort</h4>
             <div>
               <button
                 onClick={() => updateFilter("sedationAvailable", !filters.sedationAvailable)}
-                className="w-full flex items-center justify-between py-2 cursor-pointer"
+                className="w-full flex items-center justify-between py-1.5 gap-4 cursor-pointer"
               >
                 <span className="text-xs text-foreground">Sedation available</span>
                 <Switch
@@ -192,7 +192,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
           </div>
 
           {/* Trust Section */}
-          <div className="pt-3 border-t border-border/50">
+          <div className="pt-2 border-t border-border/50">
             <h4 className="text-xs font-semibold text-foreground mb-1">Trust</h4>
             <div>
               <TooltipProvider>
@@ -224,7 +224,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
               </TooltipProvider>
               <button
                 onClick={() => updateFilter("highRatingOnly", !filters.highRatingOnly)}
-                className="w-full flex items-center justify-between py-2 cursor-pointer"
+                className="w-full flex items-center justify-between py-1.5 gap-4 cursor-pointer"
               >
                 <span className="text-xs text-foreground">Highly rated</span>
                 <Switch
@@ -275,9 +275,9 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
     )
   }
 
-  // Desktop sidebar — compact card, constrained width so toggles stay close
+  // Desktop sidebar — compact card
   return (
-    <div className="bg-white border border-border/50 rounded-2xl shadow-sm overflow-hidden max-w-[280px]">
+    <div className="bg-white border border-border/50 rounded-2xl shadow-sm overflow-hidden">
       <div className="p-4">
         <FilterContent />
       </div>
