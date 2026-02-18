@@ -22,7 +22,7 @@ const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREA
 const marqueeItems = [
   { text: "Trusted UK Clinics", icon: <Shield className="w-3.5 h-3.5" /> },
   { text: "Free Clinic Matching", icon: <Sparkles className="w-3.5 h-3.5" /> },
-  { text: "No Sign-Up Required", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+  { text: "Independent", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
   { text: "Verified Dental Practices", icon: <Heart className="w-3.5 h-3.5" /> },
 ]
 
@@ -157,31 +157,6 @@ export default function Home() {
           {/* Scrolling Marquee - right below hero */}
           <ScrollingMarquee items={marqueeItems} speed={35} />
 
-          {/* Trust bar - standalone section */}
-          <section className="py-8 border-y border-border/30 bg-white">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 lg:gap-12 max-w-3xl mx-auto">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
-                    <MapPin className="w-4 h-4 text-primary" />
-                  </div>
-                  <span className="text-sm text-foreground font-medium leading-tight">UK-focused</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
-                    <Shield className="w-4 h-4 text-primary" />
-                  </div>
-                  <span className="text-sm text-foreground font-medium leading-tight">Independent</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
-                    <Heart className="w-4 h-4 text-primary" />
-                  </div>
-                  <span className="text-sm text-foreground font-medium leading-tight">Dentist-led</span>
-                </div>
-              </div>
-            </div>
-          </section>
 
           {/* Trusted clinics section */}
           <section className="py-16 md:py-28 lg:py-32 bg-[#F8F1E7]">
