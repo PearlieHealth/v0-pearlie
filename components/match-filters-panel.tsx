@@ -116,8 +116,8 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
                     border
                     ${
                       isDistanceSelected(option)
-                        ? "bg-foreground text-background border-transparent"
-                        : "bg-background text-foreground border-border hover:bg-muted"
+                        ? "bg-[#004443] text-white border-transparent"
+                        : "bg-white text-[#004443] border-[#004443]/20 hover:bg-[#004443]/5"
                     }
                   `}
                 >
@@ -253,7 +253,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
     return (
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white">
+          <Button variant="outline" size="sm" className="gap-2 bg-white border-[#004443]/20 text-[#004443] hover:bg-[#004443]/5 shadow-sm">
             <SlidersHorizontal className="h-4 w-4" />
             Filters
             {hasActiveFilters && (

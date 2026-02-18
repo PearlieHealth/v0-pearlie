@@ -192,17 +192,17 @@ export function ClinicDatePicker({
                   "flex-1 min-w-[60px] py-2 px-1 rounded-lg border text-center transition-all",
                   dateInfo.isAvailable
                     ? isSelected
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-card hover:border-primary/50 cursor-pointer"
+                      ? "border-[#004443] bg-[#004443]/10 text-[#004443]"
+                      : "border-border bg-white hover:border-[#004443]/40 cursor-pointer"
                     : "border-muted bg-muted/30 text-muted-foreground cursor-not-allowed opacity-60"
                 )}
               >
                 <div className="text-[11px] sm:text-xs text-muted-foreground">{dayShort}</div>
-                <div className={cn("text-sm sm:text-base font-semibold", isSelected && "text-primary")}>{monthShort} {dateNum}</div>
+                <div className={cn("text-sm sm:text-base font-semibold", isSelected && "text-[#004443]")}>{monthShort} {dateNum}</div>
                 <div className={cn(
                   "text-xs",
-                  dateInfo.isAvailable 
-                    ? isSelected ? "text-primary" : "text-muted-foreground"
+                  dateInfo.isAvailable
+                    ? isSelected ? "text-[#004443]" : "text-muted-foreground"
                     : "text-muted-foreground"
                 )}>
                   {dateInfo.isAvailable ? `${slotCount} appts` : "Closed"}
@@ -237,7 +237,7 @@ export function ClinicDatePicker({
                   key={slot.key}
                   variant="outline"
                   size="sm"
-                  className="min-w-[80px] bg-transparent hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors"
+                  className="min-w-[80px] bg-transparent hover:bg-[#004443] hover:text-white hover:border-[#004443] transition-colors"
                   onClick={() => handleTimeSelect(slot.key)}
                 >
                   {slot.label}

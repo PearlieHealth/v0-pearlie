@@ -550,12 +550,12 @@ export default function MatchPage() {
   const match = { lead_id: leadId } // Assuming match object is needed for clinic actions
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#004443] via-[#00534f] to-[#004443]">
-      <header className="bg-[#003835] border-b border-white/10 sticky top-0 z-50">
+    <div className="min-h-screen bg-[#f8f1e7]">
+      <header className="bg-[#004443] border-b border-[#003835] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="rounded-full bg-white p-1.5 sm:p-2">
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-[#0fbcb0] fill-[#0fbcb0]" />
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-[#004443] fill-[#004443]" />
             </div>
             <span className="font-semibold text-lg sm:text-xl text-white">Pearlie</span>
           </Link>
@@ -566,8 +566,8 @@ export default function MatchPage() {
         {loading && (
           <div className="space-y-6">
             <div className="text-center py-12">
-              <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#0fbcb0] mb-4" />
-              <p className="text-white/70 text-lg">Finding your clinic matches...</p>
+              <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#004443] mb-4" />
+              <p className="text-muted-foreground text-lg">Finding your clinic matches...</p>
             </div>
             <div className="grid gap-6">
               {[1, 2, 3].map((i) => (
@@ -580,11 +580,11 @@ export default function MatchPage() {
         {!loading && error && (
           <Empty>
             <EmptyHeader>
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/10 mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-red-400" />
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-red-500" />
               </div>
-              <EmptyTitle className="text-white">Unable to load matches</EmptyTitle>
-              <EmptyDescription className="text-white/60">{error}</EmptyDescription>
+              <EmptyTitle className="text-[#004443]">Unable to load matches</EmptyTitle>
+              <EmptyDescription className="text-muted-foreground">{error}</EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Button onClick={() => window.location.reload()} variant="default">
@@ -597,11 +597,11 @@ export default function MatchPage() {
         {!loading && !error && allClinicsData.length === 0 && (
           <Empty>
             <EmptyHeader>
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/10 mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-white/50" />
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-[#004443]/10 mx-auto mb-4">
+                <MapPin className="w-8 h-8 text-[#004443]/50" />
               </div>
-              <EmptyTitle className="text-white">No matching clinics found</EmptyTitle>
-              <EmptyDescription className="text-white/60">
+              <EmptyTitle className="text-[#004443]">No matching clinics found</EmptyTitle>
+              <EmptyDescription className="text-muted-foreground">
                 We couldn't find clinics matching your criteria right now. We're growing our network — check back soon or try a different postcode.
               </EmptyDescription>
             </EmptyHeader>
@@ -616,12 +616,12 @@ export default function MatchPage() {
         {!loading && !error && allClinicsData.length > 0 && (
           <>
             {showExpansionBanner && (
-              <Alert className="mb-8 border-[#0fbcb0]/30 bg-white/10 backdrop-blur-sm">
-                <Info className="h-5 w-5 text-[#0fbcb0]" />
+              <Alert className="mb-8 border-[#004443]/20 bg-white shadow-sm">
+                <Info className="h-5 w-5 text-[#004443]" />
                 <AlertDescription className="ml-2">
                   <div className="space-y-2">
-                    <p className="font-semibold text-lg text-white">We're expanding to your area</p>
-                    <p className="text-sm text-white/70">
+                    <p className="font-semibold text-lg text-[#004443]">We're expanding to your area</p>
+                    <p className="text-sm text-muted-foreground">
                       We're launching London first. You can still explore clinics nearby
                       {minDistanceMiles && <> (closest is ~{minDistanceMiles.toFixed(1)} miles away)</>}
                       and we'll notify you as we expand.
@@ -646,22 +646,22 @@ export default function MatchPage() {
 
                 {/* View Toggle */}
                 <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center gap-2 bg-white rounded-lg p-1 border border-white/20 shadow-sm">
+                  <div className="flex items-center gap-1 bg-white rounded-lg p-1 border border-[#004443]/15 shadow-sm">
                     <Button
-                      variant={viewMode === "list" ? "default" : "ghost"}
+                      variant="ghost"
                       size="sm"
                       onClick={() => setViewMode("list")}
-                      className="gap-2"
+                      className={`gap-2 ${viewMode === "list" ? "bg-[#004443] text-white hover:bg-[#004443] hover:text-white" : "text-[#004443] border border-[#004443]/20 hover:bg-[#004443]/5"}`}
                     >
                       <List className="w-4 h-4" />
                       List
                     </Button>
                     {userLocation && (
                       <Button
-                        variant={viewMode === "map" ? "default" : "ghost"}
+                        variant="ghost"
                         size="sm"
                         onClick={() => setViewMode("map")}
-                        className="gap-2"
+                        className={`gap-2 ${viewMode === "map" ? "bg-[#004443] text-white hover:bg-[#004443] hover:text-white" : "text-[#004443] border border-[#004443]/20 hover:bg-[#004443]/5"}`}
                       >
                         <Map className="w-4 h-4" />
                         Map
@@ -669,7 +669,7 @@ export default function MatchPage() {
                     )}
                   </div>
 
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-muted-foreground">
                     {visibleClinics.length} of {displayedClinics.length}{" "}
                     {displayedClinics.length === 1 ? "clinic" : "clinics"}
                   </p>
@@ -687,8 +687,8 @@ export default function MatchPage() {
                       return (
                         <div key={clinic.id}>
                           {isFirstNonVerified && (
-                            <div className="py-4 border-t border-white/10">
-                              <p className="text-sm text-white/50 text-center">
+                            <div className="py-4 border-t border-[#004443]/10">
+                              <p className="text-sm text-muted-foreground text-center">
                                 Other clinics (not verified by Pearlie)
                               </p>
                             </div>
@@ -696,122 +696,75 @@ export default function MatchPage() {
                           <Card
                             ref={(el) => { clinicRefs.current[clinic.id] = el }}
                             data-clinic-id={clinic.id}
-                            className="p-6 transition-all duration-200 ease-out hover:shadow-lg"
+                            className="p-5 sm:p-6 transition-all duration-200 ease-out hover:shadow-lg border-0 shadow-sm bg-white rounded-2xl"
                           >
                             {getClinicLabel(clinic, index) && (
-                              <div className="mb-4">
-                                <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                              <div className="mb-3">
+                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
 clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_listing
                                       ? "bg-muted text-muted-foreground"
-                                      : "bg-primary text-primary-foreground"
+                                      : "bg-[#004443] text-white"
                                 }`}>
                                   {getClinicLabel(clinic, index)}
                                 </span>
                               </div>
                             )}
 
-                            <div className="flex flex-col md:flex-row gap-6">
-                              <div className="flex-shrink-0 space-y-3">
+                            <div className="flex flex-col md:flex-row gap-5">
+                              {/* Image */}
+                              <div className="flex-shrink-0">
                                 {clinic.images && clinic.images.length > 0 ? (
                                   <Image
                                     src={clinic.images[0] || "/placeholder.svg"}
                                     alt={clinic.name}
                                     width={200}
                                     height={150}
-                                    className="rounded-lg object-cover w-full md:w-[200px] h-[120px] sm:h-[150px]"
-                                    sizes="(max-width: 768px) 100vw, 200px"
+                                    className="rounded-xl object-cover w-full md:w-[180px] h-[120px] sm:h-[140px]"
+                                    sizes="(max-width: 768px) 100vw, 180px"
                                   />
                                 ) : (
-                                  <div className="w-full md:w-[200px] h-[150px] bg-muted rounded-lg flex items-center justify-center">
-                                    <MapPin className="w-12 h-12 text-muted-foreground" />
-                                  </div>
-                                )}
-                                
-                                {/* Feature highlights - vertical column */}
-                                {clinic.highlight_chips && clinic.highlight_chips.length > 0 && (
-                                  <div className="flex flex-wrap sm:flex-col gap-2 mt-4">
-                                    {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
-                                      const chipData = getChipData(chip)
-                                      return (
-                                        <div key={chip} className="flex items-center gap-2.5">
-                                          <div className="w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center flex-shrink-0">
-                                            {chipData.icon}
-                                          </div>
-                                          <span className="text-xs font-medium text-muted-foreground">
-                                            {chipData.label}
-                                          </span>
-                                        </div>
-                                      )
-                                    })}
+                                  <div className="w-full md:w-[180px] h-[140px] bg-[#f8f1e7] rounded-xl flex items-center justify-center">
+                                    <MapPin className="w-10 h-10 text-[#004443]/30" />
                                   </div>
                                 )}
                               </div>
 
-                              <div className="flex-1 space-y-4">
+                              <div className="flex-1 space-y-3">
+                                {/* Clinic name + match % row */}
                                 <div>
-                                  <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                      <h2 
-                                        onClick={() => handleClinicClick(clinic.id, index)}
-                                        className="text-xl sm:text-2xl font-bold mb-1 cursor-pointer text-foreground hover:text-primary transition-colors duration-200 underline decoration-primary/30 decoration-2 underline-offset-4 hover:decoration-primary"
-                                      >
-                                        {clinic.name}
-                                      </h2>
-                                      <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                                        <div className="flex items-center gap-1">
-                                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                          <span className="font-medium">{clinic.rating}</span>
-                                          <span>({clinic.review_count} reviews)</span>
-                                        </div>
-                                        {clinic.verified ? (
-                                          <div className="flex items-center gap-1 text-green-600">
-                                            <CheckCircle2 className="w-4 h-4" />
-                                            <span className="font-medium">Verified partner</span>
-                                          </div>
-                                        ) : (
-                                          <div className="flex items-center gap-1 text-muted-foreground">
-                                            <span className="text-xs">Directory listing</span>
-                                          </div>
-                                        )}
-                                        {clinic.offers_free_consultation && (
-                                          <div className="flex items-center gap-1 text-indigo-600">
-                                            <CheckCircle2 className="w-4 h-4" />
-                                            <span className="font-medium">Free consultation</span>
-                                          </div>
-                                        )}
-                                        {clinic.distance_miles !== undefined && (
-                                          <div className="flex items-center gap-1">
-                                            <MapPin className="w-4 h-4" />
-                                            <span>~{clinic.distance_miles.toFixed(1)} miles away</span>
-                                          </div>
-                                        )}
-                                        {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-                                          <Popover>
-                                            <PopoverTrigger asChild>
-                                              <button 
-                                                type="button"
-                                                className="flex items-center gap-1.5 text-primary font-semibold cursor-pointer px-2 py-2.5 -mx-2 -my-2.5 rounded-md hover:bg-primary/10 active:bg-primary/20 transition-colors touch-manipulation"
-                                                onClick={(e) => e.stopPropagation()}
-                                              >
-                                                <Sparkles className="w-4 h-4" />
-                                                <span>{clinic.match_percentage}% match</span>
-                                                <Info className="w-4 h-4 text-primary/70" />
-                                              </button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-72 p-4" align="end" side="bottom">
-                                              <div className="space-y-3">
-                                                <div>
-                                                  <h4 className="font-semibold text-sm text-foreground">How we calculated your match</h4>
-                                                  <p className="text-xs text-muted-foreground mt-1">
-                                                    This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.
-                                                  </p>
-                                                </div>
-                                                
-                                                {clinic.match_breakdown && clinic.match_breakdown.length > 0 ? (
-                                                  <div className="space-y-2.5">
-                                                    {clinic.match_breakdown.map((item) => {
-                                                      const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
-                                                      const stars = Math.round(ratio * 5)
+                                  <div className="flex items-start justify-between gap-3">
+                                    <h2
+                                      onClick={() => handleClinicClick(clinic.id, index)}
+                                      className="text-lg sm:text-xl font-bold cursor-pointer text-[#004443] hover:text-[#004443]/80 transition-colors duration-200"
+                                    >
+                                      {clinic.name}
+                                    </h2>
+                                    {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <button
+                                            type="button"
+                                            className="flex items-center gap-1.5 text-[#004443] font-bold text-sm cursor-pointer px-2.5 py-1 rounded-full border border-[#004443]/20 hover:bg-[#004443]/5 active:bg-[#004443]/10 transition-colors touch-manipulation whitespace-nowrap flex-shrink-0"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            <Sparkles className="w-3.5 h-3.5" />
+                                            <span>{clinic.match_percentage}%</span>
+                                          </button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-72 p-4" align="end" side="bottom">
+                                          <div className="space-y-3">
+                                            <div>
+                                              <h4 className="font-semibold text-sm text-[#004443]">How we calculated your match</h4>
+                                              <p className="text-xs text-muted-foreground mt-1">
+                                                This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.
+                                              </p>
+                                            </div>
+
+                                            {clinic.match_breakdown && clinic.match_breakdown.length > 0 ? (
+                                              <div className="space-y-2.5">
+                                                {clinic.match_breakdown.map((item) => {
+                                                  const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
+                                                  const stars = Math.round(ratio * 5)
 const categoryLabels: Record<string, string> = {
                                   treatment: "Treatment match",
                                   priorities: "Your priorities",
@@ -821,74 +774,104 @@ const categoryLabels: Record<string, string> = {
                                   distance: "Location",
                                   availability: "Appointment times",
                                 }
-                                                      return (
-                                                        <div key={item.category} className="flex items-center justify-between gap-2">
-                                                          <span className="text-xs text-muted-foreground">
-                                                            {categoryLabels[item.category] || item.category}
-                                                          </span>
-                                                          <div className="flex items-center gap-0.5">
-                                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                              <Star
-                                                                key={star}
-                                                                className={`w-3 h-3 ${
-                                                                  star <= stars
-                                                                    ? "fill-amber-400 text-amber-400"
-                                                                    : "fill-muted text-muted"
-                                                                }`}
-                                                              />
-                                                            ))}
-                                                          </div>
-                                                        </div>
-                                                      )
-                                                    })}
-                                                  </div>
-                                                ) : (
-                                                  <p className="text-xs text-muted-foreground">
-                                                    Based on your answers about treatment, priorities, and preferences.
-                                                  </p>
-                                                )}
-                                                
-                                                <div className="pt-2 border-t border-border">
-                                                  <p className="text-[10px] text-muted-foreground">
-                                                    More stars = stronger match to what you told us matters.
-                                                  </p>
-                                                </div>
+                                                  return (
+                                                    <div key={item.category} className="flex items-center justify-between gap-2">
+                                                      <span className="text-xs text-muted-foreground">
+                                                        {categoryLabels[item.category] || item.category}
+                                                      </span>
+                                                      <div className="flex items-center gap-0.5">
+                                                        {[1, 2, 3, 4, 5].map((star) => (
+                                                          <Star
+                                                            key={star}
+                                                            className={`w-3 h-3 ${
+                                                              star <= stars
+                                                                ? "fill-amber-400 text-amber-400"
+                                                                : "fill-muted text-muted"
+                                                            }`}
+                                                          />
+                                                        ))}
+                                                      </div>
+                                                    </div>
+                                                  )
+                                                })}
                                               </div>
-                                            </PopoverContent>
-                                          </Popover>
-                                        )}
-                                      </div>
+                                            ) : (
+                                              <p className="text-xs text-muted-foreground">
+                                                Based on your answers about treatment, priorities, and preferences.
+                                              </p>
+                                            )}
+
+                                            <div className="pt-2 border-t border-border">
+                                              <p className="text-[10px] text-muted-foreground">
+                                                More stars = stronger match to what you told us matters.
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </PopoverContent>
+                                      </Popover>
+                                    )}
+                                  </div>
+
+                                  {/* Rating, reviews, verified, distance row */}
+                                  <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap mt-1.5">
+                                    <div className="flex items-center gap-1">
+                                      <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                                      <span className="font-medium text-foreground">{clinic.rating}</span>
+                                      <span className="text-muted-foreground">({clinic.review_count})</span>
                                     </div>
+                                    {clinic.verified && (
+                                      <div className="flex items-center gap-1 text-[#004443]">
+                                        <CheckCircle2 className="w-3.5 h-3.5" />
+                                        <span className="text-xs font-medium">Verified</span>
+                                      </div>
+                                    )}
+                                    {clinic.distance_miles !== undefined && (
+                                      <div className="flex items-center gap-1">
+                                        <MapPin className="w-3.5 h-3.5 text-[#004443]" />
+                                        <span>~{clinic.distance_miles.toFixed(1)} mi</span>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
 
-                                {/* Why we matched you section */}
-                                <div className="border border-border/50 rounded-lg p-4 bg-background">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <Shield className="w-5 h-5 text-muted-foreground" />
-                                    <h3 className="font-semibold text-foreground">
-                                      {clinic.card_title || (clinic.tier === "directory"
-                                        ? "About this clinic"
-                                        : clinic.tier === "nearby"
-                                          ? "Other option in your area"
-                                          : clinic.is_emergency
-                                            ? "Why this clinic"
-                                            : index < 2
-                                              ? "Why we matched you"
-                                              : "Could also be a good match")}
-                                    </h3>
+                                {/* Feature chips - pill style */}
+                                {clinic.highlight_chips && clinic.highlight_chips.length > 0 && (
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
+                                      const chipData = getChipData(chip)
+                                      return (
+                                        <span key={chip} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border border-[#004443]/15 text-[#004443] bg-[#004443]/5">
+                                          {chipData.icon}
+                                          {chipData.label}
+                                        </span>
+                                      )
+                                    })}
                                   </div>
+                                )}
 
-                                  {/* Match reasons - Use composed sentences if available, fallback to raw */}
-                                  <div className="space-y-3 text-sm text-foreground leading-relaxed">
+                                {/* Why we matched you section */}
+                                <div className="rounded-xl p-4 bg-[#f8f1e7]/60 border-l-[3px] border-[#004443]">
+                                  <h3 className="font-semibold text-sm text-[#004443] mb-2">
+                                    {clinic.card_title || (clinic.tier === "directory"
+                                      ? "About this clinic"
+                                      : clinic.tier === "nearby"
+                                        ? "Other option in your area"
+                                        : clinic.is_emergency
+                                          ? "Why this clinic"
+                                          : index < 2
+                                            ? "Why we matched you"
+                                            : "Could also be a good match")}
+                                  </h3>
+
+                                  <div className="space-y-2 text-sm text-muted-foreground leading-relaxed">
                                     {clinic.tier === "directory" || clinic.is_directory_listing ? (
                                       <>
                                         <p>This clinic is listed in our directory and may be able to help with your dental needs.</p>
                                         {clinic.distance_miles && (
                                           <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
                                         )}
-                                        <p className="text-xs text-muted-foreground mt-2">
-                                          {clinic.verified === false 
+                                        <p className="text-xs text-muted-foreground/70 mt-1">
+                                          {clinic.verified === false
                                             ? "This clinic hasn't been verified yet, so we can't show personalised match information."
                                             : "This clinic hasn't completed our matching profile yet."}
                                         </p>
@@ -902,14 +885,12 @@ const categoryLabels: Record<string, string> = {
                                       </>
                                     ) : (
                                       (() => {
-                                        // Get reasons from the engine (already correct count: 2 for emergency, 3 for planning)
                                         const reasons = clinic.match_reasons_composed && clinic.match_reasons_composed.length > 0
                                           ? clinic.match_reasons_composed
                                           : clinic.match_reasons && clinic.match_reasons.length > 0
                                             ? clinic.match_reasons
                                             : []
 
-                                        // Max reasons: 2 for emergency, 3 for planning
                                         const maxReasons = clinic.is_emergency ? 2 : 3
 
                                         return reasons.slice(0, maxReasons).map((sentence: string, i: number) => (
@@ -918,26 +899,15 @@ const categoryLabels: Record<string, string> = {
                                       })()
                                     )}
                                   </div>
-
-                                  {/* Social proof message */}
-                                  <p className="text-xs text-muted-foreground mt-4 pt-3 border-t border-border/50">
-                                    Most patients book one of these clinics
-                                  </p>
                                 </div>
 
-                                {/* Clinic description */}
-                                {clinic.description && (
-                                  <p className="text-muted-foreground text-sm leading-relaxed">{clinic.description}</p>
-                                )}
-
                                 {/* Date Picker for Appointment Booking */}
-                                <div className="pt-2 border-t border-border/50">
+                                <div className="pt-3">
                                   <ClinicDatePicker
                                     availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
                                     availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
                                     acceptsSameDay={clinic.accepts_same_day || false}
                                     onSelectSlot={(date, time) => {
-                                      // Navigate to booking confirmation page
                                       const dateStr = date.toISOString().split("T")[0]
                                       window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&time=${time}`
                                     }}
@@ -945,40 +915,24 @@ const categoryLabels: Record<string, string> = {
                                 </div>
 
                                 {/* Bottom Actions */}
-                                <div className="pt-3 border-t border-border/50 flex items-center gap-3">
-                                  <Button
-                                    variant="outline"
-                                    className="flex-1 h-11 bg-transparent"
-                                    asChild
-                                  >
-                                    <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}>
-                                      View Profile
-                                    </Link>
-                                  </Button>
-                                  {clinic.phone && (
-                                    <Button
-                                      onClick={() =>
-                                        handleClinicAction(clinic.id, match.lead_id ?? "", "click_call", undefined, clinic.phone ?? undefined)
-                                      }
-                                      variant="outline"
-                                      className="flex-1 h-11 bg-transparent"
-                                    >
-                                      <Phone className="w-4 h-4" />
-                                      Call Clinic
-                                    </Button>
-                                  )}
+                                <div className="pt-3 flex items-center gap-3">
                                   {clinic.tier !== "directory" && (
                                     <Button
-                                      variant="outline"
-                                      className="flex-1 bg-transparent"
+                                      className="flex-1 h-11 bg-[#004443] hover:bg-[#003835] text-white rounded-full font-medium border-0"
                                       asChild
                                     >
                                       <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>
-                                        <MessageCircle className="w-4 h-4" />
-                                        Message
+                                        <MessageCircle className="w-4 h-4 mr-1.5" />
+                                        Message Clinic
                                       </Link>
                                     </Button>
                                   )}
+                                  <Link
+                                    href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}
+                                    className="text-sm font-medium text-[#004443] hover:text-[#004443]/70 transition-colors"
+                                  >
+                                    View Profile
+                                  </Link>
                                 </div>
                               </div>
                             </div>
@@ -988,7 +942,7 @@ const categoryLabels: Record<string, string> = {
                     })}
                     {hasMoreClinics && viewMode === "list" && (
                       <div className="flex justify-center mt-6">
-                        <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="lg" className="border-white/20 text-white hover:bg-white/10 hover:text-white">
+                        <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="lg" className="border-[#004443]/20 text-[#004443] hover:bg-[#004443]/5 bg-white rounded-full">
                           Show more clinics
                         </Button>
                       </div>
