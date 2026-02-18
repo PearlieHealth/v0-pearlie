@@ -24,16 +24,16 @@ const withoutPearlieFeatures = [
 
 export function ComparisonTable() {
   return (
-    <section className="py-16 md:py-28 lg:py-32 bg-white">
+    <section className="py-16 md:py-28 lg:py-32 bg-[#004443]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12 md:mb-16">
-            <span className="overline block mb-3">Why Pearlie</span>
-            <h3 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-foreground">
+            <span className="overline block mb-3 text-[#0fbcb0]">Why Pearlie</span>
+            <h3 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white">
               Dental decisions shouldn&apos;t feel stressful.
             </h3>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
               Pearlie gives you space to think before you&apos;re in the chair.
             </p>
           </div>
@@ -103,7 +103,7 @@ export function ComparisonTable() {
 
           {/* Tagline */}
           <div className="text-center mb-10">
-            <p className="text-lg text-foreground/80 font-medium leading-relaxed max-w-xl mx-auto">
+            <p className="text-lg text-white/70 font-medium leading-relaxed max-w-xl mx-auto">
               Taking time to think isn&apos;t hesitation. It&apos;s good decision-making.
             </p>
           </div>
@@ -112,12 +112,12 @@ export function ComparisonTable() {
           <div className="text-center">
             <Button
               size="lg"
-              className="text-base px-10 h-14 bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full shadow-lg hover:shadow-xl transition-all mb-3"
+              className="text-base px-10 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all mb-3 border-0"
               asChild
             >
               <Link href="/intake">Get my clinic matches</Link>
             </Button>
-            <p className="text-sm text-muted-foreground">Free • No sign-up required</p>
+            <p className="text-sm text-white/50">Free • No sign-up required</p>
           </div>
         </div>
       </div>

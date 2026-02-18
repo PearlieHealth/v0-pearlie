@@ -25,8 +25,8 @@ export function ScrollingMarquee({ items, speed = 30, variant = "light" }: Scrol
   }, [])
 
   const isDark = variant === "dark"
-  const bgClass = isDark ? "bg-[#004443]" : "bg-[#0fbcb0]"
-  const textClass = isDark ? "text-white/80" : "text-white"
+  const bgClass = isDark ? "bg-[#004443]" : "bg-[#004443]"
+  const textClass = isDark ? "text-white/80" : "text-white/90"
 
 
   if (prefersReducedMotion) {

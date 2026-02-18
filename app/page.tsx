@@ -28,12 +28,6 @@ const marqueeItems = [
 
 const rotatingWords = ["right", "easy", "simple", "clear", "effortless"]
 
-const marqueeItemsDark = [
-  { text: "Verified Clinics", icon: <Shield className="w-3.5 h-3.5" /> },
-  { text: "Patient-First", icon: <Heart className="w-3.5 h-3.5" /> },
-  { text: "Independent & Trusted", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
-  { text: "Free to Use", icon: <Sparkles className="w-3.5 h-3.5" /> },
-]
 
 export default function Home() {
   const [showLoading, setShowLoading] = useState(() => {
@@ -156,65 +150,6 @@ export default function Home() {
 
           {/* Scrolling Marquee - right below hero */}
           <ScrollingMarquee items={marqueeItems} speed={35} />
-
-
-          {/* Trusted clinics section */}
-          <section className="py-16 md:py-28 lg:py-32 bg-[#F8F1E7]">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="max-w-6xl mx-auto">
-                <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-                  {/* Clinic Carousel */}
-                  <ClinicCarousel />
-
-                  {/* Content */}
-                  <div className="lg:pl-4">
-                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6 text-foreground text-balance">
-                      Qualified, vetted dental clinics you can trust
-                    </h2>
-                    <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                      Access a carefully curated network of clinics reviewed for clinical quality, communication, patient experience, and transparency. Helping you make confident, informed dental decisions.
-                    </p>
-                    <div className="space-y-4 mb-8">
-                      {[
-                        {
-                          title: "Patient-first clinics",
-                          desc: "Clinics selected for their communication style, empathy, and patient-centred care, so you feel heard, respected, and supported at every step.",
-                        },
-                        {
-                          title: "Transparent & ethical care",
-                          desc: "Clear explanations, honest recommendations, and upfront pricing",
-                        },
-                        {
-                          title: "Highly rated clinics",
-                          desc: "Clinics rated highly by patients for comfort, results, and experience — so you know what to expect before you book.",
-                        },
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl">
-                          <div className="rounded-full bg-white p-1.5 mt-0.5 shadow-sm">
-                            <CheckCircle2 className="w-4 h-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground">{item.title}</p>
-                            <p className="text-sm text-muted-foreground">{item.desc}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <Button
-                      size="lg"
-                      className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all group border-0"
-                      asChild
-                    >
-                      <Link href="/intake">
-                        Find my clinic
-                        <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
 
           {/* How it works section */}
           <section id="how-it-works" className="py-20 md:py-32 lg:py-36 bg-white relative overflow-hidden">
@@ -406,39 +341,66 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Comparison table - standalone */}
-          <ComparisonTable />
+          {/* Trusted clinics section */}
+          <section className="py-16 md:py-28 lg:py-32 bg-[#F8F1E7]">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="max-w-6xl mx-auto">
+                <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+                  {/* Clinic Carousel */}
+                  <ClinicCarousel />
 
-          {/* CTA section - dark teal background */}
-          <section className="py-24 md:py-32 lg:py-36 bg-[#004443] text-white relative overflow-hidden">
-            {/* Decorative background blobs */}
-            <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-white/[0.03] blur-3xl pointer-events-none" />
-            <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-[#0fbcb0]/[0.08] blur-2xl pointer-events-none" />
-
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-              <div className="max-w-3xl mx-auto text-center">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-balance">
-                  Ready to find the right dental clinic for you?
-                </h2>
-                <p className="text-lg md:text-xl mb-10 opacity-90 leading-relaxed">
-                  Answer a few quick questions and we&apos;ll match you with trusted clinics near you.
-                </p>
-                <Button
-                  size="lg"
-                  className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-xl hover:shadow-2xl transition-all text-lg font-semibold border-0"
-                  asChild
-                >
-                  <Link href="/intake">
-                    Find my clinic
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Link>
-                </Button>
+                  {/* Content */}
+                  <div className="lg:pl-4">
+                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6 text-foreground text-balance">
+                      Qualified, vetted dental clinics you can trust
+                    </h2>
+                    <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                      Access a carefully curated network of clinics reviewed for clinical quality, communication, patient experience, and transparency. Helping you make confident, informed dental decisions.
+                    </p>
+                    <div className="space-y-4 mb-8">
+                      {[
+                        {
+                          title: "Patient-first clinics",
+                          desc: "Clinics selected for their communication style, empathy, and patient-centred care, so you feel heard, respected, and supported at every step.",
+                        },
+                        {
+                          title: "Transparent & ethical care",
+                          desc: "Clear explanations, honest recommendations, and upfront pricing",
+                        },
+                        {
+                          title: "Highly rated clinics",
+                          desc: "Clinics rated highly by patients for comfort, results, and experience — so you know what to expect before you book.",
+                        },
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl">
+                          <div className="rounded-full bg-white p-1.5 mt-0.5 shadow-sm">
+                            <CheckCircle2 className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground">{item.title}</p>
+                            <p className="text-sm text-muted-foreground">{item.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      size="lg"
+                      className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all group border-0"
+                      asChild
+                    >
+                      <Link href="/intake">
+                        Find my clinic
+                        <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
 
-          {/* Dark scrolling marquee — flows from CTA section */}
-          <ScrollingMarquee items={marqueeItemsDark} speed={40} variant="dark" />
+          {/* Comparison table */}
+          <ComparisonTable />
 
           {/* Testimonials section */}
           <section className="py-16 md:py-28 lg:py-32 bg-[#F8F1E7]">
@@ -497,6 +459,34 @@ export default function Home() {
                     </Card>
                   ))}
                 </div>
+              </div>
+            </div>
+          </section>
+
+          {/* CTA section - dark teal background */}
+          <section className="py-24 md:py-32 lg:py-36 bg-[#004443] text-white relative overflow-hidden">
+            {/* Decorative background blobs */}
+            <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-white/[0.03] blur-3xl pointer-events-none" />
+            <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-[#0fbcb0]/[0.08] blur-2xl pointer-events-none" />
+
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+              <div className="max-w-3xl mx-auto text-center">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-balance">
+                  Ready to find the right dental clinic for you?
+                </h2>
+                <p className="text-lg md:text-xl mb-10 opacity-90 leading-relaxed">
+                  Answer a few quick questions and we&apos;ll match you with trusted clinics near you.
+                </p>
+                <Button
+                  size="lg"
+                  className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-xl hover:shadow-2xl transition-all text-lg font-semibold border-0"
+                  asChild
+                >
+                  <Link href="/intake">
+                    Find my clinic
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Link>
+                </Button>
               </div>
             </div>
           </section>
