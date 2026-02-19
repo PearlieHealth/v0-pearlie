@@ -62,7 +62,10 @@ interface Lead {
     id: string
     last_message_at: string
     unread_by_clinic: boolean
+    unread_count_clinic?: number
     clinic_first_reply_at: string | null
+    latest_message?: string | null
+    latest_message_sender?: string | null
   }
 }
 
@@ -152,7 +155,7 @@ export default function AppointmentsPage() {
         .order("created_at", { ascending: false }),
       supabase
         .from("conversations")
-        .select("id, lead_id, last_message_at, unread_by_clinic, clinic_first_reply_at")
+        .select("id, lead_id, last_message_at, unread_by_clinic, unread_count_clinic, clinic_first_reply_at")
         .eq("clinic_id", cId),
     ])
 
@@ -206,7 +209,37 @@ export default function AppointmentsPage() {
 
     const statusMap = new Map(statuses?.map((s) => [s.lead_id, s]) || [])
     const bookingMap = new Map(bookings?.map((b) => [b.lead_id, b]) || [])
-    const convMap = new Map((allConversations || []).map((c) => [c.lead_id, c]))
+
+    // Fetch latest message per conversation for previews
+    const convIds = (allConversations || []).map((c) => c.id)
+    const latestMessageMap = new Map<string, { content: string; sender_type: string }>()
+    if (convIds.length > 0) {
+      const { data: recentMessages } = await supabase
+        .from("messages")
+        .select("conversation_id, content, sender_type, created_at")
+        .in("conversation_id", convIds)
+        .order("created_at", { ascending: false })
+
+      for (const msg of recentMessages || []) {
+        if (!latestMessageMap.has(msg.conversation_id)) {
+          latestMessageMap.set(msg.conversation_id, {
+            content: (msg.content || "").substring(0, 100),
+            sender_type: msg.sender_type,
+          })
+        }
+      }
+    }
+
+    const convMap = new Map(
+      (allConversations || []).map((c) => {
+        const latestMsg = latestMessageMap.get(c.id)
+        return [c.lead_id, {
+          ...c,
+          latest_message: latestMsg?.content || null,
+          latest_message_sender: latestMsg?.sender_type || null,
+        }]
+      })
+    )
 
     // Build leads from match_results
     const matchLeads = (matchResults || [])
@@ -332,9 +365,9 @@ export default function AppointmentsPage() {
   const todoCount = newRequests.length + needsScheduling.length + needsConfirming.length
 
   const tabs = [
-    { key: "todos" as Tab, label: "To Do's", count: todoCount, icon: Inbox },
-    { key: "upcoming" as Tab, label: "Upcoming", count: upcoming.length, icon: CalendarDays },
-    { key: "history" as Tab, label: "History", count: history.length, icon: History },
+    { key: "todos" as Tab, label: "New Requests", count: todoCount, icon: Inbox },
+    { key: "upcoming" as Tab, label: "Scheduled", count: upcoming.length, icon: CalendarDays },
+    { key: "history" as Tab, label: "Completed", count: history.length, icon: History },
   ]
 
   // Bulk actions
@@ -445,7 +478,7 @@ export default function AppointmentsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Appointments</h1>
           <p className="text-muted-foreground">
-            Manage patient requests, schedule appointments, and track progress
+            Patient requests, messages, scheduling, and progress — all in one place
           </p>
         </div>
         <Button

@@ -9,6 +9,7 @@ import { ClinicMobileNav } from "./clinic-mobile-nav"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { useClinicNotifications } from "@/hooks/use-clinic-notifications"
 
 interface ClinicData {
   id: string
@@ -27,13 +28,17 @@ interface ClinicShellProps {
 export function ClinicShell({ children }: ClinicShellProps) {
   const [clinic, setClinic] = useState<ClinicData | null>(null)
   const [userData, setUserData] = useState<UserData | null>(null)
-  const [newLeadsCount, setNewLeadsCount] = useState(0)
-  const [unrepliedCount, setUnrepliedCount] = useState(0)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [debugError, setDebugError] = useState<string | null>(null)
   const router = useRouter()
   const pathname = usePathname()
+
+  // Real-time notification system
+  const { counts } = useClinicNotifications({
+    clinicId: clinic?.id || null,
+    enabled: !!clinic,
+  })
 
   const fetchData = async () => {
     // Auth pages (login, forgot-password, etc.) should render directly — no auth check needed
@@ -111,23 +116,7 @@ export function ClinicShell({ children }: ClinicShellProps) {
         clinicIds: [data.clinic.id],
       })
 
-      // Get new leads count and unreplied conversations count
-      const supabase = createBrowserClient()
-      const [{ count }, { count: unreplied }] = await Promise.all([
-        supabase
-          .from("lead_clinic_status")
-          .select("*", { count: "exact", head: true })
-          .eq("clinic_id", data.clinic.id)
-          .eq("status", "NEW"),
-        supabase
-          .from("conversations")
-          .select("*", { count: "exact", head: true })
-          .eq("clinic_id", data.clinic.id)
-          .is("clinic_first_reply_at", null),
-      ])
-
-      setNewLeadsCount(count || 0)
-      setUnrepliedCount(unreplied || 0)
+      // Badge counts are now handled by useClinicNotifications hook (real-time)
     } catch (error) {
       console.error("Auth check failed:", error)
       setDebugError(`Exception: ${error instanceof Error ? error.message : String(error)}`)
@@ -192,8 +181,9 @@ export function ClinicShell({ children }: ClinicShellProps) {
           clinicName={clinic.name}
           clinicId={clinic.id}
           userRole={userData.role}
-          newLeadsCount={newLeadsCount}
-          unrepliedCount={unrepliedCount}
+          newLeadsCount={counts.newLeads}
+          unrepliedCount={counts.unrepliedConversations}
+          unreadMessagesCount={counts.unreadMessages}
         />
       </div>
 
@@ -212,7 +202,9 @@ export function ClinicShell({ children }: ClinicShellProps) {
                 clinicName={clinic.name}
                 clinicId={clinic.id}
                 userRole={userData.role}
-                newLeadsCount={newLeadsCount}
+                newLeadsCount={counts.newLeads}
+                unrepliedCount={counts.unrepliedConversations}
+                unreadMessagesCount={counts.unreadMessages}
               />
             </SheetContent>
           </Sheet>

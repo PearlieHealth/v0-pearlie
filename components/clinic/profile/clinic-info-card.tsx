@@ -8,7 +8,6 @@ interface ClinicInfoCardProps {
 }
 
 export function ClinicInfoCard({ clinic }: ClinicInfoCardProps) {
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}`
   const websiteUrl = clinic.website
     ? clinic.website.startsWith("http") ? clinic.website : `https://${clinic.website}`
     : null
@@ -16,14 +15,9 @@ export function ClinicInfoCard({ clinic }: ClinicInfoCardProps) {
   return (
     <div className="border border-[#e5e5e5] rounded-xl overflow-hidden">
       <div className="divide-y divide-[#f0f0f0]">
-        {/* Address */}
-        <a
-          href={googleMapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-start gap-3.5 px-5 py-3.5 hover:bg-[#fafafa] transition-colors group"
-        >
-          <MapPin className="h-[18px] w-[18px] text-[#999] mt-0.5 flex-shrink-0 group-hover:text-[#666]" />
+        {/* Address (non-clickable — keep patients on page) */}
+        <div className="flex items-start gap-3.5 px-5 py-3.5">
+          <MapPin className="h-[18px] w-[18px] text-[#999] mt-0.5 flex-shrink-0" />
           <div className="min-w-0">
             <p className="text-sm text-[#444] leading-snug">{clinic.address}</p>
             {(clinic.city || clinic.postcode) && (
@@ -32,7 +26,7 @@ export function ClinicInfoCard({ clinic }: ClinicInfoCardProps) {
               </p>
             )}
           </div>
-        </a>
+        </div>
 
         {/* Phone */}
         {clinic.phone && (

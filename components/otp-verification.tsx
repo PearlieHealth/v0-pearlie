@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2, Mail, CheckCircle, AlertCircle } from "lucide-react"
@@ -99,6 +100,23 @@ export function OTPVerification({ leadId, email, onVerified, onBack }: OTPVerifi
       }
 
       setSuccess(true)
+
+      // Auto-sign in: if the server returned a token_hash, use it to set
+      // the Supabase session cookie silently (no redirect). This means the
+      // patient is fully logged in after OTP — no separate login step needed.
+      if (data.tokenHash) {
+        try {
+          const supabase = createClient()
+          await supabase.auth.verifyOtp({
+            token_hash: data.tokenHash,
+            type: "magiclink",
+          })
+        } catch (signInErr) {
+          // Non-blocking: patient can still use magic link later
+          console.error("[OTP] Silent sign-in failed:", signInErr)
+        }
+      }
+
       setTimeout(() => onVerified(), 1000)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed")

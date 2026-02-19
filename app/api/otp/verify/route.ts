@@ -149,9 +149,33 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Generate a token so the client can auto-sign in silently (non-blocking)
+    let tokenHash: string | null = null
+    const userId = updateData.user_id || lead.user_id
+    if (userId && lead.email) {
+      try {
+        const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+        const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+          type: "magiclink",
+          email: lead.email,
+          options: {
+            redirectTo: `${appUrl}/auth/callback?next=/patient/dashboard`,
+          },
+        })
+        if (!linkError && linkData?.properties?.hashed_token) {
+          tokenHash = linkData.properties.hashed_token
+        } else if (linkError) {
+          console.error("[OTP] Failed to generate sign-in token:", linkError)
+        }
+      } catch (signInError) {
+        console.error("[OTP] Error generating sign-in token:", signInError)
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: "Email verified successfully",
+      ...(tokenHash ? { tokenHash } : {}),
     })
   } catch (error) {
     console.error("[OTP] Unexpected error:", error)

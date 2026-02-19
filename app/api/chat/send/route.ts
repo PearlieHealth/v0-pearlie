@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 import { escapeHtml } from "@/lib/escape-html"
@@ -16,7 +17,7 @@ const chatSendLimiter = createRateLimiter({ windowMs: 60 * 1000, maxAttempts: 10
 
 export async function POST(request: NextRequest) {
   try {
-    const { leadId, clinicId, content, senderType } = await request.json()
+    const { leadId, clinicId, content, senderType, messageType } = await request.json()
 
     if (!leadId || !clinicId || !content) {
       return NextResponse.json(
@@ -82,12 +83,31 @@ export async function POST(request: NextRequest) {
     // Get lead details (extended for AI bot context)
     const { data: lead, error: leadError } = await supabase
       .from("leads")
-      .select("id, is_verified, first_name, last_name, email, treatment_interest, budget_range, pain_score, has_swelling, has_bleeding, additional_info")
+      .select("id, user_id, is_verified, first_name, last_name, email, treatment_interest, budget_range, pain_score, has_swelling, has_bleeding, additional_info")
       .eq("id", leadId)
       .single()
 
     if (leadError || !lead) {
       return NextResponse.json({ error: "Lead not found" }, { status: 404 })
+    }
+
+    // Authenticate patient senders: verify the requesting user owns this lead
+    if (senderType === "patient") {
+      const supabaseAuth = await createClient()
+      const { data: { user: authUser } } = await supabaseAuth.auth.getUser()
+
+      if (!authUser) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+
+      const ownsLead = (
+        (lead.user_id && lead.user_id === authUser.id) ||
+        (!lead.user_id && lead.email && lead.email.toLowerCase() === authUser.email?.toLowerCase())
+      )
+
+      if (!ownsLead) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
     }
 
     // Verify patient email before sending (for patient messages)
@@ -198,6 +218,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // If this is an appointment request, check if one was already sent for this conversation
+    if (messageType === "appointment_request") {
+      const { data: convCheck } = await supabase
+        .from("conversations")
+        .select("appointment_requested_at")
+        .eq("id", conversation.id)
+        .single()
+
+      if (convCheck?.appointment_requested_at) {
+        return NextResponse.json(
+          { error: "An appointment request has already been sent for this clinic." },
+          { status: 409 }
+        )
+      }
+    }
+
     // Create message with delivery status
     const { data: message, error: messageError } = await supabase
       .from("messages")
@@ -207,6 +243,7 @@ export async function POST(request: NextRequest) {
         content: trimmedContent,
         sent_via: "chat",
         status: "sent",
+        ...(messageType === "appointment_request" ? { message_type: "appointment_request" } : {}),
       })
       .select("*")
       .single()
@@ -219,25 +256,61 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update conversation: set unread flags, increment unread counts, update timestamp
-    const updateData: Record<string, any> = {
-      last_message_at: new Date().toISOString(),
-    }
-    if (senderType === "patient") {
-      updateData.unread_by_clinic = true
-      updateData.unread_count_clinic = ((conversation as any).unread_count_clinic || 0) + 1
-    } else {
-      updateData.unread_by_patient = true
-      updateData.unread_count_patient = ((conversation as any).unread_count_patient || 0) + 1
+    // Mark conversation as having an appointment request
+    if (messageType === "appointment_request") {
+      await supabase
+        .from("conversations")
+        .update({ appointment_requested_at: new Date().toISOString() })
+        .eq("id", conversation.id)
     }
 
-    const { error: updateError } = await supabase
-      .from("conversations")
-      .update(updateData)
-      .eq("id", conversation.id)
+    // Atomically update unread counts via Postgres function (avoids read-then-write race)
+    const { error: rpcError } = await supabase.rpc('increment_unread', {
+      p_conversation_id: conversation.id,
+      p_sender_type: senderType,
+    })
 
-    if (updateError) {
-      console.error("[Chat] Failed to update conversation:", updateError)
+    if (rpcError) {
+      // Fallback: re-fetch then update if RPC not yet deployed
+      console.warn("[Chat] increment_unread RPC failed, falling back:", rpcError.message)
+      const { data: freshConv } = await supabase
+        .from("conversations")
+        .select("unread_count_clinic, unread_count_patient")
+        .eq("id", conversation.id)
+        .single()
+
+      const updateData: Record<string, any> = {
+        last_message_at: new Date().toISOString(),
+      }
+      if (senderType === "patient") {
+        updateData.unread_by_clinic = true
+        updateData.unread_count_clinic = ((freshConv?.unread_count_clinic) || 0) + 1
+      } else {
+        updateData.unread_by_patient = true
+        updateData.unread_count_patient = ((freshConv?.unread_count_patient) || 0) + 1
+      }
+
+      const { error: updateError } = await supabase
+        .from("conversations")
+        .update(updateData)
+        .eq("id", conversation.id)
+
+      if (updateError) {
+        console.error("[Chat] Failed to update conversation:", updateError)
+      }
+    }
+
+    // Broadcast the new message for real-time delivery (bypasses RLS)
+    try {
+      const broadcastChannel = supabase.channel(`chat:${conversation.id}`)
+      await broadcastChannel.send({
+        type: "broadcast",
+        event: "new_message",
+        payload: { message },
+      })
+      await supabase.removeChannel(broadcastChannel)
+    } catch (broadcastError) {
+      console.error("[Chat] Broadcast error:", broadcastError)
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
@@ -448,6 +521,21 @@ export async function POST(request: NextRequest) {
         }
       } catch (followUpError) {
         console.error("[Chat] Bot follow-up error:", followUpError)
+      }
+    }
+
+    // Broadcast bot messages for real-time delivery
+    for (const botMsg of botMessages) {
+      try {
+        const broadcastChannel = supabase.channel(`chat:${conversation.id}`)
+        await broadcastChannel.send({
+          type: "broadcast",
+          event: "new_message",
+          payload: { message: botMsg },
+        })
+        await supabase.removeChannel(broadcastChannel)
+      } catch (broadcastError) {
+        console.error("[Chat] Bot broadcast error:", broadcastError)
       }
     }
 
