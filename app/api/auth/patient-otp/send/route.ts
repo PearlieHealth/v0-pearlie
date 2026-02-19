@@ -5,12 +5,13 @@ import { sendEmailWithRetry } from "@/lib/email-send"
 import { EMAIL_FROM } from "@/lib/email-config"
 import { createRateLimiter } from "@/lib/rate-limit"
 
-const OTP_SECRET = process.env.SUPABASE_JWT_SECRET!
-if (!OTP_SECRET) throw new Error("SUPABASE_JWT_SECRET environment variable is required")
-
 const ipLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, maxAttempts: 10 })
 
 export async function POST(request: NextRequest) {
+  const OTP_SECRET = process.env.SUPABASE_JWT_SECRET
+  if (!OTP_SECRET) {
+    return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
+  }
   try {
     // IP-based rate limiting
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
