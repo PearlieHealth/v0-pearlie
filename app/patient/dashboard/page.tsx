@@ -342,6 +342,7 @@ export default function PatientDashboard() {
   useEffect(() => {
     if (selectedConvId) {
       setPendingChatClinic(null) // Clear pending state when a real conv is selected
+      setChatError(null) // Clear any previous chat errors
       // Skip fetch when we just sent a message that created this conversation —
       // we already have the correct messages in state and a fetch would
       // replace them (including bot messages queued for delayed display).
@@ -632,6 +633,9 @@ export default function PatientDashboard() {
   }
 
   function openConversationForClinic(clinicId: string, { openDrawer = true }: { openDrawer?: boolean } = {}) {
+    // Clear any previous chat errors when switching conversations
+    setChatError(null)
+
     // Match by both clinic_id AND lead_id so we pick the right conversation
     // when a patient has multiple leads/searches with the same clinic.
     const conv = inboxConversations.find(

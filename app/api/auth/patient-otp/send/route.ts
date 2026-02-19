@@ -83,8 +83,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Send OTP email
-    try {
-      await sendEmailWithRetry({
+    {
+      const emailResult = await sendEmailWithRetry({
         from: EMAIL_FROM.NOREPLY,
         to: email,
         subject: "Your Pearlie login code",
@@ -127,9 +127,11 @@ export async function POST(request: NextRequest) {
           </html>
         `,
       })
-    } catch (emailError) {
-      console.error("[Patient OTP] Failed to send email:", emailError)
-      return NextResponse.json({ error: "Failed to send verification email. Please try again." }, { status: 500 })
+
+      if (!emailResult.success) {
+        console.error("[Patient OTP] Email send failed:", emailResult.error)
+        return NextResponse.json({ error: "Failed to send verification email. Please try again." }, { status: 500 })
+      }
     }
 
     return NextResponse.json({

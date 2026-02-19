@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send branded email via Resend
-    await sendEmailWithRetry({
+    const emailResult = await sendEmailWithRetry({
       from: EMAIL_FROM.NOREPLY,
       to: email,
       subject: "Your Pearlie login link",
@@ -177,6 +177,11 @@ export async function POST(request: NextRequest) {
         </html>
       `,
     })
+
+    if (!emailResult.success) {
+      console.error("[LoginLink] Email send failed:", emailResult.error)
+      return NextResponse.json({ error: "Failed to send login link. Please try again." }, { status: 500 })
+    }
 
     return NextResponse.json({
       success: true,
