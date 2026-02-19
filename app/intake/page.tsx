@@ -53,6 +53,11 @@ export default function IntakePage() {
   const formStartTimeRef = useRef<number>(Date.now())
   const [animatedSteps, setAnimatedSteps] = useState<Set<number>>(new Set())
   const [outsideLondonArea, setOutsideLondonArea] = useState<string | null>(null)
+  const [matchFailed, setMatchFailed] = useState<string | null>(null)
+  const [matchRetryLeadId, setMatchRetryLeadId] = useState<string | null>(null)
+  const [waitlistEmail, setWaitlistEmail] = useState("")
+  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false)
+  const [waitlistDone, setWaitlistDone] = useState(false)
 
   const [utmParams, setUtmParams] = useState<Record<string, string>>({})
 
@@ -492,7 +497,9 @@ export default function IntakePage() {
       if (!matchData?.matchId) {
         // Store leadId for potential manual retry
         localStorage.setItem("pearlie_failed_lead_id", leadId)
-        throw new Error(lastMatchError || "Failed to create match after 3 attempts")
+        setMatchRetryLeadId(leadId)
+        setMatchFailed(lastMatchError || "Failed to create match after 3 attempts")
+        return
       }
 
       // I1: Clear form draft after successful submission
@@ -505,6 +512,40 @@ export default function IntakePage() {
       toast({ title: "Something went wrong", description: `Please try again or contact support. (${errMsg})`, variant: "destructive" })
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  // Retry match creation with backoff
+  async function handleMatchRetry() {
+    if (!matchRetryLeadId) return
+    setIsSubmitting(true)
+    setMatchFailed(null)
+    let matchData = null
+    let lastErr = ""
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const matchRes = await fetch("/api/match", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ leadId: matchRetryLeadId }),
+        })
+        if (matchRes.ok) {
+          matchData = await matchRes.json()
+          break
+        }
+        lastErr = `Match failed (${matchRes.status})`
+        if (matchRes.status < 500) break
+      } catch {
+        lastErr = "Network error during matching"
+      }
+      if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)))
+    }
+    setIsSubmitting(false)
+    if (matchData?.matchId) {
+      localStorage.removeItem("pearlie_form_draft")
+      router.push(`/match/${matchData.matchId}`)
+    } else {
+      setMatchFailed(lastErr || "Still unable to create match")
     }
   }
 
@@ -686,6 +727,34 @@ export default function IntakePage() {
       {/* Main content */}
       <main className="flex-1 flex flex-col">
         <div className="flex-1 max-w-2xl w-full mx-auto px-4 py-8 md:py-12">
+          {/* Match failure inline card */}
+          {matchFailed && (
+            <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-4">
+              <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
+              <h2 className="text-lg font-semibold text-[#222]">We couldn&apos;t find your matches</h2>
+              <p className="text-sm text-[#222]/70">{matchFailed}</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  onClick={handleMatchRetry}
+                  disabled={isSubmitting}
+                  className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                >
+                  {isSubmitting ? "Retrying..." : "Try again"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setMatchFailed(null)
+                    setMatchRetryLeadId(null)
+                    setStep(1)
+                  }}
+                >
+                  Start over
+                </Button>
+              </div>
+            </div>
+          )}
+
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -1325,22 +1394,71 @@ export default function IntakePage() {
         </div>
       </main>
 
-      {/* Outside London hard-block dialog */}
-      <AlertDialog open={outsideLondonArea !== null} onOpenChange={(open) => { if (!open) setOutsideLondonArea(null) }}>
+      {/* Outside London hard-block dialog with waitlist */}
+      <AlertDialog open={outsideLondonArea !== null} onOpenChange={(open) => { if (!open) { setOutsideLondonArea(null); setWaitlistDone(false) } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>We're not in your area yet</AlertDialogTitle>
-            <AlertDialogDescription className="text-base leading-relaxed">
-              We're currently serving patients in <span className="font-semibold text-foreground">{SUPPORTED_REGION}</span> only.
-              {outsideLondonArea && (
-                <> It looks like you're in <span className="font-semibold text-foreground">{outsideLondonArea}</span>.</>
-              )}
-              {" "}We're expanding soon — watch this space!
+            <AlertDialogTitle>We&apos;re not in your area yet</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="text-base leading-relaxed space-y-4">
+                <p>
+                  We&apos;re currently serving patients in <span className="font-semibold text-foreground">{SUPPORTED_REGION}</span> only.
+                  {outsideLondonArea && (
+                    <> It looks like you&apos;re in <span className="font-semibold text-foreground">{outsideLondonArea}</span>.</>
+                  )}
+                  {" "}We&apos;re expanding soon!
+                </p>
+
+                {!waitlistDone ? (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Get notified when we launch in your area:</p>
+                    <div className="flex gap-2">
+                      <Input
+                        type="email"
+                        placeholder="your@email.com"
+                        value={waitlistEmail || formData.email}
+                        onChange={(e) => setWaitlistEmail(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        size="sm"
+                        disabled={!(waitlistEmail || formData.email).includes("@") || waitlistSubmitting}
+                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                        onClick={async () => {
+                          setWaitlistSubmitting(true)
+                          try {
+                            await fetch("/api/waitlist", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                email: waitlistEmail || formData.email,
+                                postcode: formData.postcode,
+                                area: outsideLondonArea || "outside_london",
+                              }),
+                            })
+                            setWaitlistDone(true)
+                          } catch {
+                            // Silently fail
+                          } finally {
+                            setWaitlistSubmitting(false)
+                          }
+                        }}
+                      >
+                        {waitlistSubmitting ? "..." : "Notify me"}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#0fbcb0] font-medium">
+                    Thanks! We&apos;ll let you know when we expand to your area.
+                  </p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0">
-              Got it
+              {waitlistDone ? "Done" : "Got it"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

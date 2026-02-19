@@ -310,7 +310,7 @@ export default function PatientDashboard() {
               {data.conversations.map((conv) => (
                 <Link
                   key={conv.id}
-                  href={`/clinic/${conv.clinic_id}?leadId=${conv.lead_id}`}
+                  href={`/clinic/${conv.clinic_id}?leadId=${conv.lead_id}&chat=open`}
                 >
                   <Card className={`p-5 hover:shadow-md transition-shadow cursor-pointer ${conv.unread_by_patient ? "border-[#0fbcb0]/30 bg-[#F8F1E7]/30" : ""}`}>
                     <div className="flex items-center justify-between">

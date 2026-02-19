@@ -2,6 +2,10 @@ import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { randomBytes } from "crypto"
 import { createRateLimiter } from "@/lib/rate-limit"
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
+import { HOURLY_SLOTS } from "@/lib/constants"
+import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
 
 // 10 booking requests per IP per hour
 const bookingIpLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, maxAttempts: 10 })
@@ -120,6 +124,63 @@ export async function POST(request: Request) {
       session_id: lead.session_id || "00000000-0000-0000-0000-000000000000",
       metadata: { date, time, source: "booking_confirmation" },
     })
+
+    // Send confirmation email to patient (non-blocking)
+    if (lead.email) {
+      const requestUrl = new URL(request.url)
+      const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
+      const timeLabel = HOURLY_SLOTS?.find((s: { key: string; label: string }) => s.key === time)?.label || time
+      const formattedDate = new Date(date).toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+
+      const unsubHeaders = generateUnsubscribeHeaders(lead.email, "patient_notifications")
+      const unsubUrl = unsubHeaders["List-Unsubscribe"].replace(/[<>]/g, "")
+      const unsubFooter = generateUnsubscribeFooterHtml(unsubUrl)
+
+      sendEmailWithRetry({
+        from: EMAIL_FROM.NOTIFICATIONS,
+        to: lead.email,
+        subject: `Appointment request sent to ${clinic.name}`,
+        headers: unsubHeaders,
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+            <div style="text-align: center; margin-bottom: 32px;">
+              <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Appointment Request Sent</h1>
+            </div>
+            <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 8px;">
+              Hi ${lead.first_name || "there"},
+            </p>
+            <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+              Your appointment request has been sent to <strong>${clinic.name}</strong>.
+            </p>
+            <div style="background: #f5f5f5; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;">Clinic</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">${clinic.name}</p>
+              <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;">Date &amp; time</p>
+              <p style="margin: 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">${formattedDate} &middot; ${timeLabel}</p>
+            </div>
+            <div style="background: #FFF8E1; border: 1px solid #FFE082; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+              <p style="margin: 0; font-size: 14px; color: #6D4C00; line-height: 1.5;">
+                The clinic will confirm your appointment shortly. They typically respond within 24&ndash;48 hours.
+              </p>
+            </div>
+            <div style="text-align: center; margin-bottom: 24px;">
+              <a href="${baseUrl}/patient/dashboard" style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                View your dashboard
+              </a>
+            </div>
+            <p style="font-size: 12px; color: #999; text-align: center;">
+              Pearlie &mdash; Finding your perfect dental match
+            </p>
+            ${unsubFooter}
+          </div>
+        `,
+      }).catch((err) => console.error("[booking-request] Patient email failed:", err))
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

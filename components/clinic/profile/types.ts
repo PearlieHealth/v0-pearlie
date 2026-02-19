@@ -45,6 +45,7 @@ export interface Clinic {
 
 export interface Lead {
   id: string
+  email?: string
   treatment_interest?: string
   preferred_timing?: string
   budget_range?: string
