@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, Webhook, Mail, Bell, Shield, Copy, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
+import { clinicHref } from "@/lib/clinic-url"
 
 export default function DemoSettingsPage() {
   const [showWebhookSecret, setShowWebhookSecret] = useState(false)
@@ -38,7 +39,7 @@ export default function DemoSettingsPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/clinic/demo">
+            <Link href={clinicHref("/clinic/demo")}>
               <ArrowLeft className="w-5 h-5" />
             </Link>
           </Button>

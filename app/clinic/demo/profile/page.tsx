@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, Upload, Plus, X, MapPin, Phone, Mail, Globe } from "lucide-react"
 import Link from "next/link"
+import { clinicHref } from "@/lib/clinic-url"
 
 const demoClinic = {
   name: "Smile Dental Clinic",
@@ -51,7 +52,7 @@ export default function DemoProfilePage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/clinic/demo">
+            <Link href={clinicHref("/clinic/demo")}>
               <ArrowLeft className="w-5 h-5" />
             </Link>
           </Button>

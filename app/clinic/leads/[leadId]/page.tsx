@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -246,7 +247,7 @@ export default function LeadDetailPage() {
           <Button
             variant="ghost"
             className="mb-6"
-            onClick={() => router.push("/clinic")}
+            onClick={() => router.push(clinicHref("/clinic"))}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Leads
@@ -276,7 +277,7 @@ export default function LeadDetailPage() {
         <Button 
           variant="ghost" 
           className="mb-6"
-          onClick={() => router.push("/clinic")}
+          onClick={() => router.push(clinicHref("/clinic"))}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Leads

@@ -21,6 +21,7 @@ import {
   CalendarCheck,
   CheckCircle2,
 } from "lucide-react"
+import { clinicHref } from "@/lib/clinic-url"
 import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
 import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
@@ -378,7 +379,7 @@ export function ClinicProfileContent() {
               size="sm"
               variant="secondary"
               className="h-7 text-xs bg-white text-[#0fbcb0] hover:bg-white/90"
-              onClick={() => { window.location.href = "/clinic/profile" }}
+              onClick={() => { window.location.href = clinicHref("/clinic/profile") }}
             >
               <Pencil className="h-3 w-3 mr-1.5" />
               Make Changes

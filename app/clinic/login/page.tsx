@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -66,12 +67,12 @@ export default function ClinicLoginPage() {
 
         // Check if admin-created account needs to set their own password
         if (data.session.user.user_metadata?.must_change_password) {
-          window.location.href = "/clinic/set-password"
+          window.location.href = clinicHref("/clinic/set-password")
           return
         }
 
         // Login successful - use full page reload to ensure cookies are sent
-        window.location.href = "/clinic"
+        window.location.href = clinicHref("/clinic")
       }
     } catch (err) {
       setError("An error occurred. Please try again.")
@@ -121,7 +122,7 @@ export default function ClinicLoginPage() {
                     type="button"
                     variant="link"
                     className="px-0 text-xs text-muted-foreground hover:text-foreground"
-                    onClick={() => window.location.href = "/clinic/forgot-password"}
+                    onClick={() => window.location.href = clinicHref("/clinic/forgot-password")}
                   >
                     Forgot password?
                   </Button>
@@ -149,7 +150,7 @@ export default function ClinicLoginPage() {
                   className="px-0 text-primary"
                   onClick={() => {
                     const token = prompt("Enter your invite token:")
-                    if (token) window.location.href = `/clinic/accept-invite?token=${token}`
+                    if (token) window.location.href = `${clinicHref("/clinic/accept-invite")}?token=${token}`
                   }}
                 >
                   Set up your account
