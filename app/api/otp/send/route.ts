@@ -3,10 +3,11 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { generateOTP, hashOTP, canSendOTP } from "@/lib/otp/generate"
 import { sendEmailWithRetry } from "@/lib/email-send"
 import { EMAIL_FROM } from "@/lib/email-config"
-const OTP_SECRET = process.env.SUPABASE_JWT_SECRET!
-if (!OTP_SECRET) throw new Error("SUPABASE_JWT_SECRET environment variable is required")
-
 export async function POST(request: NextRequest) {
+  const OTP_SECRET = process.env.SUPABASE_JWT_SECRET
+  if (!OTP_SECRET) {
+    return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
+  }
   try {
     const { leadId, email } = await request.json()
 

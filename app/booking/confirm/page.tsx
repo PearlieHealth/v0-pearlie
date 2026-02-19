@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { MapPin, Calendar, Clock, Phone, CheckCircle2, Loader2, ArrowLeft } from "lucide-react"
+import { MapPin, Calendar, Clock, Phone, CheckCircle2, Loader2, ArrowLeft, MessageCircle } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { HOURLY_SLOTS } from "@/lib/constants"
@@ -32,6 +32,7 @@ export default function BookingConfirmPage() {
   const searchParams = useSearchParams()
   const clinicId = searchParams.get("clinicId")
   const leadId = searchParams.get("leadId")
+  const matchId = searchParams.get("matchId")
   const dateStr = searchParams.get("date")
   const time = searchParams.get("time")
 
@@ -166,7 +167,7 @@ export default function BookingConfirmPage() {
           <p className="text-muted-foreground mb-6">
             Your appointment request has been sent to <strong>{clinic?.name}</strong>.
           </p>
-          
+
           <div className="bg-muted/50 rounded-lg p-4 mb-6 text-left space-y-2">
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -178,18 +179,34 @@ export default function BookingConfirmPage() {
             </div>
           </div>
 
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
-            <h3 className="font-medium text-amber-800 dark:text-amber-200 mb-2">What happens next?</h3>
-            <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1 text-left">
-              <li>The clinic will review your request</li>
-              <li>They will contact you within 24-48 hours to confirm</li>
-              <li>Check your email and phone for their response</li>
+          <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-lg p-4 mb-6">
+            <h3 className="font-medium text-teal-800 dark:text-teal-200 mb-2">What happens next?</h3>
+            <ul className="text-sm text-teal-700 dark:text-teal-300 space-y-2 text-left">
+              <li className="flex items-start gap-2">
+                <MessageCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                The clinic will review your request and contact you shortly
+              </li>
+              <li className="flex items-start gap-2">
+                <Clock className="w-4 h-4 mt-0.5 shrink-0" />
+                Check your email for their response
+              </li>
             </ul>
           </div>
 
-          <Button asChild className="w-full">
-            <Link href="/">Back to Home</Link>
+          <p className="text-sm text-muted-foreground mb-4">
+            You can also monitor and manage all your requests from your personal dashboard.
+          </p>
+
+          <Button asChild className="w-full mb-3">
+            <Link href="/patient/dashboard">Go to your dashboard</Link>
           </Button>
+
+          <Link
+            href={matchId ? `/match/${matchId}` : "/"}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {matchId ? "Back to results" : "Back to home"}
+          </Link>
         </Card>
       </div>
     )
@@ -200,7 +217,7 @@ export default function BookingConfirmPage() {
       {/* Header */}
       <header className="bg-card border-b border-border">
         <div className="max-w-xl mx-auto px-4 py-4">
-          <Link href={`/match/${leadId}`} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors min-h-[44px]">
+          <Link href={matchId ? `/match/${matchId}` : "/intake"} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors min-h-[44px]">
             <ArrowLeft className="w-4 h-4" />
             Back to results
           </Link>
@@ -210,7 +227,7 @@ export default function BookingConfirmPage() {
       <main className="max-w-xl mx-auto px-4 py-10">
         {/* Title */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Book your appointment</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Request appointment</h1>
           <p className="text-muted-foreground">We will keep your information safe and secure.</p>
         </div>
 
@@ -254,7 +271,7 @@ export default function BookingConfirmPage() {
             </div>
             <div>
               <p className="text-muted-foreground text-sm">
-                {"You're continuing your booking as "}
+                {"You're continuing your request as "}
                 <span className="text-foreground font-semibold">{lead?.email}</span>
               </p>
             </div>
@@ -274,7 +291,7 @@ export default function BookingConfirmPage() {
               Sending request...
             </>
           ) : (
-            "Confirm Booking"
+            "Confirm Request"
           )}
         </Button>
         

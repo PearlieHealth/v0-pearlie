@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MessageCircle, X, Send, Loader2, Heart, Check, CheckCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { OTPVerification } from "@/components/otp-verification"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
 
 interface Message {
@@ -34,8 +35,9 @@ export function ClinicChatWidget({
   clinicName,
   patientName,
   patientEmail,
-  isEmailVerified = false,
+  isEmailVerified: isEmailVerifiedProp = false,
 }: ClinicChatWidgetProps) {
+  const [verified, setVerified] = useState(isEmailVerifiedProp)
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
@@ -119,10 +121,10 @@ export function ClinicChatWidget({
 
   // Fetch lead info on mount if verified
   useEffect(() => {
-    if (isEmailVerified && leadId) {
+    if (verified && leadId) {
       fetchLeadInfo()
     }
-  }, [isEmailVerified, leadId])
+  }, [verified, leadId])
 
   // Fetch messages when widget opens
   useEffect(() => {
@@ -255,7 +257,7 @@ export function ClinicChatWidget({
       {/* Chat Button */}
       <button
         onClick={() => {
-          if (!isEmailVerified) {
+          if (!verified) {
             setShowVerifyPrompt(true)
           } else {
             setIsOpen(true)
@@ -274,7 +276,7 @@ export function ClinicChatWidget({
         )}
       </button>
 
-      {/* Email Verification Required Prompt */}
+      {/* Inline OTP Verification Modal */}
       {showVerifyPrompt && (
         <div className="fixed bottom-6 right-6 z-50 w-[380px] rounded-2xl bg-white shadow-2xl border border-neutral-200 p-6">
           <div className="flex items-center justify-between mb-4">
@@ -289,18 +291,30 @@ export function ClinicChatWidget({
           <p className="text-neutral-600 mb-4">
             Please verify your email address to message {clinicName}. This helps us keep the conversation secure.
           </p>
-          <Button
-            onClick={() => {
-              setShowVerifyPrompt(false)
-              const otpSection = document.getElementById("otp-verification")
-              if (otpSection) {
-                otpSection.scrollIntoView({ behavior: "smooth" })
-              }
-            }}
-            className="w-full bg-teal-600 hover:bg-teal-700"
-          >
-            Verify Email
-          </Button>
+          {patientEmail ? (
+            <OTPVerification
+              leadId={leadId}
+              email={patientEmail}
+              onVerified={() => {
+                setVerified(true)
+                setShowVerifyPrompt(false)
+                setIsOpen(true)
+              }}
+            />
+          ) : (
+            <Button
+              onClick={() => {
+                setShowVerifyPrompt(false)
+                const otpSection = document.getElementById("otp-verification")
+                if (otpSection) {
+                  otpSection.scrollIntoView({ behavior: "smooth" })
+                }
+              }}
+              className="w-full bg-teal-600 hover:bg-teal-700"
+            >
+              Verify Email
+            </Button>
+          )}
         </div>
       )}
 

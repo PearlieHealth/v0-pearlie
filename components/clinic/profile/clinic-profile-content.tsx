@@ -52,13 +52,15 @@ export function ClinicProfileContent() {
   const [directLeadId, setDirectLeadId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("overview")
 
-  // Auto-open chat when patient arrives via email reply link
+  const isChatOpen = searchParams?.get("chat") === "open"
+
+  // Auto-open chat when patient arrives via email reply link or dashboard chat link
   useEffect(() => {
-    if (isReply && leadIdParam) {
+    if ((isReply || isChatOpen) && leadIdParam) {
       setShowChat(true)
       setShowMobileChat(true)
     }
-  }, [isReply, leadIdParam])
+  }, [isReply, isChatOpen, leadIdParam])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -156,16 +158,19 @@ export function ClinicProfileContent() {
       },
     })
 
-    if (date && time && lead?.id) {
+    if (date && time && (lead?.id || directLeadId)) {
+      const bookingLeadId = lead?.id || directLeadId
       const dateStr = date.toISOString().split("T")[0]
-      window.location.href = `/booking/confirm?clinicId=${clinic?.id}&leadId=${lead.id}&date=${dateStr}&time=${time}`
-    } else if (lead?.id) {
+      window.location.href = `/booking/confirm?clinicId=${clinic?.id}&leadId=${bookingLeadId}&date=${dateStr}&time=${time}${matchId ? `&matchId=${matchId}` : ""}`
+    } else if (lead?.id || directLeadId) {
       const picker = document.getElementById("clinic-date-picker")
       if (picker) {
         picker.scrollIntoView({ behavior: "smooth", block: "center" })
       }
     } else {
-      window.location.href = "/"
+      // No lead — open chat/enquiry form instead of redirecting away
+      setShowChat(true)
+      setShowMobileChat(true)
     }
   }
 
@@ -429,6 +434,7 @@ export function ClinicProfileContent() {
                     isOpen={showChat}
                     onToggle={() => setShowChat(false)}
                     onLeadCreated={(newLeadId) => setDirectLeadId(newLeadId)}
+                    leadEmail={lead?.email || null}
                   />
 
                   {clinic.accepts_nhs && (
@@ -486,6 +492,7 @@ export function ClinicProfileContent() {
                 onToggle={() => setShowMobileChat(false)}
                 hideHeader
                 onLeadCreated={(newLeadId) => setDirectLeadId(newLeadId)}
+                leadEmail={lead?.email || null}
               />
             </div>
           </div>

@@ -222,8 +222,24 @@ export default function PatientDashboard() {
   async function fetchDashboard() {
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+
+      // On mobile browsers, auth cookies may still be propagating after OTP
+      // verification. Retry a few times with short delays before giving up.
+      let user = null
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { data: { user: u } } = await supabase.auth.getUser()
+        if (u) { user = u; break }
+        if (attempt < 2) {
+          await new Promise((r) => setTimeout(r, 1000))
+        }
+      }
       if (!user) { router.replace("/patient/login?next=/patient/dashboard"); return }
+
+      // Prevent clinic users from accessing patient dashboard
+      if (user.user_metadata?.role === "clinic") {
+        router.replace("/clinic")
+        return
+      }
 
       const res = await fetch(`/api/patient/matches?matchesLimit=${PAGE_SIZE}&convsLimit=${PAGE_SIZE}`)
       if (!res.ok) {
@@ -326,6 +342,7 @@ export default function PatientDashboard() {
   useEffect(() => {
     if (selectedConvId) {
       setPendingChatClinic(null) // Clear pending state when a real conv is selected
+      setChatError(null) // Clear any previous chat errors
       // Skip fetch when we just sent a message that created this conversation —
       // we already have the correct messages in state and a fetch would
       // replace them (including bot messages queued for delayed display).
@@ -616,6 +633,9 @@ export default function PatientDashboard() {
   }
 
   function openConversationForClinic(clinicId: string, { openDrawer = true }: { openDrawer?: boolean } = {}) {
+    // Clear any previous chat errors when switching conversations
+    setChatError(null)
+
     // Match by both clinic_id AND lead_id so we pick the right conversation
     // when a patient has multiple leads/searches with the same clinic.
     const conv = inboxConversations.find(

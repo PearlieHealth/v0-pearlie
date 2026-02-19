@@ -29,6 +29,7 @@ import { ClinicCardSkeleton } from "@/components/clinic-card-skeleton"
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { trackEvent, setMatchContext, setMatchId } from "@/lib/analytics"
+import { createClient } from "@/lib/supabase/client"
 import { MatchFiltersPanel } from "@/components/match-filters-panel"
 import { OTPVerification } from "@/components/otp-verification"
 import { getChipData } from "@/lib/chipData"
@@ -109,6 +110,10 @@ export default function MatchPage() {
   const [leadId, setLeadId] = useState<string | null>(null)
   const [isVerified, setIsVerified] = useState<boolean | null>(null)
   const [leadEmail, setLeadEmail] = useState<string | null>(null)
+  const [leadPostcode, setLeadPostcode] = useState<string | null>(null)
+  const [zeroMatchEmail, setZeroMatchEmail] = useState("")
+  const [zeroMatchSubmitting, setZeroMatchSubmitting] = useState(false)
+  const [zeroMatchWaitlistDone, setZeroMatchWaitlistDone] = useState(false)
   const [filters, setFilters] = useState<any>({
     distanceMiles: null,
     prioritiseDistance: false,
@@ -154,6 +159,7 @@ export default function MatchPage() {
 
       setIsVerified(data.lead?.isVerified ?? false)
       setLeadEmail(data.lead?.email ?? null)
+      setLeadPostcode(data.lead?.postcode ?? null)
 
       if (data.lead?.latitude && data.lead?.longitude) {
         const location = { lat: data.lead.latitude, lon: data.lead.longitude }
@@ -430,7 +436,7 @@ export default function MatchPage() {
     }
   }, [visibleClinics, matchId, trackedCardViews, displayedClinics]) // Depend on visibleClinics and displayedClinics
 
-  const handleVerificationSuccess = () => {
+  const handleVerificationSuccess = (data?: { sessionToken?: string }) => {
     setIsVerified(true)
     trackEvent("email_verified", { leadId, matchId })
     // Save match for "return to matches" on landing page
@@ -442,6 +448,19 @@ export default function MatchPage() {
         createdAt: new Date().toISOString(),
       }))
     } catch {}
+
+    // Auto-sign in: establish a Supabase session so the patient can access
+    // their dashboard later without a separate login step.
+    if (data?.sessionToken) {
+      const supabase = createClient()
+      supabase.auth.verifyOtp({
+        token_hash: data.sessionToken,
+        type: "magiclink",
+      }).catch(() => {
+        // Non-critical — patient can still message (they're verified),
+        // they just won't have an auto-session for the dashboard.
+      })
+    }
   }
 
   if (loading) {
@@ -584,13 +603,63 @@ export default function MatchPage() {
               </div>
               <EmptyTitle className="text-[#004443]">No matching clinics found</EmptyTitle>
               <EmptyDescription className="text-muted-foreground">
-                We couldn't find clinics matching your criteria right now. We're growing our network — check back soon or try a different postcode.
+                We couldn&apos;t find clinics matching your criteria right now. We&apos;re growing our network — try one of the options below.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Button asChild variant="default">
-                <Link href="/intake">Start a new search</Link>
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button asChild variant="default" className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0">
+                  <Link href="/intake">Try a different postcode</Link>
+                </Button>
+              </div>
+
+              {/* Waitlist email capture */}
+              {!zeroMatchWaitlistDone ? (
+                <div className="mt-6 max-w-sm mx-auto">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Get notified when we add clinics in your area:
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={zeroMatchEmail}
+                      onChange={(e) => setZeroMatchEmail(e.target.value)}
+                      className="flex-1 h-10 px-3 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]/40"
+                    />
+                    <Button
+                      size="sm"
+                      disabled={!zeroMatchEmail.includes("@") || zeroMatchSubmitting}
+                      className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                      onClick={async () => {
+                        setZeroMatchSubmitting(true)
+                        try {
+                          await fetch("/api/waitlist", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              email: zeroMatchEmail,
+                              postcode: leadPostcode || "unknown",
+                              area: "zero_matches",
+                            }),
+                          })
+                          setZeroMatchWaitlistDone(true)
+                        } catch {
+                          // Silently fail
+                        } finally {
+                          setZeroMatchSubmitting(false)
+                        }
+                      }}
+                    >
+                      {zeroMatchSubmitting ? "..." : "Notify me"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-4 text-sm text-[#0fbcb0] font-medium">
+                  We&apos;ll notify you when clinics are available in your area.
+                </p>
+              )}
             </EmptyContent>
           </Empty>
         )}
@@ -859,7 +928,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   acceptsSameDay={clinic.accepts_same_day || false}
                                   onSelectSlot={(date, time) => {
                                     const dateStr = date.toISOString().split("T")[0]
-                                    window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&time=${time}`
+                                    window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&time=${time}&matchId=${matchId}`
                                   }}
                                 />
                               </div>

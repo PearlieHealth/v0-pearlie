@@ -2,10 +2,11 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyOTPHash, isOTPExpired } from "@/lib/otp/generate"
 
-const OTP_SECRET = process.env.SUPABASE_JWT_SECRET!
-if (!OTP_SECRET) throw new Error("SUPABASE_JWT_SECRET environment variable is required")
-
 export async function POST(request: NextRequest) {
+  const OTP_SECRET = process.env.SUPABASE_JWT_SECRET
+  if (!OTP_SECRET) {
+    return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
+  }
   try {
     const { leadId, otp } = await request.json()
 
@@ -73,33 +74,45 @@ export async function POST(request: NextRequest) {
       })
       .eq("id", leadId)
 
-    // Ensure auth user exists
+    // Ensure auth user exists — try creating first (avoids unbounded listUsers())
     let userId = lead.user_id
     if (!userId && lead.email) {
       try {
-        const { data: existingUsers } = await supabase.auth.admin.listUsers()
-        const existingUser = existingUsers?.users?.find(
-          (u) => u.email?.toLowerCase() === lead.email?.toLowerCase()
-        )
+        const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+          email: lead.email,
+          email_confirm: true,
+          user_metadata: {
+            full_name: `${lead.first_name || ""} ${lead.last_name || ""}`.trim(),
+            first_name: lead.first_name,
+            last_name: lead.last_name,
+            role: "patient",
+          },
+        })
 
-        if (existingUser) {
-          userId = existingUser.id
-          await supabase.from("leads").update({ user_id: existingUser.id }).eq("id", leadId)
-        } else {
-          const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-            email: lead.email,
-            email_confirm: true,
-            user_metadata: {
-              full_name: `${lead.first_name || ""} ${lead.last_name || ""}`.trim(),
-              first_name: lead.first_name,
-              last_name: lead.last_name,
-              role: "patient",
-            },
-          })
-          if (!createError && newUser?.user) {
-            userId = newUser.user.id
-            await supabase.from("leads").update({ user_id: newUser.user.id }).eq("id", leadId)
+        if (!createError && newUser?.user) {
+          userId = newUser.user.id
+        } else if (createError?.message?.toLowerCase().includes("already")) {
+          // User already exists — look up by email using admin getUserByEmail
+          // (not available in all Supabase versions, so fall back to paginated list)
+          try {
+            const { data: users } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
+            const existing = users?.users?.find(
+              (u) => u.email?.toLowerCase() === lead.email?.toLowerCase()
+            )
+            if (existing) {
+              userId = existing.id
+              // Ensure patient role is set
+              await supabase.auth.admin.updateUser(existing.id, {
+                user_metadata: { ...existing.user_metadata, role: "patient" },
+              }).catch(() => {})
+            }
+          } catch {
+            // Non-critical — we still generated a session token below
           }
+        }
+
+        if (userId && userId !== lead.user_id) {
+          await supabase.from("leads").update({ user_id: userId }).eq("id", leadId)
         }
       } catch (accountError) {
         console.error("[Patient OTP Verify] Error ensuring auth user:", accountError)

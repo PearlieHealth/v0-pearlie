@@ -13,7 +13,9 @@ import Link from "next/link"
 export default function PatientLoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const nextParam = searchParams?.get("next")
+  const rawNext = searchParams?.get("next")
+  // Only allow internal paths to prevent open redirect attacks
+  const nextParam = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : null
   const [email, setEmail] = useState("")
   const [step, setStep] = useState<"email" | "otp">("email")
   const [leadId, setLeadId] = useState<string | null>(null)
@@ -35,12 +37,17 @@ export default function PatientLoginPage() {
     }
   }, [cooldown])
 
-  // Redirect if already logged in
+  // Redirect if already logged in (but not if they're a clinic user)
   useEffect(() => {
     async function checkAuth() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
+        // Clinic users should not be auto-redirected to patient dashboard
+        if (user.user_metadata?.role === "clinic") {
+          setCheckingAuth(false)
+          return
+        }
         router.replace(nextParam || "/patient/dashboard")
       } else {
         setCheckingAuth(false)
@@ -103,21 +110,32 @@ export default function PatientLoginPage() {
         throw new Error(data.error || "Verification failed")
       }
 
-      // Establish browser session
-      if (data.tokenHash) {
-        try {
-          const supabase = createClient()
-          await supabase.auth.verifyOtp({
-            token_hash: data.tokenHash,
-            type: "magiclink",
-          })
-        } catch (sessionError) {
-          console.error("[Patient Login] Failed to establish browser session:", sessionError)
-        }
+      // Establish browser session — strict: fail if token missing or invalid
+      if (!data.tokenHash) {
+        throw new Error("Login succeeded but session token was not generated. Please try again.")
+      }
+
+      const supabase = createClient()
+      const { error: sessionError } = await supabase.auth.verifyOtp({
+        token_hash: data.tokenHash,
+        type: "magiclink",
+      })
+
+      if (sessionError) {
+        console.error("[Patient Login] verifyOtp error:", sessionError)
+        throw new Error(sessionError.message || "Failed to establish browser session")
+      }
+
+      // Confirm session is actually set before redirecting (critical for mobile
+      // browsers where cookie persistence can be delayed)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error("Session could not be confirmed. Please try again.")
       }
 
       setSuccess(true)
-      setTimeout(() => router.replace(nextParam || "/patient/dashboard"), 1000)
+      // Give mobile browsers time to flush cookies before navigation
+      setTimeout(() => router.replace(nextParam || "/patient/dashboard"), 1500)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed")
     } finally {
@@ -239,7 +257,7 @@ export default function PatientLoginPage() {
               </p>
             </div>
 
-            <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+            <div className="flex gap-1.5 sm:gap-2 justify-center" onPaste={handlePaste}>
               {otp.map((digit, index) => (
                 <Input
                   key={index}
@@ -250,7 +268,7 @@ export default function PatientLoginPage() {
                   value={digit}
                   onChange={(e) => handleInputChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-xl font-semibold"
+                  className="w-11 h-14 sm:w-12 text-center text-xl font-semibold"
                   disabled={isLoading}
                 />
               ))}

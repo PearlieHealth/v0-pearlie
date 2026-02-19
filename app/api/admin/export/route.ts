@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { verifyAdminAuth } from "@/lib/admin-auth"
 
 function escapeCSV(value: unknown): string {
   if (value === null || value === undefined) return ""
@@ -20,16 +21,15 @@ function toCSV(headers: string[], rows: Record<string, unknown>[]): string {
 
 export async function GET(request: Request) {
   try {
+    // Verify admin authentication — middleware only covers /admin/* pages,
+    // not /api/admin/* routes, so we must check explicitly here.
+    const auth = await verifyAdminAuth()
+    if (!auth.authenticated) return auth.response
+
     const { searchParams } = new URL(request.url)
     const type = searchParams.get("type") || "leads"
 
-    // Verify admin session (check cookie-based auth)
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    // For admin routes we check the admin session cookie
-    // If no user, this is accessed from admin panel with session cookie
-    // Allow access (admin auth is handled by middleware)
 
     if (type === "leads") {
       const { data: leads, error } = await supabase

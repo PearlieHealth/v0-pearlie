@@ -232,6 +232,7 @@ export async function POST(request: Request) {
         schema_version: validatedData.schemaVersion,
         raw_answers: rawAnswers,
         source: body.source || "match",
+        is_verified: false,
       })
       .select()
       .single()

@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/match-nudge",
+      "schedule": "*/15 * * * *"
+    }
+  ]
+}

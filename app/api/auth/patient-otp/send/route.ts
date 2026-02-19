@@ -5,12 +5,13 @@ import { sendEmailWithRetry } from "@/lib/email-send"
 import { EMAIL_FROM } from "@/lib/email-config"
 import { createRateLimiter } from "@/lib/rate-limit"
 
-const OTP_SECRET = process.env.SUPABASE_JWT_SECRET!
-if (!OTP_SECRET) throw new Error("SUPABASE_JWT_SECRET environment variable is required")
-
 const ipLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, maxAttempts: 10 })
 
 export async function POST(request: NextRequest) {
+  const OTP_SECRET = process.env.SUPABASE_JWT_SECRET
+  if (!OTP_SECRET) {
+    return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
+  }
   try {
     // IP-based rate limiting
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
@@ -83,8 +84,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Send OTP email
-    try {
-      await sendEmailWithRetry({
+    {
+      const emailResult = await sendEmailWithRetry({
         from: EMAIL_FROM.NOREPLY,
         to: email,
         subject: "Your Pearlie login code",
@@ -127,9 +128,11 @@ export async function POST(request: NextRequest) {
           </html>
         `,
       })
-    } catch (emailError) {
-      console.error("[Patient OTP] Failed to send email:", emailError)
-      return NextResponse.json({ error: "Failed to send verification email. Please try again." }, { status: 500 })
+
+      if (!emailResult.success) {
+        console.error("[Patient OTP] Email send failed:", emailResult.error)
+        return NextResponse.json({ error: "Failed to send verification email. Please try again." }, { status: 500 })
+      }
     }
 
     return NextResponse.json({
