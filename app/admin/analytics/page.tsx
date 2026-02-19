@@ -196,7 +196,7 @@ export default async function AnalyticsDashboard({
         {/* Executive Snapshot */}
         <AdminCardErrorBoundary cardName="Executive Snapshot">
           <ExecutiveSnapshot
-            totalLeads={analytics.leads.length}
+            totalLeads={analytics.funnel.leadsSubmitted}
             matchesShown={analytics.funnel.matchesShown}
             clinicClicks={analytics.funnel.clinicClicks}
             bookingClicks={analytics.funnel.bookedConsults}

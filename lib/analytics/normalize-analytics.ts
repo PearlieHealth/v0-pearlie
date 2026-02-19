@@ -5,6 +5,7 @@
  */
 
 import { TREATMENT_VALUES as TREATMENT_VALUE_MAP, getTreatmentValue } from "./treatment-values"
+import { parseRawAnswers } from "@/lib/intake-form-config"
 
 export interface NormalizedAnalytics {
   // Funnel metrics
@@ -134,16 +135,12 @@ export function normalizeAnalyticsData(raw: RawAnalyticsInput): NormalizedAnalyt
 
   const clinicOpensEvents = deduplicatedEvents.filter((e) => e?.event_name === "clinic_opened")
   const uniqueClinicClicks = new Set(
-    clinicOpensEvents
-      .map((e) => `${e?.lead_id}-${e?.clinic_id}`)
-      .filter((key) => key && !key.includes("null") && !key.includes("undefined")),
+    clinicOpensEvents.map((e) => e?.lead_id).filter(Boolean),
   ).size
 
   const bookClicksEvents = deduplicatedEvents.filter((e) => e?.event_name === "book_clicked")
   const uniqueBookClicks = new Set(
-    bookClicksEvents
-      .map((e) => `${e?.lead_id}-${e?.clinic_id}`)
-      .filter((key) => key && !key.includes("null") && !key.includes("undefined")),
+    bookClicksEvents.map((e) => e?.lead_id).filter(Boolean),
   ).size
 
   // Session analysis
@@ -197,25 +194,27 @@ export function normalizeAnalyticsData(raw: RawAnalyticsInput): NormalizedAnalyt
   
   // Revenue from ALL leads (potential)
   leads.forEach((lead) => {
-    const treatments = Array.isArray(lead?.treatments) ? lead.treatments : []
+    const parsed = parseRawAnswers(lead?.raw_answers)
+    const treatments = parsed?.treatments || []
     treatments.forEach((t: string) => {
       if (t) {
         treatmentCounts[t] = (treatmentCounts[t] || 0) + 1
       }
     })
   })
-  
+
   // Revenue ONLY from book_clicked events (actual opportunity)
   // Get unique lead IDs that clicked book
   const bookedLeadIds = new Set(
     bookClicksEvents.map((e) => e?.lead_id).filter(Boolean)
   )
-  
+
   // For each booked lead, calculate revenue based on their treatments
   leads.forEach((lead) => {
     if (!bookedLeadIds.has(lead?.id)) return
-    
-    const treatments = Array.isArray(lead?.treatments) ? lead.treatments : []
+
+    const parsed = parseRawAnswers(lead?.raw_answers)
+    const treatments = parsed?.treatments || []
     treatments.forEach((t: string) => {
       if (t) {
         bookedTreatmentCounts[t] = (bookedTreatmentCounts[t] || 0) + 1
