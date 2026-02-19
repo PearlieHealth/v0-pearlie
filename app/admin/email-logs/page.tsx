@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, XCircle, Clock, Mail } from "lucide-react"
+import { AdminNav } from "@/components/admin/admin-nav"
 
 export default async function EmailLogsPage() {
   const supabase = await createClient()
@@ -26,7 +27,10 @@ export default async function EmailLogsPage() {
   const successRate = totalEmails > 0 ? Math.round((sentEmails / totalEmails) * 100) : 0
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="min-h-screen bg-[#fafaf9]">
+      <AdminNav />
+
+      <div className="container mx-auto py-8 px-4 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Email Notification Logs</h1>
         <p className="text-muted-foreground">Track all clinic lead notification emails sent by the system</p>
@@ -136,6 +140,7 @@ export default async function EmailLogsPage() {
           </div>
         </CardContent>
       </Card>
+    </div>
     </div>
   )
 }

@@ -52,8 +52,8 @@ export function MatchReasonsCard({ matchResults, clinicMap }: MatchReasonsCardPr
         <h3 className="text-lg font-semibold">Top Match Reasons</h3>
       </div>
       <div className="space-y-3">
-        {topReasons.map(([reason, count], index) => (
-          <div key={index} className="flex items-center justify-between">
+        {topReasons.map(([reason, count]) => (
+          <div key={reason} className="flex items-center justify-between">
             <span className="text-sm text-foreground">{reason}</span>
             <Badge variant="secondary">{count}</Badge>
           </div>

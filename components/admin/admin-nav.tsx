@@ -3,96 +3,221 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { ArrowLeft, BarChart3, Building2, FlaskConical, Menu, Tags, ClipboardList, CheckSquare, LogOut, Users, Settings, Mail } from "lucide-react"
+import {
+  ArrowLeft,
+  BarChart3,
+  Building2,
+  FlaskConical,
+  Menu,
+  Tags,
+  ClipboardList,
+  CheckSquare,
+  LogOut,
+  Users,
+  Settings,
+  Mail,
+  MoreHorizontal,
+} from "lucide-react"
 import { AdminLogoutButton } from "./admin-auth-provider"
 import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+interface NavItem {
+  href: string
+  label: string
+  shortLabel?: string
+  icon: any
+}
+
+interface NavGroup {
+  label: string
+  items: NavItem[]
+}
+
+const navGroups: NavGroup[] = [
+  {
+    label: "Insights",
+    items: [
+      { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Clinics",
+    items: [
+      { href: "/admin/clinics", label: "Clinic Directory", shortLabel: "Clinics", icon: Building2 },
+      { href: "/admin/clinic-waitlist", label: "Waitlist", icon: ClipboardList },
+      { href: "/admin/clinic-users", label: "Clinic Users", shortLabel: "Users", icon: Users },
+    ],
+  },
+  {
+    label: "Matching",
+    items: [
+      { href: "/admin/test-match", label: "Test Match", icon: FlaskConical },
+      { href: "/admin/tag-hygiene", label: "Match Readiness", shortLabel: "Readiness", icon: Tags },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { href: "/admin/pilot-checklist", label: "Pilot Checklist", shortLabel: "Pilot", icon: CheckSquare },
+      { href: "/admin/email-logs", label: "Email Logs", shortLabel: "Emails", icon: Mail },
+      { href: "/admin/settings", label: "Settings", icon: Settings },
+    ],
+  },
+]
+
+// Flat list of all items for convenience
+const allNavItems = navGroups.flatMap((g) => g.items)
+
+// Primary items shown directly in the desktop nav bar
+const primaryItems = allNavItems.slice(0, 5)
+// Overflow items shown in a "More" dropdown
+const overflowItems = allNavItems.slice(5)
 
 export function AdminNav(_props?: { currentPath?: string }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
-  const navItems = [
-    {
-      href: "/admin/analytics",
-      label: "Analytics",
-      icon: BarChart3,
-    },
-    {
-      href: "/admin/clinics",
-      label: "Clinic Directory",
-      icon: Building2,
-    },
-    {
-      href: "/admin/test-match",
-      label: "Test Match",
-      icon: FlaskConical,
-    },
-    {
-      href: "/admin/tag-hygiene",
-      label: "Match Readiness",
-      icon: Tags,
-    },
-    {
-      href: "/admin/clinic-waitlist",
-      label: "Waitlist",
-      icon: ClipboardList,
-    },
-    {
-      href: "/admin/pilot-checklist",
-      label: "Pilot Checklist",
-      icon: CheckSquare,
-    },
-    {
-      href: "/admin/clinic-users",
-      label: "Clinic Users",
-      icon: Users,
-    },
-    {
-      href: "/admin/email-logs",
-      label: "Email Logs",
-      icon: Mail,
-    },
-    {
-      href: "/admin/settings",
-      label: "Settings",
-      icon: Settings,
-    },
-  ]
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/")
+  const overflowHasActive = overflowItems.some((item) => isActive(item.href))
 
   return (
     <header className="border-b border-border bg-white sticky top-0 z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4 lg:gap-8">
+        <div className="flex h-14 items-center justify-between">
+          <div className="flex items-center gap-3 lg:gap-6 min-w-0">
             <Link
               href="/"
-              className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors"
+              className="flex items-center gap-2 text-foreground hover:text-muted-foreground transition-colors flex-shrink-0"
             >
-              <ArrowLeft className="w-5 h-5" />
-              <div className="text-xl md:text-2xl font-semibold tracking-tight hidden sm:block">Pearlie Admin</div>
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-lg font-semibold tracking-tight hidden sm:block">Pearlie</span>
             </Link>
-            <nav className="hidden md:flex items-center gap-2">
-              {navItems.map((item) => {
-                const isActive = pathname === item.href
+
+            {/* Desktop navigation */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {primaryItems.map((item) => {
+                const active = isActive(item.href)
                 const Icon = item.icon
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                      isActive
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+                      active
                         ? "bg-[#1a2332] text-white shadow-sm"
                         : "text-muted-foreground hover:bg-[#f8f7f4] hover:text-foreground",
                     )}
                   >
-                    <Icon className="w-4 h-4" />
-                    {item.label}
+                    <Icon className="w-3.5 h-3.5" />
+                    {item.shortLabel || item.label}
                   </Link>
                 )
               })}
+
+              {/* More dropdown for overflow items */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+                      overflowHasActive
+                        ? "bg-[#1a2332] text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-[#f8f7f4] hover:text-foreground",
+                    )}
+                  >
+                    <MoreHorizontal className="w-3.5 h-3.5" />
+                    More
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  {overflowItems.map((item, idx) => {
+                    const active = isActive(item.href)
+                    const Icon = item.icon
+                    return (
+                      <DropdownMenuItem key={item.href} asChild>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-2 w-full",
+                            active && "font-semibold",
+                          )}
+                        >
+                          <Icon className="w-4 h-4" />
+                          {item.label}
+                        </Link>
+                      </DropdownMenuItem>
+                    )
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </nav>
+
+            {/* Tablet navigation (md but not lg) — show fewer items */}
+            <nav className="hidden md:flex lg:hidden items-center gap-1">
+              {primaryItems.slice(0, 3).map((item) => {
+                const active = isActive(item.href)
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all",
+                      active
+                        ? "bg-[#1a2332] text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-[#f8f7f4] hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {item.shortLabel || item.label}
+                  </Link>
+                )
+              })}
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all",
+                      allNavItems.slice(3).some((item) => isActive(item.href))
+                        ? "bg-[#1a2332] text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-[#f8f7f4] hover:text-foreground",
+                    )}
+                  >
+                    <MoreHorizontal className="w-3.5 h-3.5" />
+                    More
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  {allNavItems.slice(3).map((item) => {
+                    const active = isActive(item.href)
+                    const Icon = item.icon
+                    return (
+                      <DropdownMenuItem key={item.href} asChild>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-2 w-full",
+                            active && "font-semibold",
+                          )}
+                        >
+                          <Icon className="w-4 h-4" />
+                          {item.label}
+                        </Link>
+                      </DropdownMenuItem>
+                    )
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </nav>
           </div>
 
@@ -100,6 +225,7 @@ export function AdminNav(_props?: { currentPath?: string }) {
             <AdminLogoutButton />
           </div>
 
+          {/* Mobile menu */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild className="md:hidden">
               <Button variant="ghost" size="icon" className="h-10 w-10">
@@ -117,33 +243,41 @@ export function AdminNav(_props?: { currentPath?: string }) {
                     onClick={() => setOpen(false)}
                     className="h-8 w-8 rounded-full bg-white border border-border hover:bg-[#f0efeb] transition-colors"
                   >
-                    <span className="text-lg">×</span>
+                    <span className="text-lg">&times;</span>
                     <span className="sr-only">Close menu</span>
                   </Button>
                 </div>
-                <nav className="flex flex-col gap-2 p-4">
-                  {navItems.map((item) => {
-                    const isActive = pathname === item.href
-                    const Icon = item.icon
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setOpen(false)}
-                        className={cn(
-                          "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all",
-                          isActive
-                            ? "bg-[#1a2332] text-white shadow-sm"
-                            : "text-muted-foreground hover:bg-white hover:text-foreground",
-                        )}
-                      >
-                        <Icon className="w-5 h-5" />
-                        {item.label}
-                      </Link>
-                    )
-                  })}
+                <nav className="flex-1 overflow-y-auto py-2">
+                  {navGroups.map((group, groupIdx) => (
+                    <div key={group.label}>
+                      {groupIdx > 0 && <div className="mx-4 my-2 border-t border-border" />}
+                      <p className="px-4 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                        {group.label}
+                      </p>
+                      {group.items.map((item) => {
+                        const active = isActive(item.href)
+                        const Icon = item.icon
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setOpen(false)}
+                            className={cn(
+                              "flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                              active
+                                ? "bg-[#1a2332] text-white shadow-sm"
+                                : "text-muted-foreground hover:bg-white hover:text-foreground",
+                            )}
+                          >
+                            <Icon className="w-4.5 h-4.5" />
+                            {item.label}
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  ))}
                 </nav>
-                <div className="mt-auto p-4 border-t border-border space-y-3">
+                <div className="p-4 border-t border-border space-y-3">
                   <Link
                     href="/"
                     onClick={() => setOpen(false)}

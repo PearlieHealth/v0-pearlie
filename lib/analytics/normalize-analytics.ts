@@ -14,7 +14,6 @@ export interface NormalizedAnalytics {
     matchesShown: number
     clinicClicks: number
     bookedConsults: number
-    treatmentAccepted: number
   }
   
   // Booking confirmation stats
@@ -235,7 +234,6 @@ export function normalizeAnalyticsData(raw: RawAnalyticsInput): NormalizedAnalyt
       matchesShown: uniqueMatchesShown,
       clinicClicks: uniqueClinicClicks,
       bookedConsults: uniqueBookClicks,
-      treatmentAccepted: 0,
     },
     bookingsConfirmed,
     bookingsPending,
