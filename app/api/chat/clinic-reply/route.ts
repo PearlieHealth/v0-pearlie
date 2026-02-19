@@ -85,6 +85,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Broadcast the new message for real-time delivery (bypasses RLS)
+    try {
+      const broadcastChannel = supabaseAdmin.channel(`chat:${conversationId}`)
+      await broadcastChannel.send({
+        type: "broadcast",
+        event: "new_message",
+        payload: { message },
+      })
+      await supabaseAdmin.removeChannel(broadcastChannel)
+    } catch (broadcastError) {
+      console.error("[Chat] Broadcast error:", broadcastError)
+    }
+
     // Update conversation - mark first reply timestamp if this is the first
     const updateData: Record<string, any> = {
       last_message_at: new Date().toISOString(),
@@ -132,6 +145,19 @@ export async function POST(request: NextRequest) {
             .single()
 
           botMessage = botMsg
+
+          // Broadcast bot message for real-time delivery
+          try {
+            const botBroadcastChannel = supabaseAdmin.channel(`chat:${conversationId}`)
+            await botBroadcastChannel.send({
+              type: "broadcast",
+              event: "new_message",
+              payload: { message: botMsg },
+            })
+            await supabaseAdmin.removeChannel(botBroadcastChannel)
+          } catch (botBroadcastError) {
+            console.error("[Chat] Bot broadcast error:", botBroadcastError)
+          }
         }
       } catch (botError) {
         console.error("[Chat] Bot clinic-replied message error:", botError)
@@ -182,7 +208,7 @@ export async function POST(request: NextRequest) {
                       <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${safeContent}</p>
                     </div>
                     <div style="text-align: center; margin-top: 30px;">
-                      <a href="${appUrl}/clinic/${clinic.id}?leadId=${conversation.lead_id}&reply=1"
+                      <a href="${appUrl}/patient/messages?conversationId=${conversationId}"
                          style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
                         View &amp; Reply
                       </a>

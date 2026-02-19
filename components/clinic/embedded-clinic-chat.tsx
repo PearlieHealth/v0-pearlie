@@ -224,7 +224,7 @@ export function EmbeddedClinicChat({
   if (!isOpen) return null
 
   return (
-    <div className={hideHeader ? "bg-white flex flex-col h-full" : "border border-[#e5e5e5] rounded-xl overflow-hidden bg-white"}>
+    <div className={hideHeader ? "bg-white flex flex-col h-full overflow-hidden" : "border border-[#e5e5e5] rounded-xl overflow-hidden bg-white"}>
       {/* Header */}
       {!hideHeader && (
         <div className="bg-[#1a1a1a] px-4 py-3 flex items-center justify-between">
@@ -292,8 +292,8 @@ export function EmbeddedClinicChat({
                     }`}
                   >
                     {msg.sender_type === "bot" ? (
-                      <div className="max-w-[90%] flex items-start gap-2 bg-gradient-to-r from-purple-50 to-teal-50 border border-purple-100/50 rounded-xl px-3 py-2">
-                        <Heart className="w-3 h-3 text-purple-400 mt-0.5 flex-shrink-0" />
+                      <div className="max-w-[90%] flex items-start gap-2 bg-gradient-to-r from-teal-50 to-[#F8F1E7] border border-teal-100/50 rounded-xl px-3 py-2">
+                        <Heart className="w-3 h-3 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
                         <p className="text-[11px] text-[#555] whitespace-pre-wrap">{msg.content}</p>
                       </div>
                     ) : (
@@ -326,6 +326,18 @@ export function EmbeddedClinicChat({
       </div>
       )}
 
+      {/* Inbox link - shown when conversation exists */}
+      {leadId && conversationId && (
+        <div className="px-3 py-1.5 bg-white border-t border-[#e5e5e5]">
+          <a
+            href="/patient/login?next=/patient/dashboard"
+            className="text-[11px] text-[#0fbcb0] hover:underline"
+          >
+            Open full conversation in inbox
+          </a>
+        </div>
+      )}
+
       {/* Typing indicator, error, and input - only shown when we have a leadId */}
       {leadId && (
         <>
@@ -348,7 +360,7 @@ export function EmbeddedClinicChat({
             </div>
           )}
 
-          <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white">
+          <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white overflow-hidden">
             <div className="flex items-center gap-2">
               <input
                 type="text"
@@ -365,7 +377,7 @@ export function EmbeddedClinicChat({
                   }
                 }}
                 placeholder="Type a message..."
-                className="flex-1 min-w-0 text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
+                className="flex-1 min-w-0 text-[16px] sm:text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
                 disabled={isSending}
               />
               <button

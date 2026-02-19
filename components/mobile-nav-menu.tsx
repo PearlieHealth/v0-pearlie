@@ -101,8 +101,8 @@ export function MobileNavMenu() {
             </Link>
           </div>
 
-          {/* CTA Button */}
-          <div className="mt-6 pt-6 border-t border-border/50">
+          {/* CTA Buttons */}
+          <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
             <Button
               size="lg"
               className="w-full text-base h-12 bg-primary hover:bg-primary/90 text-white rounded-full shadow-sm"
@@ -110,6 +110,16 @@ export function MobileNavMenu() {
             >
               <Link href="/intake" onClick={() => setOpen(false)}>
                 Get my clinic matches
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full text-base h-12 rounded-full"
+              asChild
+            >
+              <Link href="/patient/dashboard" onClick={() => setOpen(false)}>
+                My account
               </Link>
             </Button>
           </div>

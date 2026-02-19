@@ -107,6 +107,7 @@ export default function MatchPage() {
   const [showExpansionBanner, setShowExpansionBanner] = useState(false)
   const [minDistanceMiles, setMinDistanceMiles] = useState<number | null>(null)
   const [notifyingClinics, setNotifyingClinics] = useState<Set<string>>(new Set())
+  const [unreadCount, setUnreadCount] = useState(0)
   const [leadId, setLeadId] = useState<string | null>(null)
   const [isVerified, setIsVerified] = useState<boolean | null>(null)
   const [leadEmail, setLeadEmail] = useState<string | null>(null)
@@ -232,6 +233,24 @@ export default function MatchPage() {
       fetchInitialMatches()
     }
   }, [matchId]) // Remove userLocation dependency since API handles distance now
+
+  // Fetch unread message count for the messages badge
+  useEffect(() => {
+    async function fetchUnread() {
+      try {
+        const res = await fetch("/api/patient/conversations")
+        if (res.ok) {
+          const data = await res.json()
+          const total = (data.conversations || []).reduce(
+            (sum: number, c: { unread_count_patient?: number }) => sum + (c.unread_count_patient || 0),
+            0
+          )
+          setUnreadCount(total)
+        }
+      } catch {}
+    }
+    fetchUnread()
+  }, [])
 
   const filteredAndRankedClinics = (() => {
     let clinics = [...allClinicsData]
@@ -566,6 +585,14 @@ export default function MatchPage() {
               <p className="text-sm text-muted-foreground hidden sm:block">
                 {displayedClinics.length} {displayedClinics.length === 1 ? "clinic" : "clinics"} matched
               </p>
+              <Link href="/patient/messages" className="relative p-2 rounded-full hover:bg-black/5 transition-colors">
+                <MessageCircle className="w-5 h-5 text-[#0fbcb0]" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
               <Button
                 size="sm"
                 className="text-sm px-5 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-sm hover:shadow-md transition-all border-0"
