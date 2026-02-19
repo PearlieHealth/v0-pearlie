@@ -37,12 +37,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Lead not found" }, { status: 404 })
     }
 
-    // Already verified
+    // Already verified — still generate a session token so client can establish browser session
     if (lead.is_verified) {
+      let tokenHash: string | undefined
+      if (lead.email) {
+        try {
+          const { data: linkData } = await supabase.auth.admin.generateLink({
+            type: "magiclink",
+            email: lead.email,
+          })
+          if (linkData?.properties?.hashed_token) {
+            tokenHash = linkData.properties.hashed_token
+          }
+        } catch {}
+      }
       return NextResponse.json({
         success: true,
         alreadyVerified: true,
         message: "Email already verified",
+        tokenHash,
       })
     }
 

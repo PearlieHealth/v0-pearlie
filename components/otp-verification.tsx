@@ -99,8 +99,6 @@ export function OTPVerification({ leadId, email, onVerified, onBack }: OTPVerifi
         throw new Error(data.error || "Verification failed")
       }
 
-      setSuccess(true)
-
       // Auto-sign in: if the server returned a token_hash, use it to set
       // the Supabase session cookie silently (no redirect). This means the
       // patient is fully logged in after OTP — no separate login step needed.
@@ -117,6 +115,7 @@ export function OTPVerification({ leadId, email, onVerified, onBack }: OTPVerifi
         }
       }
 
+      setSuccess(true)
       setTimeout(() => onVerified(), 1000)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed")

@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = createAdminClient()
 
-    // Auth: require either a clinic user session or a lead whose user_id/email matches
+    // Auth: require either a clinic user session, a lead owner session, or a verified lead
     const user = await getAuthUser()
     if (user) {
       // Authenticated user — must be a clinic user for this clinic OR the lead owner
@@ -59,8 +59,18 @@ export async function GET(request: NextRequest) {
         }
       }
     } else {
-      // No auth session — reject
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      // No auth session — allow if the lead is verified (patients who completed OTP
+      // verification may not have a browser auth session). The leadId UUID is
+      // effectively a secret token: hard to guess, scoped to one conversation.
+      const { data: lead } = await supabase
+        .from("leads")
+        .select("is_verified")
+        .eq("id", leadId)
+        .maybeSingle()
+
+      if (!lead?.is_verified) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
     }
 
     // Get conversation with bot tracking fields
