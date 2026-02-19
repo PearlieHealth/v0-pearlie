@@ -100,6 +100,23 @@ export function useChatChannel({
       }
     )
 
+    // ── Server-side broadcast: instant message delivery (bypasses RLS) ──
+    channel.on("broadcast" as any, { event: "new_message" }, (payload: any) => {
+      const msg = payload.payload?.message as RealtimeMessage | undefined
+      if (msg && msg.sender_type !== userType) {
+        onNewMessageRef.current?.(msg)
+
+        // Auto-acknowledge delivery (skip for bot messages)
+        if (msg.sender_type !== "bot") {
+          fetch("/api/chat/mark-delivered", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messageIds: [msg.id] }),
+          }).catch(() => {})
+        }
+      }
+    })
+
     // ── Typing indicators (ephemeral broadcast – no DB writes) ───
     channel.on("broadcast" as any, { event: "typing" }, (payload: any) => {
       const senderType = payload.payload?.sender_type
@@ -187,4 +204,50 @@ export function useConversationUpdates({
       supabase.removeChannel(channel)
     }
   }, [clinicId, enabled])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Patient inbox: listen for conversation changes for this patient's lead.
+// Fires when unread counts change, new conversations are created, etc.
+// ─────────────────────────────────────────────────────────────────
+
+interface UsePatientConversationUpdatesOptions {
+  leadId: string | null
+  onUpdate: () => void
+  enabled?: boolean
+}
+
+export function usePatientConversationUpdates({
+  leadId,
+  onUpdate,
+  enabled = true,
+}: UsePatientConversationUpdatesOptions) {
+  const onUpdateRef = useRef(onUpdate)
+  onUpdateRef.current = onUpdate
+
+  useEffect(() => {
+    if (!leadId || !enabled) return
+
+    const supabase = createBrowserClient()
+
+    const channel = supabase
+      .channel(`patient-convs:${leadId}`)
+      .on(
+        "postgres_changes" as any,
+        {
+          event: "*",
+          schema: "public",
+          table: "conversations",
+          filter: `lead_id=eq.${leadId}`,
+        },
+        () => {
+          onUpdateRef.current()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [leadId, enabled])
 }

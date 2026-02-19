@@ -145,14 +145,6 @@
   display: none;
 }
 
-/* Static fallback for reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  .animated-gradient {
-    animation: none !important;
-    opacity: 0.12 !important;
-  }
-}
-
 /* Subtle floating animation for decorative elements */
 @keyframes float {
   0%,
@@ -177,15 +169,6 @@
 .marquee-track {
   animation: marquee-scroll var(--marquee-speed, 30s) linear infinite;
   width: max-content;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation: none !important;
-  }
-  .marquee-vertical-track {
-    animation: none !important;
-  }
 }
 
 /* Vertical scrolling marquee (clinic photos) */

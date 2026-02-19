@@ -25,6 +25,8 @@ export function RevenueOpportunityCard({
       return {
         treatment,
         count,
+        unitMin: value.minPence / 100,
+        unitMax: value.maxPence / 100,
         minValue: (count * value.minPence) / 100, // Convert pence to pounds
         maxValue: (count * value.maxPence) / 100,
       }
@@ -75,11 +77,11 @@ export function RevenueOpportunityCard({
                   <span className="text-xs text-muted-foreground">{bookedLeadsCount} booked lead{bookedLeadsCount !== 1 ? 's' : ''}</span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl md:text-3xl font-bold text-[#1a2332]">
+                  <span className="text-2xl md:text-3xl font-bold text-[#004443]">
                     £{Math.round(totalPotentialMin).toLocaleString()}
                   </span>
                   <span className="text-lg text-muted-foreground">—</span>
-                  <span className="text-2xl md:text-3xl font-bold text-[#1a2332]">
+                  <span className="text-2xl md:text-3xl font-bold text-[#004443]">
                     £{Math.round(totalPotentialMax).toLocaleString()}
                   </span>
                 </div>
@@ -91,30 +93,33 @@ export function RevenueOpportunityCard({
                   <p className="text-xs md:text-sm font-medium text-muted-foreground">Breakdown by Treatment</p>
                   
                   {/* Table header */}
-                  <div className="grid grid-cols-4 gap-2 text-xs font-medium text-muted-foreground pb-2 border-b">
+                  <div className="grid grid-cols-5 gap-2 text-xs font-medium text-muted-foreground pb-2 border-b">
                     <span>Treatment</span>
                     <span className="text-center">Leads</span>
-                    <span className="text-right">Min £</span>
-                    <span className="text-right">Max £</span>
+                    <span className="text-right">Cost Range</span>
+                    <span className="text-right">Min Total</span>
+                    <span className="text-right">Max Total</span>
                   </div>
                   
                   {/* Table rows */}
-                  {treatmentBreakdown.map(({ treatment, count, minValue, maxValue }) => (
+                  {treatmentBreakdown.map(({ treatment, count, unitMin, unitMax, minValue, maxValue }) => (
                     <div
                       key={treatment}
-                      className="grid grid-cols-4 gap-2 text-xs md:text-sm py-2 border-b border-border/50 last:border-0"
+                      className="grid grid-cols-5 gap-2 text-xs md:text-sm py-2 border-b border-border/50 last:border-0"
                     >
                       <span className="font-medium truncate" title={treatment}>{treatment}</span>
                       <span className="text-center text-muted-foreground">{count}</span>
+                      <span className="text-right text-muted-foreground">£{Math.round(unitMin).toLocaleString()}-£{Math.round(unitMax).toLocaleString()}</span>
                       <span className="text-right">£{Math.round(minValue).toLocaleString()}</span>
                       <span className="text-right font-semibold">£{Math.round(maxValue).toLocaleString()}</span>
                     </div>
                   ))}
                   
                   {/* Table totals */}
-                  <div className="grid grid-cols-4 gap-2 text-xs md:text-sm pt-2 border-t-2 font-semibold">
+                  <div className="grid grid-cols-5 gap-2 text-xs md:text-sm pt-2 border-t-2 font-semibold">
                     <span>Total</span>
                     <span className="text-center">{bookedLeadsCount}</span>
+                    <span></span>
                     <span className="text-right">£{Math.round(totalPotentialMin).toLocaleString()}</span>
                     <span className="text-right">£{Math.round(totalPotentialMax).toLocaleString()}</span>
                   </div>

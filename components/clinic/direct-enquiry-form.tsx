@@ -231,7 +231,7 @@ export function DirectEnquiryForm({ clinicId, clinicName, onLeadCreated }: Direc
         <Button
           type="submit"
           disabled={isSubmitting || !firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim()}
-          className="w-full bg-[#1a1a1a] hover:bg-[#333] text-white h-10 text-sm rounded-full"
+          className="w-full bg-[#004443] hover:bg-[#003332] text-white h-10 text-sm rounded-full"
         >
           {isSubmitting ? (
             <Loader2 className="h-4 w-4 animate-spin" />

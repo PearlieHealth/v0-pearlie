@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { MATCHING_CONTRACT_VERSION } from "@/lib/matching/contract"
 import { buildLeadProfile, buildClinicProfile, runMatchingPipeline } from "@/lib/matching/engine"
 import { verifyAdminAuth } from "@/lib/admin-auth"
+import { FORM_VERSION } from "@/lib/matching/tag-schema"
 
 export const runtime = "nodejs"
 
@@ -27,34 +28,37 @@ export async function POST() {
   // Test 1: Create synthetic lead with ALL fields
   try {
     const fullLead = {
-      treatment_interest: "Invisalign",
+      treatment_interest: "Invisalign / Clear Aligners",
       postcode: "W1G 9PF",
       latitude: 51.5167,
       longitude: -0.1467,
-      decision_values: ["CLEAR_PRICING", "GENTLE_APPROACH"],
-      conversion_blocker: "Cost concerns",
-      blocker: ["COST_CONCERNS", "MONTHLY_PAYMENTS"],
-      preferred_timing: "within_3_months",
-      budget_range: "3000_5000",
-      location_preference: "near_home",
+      decision_values: ["Clear pricing before treatment", "A calm, reassuring environment"],
+      conversion_blocker: "NOT_WORTH_COST",
+      conversion_blocker_codes: ["NOT_WORTH_COST", "NEED_MORE_TIME"],
+      timing_preference: "few_weeks",
+      cost_approach: "comfort_range",
+      location_preference: "near_home_work",
       anxiety_level: "slightly_anxious",
+      preferred_times: ["morning", "afternoon"],
       first_name: "Test",
       last_name: "User",
       email: "test@example.com",
       consent_contact: true,
       consent_terms: true,
-      schema_version: 3,
-      form_version: MATCHING_CONTRACT_VERSION,
+      schema_version: 6,
+      form_version: FORM_VERSION,
       raw_answers: {
-        treatments_selected: ["Invisalign"],
-        location_preference: "NEAR_HOME_WORK",
+        treatments_selected: ["Invisalign / Clear Aligners"],
+        is_emergency: false,
+        location_preference: "near_home_work",
         postcode: "W1G 9PF",
-        values: ["CLEAR_PRICING", "GENTLE_APPROACH"],
-        blocker: ["COST_CONCERNS", "MONTHLY_PAYMENTS"],
-        timing: "within_3_months",
-        cost_approach: "FLEXIBLE_FINANCE",
-        anxiety_level: "SLIGHTLY_ANXIOUS",
-        form_version: MATCHING_CONTRACT_VERSION,
+        values: ["Clear pricing before treatment", "A calm, reassuring environment"],
+        blocker: ["NOT_WORTH_COST", "NEED_MORE_TIME"],
+        timing: "few_weeks",
+        preferred_times: ["morning", "afternoon"],
+        cost_approach: "comfort_range",
+        anxiety_level: "slightly_anxious",
+        form_version: FORM_VERSION,
       },
     }
 
@@ -88,19 +92,19 @@ export async function POST() {
   // Test 2: Create synthetic lead with MINIMAL fields (nullish optionals)
   try {
     const minimalLead = {
-      treatment_interest: "General check-up",
+      treatment_interest: "General Check-up & Clean",
       postcode: "SW1A 1AA",
       latitude: 51.5014,
       longitude: -0.1419,
       first_name: "Minimal",
       last_name: "Test",
       consent_terms: true,
-      schema_version: 3,
-      form_version: MATCHING_CONTRACT_VERSION,
+      schema_version: 6,
+      form_version: FORM_VERSION,
       raw_answers: {
-        treatments_selected: ["General check-up"],
+        treatments_selected: ["General Check-up & Clean"],
         postcode: "SW1A 1AA",
-        form_version: MATCHING_CONTRACT_VERSION,
+        form_version: FORM_VERSION,
       },
     }
 
@@ -138,16 +142,17 @@ export async function POST() {
   // Test 3: Run matching and ensure 2+ clinics with 3 bullets each
   try {
     const testProfile = buildLeadProfile({
-      treatment: "Invisalign",
+      treatments: ["Invisalign / Clear Aligners"],
       postcode: "W1G 9PF",
       latitude: 51.5167,
       longitude: -0.1467,
-      locationPreference: "travel_bit",
-      priorities: ["Clear pricing before treatment", "Calm, gentle approach"],
+      locationPreference: "travel_a_bit",
+      decisionValues: ["Clear pricing before treatment", "A calm, reassuring environment"],
       anxietyLevel: "slightly_anxious",
-      budgetRange: "3000_5000",
-      timingPreference: "within_3_months",
-      conversionBlocker: "MONTHLY_PAYMENTS",
+      costApproach: "comfort_range",
+      timingPreference: "few_weeks",
+      preferred_times: ["morning", "afternoon"],
+      conversionBlockerCodes: ["NOT_WORTH_COST"],
     })
 
     // Fetch clinics
@@ -313,16 +318,17 @@ export async function POST() {
   // Test 7: Verify reasons differentiation
   try {
     const testProfile = buildLeadProfile({
-      treatment: "Invisalign",
+      treatments: ["Invisalign / Clear Aligners"],
       postcode: "W1G 9PF",
       latitude: 51.5167,
       longitude: -0.1467,
-      locationPreference: "travel_bit",
-      priorities: ["Clear pricing before treatment", "Flexible scheduling"],
+      locationPreference: "travel_a_bit",
+      decisionValues: ["Clear pricing before treatment", "Flexible appointments (late afternoons or weekends)"],
       anxietyLevel: "comfortable",
-      budgetRange: "unspecified",
-      timingPreference: "flexible",
-      conversionBlocker: "",
+      costApproach: "best_outcome",
+      timingPreference: "exploring",
+      preferred_times: ["afternoon", "weekend"],
+      conversionBlockerCodes: ["NO_CONCERN"],
     })
 
     const { data: clinicsData } = await supabase

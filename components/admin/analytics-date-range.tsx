@@ -38,7 +38,7 @@ export function AnalyticsDateRange() {
             key={preset.value}
             variant={isActive ? "default" : "outline"}
             size="sm"
-            className={`h-7 text-xs px-2.5 ${isActive ? "bg-[#1a2332] text-white" : ""}`}
+            className={`h-7 text-xs px-2.5 ${isActive ? "bg-[#004443] text-white" : ""}`}
             onClick={() => handleRangeChange(preset.value)}
           >
             {preset.label}

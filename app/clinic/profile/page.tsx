@@ -31,6 +31,8 @@ import {
   Loader2,
   Trash2,
   PoundSterling,
+  Search,
+  Unlink,
 } from "lucide-react"
 import { toast } from "sonner"
 import { HIGHLIGHT_CATEGORIES } from "@/lib/clinic-highlights-config"
@@ -74,8 +76,10 @@ interface ClinicProfile {
   offers_free_consultation: boolean
   show_treatment_prices: boolean
   treatment_prices: TreatmentCategory[]
+  google_place_id?: string
   google_rating?: number
   google_review_count?: number
+  google_maps_url?: string
   latitude?: number
   longitude?: number
   verified?: boolean
@@ -97,6 +101,9 @@ export default function ClinicProfilePage() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isUploadingGallery, setIsUploadingGallery] = useState(false)
   const [isUploadingBeforeAfter, setIsUploadingBeforeAfter] = useState<string | null>(null) // 'before' | 'after' | null
+  const [googleSearchQuery, setGoogleSearchQuery] = useState("")
+  const [googleSearchResults, setGoogleSearchResults] = useState<Array<{ placeId: string; name: string; address: string; rating: number | null; reviewCount: number; mapsUrl: string | null }>>([])
+  const [isSearchingGoogle, setIsSearchingGoogle] = useState(false)
   const handleGalleryUpload = async (files: FileList) => {
     if (!profile) return
     setIsUploadingGallery(true)
@@ -184,6 +191,50 @@ export default function ClinicProfilePage() {
     })
   }
 
+  const handleGoogleSearch = async () => {
+    if (!googleSearchQuery || googleSearchQuery.length < 3) return
+    setIsSearchingGoogle(true)
+    try {
+      const res = await fetch(`/api/clinic/google-place-search?q=${encodeURIComponent(googleSearchQuery)}`)
+      if (res.ok) {
+        const data = await res.json()
+        setGoogleSearchResults(data.results || [])
+      } else {
+        toast.error("Failed to search Google Places")
+      }
+    } catch {
+      toast.error("Failed to search Google Places")
+    } finally {
+      setIsSearchingGoogle(false)
+    }
+  }
+
+  const handleLinkGooglePlace = (result: { placeId: string; name: string; address: string; rating: number | null; reviewCount: number; mapsUrl: string | null }) => {
+    if (!profile) return
+    setProfile({
+      ...profile,
+      google_place_id: result.placeId,
+      google_rating: result.rating || undefined,
+      google_review_count: result.reviewCount || undefined,
+      google_maps_url: result.mapsUrl || undefined,
+    })
+    setGoogleSearchResults([])
+    setGoogleSearchQuery("")
+    toast.success("Google profile linked — remember to Save Changes")
+  }
+
+  const handleUnlinkGoogle = () => {
+    if (!profile) return
+    setProfile({
+      ...profile,
+      google_place_id: undefined,
+      google_rating: undefined,
+      google_review_count: undefined,
+      google_maps_url: undefined,
+    })
+    toast.success("Google profile unlinked — remember to Save Changes")
+  }
+
   const fetchProfile = useCallback(async (showRefreshToast = false) => {
     if (showRefreshToast) setIsRefreshing(true)
     try {
@@ -243,8 +294,10 @@ export default function ClinicProfilePage() {
           offers_free_consultation: clinic.offers_free_consultation || false,
           show_treatment_prices: clinic.show_treatment_prices || false,
           treatment_prices: clinic.treatment_prices || [],
+          google_place_id: clinic.google_place_id || undefined,
           google_rating: clinic.google_rating,
           google_review_count: clinic.google_review_count,
+          google_maps_url: clinic.google_maps_url || undefined,
           latitude: clinic.latitude,
           longitude: clinic.longitude,
           verified: clinic.verified,
@@ -292,6 +345,10 @@ export default function ClinicProfilePage() {
           offers_free_consultation: profile.offers_free_consultation,
           show_treatment_prices: profile.show_treatment_prices,
           treatment_prices: profile.treatment_prices,
+          google_place_id: profile.google_place_id || null,
+          google_rating: profile.google_rating || null,
+          google_review_count: profile.google_review_count || null,
+          google_maps_url: profile.google_maps_url || null,
         }),
       })
       if (response.ok) {
@@ -445,9 +502,21 @@ export default function ClinicProfilePage() {
               />
               <InlineField
                 label="Address"
-                value={`${profile.address}${profile.city ? `, ${profile.city}` : ""} ${profile.postcode}`}
+                value={profile.address}
                 icon={MapPin}
                 onChange={(val) => setProfile({ ...profile, address: val })}
+              />
+              <InlineField
+                label="City"
+                value={profile.city}
+                icon={MapPin}
+                onChange={(val) => setProfile({ ...profile, city: val })}
+              />
+              <InlineField
+                label="Postcode"
+                value={profile.postcode}
+                icon={MapPin}
+                onChange={(val) => setProfile({ ...profile, postcode: val })}
               />
               <InlineField
                 label="Phone"
@@ -879,6 +948,111 @@ export default function ClinicProfilePage() {
                 placeholder="Paste your best patient review here..."
                 className="text-sm"
               />
+            </CardContent>
+          </Card>
+
+          {/* Google Profile Link */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 flex-shrink-0" aria-hidden="true">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                </svg>
+                Google Reviews
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Link your Google Business listing to show Google reviews on your public profile.
+              </p>
+            </CardHeader>
+            <CardContent>
+              {profile.google_place_id ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-emerald-900">Google profile linked</p>
+                        <div className="flex items-center gap-3 mt-0.5">
+                          {profile.google_rating && (
+                            <span className="text-xs text-emerald-700">
+                              <Star className="h-3 w-3 inline fill-amber-400 text-amber-400 mr-0.5" />
+                              {profile.google_rating}
+                            </span>
+                          )}
+                          {profile.google_review_count && (
+                            <span className="text-xs text-emerald-700">{profile.google_review_count} reviews</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                      onClick={handleUnlinkGoogle}
+                    >
+                      <Unlink className="h-3.5 w-3.5 mr-1" />
+                      Unlink
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Input
+                      value={googleSearchQuery}
+                      onChange={(e) => setGoogleSearchQuery(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleGoogleSearch() }}
+                      placeholder="Search for your clinic on Google..."
+                      className="h-9 text-sm"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 px-3"
+                      onClick={handleGoogleSearch}
+                      disabled={isSearchingGoogle || googleSearchQuery.length < 3}
+                    >
+                      {isSearchingGoogle ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  {googleSearchResults.length > 0 && (
+                    <div className="border rounded-lg divide-y">
+                      {googleSearchResults.map((result) => (
+                        <button
+                          key={result.placeId}
+                          type="button"
+                          onClick={() => handleLinkGooglePlace(result)}
+                          className="w-full text-left px-3 py-2.5 hover:bg-muted/50 transition-colors"
+                        >
+                          <p className="text-sm font-medium">{result.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{result.address}</p>
+                          {(result.rating || result.reviewCount > 0) && (
+                            <div className="flex items-center gap-2 mt-1">
+                              {result.rating && (
+                                <span className="text-xs text-muted-foreground">
+                                  <Star className="h-3 w-3 inline fill-amber-400 text-amber-400 mr-0.5" />
+                                  {result.rating}
+                                </span>
+                              )}
+                              {result.reviewCount > 0 && (
+                                <span className="text-xs text-muted-foreground">({result.reviewCount} reviews)</span>
+                              )}
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 

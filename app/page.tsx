@@ -62,23 +62,13 @@ export default function Home() {
     }
   }, [])
 
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
-    setPrefersReducedMotion(mediaQuery.matches)
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
-    mediaQuery.addEventListener("change", handler)
-    return () => mediaQuery.removeEventListener("change", handler)
-  }, [])
-
   const [wordIndex, setWordIndex] = useState(0)
   useEffect(() => {
-    if (prefersReducedMotion) return
     const interval = setInterval(() => {
       setWordIndex((i) => (i + 1) % rotatingWords.length)
     }, 2500)
     return () => clearInterval(interval)
-  }, [prefersReducedMotion])
+  }, [])
 
   return (
     <>
@@ -111,7 +101,7 @@ export default function Home() {
                       playsInline
                       className="w-full h-auto rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.06)]"
                     >
-                      <source src="/images/Pearli-smile-teeth.mp4" type="video/mp4" />
+                      <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
                     </video>
                   </motion.div>
 
@@ -131,9 +121,9 @@ export default function Home() {
                           <motion.span
                             key={rotatingWords[wordIndex]}
                             className="absolute inset-0 text-[#0fbcb0]"
-                            initial={prefersReducedMotion ? {} : { y: "100%", opacity: 0 }}
-                            animate={prefersReducedMotion ? {} : { y: 0, opacity: 1 }}
-                            exit={prefersReducedMotion ? {} : { y: "-100%", opacity: 0 }}
+                            initial={{ y: "100%", opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: "-100%", opacity: 0 }}
                             transition={{ duration: 0.4, ease: "easeInOut" }}
                           >
                             {rotatingWords[wordIndex]}

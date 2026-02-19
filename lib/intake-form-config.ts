@@ -266,27 +266,37 @@ export function getLabel(
 }
 
 /**
+ * Safely coerce a value to an array.
+ * Old form versions sometimes stored arrays as single strings.
+ */
+function toArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value
+  if (typeof value === "string" && value) return [value]
+  return []
+}
+
+/**
  * Parse raw_answers JSON and extract normalized values
  */
 export function parseRawAnswers(rawAnswers: Record<string, any> | null | undefined) {
-  if (!rawAnswers) return null
-  
+  if (!rawAnswers || typeof rawAnswers !== "object") return null
+
   return {
-    treatments: rawAnswers.treatments_selected || [],
+    treatments: toArray(rawAnswers.treatments_selected),
     isEmergency: rawAnswers.is_emergency || false,
     urgency: rawAnswers.urgency || null,
     postcode: rawAnswers.postcode || "",
     locationPreference: rawAnswers.location_preference || null,
-    decisionValues: rawAnswers.values || [],
-    blockerCodes: rawAnswers.blocker || [],
-    blockerLabels: rawAnswers.blocker_labels || [],
+    decisionValues: toArray(rawAnswers.values),
+    blockerCodes: toArray(rawAnswers.blocker),
+    blockerLabels: toArray(rawAnswers.blocker_labels),
     timing: rawAnswers.timing || null,
     costApproach: rawAnswers.cost_approach || null,
     strictBudgetMode: rawAnswers.strict_budget_mode || null,
     strictBudgetAmount: rawAnswers.strict_budget_amount || null,
     monthlyPaymentRange: rawAnswers.monthly_payment_range || null,
     anxietyLevel: rawAnswers.anxiety_level || null,
-    preferredTimes: rawAnswers.preferred_times || [],
+    preferredTimes: toArray(rawAnswers.preferred_times),
     firstName: rawAnswers.first_name || "",
     lastName: rawAnswers.last_name || "",
     email: rawAnswers.email || null,

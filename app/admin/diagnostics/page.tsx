@@ -1,9 +1,9 @@
-import Link from "next/link"
-import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, Code } from "lucide-react"
+import { CheckCircle2, XCircle, AlertCircle, Code } from "lucide-react"
 import { runDiagnostics } from "@/lib/analytics/diagnostics"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { AdminNav } from "@/components/admin/admin-nav"
 
 export default async function DiagnosticsPage() {
   const checks = await runDiagnostics()
@@ -15,49 +15,12 @@ export default async function DiagnosticsPage() {
   const overallStatus = failCount > 0 ? "fail" : warnCount > 0 ? "warning" : "pass"
 
   return (
-    <div className="min-h-screen bg-[#fafaf9]">
-      <header className="border-b border-border bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-8">
-              <Link href="/" className="flex items-center gap-2 text-foreground hover:text-muted-foreground">
-                <ArrowLeft className="w-5 h-5" />
-                <div className="text-2xl font-semibold tracking-tight">Pearlie Admin</div>
-              </Link>
-              <nav className="hidden md:flex gap-6">
-                <Link
-                  href="/admin/analytics"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground pb-4"
-                >
-                  Analytics
-                </Link>
-                <Link
-                  href="/admin/clinics"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground pb-4"
-                >
-                  Clinic Directory
-                </Link>
-                <Link
-                  href="/admin/test-match"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground pb-4"
-                >
-                  Test Match
-                </Link>
-                <Link
-                  href="/admin/diagnostics"
-                  className="text-sm font-semibold text-[#1a2332] border-b-2 border-[#1a2332] pb-4"
-                >
-                  Diagnostics
-                </Link>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#faf6f0]">
+      <AdminNav />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#1a2332] mb-2">Analytics Diagnostics</h1>
+          <h1 className="text-3xl font-bold text-[#004443] mb-2">Analytics Diagnostics</h1>
           <p className="text-muted-foreground">Automated checks to ensure data integrity and metric accuracy</p>
         </div>
 

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { safeArray } from "@/lib/analytics/safe"
 import { getTreatmentValue } from "@/lib/analytics/treatment-values"
+import { parseRawAnswers } from "@/lib/intake-form-config"
 import { TrendingUp, TrendingDown, Minus, Building2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 
 interface ClinicPerformanceTableProps {
@@ -99,7 +100,8 @@ export function ClinicPerformanceTable({ events, clinicMap, leads, matchResults 
 
     safeLeads.forEach(lead => {
       if (!bookedLeadIds.has(lead?.id)) return
-      const treatments = Array.isArray(lead?.treatments) ? lead.treatments : []
+      const parsed = parseRawAnswers(lead?.raw_answers)
+      const treatments = parsed?.treatments || []
       treatments.forEach((t: string) => {
         if (t) {
           const value = getTreatmentValue(t)
@@ -218,7 +220,7 @@ export function ClinicPerformanceTable({ events, clinicMap, leads, matchResults 
   return (
     <div className="space-y-6">
       {/* Platform Summary Card */}
-      <Card className="bg-gradient-to-r from-[#1a2332] to-[#2d3b4f] text-white">
+      <Card className="bg-gradient-to-r from-[#004443] to-[#0a5c54] text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <Building2 className="h-5 w-5" />

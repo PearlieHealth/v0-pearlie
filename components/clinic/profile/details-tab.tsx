@@ -14,7 +14,6 @@ import {
   Award,
   UserRound,
 } from "lucide-react"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { OpeningHoursCard } from "./opening-hours-card"
 import type { Clinic, ProviderProfile } from "./types"
 
@@ -27,172 +26,69 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [expandedProvider, setExpandedProvider] = useState<string | null>(null)
 
-  // FAQs
-  const faqs = [
-    {
-      question: `Where is ${clinic.name} located?`,
-      answer: `${clinic.name} is located at ${clinic.address}, ${clinic.postcode}${clinic.city ? `, ${clinic.city}` : ""}.`,
-    },
-    {
-      question: `What treatments are available at ${clinic.name}?`,
-      answer: `${clinic.name} offers a range of dental treatments including: ${clinic.treatments.slice(0, 5).join(", ")}${(clinic.treatments?.length || 0) > 5 ? ` and ${clinic.treatments.length - 5} more services` : ""}.`,
-    },
-    {
-      question: `Does ${clinic.name} accept NHS patients?`,
-      answer: clinic.accepts_nhs
-        ? `Yes, ${clinic.name} accepts NHS patients alongside private treatments.`
-        : `${clinic.name} is a private dental practice. Contact them directly for pricing information.`,
-    },
-    {
-      question: "What are the opening hours?",
-      answer: clinic.opening_hours && Object.keys(clinic.opening_hours).length > 0
-        ? "Opening hours vary by day. Please check the opening hours section above or contact the clinic directly."
-        : `Please contact ${clinic.name} directly to confirm their opening hours.`,
-    },
-    {
-      question: "How can I book an appointment?",
-      answer: `You can book an appointment by ${clinic.website ? "visiting their website or " : ""}${clinic.phone ? `calling them on ${clinic.phone}` : "contacting them directly"}.`,
-    },
-  ]
+  const hasPhotos = clinic.images && clinic.images.length > 0
 
   return (
     <div className="space-y-8">
-      {/* Opening Hours */}
-      <OpeningHoursCard openingHours={clinic.opening_hours} />
+      {/* Opening Hours + Photos side by side */}
+      <div className={`grid gap-6 ${hasPhotos ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
+        {/* Opening Hours */}
+        <div>
+          <OpeningHoursCard openingHours={clinic.opening_hours} />
+        </div>
 
-      {/* Links */}
-      {(clinic.website || clinic.phone) && (
-        <section>
-          <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Links</h2>
-          <div className="space-y-3">
-            {clinic.website && (
-              <a
-                href={clinic.website.startsWith("http") ? clinic.website : `https://${clinic.website}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-[#444] hover:text-[#1a1a1a] transition-colors"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span>Website</span>
-              </a>
-            )}
-            {clinic.phone && (
-              <a href={`tel:${clinic.phone}`} className="flex items-center gap-2 text-[#444] hover:text-[#1a1a1a] transition-colors">
-                <Phone className="h-4 w-4" />
-                <span>{clinic.phone}</span>
-              </a>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* Photos */}
-      {clinic.images && clinic.images.length > 0 && (
-        <section>
-          <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Photos</h2>
-          <div className="relative rounded-2xl overflow-hidden bg-[#e5e5e5] aspect-[16/9]">
-            <Image
-              src={clinic.images[lightboxIndex] || clinic.images[0]}
-              alt={`${clinic.name} - Photo ${lightboxIndex + 1}`}
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 60vw"
-            />
-            {clinic.images.length > 1 && (
-              <>
-                <button
-                  onClick={() => setLightboxIndex((lightboxIndex - 1 + clinic.images.length) % clinic.images.length)}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-colors"
-                >
-                  <ChevronLeftIcon className="h-5 w-5 text-[#1a1a1a]" />
-                </button>
-                <button
-                  onClick={() => setLightboxIndex((lightboxIndex + 1) % clinic.images.length)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-colors"
-                >
-                  <ChevronRight className="h-5 w-5 text-[#1a1a1a]" />
-                </button>
-                <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 text-white text-sm font-medium backdrop-blur-sm flex items-center gap-2">
-                  <ImageIcon className="h-4 w-4" />
-                  {lightboxIndex + 1}/{clinic.images.length}
-                </div>
-              </>
-            )}
-          </div>
-          {clinic.images.length > 1 && (
-            <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
-              {clinic.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setLightboxIndex(idx)}
-                  className={`flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden border-2 transition-colors ${idx === lightboxIndex ? "border-[#1a1a1a]" : "border-transparent opacity-70 hover:opacity-100"}`}
-                >
-                  <img src={img || "/placeholder.svg"} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Before & After */}
-      {clinic.before_after_images && clinic.before_after_images.length > 0 && (
-        <section>
-          <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Before & After</h2>
-          <div className="space-y-6">
-            {clinic.before_after_images
-              .filter((pair) => pair.before_url || pair.after_url)
-              .map((pair, idx) => (
-                <div key={idx} className="border border-[#e5e5e5] rounded-xl overflow-hidden">
-                  {pair.treatment && (
-                    <div className="px-4 py-2.5 bg-[#fafafa] border-b border-[#e5e5e5]">
-                      <p className="text-sm font-semibold text-[#1a1a1a]">{pair.treatment}</p>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-2">
-                    {pair.before_url && (
-                      <div className="relative bg-[#f5f5f5]">
-                        <div className="relative aspect-[4/3]">
-                          <Image
-                            src={pair.before_url}
-                            alt={`Before${pair.treatment ? ` - ${pair.treatment}` : ""}`}
-                            fill
-                            className="object-contain"
-                            sizes="(max-width: 640px) 50vw, 30vw"
-                          />
-                        </div>
-                        <span className="absolute top-2.5 left-2.5 text-xs font-semibold bg-[#1a1a1a]/70 text-white px-2.5 py-1 rounded-md">
-                          Before
-                        </span>
-                      </div>
-                    )}
-                    {pair.after_url && (
-                      <div className="relative bg-[#f5f5f5] border-l border-[#e5e5e5]">
-                        <div className="relative aspect-[4/3]">
-                          <Image
-                            src={pair.after_url}
-                            alt={`After${pair.treatment ? ` - ${pair.treatment}` : ""}`}
-                            fill
-                            className="object-contain"
-                            sizes="(max-width: 640px) 50vw, 30vw"
-                          />
-                        </div>
-                        <span className="absolute top-2.5 left-2.5 text-xs font-semibold bg-emerald-600/80 text-white px-2.5 py-1 rounded-md">
-                          After
-                        </span>
-                      </div>
-                    )}
+        {/* Photos */}
+        {hasPhotos && (
+          <div>
+            <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Photos</h2>
+            <div className="relative rounded-2xl overflow-hidden bg-[#e5e5e5] aspect-[16/9]">
+              <Image
+                src={clinic.images[lightboxIndex] || clinic.images[0]}
+                alt={`${clinic.name} - Photo ${lightboxIndex + 1}`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 30vw"
+              />
+              {clinic.images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setLightboxIndex((lightboxIndex - 1 + clinic.images.length) % clinic.images.length)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-colors"
+                  >
+                    <ChevronLeftIcon className="h-4 w-4 text-[#1a1a1a]" />
+                  </button>
+                  <button
+                    onClick={() => setLightboxIndex((lightboxIndex + 1) % clinic.images.length)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-colors"
+                  >
+                    <ChevronRight className="h-4 w-4 text-[#1a1a1a]" />
+                  </button>
+                  <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-black/60 text-white text-xs font-medium backdrop-blur-sm flex items-center gap-1.5">
+                    <ImageIcon className="h-3.5 w-3.5" />
+                    {lightboxIndex + 1}/{clinic.images.length}
                   </div>
-                  {pair.description && (
-                    <div className="px-4 py-2.5 border-t border-[#e5e5e5]">
-                      <p className="text-sm text-[#666]">{pair.description}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
+                </>
+              )}
+            </div>
+            {clinic.images.length > 1 && (
+              <div className="flex gap-1.5 mt-2 overflow-x-auto pb-1">
+                {clinic.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setLightboxIndex(idx)}
+                    className={`flex-shrink-0 w-16 h-11 rounded-lg overflow-hidden border-2 transition-colors ${idx === lightboxIndex ? "border-[#1a1a1a]" : "border-transparent opacity-70 hover:opacity-100"}`}
+                  >
+                    <img src={img || "/placeholder.svg"} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        </section>
-      )}
+        )}
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-[#e5e5e5]" />
 
       {/* Providers */}
       {providers.length > 0 && (
@@ -269,22 +165,92 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
         </section>
       )}
 
-      {/* FAQs */}
-      <section>
-        <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Frequently Asked Questions</h2>
-        <Accordion type="single" collapsible className="w-full">
-          {faqs.map((faq, idx) => (
-            <AccordionItem key={idx} value={`faq-${idx}`}>
-              <AccordionTrigger className="text-[15px] font-medium text-[#1a1a1a] hover:no-underline text-left py-3">
-                {faq.question}
-              </AccordionTrigger>
-              <AccordionContent>
-                <p className="text-sm text-[#666] leading-relaxed">{faq.answer}</p>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </section>
+      {/* Before & After */}
+      {clinic.before_after_images && clinic.before_after_images.length > 0 && (
+        <section>
+          <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Before & After</h2>
+          <div className="space-y-6">
+            {clinic.before_after_images
+              .filter((pair) => pair.before_url || pair.after_url)
+              .map((pair, idx) => (
+                <div key={idx} className="border border-[#e5e5e5] rounded-xl overflow-hidden">
+                  {pair.treatment && (
+                    <div className="px-4 py-2.5 bg-[#fafafa] border-b border-[#e5e5e5]">
+                      <p className="text-sm font-semibold text-[#1a1a1a]">{pair.treatment}</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2">
+                    {pair.before_url && (
+                      <div className="relative bg-[#f5f5f5]">
+                        <div className="relative aspect-[4/3]">
+                          <Image
+                            src={pair.before_url}
+                            alt={`Before${pair.treatment ? ` - ${pair.treatment}` : ""}`}
+                            fill
+                            className="object-contain"
+                            sizes="(max-width: 640px) 50vw, 30vw"
+                          />
+                        </div>
+                        <span className="absolute top-2.5 left-2.5 text-xs font-semibold bg-[#1a1a1a]/70 text-white px-2.5 py-1 rounded-md">
+                          Before
+                        </span>
+                      </div>
+                    )}
+                    {pair.after_url && (
+                      <div className="relative bg-[#f5f5f5] border-l border-[#e5e5e5]">
+                        <div className="relative aspect-[4/3]">
+                          <Image
+                            src={pair.after_url}
+                            alt={`After${pair.treatment ? ` - ${pair.treatment}` : ""}`}
+                            fill
+                            className="object-contain"
+                            sizes="(max-width: 640px) 50vw, 30vw"
+                          />
+                        </div>
+                        <span className="absolute top-2.5 left-2.5 text-xs font-semibold bg-emerald-600/80 text-white px-2.5 py-1 rounded-md">
+                          After
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {pair.description && (
+                    <div className="px-4 py-2.5 border-t border-[#e5e5e5]">
+                      <p className="text-sm text-[#666]">{pair.description}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+          </div>
+        </section>
+      )}
+
+      {/* Links (website + phone) */}
+      {(clinic.website || clinic.phone) && (
+        <section>
+          <div className="flex flex-wrap items-center gap-4">
+            {clinic.website && (
+              <a
+                href={clinic.website.startsWith("http") ? clinic.website : `https://${clinic.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-[#444] hover:text-[#1a1a1a] transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span>Website</span>
+              </a>
+            )}
+            {clinic.website && clinic.phone && (
+              <span className="text-[#e5e5e5]">|</span>
+            )}
+            {clinic.phone && (
+              <a href={`tel:${clinic.phone}`} className="flex items-center gap-2 text-[#444] hover:text-[#1a1a1a] transition-colors">
+                <Phone className="h-4 w-4" />
+                <span>{clinic.phone}</span>
+              </a>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   )
 }
