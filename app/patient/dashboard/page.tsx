@@ -80,6 +80,12 @@ export default function PatientDashboard() {
         return
       }
 
+      // Prevent clinic users from accessing patient dashboard
+      if (user.user_metadata?.role === "clinic") {
+        router.replace("/clinic")
+        return
+      }
+
       const res = await fetch(`/api/patient/matches?matchesLimit=${PAGE_SIZE}&convsLimit=${PAGE_SIZE}`)
       if (!res.ok) {
         if (res.status === 401) {

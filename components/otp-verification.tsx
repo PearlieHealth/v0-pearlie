@@ -10,7 +10,7 @@ import { Loader2, Mail, CheckCircle, AlertCircle } from "lucide-react"
 interface OTPVerificationProps {
   leadId: string
   email: string
-  onVerified: () => void
+  onVerified: (data?: { sessionToken?: string }) => void
   onBack?: () => void
 }
 
@@ -99,7 +99,7 @@ export function OTPVerification({ leadId, email, onVerified, onBack }: OTPVerifi
       }
 
       setSuccess(true)
-      setTimeout(() => onVerified(), 1000)
+      setTimeout(() => onVerified({ sessionToken: data.sessionToken }), 1000)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed")
     } finally {

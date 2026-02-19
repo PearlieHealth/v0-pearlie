@@ -125,6 +125,109 @@ export async function POST(request: Request) {
       metadata: { date, time, source: "booking_confirmation" },
     })
 
+    // Auto-create a chat conversation with the booking request so both patient
+    // (in their dashboard) and clinic (in their inbox) can see and continue it.
+    const timeLabelForMsg = HOURLY_SLOTS?.find((s: { key: string; label: string }) => s.key === time)?.label || time
+    const dateLabelForMsg = new Date(date).toLocaleDateString("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+
+    try {
+      // Get or create conversation
+      const { data: existingConvs } = await supabase
+        .from("conversations")
+        .select("id, unread_count_clinic")
+        .eq("lead_id", leadId)
+        .eq("clinic_id", clinicId)
+        .limit(1)
+
+      let conversationId: string | null = existingConvs?.[0]?.id || null
+      let currentUnreadCount = existingConvs?.[0]?.unread_count_clinic || 0
+
+      if (!conversationId) {
+        const { data: newConv, error: convError } = await supabase
+          .from("conversations")
+          .insert({
+            lead_id: leadId,
+            clinic_id: clinicId,
+            status: "active",
+            unread_by_clinic: true,
+            unread_by_patient: false,
+          })
+          .select("id")
+          .single()
+
+        if (convError) {
+          // Handle race condition — conversation may have just been created
+          if (convError.code === "23505") {
+            const { data: raceConv } = await supabase
+              .from("conversations")
+              .select("id, unread_count_clinic")
+              .eq("lead_id", leadId)
+              .eq("clinic_id", clinicId)
+              .limit(1)
+            conversationId = raceConv?.[0]?.id || null
+            currentUnreadCount = raceConv?.[0]?.unread_count_clinic || 0
+          } else {
+            console.error("[booking-request] Failed to create conversation:", convError)
+          }
+        } else {
+          conversationId = newConv?.id || null
+
+          // Ensure match_results entry exists so the clinic sees this lead
+          await supabase.from("match_results").upsert(
+            {
+              lead_id: leadId,
+              clinic_id: clinicId,
+              score: 0,
+              reasons: ["Patient requested an appointment"],
+              tier: "conversation",
+              rank: 0,
+            },
+            { onConflict: "lead_id,clinic_id", ignoreDuplicates: true }
+          ).then(({ error: e }) => { if (e) console.error("[booking-request] match_results upsert:", e) })
+
+          // Ensure lead_clinic_status entry exists
+          await supabase.from("lead_clinic_status").upsert(
+            {
+              lead_id: leadId,
+              clinic_id: clinicId,
+              status: "NEW",
+            },
+            { onConflict: "lead_id,clinic_id", ignoreDuplicates: true }
+          ).then(({ error: e }) => { if (e) console.error("[booking-request] lead_clinic_status upsert:", e) })
+        }
+      }
+
+      if (conversationId) {
+        // Insert the booking request as a chat message
+        await supabase.from("messages").insert({
+          conversation_id: conversationId,
+          sender_type: "patient",
+          content: `Appointment request\nDate: ${dateLabelForMsg}\nTime: ${timeLabelForMsg}\n\nI'd like to request an appointment at this time. Looking forward to hearing from you!`,
+          sent_via: "booking",
+          message_type: "booking-request",
+          status: "sent",
+        })
+
+        // Update conversation unread flags
+        await supabase
+          .from("conversations")
+          .update({
+            unread_by_clinic: true,
+            unread_count_clinic: currentUnreadCount + 1,
+            last_message_at: new Date().toISOString(),
+          })
+          .eq("id", conversationId)
+      }
+    } catch (convError) {
+      // Don't fail the booking if conversation creation fails
+      console.error("[booking-request] Conversation creation error:", convError)
+    }
+
     // Send confirmation email to patient (non-blocking)
     if (lead.email) {
       const requestUrl = new URL(request.url)

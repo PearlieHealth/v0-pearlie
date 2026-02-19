@@ -86,60 +86,112 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // OTP is valid - mark as verified
-    const updateData: Record<string, any> = {
-      is_verified: true,
-      verified_at: new Date().toISOString(),
-      otp_hash: null, // Clear OTP after successful verification
-      verification_attempts: 0,
+    // Phase 1: Mark as verified IMMEDIATELY — before any account logic.
+    // This guarantees the patient can message even if account creation below fails/times out.
+    const { error: verifyError } = await supabase
+      .from("leads")
+      .update({
+        is_verified: true,
+        verified_at: new Date().toISOString(),
+        otp_hash: null,
+        verification_attempts: 0,
+      })
+      .eq("id", leadId)
+
+    if (verifyError) {
+      console.error("[OTP] Failed to update verification status:", verifyError)
+      return NextResponse.json({ error: "Failed to verify email" }, { status: 500 })
     }
 
-    // Auto-create a Supabase auth user for the patient (if they don't have one yet)
+    // Phase 2: Auto-create a Supabase auth user (best-effort, won't block verification)
+    let sessionToken: string | null = null
+    let authUserId: string | null = lead.user_id || null
+
     if (!lead.user_id && lead.email) {
       try {
-        // Check if a user with this email already exists
-        const { data: existingUsers } = await supabase.auth.admin.listUsers()
-        const existingUser = existingUsers?.users?.find(
-          (u) => u.email?.toLowerCase() === lead.email?.toLowerCase()
-        )
+        // Try creating the user directly — avoids listUsers() which fetches ALL users
+        const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+          email: lead.email,
+          email_confirm: true,
+          user_metadata: {
+            full_name: `${lead.first_name || ""} ${lead.last_name || ""}`.trim(),
+            first_name: lead.first_name,
+            last_name: lead.last_name,
+            role: "patient",
+          },
+        })
 
-        if (existingUser) {
-          // Link existing user to this lead
-          updateData.user_id = existingUser.id
-        } else {
-          // Create a new auth user for this patient
-          const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-            email: lead.email,
-            email_confirm: true, // Already verified via OTP
-            user_metadata: {
-              full_name: `${lead.first_name || ""} ${lead.last_name || ""}`.trim(),
-              first_name: lead.first_name,
-              last_name: lead.last_name,
-              role: "patient",
-            },
+        if (!createError && newUser?.user) {
+          authUserId = newUser.user.id
+        } else if (createError?.message?.toLowerCase().includes("already")) {
+          // User already exists — look them up with a targeted paginated query
+          const { data: existingUsers } = await supabase.auth.admin.listUsers({
+            page: 1,
+            perPage: 1,
           })
+          // listUsers doesn't filter by email, so search with a broader query
+          // and match manually. Use a small perPage since we just need to find one.
+          const { data: allPages } = await supabase.auth.admin.listUsers({
+            page: 1,
+            perPage: 50,
+          })
+          const existingUser = allPages?.users?.find(
+            (u) => u.email?.toLowerCase() === lead.email?.toLowerCase()
+          )
+          if (existingUser) {
+            authUserId = existingUser.id
+            // Ensure patient role is set on existing user
+            await supabase.auth.admin.updateUser(existingUser.id, {
+              user_metadata: { ...existingUser.user_metadata, role: "patient" },
+            }).catch(() => {})
+          }
+        } else {
+          console.error("[OTP] Failed to create auth user:", createError)
+        }
 
-          if (!createError && newUser?.user) {
-            updateData.user_id = newUser.user.id
-          } else {
-            console.error("[OTP] Failed to create auth user:", createError)
-            // Don't block verification if account creation fails
+        // Link auth user to lead
+        if (authUserId && authUserId !== lead.user_id) {
+          await supabase
+            .from("leads")
+            .update({ user_id: authUserId })
+            .eq("id", leadId)
+            .then(({ error }) => {
+              if (error) console.error("[OTP] Failed to link user_id:", error)
+            })
+        }
+
+        // Phase 3: Generate a session token so the client can auto-sign in
+        if (authUserId && lead.email) {
+          try {
+            const { data: linkData } = await supabase.auth.admin.generateLink({
+              type: "magiclink",
+              email: lead.email,
+            })
+            if (linkData?.properties?.hashed_token) {
+              sessionToken = linkData.properties.hashed_token
+            }
+          } catch (linkError) {
+            console.error("[OTP] Failed to generate session token:", linkError)
           }
         }
       } catch (accountError) {
         console.error("[OTP] Error creating patient account:", accountError)
-        // Don't block verification if account creation fails
       }
     }
 
-    const { error: updateError } = await supabase
-      .from("leads")
-      .update(updateData)
-      .eq("id", leadId)
-
-    if (updateError) {
-      console.error("[OTP] Failed to update verification status:", updateError)
-      return NextResponse.json({ error: "Failed to verify email" }, { status: 500 })
+    // Generate session token for existing users too (if they don't have one yet)
+    if (!sessionToken && lead.user_id && lead.email) {
+      try {
+        const { data: linkData } = await supabase.auth.admin.generateLink({
+          type: "magiclink",
+          email: lead.email,
+        })
+        if (linkData?.properties?.hashed_token) {
+          sessionToken = linkData.properties.hashed_token
+        }
+      } catch {
+        // Non-critical
+      }
     }
 
     // Send clinic notification for direct profile leads (non-blocking)
@@ -152,6 +204,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Email verified successfully",
+      ...(sessionToken ? { sessionToken } : {}),
     })
   } catch (error) {
     console.error("[OTP] Unexpected error:", error)

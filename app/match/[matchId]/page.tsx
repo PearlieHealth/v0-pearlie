@@ -418,7 +418,7 @@ export default function MatchPage() {
     }
   }, [visibleClinics, matchId, trackedCardViews, displayedClinics]) // Depend on visibleClinics and displayedClinics
 
-  const handleVerificationSuccess = () => {
+  const handleVerificationSuccess = (data?: { sessionToken?: string }) => {
     setIsVerified(true)
     trackEvent("email_verified", { leadId, matchId })
     // Save match for "return to matches" on landing page
@@ -430,6 +430,19 @@ export default function MatchPage() {
         createdAt: new Date().toISOString(),
       }))
     } catch {}
+
+    // Auto-sign in: establish a Supabase session so the patient can access
+    // their dashboard later without a separate login step.
+    if (data?.sessionToken) {
+      const supabase = createClient()
+      supabase.auth.verifyOtp({
+        token_hash: data.sessionToken,
+        type: "magiclink",
+      }).catch(() => {
+        // Non-critical — patient can still message (they're verified),
+        // they just won't have an auto-session for the dashboard.
+      })
+    }
   }
 
   // Check for existing Supabase auth session (e.g. returning from Google OAuth)
