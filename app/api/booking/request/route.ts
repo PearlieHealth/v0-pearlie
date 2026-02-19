@@ -241,8 +241,7 @@ export async function POST(request: Request) {
 
     // Send confirmation email to patient (non-blocking)
     if (lead.email) {
-      const requestUrl = new URL(request.url)
-      const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
+      const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
       const timeLabel = HOURLY_SLOTS?.find((s: { key: string; label: string }) => s.key === time)?.label || time
       const formattedDate = new Date(date).toLocaleDateString("en-GB", {
         weekday: "long",
@@ -254,6 +253,37 @@ export async function POST(request: Request) {
       const unsubHeaders = generateUnsubscribeHeaders(lead.email, "patient_notifications")
       const unsubUrl = unsubHeaders["List-Unsubscribe"].replace(/[<>]/g, "")
       const unsubFooter = generateUnsubscribeFooterHtml(unsubUrl)
+
+      // Generate magic link so patient is auto-logged in when they click
+      const dashboardPath = "/patient/dashboard"
+      const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(dashboardPath)}`
+      let viewDashboardUrl = `${appUrl}${dashboardPath}` // fallback: plain link
+
+      try {
+        const { data: linkData } = await supabase.auth.admin.generateLink({
+          type: "magiclink",
+          email: lead.email,
+          options: { redirectTo },
+        })
+        if (linkData?.properties?.action_link) {
+          viewDashboardUrl = linkData.properties.action_link
+          // Ensure redirect_to points to our app URL (Supabase may use Site URL)
+          try {
+            const linkUrl = new URL(viewDashboardUrl)
+            const currentRedirect = linkUrl.searchParams.get("redirect_to")
+            if (currentRedirect) {
+              const redirectHost = new URL(currentRedirect).hostname
+              const appHost = new URL(appUrl).hostname
+              if (redirectHost !== appHost) {
+                linkUrl.searchParams.set("redirect_to", redirectTo)
+                viewDashboardUrl = linkUrl.toString()
+              }
+            }
+          } catch {}
+        }
+      } catch (linkErr) {
+        console.warn("[booking-request] Failed to generate magic link:", linkErr)
+      }
 
       sendEmailWithRetry({
         from: EMAIL_FROM.NOTIFICATIONS,
@@ -283,7 +313,7 @@ export async function POST(request: Request) {
               </p>
             </div>
             <div style="text-align: center; margin-bottom: 24px;">
-              <a href="${baseUrl}/patient/dashboard" style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
+              <a href="${viewDashboardUrl}" style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
                 View your dashboard
               </a>
             </div>

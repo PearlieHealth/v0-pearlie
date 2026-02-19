@@ -15,8 +15,6 @@ export async function GET(request: Request) {
     }
 
     const supabase = createAdminClient()
-    const requestUrl = new URL(request.url)
-    const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
 
     // Find matches older than 2 hours that haven't been nudged
     const { data: matches, error: matchError } = await supabase
@@ -85,11 +83,43 @@ export async function GET(request: Request) {
         const clinicCount = match.clinic_ids?.length || 0
         const firstName = lead.first_name || "there"
         const postcode = lead.postcode || "your area"
-        const matchUrl = `${baseUrl}/match/${match.id}`
+        const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+        const matchPath = `/match/${match.id}`
+        const matchUrl = `${appUrl}${matchPath}`
 
         const unsubHeaders = generateUnsubscribeHeaders(lead.email, "patient_notifications")
         const unsubUrl = unsubHeaders["List-Unsubscribe"].replace(/[<>]/g, "")
         const unsubFooter = generateUnsubscribeFooterHtml(unsubUrl)
+
+        // Generate magic link so patient is auto-logged in when they click
+        const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(matchPath)}`
+        let matchLink = matchUrl // fallback: plain link
+
+        try {
+          const { data: linkData } = await supabase.auth.admin.generateLink({
+            type: "magiclink",
+            email: lead.email,
+            options: { redirectTo },
+          })
+          if (linkData?.properties?.action_link) {
+            matchLink = linkData.properties.action_link
+            // Ensure redirect_to points to our app URL (Supabase may use Site URL)
+            try {
+              const linkUrl = new URL(matchLink)
+              const currentRedirect = linkUrl.searchParams.get("redirect_to")
+              if (currentRedirect) {
+                const redirectHost = new URL(currentRedirect).hostname
+                const appHost = new URL(appUrl).hostname
+                if (redirectHost !== appHost) {
+                  linkUrl.searchParams.set("redirect_to", redirectTo)
+                  matchLink = linkUrl.toString()
+                }
+              }
+            } catch {}
+          }
+        } catch (linkErr) {
+          console.warn("[match-nudge] Failed to generate magic link:", linkErr)
+        }
 
         await sendEmailWithRetry({
           from: EMAIL_FROM.NOTIFICATIONS,
@@ -105,7 +135,7 @@ export async function GET(request: Request) {
                 Hi ${firstName}, you matched with <strong>${clinicCount} clinic${clinicCount !== 1 ? "s" : ""}</strong> near <strong>${postcode}</strong>. Your personalised matches are ready to view.
               </p>
               <div style="text-align: center; margin-bottom: 32px;">
-                <a href="${matchUrl}" style="display: inline-block; background: #1a1a1a; color: white; padding: 14px 36px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 16px;">
+                <a href="${matchLink}" style="display: inline-block; background: #1a1a1a; color: white; padding: 14px 36px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 16px;">
                   View matches
                 </a>
               </div>
