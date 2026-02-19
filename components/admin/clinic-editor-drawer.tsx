@@ -101,9 +101,9 @@ const LANGUAGE_OPTIONS = [
 interface ClinicEditorDrawerProps {
   open: boolean
   onClose: () => void
-  clinic: Clinic | null
+  clinic: Partial<Clinic> | null
   isCreating?: boolean
-  onSave: (clinic: Clinic) => void
+  onSave: (clinic: Partial<Clinic>) => void | Promise<void>
 }
 
 export function ClinicEditorDrawer({ open, onClose, clinic, onSave }: ClinicEditorDrawerProps) {
@@ -325,8 +325,8 @@ setOpeningHoursData(null)
       website: googleClinic.website,
       latitude: googleClinic.latitude,
       longitude: googleClinic.longitude,
-      rating: googleClinic.rating,
-      review_count: googleClinic.reviewCount,
+      google_rating: googleClinic.rating,
+      google_review_count: googleClinic.reviewCount,
       description: formData.description || `Dental practice located at ${googleClinic.address}`,
     })
 

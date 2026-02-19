@@ -128,13 +128,13 @@ export default function MatchReadinessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f7f4]">
+    <div className="min-h-screen bg-[#F8F1E7]">
       <AdminNav />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[#1a2332]">Match Readiness</h1>
+            <h1 className="text-2xl font-bold text-[#004443]">Match Readiness</h1>
             <p className="text-muted-foreground">
               Audit clinic tags against the canonical 11Q schema. Clinics need matching tags to appear in patient results.
             </p>
@@ -263,7 +263,7 @@ export default function MatchReadinessPage() {
         ) : (
           <>
             <div className="space-y-4 mb-8">
-              <h2 className="text-lg font-semibold text-[#1a2332]">
+              <h2 className="text-lg font-semibold text-[#004443]">
                 Live Clinics ({clinicData.length})
                 {notMatchableCount > 0 && (
                   <span className="text-sm font-normal text-destructive ml-2">

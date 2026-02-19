@@ -48,12 +48,12 @@ export function MatchReasonsCard({ matchResults, clinicMap }: MatchReasonsCardPr
   return (
     <Card className="p-6">
       <div className="flex items-center gap-2 mb-4">
-        <MessageSquare className="h-5 w-5 text-[#1a2332]" />
+        <MessageSquare className="h-5 w-5 text-[#004443]" />
         <h3 className="text-lg font-semibold">Top Match Reasons</h3>
       </div>
       <div className="space-y-3">
-        {topReasons.map(([reason, count], index) => (
-          <div key={index} className="flex items-center justify-between">
+        {topReasons.map(([reason, count]) => (
+          <div key={reason} className="flex items-center justify-between">
             <span className="text-sm text-foreground">{reason}</span>
             <Badge variant="secondary">{count}</Badge>
           </div>

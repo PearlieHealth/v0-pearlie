@@ -43,10 +43,10 @@ import {
 
 // Color mappings for visual display
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  q4_priorities: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
+  q4_priorities: { bg: "bg-teal-50", text: "text-blue-700", border: "border-teal-200" },
   q5_blockers: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
   q8_cost: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200" },
-  q10_anxiety: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
+  q10_anxiety: { bg: "bg-teal-50", text: "text-purple-700", border: "border-teal-200" },
   profile: { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200" },
   unknown: { bg: "bg-gray-50", text: "text-gray-600", border: "border-gray-200" },
 }
@@ -137,12 +137,12 @@ export default function MatchingAlgorithmPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#f8f7f4]">
+    <div className="min-h-screen bg-[#F8F1E7]">
       <AdminNav />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#1a2332]">Matching Algorithm</h1>
+          <h1 className="text-2xl font-bold text-[#004443]">Matching Algorithm</h1>
           <p className="text-muted-foreground">
             Visualize and configure how patient form answers connect to clinic tags and match reasons.
           </p>
@@ -513,8 +513,8 @@ export default function MatchingAlgorithmPage() {
                   </Card>
                 </div>
 
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-medium text-blue-800 mb-2">How to Create These Agents</h4>
+                <div className="p-4 bg-teal-50 border border-teal-200 rounded-lg">
+                  <h4 className="font-medium text-teal-800 mb-2">How to Create These Agents</h4>
                   <ol className="text-sm text-blue-700 space-y-2 list-decimal list-inside">
                     <li>Create an API route in <code className="bg-blue-100 px-1 rounded">/api/admin/agents/[agent-name]/route.ts</code></li>
                     <li>Use the Groq integration (GROQ_API_KEY already configured)</li>

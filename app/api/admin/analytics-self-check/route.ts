@@ -19,7 +19,7 @@ export async function GET() {
 
     // Fetch all required data
     const [leadsRes, eventsRes, matchResultsRes, matchSessionsRes] = await Promise.all([
-      supabase.from("leads").select("id, created_at, email"),
+      supabase.from("leads").select("id, created_at, email, schema_version"),
       supabase.from("analytics_events").select("*"),
       supabase.from("match_results").select("*"),
       supabase.from("match_sessions").select("lead_id, status"),
@@ -172,6 +172,8 @@ export async function GET() {
     })
 
     let trueDuplicateCount = 0
+    let duplicatesWithDedupeKey = 0
+    let duplicatesWithoutDedupeKey = 0
     for (let i = 1; i < sortedForDuplicateCheck.length; i++) {
       const prev = sortedForDuplicateCheck[i - 1]
       const curr = sortedForDuplicateCheck[i]
@@ -183,19 +185,32 @@ export async function GET() {
         const timeDiff = new Date(curr.created_at).getTime() - new Date(prev.created_at).getTime()
         if (timeDiff <= DUPLICATE_WINDOW_MS) {
           trueDuplicateCount++
+          if (curr.dedupe_key) {
+            duplicatesWithDedupeKey++
+          } else {
+            duplicatesWithoutDedupeKey++
+          }
         }
       }
     }
 
     if (trueDuplicateCount > 0) {
+      // If most duplicates are from old events without dedupe_key, it's just legacy noise
+      const isLegacyNoise = duplicatesWithoutDedupeKey > duplicatesWithDedupeKey
       checks.push({
         name: "Duplicate Events",
-        status: "warning",
-        message: `Found ${trueDuplicateCount} rapid duplicate event(s) within ${DUPLICATE_WINDOW_MS / 1000}s window`,
+        status: isLegacyNoise ? "pass" : "warning",
+        message: isLegacyNoise
+          ? `${trueDuplicateCount} legacy duplicate(s) — already deduplicated at query time`
+          : `Found ${duplicatesWithDedupeKey} recent duplicate event(s) (${duplicatesWithoutDedupeKey} legacy)`,
         details: {
           totalEvents: events.length,
           rapidDuplicates: trueDuplicateCount,
-          note: "These may indicate double-fire bugs in event tracking",
+          withDedupeKey: duplicatesWithDedupeKey,
+          withoutDedupeKey: duplicatesWithoutDedupeKey,
+          note: isLegacyNoise
+            ? "These are old events from before dedupe_key was added. The analytics dashboard already filters them out."
+            : "Recent duplicates may indicate double-fire bugs in event tracking.",
         },
       })
     } else {
@@ -222,9 +237,15 @@ export async function GET() {
       matchingFailed: 0, // Session exists with status "error"
       noSessionCreated: 0, // No session was ever created
       sessionPending: 0, // Session exists but matching still running
+      legacyLeads: 0, // Old leads from before current form version
     }
 
-    leadsWithoutMatches.forEach((lead) => {
+    leadsWithoutMatches.forEach((lead: any) => {
+      // Check if this is a legacy lead (pre-v6 or missing schema_version)
+      if (!lead.schema_version || lead.schema_version < 6) {
+        categorized.legacyLeads++
+        return
+      }
       const sessionStatus = sessionsByLeadId.get(lead.id)
       if (!sessionStatus) {
         categorized.noSessionCreated++
@@ -237,27 +258,34 @@ export async function GET() {
       }
     })
 
+    const currentVersionWithoutMatches = leadsWithoutMatches.length - categorized.legacyLeads
+
     if (leadsWithoutMatches.length > 0) {
-      // Only warn if there are actual matching failures
+      // Only warn if there are actual matching failures on current-version leads
       const hasRealIssues = categorized.matchingFailed > 0
+      const isAllLegacy = currentVersionWithoutMatches === 0
       checks.push({
         name: "Leads Without Matches",
         status: hasRealIssues ? "warning" : "pass",
-        message: `${leadsWithoutMatches.length} lead(s) have no match results`,
+        message: isAllLegacy
+          ? `${leadsWithoutMatches.length} legacy lead(s) have no matches (pre-v6 forms — expected)`
+          : `${currentVersionWithoutMatches} current lead(s) without matches, ${categorized.legacyLeads} legacy`,
         details: {
           totalLeads: leads.length,
           testLeadsExcluded: testLeadsCount,
           leadsWithMatches: leadsWithMatches.size,
           leadsWithoutMatches: leadsWithoutMatches.length,
           breakdown: {
+            legacyLeads: categorized.legacyLeads,
             matchingFailed: categorized.matchingFailed,
             noMatchSessionCreated: categorized.noSessionCreated,
             matchingStillRunning: categorized.sessionPending,
           },
-          explanation:
-            categorized.matchingFailed > 0
-              ? "Some leads failed during matching. Check match_sessions table for error details."
-              : "These are likely legacy leads created before matching was implemented, or test leads.",
+          explanation: isAllLegacy
+            ? "All unmatched leads are from old form versions before the matching engine was built. No action needed."
+            : categorized.matchingFailed > 0
+              ? "Some current leads failed during matching. Check match_sessions table for error details."
+              : "Some current leads have no match session — they may have been created via direct API insert.",
         },
       })
     } else {
@@ -271,17 +299,32 @@ export async function GET() {
 
     // Check 6: Match results with reasons
     const matchesWithoutReasons = matchResults.filter(
-      (m) => !m.reasons || (Array.isArray(m.reasons) && m.reasons.length === 0),
+      (m: any) => !m.reasons || (Array.isArray(m.reasons) && m.reasons.length === 0),
     )
 
+    // Check if the unmatched results are from legacy leads (pre-v6)
+    const legacyLeadIds = new Set(
+      leads.filter((l: any) => !l.schema_version || l.schema_version < 6).map((l: any) => l.id),
+    )
+    const legacyMatchesWithoutReasons = matchesWithoutReasons.filter((m: any) => legacyLeadIds.has(m.lead_id))
+    const currentMatchesWithoutReasons = matchesWithoutReasons.length - legacyMatchesWithoutReasons.length
+
     if (matchesWithoutReasons.length > 0) {
+      const isAllLegacy = currentMatchesWithoutReasons === 0
       checks.push({
         name: "Match Results Reasons",
-        status: "warning",
-        message: `${matchesWithoutReasons.length} match result(s) have no reasons`,
+        status: isAllLegacy ? "pass" : "warning",
+        message: isAllLegacy
+          ? `${matchesWithoutReasons.length} legacy match result(s) missing reasons (pre-v6 — expected)`
+          : `${currentMatchesWithoutReasons} current match result(s) missing reasons, ${legacyMatchesWithoutReasons.length} legacy`,
         details: {
           totalMatchResults: matchResults.length,
           withoutReasons: matchesWithoutReasons.length,
+          legacyWithoutReasons: legacyMatchesWithoutReasons.length,
+          currentWithoutReasons: currentMatchesWithoutReasons,
+          explanation: isAllLegacy
+            ? "These match results are from before the reasons engine was built. They won't affect current patients."
+            : "Some current match results are missing reasons — this may indicate a bug in the matching pipeline.",
         },
       })
     } else {

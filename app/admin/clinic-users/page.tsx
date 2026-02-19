@@ -270,7 +270,7 @@ export default function ClinicUsersPage() {
           </Card>
 
           {/* Demo Preview Card */}
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-teal-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Eye className="w-5 h-5 text-blue-600" />

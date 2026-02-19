@@ -60,9 +60,9 @@ const TAG_TO_GROUP: Record<string, ReasonGroup> = {
   TAG_STRICT_BUDGET_SUPPORTIVE: "GROUP_COST_APPROACH",
 
   // Fallbacks
-  FALLBACK_CONVENIENT_LOCATION: "GROUP_GENERIC_FALLBACK",
-  FALLBACK_TRAVEL_DISTANCE: "GROUP_GENERIC_FALLBACK",
   FALLBACK_AVAILABILITY: "GROUP_GENERIC_FALLBACK",
+  FALLBACK_SCHEDULE_FIT: "GROUP_GENERIC_FALLBACK",
+  FALLBACK_WELL_REVIEWED: "GROUP_GENERIC_FALLBACK",
 }
 
 // Priority order for group selection (ensures diversity)
@@ -130,7 +130,7 @@ function safeWeight(value: number | undefined, total: number | undefined, defaul
 
 // ─── EMERGENCY PATH ──────────────────────────────────────────────────────────
 // Short. Calm. Efficient. Only 2 reasons.
-// Priority: Availability → Distance → Emergency capability → Anxiety (if selected)
+// Priority: Availability → Capability → Anxiety (if selected)
 
 function buildEmergencyReasons(facts: MatchFacts, fallbackOffset = 0): MatchReason[] {
   const clinicId = facts.clinicId || "unknown"
@@ -153,21 +153,7 @@ function buildEmergencyReasons(facts: MatchFacts, fallbackOffset = 0): MatchReas
   })
   usedTexts.push(availText)
 
-  // 2. Distance (second priority)
-  const distVariants = EMERGENCY_REASON_TEMPLATES.distance
-  const distText = pickVariant(distVariants, 1)
-  if (!hasSemanticOverlap(distText, usedTexts[0])) {
-    selectedReasons.push({
-      key: `emergency_dist_${clinicId}`,
-      text: distText,
-      category: "treatment",
-      weight: 0.3,
-      tagKey: "EMERGENCY_DISTANCE",
-    })
-    usedTexts.push(distText)
-  }
-
-  // 3. If we need a second reason still, try capability
+  // 2. Capability (second priority — replaces distance to avoid banned words)
   if (selectedReasons.length < 2) {
     const capVariants = EMERGENCY_REASON_TEMPLATES.capability
     const capText = pickVariant(capVariants, 2)
@@ -615,11 +601,11 @@ function getSafeFallbackReasons(clinicId: string, offset = 0, isEmergency = fals
         isFallback: true,
       },
       {
-        key: `emergency_fb_dist_${clinicId}`,
-        text: "Conveniently located near you.",
+        key: `emergency_fb_cap_${clinicId}`,
+        text: "Experienced in handling urgent dental concerns.",
         category: "treatment" as const,
         weight: 0.3,
-        tagKey: "EMERGENCY_DISTANCE",
+        tagKey: "EMERGENCY_CAPABILITY",
         isFallback: true,
       },
     ]
@@ -705,9 +691,8 @@ function getVariantPool(tagKey: string, treatmentCategory?: string): string[] | 
   }
   if (tagKey === "TREATMENT_CHECKUP") return TREATMENT_REASON_TEMPLATES.checkup
 
-  // Emergency templates
+  // Emergency templates (no distance — removed to avoid banned distance words)
   if (tagKey === "EMERGENCY_AVAILABILITY") return EMERGENCY_REASON_TEMPLATES.availability
-  if (tagKey === "EMERGENCY_DISTANCE") return EMERGENCY_REASON_TEMPLATES.distance
   if (tagKey === "EMERGENCY_CAPABILITY") return EMERGENCY_REASON_TEMPLATES.capability
   if (tagKey === "EMERGENCY_ANXIETY") return EMERGENCY_REASON_TEMPLATES.anxiety
 

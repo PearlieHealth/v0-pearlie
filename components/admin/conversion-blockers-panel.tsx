@@ -109,8 +109,10 @@ export function ConversionBlockersPanel({ events = [] }: ConversionBlockersPanel
     if (!matchesEvent) return false
 
     const matchesTime = new Date(matchesEvent.created_at).getTime()
+    if (isNaN(matchesTime)) return false
     const hasSubsequentActivity = sessionEvents.some((e) => {
       const eventTime = new Date(e.created_at).getTime()
+      if (isNaN(eventTime)) return false
       return eventTime > matchesTime && eventTime - matchesTime > 30000 // 30 seconds
     })
 
@@ -187,8 +189,8 @@ export function ConversionBlockersPanel({ events = [] }: ConversionBlockersPanel
             })}
           </div>
 
-          <div className="mt-4 md:mt-6 p-3 md:p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="text-xs md:text-sm text-blue-900">
+          <div className="mt-4 md:mt-6 p-3 md:p-4 bg-teal-50 border border-teal-200 rounded-lg">
+            <div className="text-xs md:text-sm text-teal-900">
               <strong>Note:</strong> These blockers are inferred from user behavior patterns. They don't reflect manual
               user input — they're based on actual actions taken (or not taken) during the journey.
             </div>
