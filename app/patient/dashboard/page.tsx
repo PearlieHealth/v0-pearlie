@@ -222,7 +222,17 @@ export default function PatientDashboard() {
   async function fetchDashboard() {
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+
+      // On mobile browsers, auth cookies may still be propagating after OTP
+      // verification. Retry a few times with short delays before giving up.
+      let user = null
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { data: { user: u } } = await supabase.auth.getUser()
+        if (u) { user = u; break }
+        if (attempt < 2) {
+          await new Promise((r) => setTimeout(r, 1000))
+        }
+      }
       if (!user) { router.replace("/patient/login?next=/patient/dashboard"); return }
 
       // Prevent clinic users from accessing patient dashboard

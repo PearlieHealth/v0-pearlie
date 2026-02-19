@@ -18,6 +18,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
+    // Prevent clinic users from accessing patient data
+    if (user.user_metadata?.role === "clinic") {
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
+    }
+
     const admin = createAdminClient()
 
     // Find all leads for this user (by user_id or email match)

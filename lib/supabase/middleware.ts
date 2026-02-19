@@ -78,10 +78,10 @@ export async function updateSession(request: NextRequest) {
   }
 
   // If logged-in patient tries to access patient login, redirect to dashboard
-  // Only redirect if the user is actually a patient (not a clinic user)
+  // Only redirect if the user is NOT a clinic user (handles legacy patients with no role)
   if (request.nextUrl.pathname === "/patient/login" && user) {
     const userRole = user.user_metadata?.role
-    if (userRole === "patient") {
+    if (userRole !== "clinic") {
       const url = request.nextUrl.clone()
       url.pathname = "/patient/dashboard"
       return NextResponse.redirect(url)
