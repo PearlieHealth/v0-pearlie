@@ -29,6 +29,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
+    // Validate date format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(new Date(date + "T00:00:00Z").getTime())) {
+      return NextResponse.json({ error: "Invalid date format" }, { status: 400 })
+    }
+
+    // Validate time slot
+    const validTime = HOURLY_SLOTS.some((s: { key: string }) => s.key === time)
+    if (!validTime) {
+      return NextResponse.json({ error: "Invalid time slot" }, { status: 400 })
+    }
+
     const supabase = createAdminClient()
 
     // Fetch clinic details

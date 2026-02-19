@@ -26,12 +26,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid or expired booking token" }, { status: 404 })
     }
 
-    // Check if already responded
+    // If already responded, return success with existing data so the page
+    // shows the confirmation rather than an error (clinic may click link twice)
     if (lead.booking_status === "confirmed" || lead.booking_status === "declined") {
-      return NextResponse.json({ 
-        error: "This booking has already been responded to",
-        currentStatus: lead.booking_status 
-      }, { status: 400 })
+      return NextResponse.json({
+        success: true,
+        action: lead.booking_status,
+        alreadyResponded: true,
+        lead: {
+          id: lead.id,
+          firstName: lead.first_name,
+          lastName: lead.last_name,
+          email: lead.email,
+          phone: lead.phone,
+          bookingDate: lead.booking_date,
+          bookingTime: lead.booking_time,
+        },
+        clinic: {
+          id: lead.booking_clinic_id,
+          name: lead.clinics?.name || null,
+        },
+      })
     }
 
     // Update lead status
