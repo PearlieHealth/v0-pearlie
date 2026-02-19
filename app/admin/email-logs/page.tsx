@@ -27,7 +27,7 @@ export default async function EmailLogsPage() {
   const successRate = totalEmails > 0 ? Math.round((sentEmails / totalEmails) * 100) : 0
 
   return (
-    <div className="min-h-screen bg-[#fafaf9]">
+    <div className="min-h-screen bg-[#faf6f0]">
       <AdminNav />
 
       <div className="container mx-auto py-8 px-4 max-w-7xl">

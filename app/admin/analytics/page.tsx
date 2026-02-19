@@ -151,7 +151,7 @@ export default async function AnalyticsDashboard({
   }
 
   return (
-    <div className="min-h-screen bg-[#fafaf9]">
+    <div className="min-h-screen bg-[#faf6f0]">
       <AdminNav />
 
       <main className="container mx-auto px-4 py-6 max-w-7xl">
@@ -166,7 +166,7 @@ export default async function AnalyticsDashboard({
         {/* Desktop header with test buttons */}
         <div className="hidden md:flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl md:text-2xl font-bold text-[#1a2332]">Analytics Dashboard</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-[#004443]">Analytics Dashboard</h1>
             <Suspense fallback={null}>
               <DateRangeSelector />
             </Suspense>
@@ -181,7 +181,7 @@ export default async function AnalyticsDashboard({
         {/* Mobile header */}
         <div className="md:hidden mb-4">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-lg font-bold text-[#1a2332]">Analytics Dashboard</h1>
+            <h1 className="text-lg font-bold text-[#004443]">Analytics Dashboard</h1>
             <Suspense fallback={null}>
               <DateRangeSelector />
             </Suspense>

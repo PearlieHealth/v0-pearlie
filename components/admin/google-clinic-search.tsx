@@ -93,11 +93,11 @@ export function GoogleClinicSearch({ onSelect }: GoogleClinicSearchProps) {
   }
 
   return (
-    <div className="space-y-4 p-4 bg-blue-50/50 border border-blue-200 rounded-lg">
+    <div className="space-y-4 p-4 bg-teal-50/50 border border-teal-200 rounded-lg">
       <div className="flex items-start gap-2">
         <Search className="w-5 h-5 text-blue-600 mt-3" />
         <div className="flex-1 space-y-2">
-          <Label htmlFor="google-search" className="text-sm font-semibold text-blue-900">
+          <Label htmlFor="google-search" className="text-sm font-semibold text-teal-900">
             Search Google for clinic info
           </Label>
           <p className="text-xs text-blue-700">
@@ -137,7 +137,7 @@ export function GoogleClinicSearch({ onSelect }: GoogleClinicSearchProps) {
             <Card
               key={clinic.placeId}
               className={`p-4 cursor-pointer transition-all hover:shadow-md ${
-                selectedId === clinic.placeId ? "ring-2 ring-blue-600 bg-blue-50" : ""
+                selectedId === clinic.placeId ? "ring-2 ring-teal-600 bg-teal-50" : ""
               }`}
               onClick={() => handleSelect(clinic)}
             >

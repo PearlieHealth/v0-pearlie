@@ -262,10 +262,10 @@ export function TreatmentBenchmarksCard({ leads, events }: TreatmentBenchmarksCa
                 <div className="flex h-1.5 rounded-full overflow-hidden bg-muted">
                   {row.leads > 0 && (
                     <>
-                      <div className="bg-[#1a2332] transition-all" style={{ width: "100%" }} />
-                      <div className="bg-[#3f5166] transition-all" style={{ width: `${(row.matchesShown / row.leads) * 100}%` }} />
-                      <div className="bg-[#51677d] transition-all" style={{ width: `${(row.clinicClicks / row.leads) * 100}%` }} />
-                      <div className="bg-[#637d94] transition-all" style={{ width: `${(row.bookRequests / row.leads) * 100}%` }} />
+                      <div className="bg-[#004443] transition-all" style={{ width: "100%" }} />
+                      <div className="bg-[#1a6361] transition-all" style={{ width: `${(row.matchesShown / row.leads) * 100}%` }} />
+                      <div className="bg-[#3c8481] transition-all" style={{ width: `${(row.clinicClicks / row.leads) * 100}%` }} />
+                      <div className="bg-[#5ea5a2] transition-all" style={{ width: `${(row.bookRequests / row.leads) * 100}%` }} />
                     </>
                   )}
                 </div>
@@ -277,7 +277,7 @@ export function TreatmentBenchmarksCard({ leads, events }: TreatmentBenchmarksCa
         {/* Platform average callout */}
         <div className="mt-4 pt-3 border-t">
           <p className="text-xs text-muted-foreground">
-            Platform average conversion: <strong className="text-[#1a2332]">{avgConversion.toFixed(0)}%</strong>
+            Platform average conversion: <strong className="text-[#004443]">{avgConversion.toFixed(0)}%</strong>
             {" · "}Treatments above average are highlighted in green
           </p>
         </div>

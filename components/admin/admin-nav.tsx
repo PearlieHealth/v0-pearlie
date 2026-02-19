@@ -113,8 +113,8 @@ export function AdminNav(_props?: { currentPath?: string }) {
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all",
                       active
-                        ? "bg-[#1a2332] text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-[#f8f7f4] hover:text-foreground",
+                        ? "bg-[#004443] text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-[#F8F1E7] hover:text-foreground",
                     )}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -130,8 +130,8 @@ export function AdminNav(_props?: { currentPath?: string }) {
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all",
                       overflowHasActive
-                        ? "bg-[#1a2332] text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-[#f8f7f4] hover:text-foreground",
+                        ? "bg-[#004443] text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-[#F8F1E7] hover:text-foreground",
                     )}
                   >
                     <MoreHorizontal className="w-3.5 h-3.5" />
@@ -173,8 +173,8 @@ export function AdminNav(_props?: { currentPath?: string }) {
                     className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all",
                       active
-                        ? "bg-[#1a2332] text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-[#f8f7f4] hover:text-foreground",
+                        ? "bg-[#004443] text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-[#F8F1E7] hover:text-foreground",
                     )}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -189,8 +189,8 @@ export function AdminNav(_props?: { currentPath?: string }) {
                     className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all",
                       allNavItems.slice(3).some((item) => isActive(item.href))
-                        ? "bg-[#1a2332] text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-[#f8f7f4] hover:text-foreground",
+                        ? "bg-[#004443] text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-[#F8F1E7] hover:text-foreground",
                     )}
                   >
                     <MoreHorizontal className="w-3.5 h-3.5" />
@@ -233,15 +233,15 @@ export function AdminNav(_props?: { currentPath?: string }) {
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] bg-[#fafaf9] p-0" hideCloseButton>
+            <SheetContent side="right" className="w-[280px] bg-[#faf6f0] p-0" hideCloseButton>
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between p-4 border-b border-border">
-                  <span className="text-lg font-semibold text-[#1a2332]">Pearlie Admin</span>
+                  <span className="text-lg font-semibold text-[#004443]">Pearlie Admin</span>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setOpen(false)}
-                    className="h-8 w-8 rounded-full bg-white border border-border hover:bg-[#f0efeb] transition-colors"
+                    className="h-8 w-8 rounded-full bg-white border border-border hover:bg-[#f3ece0] transition-colors"
                   >
                     <span className="text-lg">&times;</span>
                     <span className="sr-only">Close menu</span>
@@ -265,7 +265,7 @@ export function AdminNav(_props?: { currentPath?: string }) {
                             className={cn(
                               "flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                               active
-                                ? "bg-[#1a2332] text-white shadow-sm"
+                                ? "bg-[#004443] text-white shadow-sm"
                                 : "text-muted-foreground hover:bg-white hover:text-foreground",
                             )}
                           >

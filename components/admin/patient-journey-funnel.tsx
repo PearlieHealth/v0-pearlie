@@ -14,8 +14,8 @@ type FunnelProps = {
 
 export function PatientJourneyFunnel(props: FunnelProps) {
   const stages = [
-    { label: "Leads Submitted", value: safeNumber(props.leadsSubmitted), color: "bg-[#1a2332]" },
-    { label: "Matches Shown", value: safeNumber(props.matchesShown), color: "bg-[#2d3b4f]" },
+    { label: "Leads Submitted", value: safeNumber(props.leadsSubmitted), color: "bg-[#004443]" },
+    { label: "Matches Shown", value: safeNumber(props.matchesShown), color: "bg-[#0a5c54]" },
     { label: "Clinic Clicks", value: safeNumber(props.clinicClicks), color: "bg-[#3f5166]" },
     { label: "Booking Requests", value: safeNumber(props.bookedConsults), color: "bg-[#51677d]" },
     { label: "Bookings Confirmed", value: safeNumber(props.bookingsConfirmed), color: "bg-[#637d94]" },

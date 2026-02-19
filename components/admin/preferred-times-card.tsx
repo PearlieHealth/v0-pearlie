@@ -53,8 +53,8 @@ export function PreferredTimesCard({ leads }: PreferredTimesCardProps) {
 
   const colors: Record<string, string> = {
     morning: "bg-amber-500",
-    afternoon: "bg-blue-500",
-    weekend: "bg-purple-500",
+    afternoon: "bg-teal-500",
+    weekend: "bg-teal-500",
   }
 
   const icons: Record<string, string> = {
@@ -66,7 +66,7 @@ export function PreferredTimesCard({ leads }: PreferredTimesCardProps) {
   return (
     <Card className="p-6">
       <div className="flex items-center gap-2 mb-6">
-        <Clock className="h-5 w-5 text-[#1a2332]" />
+        <Clock className="h-5 w-5 text-[#004443]" />
         <h3 className="text-lg font-semibold">Preferred Appointment Times</h3>
       </div>
 
@@ -107,8 +107,8 @@ export function PreferredTimesCard({ leads }: PreferredTimesCardProps) {
 
           {/* Actionable insight */}
           {timeData.length > 0 && (
-            <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-xs text-blue-900">
+            <div className="mt-6 p-3 bg-teal-50 border border-teal-200 rounded-lg">
+              <p className="text-xs text-teal-900">
                 {(() => {
                   const top = timeData.reduce((a, b) => (a.count > b.count ? a : b))
                   if (top.count === 0) return "Collect more data to see scheduling insights."

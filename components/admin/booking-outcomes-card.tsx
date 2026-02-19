@@ -178,7 +178,7 @@ export function BookingOutcomesCard({ leads, clinicMap }: BookingOutcomesCardPro
             <p className="text-[11px] text-muted-foreground">Confirmation Rate</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3 text-center">
-            <p className="text-lg font-bold text-[#1a2332]">
+            <p className="text-lg font-bold text-[#004443]">
               {avgConfirmHours > 0
                 ? avgConfirmHours < 1
                   ? `${Math.round(avgConfirmHours * 60)}m`
@@ -233,8 +233,8 @@ export function BookingOutcomesCard({ leads, clinicMap }: BookingOutcomesCardPro
         )}
 
         {/* Insight callout */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <p className="text-xs text-blue-800">
+        <div className="bg-teal-50 border border-teal-200 rounded-lg p-3">
+          <p className="text-xs text-teal-800">
             <strong>Insight:</strong>{" "}
             {avgConfirmHours > 0 && avgConfirmHours < 48
               ? `Average confirmation time is ${avgConfirmHours < 1 ? `${Math.round(avgConfirmHours * 60)} minutes` : `${avgConfirmHours.toFixed(1)} hours`}. Fast-responding clinics see higher patient retention.`

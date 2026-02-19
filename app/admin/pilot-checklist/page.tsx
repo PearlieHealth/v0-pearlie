@@ -82,7 +82,7 @@ export default function PilotChecklistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafaf9]">
+    <div className="min-h-screen bg-[#faf6f0]">
       <AdminNav />
 
       <main className="max-w-4xl mx-auto px-4 py-8">

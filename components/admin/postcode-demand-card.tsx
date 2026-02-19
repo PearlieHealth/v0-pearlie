@@ -87,7 +87,7 @@ export function PostcodeDemandCard({ leads }: PostcodeDemandCardProps) {
     <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <Map className="h-5 w-5 text-[#1a2332]" />
+          <Map className="h-5 w-5 text-[#004443]" />
           <h3 className="text-lg font-semibold">Demand by Area</h3>
         </div>
         <div className="text-xs text-muted-foreground">

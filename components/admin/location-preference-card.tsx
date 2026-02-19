@@ -52,12 +52,12 @@ export function LocationPreferenceCard({ leads }: LocationPreferenceCardProps) {
     percentage: totalResponders > 0 ? ((locationCounts[option.value] || 0) / totalResponders) * 100 : 0,
   }))
 
-  const colors = ["bg-green-500", "bg-blue-500", "bg-purple-500"]
+  const colors = ["bg-green-500", "bg-teal-500", "bg-teal-500"]
 
   return (
     <Card className="p-6">
       <div className="flex items-center gap-2 mb-6">
-        <MapPin className="h-5 w-5 text-[#1a2332]" />
+        <MapPin className="h-5 w-5 text-[#004443]" />
         <h3 className="text-lg font-semibold">Travel Willingness</h3>
       </div>
 
@@ -101,8 +101,8 @@ export function LocationPreferenceCard({ leads }: LocationPreferenceCardProps) {
             const travelPct = totalResponders > 0 ? (willingToTravel / totalResponders) * 100 : 0
             if (travelPct > 0) {
               return (
-                <div className="mt-6 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                  <p className="text-xs text-purple-900">
+                <div className="mt-6 p-3 bg-teal-50 border border-teal-200 rounded-lg">
+                  <p className="text-xs text-teal-900">
                     <strong>{travelPct.toFixed(0)}%</strong> of patients are willing to travel beyond their immediate area.
                     Clinics outside dense postcodes can still attract these patients with the right proposition.
                   </p>

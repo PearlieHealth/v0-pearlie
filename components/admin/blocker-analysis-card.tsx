@@ -86,8 +86,8 @@ export function BlockerAnalysisCard({ leads }: BlockerAnalysisCardProps) {
     if (code === "NOT_WORTH_COST") return "bg-red-500"
     if (code === "WORRIED_COMPLEX") return "bg-orange-500"
     if (code === "UNSURE_OPTION") return "bg-amber-500"
-    if (code === "NEED_MORE_TIME") return "bg-blue-500"
-    if (code === "BAD_EXPERIENCE") return "bg-purple-500"
+    if (code === "NEED_MORE_TIME") return "bg-teal-500"
+    if (code === "BAD_EXPERIENCE") return "bg-teal-500"
     return "bg-green-500"
   }
 

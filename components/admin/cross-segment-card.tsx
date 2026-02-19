@@ -109,8 +109,8 @@ function HeatmapTable({
                       <div
                         className="rounded px-1.5 py-1 font-medium"
                         style={{
-                          backgroundColor: `rgba(26, 35, 50, ${0.06 + intensity * 0.35})`,
-                          color: intensity > 0.5 ? "white" : "#1a2332",
+                          backgroundColor: `rgba(0, 68, 67, ${0.06 + intensity * 0.35})`,
+                          color: intensity > 0.5 ? "white" : "#004443",
                         }}
                       >
                         {count}
@@ -302,7 +302,7 @@ export function CrossSegmentCard({ leads }: CrossSegmentCardProps) {
                     </div>
                     <div className="h-2.5 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#1a2332] rounded-full transition-all duration-500"
+                        className="h-full bg-[#004443] rounded-full transition-all duration-500"
                         style={{ width: `${item.rate}%` }}
                       />
                     </div>
@@ -331,8 +331,8 @@ export function CrossSegmentCard({ leads }: CrossSegmentCardProps) {
         </Tabs>
 
         {/* Insight callout */}
-        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mt-4">
-          <p className="text-xs text-indigo-800">
+        <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 mt-4">
+          <p className="text-xs text-teal-800">
             <strong>Insight:</strong> {topInsight}
           </p>
         </div>
