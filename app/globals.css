@@ -166,8 +166,22 @@
   }
 }
 
+@keyframes marquee-scroll-reverse {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 .marquee-track {
   animation: marquee-scroll var(--marquee-speed, 30s) linear infinite;
+  width: max-content;
+}
+
+.marquee-track-reverse {
+  animation: marquee-scroll-reverse var(--marquee-speed, 30s) linear infinite;
   width: max-content;
 }
 
