@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 /**
@@ -8,6 +9,13 @@ import { createAdminClient } from "@/lib/supabase/admin"
  */
 export async function POST(request: NextRequest) {
   try {
+    // Auth check: only authenticated users can mark messages as delivered
+    const supabaseAuth = await createClient()
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser()
+    if (userError || !user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+    }
+
     const { messageIds } = await request.json()
 
     if (!Array.isArray(messageIds) || messageIds.length === 0) {

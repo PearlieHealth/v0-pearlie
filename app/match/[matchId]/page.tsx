@@ -29,7 +29,6 @@ import { ClinicCardSkeleton } from "@/components/clinic-card-skeleton"
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { trackEvent, setMatchContext, setMatchId } from "@/lib/analytics"
-import { createClient } from "@/lib/supabase/client"
 import { MatchFiltersPanel } from "@/components/match-filters-panel"
 import { OTPVerification } from "@/components/otp-verification"
 import { getChipData } from "@/lib/chipData"
@@ -436,7 +435,7 @@ export default function MatchPage() {
     }
   }, [visibleClinics, matchId, trackedCardViews, displayedClinics]) // Depend on visibleClinics and displayedClinics
 
-  const handleVerificationSuccess = (data?: { sessionToken?: string }) => {
+  const handleVerificationSuccess = (data?: { sessionToken?: string; sessionEstablished?: boolean }) => {
     setIsVerified(true)
     trackEvent("email_verified", { leadId, matchId })
     // Save match for "return to matches" on landing page
@@ -448,19 +447,8 @@ export default function MatchPage() {
         createdAt: new Date().toISOString(),
       }))
     } catch {}
-
-    // Auto-sign in: establish a Supabase session so the patient can access
-    // their dashboard later without a separate login step.
-    if (data?.sessionToken) {
-      const supabase = createClient()
-      supabase.auth.verifyOtp({
-        token_hash: data.sessionToken,
-        type: "magiclink",
-      }).catch(() => {
-        // Non-critical — patient can still message (they're verified),
-        // they just won't have an auto-session for the dashboard.
-      })
-    }
+    // Session is already established by OTPVerification component (await + confirm).
+    // No redundant verifyOtp call needed here.
   }
 
   if (loading) {

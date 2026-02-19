@@ -11,7 +11,7 @@ import { Loader2, Mail, CheckCircle, AlertCircle } from "lucide-react"
 interface OTPVerificationProps {
   leadId: string
   email: string
-  onVerified: (data?: { sessionToken?: string }) => void
+  onVerified: (data?: { sessionToken?: string; sessionEstablished?: boolean }) => void
   onBack?: () => void
 }
 
@@ -103,21 +103,29 @@ export function OTPVerification({ leadId, email, onVerified, onBack }: OTPVerifi
       // the Supabase session cookie silently (no redirect). This means the
       // patient is fully logged in after OTP — no separate login step needed.
       const token = data.sessionToken || data.tokenHash
+      let sessionEstablished = false
       if (token) {
         try {
           const supabase = createClient()
-          await supabase.auth.verifyOtp({
+          const { error: sessionError } = await supabase.auth.verifyOtp({
             token_hash: token,
             type: "magiclink",
           })
+          if (!sessionError) {
+            // Confirm session is actually set (critical for mobile browsers
+            // where cookie persistence can be delayed)
+            const { data: { user } } = await supabase.auth.getUser()
+            sessionEstablished = !!user
+          } else {
+            console.error("[OTP] verifyOtp error:", sessionError.message)
+          }
         } catch (signInErr) {
-          // Non-blocking: patient can still use magic link later
           console.error("[OTP] Silent sign-in failed:", signInErr)
         }
       }
 
       setSuccess(true)
-      setTimeout(() => onVerified({ sessionToken: token }), 1000)
+      setTimeout(() => onVerified({ sessionToken: token, sessionEstablished }), 1000)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed")
     } finally {
