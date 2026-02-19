@@ -51,6 +51,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
     }
 
+    // Check for duplicate: same email + direct_profile source
+    const { data: existingLead } = await supabase
+      .from("leads")
+      .select("id")
+      .eq("email", email.trim().toLowerCase())
+      .eq("source", "direct_profile")
+      .limit(1)
+      .maybeSingle()
+
+    if (existingLead) {
+      // Check if this lead already has a match_result for the same clinic
+      const { data: existingMatch } = await supabase
+        .from("match_results")
+        .select("id")
+        .eq("lead_id", existingLead.id)
+        .eq("clinic_id", clinicId)
+        .limit(1)
+        .maybeSingle()
+
+      if (existingMatch) {
+        // Same patient, same clinic — return existing lead instead of duplicating
+        return NextResponse.json({
+          leadId: existingLead.id,
+          clinicId: clinic.id,
+          existing: true,
+        })
+      }
+      // Different clinic — fall through to create a new lead
+    }
+
     // Create the lead with source = "direct_profile"
     const { data: lead, error: insertError } = await supabase
       .from("leads")

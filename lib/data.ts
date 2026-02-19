@@ -1,3 +1,5 @@
+import { calculateHaversineDistance } from "@/lib/utils/geo"
+
 // Data models and in-memory storage for MVP
 
 export type Clinic = {
@@ -164,18 +166,6 @@ export const storage = {
   events: [] as Event[],
 }
 
-// Helper function to calculate distance between two coordinates (Haversine formula)
-export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371 // Radius of Earth in km
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLng = ((lng2 - lng1) * Math.PI) / 180
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  return R * c
-}
-
 // Matching logic
 export function findMatchingClinics(lead: Lead): Clinic[] {
   // Get lead coordinates (approximate from postcode)
@@ -202,7 +192,7 @@ export function findMatchingClinics(lead: Lead): Clinic[] {
   // Calculate distances and sort
   const clinicsWithDistance = treatmentMatches.map((clinic) => ({
     clinic,
-    distance: calculateDistance(leadCoords.lat, leadCoords.lng, clinic.lat, clinic.lng),
+    distance: calculateHaversineDistance(leadCoords.lat, leadCoords.lng, clinic.lat, clinic.lng),
   }))
 
   // Sort by distance first, then by priorityWeight

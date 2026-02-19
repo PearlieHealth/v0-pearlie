@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No clinic found" }, { status: 404 })
     }
 
-    // Get conversations for this clinic
+    // Get conversations with joined lead details and latest message in a single query
     const { data: conversations, error } = await supabaseAdmin
       .from("conversations")
       .select(`
@@ -31,10 +31,14 @@ export async function GET(request: NextRequest) {
         last_message_at,
         unread_by_clinic,
         unread_count_clinic,
-        created_at
+        created_at,
+        leads!inner(first_name, last_name, email, phone, treatment_interest, primary_treatment),
+        messages(content, sender_type, created_at)
       `)
       .eq("clinic_id", clinicUser.clinic_id)
       .order("last_message_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { referencedTable: "messages", ascending: false })
+      .limit(1, { referencedTable: "messages" })
 
     if (error) {
       console.error("[Conversations] Failed to fetch:", error)
@@ -44,32 +48,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get lead details for each conversation
-    const conversationsWithLeads = await Promise.all(
-      (conversations || []).map(async (conv) => {
-        const { data: lead } = await supabaseAdmin
-          .from("leads")
-          .select("first_name, last_name, email, phone, treatment_interest, primary_treatment")
-          .eq("id", conv.lead_id)
-          .single()
-
-        // Get latest message (include bot messages so preview is always current)
-        const { data: latestMessage } = await supabaseAdmin
-          .from("messages")
-          .select("content, sender_type")
-          .eq("conversation_id", conv.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single()
-
-        return {
-          ...conv,
-          lead,
-          latest_message: latestMessage?.content,
-          latest_message_sender: latestMessage?.sender_type,
-        }
-      })
-    )
+    // Map joined result to existing response shape
+    const conversationsWithLeads = (conversations || []).map((conv) => {
+      const { leads, messages, ...rest } = conv as any
+      const latestMessage = messages?.[0]
+      return {
+        ...rest,
+        lead: leads,
+        latest_message: latestMessage?.content,
+        latest_message_sender: latestMessage?.sender_type,
+      }
+    })
 
     return NextResponse.json({
       conversations: conversationsWithLeads,
