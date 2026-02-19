@@ -185,8 +185,6 @@ export async function POST(request: Request) {
       submitted_at: new Date().toISOString(),
     }
 
-    const isGoogleAuth = body.authMethod === "google"
-
     const blockerCodes = validatedData.conversionBlockerCodes as string[]
     // Extract blocker labels from the form's rawAnswers payload, or fall back to codes
     const incomingBlockerLabels = body.rawAnswers?.blocker_labels
@@ -234,11 +232,6 @@ export async function POST(request: Request) {
         schema_version: validatedData.schemaVersion,
         raw_answers: rawAnswers,
         source: body.source || "match",
-        ...(isGoogleAuth && {
-          is_verified: true,
-          verified_at: new Date().toISOString(),
-          verification_email: email,
-        }),
       })
       .select()
       .single()
