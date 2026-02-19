@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { MainNav } from "@/components/main-nav"
+import { ClinicNetworkCarousel } from "@/components/clinic-network-carousel"
 import { SiteFooter } from "@/components/site-footer"
 
 export const metadata = {
@@ -30,6 +31,24 @@ export default function AboutPage() {
               </p>
             </div>
           </div>
+        </section>
+
+        {/* Our Clinic Network — two-row carousel */}
+        <section className="py-12 sm:py-20 md:py-24 bg-white">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-[#004443]">
+                Our clinic network
+              </h2>
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                Pearlie partners with independent, trusted dental clinics across the UK. All clinics are verified,
+                GDC-registered, and committed to providing quality patient care.
+              </p>
+            </div>
+          </div>
+
+          {/* Full-width carousel — no container constraint */}
+          <ClinicNetworkCarousel />
         </section>
 
         {/* What Pearlie Does — cream background with richer descriptions */}
