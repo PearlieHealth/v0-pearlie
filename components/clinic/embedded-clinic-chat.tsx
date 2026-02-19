@@ -213,12 +213,12 @@ export function EmbeddedClinicChat({
   // ── Delivery status icon ──────────────────────────────────────
   const StatusIcon = ({ status }: { status?: string }) => {
     if (!status || status === "sent") {
-      return <Check className="h-2.5 w-2.5 text-[#777]" />
+      return <Check className="h-2.5 w-2.5 text-white/50" />
     }
     if (status === "delivered") {
-      return <CheckCheck className="h-2.5 w-2.5 text-[#777]" />
+      return <CheckCheck className="h-2.5 w-2.5 text-white/50" />
     }
-    return <CheckCheck className="h-2.5 w-2.5 text-teal-500" />
+    return <CheckCheck className="h-2.5 w-2.5 text-white" />
   }
 
   if (!isOpen) return null
@@ -227,15 +227,15 @@ export function EmbeddedClinicChat({
     <div className={hideHeader ? "bg-white flex flex-col h-full overflow-hidden" : "border border-[#e5e5e5] rounded-xl overflow-hidden bg-white"}>
       {/* Header */}
       {!hideHeader && (
-        <div className="bg-[#1a1a1a] px-4 py-3 flex items-center justify-between">
+        <div className="bg-[#004443] px-4 py-3 flex items-center justify-between">
           <div>
             <p className="text-white text-sm font-semibold">{clinicName}</p>
-            <p className="text-[#999] text-xs">Usually replies within a few hours</p>
+            <p className="text-white/60 text-xs">Usually replies within a few hours</p>
           </div>
           <button
             type="button"
             onClick={onToggle}
-            className="text-[#999] hover:text-white transition-colors p-1 rounded"
+            className="text-white/60 hover:text-white transition-colors p-1 rounded"
           >
             <ChevronDown className="h-4 w-4" />
           </button>
@@ -261,7 +261,7 @@ export function EmbeddedClinicChat({
       >
         {isLoading && messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="animate-spin h-5 w-5 border-2 border-[#1a1a1a] border-t-transparent rounded-full" />
+            <div className="animate-spin h-5 w-5 border-2 border-[#004443] border-t-transparent rounded-full" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
@@ -292,7 +292,7 @@ export function EmbeddedClinicChat({
                     }`}
                   >
                     {msg.sender_type === "bot" ? (
-                      <div className="max-w-[90%] flex items-start gap-2 bg-gradient-to-r from-teal-50 to-[#F8F1E7] border border-teal-100/50 rounded-xl px-3 py-2">
+                      <div className="max-w-[90%] flex items-start gap-2 bg-[#F8F1E7] border border-[#F8F1E7] rounded-xl px-3 py-2">
                         <Heart className="w-3 h-3 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
                         <p className="text-[11px] text-[#555] whitespace-pre-wrap">{msg.content}</p>
                       </div>
@@ -300,14 +300,14 @@ export function EmbeddedClinicChat({
                       <div
                         className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
                           msg.sender_type === "patient"
-                            ? "bg-[#1a1a1a] text-white rounded-br-md"
-                            : "bg-white border border-[#e5e5e5] text-[#333] rounded-bl-md"
+                            ? "bg-[#004443] text-white rounded-br-md"
+                            : "bg-[#0fbcb0] text-white rounded-bl-md"
                         }`}
                       >
                         <p className="whitespace-pre-wrap">{msg.content}</p>
                         <div
                           className={`flex items-center gap-1 mt-1 ${
-                            msg.sender_type === "patient" ? "text-[#999] justify-end" : "text-[#aaa]"
+                            msg.sender_type === "patient" ? "text-white/60 justify-end" : "text-white/60"
                           }`}
                         >
                           <span className="text-[10px]">{formatTime(msg.created_at)}</span>
@@ -377,13 +377,13 @@ export function EmbeddedClinicChat({
                   }
                 }}
                 placeholder="Type a message..."
-                className="flex-1 min-w-0 text-[16px] sm:text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
+                className="flex-1 min-w-0 text-[16px] sm:text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#004443]/20 focus:border-[#004443] bg-white"
                 disabled={isSending}
               />
               <button
                 type="submit"
                 disabled={!newMessage.trim() || isSending}
-                className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#333] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-shrink-0 h-10 w-10 rounded-full bg-[#004443] text-white flex items-center justify-center hover:bg-[#003332] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isSending ? (
                   <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />

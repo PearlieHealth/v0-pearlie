@@ -31,8 +31,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { trackEvent, setMatchContext, setMatchId } from "@/lib/analytics"
 import { MatchFiltersPanel } from "@/components/match-filters-panel"
 import { OTPVerification } from "@/components/otp-verification"
-import { GoogleSignInButton } from "@/components/google-sign-in-button"
-import { createClient } from "@/lib/supabase/client"
 import { getChipData } from "@/lib/chipData"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 
@@ -446,39 +444,6 @@ export default function MatchPage() {
     } catch {}
   }
 
-  // Check for existing Supabase auth session (e.g. returning from Google OAuth)
-  // If the user is authenticated via Google, auto-verify the lead
-  const [googleVerifying, setGoogleVerifying] = useState(false)
-
-  useEffect(() => {
-    if (isVerified !== false || !leadId || !leadEmail || googleVerifying) return
-
-    async function checkGoogleSession() {
-      try {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-
-        if (!user?.email) return
-        if (user.email.toLowerCase() !== leadEmail?.toLowerCase()) return
-
-        // Google user email matches lead email - auto-verify
-        setGoogleVerifying(true)
-        const res = await fetch(`/api/leads/${leadId}/verify-google`, { method: "POST" })
-
-        if (res.ok) {
-          setIsVerified(true)
-          trackEvent("email_verified", { leadId, matchId, meta: { method: "google" } })
-        }
-      } catch {
-        // Silently fail - user can still use OTP
-      } finally {
-        setGoogleVerifying(false)
-      }
-    }
-
-    checkGoogleSession()
-  }, [isVerified, leadId, leadEmail, matchId])
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#faf8f3]">
@@ -516,46 +481,20 @@ export default function MatchPage() {
   }
 
   if (isVerified === false && leadId && leadEmail) {
-    // Show loading if Google auto-verify is in progress
-    if (googleVerifying) {
-      return (
-        <div className="min-h-screen bg-[#faf8f3] flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary mb-4" />
-            <p className="text-muted-foreground">Verifying your Google account...</p>
-          </div>
-        </div>
-      )
-    }
-
     return (
       <div className="min-h-screen bg-[#faf8f3]">
         <div className="max-w-lg mx-auto px-4 py-12">
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center justify-center gap-2.5 mb-6">
-              <div className="rounded-full bg-black p-2">
+              <div className="rounded-full bg-[#0fbcb0] p-2">
                 <Heart className="w-5 h-5 text-white fill-white" />
               </div>
-              <span className="font-semibold text-xl">Pearlie</span>
+              <span className="font-semibold text-xl text-[#0fbcb0]">Pearlie</span>
             </Link>
             <h1 className="text-2xl font-semibold text-foreground mb-2">Verify your email to see your matches</h1>
             <p className="text-muted-foreground">
               We found clinics that match your needs. Verify your email to view your personalised results.
             </p>
-          </div>
-
-          {/* Google sign-in option */}
-          <div className="mb-6">
-            <GoogleSignInButton
-              redirectTo={`${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=/match/${matchId}`}
-            />
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-sm text-muted-foreground font-medium">or verify with email code</span>
-            <div className="flex-1 h-px bg-border" />
           </div>
 
           <OTPVerification leadId={leadId} email={leadEmail} onVerified={handleVerificationSuccess} />
