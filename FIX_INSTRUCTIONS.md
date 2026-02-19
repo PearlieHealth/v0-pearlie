@@ -862,6 +862,268 @@ The `useChatChannel` hook (already active on the dashboard at line 422) also han
 
 ---
 
+---
+
+## PHASE 6: Security & Resilience Fixes (Deep Audit — 2026-02-19)
+
+These findings were discovered by a deep audit of the full patient journey on the current main branch (commit `cc7f26e`). They affect files outside the dashboard and should be implemented on a **new branch from main**.
+
+### Fix S1 — OTP endpoint allows lead hijacking (CRITICAL)
+
+**File:** `app/api/otp/send/route.ts`
+
+**Problem:** The endpoint accepts `{ leadId, email }` from the client. It validates email FORMAT (regex check) but never checks that the submitted email matches the lead's actual stored email. An attacker who knows a victim's `leadId` can call this endpoint with their own email address, receive the OTP, verify it, and take ownership of the victim's lead — seeing their matched clinics, health data, and messaging clinics as the victim.
+
+**Fix:** After fetching the lead from the database (around line 35), add:
+
+```typescript
+// Verify the email matches the lead's stored email
+if (lead.email.toLowerCase() !== email.toLowerCase()) {
+  return NextResponse.json({ error: "Email does not match our records" }, { status: 400 })
+}
+```
+
+**Why this is safe:** This is a server-side validation check. No client-side or clinic-side impact. The patient-facing OTP form already pre-fills the correct email, so legitimate users will never hit this error.
+
+---
+
+### Fix S2 — Match results API has zero authentication (CRITICAL)
+
+**File:** `app/api/matches/[matchId]/route.ts`
+
+**Problem:** `GET /api/matches/{matchId}` returns full match details — all matched clinics, scores, lead coordinates, treatment preferences — to anyone. No auth check at all. The endpoint jumps straight into database queries. If someone gets a match URL from browser history, a shared link, or server logs, they see everything.
+
+**Design decision:** Match pages are currently shareable by URL. Two options:
+- **Option A (recommended):** Keep semi-public but strip sensitive fields (exact coordinates, raw_answers, pain_score) for unauthenticated users. Only show clinic names, addresses, and match percentages.
+- **Option B:** Require full authentication (breaks shareable links).
+
+**Fix (Option A):** Add auth check at the top of the handler. If user is authenticated and owns the lead, return full data. If unauthenticated, return stripped data:
+
+```typescript
+import { createClient } from "@/lib/supabase/server"
+
+export async function GET(request: Request, { params }: { params: Promise<{ matchId: string }> }) {
+  const { matchId } = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // ... existing match fetch ...
+
+  // Check ownership
+  const isOwner = user && match.leads && (
+    match.leads.user_id === user.id ||
+    match.leads.email?.toLowerCase() === user.email?.toLowerCase()
+  )
+
+  // Strip sensitive fields for non-owners
+  if (!isOwner) {
+    // Remove lead coordinates, raw answers, personal health data
+    delete matchData.lead_latitude
+    delete matchData.lead_longitude
+    delete matchData.raw_answers
+    // Keep clinic info, match percentages (these are the useful shareable parts)
+  }
+}
+```
+
+---
+
+### Fix S3 — `/patient/messages` not protected by middleware (CRITICAL)
+
+**File:** `lib/supabase/middleware.ts`
+
+**Problem:** Middleware only checks `request.nextUrl.pathname.startsWith("/patient/dashboard")`. The `/patient/messages` route has no middleware auth guard. The page itself does a client-side auth check, but there's a gap where the page renders before that redirect fires.
+
+**Fix:** Change the route check (around line 51) from:
+
+```typescript
+const isPatientDashboard = request.nextUrl.pathname.startsWith("/patient/dashboard")
+if (isPatientDashboard && !user) {
+```
+
+to:
+
+```typescript
+const isPatientRoute = request.nextUrl.pathname.startsWith("/patient/") &&
+  !request.nextUrl.pathname.startsWith("/patient/login")
+if (isPatientRoute && !user) {
+```
+
+**Why this is safe:** Only adds protection — doesn't change any existing behaviour for authenticated users. The login page is excluded so patients can still reach it.
+
+---
+
+### Fix S4 — `/api/chat/mark-delivered` has no auth (HIGH)
+
+**File:** `app/api/chat/mark-delivered/route.ts`
+
+**Problem:** Accepts `{ messageIds: [...] }` and marks them as "delivered" using the admin client. No authentication whatsoever. Anyone can mark any message as delivered.
+
+**Fix:** Add auth check at the top of the POST handler:
+
+```typescript
+import { createClient } from "@/lib/supabase/server"
+
+export async function POST(request: NextRequest) {
+  try {
+    // Auth check
+    const supabaseAuth = await createClient()
+    const { data: { user } } = await supabaseAuth.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { messageIds } = await request.json()
+    // ... rest of existing code ...
+  }
+}
+```
+
+**Why this is safe:** The `useChatChannel` hook that calls this endpoint runs in authenticated patient/clinic sessions. Adding auth won't break them. The embedded clinic chat widget calls it too, but that also runs in authenticated contexts.
+
+---
+
+### Fix S5 — In-memory rate limiting doesn't work on Vercel (HIGH)
+
+**File:** `lib/rate-limit.ts`
+
+**Problem:** Rate limiters use a JavaScript `Map`. On Vercel serverless, each invocation can be a fresh process. The Map starts empty. Rate limits are effectively non-existent in production. The file's own comments acknowledge this: "Works per-process — sufficient for single-instance deployments."
+
+**Fix options (pick one):**
+
+**Option A — Supabase-based (no new dependency, works immediately):**
+Create a `rate_limits` table and check/increment there:
+```sql
+-- scripts/20260219_100000_rate_limit_table.sql
+CREATE TABLE IF NOT EXISTS rate_limits (
+  key TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 1,
+  window_start TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (key, window_start)
+);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_key ON rate_limits(key);
+```
+
+Then in `lib/rate-limit.ts`, replace the Map with Supabase queries.
+
+**Option B — Vercel KV (fastest, recommended if already using Vercel):**
+```bash
+npm install @vercel/kv
+```
+Then use `@vercel/kv` for atomic increment/get with TTL matching the rate limit window.
+
+**Option C — Keep in-memory but with ultra-conservative limits:**
+Accept that limits only work within a single warm invocation. Make limits very low (e.g., 2 per window instead of 10) so even fresh processes provide some protection. This is the cheapest option but weakest.
+
+---
+
+### Fix S6 — Promise.all cascade failure in conversations API (MEDIUM)
+
+**File:** `app/api/patient/conversations/route.ts` (around line 50)
+
+**Problem:** Uses `Promise.all()` to enrich conversations with latest message previews. If ANY single conversation's message query fails, the entire inbox API returns 500 — the patient sees an empty inbox instead of partial data.
+
+**Fix:** Change `Promise.all` to `Promise.allSettled`:
+
+```typescript
+const results = await Promise.allSettled(
+  (conversations || []).map(async (conv) => {
+    const { data: latestMessage } = await admin
+      .from("messages")
+      .select("content, sender_type")
+      .eq("conversation_id", conv.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    return {
+      ...conv,
+      latest_message: latestMessage?.content?.substring(0, 100) || null,
+      latest_message_sender: latestMessage?.sender_type || null,
+    }
+  })
+)
+
+const enriched = results
+  .filter((r): r is PromiseFulfilledResult<any> => r.status === "fulfilled")
+  .map(r => r.value)
+```
+
+**Why this is safe:** Conversations with failed enrichment are simply omitted rather than crashing the whole response. The fallback (showing conversation without preview) is better than showing nothing.
+
+---
+
+### Fix S7 — Admin login has no rate limiting (MEDIUM)
+
+**File:** `middleware.ts` (root) or the admin login page handler
+
+**Problem:** The admin login has no rate limiting on password attempts. An attacker can brute-force the admin password. The admin password is validated via HMAC in middleware, but there's no limit on how many times you can try.
+
+**Fix:** Add rate limiting in the admin login handler. Since the current in-memory rate limiter doesn't work on Vercel (see S5), the simplest approach is to add a delay or use a Supabase-based check:
+
+```typescript
+// In the admin login handler, before checking password:
+// Option A: Simple progressive delay (doesn't persist across instances but slows attackers)
+const failedAttempts = adminLoginAttempts.get(ip) || 0
+if (failedAttempts > 5) {
+  return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 })
+}
+```
+
+If S5 is implemented first (persistent rate limiting), this becomes trivial — just wrap the admin login check with the new rate limiter.
+
+---
+
+### Fix S8 — Messages page silent error handling (LOW)
+
+**File:** `app/patient/messages/page.tsx`
+
+**Problem:** Both `fetchConversations` and `fetchMessagesForConversation` have empty catch blocks. If the API fails, the page shows an empty state with no error message or retry option.
+
+**Fix:** Add an error state:
+
+```typescript
+const [fetchError, setFetchError] = useState<string | null>(null)
+
+// In fetchConversations catch:
+} catch {
+  setFetchError("Couldn't load conversations. Please try again.")
+} finally {
+  setIsLoading(false)
+}
+```
+
+Then add a retry button in the UI:
+```jsx
+{fetchError && (
+  <div className="text-center py-8">
+    <p className="text-sm text-red-500 mb-3">{fetchError}</p>
+    <Button variant="outline" size="sm" onClick={() => { setFetchError(null); fetchConversations() }}>
+      Try again
+    </Button>
+  </div>
+)}
+```
+
+---
+
+## Full Implementation Order (all phases)
+
+| # | Fix | File(s) | Effort | Status |
+|---|-----|---------|--------|--------|
+| 1-15 | Dashboard fixes (C1-L7) | dashboard, api, booking-card, messages | — | DONE |
+| 16 | A1: Inbox polling | dashboard/page.tsx | 2 min | TODO |
+| 17 | A2: Realtime inbox subscription | use-chat-channel.ts + dashboard | 10 min | TODO |
+| **18** | **S1: OTP lead email validation** | **api/otp/send/route.ts** | **5 min** | **TODO** |
+| **19** | **S3: Protect all /patient/* routes** | **lib/supabase/middleware.ts** | **2 min** | **TODO** |
+| **20** | **S2: Auth on match results API** | **api/matches/[matchId]/route.ts** | **15 min** | **TODO** |
+| **21** | **S4: Auth on mark-delivered** | **api/chat/mark-delivered/route.ts** | **10 min** | **TODO** |
+| **22** | **S6: Promise.allSettled for inbox** | **api/patient/conversations/route.ts** | **5 min** | **TODO** |
+| **23** | **S7: Admin login rate limiting** | **middleware.ts** | **10 min** | **TODO** |
+| **24** | **S8: Error states on messages page** | **patient/messages/page.tsx** | **10 min** | **TODO** |
+| **25** | **S5: Persistent rate limiting** | **lib/rate-limit.ts + migration** | **30 min** | **TODO** |
+
+---
+
 ## What NOT to do
 
 1. **Do NOT modify any clinic-side files** (listed above)
