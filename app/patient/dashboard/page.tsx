@@ -629,7 +629,7 @@ export default function PatientDashboard() {
     const supabase = createClient()
     await supabase.auth.signOut()
     try { localStorage.removeItem("pearlie_last_match") } catch {}
-    router.replace("/patient/login")
+    window.location.href = "/patient/login"
   }
 
   function openConversationForClinic(clinicId: string, { openDrawer = true }: { openDrawer?: boolean } = {}) {
@@ -844,17 +844,12 @@ export default function PatientDashboard() {
                 </span>
               )}
             </button>
-            {/* Sign out — desktop: icon + text, mobile: avatar */}
+            {/* Sign out */}
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors p-2 sm:p-0"
             >
-              <div className="sm:hidden h-8 w-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform">
-                <span className="text-white text-xs font-semibold">
-                  {(data?.user?.name || data?.user?.email || "U").charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <LogOut className="w-4 h-4 hidden sm:block" />
+              <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
