@@ -629,7 +629,7 @@ export default function PatientDashboard() {
     const supabase = createClient()
     await supabase.auth.signOut()
     try { localStorage.removeItem("pearlie_last_match") } catch {}
-    router.replace("/patient/login")
+    window.location.href = "/patient/login"
   }
 
   function openConversationForClinic(clinicId: string, { openDrawer = true }: { openDrawer?: boolean } = {}) {

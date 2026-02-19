@@ -241,7 +241,7 @@ export default function PatientMessagesPage() {
     const supabase = createClient()
     await supabase.auth.signOut()
     try { localStorage.removeItem("pearlie_last_match") } catch {}
-    router.replace("/patient/login")
+    window.location.href = "/patient/login"
   }
 
   // ── Formatting helpers ───────────────────────────────────────────
