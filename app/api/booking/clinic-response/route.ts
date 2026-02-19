@@ -77,6 +77,19 @@ export async function POST(request: Request) {
       action,
       leadId: lead.id,
       clinicName: lead.clinics?.name || null,
+      lead: {
+        id: lead.id,
+        firstName: lead.first_name,
+        lastName: lead.last_name,
+        email: lead.email,
+        phone: lead.phone,
+        bookingDate: lead.booking_date,
+        bookingTime: lead.booking_time,
+      },
+      clinic: {
+        id: lead.booking_clinic_id,
+        name: lead.clinics?.name || null,
+      },
     })
   } catch (error) {
     console.error("[clinic-response] Error:", error)

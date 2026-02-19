@@ -13,7 +13,9 @@ import Link from "next/link"
 export default function PatientLoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const nextParam = searchParams?.get("next")
+  const rawNext = searchParams?.get("next")
+  // Only allow internal paths to prevent open redirect attacks
+  const nextParam = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : null
   const [email, setEmail] = useState("")
   const [step, setStep] = useState<"email" | "otp">("email")
   const [leadId, setLeadId] = useState<string | null>(null)
@@ -255,7 +257,7 @@ export default function PatientLoginPage() {
               </p>
             </div>
 
-            <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+            <div className="flex gap-1.5 sm:gap-2 justify-center" onPaste={handlePaste}>
               {otp.map((digit, index) => (
                 <Input
                   key={index}
@@ -266,7 +268,7 @@ export default function PatientLoginPage() {
                   value={digit}
                   onChange={(e) => handleInputChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-xl font-semibold"
+                  className="w-11 h-14 sm:w-12 text-center text-xl font-semibold"
                   disabled={isLoading}
                 />
               ))}
