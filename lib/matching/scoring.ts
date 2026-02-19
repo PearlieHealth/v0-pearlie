@@ -142,31 +142,62 @@ function getCanonicalAliases(treatmentInput: string): string[] {
 }
 
 function scoreTreatmentMatch(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: number): ScoreCategoryBreakdown {
-  const aliases = getCanonicalAliases(lead.treatment)
+  // Support multi-treatment: use treatments array if available, else wrap single treatment
+  const treatments = lead.treatments?.length ? lead.treatments : (lead.treatment ? [lead.treatment] : [])
+  const totalTreatments = treatments.length
 
-  // Check if any alias matches clinic offerings
-  const hasMatch =
-    // Check clinic treatments against canonical aliases
-    clinic.treatments.some((t) => {
-      const clinicTreatment = t.toLowerCase()
-      return aliases.some(alias => clinicTreatment.includes(alias))
-    }) ||
-    // Also check tags
-    clinic.tags.some((t) => {
-      const tagLower = t.toLowerCase()
-      return aliases.some(alias => tagLower.includes(alias))
-    })
+  if (totalTreatments === 0) {
+    return {
+      category: "treatment",
+      points: 0,
+      maxPoints,
+      weight: 0,
+      facts: {
+        leadTreatment: lead.treatment,
+        treatmentAliases: [],
+        clinicOffersTreatment: false,
+        clinicTreatments: clinic.treatments,
+        matchedCount: 0,
+        totalRequested: 0,
+      },
+    }
+  }
+
+  let matchedCount = 0
+  const allAliases: string[] = []
+
+  for (const tx of treatments) {
+    const aliases = getCanonicalAliases(tx)
+    allAliases.push(...aliases)
+
+    const hasMatch =
+      clinic.treatments.some((t) => {
+        const clinicTreatment = t.toLowerCase()
+        return aliases.some(alias => clinicTreatment.includes(alias))
+      }) ||
+      clinic.tags.some((t) => {
+        const tagLower = t.toLowerCase()
+        return aliases.some(alias => tagLower.includes(alias))
+      })
+
+    if (hasMatch) matchedCount++
+  }
+
+  // Proportional scoring: N matched / M total * maxPoints
+  const points = Math.round((matchedCount / totalTreatments) * maxPoints)
 
   return {
     category: "treatment",
-    points: hasMatch ? maxPoints : 0,
+    points,
     maxPoints,
     weight: 0,
     facts: {
       leadTreatment: lead.treatment,
-      treatmentAliases: aliases,
-      clinicOffersTreatment: hasMatch,
+      treatmentAliases: allAliases,
+      clinicOffersTreatment: matchedCount > 0,
       clinicTreatments: clinic.treatments,
+      matchedCount,
+      totalRequested: totalTreatments,
     },
   }
 }
@@ -209,8 +240,9 @@ function scoreDistance(
     maxRadius = DISTANCE_THRESHOLDS.DEFAULT
   }
 
-  const ratio = Math.max(0, 1 - distanceMiles / maxRadius)
-  const points = Math.round(maxPoints * ratio)
+  const effectiveMax = maxRadius * 1.2
+  const ratio = Math.max(0, 1 - distanceMiles / effectiveMax)
+  const points = Math.round(maxPoints * ratio * ratio)
 
   return {
     category: "distance",
@@ -549,10 +581,11 @@ function scoreBlockerSupport(
     BAD_EXPERIENCE: 8,
     UNSURE_OPTION: 5,
     NEED_MORE_TIME: 5,
+    WORRIED_COMPLEX: 10,
   }
 
   for (const code of blockerCodes) {
-    if (code === "WORRIED_COMPLEX" || code === "NO_CONCERN") continue // Handled separately
+    if (code === "NO_CONCERN") continue // No scoring for "no concern"
 
     const tagKey = Q5_BLOCKER_TAG_MAP[code]
     if (tagKey && clinic.filterKeys.includes(tagKey)) {

@@ -363,11 +363,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
           : null,
       },
       {
-        headers: {
-          "Cache-Control": "no-store, no-cache, must-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
+        headers: usedCache
+          ? {
+              "Cache-Control": "public, max-age=60",
+            }
+          : {
+              "Cache-Control": "no-store, no-cache, must-revalidate",
+              Pragma: "no-cache",
+              Expires: "0",
+            },
       },
     )
   } catch (error) {

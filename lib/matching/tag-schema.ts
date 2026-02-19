@@ -165,140 +165,178 @@ export const REASON_TEMPLATES: Record<string, string[]> = {
 
   TAG_SPECIALIST_LEVEL_EXPERIENCE: [
     "This clinic has strong clinical expertise in {treatment}.",
-    "Matched because this team has extensive experience in {treatment}.",
-    "Selected for their depth of experience in {treatment}.",
+    "Their team brings extensive hands-on experience in {treatment}.",
+    "Known for specialist-level skill in {treatment} cases.",
+    "Recommended for their advanced training and results in {treatment}.",
+    "A highly experienced team when it comes to {treatment}.",
   ],
 
   TAG_FLEXIBLE_APPOINTMENTS: [
-    "Matched because they provide late afternoon or weekend availability.",
     "Offers flexible scheduling including evenings and weekends.",
-    "A good fit for patients who need appointments outside standard hours.",
+    "Appointment times that work around your schedule, including late slots.",
+    "Evening and weekend availability to suit busy lifestyles.",
+    "Flexible booking options beyond standard working hours.",
+    "Appointments available outside the usual 9-to-5 window.",
   ],
 
   TAG_CLEAR_PRICING_UPFRONT: [
     "This clinic provides transparent treatment plans with clear costs.",
-    "Matched because they discuss costs openly before treatment begins.",
-    "Selected for their upfront approach to pricing and treatment plans.",
+    "You'll know exactly what to expect before any treatment begins.",
+    "Upfront pricing with no hidden surprises along the way.",
+    "Known for laying out costs clearly before starting work.",
+    "Full cost transparency so you can plan with confidence.",
   ],
 
   TAG_CALM_REASSURING: [
-    "Matched because they focus on supportive, patient-centred care.",
-    "A good fit for patients who value reassurance and clear communication.",
-    "Selected for their warm, calming approach to dental care.",
+    "Their team creates a calm, supportive atmosphere throughout your visit.",
+    "Known for putting patients at ease with a warm, gentle approach.",
+    "A reassuring environment for patients who value extra care.",
+    "The team takes time to ensure you feel comfortable and relaxed.",
+    "A patient-centred practice that prioritises your comfort.",
   ],
 
   TAG_STRONG_REPUTATION_REVIEWS: [
-    "This clinic has consistently strong reviews from patients.",
-    "Matched because of their excellent patient feedback and ratings.",
-    "Selected for their trusted reputation in the community.",
+    "Consistently praised by patients for quality of care.",
+    "Strong patient reviews highlight their professional, caring approach.",
+    "A trusted name with an excellent track record of patient satisfaction.",
+    "Highly rated by patients who appreciate thorough, attentive care.",
+    "Their reputation speaks for itself — patients keep coming back.",
   ],
 
   TAG_CONTINUITY_OF_CARE: [
-    "Matched because they prioritise seeing the same dentist each visit.",
-    "A good fit for patients who want to build a long-term relationship with their dentist.",
-    "Selected for their focus on continuity and ongoing patient relationships.",
+    "You'll see the same dentist each visit, building genuine trust over time.",
+    "Focused on long-term patient relationships rather than one-off visits.",
+    "Continuity is a priority — your dentist knows your history and preferences.",
+    "Build a lasting relationship with a dentist who truly knows your case.",
+    "They value ongoing care, so you won't be passed between different dentists.",
   ],
 
   // Legacy priority tags (backwards compat)
   TAG_CLEAR_EXPLANATIONS: [
-    "Matched because they explain treatment options in plain, simple language.",
-    "Selected for their focus on clear, jargon-free communication.",
-    "A good fit for patients who value thorough explanations.",
+    "Takes time to explain treatment options in plain, simple language.",
+    "No jargon — they make sure you fully understand every step.",
+    "Known for clear, patient-friendly communication about procedures.",
+    "You'll leave each appointment understanding exactly what's happening.",
   ],
   TAG_LISTENED_TO_RESPECTED: [
-    "Matched for their collaborative, patient-led approach to care.",
-    "A good fit for patients who want to feel heard and respected.",
-    "Selected because they take time to listen to patient concerns.",
+    "Their team makes time to listen and genuinely respond to your concerns.",
+    "A collaborative approach where your voice guides the treatment plan.",
+    "Patients feel heard and respected throughout their care journey.",
+    "They prioritise your input and never rush important conversations.",
   ],
 
   // ─── HESITATION-BASED REASONS (Q5 Blockers) ────────────────────────────────
   // Only shown if the patient actually selected this hesitation AND clinic has the tag
 
   TAG_GOOD_FOR_COST_CONCERNS: [
-    "A good fit if cost is an important factor in your decision.",
-    "Matched because they help patients understand the value of treatment.",
-    "Selected for their supportive approach to discussing costs.",
+    "Helps patients understand the value behind each treatment option.",
+    "Supportive if cost is an important factor in your decision.",
+    "They discuss value and outcomes, not just price, so you feel confident.",
+    "Known for helping patients find the right balance between cost and care.",
+    "Open conversations about cost so there are no surprises.",
   ],
 
   TAG_DECISION_SUPPORTIVE: [
-    "A good fit if you'd like space and support to make a confident decision.",
-    "Matched because they give patients time to consider their options.",
-    "Selected for their patient, no-pressure approach to decision-making.",
+    "Happy to give you the time and space to decide at your own pace.",
+    "No pressure — they support patients who need time to think things through.",
+    "A patient approach that lets you weigh your options without rushing.",
+    "They understand that big decisions deserve careful thought.",
+    "Supportive of patients who want to take things step by step.",
   ],
 
   TAG_OPTION_CLARITY_SUPPORT: [
-    "Matched because they clearly explain different treatment paths available.",
-    "A good fit for patients who want to explore and compare options.",
-    "Selected for their thorough approach to presenting treatment choices.",
+    "Clearly explains different treatment paths so you can compare.",
+    "Walks you through all available options before any decision is made.",
+    "Known for presenting choices in a clear, easy-to-understand way.",
+    "Helps you see the full picture before committing to a treatment plan.",
+    "You'll understand the pros and cons of each option before choosing.",
   ],
 
   TAG_COMPLEX_CASES_WELCOME: [
-    "Matched with a team experienced in handling more complex cases.",
-    "A good fit for patients who want reassurance around complexity.",
-    "Selected because they regularly manage complex treatment plans.",
+    "Experienced in managing more complex dental cases with confidence.",
+    "Their team regularly handles complex treatment plans successfully.",
+    "Well-equipped to take on cases that require extra clinical expertise.",
+    "Comfortable working with patients whose needs are more involved.",
+    "A reassuring choice if your treatment feels complicated or uncertain.",
   ],
 
   TAG_BAD_EXPERIENCE_SUPPORTIVE: [
-    "Matched with a team experienced in helping patients rebuild dental confidence.",
-    "A good fit for patients who want extra care and understanding from their dentist.",
-    "Selected for their gentle approach with patients who've had difficult past experiences.",
+    "Skilled at helping patients rebuild trust after a difficult dental experience.",
+    "A gentle, understanding team for patients who've had a rough time before.",
+    "Extra care and patience for those who need to restore their dental confidence.",
+    "They specialise in making previous bad experiences a thing of the past.",
+    "Understanding and supportive if past dental visits have been stressful.",
   ],
 
   TAG_RIGHT_FIT_FOCUSED: [
-    "Matched because they focus on finding the right treatment for each patient.",
-    "A good match for patients who value a personalised approach.",
-    "Selected for their focus on tailoring care to individual needs.",
+    "Focused on finding the right treatment for your individual situation.",
+    "Takes a personalised approach rather than a one-size-fits-all solution.",
+    "They tailor their recommendations to what actually suits you best.",
+    "Your care plan is built around your needs, not a standard template.",
   ],
 
   // Legacy blocker tags
   TAG_FINANCE_AVAILABLE: [
-    "Offers finance options to help manage treatment costs.",
-    "A good fit if spreading the cost over time matters to you.",
-    "Matched because they provide payment plan options for treatment.",
+    "Offers finance options to help spread the cost of treatment.",
+    "Payment plans available so treatment fits comfortably into your budget.",
+    "Flexible finance means you don't have to delay the care you need.",
+    "Monthly payment options to make treatment more accessible.",
   ],
   TAG_ANXIETY_FRIENDLY: [
-    "A good fit for patients who appreciate a gentle, reassuring approach.",
-    "Selected for their experience in supporting anxious patients.",
-    "Matched because they create a comfortable environment for nervous patients.",
+    "Extra support and patience for patients who feel nervous.",
+    "A gentle approach designed to ease dental anxiety from the start.",
+    "Their team understands what it's like to feel anxious about dental care.",
+    "Calming techniques and a reassuring manner for nervous patients.",
   ],
 
   // ─── COST APPROACH REASONS (Q8) ────────────────────────────────────────────
   TAG_QUALITY_OUTCOME_FOCUSED: [
-    "Matched because they focus on delivering the best possible outcome.",
-    "Selected for their emphasis on quality and long-term results.",
-    "A good fit for patients who prioritise outcome over cost.",
+    "Focused on delivering the best possible long-term outcome.",
+    "Quality and durability are the top priorities in every treatment plan.",
+    "They invest in getting the result right, not just getting it done.",
+    "An outcome-first approach that values lasting results.",
+    "Recommended if achieving the best result matters most to you.",
   ],
   TAG_DISCUSS_OPTIONS_BEFORE_COST: [
-    "Selected because they present options with clear reasoning before discussing cost.",
-    "A good fit for patients who want to understand their options first.",
-    "Matched because they take a consultative approach to treatment planning.",
+    "Options are presented on their merits before any discussion of cost.",
+    "A consultative approach where treatment choices come first, costs second.",
+    "They want you to understand your options fully before money enters the conversation.",
+    "Cost is discussed openly, but only after you understand what's recommended.",
   ],
   TAG_MONTHLY_PAYMENTS_PREFERRED: [
-    "Offers monthly payment options to make treatment more accessible.",
-    "Matched because they help patients spread the cost of treatment.",
-    "A good fit for patients looking for manageable payment plans.",
+    "Monthly payment plans help make treatment affordable over time.",
+    "Spreading costs is easy with their structured payment options.",
+    "No need to pay everything upfront — manageable monthly instalments available.",
+    "Their finance plans are designed to reduce the financial barrier to care.",
   ],
   TAG_FLEXIBLE_BUDGET_OK: [
-    "A good fit for patients who have a rough budget but value flexibility.",
-    "Matched because they work with patients on flexible cost arrangements.",
-    "Selected for their adaptable approach to treatment pricing.",
+    "Happy to work with a rough budget range and adjust from there.",
+    "Flexible on pricing — they'll find options that respect your budget.",
+    "An adaptable approach to cost that doesn't lock you into rigid pricing.",
+    "They understand budgets aren't always fixed and work with you on it.",
   ],
   TAG_STRICT_BUDGET_SUPPORTIVE: [
-    "Matched because they work within clear budget constraints.",
-    "A good fit for patients who need full transparency around costs upfront.",
-    "Selected for their experience in planning treatment within set budgets.",
+    "Experienced in planning effective treatment within a set budget.",
+    "They'll work within your stated budget without compromising on care.",
+    "Full transparency on what's achievable at your price point.",
+    "No scope creep — your budget ceiling is respected from the outset.",
+    "They specialise in making the most of every pound in your budget.",
   ],
 
   // ─── ANXIETY REASONS (Q10) ─────────────────────────────────────────────────
   TAG_OK_WITH_ANXIOUS_PATIENTS: [
-    "Experienced in supporting patients who feel nervous about dental visits.",
-    "Provides a calm, reassuring approach for anxious patients.",
-    "A good fit for patients who need extra support and patience.",
+    "Their team is experienced in helping patients who feel nervous.",
+    "A calm, reassuring approach specifically for anxious patients.",
+    "Extra time and patience built into appointments for nervous visitors.",
+    "They understand dental anxiety and adapt their care accordingly.",
+    "A welcoming environment that helps anxious patients feel safe.",
   ],
   TAG_SEDATION_AVAILABLE: [
-    "Offers sedation options for patients who need extra comfort.",
-    "Matched because they provide sedation for anxious or nervous patients.",
-    "A good fit for patients who may benefit from sedation during treatment.",
+    "Sedation options available for patients who need extra comfort.",
+    "Conscious sedation offered to help you feel relaxed during treatment.",
+    "If anxiety is significant, their sedation options can help you through.",
+    "Sedation is available so treatment doesn't have to feel overwhelming.",
+    "Provides sedation for patients who benefit from additional relaxation.",
   ],
 }
 
@@ -310,14 +348,20 @@ export const TREATMENT_REASON_TEMPLATES: Record<string, string[]> = {
     "Experienced in cosmetic treatments like {treatment}.",
     "Strong portfolio in {treatment}.",
     "A focused match for your chosen treatment.",
+    "Specialises in cosmetic dentistry including {treatment}.",
+    "Their cosmetic work in {treatment} is well-regarded.",
   ],
   checkup: [
     "Well suited for ongoing general dental care.",
-    "A good match for preventative and routine care.",
+    "A solid match for preventative and routine care.",
+    "Focused on keeping your oral health on track long-term.",
+    "Ideal for regular check-ups and professional cleaning.",
   ],
   emergency: [
     "Experienced in handling urgent dental concerns.",
     "Accepts emergency appointments.",
+    "Equipped to deal with sudden dental issues promptly.",
+    "Ready to help when dental emergencies arise.",
   ],
 }
 
@@ -343,6 +387,8 @@ export const EMERGENCY_REASON_TEMPLATES = {
     "Experienced in supporting nervous patients during urgent visits.",
     "Provides a calm, reassuring approach for urgent care.",
     "Gentle approach to help ease anxiety during emergency treatment.",
+    "Extra care and patience even during time-sensitive appointments.",
+    "Their team stays calm and supportive when you need it most.",
   ],
 }
 
@@ -402,6 +448,26 @@ export const FALLBACK_REASONS: Array<{
     key: "FALLBACK_TRUSTED_PRACTICE",
     text: "A trusted practice with a strong track record.",
     priority: 6,
+  },
+  {
+    key: "FALLBACK_EASY_ACCESS",
+    text: "Easy access with good parking or transport options.",
+    priority: 7,
+  },
+  {
+    key: "FALLBACK_MODERN_FACILITIES",
+    text: "Equipped with modern dental technology and facilities.",
+    priority: 8,
+  },
+  {
+    key: "FALLBACK_FLEXIBLE_REBOOKING",
+    text: "Offers flexible rebooking and cancellation policies.",
+    priority: 9,
+  },
+  {
+    key: "FALLBACK_FAMILY_FRIENDLY",
+    text: "Welcoming to patients of all ages, including families.",
+    priority: 10,
   },
 ]
 

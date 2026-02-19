@@ -42,6 +42,11 @@ export function normalizeLead(leadRow: any): LeadAnswer {
   return {
     id: leadRow.id,
     treatment: leadRow.treatment_interest || leadRow.treatment || "",
+    treatments: Array.isArray(leadRow.treatments)
+      ? leadRow.treatments
+      : (leadRow.treatment_interest || leadRow.treatment)
+        ? [leadRow.treatment_interest || leadRow.treatment]
+        : [],
     postcode: leadRow.postcode || "",
     latitude: leadRow.latitude ? Number(leadRow.latitude) : undefined,
     longitude: leadRow.longitude ? Number(leadRow.longitude) : undefined,

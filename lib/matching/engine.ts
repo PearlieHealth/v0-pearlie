@@ -147,6 +147,7 @@ export function buildLeadProfile(input: TestLeadInput): LeadAnswer {
   return {
     id: "test-" + Date.now(),
     treatment,
+    treatments,
     postcode: input.postcode || "",
     latitude: input.latitude,
     longitude: input.longitude,

@@ -22,6 +22,7 @@ export const EXPLANATION_SCHEMA_VERSION = "v2_reason_templates"
 export interface LeadAnswer {
   id: string
   treatment: string
+  treatments?: string[] // Multi-treatment support: all requested treatments
   postcode: string
   latitude?: number
   longitude?: number
