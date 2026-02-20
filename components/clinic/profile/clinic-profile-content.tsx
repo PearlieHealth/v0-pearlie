@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
+import { trackTikTokEvent } from "@/lib/tiktok-pixel"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
 import { HOURLY_SLOTS } from "@/lib/constants"
@@ -196,6 +197,7 @@ export function ClinicProfileContent() {
         has_slot: !!(date && time),
       },
     })
+    trackTikTokEvent("PlaceAnOrder", { content_name: "confirm_request" })
 
     if (date && time && (lead?.id || leadIdParam || directLeadId)) {
       const dateLabel = date.toLocaleDateString("en-GB", {
@@ -274,6 +276,7 @@ export function ClinicProfileContent() {
           source: "clinic_page_inline",
         },
       })
+      trackTikTokEvent("PlaceAnOrder", { content_name: "booking_confirmed_inline" })
     } catch (error) {
       console.error("Error submitting booking:", error)
       setBookingError(
@@ -604,7 +607,10 @@ export function ClinicProfileContent() {
                   <Button
                     size="lg"
                     className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white"
-                    onClick={() => setShowChat(!showChat)}
+                    onClick={() => {
+                      trackTikTokEvent("Contact", { content_name: "message_clinic_profile" })
+                      setShowChat(!showChat)
+                    }}
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
                     {(lead?.id || leadIdParam || directLeadId) ? "Message Clinic" : "Enquire now"}
@@ -819,7 +825,10 @@ export function ClinicProfileContent() {
             <Button
               size="lg"
               className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation shadow-md"
-              onClick={() => setShowMobileChat(true)}
+              onClick={() => {
+                trackTikTokEvent("Contact", { content_name: "message_clinic_profile_mobile" })
+                setShowMobileChat(true)
+              }}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
               Message Clinic

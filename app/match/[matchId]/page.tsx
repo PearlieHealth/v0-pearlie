@@ -29,6 +29,7 @@ import { ClinicCardSkeleton } from "@/components/clinic-card-skeleton"
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { trackEvent, setMatchContext, setMatchId } from "@/lib/analytics"
+import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
 import { MatchFiltersPanel } from "@/components/match-filters-panel"
 import { OTPVerification } from "@/components/otp-verification"
 import { getChipData } from "@/lib/chipData"
@@ -435,8 +436,10 @@ export default function MatchPage() {
     }
   }, [visibleClinics, matchId, trackedCardViews, displayedClinics]) // Depend on visibleClinics and displayedClinics
 
-  const handleVerificationSuccess = (data?: { sessionToken?: string; sessionEstablished?: boolean }) => {
+  const handleVerificationSuccess = async (data?: { sessionToken?: string; sessionEstablished?: boolean }) => {
     setIsVerified(true)
+    await identifyForTikTok({ email: leadEmail || undefined, externalId: leadId || undefined })
+    trackTikTokEvent("CompleteRegistration", { content_name: "otp_verified_match" })
     trackEvent("email_verified", { leadId, matchId })
     // Save match for "return to matches" on landing page
     try {
@@ -919,6 +922,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
                                   acceptsSameDay={clinic.accepts_same_day || false}
                                   onSelectSlot={(date, time) => {
+                                    trackTikTokEvent("InitiateCheckout", { content_name: "select_time_slot" })
                                     const dateStr = date.toISOString().split("T")[0]
                                     window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&time=${time}&matchId=${matchId}`
                                   }}
@@ -931,6 +935,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   <Button
                                     className="flex-1 h-11 lg:h-10 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
                                     asChild
+                                    onClick={() => trackTikTokEvent("Contact", { content_name: "message_clinic_match_page" })}
                                   >
                                     <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>
                                       <MessageCircle className="w-4 h-4 mr-1.5" />
