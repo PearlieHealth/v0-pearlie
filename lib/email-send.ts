@@ -25,6 +25,13 @@ export async function sendEmailWithRetry(
   params: SendEmailParams,
   maxRetries = 2
 ): Promise<SendEmailResult> {
+  // Sandbox mode: skip Resend API call, return mock success
+  if (process.env.EMAIL_SANDBOX_MODE === "true") {
+    const mockId = `sandbox-${Date.now()}`
+    console.log(`[SANDBOX] Would send to ${params.to}: ${params.subject}`)
+    return { success: true, messageId: mockId }
+  }
+
   let lastError: unknown
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {

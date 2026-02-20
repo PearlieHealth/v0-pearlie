@@ -134,6 +134,7 @@ export async function sendRegisteredEmail(
       clinic_id: params.clinicId || null,
       lead_id: params.leadId || null,
       idempotency_key: idempotencyKey,
+      html_body: html,
     })
   } catch (logError) {
     // Never let logging failure break the send

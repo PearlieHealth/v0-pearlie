@@ -332,6 +332,7 @@ export async function POST(request: NextRequest) {
             messagePreview: safeContent,
             inboxUrl: `${appUrl}/clinic/inbox`,
             unsubscribeFooterHtml: unsubFooter,
+            _conversationId: conversation.id,
           },
           headers: generateUnsubscribeHeaders(clinicNotificationEmail, "clinic_notifications"),
           clinicId,

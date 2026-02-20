@@ -81,6 +81,12 @@ function hourBucket(): string {
   return `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}-${now.getUTCHours()}`
 }
 
+function tenMinBucket(): string {
+  const now = new Date()
+  const slot = Math.floor(now.getUTCMinutes() / 10)
+  return `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}-${now.getUTCHours()}-${slot}`
+}
+
 // ---------------------------------------------------------------------------
 // Zod schemas for each email's payload
 // ---------------------------------------------------------------------------
@@ -328,7 +334,7 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     defaultSubject: (data) => `New message from ${data.patientName}`,
     payloadSchema: chatToClinicSchema,
     generateHtml: renderChatToClinicEmail,
-    idempotencyKey: null, // Handled by chat debouncing (future phase)
+    idempotencyKey: (data) => `chat_clinic:${data._conversationId}:${tenMinBucket()}`,
   },
 
   [EMAIL_TYPE.CLINIC_REPLY_TO_PATIENT]: {
@@ -340,7 +346,7 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     defaultSubject: (data) => `${data.clinicName} has replied to your message`,
     payloadSchema: clinicReplySchema,
     generateHtml: renderClinicReplyToPatientEmail,
-    idempotencyKey: null, // Handled by chat debouncing (future phase)
+    idempotencyKey: (data) => `clinic_reply:${data._conversationId}:${tenMinBucket()}`,
   },
 }
 
