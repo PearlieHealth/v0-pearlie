@@ -213,6 +213,8 @@ export default function MatchPage() {
         matchCount: data.clinics.length,
       })
 
+      trackTikTokEvent("Search", { content_name: "matches_shown", match_count: data.clinics.length })
+
       // Save match info to localStorage so landing page can offer "return to matches"
       if (data.lead?.isVerified) {
         try {
@@ -340,6 +342,7 @@ export default function MatchPage() {
         total_shown: displayedClinics.length,
       },
     })
+    trackTikTokEvent("ViewContent", { content_name: "clinic_opened_match_page" })
 
     // Navigate to clinic detail page within Pearlie (prefer slug for clean URLs)
     const clinicSlug = clinic?.slug || clinicId
@@ -1037,7 +1040,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                     })}
                   {hasMoreClinics && (
                     <div className="flex justify-center mt-4">
-                      <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="sm" className="border-[#004443]/20 text-[#004443] hover:bg-[#004443]/5 bg-white rounded-full text-sm">
+                      <Button onClick={() => { setVisibleClinicsCount((prev) => prev + 1); trackTikTokEvent("ClickButton", { content_name: "load_more_clinics" }) }} variant="outline" size="sm" className="border-[#004443]/20 text-[#004443] hover:bg-[#004443]/5 bg-white rounded-full text-sm">
                         Show more clinics
                       </Button>
                     </div>

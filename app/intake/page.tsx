@@ -223,6 +223,7 @@ export default function IntakePage() {
           ...(Object.keys(utmParams).length > 0 ? { utm: utmParams } : {}),
         },
       })
+      trackTikTokEvent("ViewContent", { content_name: "intake_form_started" })
       setFormStarted(true)
     }
   }, [formStarted, isEmergency, utmParams])
@@ -240,6 +241,9 @@ export default function IntakePage() {
 
   useEffect(() => {
     trackEvent("form_step_viewed", { meta: { step_name: getStepName(step), step_number: step, flow: isEmergency ? "emergency" : "planning" } })
+    if (step === 8) {
+      trackTikTokEvent("AddToWishlist", { content_name: "intake_contact_step" })
+    }
   }, [step, isEmergency])
 
   useEffect(() => {
