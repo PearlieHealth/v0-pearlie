@@ -1,25 +1,29 @@
 "use client"
 
-import { Check, X, Sparkles, Clock } from "lucide-react"
+import { Check, X, Sparkles, Clock, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-const withPearlieFeatures = [
+const withPearlieFeatures: Array<string | { text: string; href: string }> = [
   "Time to think before deciding",
   "Know what matters to you first",
   "Matched to the right clinic",
   "Compare options side-by-side",
-  "No pressure sales tactics",
-  "Confidence before you book",
+  "Chat directly with clinics online",
+  "Book appointments online, simply",
+  "Manage messages and visits in one place",
+  { text: "Confidence with the Pearlie Guarantee", href: "/faq" },
 ]
 
 const withoutPearlieFeatures = [
   "Rushed into decisions",
   "Unclear on your priorities",
   "Random clinic selection",
-  "No easy comparison",
+  "No easy way to compare",
+  "Calling multiple clinics",
+  "Repeating your story again and again",
   "Potential sales pressure",
-  "Uncertainty when booking",
+  "Uncertainty before committing",
 ]
 
 export function ComparisonTable() {
@@ -59,20 +63,31 @@ export function ComparisonTable() {
                 </div>
                 <div>
                   <h4 className="text-xl font-bold text-white">With Pearlie</h4>
-                  <p className="text-sm text-white/70">Smart, stress-free matching</p>
+                  <p className="text-sm text-white/70">Clarity before commitment.</p>
                 </div>
               </div>
 
               {/* Features */}
               <ul className="space-y-4">
-                {withPearlieFeatures.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                      <Check className="w-4 h-4 text-emerald-400" strokeWidth={3} />
-                    </div>
-                    <span className="text-white font-medium">{feature}</span>
-                  </li>
-                ))}
+                {withPearlieFeatures.map((feature, index) => {
+                  const isLink = typeof feature === "object"
+                  const text = isLink ? feature.text : feature
+                  return (
+                    <li key={index} className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                        <Check className="w-4 h-4 text-emerald-400" strokeWidth={3} />
+                      </div>
+                      {isLink ? (
+                        <Link href={feature.href} className="text-white font-medium hover:underline inline-flex items-center gap-1.5">
+                          {text}
+                          <Info className="w-4 h-4 text-white/50" />
+                        </Link>
+                      ) : (
+                        <span className="text-white font-medium">{text}</span>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
 
@@ -85,7 +100,7 @@ export function ComparisonTable() {
                 </div>
                 <div>
                   <h4 className="text-xl font-bold text-white/60">On your own</h4>
-                  <p className="text-sm text-white/40">The traditional way</p>
+                  <p className="text-sm text-white/40">The traditional way.</p>
                 </div>
               </div>
 
