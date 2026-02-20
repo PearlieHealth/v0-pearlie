@@ -39,7 +39,7 @@ export function CookieBanner() {
   if (!showBanner) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-background/60 backdrop-blur-[2px] flex items-center justify-center p-4">
       <div className="w-full max-w-lg bg-card rounded-lg shadow-lg border">
         {!showCustomise ? (
           <>
