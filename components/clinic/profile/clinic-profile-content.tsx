@@ -160,6 +160,32 @@ export function ClinicProfileContent() {
     fetchData()
   }, [params, matchId])
 
+  // Check if an appointment was already requested for this clinic
+  // (persists across refreshes via the conversation's appointment_requested_at field)
+  useEffect(() => {
+    const checkAppointmentStatus = async () => {
+      const effectiveLeadId = lead?.id || leadIdParam || directLeadId
+      const effectiveClinicId = clinic?.id
+      if (!effectiveLeadId || !effectiveClinicId) return
+
+      try {
+        const res = await fetch(
+          `/api/chat/messages?leadId=${effectiveLeadId}&clinicId=${effectiveClinicId}`
+        )
+        if (res.ok) {
+          const data = await res.json()
+          if (data.appointmentRequestedAt) {
+            setBookingConfirmed(true)
+          }
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+
+    checkAppointmentStatus()
+  }, [lead?.id, leadIdParam, directLeadId, clinic?.id])
+
   const handleBookAppointment = (date?: Date, time?: string) => {
     trackEvent("book_clicked", {
       leadId: lead?.id || null,
@@ -198,20 +224,35 @@ export function ClinicProfileContent() {
     const bookingLeadId = lead?.id || leadIdParam || directLeadId
     if (!bookingLeadId) return
 
+    // Already requested — just show the success state
+    if (bookingConfirmed) return
+
     setIsBookingRequesting(true)
     setBookingError(null)
     try {
-      const dateStr = pendingAppointment.date.toISOString().split("T")[0]
-      const response = await fetch("/api/booking/request", {
+      // Compose message matching the dashboard pattern
+      const message = `Hi! I'd like to request an appointment on ${pendingAppointment.dateLabel} at ${pendingAppointment.timeLabel}. Would this time be available?`
+
+      const response = await fetch("/api/chat/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          clinicId: clinic.id,
           leadId: bookingLeadId,
-          date: dateStr,
-          time: pendingAppointment.time,
+          clinicId: clinic.id,
+          content: message,
+          senderType: "patient",
+          messageType: "appointment_request",
         }),
       })
+
+      if (response.status === 409) {
+        // Already requested — just mark as confirmed
+        setBookingConfirmed(true)
+        setPendingAppointment(null)
+        setShowChat(true)
+        setShowMobileChat(true)
+        return
+      }
 
       if (!response.ok) {
         const data = await response.json()
@@ -221,7 +262,7 @@ export function ClinicProfileContent() {
       setBookingConfirmed(true)
       setPendingAppointment(null)
 
-      // Open chat so user sees the message was sent
+      // Open chat so user sees the appointment message
       setShowChat(true)
       setShowMobileChat(true)
 
@@ -231,8 +272,6 @@ export function ClinicProfileContent() {
         meta: {
           match_id: matchId || undefined,
           source: "clinic_page_inline",
-          date: dateStr,
-          time: pendingAppointment.time,
         },
       })
     } catch (error) {

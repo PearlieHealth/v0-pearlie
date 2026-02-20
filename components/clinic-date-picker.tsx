@@ -203,16 +203,9 @@ export function ClinicDatePicker({
                     : "border-muted bg-muted/30 text-muted-foreground cursor-not-allowed opacity-60"
                 )}
               >
-                <div className="text-[11px] text-muted-foreground truncate">{dayShort}</div>
-                <div className={cn("text-sm font-semibold truncate", isSelected && "text-[#004443]")}>{monthShort} {dateNum}</div>
-                <div className={cn(
-                  "text-xs",
-                  dateInfo.isAvailable
-                    ? isSelected ? "text-[#004443]" : "text-muted-foreground"
-                    : "text-muted-foreground"
-                )}>
-                  {dateInfo.isAvailable ? `${slotCount} appts` : "Closed"}
-                </div>
+                <div className="text-[10px] text-muted-foreground leading-tight">{dayShort}</div>
+                <div className={cn("text-base font-semibold leading-tight", isSelected && "text-[#004443]")}>{dateNum}</div>
+                <div className="text-[10px] text-muted-foreground leading-tight">{monthShort}</div>
               </button>
             )
           })}
