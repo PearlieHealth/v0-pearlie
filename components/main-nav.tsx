@@ -18,7 +18,6 @@ export function MainNav() {
     { href: "/our-mission", label: "Our Mission" },
     { href: "/about", label: "About" },
     { href: "/faq", label: "FAQ" },
-    { href: "/admin", label: "Admin" },
   ]
 
   const handleToggle = (target: "patients" | "clinics") => {

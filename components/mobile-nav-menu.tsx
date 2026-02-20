@@ -92,13 +92,6 @@ export function MobileNavMenu() {
             >
               FAQ
             </Link>
-            <Link
-              href="/admin"
-              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              Admin
-            </Link>
           </div>
 
           {/* CTA Buttons */}
@@ -118,7 +111,7 @@ export function MobileNavMenu() {
               className="w-full text-base h-12 rounded-full"
               asChild
             >
-              <Link href="/patient/dashboard" onClick={() => setOpen(false)}>
+              <Link href="/patient/login" onClick={() => setOpen(false)}>
                 My account
               </Link>
             </Button>
