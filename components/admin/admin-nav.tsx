@@ -16,6 +16,7 @@ import {
   Users,
   Settings,
   Mail,
+  MessageSquare,
   MoreHorizontal,
 } from "lucide-react"
 import { AdminLogoutButton } from "./admin-auth-provider"
@@ -67,6 +68,7 @@ const navGroups: NavGroup[] = [
     label: "Operations",
     items: [
       { href: "/admin/pilot-checklist", label: "Pilot Checklist", shortLabel: "Pilot", icon: CheckSquare },
+      { href: "/admin/chat-history", label: "Chat History", shortLabel: "Chats", icon: MessageSquare },
       { href: "/admin/email-logs", label: "Email Logs", shortLabel: "Emails", icon: Mail },
       { href: "/admin/settings", label: "Settings", icon: Settings },
     ],
