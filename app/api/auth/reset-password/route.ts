@@ -1,9 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createRateLimiter } from "@/lib/rate-limit"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
-import { generatePasswordResetEmailHTML } from "@/lib/email-templates"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 
 // Rate limiters: per-IP and per-email
 const ipLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, maxAttempts: 10 })
@@ -99,13 +98,12 @@ export async function POST(request: NextRequest) {
       // If URL parsing fails, use the link as-is
     }
 
-    // Send branded email via Resend
+    // Send branded email via registry
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
-    await sendEmailWithRetry({
-      from: EMAIL_FROM.NOREPLY,
+    await sendRegisteredEmail({
+      type: EMAIL_TYPE.PASSWORD_RESET,
       to: normalizedEmail,
-      subject: "Reset your Pearlie password",
-      html: generatePasswordResetEmailHTML({ resetUrl: resetLink, expiresAt }),
+      data: { resetUrl: resetLink, expiresAt, _email: normalizedEmail },
     })
 
     return NextResponse.json({

@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyAdminAuth } from "@/lib/admin-auth"
 import crypto from "crypto"
-import { generateInviteEmailHTML } from "@/lib/email-templates"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 
 // Admin API to manage clinic user associations
 // Uses service role key to bypass RLS
@@ -196,21 +195,15 @@ export async function POST(request: NextRequest) {
 
     let emailSent = false
     try {
-      const result = await sendEmailWithRetry({
-        from: EMAIL_FROM.CLINICS,
+      const result = await sendRegisteredEmail({
+        type: EMAIL_TYPE.CLINIC_INVITE,
         to: email.toLowerCase(),
-        subject: `You're invited to join ${clinicName} on Pearlie`,
-        html: generateInviteEmailHTML({
-          clinicName,
-          inviteUrl,
-          expiresAt,
-        }),
+        data: { clinicName, inviteUrl, expiresAt, _clinicId: clinicId, _email: email.toLowerCase() },
+        clinicId,
       })
-
-      if (!result.success) {
+      emailSent = result.success && !result.skipped
+      if (!result.success && !result.skipped) {
         console.error("[clinic-users] Failed to send invite email:", result.error)
-      } else {
-        emailSent = true
       }
     } catch (emailErr) {
       console.error("[clinic-users] Email sending error:", emailErr)

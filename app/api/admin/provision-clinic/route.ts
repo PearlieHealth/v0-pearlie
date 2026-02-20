@@ -2,9 +2,8 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
 import { verifyAdminAuth } from "@/lib/admin-auth"
 import crypto from "crypto"
-import { generateInviteEmailHTML } from "@/lib/email-templates"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 
 export async function POST(request: Request) {
   const auth = await verifyAdminAuth()
@@ -142,21 +141,15 @@ export async function POST(request: Request) {
 
     let emailSent = false
     try {
-      const result = await sendEmailWithRetry({
-        from: EMAIL_FROM.CLINICS,
+      const result = await sendRegisteredEmail({
+        type: EMAIL_TYPE.CLINIC_PROVISION_INVITE,
         to: primaryContactEmail,
-        subject: `You're invited to join ${clinicName} on Pearlie`,
-        html: generateInviteEmailHTML({
-          clinicName,
-          inviteUrl,
-          expiresAt,
-        }),
+        data: { clinicName, inviteUrl, expiresAt, _clinicId: clinic.id, _email: primaryContactEmail },
+        clinicId: clinic.id,
       })
-
-      if (!result.success) {
+      emailSent = result.success && !result.skipped
+      if (!result.success && !result.skipped) {
         console.error("[provision-clinic] Failed to send invite email:", result.error)
-      } else {
-        emailSent = true
       }
     } catch (emailErr) {
       console.error("[provision-clinic] Email sending error:", emailErr)
