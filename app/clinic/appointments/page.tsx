@@ -99,12 +99,12 @@ function getElapsedColor(dateStr: string) {
   return "text-red-600"
 }
 
-type Tab = "todos" | "upcoming" | "history"
+type Tab = "new" | "awaiting" | "scheduled" | "attendance"
 
 export default function AppointmentsPage() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeTab, setActiveTab] = useState<Tab>("todos")
+  const [activeTab, setActiveTab] = useState<Tab>("new")
   const [isLoading, setIsLoading] = useState(true)
   const [clinicId, setClinicId] = useState<string | null>(null)
   const router = useRouter()
@@ -330,44 +330,59 @@ export default function AppointmentsPage() {
     })
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
-  const needsScheduling = filteredLeads
+  const awaitingResponse = filteredLeads
     .filter((l) => {
       const s = l.status?.status?.toUpperCase()
       return s === "CONTACTED" || s === "IN_PROGRESS"
     })
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
-  const needsConfirming = filteredLeads
+  const scheduled = filteredLeads
     .filter((l) => {
       const s = l.status?.status?.toUpperCase()
-      return s === "BOOKED_PENDING" || (s === "BOOKED_CONFIRMED" && l.booking)
-    })
-    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-
-  const upcoming = filteredLeads
-    .filter((l) => {
       if (!l.booking) return false
-      return new Date(l.booking.appointment_datetime) > new Date()
+      const isFuture = new Date(l.booking.appointment_datetime) > new Date()
+      return isFuture && (s === "BOOKED_PENDING" || s === "BOOKED_CONFIRMED")
     })
     .sort((a, b) => new Date(a.booking!.appointment_datetime).getTime() - new Date(b.booking!.appointment_datetime).getTime())
 
-  const history = filteredLeads.filter((l) => {
-    const s = l.status?.status?.toUpperCase()
-    return (
-      s === "ATTENDED" ||
-      s === "CLOSED" ||
-      s === "NOT_SUITABLE" ||
-      s === "NO_RESPONSE" ||
-      (l.booking && new Date(l.booking.appointment_datetime) <= new Date())
-    )
-  })
+  // Attendance confirmation: two groups
+  // Left — booked but not yet confirmed as attended (past appointments still pending)
+  const pendingAttendance = filteredLeads
+    .filter((l) => {
+      const s = l.status?.status?.toUpperCase()
+      if (s === "ATTENDED" || s === "CLOSED" || s === "NOT_SUITABLE" || s === "NO_RESPONSE") return false
+      // Has a booking in the past but not yet marked attended
+      if (l.booking && new Date(l.booking.appointment_datetime) <= new Date()) return true
+      // Booked pending with no date yet
+      if (s === "BOOKED_PENDING" && !l.booking) return true
+      return false
+    })
+    .sort((a, b) => {
+      const dateA = a.booking ? new Date(a.booking.appointment_datetime).getTime() : new Date(a.created_at).getTime()
+      const dateB = b.booking ? new Date(b.booking.appointment_datetime).getTime() : new Date(b.created_at).getTime()
+      return dateA - dateB
+    })
 
-  const todoCount = newRequests.length + needsScheduling.length + needsConfirming.length
+  // Right — confirmed attendance / closed
+  const confirmedAttendance = filteredLeads
+    .filter((l) => {
+      const s = l.status?.status?.toUpperCase()
+      return s === "ATTENDED" || s === "CLOSED" || s === "NOT_SUITABLE" || s === "NO_RESPONSE"
+    })
+    .sort((a, b) => {
+      const dateA = a.status?.updated_at ? new Date(a.status.updated_at).getTime() : new Date(a.created_at).getTime()
+      const dateB = b.status?.updated_at ? new Date(b.status.updated_at).getTime() : new Date(b.created_at).getTime()
+      return dateB - dateA // Most recent first
+    })
+
+  const attendanceCount = pendingAttendance.length + confirmedAttendance.length
 
   const tabs = [
-    { key: "todos" as Tab, label: "New Requests", count: todoCount, icon: Inbox },
-    { key: "upcoming" as Tab, label: "Scheduled", count: upcoming.length, icon: CalendarDays },
-    { key: "history" as Tab, label: "Completed", count: history.length, icon: History },
+    { key: "new" as Tab, label: "New Requests", count: newRequests.length, icon: Inbox },
+    { key: "awaiting" as Tab, label: "Awaiting Response", count: awaitingResponse.length, icon: MessageSquare },
+    { key: "scheduled" as Tab, label: "Scheduled", count: scheduled.length, icon: CalendarDays },
+    { key: "attendance" as Tab, label: "Attendance", count: attendanceCount, icon: CalendarCheck },
   ]
 
   // Bulk actions
@@ -667,82 +682,76 @@ export default function AppointmentsPage() {
       )}
 
       {/* Tab Content */}
-      {activeTab === "todos" && (
-        <div className="space-y-8">
-          {/* New Requests */}
-          <LeadSection
-            title="NEW REQUESTS"
-            count={newRequests.length}
-            leads={newRequests}
-            actionLabel="Respond"
-            actionIcon={<MessageSquare className="w-4 h-4" />}
-            actionColor="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
-            onAction={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
-            onView={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
-            showElapsed
-            selectedLeads={selectedLeads}
-            onToggleSelect={toggleSelect}
-            onSelectAll={selectAll}
-          />
-
-          {/* Needs Scheduling */}
-          <LeadSection
-            title="NEEDS SCHEDULING"
-            count={needsScheduling.length}
-            leads={needsScheduling}
-            actionLabel="Schedule"
-            actionIcon={<CalendarCheck className="w-4 h-4" />}
-            actionColor="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
-            onAction={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
-            onView={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
-            showElapsed
-            selectedLeads={selectedLeads}
-            onToggleSelect={toggleSelect}
-            onSelectAll={selectAll}
-          />
-
-          {/* Needs Confirming */}
-          <LeadSection
-            title="NEEDS CONFIRMING"
-            count={needsConfirming.length}
-            leads={needsConfirming}
-            actionLabel="Confirm"
-            actionIcon={<CalendarCheck className="w-4 h-4" />}
-            actionColor="bg-green-600 hover:bg-green-700 text-white"
-            onAction={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
-            onView={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
-            showDate
-            selectedLeads={selectedLeads}
-            onToggleSelect={toggleSelect}
-            onSelectAll={selectAll}
-          />
-
-          {todoCount === 0 && (
+      {activeTab === "new" && (
+        <div className="space-y-3">
+          {newRequests.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                 <Inbox className="w-12 h-12 mb-3 text-muted-foreground/40" />
-                <p className="text-lg font-medium mb-1">All caught up</p>
-                <p className="text-sm">No pending items right now</p>
+                <p className="text-lg font-medium mb-1">No new requests</p>
+                <p className="text-sm">New patient leads will appear here</p>
               </CardContent>
             </Card>
+          ) : (
+            <LeadSection
+              title="NEW REQUESTS"
+              count={newRequests.length}
+              leads={newRequests}
+              actionLabel="Respond"
+              actionIcon={<MessageSquare className="w-4 h-4" />}
+              actionColor="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
+              onAction={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
+              onView={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
+              showElapsed
+              selectedLeads={selectedLeads}
+              onToggleSelect={toggleSelect}
+              onSelectAll={selectAll}
+            />
           )}
         </div>
       )}
 
-      {activeTab === "upcoming" && (
+      {activeTab === "awaiting" && (
         <div className="space-y-3">
-          {upcoming.length === 0 ? (
+          {awaitingResponse.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                <CalendarDays className="w-12 h-12 mb-3 text-muted-foreground/40" />
-                <p className="text-lg font-medium mb-1">No upcoming appointments</p>
-                <p className="text-sm">
-                  Confirmed appointments will show here
-                </p>
+                <MessageSquare className="w-12 h-12 mb-3 text-muted-foreground/40" />
+                <p className="text-lg font-medium mb-1">No leads awaiting response</p>
+                <p className="text-sm">Leads you have replied to will appear here while waiting for the patient</p>
               </CardContent>
             </Card>
           ) : (
-            upcoming.map((lead) => (
+            <LeadSection
+              title="AWAITING RESPONSE"
+              count={awaitingResponse.length}
+              leads={awaitingResponse}
+              actionLabel="Follow up"
+              actionIcon={<MessageSquare className="w-4 h-4" />}
+              actionColor="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
+              onAction={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
+              onView={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
+              showElapsed
+              selectedLeads={selectedLeads}
+              onToggleSelect={toggleSelect}
+              onSelectAll={selectAll}
+            />
+          )}
+        </div>
+      )}
+
+      {activeTab === "scheduled" && (
+        <div className="space-y-3">
+          {scheduled.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <CalendarDays className="w-12 h-12 mb-3 text-muted-foreground/40" />
+                <p className="text-lg font-medium mb-1">No scheduled appointments</p>
+                <p className="text-sm">Confirmed appointments will show here</p>
+              </CardContent>
+            </Card>
+          ) : (
+            scheduled.map((lead) => (
               <Card
                 key={lead.id}
                 className="hover:bg-muted/30 transition-colors cursor-pointer"
@@ -764,6 +773,17 @@ export default function AppointmentsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
+                      <Badge
+                        variant="secondary"
+                        className={cn(
+                          "text-xs",
+                          lead.status?.status?.toUpperCase() === "BOOKED_CONFIRMED"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-amber-100 text-amber-700"
+                        )}
+                      >
+                        {lead.status?.status?.toUpperCase() === "BOOKED_CONFIRMED" ? "Confirmed" : "Pending"}
+                      </Badge>
                       <div className="text-right">
                         <p className="text-sm font-medium">
                           {lead.booking
@@ -786,59 +806,136 @@ export default function AppointmentsPage() {
         </div>
       )}
 
-      {activeTab === "history" && (
-        <div className="space-y-3">
-          {history.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                <History className="w-12 h-12 mb-3 text-muted-foreground/40" />
-                <p className="text-lg font-medium mb-1">No history yet</p>
-                <p className="text-sm">
-                  Past appointments and closed leads will appear here
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            history.map((lead) => {
-              const status = lead.status?.status || "CLOSED"
-              return (
-                <Card
-                  key={lead.id}
-                  className="hover:bg-muted/30 transition-colors cursor-pointer opacity-80"
-                  onClick={() => router.push(`/clinic/appointments/${lead.id}`)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                          <History className="w-5 h-5 text-muted-foreground" />
+      {activeTab === "attendance" && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left column: Pending attendance confirmation */}
+          <div>
+            <h3 className="text-xs font-bold tracking-wider text-muted-foreground uppercase mb-3 flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Pending Confirmation ({pendingAttendance.length})
+            </h3>
+            {pendingAttendance.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                  <CalendarCheck className="w-10 h-10 mb-2 text-muted-foreground/40" />
+                  <p className="text-sm">No appointments pending confirmation</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-2">
+                {pendingAttendance.map((lead) => (
+                  <Card
+                    key={lead.id}
+                    className="hover:bg-muted/30 transition-colors cursor-pointer border-amber-200"
+                    onClick={() => router.push(`/clinic/appointments/${lead.id}`)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center">
+                            <Clock className="w-4 h-4 text-amber-700" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">
+                              {lead.first_name} {lead.last_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {getTreatmentLabel(lead.raw_answers?.treatment as string)}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold">
-                            {lead.first_name} {lead.last_name}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {getTreatmentLabel(lead.raw_answers?.treatment as string)}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            {lead.booking && (
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(lead.booking.appointment_datetime), "d MMM yyyy")}
+                              </p>
+                            )}
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <Badge variant="secondary" className={cn("text-xs", status === "ATTENDED" && "bg-green-100 text-green-700")}>
-                          {status === "ATTENDED" ? "Attended" : status.replace(/_/g, " ")}
-                        </Badge>
-                        <p className="text-sm text-muted-foreground">
-                          {lead.booking
-                            ? format(new Date(lead.booking.appointment_datetime), "d MMM yyyy")
-                            : formatDistanceToNow(new Date(lead.created_at), { addSuffix: true })}
-                        </p>
-                        <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })
-          )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right column: Confirmed attendance / closed */}
+          <div>
+            <h3 className="text-xs font-bold tracking-wider text-muted-foreground uppercase mb-3 flex items-center gap-2">
+              <CalendarCheck className="w-4 h-4" />
+              Confirmed / Closed ({confirmedAttendance.length})
+            </h3>
+            {confirmedAttendance.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                  <History className="w-10 h-10 mb-2 text-muted-foreground/40" />
+                  <p className="text-sm">No confirmed attendance yet</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-2">
+                {confirmedAttendance.map((lead) => {
+                  const status = (lead.status?.status || "CLOSED").toUpperCase()
+                  return (
+                    <Card
+                      key={lead.id}
+                      className="hover:bg-muted/30 transition-colors cursor-pointer opacity-90"
+                      onClick={() => router.push(`/clinic/appointments/${lead.id}`)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={cn(
+                              "w-9 h-9 rounded-full flex items-center justify-center",
+                              status === "ATTENDED" ? "bg-green-100" : "bg-muted"
+                            )}>
+                              {status === "ATTENDED" ? (
+                                <CalendarCheck className="w-4 h-4 text-green-700" />
+                              ) : (
+                                <History className="w-4 h-4 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-sm">
+                                {lead.first_name} {lead.last_name}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {getTreatmentLabel(lead.raw_answers?.treatment as string)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Badge
+                              variant="secondary"
+                              className={cn(
+                                "text-xs",
+                                status === "ATTENDED" && "bg-green-100 text-green-700",
+                                status === "NOT_SUITABLE" && "bg-red-50 text-red-600",
+                                status === "NO_RESPONSE" && "bg-gray-100 text-gray-600",
+                              )}
+                            >
+                              {status === "ATTENDED" ? "Attended" : status.replace(/_/g, " ")}
+                            </Badge>
+                            <p className="text-xs text-muted-foreground">
+                              {lead.booking
+                                ? format(new Date(lead.booking.appointment_datetime), "d MMM")
+                                : lead.status?.updated_at
+                                  ? formatDistanceToNow(new Date(lead.status.updated_at), { addSuffix: true })
+                                  : ""}
+                            </p>
+                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
