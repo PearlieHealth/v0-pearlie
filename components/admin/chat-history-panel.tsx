@@ -6,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -447,7 +446,7 @@ export function ChatHistoryPanel() {
 
       {/* Message Thread Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="w-full sm:max-w-lg p-0 flex flex-col">
+        <SheetContent className="w-full sm:max-w-lg p-0 gap-0">
           {isLoadingMessages ? (
             <div className="flex-1 flex items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -500,7 +499,7 @@ export function ChatHistoryPanel() {
               </SheetHeader>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+              <div className="flex-1 min-h-0 overflow-y-auto p-4" ref={scrollRef}>
                 {selectedConversation.messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
                     <MessageSquare className="h-10 w-10 mb-2 text-muted-foreground/30" />
@@ -599,7 +598,7 @@ export function ChatHistoryPanel() {
                     })}
                   </div>
                 )}
-              </ScrollArea>
+              </div>
 
               {/* Read-only footer */}
               <div className="border-t p-3 text-center">
