@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { trackEvent } from "@/lib/analytics"
+import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
 import { slideVariants, slideTransition } from "@/lib/slide-variants"
 import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap } from "lucide-react"
 import {
@@ -460,6 +461,16 @@ export default function IntakePage() {
       const { leadId } = await leadRes.json()
       localStorage.setItem("pearlie_lead_id", leadId)
       localStorage.removeItem("pearlie_intake_progress")
+
+      await identifyForTikTok({ email: formData.email, phone: formData.phone, externalId: leadId })
+      trackTikTokEvent("CompleteRegistration", {
+        content_name: "intake_form",
+        treatment: formData.treatments.join(", "),
+        postcode: formData.postcode,
+        flow: isEmergency ? "emergency" : "planning",
+        urgency: isEmergency ? formData.urgency : null,
+        cost_approach: formData.costApproach || null,
+      })
 
       trackEvent("lead_submitted", {
         leadId,

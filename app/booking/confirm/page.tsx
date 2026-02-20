@@ -8,6 +8,7 @@ import { MapPin, Calendar, Clock, Phone, CheckCircle2, Loader2, ArrowLeft, Messa
 import Image from "next/image"
 import Link from "next/link"
 import { HOURLY_SLOTS } from "@/lib/constants"
+import { trackTikTokEvent } from "@/lib/tiktok-pixel"
 
 interface Clinic {
   id: string
@@ -115,6 +116,7 @@ export default function BookingConfirmPage() {
       }
 
       setConfirmed(true)
+      trackTikTokEvent("PlaceAnOrder", { content_name: "booking_confirmed_standalone" })
     } catch (err) {
       console.error("Error submitting booking:", err)
       setError(err instanceof Error ? err.message : "Failed to submit booking request")
