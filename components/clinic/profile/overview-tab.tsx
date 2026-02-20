@@ -6,6 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { GoogleReviewCard } from "./google-review-card"
 import { LanguagesSection } from "./languages-section"
 import type { Clinic, Lead } from "./types"
+import { getTreatmentsFromLead } from "@/lib/intake-form-config"
 
 interface OverviewTabProps {
   clinic: Clinic
@@ -21,9 +22,7 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
 
   // Services matching logic (reused from ServicesTab)
   const availableTreatments = clinic.treatments || []
-  const leadSelectedServices = lead?.treatment_interest
-    ? lead.treatment_interest.split(",").map((s) => s.trim()).filter(Boolean)
-    : []
+  const leadSelectedServices = getTreatmentsFromLead(lead)
 
   // Use patient's selected treatments directly as Treatment Focus
   // (backend matching already validated the clinic can handle these)

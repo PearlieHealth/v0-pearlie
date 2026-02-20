@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import type { Clinic, Lead } from "./types"
+import { getTreatmentsFromLead } from "@/lib/intake-form-config"
 
 const ALL_FACILITIES = [
   "Wheelchair Accessible", "Parking Available", "WiFi", "TV in Rooms",
@@ -36,9 +37,7 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
     ),
   )
 
-  const leadSelectedServices = lead?.treatment_interest
-    ? lead.treatment_interest.split(",").map((s) => s.trim()).filter(Boolean)
-    : []
+  const leadSelectedServices = getTreatmentsFromLead(lead)
 
   // Match patient's selected services against clinic's available treatments
   const matchedPatientTreatments = leadSelectedServices.filter((service) =>
