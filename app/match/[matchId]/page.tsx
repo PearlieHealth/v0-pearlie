@@ -448,7 +448,11 @@ export default function MatchPage() {
       }))
     } catch {}
     // Session is already established by OTPVerification component (await + confirm).
-    // No redundant verifyOtp call needed here.
+    // Re-fetch matches now that the user is authenticated — the API will return
+    // lead location data (lat/lon/postcode) for the owner, enabling the map.
+    if (data?.sessionEstablished) {
+      fetchInitialMatches()
+    }
   }
 
   if (loading) {
@@ -676,7 +680,7 @@ export default function MatchPage() {
                 {/* Mobile: filter button + map toggle */}
                 <div className="flex items-center gap-2 mb-4 lg:hidden">
                   <MatchFiltersPanel filters={filters} onFiltersChange={setFilters} isMobile />
-                  {userLocation && (
+                  {allClinicsData.some(c => c.latitude && c.longitude) && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -1039,8 +1043,8 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
               {/* RIGHT: Map + Filters + Trust (desktop only) */}
               <aside className="hidden lg:block flex-1 max-w-[480px] order-2">
                 <div className="sticky top-24 space-y-4">
-                  {/* Map - square */}
-                  {userLocation && (
+                  {/* Map - square (show whenever we have clinics with coordinates) */}
+                  {allClinicsData.some(c => c.latitude && c.longitude) && (
                     <div className="aspect-square rounded-2xl overflow-hidden shadow-sm border border-border/50">
                       <GoogleClinicsMap clinics={allClinicsData} highlightedClinicId={highlightedClinicId} onClinicHover={handleClinicHover} onClinicClick={handleMapClinicClick} />
                     </div>
