@@ -5,7 +5,61 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Shield } from "lucide-react"
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
 import { getCookieConsent, saveCookieConsent } from "@/lib/cookie-consent"
+
+function CookieTable({ cookies }: { cookies: { name: string; provider: string; purpose: string; expiry: string; type: string }[] }) {
+  return (
+    <div className="overflow-x-auto -mx-1">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b">
+            <th className="text-left py-2 px-1 font-semibold text-muted-foreground">Name</th>
+            <th className="text-left py-2 px-1 font-semibold text-muted-foreground">Provider</th>
+            <th className="text-left py-2 px-1 font-semibold text-muted-foreground">Purpose</th>
+            <th className="text-left py-2 px-1 font-semibold text-muted-foreground">Expiry</th>
+            <th className="text-left py-2 px-1 font-semibold text-muted-foreground">Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cookies.map((cookie) => (
+            <tr key={cookie.name} className="border-b last:border-b-0">
+              <td className="py-2 px-1 font-mono text-muted-foreground">{cookie.name}</td>
+              <td className="py-2 px-1 text-muted-foreground">{cookie.provider}</td>
+              <td className="py-2 px-1 text-muted-foreground">{cookie.purpose}</td>
+              <td className="py-2 px-1 text-muted-foreground whitespace-nowrap">{cookie.expiry}</td>
+              <td className="py-2 px-1 text-muted-foreground">{cookie.type}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+const essentialCookies = [
+  { name: "pearlie_cookie_consent", provider: "Pearlie", purpose: "Stores your cookie consent preferences", expiry: "Persistent", type: "Local Storage" },
+  { name: "sb-access-token", provider: "Supabase", purpose: "Authentication session token", expiry: "1 hour", type: "HTTP Cookie" },
+  { name: "sb-refresh-token", provider: "Supabase", purpose: "Refreshes your authentication session", expiry: "7 days", type: "HTTP Cookie" },
+  { name: "__Host-next-auth", provider: "Next.js", purpose: "Session management and CSRF protection", expiry: "Session", type: "HTTP Cookie" },
+]
+
+const analyticsCookies = [
+  { name: "_ga", provider: "Google", purpose: "Distinguishes unique users by assigning a randomly generated number", expiry: "2 years", type: "HTTP Cookie" },
+  { name: "_ga_*", provider: "Google", purpose: "Used by Google Analytics to collect data on the number of visits, and session timestamps", expiry: "2 years", type: "HTTP Cookie" },
+  { name: "_gid", provider: "Google", purpose: "Registers a unique ID used to generate statistical data on website usage", expiry: "1 day", type: "HTTP Cookie" },
+  { name: "_gat", provider: "Google", purpose: "Used to throttle request rate to Google Analytics", expiry: "1 minute", type: "HTTP Cookie" },
+]
+
+const marketingCookies = [
+  { name: "_fbp", provider: "Meta", purpose: "Identifies browsers for advertising and site analytics", expiry: "3 months", type: "HTTP Cookie" },
+  { name: "_fbc", provider: "Meta", purpose: "Stores last visit from a Facebook ad click", expiry: "2 years", type: "HTTP Cookie" },
+  { name: "fr", provider: "Meta", purpose: "Used by Facebook to deliver personalised advertisements", expiry: "3 months", type: "HTTP Cookie" },
+  { name: "_ttp", provider: "TikTok", purpose: "Identifies browsers for advertising and site analytics", expiry: "13 months", type: "HTTP Cookie" },
+  { name: "_tt_enable_cookie", provider: "TikTok", purpose: "Checks whether cookies are enabled for TikTok Pixel", expiry: "13 months", type: "HTTP Cookie" },
+  { name: "tt_appInfo", provider: "TikTok", purpose: "Used to track visitor behaviour for advertising efficiency", expiry: "Session", type: "HTTP Cookie" },
+  { name: "tt_pixel_session_index", provider: "TikTok", purpose: "Tracks session information for TikTok conversion tracking", expiry: "Session", type: "HTTP Cookie" },
+]
 
 export function CookieBanner() {
   const [showBanner, setShowBanner] = useState(false)
@@ -40,7 +94,7 @@ export function CookieBanner() {
 
   return (
     <div className="fixed inset-0 z-50 bg-background/60 backdrop-blur-[2px] flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-card rounded-lg shadow-lg border">
+      <div className="w-full max-w-2xl bg-card rounded-lg shadow-lg border max-h-[90vh] flex flex-col">
         {!showCustomise ? (
           <>
             <div className="p-6">
@@ -74,55 +128,74 @@ export function CookieBanner() {
           </>
         ) : (
           <>
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">Customise Cookie Preferences</h2>
-              <div className="space-y-4">
-                <div className="flex items-start justify-between gap-4 pb-4 border-b">
-                  <div className="flex-1">
-                    <Label className="text-base font-semibold">Essential Cookies</Label>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Required for the website to function. These cannot be disabled.
-                    </p>
-                  </div>
-                  <Switch checked={true} disabled className="mt-1" />
-                </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              <h2 className="text-xl font-bold mb-2">Customise Cookie Preferences</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Click on the categories below to learn more about each type of cookie. You can toggle optional cookies on or off.
+              </p>
 
-                <div className="flex items-start justify-between gap-4 pb-4 border-b">
-                  <div className="flex-1">
-                    <Label htmlFor="banner-analytics" className="text-base font-semibold cursor-pointer">
-                      Analytics Cookies
-                    </Label>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Help us understand how visitors use our website.
-                    </p>
+              <Accordion type="multiple" className="w-full">
+                <AccordionItem value="essential">
+                  <div className="flex items-center justify-between gap-4">
+                    <AccordionTrigger className="flex-1 hover:no-underline">
+                      <div className="text-left">
+                        <Label className="text-base font-semibold pointer-events-none">Essential Cookies ({essentialCookies.length})</Label>
+                        <p className="text-sm text-muted-foreground mt-1 font-normal">
+                          Required for the website to function. These cannot be disabled.
+                        </p>
+                      </div>
+                    </AccordionTrigger>
+                    <Switch checked={true} disabled className="shrink-0" />
                   </div>
-                  <Switch
-                    id="banner-analytics"
-                    checked={analytics}
-                    onCheckedChange={setAnalytics}
-                    className="mt-1"
-                  />
-                </div>
+                  <AccordionContent>
+                    <CookieTable cookies={essentialCookies} />
+                  </AccordionContent>
+                </AccordionItem>
 
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <Label htmlFor="banner-marketing" className="text-base font-semibold cursor-pointer">
-                      Marketing Cookies
-                    </Label>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Used for personalised ads and campaign tracking.
-                    </p>
+                <AccordionItem value="analytics">
+                  <div className="flex items-center justify-between gap-4">
+                    <AccordionTrigger className="flex-1 hover:no-underline">
+                      <div className="text-left">
+                        <Label className="text-base font-semibold pointer-events-none">Analytics Cookies ({analyticsCookies.length})</Label>
+                        <p className="text-sm text-muted-foreground mt-1 font-normal">
+                          Help us understand how visitors use our website by collecting anonymous usage data.
+                        </p>
+                      </div>
+                    </AccordionTrigger>
+                    <Switch
+                      checked={analytics}
+                      onCheckedChange={setAnalytics}
+                      className="shrink-0"
+                    />
                   </div>
-                  <Switch
-                    id="banner-marketing"
-                    checked={marketing}
-                    onCheckedChange={setMarketing}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
+                  <AccordionContent>
+                    <CookieTable cookies={analyticsCookies} />
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="marketing">
+                  <div className="flex items-center justify-between gap-4">
+                    <AccordionTrigger className="flex-1 hover:no-underline">
+                      <div className="text-left">
+                        <Label className="text-base font-semibold pointer-events-none">Marketing Cookies ({marketingCookies.length})</Label>
+                        <p className="text-sm text-muted-foreground mt-1 font-normal">
+                          Used to deliver personalised advertisements and measure campaign effectiveness.
+                        </p>
+                      </div>
+                    </AccordionTrigger>
+                    <Switch
+                      checked={marketing}
+                      onCheckedChange={setMarketing}
+                      className="shrink-0"
+                    />
+                  </div>
+                  <AccordionContent>
+                    <CookieTable cookies={marketingCookies} />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </div>
-            <div className="border-t p-6 flex flex-col sm:flex-row gap-3">
+            <div className="border-t p-6 flex flex-col sm:flex-row gap-3 shrink-0">
               <Button
                 variant="outline"
                 onClick={() => setShowCustomise(false)}
