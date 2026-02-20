@@ -232,18 +232,18 @@ export function ClinicProfileContent() {
     setIsBookingRequesting(true)
     setBookingError(null)
     try {
-      // Compose message matching the dashboard pattern
-      const message = `Hi! I'd like to request an appointment on ${pendingAppointment.dateLabel} at ${pendingAppointment.timeLabel}. Would this time be available?`
+      // Format date as YYYY-MM-DD using local date components (not toISOString which uses UTC)
+      const d = pendingAppointment.date
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 
-      const response = await fetch("/api/chat/send", {
+      const response = await fetch("/api/booking/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           leadId: bookingLeadId,
           clinicId: clinic.id,
-          content: message,
-          senderType: "patient",
-          messageType: "appointment_request",
+          date: dateStr,
+          time: pendingAppointment.time,
         }),
       })
 

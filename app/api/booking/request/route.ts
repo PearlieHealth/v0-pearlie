@@ -213,6 +213,22 @@ export async function POST(request: Request) {
         }
       }
 
+      // Check for existing appointment request to prevent duplicates
+      if (conversationId) {
+        const { data: convCheck } = await supabase
+          .from("conversations")
+          .select("appointment_requested_at")
+          .eq("id", conversationId)
+          .single()
+
+        if (convCheck?.appointment_requested_at) {
+          return NextResponse.json(
+            { error: "An appointment request has already been sent for this clinic." },
+            { status: 409 }
+          )
+        }
+      }
+
       if (conversationId) {
         // Insert the booking request as a chat message
         await supabase.from("messages").insert({
@@ -224,13 +240,14 @@ export async function POST(request: Request) {
           status: "sent",
         })
 
-        // Update conversation unread flags
+        // Update conversation unread flags and mark appointment as requested
         await supabase
           .from("conversations")
           .update({
             unread_by_clinic: true,
             unread_count_clinic: currentUnreadCount + 1,
             last_message_at: new Date().toISOString(),
+            appointment_requested_at: new Date().toISOString(),
           })
           .eq("id", conversationId)
       }
