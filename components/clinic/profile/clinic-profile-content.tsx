@@ -815,14 +815,16 @@ export function ClinicProfileContent() {
               <p className="text-xs text-green-600/70">The clinic will get back to you shortly</p>
             </div>
           </div>
-          <Button
-            size="lg"
-            className="w-full max-w-lg mx-auto block bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation shadow-md"
-            onClick={() => setShowMobileChat(true)}
-          >
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Message Clinic
-          </Button>
+          <div className="max-w-lg mx-auto">
+            <Button
+              size="lg"
+              className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation shadow-md"
+              onClick={() => setShowMobileChat(true)}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Message Clinic
+            </Button>
+          </div>
         </div>
       )}
     </div>
