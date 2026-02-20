@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
-import { ClinicNav } from "@/components/clinic/clinic-nav"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -234,19 +233,15 @@ export default function LeadDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <ClinicNav clinicName="Loading..." />
-        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-        </div>
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     )
   }
 
   if (!lead) {
     return (
-      <div className="min-h-screen bg-background">
-        <ClinicNav clinicName={clinic?.name || "Clinic Portal"} />
+      <div className="bg-background">
         <main className="container mx-auto px-4 py-8 max-w-4xl">
           <Button
             variant="ghost"
@@ -276,9 +271,7 @@ export default function LeadDetailPage() {
   const concerns = lead.raw_answers?.blocker as string[] || []
 
   return (
-    <div className="min-h-screen bg-background">
-      <ClinicNav clinicName={clinic?.name || "Clinic Portal"} />
-      
+    <div className="bg-background">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <Button 
           variant="ghost" 

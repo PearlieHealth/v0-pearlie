@@ -14,8 +14,6 @@ import StatsCard from "@/components/stats-card"
 import ClinicCarousel from "@/components/clinic-carousel"
 import { ScrollingMarquee } from "@/components/scrolling-marquee"
 import { SiteFooter } from "@/components/site-footer"
-import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
 import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config"
 
 // Homepage treatment list derived from the canonical config (not hardcoded)
@@ -45,7 +43,6 @@ export default function Home() {
   })
   const treatments = HOMEPAGE_TREATMENTS
 
-  const router = useRouter()
   const [lastMatch, setLastMatch] = useState<LastMatch | null>(null)
   useEffect(() => {
     try {
@@ -64,17 +61,6 @@ export default function Home() {
       localStorage.removeItem("pearlie_last_match")
     }
   }, [])
-
-  // Auto-redirect authenticated returning patients to their dashboard
-  useEffect(() => {
-    if (!lastMatch) return
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user && user.user_metadata?.role !== "clinic") {
-        router.push("/patient/dashboard")
-      }
-    })
-  }, [lastMatch, router])
 
   const [wordIndex, setWordIndex] = useState(0)
   useEffect(() => {

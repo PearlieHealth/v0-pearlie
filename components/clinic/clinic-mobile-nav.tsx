@@ -5,16 +5,16 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { 
-  Menu, 
-  Heart, 
-  LayoutDashboard, 
-  Users, 
-  BarChart3, 
-  Building2, 
-  Settings, 
-  UserCog,
-  LogOut 
+import {
+  Menu,
+  Heart,
+  LayoutDashboard,
+  Users,
+  CalendarCheck,
+  BarChart3,
+  Building2,
+  Settings,
+  LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createBrowserClient } from "@/lib/supabase/client"
@@ -22,10 +22,10 @@ import { useRouter } from "next/navigation"
 
 const navItems = [
   { href: "/clinic", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/clinic/leads", label: "Leads", icon: Users },
+  { href: "/clinic/appointments", label: "Appointments", icon: CalendarCheck },
   { href: "/clinic/insights", label: "Insights", icon: BarChart3 },
   { href: "/clinic/profile", label: "Clinic Profile", icon: Building2 },
-  { href: "/clinic/team", label: "Team", icon: UserCog },
+  { href: "/clinic/providers", label: "Providers", icon: Users },
   { href: "/clinic/settings", label: "Settings", icon: Settings },
 ]
 

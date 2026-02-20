@@ -604,7 +604,7 @@ export default function ClinicDashboardPage() {
               <CardTitle className="text-base">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Link href="/clinic/leads">
+              <Link href="/clinic/appointments">
                 <div className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
                   <div className="h-9 w-9 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
                     <Users className="h-4 w-4 text-amber-600" />
@@ -703,7 +703,7 @@ export default function ClinicDashboardPage() {
               variant="outline"
               size="sm"
               className="h-8 text-xs bg-transparent"
-              onClick={() => router.push("/clinic/leads")}
+              onClick={() => router.push("/clinic/appointments")}
             >
               View all
               <ChevronRight className="h-3.5 w-3.5 ml-1" />
