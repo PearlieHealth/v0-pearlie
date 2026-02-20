@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyAdminAuth } from "@/lib/admin-auth"
-import bcrypt from "bcryptjs"
+import crypto from "crypto"
+import { generateInviteEmailHTML } from "@/lib/email-templates"
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
 
 // Admin API to manage clinic user associations
 // Uses service role key to bypass RLS
@@ -65,7 +68,7 @@ export async function POST(request: NextRequest) {
   if (!auth.authenticated) return auth.response
 
   const supabase = createAdminClient()
-  
+
   try {
     const { email, password, clinicId, role = "clinic_manager" } = await request.json()
 
@@ -76,11 +79,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Look up clinic name for the invite email
+    const { data: clinic } = await supabase
+      .from("clinics")
+      .select("name")
+      .eq("id", clinicId)
+      .single()
+
+    const clinicName = clinic?.name || "your clinic"
+
     // First, check if user already exists
     const { data: existingUsers } = await supabase.auth.admin.listUsers()
     const existingUser = existingUsers?.users.find(
       u => u.email?.toLowerCase() === email.toLowerCase()
     )
+
+    let userId: string
 
     if (existingUser) {
       // User exists - update their password and link to clinic
@@ -91,7 +105,7 @@ export async function POST(request: NextRequest) {
           user_metadata: { ...existingUser.user_metadata, must_change_password: true },
         }
       )
-      
+
       if (updateError) {
         console.error("Error updating user password:", updateError)
         return NextResponse.json(
@@ -113,40 +127,103 @@ export async function POST(request: NextRequest) {
 
       if (linkError) throw linkError
 
-      return NextResponse.json({
-        success: true,
-        message: "Existing user password updated and linked to clinic",
-        userId: existingUser.id,
-      })
-    }
-
-    // User doesn't exist - create new user
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: email.toLowerCase(),
-      password,
-      email_confirm: true,
-      user_metadata: { must_change_password: true },
-    })
-
-    if (authError) {
-      throw authError
-    }
-
-    // Link new user to clinic
-    const { error: linkError } = await supabase
-      .from("clinic_users")
-      .insert({
-        user_id: authData.user.id,
-        clinic_id: clinicId,
-        role,
+      userId = existingUser.id
+    } else {
+      // User doesn't exist - create new user
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: email.toLowerCase(),
+        password,
+        email_confirm: true,
+        user_metadata: { must_change_password: true },
       })
 
-    if (linkError) throw linkError
+      if (authError) {
+        throw authError
+      }
+
+      // Link new user to clinic
+      const { error: linkError } = await supabase
+        .from("clinic_users")
+        .insert({
+          user_id: authData.user.id,
+          clinic_id: clinicId,
+          role,
+        })
+
+      if (linkError) throw linkError
+
+      userId = authData.user.id
+    }
+
+    // Generate invite token and send branded invite email
+    const inviteToken = crypto.randomBytes(32).toString("hex")
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + 7) // 7 days expiry
+
+    // Check if invite already exists for this clinic/email combo
+    const { data: existingInvite } = await supabase
+      .from("clinic_invites")
+      .select("id")
+      .eq("clinic_id", clinicId)
+      .eq("email", email.toLowerCase())
+      .is("accepted_at", null)
+      .single()
+
+    if (existingInvite) {
+      await supabase
+        .from("clinic_invites")
+        .update({
+          token: inviteToken,
+          expires_at: expiresAt.toISOString(),
+          role,
+        })
+        .eq("id", existingInvite.id)
+    } else {
+      await supabase
+        .from("clinic_invites")
+        .insert({
+          clinic_id: clinicId,
+          email: email.toLowerCase(),
+          token: inviteToken,
+          role,
+          expires_at: expiresAt.toISOString(),
+        })
+    }
+
+    // Send branded invite email
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+    const inviteUrl = `${baseUrl}/clinic/accept-invite?token=${inviteToken}`
+
+    let emailSent = false
+    try {
+      const result = await sendEmailWithRetry({
+        from: EMAIL_FROM.CLINICS,
+        to: email.toLowerCase(),
+        subject: `You're invited to join ${clinicName} on Pearlie`,
+        html: generateInviteEmailHTML({
+          clinicName,
+          inviteUrl,
+          expiresAt,
+        }),
+      })
+
+      if (!result.success) {
+        console.error("[clinic-users] Failed to send invite email:", result.error)
+      } else {
+        emailSent = true
+      }
+    } catch (emailErr) {
+      console.error("[clinic-users] Email sending error:", emailErr)
+    }
 
     return NextResponse.json({
       success: true,
-      message: "User created and linked to clinic",
-      userId: authData.user.id,
+      message: emailSent
+        ? `User created and invite sent to ${email}`
+        : `User created. Email could not be sent - share the invite link manually.`,
+      userId,
+      inviteUrl,
+      emailSent,
     })
   } catch (error) {
     console.error("Error creating clinic user:", error)

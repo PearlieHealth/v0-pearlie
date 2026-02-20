@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
     // Get clinic details (extended for AI bot context + email notifications)
     const { data: clinic, error: clinicError } = await supabase
       .from("clinics")
-      .select("id, name, email, phone, treatments, price_range, description, facilities, opening_hours, accepts_nhs, parking_available, wheelchair_accessible, bot_intelligence")
+      .select("id, name, email, notification_email, phone, treatments, price_range, description, facilities, opening_hours, accepts_nhs, parking_available, wheelchair_accessible, bot_intelligence")
       .eq("id", clinicId)
       .single()
 
@@ -316,20 +316,21 @@ export async function POST(request: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
 
     // Send email notification to clinic when patient sends a message
-    if (senderType === "patient" && clinic.email) {
+    const clinicNotificationEmail = clinic.notification_email || clinic.email
+    if (senderType === "patient" && clinicNotificationEmail) {
       try {
-        const unsubscribed = await isUnsubscribed(clinic.email, "clinic_notifications")
+        const unsubscribed = await isUnsubscribed(clinicNotificationEmail, "clinic_notifications")
         if (!unsubscribed) {
           const safeName = escapeHtml(`${lead.first_name} ${lead.last_name}`)
           const safeContent = escapeHtml(trimmedContent.substring(0, 500)) + (trimmedContent.length > 500 ? "..." : "")
           const unsubFooter = generateUnsubscribeFooterHtml(
-            generateUnsubscribeHeaders(clinic.email, "clinic_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
+            generateUnsubscribeHeaders(clinicNotificationEmail, "clinic_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
           )
           await sendEmailWithRetry({
             from: EMAIL_FROM.NOTIFICATIONS,
-            to: clinic.email,
+            to: clinicNotificationEmail,
             subject: `New message from ${lead.first_name} ${lead.last_name}`,
-            headers: generateUnsubscribeHeaders(clinic.email, "clinic_notifications"),
+            headers: generateUnsubscribeHeaders(clinicNotificationEmail, "clinic_notifications"),
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <div style="background-color: #0d9488; color: white; padding: 20px; text-align: center;">
