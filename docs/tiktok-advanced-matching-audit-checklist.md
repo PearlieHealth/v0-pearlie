@@ -54,11 +54,11 @@
 ### PII Safety
 - [ ] `identifyForTikTok` function signature ONLY accepts: `email`, `phone`, `externalId`
 - [ ] **NO unhashed email/phone** is sent to TikTok — all PII must go through SHA-256
-- [ ] `identify` is only called at form submission points (intake + direct enquiry), not on every page
+- [ ] `identify` is only called at form submission and OTP verification points
 
 ---
 
-## 4. Intake Form Integration (`app/intake/page.tsx`)
+## 4. Intake Form — `CompleteRegistration` + `identify` (`app/intake/page.tsx`)
 
 - [ ] Import: `import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"`
 - [ ] `identifyForTikTok()` is called with `formData.email` and `formData.phone`
@@ -70,7 +70,7 @@
 
 ---
 
-## 5. Direct Enquiry Form Integration (`components/clinic/direct-enquiry-form.tsx`)
+## 5. Direct Enquiry Form — `CompleteRegistration` + `identify` (`components/clinic/direct-enquiry-form.tsx`)
 
 - [ ] Import: `import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"`
 - [ ] `identifyForTikTok()` is called with trimmed email and phone
@@ -81,14 +81,25 @@
 
 ---
 
-## 6. OTP Verification (`app/match/[matchId]/page.tsx`)
+## 6. OTP Verification — `CompleteRegistration` + `identify`
 
-- [ ] `trackTikTokEvent("CompletePayment", { content_name: "otp_verified" })` fires inside `handleVerificationSuccess` (near line 440)
-- [ ] No `identify` call needed here (user already identified at form submission)
+### Match page (`app/match/[matchId]/page.tsx`)
+- [ ] `handleVerificationSuccess` is made `async`
+- [ ] `identifyForTikTok()` is called with `leadEmail` (available at line 111) and `leadId`
+- [ ] `identifyForTikTok()` is `await`ed
+- [ ] `trackTikTokEvent("CompleteRegistration", { content_name: "otp_verified_match" })` fires
+- [ ] Both calls are placed before the existing `trackEvent("email_verified", ...)` at line 440
+
+### Direct enquiry OTP (`components/clinic/direct-enquiry-form.tsx`)
+- [ ] `onVerified` callback is made `async`
+- [ ] `identifyForTikTok()` is called with `email.trim()` and `phone.trim()`
+- [ ] `identifyForTikTok()` is `await`ed
+- [ ] `trackTikTokEvent("CompleteRegistration", { content_name: "otp_verified_direct" })` fires
+- [ ] Both calls are placed before the existing `trackEvent("email_verified", ...)` at line 95
 
 ---
 
-## 7. Message Clinic Clicks
+## 7. Message Clinic Clicks — `Contact`
 
 ### Match page (`app/match/[matchId]/page.tsx`)
 - [ ] "Message Clinic" button/link near line 935 fires `trackTikTokEvent("Contact", { content_name: "message_clinic_match_page" })`
@@ -109,11 +120,11 @@
 ### Select time slot — match page (`app/match/[matchId]/page.tsx`)
 - [ ] `onSelectSlot` callback near line 921 fires `trackTikTokEvent("InitiateCheckout", { content_name: "select_time_slot" })` before `window.location.href` redirect
 
-### Book clicked — clinic profile (`components/clinic/profile/clinic-profile-content.tsx`)
-- [ ] `handleBookAppointment` near line 189 fires `trackTikTokEvent("ClickButton", { content_name: "book_appointment" })`
+### Confirm request — clinic profile (`components/clinic/profile/clinic-profile-content.tsx`)
+- [ ] `handleBookAppointment` near line 189 fires `trackTikTokEvent("PlaceAnOrder", { content_name: "confirm_request" })`
 
 ### Booking confirmed inline — clinic profile (`components/clinic/profile/clinic-profile-content.tsx`)
-- [ ] `handleConfirmBooking` near line 269 fires `trackTikTokEvent("PlaceAnOrder", { content_name: "booking_confirmed" })`
+- [ ] `handleConfirmBooking` near line 269 fires `trackTikTokEvent("PlaceAnOrder", { content_name: "booking_confirmed_inline" })`
 
 ### Booking confirmed standalone (`app/booking/confirm/page.tsx`)
 - [ ] After `setConfirmed(true)` at line 117, fires `trackTikTokEvent("PlaceAnOrder", { content_name: "booking_confirmed_standalone" })`
@@ -122,17 +133,24 @@
 
 ## 9. Event Mapping Verification
 
-| User Action | Pearlie Event | TikTok Event | File |
-| --- | --- | --- | --- |
-| Page loads | (automatic) | `PageView` via `ttq.page()` | `analytics-scripts.tsx` |
-| Submits intake form | `lead_submitted` | `CompleteRegistration` | `app/intake/page.tsx` |
-| Submits direct enquiry | `lead_submitted` | `CompleteRegistration` | `direct-enquiry-form.tsx` |
-| Completes OTP verification | `email_verified` | `CompletePayment` | `app/match/[matchId]/page.tsx` |
-| Clicks "Message Clinic" | — | `Contact` | match page + clinic profile (desktop + mobile) |
-| Selects time slot (match page) | — | `InitiateCheckout` | `app/match/[matchId]/page.tsx` |
-| Clicks "Book" (clinic profile) | `book_clicked` | `ClickButton` | `clinic-profile-content.tsx` |
-| Confirms booking (inline) | `booking_confirmed_inline` | `PlaceAnOrder` | `clinic-profile-content.tsx` |
-| Confirms booking (standalone) | — | `PlaceAnOrder` | `app/booking/confirm/page.tsx` |
+| User Action | Pearlie Event | TikTok Event | `identify` call? | File |
+| --- | --- | --- | --- | --- |
+| Page loads | (automatic) | `PageView` via `ttq.page()` | No | `analytics-scripts.tsx` |
+| Submits intake form | `lead_submitted` | `CompleteRegistration` | **Yes** | `app/intake/page.tsx` |
+| Submits direct enquiry | `lead_submitted` | `CompleteRegistration` | **Yes** | `direct-enquiry-form.tsx` |
+| Completes OTP (match page) | `email_verified` | `CompleteRegistration` | **Yes** | `app/match/[matchId]/page.tsx` |
+| Completes OTP (direct enquiry) | `email_verified` | `CompleteRegistration` | **Yes** | `direct-enquiry-form.tsx` |
+| Clicks "Message Clinic" | — | `Contact` | No | match page + clinic profile (3 buttons) |
+| Selects time slot (match page) | — | `InitiateCheckout` | No | `app/match/[matchId]/page.tsx` |
+| Confirm request (clinic profile) | `book_clicked` | `PlaceAnOrder` | No | `clinic-profile-content.tsx` |
+| Booking confirmed (inline) | `booking_confirmed_inline` | `PlaceAnOrder` | No | `clinic-profile-content.tsx` |
+| Booking confirmed (standalone) | — | `PlaceAnOrder` | No | `app/booking/confirm/page.tsx` |
+
+### NOT implemented (future — requires server-side Events API)
+
+| Clinic Action | TikTok Event | Why it can't use the pixel |
+| --- | --- | --- |
+| Clinic confirms appointment in dashboard | `CompletePayment` | Clinic staff's browser, not patient's — pixel can't fire for patient |
 
 ---
 
@@ -142,8 +160,7 @@
 - [ ] TikTok pixel script loads in the DOM
 - [ ] `ttq.page()` fires on navigation
 - [ ] `ttq.identify()` fires on form submission (check via TikTok Pixel Helper)
-- [ ] `ttq.track("CompleteRegistration")` fires on form submission
-- [ ] `ttq.track("CompletePayment")` fires after OTP
+- [ ] `ttq.track("CompleteRegistration")` fires on form submission and OTP verification
 - [ ] `ttq.track("Contact")` fires on "Message Clinic" click
 - [ ] `ttq.track("PlaceAnOrder")` fires on booking confirmation
 - [ ] `_ttp` cookie is set by TikTok
@@ -183,8 +200,7 @@
 
 - [ ] Pixel shows as "Active" in TikTok Events Manager
 - [ ] `PageView` events are flowing in
-- [ ] `CompleteRegistration` events appear after test form submissions
-- [ ] `CompletePayment` events appear after OTP verification
+- [ ] `CompleteRegistration` events appear after test form submissions and OTP
 - [ ] `Contact` events appear after "Message Clinic" clicks
 - [ ] `PlaceAnOrder` events appear after booking confirmations
 - [ ] Advanced Matching data quality shows "Manual" (not "Automatic")
@@ -201,6 +217,7 @@
 | `identify` called without `await` | Race condition — event fires before identify completes |
 | Automatic Advanced Matching enabled in TikTok dashboard | Scrapes form fields — could capture health data from DOM |
 | `ttq.track` called outside of consent-gated helper | Bypasses consent management |
+| `handleVerificationSuccess` or `onVerified` not made async | `await identifyForTikTok()` won't actually await |
 | Missing events in the mapping table above | Incomplete implementation |
 
 ---
