@@ -12,8 +12,8 @@ interface CookiePreferencesProps {
 }
 
 export function CookiePreferences({ onClose }: CookiePreferencesProps) {
-  const [analytics, setAnalytics] = useState(false)
-  const [marketing, setMarketing] = useState(false)
+  const [analytics, setAnalytics] = useState(true)
+  const [marketing, setMarketing] = useState(true)
 
   useEffect(() => {
     const consent = getCookieConsent()
