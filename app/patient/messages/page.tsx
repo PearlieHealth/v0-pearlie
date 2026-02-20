@@ -138,11 +138,14 @@ export default function PatientMessagesPage() {
       if (response.ok) {
         const data = await response.json()
         setConversations(data.conversations || [])
+        setError(null)
       } else if (response.status === 401) {
         router.replace("/patient/login")
+      } else {
+        setError("Couldn't load conversations. Please try again.")
       }
     } catch {
-      // Silently fail
+      setError("Couldn't load conversations. Check your connection and try again.")
     } finally {
       setIsLoading(false)
     }
@@ -158,7 +161,8 @@ export default function PatientMessagesPage() {
         setActiveLeadId(data.leadId || null)
       }
     } catch {
-      // Silently fail
+      // Background polling — silent fail is acceptable here
+      console.warn("[messages] Background poll failed for", conversationId)
     }
   }
 
@@ -419,7 +423,18 @@ export default function PatientMessagesPage() {
           </button>
         </div>
 
-        {conversations.length === 0 ? (
+        {error && !isLoading && conversations.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
+            <MessageCircle className="h-10 w-10 text-red-300 mb-2" />
+            <p className="text-[#666] font-medium">{error}</p>
+            <button
+              onClick={() => { setError(null); setIsLoading(true); fetchConversations() }}
+              className="mt-4 text-sm text-primary hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+        ) : conversations.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
             <MessageCircle className="h-10 w-10 text-[#ccc] mb-2" />
             <p className="text-[#666] font-medium">No conversations yet</p>
@@ -586,7 +601,18 @@ export default function PatientMessagesPage() {
           )}
         </h1>
 
-        {conversations.length === 0 ? (
+        {error && !isLoading && conversations.length === 0 ? (
+          <div className="bg-white rounded-xl border border-[#e5e5e5] p-12 text-center">
+            <MessageCircle className="h-12 w-12 text-red-300 mx-auto mb-3" />
+            <p className="text-[#666] font-medium">{error}</p>
+            <button
+              onClick={() => { setError(null); setIsLoading(true); fetchConversations() }}
+              className="inline-block mt-4 text-sm text-primary hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+        ) : conversations.length === 0 ? (
           <div className="bg-white rounded-xl border border-[#e5e5e5] p-12 text-center">
             <MessageCircle className="h-12 w-12 text-[#ccc] mx-auto mb-3" />
             <p className="text-[#666] font-medium">No conversations yet</p>

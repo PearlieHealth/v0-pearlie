@@ -69,11 +69,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Protect patient dashboard routes
-  const isPatientDashboard = request.nextUrl.pathname.startsWith("/patient/dashboard")
-  if (isPatientDashboard && !user) {
+  // Protect all patient routes (except login)
+  const isPatientProtected = request.nextUrl.pathname.startsWith("/patient/") &&
+    !request.nextUrl.pathname.startsWith("/patient/login")
+  if (isPatientProtected && !user) {
     const url = request.nextUrl.clone()
     url.pathname = "/patient/login"
+    url.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search)
     return NextResponse.redirect(url)
   }
 

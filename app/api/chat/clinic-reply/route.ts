@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
         if (lead?.email && clinic) {
           const unsubscribed = await isUnsubscribed(lead.email, "patient_notifications")
           if (!unsubscribed) {
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+            const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
             const trimmedContent = content.trim()
             const safeFirstName = lead.first_name ? ` ${escapeHtml(lead.first_name)}` : ""
             const safeClinicName = escapeHtml(clinic.name)
@@ -190,6 +190,39 @@ export async function POST(request: NextRequest) {
             const unsubFooter = generateUnsubscribeFooterHtml(
               generateUnsubscribeHeaders(lead.email, "patient_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
             )
+
+            // Generate a magic link so the patient is auto-logged in when they click
+            const messagesPath = `/patient/messages?conversationId=${conversationId}`
+            const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(messagesPath)}`
+            let viewReplyUrl = `${appUrl}${messagesPath}` // fallback: plain link
+
+            try {
+              const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+                type: "magiclink",
+                email: lead.email,
+                options: { redirectTo },
+              })
+              if (linkData?.properties?.action_link) {
+                viewReplyUrl = linkData.properties.action_link
+                // Ensure redirect_to points to our app URL (Supabase may use Site URL)
+                try {
+                  const linkUrl = new URL(viewReplyUrl)
+                  const currentRedirect = linkUrl.searchParams.get("redirect_to")
+                  if (currentRedirect) {
+                    const redirectHost = new URL(currentRedirect).hostname
+                    const appHost = new URL(appUrl).hostname
+                    if (redirectHost !== appHost) {
+                      linkUrl.searchParams.set("redirect_to", redirectTo)
+                      viewReplyUrl = linkUrl.toString()
+                    }
+                  }
+                } catch {}
+              }
+            } catch (linkErr) {
+              // Non-critical: fall back to plain URL (patient will need to log in manually)
+              console.warn("[Chat] Failed to generate magic link for patient notification:", linkErr)
+            }
+
             await sendEmailWithRetry({
               from: EMAIL_FROM.NOTIFICATIONS,
               to: lead.email,
@@ -208,7 +241,7 @@ export async function POST(request: NextRequest) {
                       <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${safeContent}</p>
                     </div>
                     <div style="text-align: center; margin-top: 30px;">
-                      <a href="${appUrl}/patient/messages?conversationId=${conversationId}"
+                      <a href="${viewReplyUrl}"
                          style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
                         View &amp; Reply
                       </a>

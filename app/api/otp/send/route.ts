@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     // Get lead and check rate limits
     const { data: lead, error: leadError } = await supabase
       .from("leads")
-      .select("id, verification_sent_at, verification_attempts, is_verified")
+      .select("id, email, verification_sent_at, verification_attempts, is_verified")
       .eq("id", leadId)
       .single()
 
@@ -37,6 +37,11 @@ export async function POST(request: NextRequest) {
     // Already verified
     if (lead.is_verified) {
       return NextResponse.json({ error: "Email already verified", alreadyVerified: true }, { status: 400 })
+    }
+
+    // Verify the submitted email matches the lead's stored email
+    if (lead.email?.toLowerCase() !== email.toLowerCase()) {
+      return NextResponse.json({ error: "Email does not match our records" }, { status: 400 })
     }
 
     // Check rate limiting

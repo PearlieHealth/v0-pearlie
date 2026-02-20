@@ -51,8 +51,8 @@ export async function GET() {
       return NextResponse.json({ error: "Failed to fetch conversations" }, { status: 500 })
     }
 
-    // Enrich with latest message preview
-    const enriched = await Promise.all(
+    // Enrich with latest message preview (use allSettled so one failure doesn't crash the whole inbox)
+    const settled = await Promise.allSettled(
       (conversations || []).map(async (conv) => {
         const { data: latestMessage } = await admin
           .from("messages")
@@ -69,6 +69,28 @@ export async function GET() {
         }
       })
     )
+
+    const enriched: any[] = []
+    settled.forEach((result, i) => {
+      if (result.status === "fulfilled") {
+        enriched.push(result.value)
+      } else {
+        // Include conversation without preview rather than dropping it
+        console.warn(`[patient/conversations] Message preview failed for conversation ${conversations![i].id}`)
+        enriched.push({
+          ...conversations![i],
+          latest_message: null,
+          latest_message_sender: null,
+        })
+      }
+    })
+
+    // Re-sort to maintain order (failed enrichments may have been appended out of order)
+    enriched.sort((a: any, b: any) => {
+      const timeA = a.last_message_at ? new Date(a.last_message_at).getTime() : 0
+      const timeB = b.last_message_at ? new Date(b.last_message_at).getTime() : 0
+      return timeB - timeA
+    })
 
     return NextResponse.json({ conversations: enriched })
   } catch (error) {

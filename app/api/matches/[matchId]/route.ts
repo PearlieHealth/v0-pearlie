@@ -10,6 +10,7 @@ import { calculateHaversineDistance } from "@/lib/utils/geo"
 export async function GET(request: Request, { params }: { params: Promise<{ matchId: string }> }) {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
     const { matchId } = await params
     const url = new URL(request.url)
     const forceRefresh = url.searchParams.get("refresh") === "true"
@@ -338,6 +339,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       ? !isInGreaterLondon(lead.postcode) || clinicsWithScores.every((c: any) => (c.distance_miles ?? 999) > 5)
       : false
 
+    // Check if the authenticated user owns this lead
+    const isOwner = user && lead && (
+      (lead.user_id && lead.user_id === user.id) ||
+      (!lead.user_id && lead.email && lead.email.toLowerCase() === user.email?.toLowerCase())
+    )
+
     const allClinics = [...clinicsWithScores, ...additionalClinics]
 
     return NextResponse.json(
@@ -346,11 +353,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
         clinics: allClinics,
         lead: lead
           ? {
-              latitude: lead.latitude,
-              longitude: lead.longitude,
-              postcode: lead.postcode,
               email: lead.email,
               isVerified: lead.is_verified ?? false,
+              // Strip location data for non-owners to prevent leaking patient address
+              ...(isOwner
+                ? {
+                    latitude: lead.latitude,
+                    longitude: lead.longitude,
+                    postcode: lead.postcode,
+                  }
+                : {
+                    latitude: null,
+                    longitude: null,
+                    postcode: null,
+                  }),
             }
           : null,
         needsExpansionBanner,
