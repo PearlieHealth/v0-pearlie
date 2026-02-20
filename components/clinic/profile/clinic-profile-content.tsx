@@ -221,6 +221,10 @@ export function ClinicProfileContent() {
       setBookingConfirmed(true)
       setPendingAppointment(null)
 
+      // Open chat so user sees the message was sent
+      setShowChat(true)
+      setShowMobileChat(true)
+
       trackEvent("booking_confirmed_inline", {
         leadId: bookingLeadId,
         clinicId: clinic.id,

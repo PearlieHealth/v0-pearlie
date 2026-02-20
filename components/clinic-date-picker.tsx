@@ -195,7 +195,7 @@ export function ClinicDatePicker({
                 onClick={() => handleDateSelect(idx)}
                 disabled={!dateInfo.isAvailable}
                 className={cn(
-                  "flex-1 min-w-[60px] py-2 px-1 rounded-lg border text-center transition-all",
+                  "flex-1 min-w-0 py-2 px-1 rounded-lg border text-center transition-all",
                   dateInfo.isAvailable
                     ? isSelected
                       ? "border-[#004443] bg-[#004443]/10 text-[#004443]"
@@ -203,8 +203,8 @@ export function ClinicDatePicker({
                     : "border-muted bg-muted/30 text-muted-foreground cursor-not-allowed opacity-60"
                 )}
               >
-                <div className="text-[11px] sm:text-xs text-muted-foreground">{dayShort}</div>
-                <div className={cn("text-sm sm:text-base font-semibold", isSelected && "text-[#004443]")}>{monthShort} {dateNum}</div>
+                <div className="text-[11px] text-muted-foreground truncate">{dayShort}</div>
+                <div className={cn("text-sm font-semibold truncate", isSelected && "text-[#004443]")}>{monthShort} {dateNum}</div>
                 <div className={cn(
                   "text-xs",
                   dateInfo.isAvailable
