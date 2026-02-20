@@ -28,6 +28,7 @@ import {
   ANXIETY_LEVEL_LABELS,
   TIMING_OPTIONS,
   parseRawAnswers,
+  getTreatmentsFromLead,
 } from "@/lib/intake-form-config"
 
 type Lead = {
@@ -296,11 +297,11 @@ export function EnhancedLeadsTable({ leads }: { leads?: Lead[] }) {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
-                            {(lead.treatment_interest?.split(', ') || []).slice(0, 2).map((t, i) => (
+                            {getTreatmentsFromLead(lead).slice(0, 2).map((t, i) => (
                               <Badge key={i} variant="outline" className="text-xs">{t}</Badge>
                             ))}
-                            {(lead.treatment_interest?.split(', ') || []).length > 2 && (
-                              <Badge variant="secondary" className="text-xs">+{(lead.treatment_interest?.split(', ') || []).length - 2}</Badge>
+                            {getTreatmentsFromLead(lead).length > 2 && (
+                              <Badge variant="secondary" className="text-xs">+{getTreatmentsFromLead(lead).length - 2}</Badge>
                             )}
                           </div>
                         </TableCell>

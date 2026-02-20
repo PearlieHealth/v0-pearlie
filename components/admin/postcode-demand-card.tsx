@@ -3,6 +3,7 @@
 import { Card } from "@/components/ui/card"
 import { Map } from "lucide-react"
 import { safeArray, safeString } from "@/lib/analytics/safe"
+import { getTreatmentsFromLead } from "@/lib/intake-form-config"
 import { useState } from "react"
 
 interface Lead {
@@ -58,8 +59,7 @@ export function PostcodeDemandCard({ leads }: PostcodeDemandCardProps) {
     }
 
     // Count treatments per area
-    const interest = safeString(lead?.treatment_interest)
-    interest.split(",").map((t) => t.trim()).filter(Boolean).forEach((treatment) => {
+    getTreatmentsFromLead(lead).forEach((treatment) => {
       areaCounts[outward].treatments[treatment] = (areaCounts[outward].treatments[treatment] || 0) + 1
     })
   })
