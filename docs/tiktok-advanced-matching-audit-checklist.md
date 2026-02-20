@@ -51,13 +51,10 @@
 - [ ] Both functions return early if `window.ttq` is undefined (pixel not loaded)
 - [ ] Both functions return early on server-side (`typeof window === "undefined"`)
 
-### Data Safety (CRITICAL — Healthcare Context)
+### PII Safety
 - [ ] `identifyForTikTok` function signature ONLY accepts: `email`, `phone`, `externalId`
-- [ ] **NO treatment data** is passed to any TikTok function
-- [ ] **NO postcode** is passed to any TikTok function
-- [ ] **NO dental concern/urgency** data is passed to any TikTok function
-- [ ] **NO form step data** is passed to any TikTok function
-- [ ] The `content_name` parameter in `trackTikTokEvent` contains only generic labels like `"intake_form"` or `"direct_enquiry"` (no health info)
+- [ ] **NO unhashed email/phone** is sent to TikTok — all PII must go through SHA-256
+- [ ] `identify` is only called at form submission points (intake + direct enquiry), not on every page
 
 ---
 
@@ -67,7 +64,7 @@
 - [ ] `identifyForTikTok()` is called with `formData.email` and `formData.phone`
 - [ ] `identifyForTikTok()` is called **before** `trackTikTokEvent("CompleteRegistration", ...)`
 - [ ] `identifyForTikTok()` is `await`ed (it's async due to SHA-256)
-- [ ] `trackTikTokEvent` only sends `content_name` — no treatment/health metadata
+- [ ] `trackTikTokEvent("CompleteRegistration", ...)` includes event metadata: `content_name`, `treatment`, `postcode`, `flow`, `urgency`, `cost_approach`
 - [ ] The TikTok calls are placed near the existing `trackEvent("lead_submitted", ...)` call
 - [ ] If the API call to create the lead **fails**, the TikTok event should **NOT** fire (verify it's in the success path only)
 
@@ -79,27 +76,76 @@
 - [ ] `identifyForTikTok()` is called with trimmed email and phone
 - [ ] `identifyForTikTok()` is called **before** `trackTikTokEvent("CompleteRegistration", ...)`
 - [ ] `identifyForTikTok()` is `await`ed
-- [ ] `trackTikTokEvent` only sends `content_name` — no treatment/health metadata
+- [ ] `trackTikTokEvent("CompleteRegistration", ...)` includes `content_name` and `treatment`
 - [ ] The TikTok calls are in the success path (after successful API response)
 
 ---
 
-## 6. Book Clicked Integration (Optional — `components/clinic/profile/clinic-profile-content.tsx`)
+## 6. OTP Verification (`app/match/[matchId]/page.tsx`)
 
-- [ ] If implemented: import is `{ trackTikTokEvent }` only (no `identifyForTikTok` needed here)
-- [ ] Event is `"ClickButton"` with `content_name: "book_appointment"`
-- [ ] No PII or health data in the event parameters
-- [ ] No `identify` call here (user was already identified at form submission)
+- [ ] `trackTikTokEvent("CompletePayment", { content_name: "otp_verified" })` fires inside `handleVerificationSuccess` (near line 440)
+- [ ] No `identify` call needed here (user already identified at form submission)
 
 ---
 
-## 7. Consent Flow Testing
+## 7. Message Clinic Clicks
+
+### Match page (`app/match/[matchId]/page.tsx`)
+- [ ] "Message Clinic" button/link near line 935 fires `trackTikTokEvent("Contact", { content_name: "message_clinic_match_page" })`
+- [ ] Click handler doesn't break the existing `<Link>` navigation
+
+### Clinic profile — desktop (`components/clinic/profile/clinic-profile-content.tsx`)
+- [ ] "Message Clinic" button near line 607 fires `trackTikTokEvent("Contact", { content_name: "message_clinic_profile" })`
+- [ ] Existing `setShowChat(!showChat)` behaviour is preserved
+
+### Clinic profile — mobile (`components/clinic/profile/clinic-profile-content.tsx`)
+- [ ] "Message Clinic" button near line 822 fires `trackTikTokEvent("Contact", { content_name: "message_clinic_profile_mobile" })`
+- [ ] Existing `setShowMobileChat(true)` behaviour is preserved
+
+---
+
+## 8. Booking Flow
+
+### Select time slot — match page (`app/match/[matchId]/page.tsx`)
+- [ ] `onSelectSlot` callback near line 921 fires `trackTikTokEvent("InitiateCheckout", { content_name: "select_time_slot" })` before `window.location.href` redirect
+
+### Book clicked — clinic profile (`components/clinic/profile/clinic-profile-content.tsx`)
+- [ ] `handleBookAppointment` near line 189 fires `trackTikTokEvent("ClickButton", { content_name: "book_appointment" })`
+
+### Booking confirmed inline — clinic profile (`components/clinic/profile/clinic-profile-content.tsx`)
+- [ ] `handleConfirmBooking` near line 269 fires `trackTikTokEvent("PlaceAnOrder", { content_name: "booking_confirmed" })`
+
+### Booking confirmed standalone (`app/booking/confirm/page.tsx`)
+- [ ] After `setConfirmed(true)` at line 117, fires `trackTikTokEvent("PlaceAnOrder", { content_name: "booking_confirmed_standalone" })`
+
+---
+
+## 9. Event Mapping Verification
+
+| User Action | Pearlie Event | TikTok Event | File |
+| --- | --- | --- | --- |
+| Page loads | (automatic) | `PageView` via `ttq.page()` | `analytics-scripts.tsx` |
+| Submits intake form | `lead_submitted` | `CompleteRegistration` | `app/intake/page.tsx` |
+| Submits direct enquiry | `lead_submitted` | `CompleteRegistration` | `direct-enquiry-form.tsx` |
+| Completes OTP verification | `email_verified` | `CompletePayment` | `app/match/[matchId]/page.tsx` |
+| Clicks "Message Clinic" | — | `Contact` | match page + clinic profile (desktop + mobile) |
+| Selects time slot (match page) | — | `InitiateCheckout` | `app/match/[matchId]/page.tsx` |
+| Clicks "Book" (clinic profile) | `book_clicked` | `ClickButton` | `clinic-profile-content.tsx` |
+| Confirms booking (inline) | `booking_confirmed_inline` | `PlaceAnOrder` | `clinic-profile-content.tsx` |
+| Confirms booking (standalone) | — | `PlaceAnOrder` | `app/booking/confirm/page.tsx` |
+
+---
+
+## 10. Consent Flow Testing
 
 ### With marketing consent granted:
 - [ ] TikTok pixel script loads in the DOM
 - [ ] `ttq.page()` fires on navigation
 - [ ] `ttq.identify()` fires on form submission (check via TikTok Pixel Helper)
 - [ ] `ttq.track("CompleteRegistration")` fires on form submission
+- [ ] `ttq.track("CompletePayment")` fires after OTP
+- [ ] `ttq.track("Contact")` fires on "Message Clinic" click
+- [ ] `ttq.track("PlaceAnOrder")` fires on booking confirmation
 - [ ] `_ttp` cookie is set by TikTok
 
 ### Without marketing consent (or before consent):
@@ -114,16 +160,16 @@
 
 ---
 
-## 8. Privacy & Compliance
+## 11. Privacy & Compliance
 
 - [ ] Cookie policy page updated to mention TikTok / `_ttp` cookie
 - [ ] Cookie is categorised as "Marketing" (not "Analytics" or "Essential")
 - [ ] No plaintext PII is sent to TikTok (all values are SHA-256 hashed)
-- [ ] Privacy policy mentions TikTok as a third-party data processor (if applicable under UK GDPR)
+- [ ] Event metadata (treatments, postcode, etc.) is non-PII conversion context only — never combined with unhashed identifiers
 
 ---
 
-## 9. Build & Runtime Checks
+## 12. Build & Runtime Checks
 
 - [ ] `npm run build` passes with no errors
 - [ ] `npm run lint` passes with no errors
@@ -133,11 +179,14 @@
 
 ---
 
-## 10. TikTok Events Manager Verification
+## 13. TikTok Events Manager Verification
 
 - [ ] Pixel shows as "Active" in TikTok Events Manager
 - [ ] `PageView` events are flowing in
 - [ ] `CompleteRegistration` events appear after test form submissions
+- [ ] `CompletePayment` events appear after OTP verification
+- [ ] `Contact` events appear after "Message Clinic" clicks
+- [ ] `PlaceAnOrder` events appear after booking confirmations
 - [ ] Advanced Matching data quality shows "Manual" (not "Automatic")
 - [ ] Match rate is reported (may take 24-48h to populate)
 
@@ -147,13 +196,12 @@
 
 | Red Flag | Why It Matters |
 | --- | --- |
-| `formData.treatments` or similar in any TikTok call | Health data leak — MUST NOT happen |
-| `formData.postcode` in any TikTok call | Location data unnecessarily shared |
-| `formData.urgency` or `formData.readiness` in any TikTok call | Health-adjacent data leak |
 | Unhashed email/phone in `ttq.identify()` | PII sent in plaintext to TikTok |
 | TikTok script loading without consent check | PECR/GDPR violation |
 | `identify` called without `await` | Race condition — event fires before identify completes |
-| Automatic Advanced Matching enabled in TikTok dashboard | Scrapes form fields including health data |
+| Automatic Advanced Matching enabled in TikTok dashboard | Scrapes form fields — could capture health data from DOM |
+| `ttq.track` called outside of consent-gated helper | Bypasses consent management |
+| Missing events in the mapping table above | Incomplete implementation |
 
 ---
 
