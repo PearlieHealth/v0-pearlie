@@ -15,20 +15,11 @@ export function CookieBanner() {
     setShowBanner(!consent)
   }, [])
 
-  const handleAcceptAll = () => {
+  const handleOk = () => {
     saveCookieConsent({
       essential: true,
       analytics: true,
       marketing: true,
-    })
-    setShowBanner(false)
-  }
-
-  const handleRejectNonEssential = () => {
-    saveCookieConsent({
-      essential: true,
-      analytics: false,
-      marketing: false,
     })
     setShowBanner(false)
   }
@@ -52,27 +43,21 @@ export function CookieBanner() {
             <div className="flex-1">
               <div className="flex items-start gap-3">
                 <Cookie className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-semibold text-lg mb-1">Cookie Preferences</h3>
-                  <p className="text-sm text-muted-foreground">
-                    We use cookies to improve your experience and analyze site usage. Essential cookies are always
-                    active. You can accept all cookies or manage your preferences.{" "}
-                    <a href="/cookies" className="underline hover:text-foreground">
-                      Learn more
-                    </a>
-                  </p>
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  By using this website, you agree to our use of cookies. We use cookies to provide you with a great
+                  experience and to help our website run effectively.{" "}
+                  <a href="/cookies" className="underline hover:text-foreground">
+                    Learn more
+                  </a>
+                </p>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-              <Button variant="outline" onClick={handleRejectNonEssential} className="whitespace-nowrap bg-transparent">
-                Reject Non-Essential
-              </Button>
               <Button variant="outline" onClick={handleManagePreferences} className="whitespace-nowrap bg-transparent">
                 Manage Preferences
               </Button>
-              <Button onClick={handleAcceptAll} className="whitespace-nowrap">
-                Accept All
+              <Button onClick={handleOk} className="whitespace-nowrap">
+                OK
               </Button>
             </div>
           </div>

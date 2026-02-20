@@ -438,6 +438,12 @@ export default function MatchPage() {
   const handleVerificationSuccess = (data?: { sessionToken?: string; sessionEstablished?: boolean }) => {
     setIsVerified(true)
     trackEvent("email_verified", { leadId, matchId })
+    // TikTok Pixel: fire CompleteRegistration conversion after form + OTP verification
+    if (typeof window !== 'undefined' && (window as any).ttq) {
+      (window as any).ttq.track('CompleteRegistration', {
+        content_name: 'dental_clinic_match',
+      })
+    }
     // Save match for "return to matches" on landing page
     try {
       localStorage.setItem("pearlie_last_match", JSON.stringify({

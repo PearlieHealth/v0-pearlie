@@ -33,10 +33,12 @@ export function saveCookieConsent(consent: Omit<CookieConsent, "timestamp">): vo
 
 export function hasConsentForAnalytics(): boolean {
   const consent = getCookieConsent()
-  return consent?.analytics ?? false
+  // Implied consent: default to true if user hasn't explicitly opted out
+  return consent?.analytics ?? true
 }
 
 export function hasConsentForMarketing(): boolean {
   const consent = getCookieConsent()
-  return consent?.marketing ?? false
+  // Implied consent: default to true if user hasn't explicitly opted out
+  return consent?.marketing ?? true
 }
