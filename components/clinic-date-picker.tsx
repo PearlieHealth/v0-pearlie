@@ -12,6 +12,7 @@ interface ClinicDatePickerProps {
   acceptsSameDay: boolean
   onSelectSlot: (date: Date, time: string) => void
   className?: string
+  maxVisible?: number // Override max visible dates (useful for narrow containers like sidebars)
 }
 
 // Map day index (0 = Sunday) to day key
@@ -51,20 +52,25 @@ export function ClinicDatePicker({
   acceptsSameDay = false,
   onSelectSlot,
   className,
+  maxVisible,
 }: ClinicDatePickerProps) {
   const [startIndex, setStartIndex] = useState(0)
   const [selectedDateIndex, setSelectedDateIndex] = useState<number | null>(null)
   const [hasAutoSelected, setHasAutoSelected] = useState(false)
-  const [visibleCount, setVisibleCount] = useState(7)
+  const [visibleCount, setVisibleCount] = useState(maxVisible || 7)
 
   // Show fewer date columns on mobile for larger touch targets
   useEffect(() => {
+    if (maxVisible) {
+      setVisibleCount(maxVisible)
+      return
+    }
     const mq = window.matchMedia('(max-width: 639px)')
     setVisibleCount(mq.matches ? 5 : 7)
     const handler = (e: MediaQueryListEvent) => setVisibleCount(e.matches ? 5 : 7)
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
-  }, [])
+  }, [maxVisible])
   
   // Generate next 14 days
   const dates = useMemo(() => {

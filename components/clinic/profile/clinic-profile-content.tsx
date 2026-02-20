@@ -171,7 +171,7 @@ export function ClinicProfileContent() {
       },
     })
 
-    if (date && time && (lead?.id || directLeadId)) {
+    if (date && time && (lead?.id || leadIdParam || directLeadId)) {
       const dateLabel = date.toLocaleDateString("en-GB", {
         weekday: "long",
         day: "numeric",
@@ -181,7 +181,7 @@ export function ClinicProfileContent() {
         HOURLY_SLOTS.find((s: { key: string; label: string }) => s.key === time)?.label || time
       setBookingError(null)
       setPendingAppointment({ date, time, dateLabel, timeLabel })
-    } else if (lead?.id || directLeadId) {
+    } else if (lead?.id || leadIdParam || directLeadId) {
       const picker = document.getElementById("clinic-date-picker")
       if (picker) {
         picker.scrollIntoView({ behavior: "smooth", block: "center" })
@@ -195,7 +195,7 @@ export function ClinicProfileContent() {
 
   const handleConfirmBooking = async () => {
     if (!pendingAppointment || !clinic?.id) return
-    const bookingLeadId = lead?.id || directLeadId
+    const bookingLeadId = lead?.id || leadIdParam || directLeadId
     if (!bookingLeadId) return
 
     setIsBookingRequesting(true)
@@ -488,6 +488,7 @@ export function ClinicProfileContent() {
                         availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
                         acceptsSameDay={clinic.accepts_same_day || false}
                         onSelectSlot={(date, time) => handleBookAppointment(date, time)}
+                        maxVisible={5}
                       />
                     )}
 
