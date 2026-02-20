@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, RotateCcw, Search } from "lucide-react"
+import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, RotateCcw, Search, User } from "lucide-react"
 import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import Image from "next/image"
@@ -147,32 +147,41 @@ export default function Home() {
                       transition={{ duration: 0.8, delay: 0.3 }}
                     >
                       {lastMatch ? (
-                        <div className="flex flex-col sm:flex-row items-stretch justify-center lg:justify-start gap-3 max-w-xl">
-                          <Link
-                            href={`/match/${lastMatch.matchId}`}
-                            className="flex-1 group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all"
-                          >
-                            <div className="w-10 h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                              <RotateCcw className="w-5 h-5 text-[#0fbcb0]" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[15px] font-semibold text-[#222]">Return to your matches</p>
-                              <p className="text-xs text-[#666] mt-0.5 leading-snug">View the clinics we matched you with</p>
-                            </div>
-                            <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
-                          </Link>
+                        <div className="flex flex-col items-stretch justify-center lg:justify-start gap-3 max-w-xl">
+                          <div className="flex flex-col sm:flex-row items-stretch gap-3">
+                            <Link
+                              href="/patient/dashboard"
+                              className="flex-1 group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all"
+                            >
+                              <div className="w-10 h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
+                                <User className="w-5 h-5 text-[#0fbcb0]" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[15px] font-semibold text-[#222]">Go to your account</p>
+                                <p className="text-xs text-[#666] mt-0.5 leading-snug">View messages, bookings &amp; matched clinics</p>
+                              </div>
+                              <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
+                            </Link>
+                            <Link
+                              href={`/match/${lastMatch.matchId}`}
+                              className="flex-1 group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#bbb] transition-all"
+                            >
+                              <div className="w-10 h-10 rounded-full bg-[#F8F1E7] flex items-center justify-center flex-shrink-0">
+                                <RotateCcw className="w-5 h-5 text-[#004443]" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[15px] font-semibold text-[#222]">Return to your matches</p>
+                                <p className="text-xs text-[#666] mt-0.5 leading-snug">View the clinics we matched you with</p>
+                              </div>
+                              <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
+                            </Link>
+                          </div>
                           <Link
                             href="/intake"
-                            className="flex-1 group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#bbb] transition-all"
+                            className="group flex items-center justify-center gap-2 text-sm text-[#666] hover:text-[#004443] transition-colors py-1"
                           >
-                            <div className="w-10 h-10 rounded-full bg-[#F8F1E7] flex items-center justify-center flex-shrink-0">
-                              <Search className="w-5 h-5 text-[#004443]" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[15px] font-semibold text-[#222]">Start a new search</p>
-                              <p className="text-xs text-[#666] mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
-                            </div>
-                            <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
+                            <Search className="w-3.5 h-3.5" />
+                            <span>Or start a new search</span>
                           </Link>
                         </div>
                       ) : (

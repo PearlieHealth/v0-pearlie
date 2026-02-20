@@ -56,22 +56,27 @@ export default function BookingConfirmPage() {
       }
 
       try {
-        // Fetch clinic and lead data
-        const [clinicRes, leadRes] = await Promise.all([
-          fetch(`/api/clinics/${clinicId}`),
-          fetch(`/api/leads/${leadId}`),
-        ])
+        // Fetch clinic data (public endpoint) and lead data (requires auth)
+        const clinicRes = await fetch(`/api/clinics/${clinicId}`)
 
-        if (!clinicRes.ok || !leadRes.ok) {
-          throw new Error("Failed to fetch booking details")
+        if (!clinicRes.ok) {
+          throw new Error("Failed to fetch clinic details")
         }
 
         const clinicData = await clinicRes.json()
-        const leadData = await leadRes.json()
-
-        // Clinics API returns { clinic: {...} }, leads API returns data directly
         setClinic(clinicData.clinic || clinicData)
-        setLead(leadData)
+
+        // Lead fetch requires auth — may fail if session cookie hasn't propagated yet.
+        // The booking flow still works without it (we have leadId from URL params).
+        try {
+          const leadRes = await fetch(`/api/leads/${leadId}`)
+          if (leadRes.ok) {
+            const leadData = await leadRes.json()
+            setLead(leadData)
+          }
+        } catch {
+          // Non-critical — booking can proceed with just leadId
+        }
       } catch (err) {
         console.error("Error fetching data:", err)
         setError("Failed to load booking details")
@@ -84,8 +89,8 @@ export default function BookingConfirmPage() {
   }, [clinicId, leadId])
 
   const handleConfirmBooking = async () => {
-    // Validate all required data is present
-    if (!clinic?.id || !lead?.id || !dateStr || !time) {
+    // Validate all required data is present (use leadId from URL params directly)
+    if (!clinic?.id || !leadId || !dateStr || !time) {
       setError("Missing booking information. Please go back and select a time slot.")
       return
     }
@@ -97,7 +102,7 @@ export default function BookingConfirmPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           clinicId: clinic.id,
-          leadId: lead.id,
+          leadId: leadId,
           date: dateStr,
           time: time,
         }),
@@ -262,21 +267,23 @@ export default function BookingConfirmPage() {
         </Card>
 
         {/* User Identity Card */}
-        <Card className="p-5 mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center shrink-0">
-              <svg className="w-6 h-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
+        {lead?.email && (
+          <Card className="p-5 mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center shrink-0">
+                <svg className="w-6 h-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-sm">
+                  {"You're continuing your request as "}
+                  <span className="text-foreground font-semibold">{lead.email}</span>
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-muted-foreground text-sm">
-                {"You're continuing your request as "}
-                <span className="text-foreground font-semibold">{lead?.email}</span>
-              </p>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         {/* Confirm Button */}
         <Button
