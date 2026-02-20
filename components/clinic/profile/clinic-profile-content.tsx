@@ -805,16 +805,24 @@ export function ClinicProfileContent() {
         </div>
       )}
 
-      {/* Mobile sticky CTA - success state */}
+      {/* Mobile sticky CTA - success state with message button */}
       {bookingConfirmed && !showMobileChat && !showMobilePicker && (
         <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-green-50 border-t border-green-200 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50">
-          <div className="flex items-center justify-center gap-2.5 max-w-lg mx-auto">
+          <div className="flex items-center gap-2.5 max-w-lg mx-auto mb-3">
             <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
             <div>
               <p className="text-sm font-medium text-green-700">Appointment request sent</p>
               <p className="text-xs text-green-600/70">The clinic will get back to you shortly</p>
             </div>
           </div>
+          <Button
+            size="lg"
+            className="w-full max-w-lg mx-auto block bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation shadow-md"
+            onClick={() => setShowMobileChat(true)}
+          >
+            <MessageCircle className="h-4 w-4 mr-2" />
+            Message Clinic
+          </Button>
         </div>
       )}
     </div>
