@@ -70,7 +70,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Protect patient dashboard routes
-  const isPatientDashboard = request.nextUrl.pathname.startsWith("/patient/dashboard")
+  const isPatientDashboard = request.nextUrl.pathname.startsWith("/patient/dashboard") || request.nextUrl.pathname.startsWith("/patient/messages")
   if (isPatientDashboard && !user) {
     const url = request.nextUrl.clone()
     url.pathname = "/patient/login"
