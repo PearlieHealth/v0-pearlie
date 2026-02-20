@@ -148,14 +148,14 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Our Commitment — consolidated, dark teal background */}
-        <section className="py-12 sm:py-20 md:py-28 bg-[#004443]">
+        {/* Our Commitment — cream background */}
+        <section className="py-12 sm:py-20 md:py-28 bg-[#F8F1E7]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-white">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-[#004443]">
                 Our commitment
               </h2>
-              <p className="text-lg sm:text-xl text-white/75 leading-relaxed max-w-3xl mx-auto">
+              <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
                 Every clinic on Pearlie is verified and GDC-registered. There are no hidden fees, no paid placements,
                 and no misleading rankings. We continuously refine our matching so that every recommendation is based
                 on fit — not advertising spend.
@@ -164,8 +164,8 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Our Promise: Pearlie Guarantee — white background with guarantee cards + FAQ */}
-        <section className="py-12 sm:py-20 md:py-28 bg-white">
+        {/* Our Promise: Pearlie Guarantee — dark teal background */}
+        <section className="py-12 sm:py-20 md:py-28 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               {/* Section header */}
@@ -173,17 +173,17 @@ export default function AboutPage() {
                 <div className="inline-flex items-center gap-2.5 mb-5">
                   <ShieldCheck className="w-8 h-8 text-[#0fbcb0]" />
                 </div>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-[#004443]">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-white">
                   Our promise: Pearlie Guarantee
                 </h2>
-                <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                <p className="text-lg sm:text-xl text-white/75 max-w-3xl mx-auto leading-relaxed">
                   Every clinic on Pearlie is held to our quality standards — and backed by our promise to you.
                 </p>
               </div>
 
               {/* Guarantee cards */}
               <div className="grid sm:grid-cols-3 gap-6 lg:gap-8 mb-14 sm:mb-20">
-                <div className="bg-[#004443] rounded-2xl p-6 sm:p-8 text-center">
+                <div className="bg-white/10 rounded-2xl p-6 sm:p-8 text-center">
                   <div className="w-12 h-12 rounded-full bg-[#0fbcb0]/15 flex items-center justify-center mx-auto mb-5">
                     <BadgeCheck className="w-6 h-6 text-[#0fbcb0]" />
                   </div>
@@ -193,7 +193,7 @@ export default function AboutPage() {
                   </p>
                 </div>
 
-                <div className="bg-[#004443] rounded-2xl p-6 sm:p-8 text-center">
+                <div className="bg-white/10 rounded-2xl p-6 sm:p-8 text-center">
                   <div className="w-12 h-12 rounded-full bg-[#0fbcb0]/15 flex items-center justify-center mx-auto mb-5">
                     <Heart className="w-6 h-6 text-[#0fbcb0]" />
                   </div>
@@ -203,7 +203,7 @@ export default function AboutPage() {
                   </p>
                 </div>
 
-                <div className="bg-[#004443] rounded-2xl p-6 sm:p-8 text-center">
+                <div className="bg-white/10 rounded-2xl p-6 sm:p-8 text-center">
                   <div className="w-12 h-12 rounded-full bg-[#0fbcb0]/15 flex items-center justify-center mx-auto mb-5">
                     <MessageCircle className="w-6 h-6 text-[#0fbcb0]" />
                   </div>
@@ -216,15 +216,15 @@ export default function AboutPage() {
 
               {/* FAQ-style answers about the guarantee */}
               <div className="max-w-3xl mx-auto">
-                <h3 className="text-xl sm:text-2xl font-bold text-[#004443] mb-6">
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-6">
                   Questions about the guarantee
                 </h3>
                 <Accordion type="single" collapsible className="space-y-3">
-                  <AccordionItem value="g-1" className="border-none rounded-lg px-4 sm:px-6 bg-[#F8F1E7]">
-                    <AccordionTrigger className="text-left text-base font-semibold hover:no-underline">
+                  <AccordionItem value="g-1" className="border-none rounded-lg px-4 sm:px-6 bg-white/10">
+                    <AccordionTrigger className="text-left text-base font-semibold hover:no-underline text-white">
                       What does the Pearlie Guarantee cover?
                     </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground leading-relaxed">
+                    <AccordionContent className="text-white/70 leading-relaxed">
                       The Pearlie Guarantee covers two things: first, that every clinic listed on our platform has been
                       verified for quality care and GDC registration. Second, if your experience with a Pearlie-matched
                       clinic doesn&apos;t meet your expectations, we&apos;ll cover the cost of your next consultation or check-up
@@ -232,11 +232,11 @@ export default function AboutPage() {
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="g-2" className="border-none rounded-lg px-4 sm:px-6 bg-[#F8F1E7]">
-                    <AccordionTrigger className="text-left text-base font-semibold hover:no-underline">
+                  <AccordionItem value="g-2" className="border-none rounded-lg px-4 sm:px-6 bg-white/10">
+                    <AccordionTrigger className="text-left text-base font-semibold hover:no-underline text-white">
                       How do I claim the Satisfaction Promise?
                     </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground leading-relaxed">
+                    <AccordionContent className="text-white/70 leading-relaxed">
                       Simply contact us at{" "}
                       <a href="mailto:hello@pearlie.co.uk" className="text-[#0fbcb0] hover:underline">hello@pearlie.co.uk</a>{" "}
                       within 30 days of your appointment. Let us know what happened and we&apos;ll arrange your next
@@ -244,33 +244,33 @@ export default function AboutPage() {
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="g-3" className="border-none rounded-lg px-4 sm:px-6 bg-[#F8F1E7]">
-                    <AccordionTrigger className="text-left text-base font-semibold hover:no-underline">
+                  <AccordionItem value="g-3" className="border-none rounded-lg px-4 sm:px-6 bg-white/10">
+                    <AccordionTrigger className="text-left text-base font-semibold hover:no-underline text-white">
                       Does the guarantee apply to all treatments?
                     </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground leading-relaxed">
+                    <AccordionContent className="text-white/70 leading-relaxed">
                       The Satisfaction Promise applies to your initial consultation or check-up booked through Pearlie.
                       It does not cover the outcome of specific clinical treatments, which are the responsibility of the
                       treating clinic. However, every clinic on Pearlie must meet our quality standards.
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="g-4" className="border-none rounded-lg px-4 sm:px-6 bg-[#F8F1E7]">
-                    <AccordionTrigger className="text-left text-base font-semibold hover:no-underline">
+                  <AccordionItem value="g-4" className="border-none rounded-lg px-4 sm:px-6 bg-white/10">
+                    <AccordionTrigger className="text-left text-base font-semibold hover:no-underline text-white">
                       How are clinics verified?
                     </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground leading-relaxed">
+                    <AccordionContent className="text-white/70 leading-relaxed">
                       We check that every clinic is GDC-registered, has positive patient feedback, and offers transparent
                       pricing. Clinics that don&apos;t meet our standards are not listed. We review our network on an ongoing
                       basis to maintain quality.
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="g-5" className="border-none rounded-lg px-4 sm:px-6 bg-[#F8F1E7]">
-                    <AccordionTrigger className="text-left text-base font-semibold hover:no-underline">
+                  <AccordionItem value="g-5" className="border-none rounded-lg px-4 sm:px-6 bg-white/10">
+                    <AccordionTrigger className="text-left text-base font-semibold hover:no-underline text-white">
                       Is there a cost to use the Pearlie Guarantee?
                     </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground leading-relaxed">
+                    <AccordionContent className="text-white/70 leading-relaxed">
                       No. The Pearlie Guarantee is included for every patient who books through our platform. There are
                       no hidden fees or extra charges.
                     </AccordionContent>
