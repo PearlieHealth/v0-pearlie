@@ -165,7 +165,7 @@ export default function AboutPage() {
         </section>
 
         {/* Our Promise: Pearlie Guarantee — dark teal background */}
-        <section className="py-12 sm:py-20 md:py-28 bg-[#004443]">
+        <section id="pearlie-guarantee" className="py-12 sm:py-20 md:py-28 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               {/* Section header */}

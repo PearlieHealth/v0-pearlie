@@ -12,7 +12,7 @@ const withPearlieFeatures: Array<string | { text: string; href: string }> = [
   "Chat directly with clinics online",
   "Book appointments online, simply",
   "Manage messages and visits in one place",
-  { text: "Confidence with the Pearlie Guarantee", href: "/faq" },
+  { text: "Confidence with the Pearlie Guarantee", href: "/about#pearlie-guarantee" },
 ]
 
 const withoutPearlieFeatures = [
