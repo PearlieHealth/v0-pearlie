@@ -3,11 +3,11 @@
  *
  * Wraps the existing sendEmailWithRetry() with:
  * 1. Zod payload validation (prevents broken templates)
- * 2. Unsubscribe checks (respects email_preferences)
- * 3. Notification preference checks (respects clinics.notification_preferences)
+ * 2. Idempotency check (prevents duplicate sends via email_logs unique index)
+ * 3. Unsubscribe checks (respects email_preferences)
  * 4. Template rendering via the registry
  * 5. Automatic List-Unsubscribe headers
- * 6. Universal logging to email_logs (every email, not just some)
+ * 6. Universal logging to email_logs (every email, with idempotency key)
  */
 import { EMAIL_REGISTRY, type EmailType } from "./registry"
 import { EMAIL_FROM } from "@/lib/email-config"
@@ -57,7 +57,31 @@ export async function sendRegisteredEmail(
     }
   }
 
-  // 2. Check unsubscribe
+  // 2. Check idempotency (prevent duplicate sends)
+  let idempotencyKey: string | null = null
+  if (entry.idempotencyKey) {
+    idempotencyKey = entry.idempotencyKey(params.data)
+    try {
+      const supabase = createAdminClient()
+      const { data: existing } = await supabase
+        .from("email_logs")
+        .select("id")
+        .eq("idempotency_key", idempotencyKey)
+        .eq("status", "sent")
+        .limit(1)
+        .maybeSingle()
+
+      if (existing) {
+        console.log(`[Email] Skipping duplicate ${params.type}, key=${idempotencyKey}`)
+        return { success: true, skipped: true, reason: "duplicate" }
+      }
+    } catch (err) {
+      console.error(`[Email] Idempotency check failed for ${params.type}:`, err)
+      // Continue sending if the check fails
+    }
+  }
+
+  // 3. Check unsubscribe
   if (entry.unsubscribeCategory) {
     try {
       const unsubscribed = await isUnsubscribed(params.to, entry.unsubscribeCategory)
@@ -71,22 +95,22 @@ export async function sendRegisteredEmail(
     }
   }
 
-  // 3. Render HTML
+  // 4. Render HTML
   const html = entry.generateHtml(parseResult.data)
 
-  // 4. Compute subject
+  // 5. Compute subject
   const subject =
     typeof entry.defaultSubject === "function"
       ? entry.defaultSubject(parseResult.data)
       : entry.defaultSubject
 
-  // 5. Build headers
+  // 6. Build headers
   const allHeaders: Record<string, string> = { ...params.headers }
   if (entry.unsubscribeCategory && !allHeaders["List-Unsubscribe"]) {
     Object.assign(allHeaders, generateUnsubscribeHeaders(params.to, entry.unsubscribeCategory))
   }
 
-  // 6. Send via Resend
+  // 7. Send via Resend
   const result = await sendEmailWithRetry({
     from: EMAIL_FROM[entry.fromAddress],
     to: params.to,
@@ -96,7 +120,7 @@ export async function sendRegisteredEmail(
     replyTo: params.replyTo,
   })
 
-  // 7. Log to email_logs (always)
+  // 8. Log to email_logs (always, with idempotency key)
   try {
     const supabase = createAdminClient()
     await supabase.from("email_logs").insert({
@@ -109,6 +133,7 @@ export async function sendRegisteredEmail(
       from_address: EMAIL_FROM[entry.fromAddress],
       clinic_id: params.clinicId || null,
       lead_id: params.leadId || null,
+      idempotency_key: idempotencyKey,
     })
   } catch (logError) {
     // Never let logging failure break the send

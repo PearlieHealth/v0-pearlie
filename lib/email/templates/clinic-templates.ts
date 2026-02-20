@@ -1,6 +1,5 @@
 /**
  * Clinic management email templates: invite, waitlist approval/rejection/confirmation.
- * Invite template replaces the one in lib/email-templates.tsx.
  */
 import { wrapInBaseLayout } from "./base-layout"
 import { escapeHtml } from "@/lib/escape-html"
