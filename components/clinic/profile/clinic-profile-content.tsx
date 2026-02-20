@@ -17,11 +17,15 @@ import {
   Eye,
   Pencil,
   ImageIcon,
+  Loader2,
+  CalendarCheck,
+  CheckCircle2,
 } from "lucide-react"
 import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
+import { HOURLY_SLOTS } from "@/lib/constants"
 
 import { HighlightBadgeStrip } from "./highlight-badge-strip"
 import { PatientContextBanner } from "./patient-context-banner"
@@ -51,6 +55,15 @@ export function ClinicProfileContent() {
   const [showMobilePicker, setShowMobilePicker] = useState(false)
   const [directLeadId, setDirectLeadId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("overview")
+  const [pendingAppointment, setPendingAppointment] = useState<{
+    date: Date
+    time: string
+    dateLabel: string
+    timeLabel: string
+  } | null>(null)
+  const [isBookingRequesting, setIsBookingRequesting] = useState(false)
+  const [bookingConfirmed, setBookingConfirmed] = useState(false)
+  const [bookingError, setBookingError] = useState<string | null>(null)
 
   const isChatOpen = searchParams?.get("chat") === "open"
 
@@ -147,6 +160,32 @@ export function ClinicProfileContent() {
     fetchData()
   }, [params, matchId])
 
+  // Check if an appointment was already requested for this clinic
+  // (persists across refreshes via the conversation's appointment_requested_at field)
+  useEffect(() => {
+    const checkAppointmentStatus = async () => {
+      const effectiveLeadId = lead?.id || leadIdParam || directLeadId
+      const effectiveClinicId = clinic?.id
+      if (!effectiveLeadId || !effectiveClinicId) return
+
+      try {
+        const res = await fetch(
+          `/api/chat/messages?leadId=${effectiveLeadId}&clinicId=${effectiveClinicId}`
+        )
+        if (res.ok) {
+          const data = await res.json()
+          if (data.appointmentRequestedAt) {
+            setBookingConfirmed(true)
+          }
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+
+    checkAppointmentStatus()
+  }, [lead?.id, leadIdParam, directLeadId, clinic?.id])
+
   const handleBookAppointment = (date?: Date, time?: string) => {
     trackEvent("book_clicked", {
       leadId: lead?.id || null,
@@ -158,11 +197,17 @@ export function ClinicProfileContent() {
       },
     })
 
-    if (date && time && (lead?.id || directLeadId)) {
-      const bookingLeadId = lead?.id || directLeadId
-      const dateStr = date.toISOString().split("T")[0]
-      window.location.href = `/booking/confirm?clinicId=${clinic?.id}&leadId=${bookingLeadId}&date=${dateStr}&time=${time}${matchId ? `&matchId=${matchId}` : ""}`
-    } else if (lead?.id || directLeadId) {
+    if (date && time && (lead?.id || leadIdParam || directLeadId)) {
+      const dateLabel = date.toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })
+      const timeLabel =
+        HOURLY_SLOTS.find((s: { key: string; label: string }) => s.key === time)?.label || time
+      setBookingError(null)
+      setPendingAppointment({ date, time, dateLabel, timeLabel })
+    } else if (lead?.id || leadIdParam || directLeadId) {
       const picker = document.getElementById("clinic-date-picker")
       if (picker) {
         picker.scrollIntoView({ behavior: "smooth", block: "center" })
@@ -172,6 +217,76 @@ export function ClinicProfileContent() {
       setShowChat(true)
       setShowMobileChat(true)
     }
+  }
+
+  const handleConfirmBooking = async () => {
+    if (!pendingAppointment || !clinic?.id) return
+    const bookingLeadId = lead?.id || leadIdParam || directLeadId
+    if (!bookingLeadId) return
+
+    // Already requested — just show the success state
+    if (bookingConfirmed) return
+
+    setIsBookingRequesting(true)
+    setBookingError(null)
+    try {
+      // Compose message matching the dashboard pattern
+      const message = `Hi! I'd like to request an appointment on ${pendingAppointment.dateLabel} at ${pendingAppointment.timeLabel}. Would this time be available?`
+
+      const response = await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadId: bookingLeadId,
+          clinicId: clinic.id,
+          content: message,
+          senderType: "patient",
+          messageType: "appointment_request",
+        }),
+      })
+
+      if (response.status === 409) {
+        // Already requested — just mark as confirmed
+        setBookingConfirmed(true)
+        setPendingAppointment(null)
+        setShowChat(true)
+        setShowMobileChat(true)
+        return
+      }
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to submit booking request")
+      }
+
+      setBookingConfirmed(true)
+      setPendingAppointment(null)
+
+      // Open chat so user sees the appointment message
+      setShowChat(true)
+      setShowMobileChat(true)
+
+      trackEvent("booking_confirmed_inline", {
+        leadId: bookingLeadId,
+        clinicId: clinic.id,
+        meta: {
+          match_id: matchId || undefined,
+          source: "clinic_page_inline",
+        },
+      })
+    } catch (error) {
+      console.error("Error submitting booking:", error)
+      setBookingError(
+        error instanceof Error ? error.message : "Something went wrong. Please try again."
+      )
+    } finally {
+      setIsBookingRequesting(false)
+    }
+  }
+
+  const handleCancelPendingBooking = () => {
+    setPendingAppointment(null)
+    setBookingError(null)
   }
 
   const handleCallClinic = () => {
@@ -410,12 +525,80 @@ export function ClinicProfileContent() {
 
                 <div className="p-4 space-y-3">
                   <div id="clinic-date-picker">
-                    <ClinicDatePicker
-                      availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
-                      availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
-                      acceptsSameDay={clinic.accepts_same_day || false}
-                      onSelectSlot={(date, time) => handleBookAppointment(date, time)}
-                    />
+                    {!bookingConfirmed && !pendingAppointment && (
+                      <ClinicDatePicker
+                        availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
+                        availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
+                        acceptsSameDay={clinic.accepts_same_day || false}
+                        onSelectSlot={(date, time) => handleBookAppointment(date, time)}
+                        maxVisible={5}
+                      />
+                    )}
+
+                    {/* Inline confirmation step */}
+                    {pendingAppointment && !bookingConfirmed && (
+                      <div className="rounded-xl border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-4 animate-in fade-in duration-200">
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div>
+                            <p className="text-xs font-semibold text-[#004443] uppercase tracking-wide">
+                              Confirm your request
+                            </p>
+                            <p className="text-sm text-[#1a1a1a] mt-1">
+                              <span className="font-semibold">{pendingAppointment.dateLabel}</span>{" "}
+                              at <span className="font-semibold">{pendingAppointment.timeLabel}</span>
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleCancelPendingBooking}
+                            className="text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-black/5 transition-colors flex-shrink-0"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          This will send a message to {clinic.name} requesting this appointment.
+                        </p>
+                        {bookingError && (
+                          <p className="text-xs text-red-600 mb-3">{bookingError}</p>
+                        )}
+                        <div className="flex gap-2">
+                          <Button
+                            className="flex-1 h-10 rounded-full text-sm font-semibold bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
+                            disabled={isBookingRequesting}
+                            onClick={handleConfirmBooking}
+                          >
+                            {isBookingRequesting ? (
+                              <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                            ) : (
+                              <CalendarCheck className="w-4 h-4 mr-1.5" />
+                            )}
+                            {isBookingRequesting ? "Sending..." : "Confirm request"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="h-10 rounded-full text-sm px-5"
+                            onClick={handleCancelPendingBooking}
+                            disabled={isBookingRequesting}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Success banner */}
+                    {bookingConfirmed && (
+                      <div className="rounded-xl bg-green-50 border border-green-200 p-3 flex items-center gap-2.5">
+                        <CheckCircle2 className="w-4.5 h-4.5 text-green-600 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-green-700">Appointment request sent</p>
+                          <p className="text-xs text-green-600/70">
+                            The clinic will get back to you shortly
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <Button
@@ -530,8 +713,74 @@ export function ClinicProfileContent() {
         </div>
       )}
 
+      {/* Mobile Booking Confirmation Bottom Sheet */}
+      {pendingAppointment && !bookingConfirmed && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={handleCancelPendingBooking}
+            onKeyDown={() => {}}
+            role="presentation"
+          />
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl animate-in slide-in-from-bottom duration-300">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
+              <h3 className="font-semibold text-[#1a1a1a]">Confirm Your Request</h3>
+              <button
+                type="button"
+                onClick={handleCancelPendingBooking}
+                className="p-1 rounded-full hover:bg-[#f5f5f5]"
+              >
+                <X className="h-5 w-5 text-[#666]" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <div className="rounded-xl border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-4">
+                <p className="text-xs font-semibold text-[#004443] uppercase tracking-wide">
+                  Appointment details
+                </p>
+                <p className="text-sm text-[#1a1a1a] mt-1">
+                  <span className="font-semibold">{pendingAppointment.dateLabel}</span>{" "}
+                  at <span className="font-semibold">{pendingAppointment.timeLabel}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  at {clinic.name}
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This will send a message to {clinic.name} requesting this appointment.
+              </p>
+              {bookingError && (
+                <p className="text-xs text-red-600">{bookingError}</p>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1 h-12 rounded-full text-sm font-semibold bg-[#004443] hover:bg-[#004443]/90 text-white border-0 touch-manipulation"
+                  disabled={isBookingRequesting}
+                  onClick={handleConfirmBooking}
+                >
+                  {isBookingRequesting ? (
+                    <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <CalendarCheck className="w-4 h-4 mr-1.5" />
+                  )}
+                  {isBookingRequesting ? "Sending..." : "Confirm request"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-12 rounded-full text-sm px-5 touch-manipulation"
+                  onClick={handleCancelPendingBooking}
+                  disabled={isBookingRequesting}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile sticky CTA */}
-      {!showMobileChat && !showMobilePicker && (
+      {!showMobileChat && !showMobilePicker && !pendingAppointment && !bookingConfirmed && (
         <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-[#F8F1E7] to-white border-t border-[#0fbcb0]/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(15,188,176,0.12)]">
           <p className="text-xs text-[#666] text-center mb-2">No booking fees on Pearlie</p>
           <div className="flex gap-3 max-w-lg mx-auto">
@@ -551,6 +800,29 @@ export function ClinicProfileContent() {
             >
               <Calendar className="h-4 w-4 mr-2" />
               Request a Visit
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile sticky CTA - success state with message button */}
+      {bookingConfirmed && !showMobileChat && !showMobilePicker && (
+        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-green-50 border-t border-green-200 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50">
+          <div className="flex items-center gap-2.5 max-w-lg mx-auto mb-3">
+            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-green-700">Appointment request sent</p>
+              <p className="text-xs text-green-600/70">The clinic will get back to you shortly</p>
+            </div>
+          </div>
+          <div className="max-w-lg mx-auto">
+            <Button
+              size="lg"
+              className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation shadow-md"
+              onClick={() => setShowMobileChat(true)}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Message Clinic
             </Button>
           </div>
         </div>
