@@ -329,10 +329,10 @@ export default function Home() {
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
                     <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
-                      We recommend two carefully matched clinics
+                      We recommend carefully matched clinics
                     </h3>
                     <p className="text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
-                      Based on your answers, we'll recommend two trusted clinics near you that fit your preferences, so
+                      Based on your answers, we'll recommend trusted clinics near you that fit your preferences — so
                       you're not overwhelmed with options.
                     </p>
                   </div>
@@ -389,8 +389,8 @@ export default function Home() {
                       You choose if and when to book
                     </h3>
                     <p className="text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
-                      Review your options, explore each clinic, and book directly with the one that feels right for you. No
-                      pressure. No obligation.
+                      Review your options, explore each clinic, <span className="text-[#0fbcb0] font-medium">live chat and book directly</span> with the one that feels right
+                      for you. No pressure. No obligation.
                     </p>
                   </div>
                 </div>
