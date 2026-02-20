@@ -14,7 +14,7 @@ export function CookieBanner() {
   const [marketing, setMarketing] = useState(true)
   const acceptedRef = useRef(false)
 
-  const acceptAll = useCallback(() => {
+  const acceptAll = useCallback((dismiss = true) => {
     if (acceptedRef.current) return
     acceptedRef.current = true
     saveCookieConsent({
@@ -22,7 +22,7 @@ export function CookieBanner() {
       analytics: true,
       marketing: true,
     })
-    setShowBanner(false)
+    if (dismiss) setShowBanner(false)
   }, [])
 
   useEffect(() => {
@@ -31,14 +31,23 @@ export function CookieBanner() {
 
     setShowBanner(true)
 
-    // Implied consent: auto-accept if user scrolls or after 10 seconds
-    const timer = setTimeout(acceptAll, 10000)
-    const handleScroll = () => acceptAll()
+    // Implied consent: dismiss banner when user starts interacting with a form
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement
+      if (target.closest("[data-cookie-banner]")) return
+      const isFormElement =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        target.getAttribute("role") === "combobox"
+      if (isFormElement) {
+        acceptAll(true)
+      }
+    }
 
-    window.addEventListener("scroll", handleScroll, { once: true, passive: true })
+    document.addEventListener("focusin", handleFocusIn)
     return () => {
-      clearTimeout(timer)
-      window.removeEventListener("scroll", handleScroll)
+      document.removeEventListener("focusin", handleFocusIn)
     }
   }, [acceptAll])
 
@@ -57,7 +66,7 @@ export function CookieBanner() {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t shadow-lg">
+      <div data-cookie-banner className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t shadow-lg">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
             <div className="flex-1">
@@ -88,7 +97,7 @@ export function CookieBanner() {
       </div>
 
       {showCustomise && (
-        <div className="fixed inset-0 z-50 bg-background/60 backdrop-blur-[2px] flex items-center justify-center p-4">
+        <div data-cookie-banner className="fixed inset-0 z-50 bg-background/60 backdrop-blur-[2px] flex items-center justify-center p-4">
           <div className="w-full max-w-lg bg-card rounded-lg shadow-lg border">
             <div className="p-6">
               <h2 className="text-xl font-bold mb-4">Customise Cookie Preferences</h2>
