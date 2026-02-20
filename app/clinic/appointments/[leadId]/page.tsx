@@ -9,13 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { format, formatDistanceToNow } from "date-fns"
 import {
   ArrowLeft,
@@ -103,18 +96,6 @@ interface Message {
   created_at: string
 }
 
-const STATUS_OPTIONS = [
-  { value: "NEW", label: "New Request", color: "bg-blue-100 text-blue-700" },
-  { value: "CONTACTED", label: "Contacted", color: "bg-indigo-100 text-indigo-700" },
-  { value: "IN_PROGRESS", label: "In Progress", color: "bg-purple-100 text-purple-700" },
-  { value: "BOOKED_PENDING", label: "Booked - Pending", color: "bg-amber-100 text-amber-700" },
-  { value: "BOOKED_CONFIRMED", label: "Booked - Confirmed", color: "bg-green-100 text-green-700" },
-  { value: "ATTENDED", label: "Attended", color: "bg-emerald-100 text-emerald-700" },
-  { value: "NOT_SUITABLE", label: "Not Suitable", color: "bg-red-100 text-red-700" },
-  { value: "NO_RESPONSE", label: "No Response", color: "bg-gray-100 text-gray-600" },
-  { value: "CLOSED", label: "Closed", color: "bg-gray-100 text-gray-600" },
-]
-
 const TREATMENT_LABELS: Record<string, string> = {
   dental_implants: "Dental Implants",
   composite_bonding: "Composite Bonding",
@@ -146,7 +127,6 @@ export default function AppointmentDetailPage() {
   const [isSending, setIsSending] = useState(false)
   const [showBookingDialog, setShowBookingDialog] = useState(false)
 
-  const [editStatus, setEditStatus] = useState("NEW")
   const [newMessage, setNewMessage] = useState("")
   const [newNote, setNewNote] = useState("")
   const [showNoteInput, setShowNoteInput] = useState(false)
@@ -154,7 +134,6 @@ export default function AppointmentDetailPage() {
   // Collapsible sidebar sections
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     intent: true,
-    status: true,
     match: false,
     notes: false,
   })
@@ -221,7 +200,6 @@ export default function AppointmentDetailPage() {
     if (matchData) setMatchResult(matchData as MatchResult)
     if (statusData) {
       setStatus(statusData)
-      setEditStatus((statusData.status || "NEW").toUpperCase())
     }
     if (bookingData) setBooking(bookingData)
     if (convData) {
@@ -286,36 +264,6 @@ export default function AppointmentDetailPage() {
     }
   }, [messages])
 
-  const handleSaveStatus = async (overrideStatus?: string) => {
-    if (!clinic) return
-    const statusToSave = overrideStatus || editStatus
-    setIsSaving(true)
-    const supabase = createBrowserClient()
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
-    if (status) {
-      await supabase
-        .from("lead_clinic_status")
-        .update({
-          status: statusToSave,
-          updated_by: session?.user.id,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", status.id)
-    } else {
-      await supabase.from("lead_clinic_status").insert({
-        lead_id: leadId,
-        clinic_id: clinic.id,
-        status: statusToSave,
-        updated_by: session?.user.id,
-      })
-    }
-
-    await fetchData()
-    setIsSaving(false)
-  }
 
   const handleAddNote = async () => {
     if (!clinic || !newNote.trim()) return
@@ -394,7 +342,6 @@ export default function AppointmentDetailPage() {
     TREATMENT_LABELS[lead.raw_answers?.treatment as string] ||
     (lead.raw_answers?.treatment as string) ||
     "Dental Treatment"
-  const statusOption = STATUS_OPTIONS.find((s) => s.value === editStatus) || STATUS_OPTIONS[0]
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
@@ -416,9 +363,6 @@ export default function AppointmentDetailPage() {
                 <h1 className="text-lg font-bold">
                   {lead.first_name} {lead.last_name}
                 </h1>
-                <Badge className={cn("text-xs", statusOption.color)}>
-                  {statusOption.label}
-                </Badge>
                 {lead.source && lead.source !== "match" && (
                   <Badge variant="secondary" className="text-[10px]">
                     {lead.source === "direct_profile" ? "Direct" : lead.source.replace(/_/g, " ")}
@@ -474,8 +418,8 @@ export default function AppointmentDetailPage() {
                 className="gap-1.5 bg-green-600 hover:bg-green-700 text-white"
                 onClick={() => setShowBookingDialog(true)}
               >
-                <Calendar className="w-3.5 h-3.5" />
-                Book Appointment
+                <CalendarCheck className="w-3.5 h-3.5" />
+                Appointment confirmed with patient
               </Button>
             )}
           </div>
@@ -500,27 +444,6 @@ export default function AppointmentDetailPage() {
                   </Badge>
                 )}
               </div>
-              {editStatus === "BOOKED_CONFIRMED" && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs bg-white border-green-200 text-green-700 hover:bg-green-50"
-                  disabled={isSaving}
-                  onClick={() => {
-                    setEditStatus("ATTENDED")
-                    handleSaveStatus("ATTENDED")
-                  }}
-                >
-                  <CheckCircle2 className="w-3 h-3 mr-1" />
-                  Confirm Attended
-                </Button>
-              )}
-              {editStatus === "ATTENDED" && (
-                <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">
-                  <CheckCircle2 className="w-3 h-3 mr-1" />
-                  Attended
-                </Badge>
-              )}
             </div>
           )}
 
@@ -580,18 +503,21 @@ export default function AppointmentDetailPage() {
                             )}
                             <div
                               className={cn(
-                                "max-w-[75%] rounded-2xl px-4 py-2.5",
+                                "rounded-2xl",
+                                msg.sender_type === "bot"
+                                  ? "max-w-[52%] px-3 py-2 bg-gradient-to-br from-teal-50 to-[#F8F1E7] border border-teal-100 rounded-bl-md"
+                                  : "max-w-[75%] px-4 py-2.5",
                                 msg.sender_type === "clinic"
                                   ? "bg-[#0fbcb0] text-white rounded-br-md"
-                                  : msg.sender_type === "bot"
-                                    ? "bg-gradient-to-br from-teal-50 to-[#F8F1E7] border border-teal-100 rounded-bl-md"
-                                    : "bg-muted rounded-bl-md"
+                                  : msg.sender_type === "patient"
+                                    ? "bg-muted rounded-bl-md"
+                                    : ""
                               )}
                             >
                               <p
                                 className={cn(
-                                  "text-sm whitespace-pre-wrap leading-relaxed",
-                                  msg.sender_type === "bot" && "text-neutral-600"
+                                  "whitespace-pre-wrap leading-relaxed",
+                                  msg.sender_type === "bot" ? "text-xs text-neutral-600" : "text-sm"
                                 )}
                               >
                                 {msg.content}
@@ -708,70 +634,6 @@ export default function AppointmentDetailPage() {
               <PatientIntent lead={lead} />
             </SidebarSection>
 
-            {/* Section: Status & Booking */}
-            <SidebarSection
-              title="Status & Booking"
-              icon={<Calendar className="w-4 h-4 text-[#0fbcb0]" />}
-              expanded={expandedSections.status}
-              onToggle={() => toggleSection("status")}
-            >
-              <div className="space-y-3">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1.5">Status</p>
-                  <Select value={editStatus} onValueChange={setEditStatus}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STATUS_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleSaveStatus()}
-                  disabled={isSaving}
-                  className="w-full bg-transparent"
-                >
-                  {isSaving ? "Saving..." : "Save Status"}
-                </Button>
-
-                {booking && (
-                  <div className="bg-green-50 rounded-lg p-3">
-                    <p className="text-xs font-medium text-green-700 mb-1">Appointment</p>
-                    <p className="text-sm font-medium text-green-800">
-                      {format(new Date(booking.appointment_datetime), "EEE d MMM yyyy")}
-                    </p>
-                    <p className="text-xs text-green-600">
-                      {format(new Date(booking.appointment_datetime), "h:mm a")}
-                      {booking.booking_method && ` · ${booking.booking_method.replace(/_/g, " ")}`}
-                    </p>
-                    {booking.expected_value_gbp && (
-                      <p className="text-xs text-green-600 mt-1">
-                        Expected: £{booking.expected_value_gbp}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {!booking && (
-                  <Button
-                    size="sm"
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => setShowBookingDialog(true)}
-                  >
-                    <Calendar className="w-3.5 h-3.5 mr-1.5" />
-                    Book Appointment
-                  </Button>
-                )}
-              </div>
-            </SidebarSection>
 
             {/* Section: Match Score */}
             {matchResult && (
@@ -1037,7 +899,7 @@ function PatientIntent({ lead }: { lead: Lead }) {
     rows.push({
       icon: <Sparkles className="w-3.5 h-3.5" />,
       label: "Treatment",
-      value: <span className="font-medium">{treatmentDisplay}</span>,
+      value: <span className="text-xs">{treatmentDisplay}</span>,
     })
   }
 
@@ -1046,7 +908,7 @@ function PatientIntent({ lead }: { lead: Lead }) {
       icon: <Clock className="w-3.5 h-3.5" />,
       label: "Urgency",
       value: (
-        <span className="font-medium">
+        <span className="text-xs">
           {isEmergency && !urgency ? "Emergency" : urgencyLabels[urgency!] || urgency?.replace(/_/g, " ")}
         </span>
       ),
@@ -1059,9 +921,9 @@ function PatientIntent({ lead }: { lead: Lead }) {
       icon: <Brain className="w-3.5 h-3.5" />,
       label: "Anxiety",
       value: (
-        <Badge className={cn("text-[10px]", config?.color || "bg-muted text-muted-foreground")}>
+        <span className="text-xs">
           {config?.label || anxietyLevel.replace(/_/g, " ")}
-        </Badge>
+        </span>
       ),
     })
   }
@@ -1079,20 +941,14 @@ function PatientIntent({ lead }: { lead: Lead }) {
   }
 
   if (hasMedicalFlags) {
+    const flags: string[] = []
+    if (painScore !== undefined && painScore > 0) flags.push(`Pain ${painScore}/10`)
+    if (hasSwelling) flags.push("Swelling")
+    if (hasBleeding) flags.push("Bleeding")
     rows.push({
       icon: <Activity className="w-3.5 h-3.5" />,
       label: "Medical",
-      value: (
-        <div className="flex flex-wrap gap-1">
-          {painScore !== undefined && painScore > 0 && (
-            <Badge variant="secondary" className={cn("text-[10px]", painScore >= 7 ? "bg-red-100 text-red-700" : painScore >= 4 ? "bg-orange-100 text-orange-700" : "bg-muted")}>
-              Pain {painScore}/10
-            </Badge>
-          )}
-          {hasSwelling && <Badge variant="secondary" className="text-[10px] bg-red-100 text-red-700">Swelling</Badge>}
-          {hasBleeding && <Badge variant="secondary" className="text-[10px] bg-red-100 text-red-700">Bleeding</Badge>}
-        </div>
-      ),
+      value: <span className="text-xs">{flags.join(", ")}</span>,
     })
   }
 
@@ -1100,29 +956,18 @@ function PatientIntent({ lead }: { lead: Lead }) {
     rows.push({
       icon: <Star className="w-3.5 h-3.5" />,
       label: "Values",
-      value: (
-        <div className="flex flex-wrap gap-1">
-          {decisionValues.map((v, i) => (
-            <Badge key={i} variant="secondary" className="text-[10px]">{v}</Badge>
-          ))}
-        </div>
-      ),
+      value: <span className="text-xs">{decisionValues.join(", ")}</span>,
     })
   }
 
   if (blockers && blockers.length > 0 && blockers[0] !== "NO_CONCERN") {
+    const labels = (blockerLabels || blockers).map((b) =>
+      blockerLabels ? b : (blockerCodeLabels[b] || (typeof b === "string" ? b.replace(/_/g, " ") : b))
+    )
     rows.push({
       icon: <AlertTriangle className="w-3.5 h-3.5" />,
       label: "Concerns",
-      value: (
-        <div className="flex flex-wrap gap-1">
-          {(blockerLabels || blockers).map((b, i) => (
-            <Badge key={i} variant="secondary" className="text-[10px] bg-amber-50 text-amber-700">
-              {blockerLabels ? b : (blockerCodeLabels[b] || (typeof b === "string" ? b.replace(/_/g, " ") : b))}
-            </Badge>
-          ))}
-        </div>
-      ),
+      value: <span className="text-xs">{labels.join(", ")}</span>,
     })
   }
 
@@ -1138,13 +983,7 @@ function PatientIntent({ lead }: { lead: Lead }) {
     rows.push({
       icon: <Calendar className="w-3.5 h-3.5" />,
       label: "Times",
-      value: (
-        <div className="flex flex-wrap gap-1">
-          {preferredTimes.map((t, i) => (
-            <Badge key={i} variant="secondary" className="text-[10px] capitalize">{t}</Badge>
-          ))}
-        </div>
-      ),
+      value: <span className="text-xs capitalize">{preferredTimes.join(", ")}</span>,
     })
   }
 
@@ -1164,10 +1003,10 @@ function PatientIntent({ lead }: { lead: Lead }) {
     <div className="space-y-2.5">
       {rows.map((row, i) => (
         <div key={i} className="flex items-start gap-2.5">
-          <div className="text-muted-foreground mt-0.5 shrink-0">{row.icon}</div>
+          <div className="text-[#004443] mt-0.5 shrink-0">{row.icon}</div>
           <div className="min-w-0">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{row.label}</p>
-            <div className="mt-0.5">{row.value}</div>
+            <p className="text-[10px] text-[#004443] font-semibold uppercase tracking-wider">{row.label}</p>
+            <div className="mt-0.5 text-foreground">{row.value}</div>
           </div>
         </div>
       ))}
