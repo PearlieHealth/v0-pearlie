@@ -173,7 +173,7 @@ export default function Home() {
                             href="/intake"
                             className="flex-1 group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#bbb] transition-all"
                           >
-                            <div className="w-10 h-10 rounded-full bg-[#F8F1E7] flex items-center justify-center flex-shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-[#faf3e6] flex items-center justify-center flex-shrink-0">
                               <Search className="w-5 h-5 text-[#004443]" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -468,7 +468,7 @@ export default function Home() {
           <ComparisonTable />
 
           {/* Testimonials section */}
-          <section className="py-16 md:py-28 lg:py-32 bg-[#F8F1E7]">
+          <section className="py-16 md:py-28 lg:py-32 bg-[#faf3e6]">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-12 md:mb-16">

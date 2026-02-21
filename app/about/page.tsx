@@ -53,7 +53,7 @@ export default function AboutPage() {
         </section>
 
         {/* What Pearlie Does — cream background with richer descriptions */}
-        <section className="py-12 sm:py-20 md:py-28 bg-[#F8F1E7]">
+        <section className="py-12 sm:py-20 md:py-28 bg-[#faf3e6]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-12 sm:mb-16">
@@ -149,7 +149,7 @@ export default function AboutPage() {
         </section>
 
         {/* Our Commitment — cream background */}
-        <section className="py-12 sm:py-20 md:py-28 bg-[#F8F1E7]">
+        <section className="py-12 sm:py-20 md:py-28 bg-[#faf3e6]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-[#004443]">
@@ -282,7 +282,7 @@ export default function AboutPage() {
         </section>
 
         {/* CTA Section — cream background, single clear action */}
-        <section className="py-12 sm:py-20 md:py-28 bg-[#F8F1E7]">
+        <section className="py-12 sm:py-20 md:py-28 bg-[#faf3e6]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-[#004443]">

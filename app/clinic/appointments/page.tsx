@@ -529,7 +529,7 @@ export default function AppointmentsPage() {
                   className={cn(
                     "text-xs px-2 py-0.5 rounded-full font-medium",
                     activeTab === tab.key
-                      ? "bg-[#F8F1E7] text-[#0fbcb0]"
+                      ? "bg-[#faf3e6] text-[#0fbcb0]"
                       : "bg-muted text-muted-foreground"
                   )}
                 >
@@ -636,7 +636,7 @@ export default function AppointmentsPage() {
 
       {/* Bulk Actions Bar */}
       {selectedLeads.size > 0 && (
-        <div className="flex items-center justify-between bg-[#F8F1E7] border border-[#0fbcb0]/20 rounded-lg px-4 py-3">
+        <div className="flex items-center justify-between bg-[#faf3e6] border border-[#0fbcb0]/20 rounded-lg px-4 py-3">
           <div className="flex items-center gap-2">
             <CheckSquare className="w-4 h-4 text-[#0fbcb0]" />
             <span className="text-sm font-medium text-[#0fbcb0]">
@@ -1009,8 +1009,8 @@ function LeadSection({
                 key={lead.id}
                 className={cn(
                   "flex items-center justify-between p-4 hover:bg-muted/30 transition-colors",
-                  hasUnread && "bg-[#F8F1E7]/50",
-                  isSelected && "bg-[#F8F1E7]/80"
+                  hasUnread && "bg-[#faf3e6]/50",
+                  isSelected && "bg-[#faf3e6]/80"
                 )}
               >
                 <div className="flex items-center gap-4 flex-1 min-w-0">

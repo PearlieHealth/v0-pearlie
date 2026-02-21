@@ -32,7 +32,7 @@ export function OtherClinicCard({ clinic, isSelected, onClick }: OtherClinicCard
   return (
     <Card
       className={cn(
-        "p-2.5 sm:p-3 cursor-pointer transition-all duration-200 hover:shadow-md active:scale-[0.98] bg-[#F8F1E7]",
+        "p-2.5 sm:p-3 cursor-pointer transition-all duration-200 hover:shadow-md active:scale-[0.98] bg-[#faf3e6]",
         isSelected
           ? "ring-2 ring-primary border-primary"
           : "border-border/40 hover:border-primary/40"

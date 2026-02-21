@@ -590,7 +590,7 @@ export default function IntakePage() {
         group relative w-full p-4 sm:p-5 md:p-6 rounded-2xl border-2 text-left ${className}
         transition-all duration-200 ease-out
         ${selected
-          ? "border-[#0fbcb0] bg-[#F8F1E7] shadow-md"
+          ? "border-[#0fbcb0] bg-[#faf3e6] shadow-md"
           : disabled
             ? "border-border/50 bg-muted/30 opacity-50 cursor-not-allowed"
             : "border-border bg-white hover:border-[#0fbcb0]/50 hover:shadow-md active:scale-[0.98]"
@@ -707,7 +707,7 @@ export default function IntakePage() {
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="w-32 h-2 bg-[#F8F1E7] rounded-full overflow-hidden">
+            <div className="w-32 h-2 bg-[#faf3e6] rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-[#0fbcb0] hover:bg-[#0da399] rounded-full"
                 initial={{ width: 0 }}
@@ -1041,13 +1041,13 @@ export default function IntakePage() {
                             w-full p-5 rounded-2xl border-2 transition-all duration-200 text-center
                             ${
                               formData.preferred_times.includes(option.value)
-                                ? "border-[#0fbcb0] bg-[#F8F1E7] ring-1 ring-[#0fbcb0]/20"
-                                : "border-border bg-card hover:border-[#0fbcb0]/50 hover:bg-[#F8F1E7]/50"
+                                ? "border-[#0fbcb0] bg-[#faf3e6] ring-1 ring-[#0fbcb0]/20"
+                                : "border-border bg-card hover:border-[#0fbcb0]/50 hover:bg-[#faf3e6]/50"
                             }
                           `}
                         >
                           <div className="flex flex-col items-center gap-2">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#F8F1E7] text-[#0fbcb0]"}`}>
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#faf3e6] text-[#0fbcb0]"}`}>
                               {option.value === "weekend" ? <Calendar className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                             </div>
                             <span className="font-semibold text-[#222]">{option.label}</span>
@@ -1201,7 +1201,7 @@ export default function IntakePage() {
                     {formData.strictBudgetMode === "share_range" && (
                       <motion.div
                         {...fadeUp(0.1)}
-                        className="p-5 md:p-6 rounded-2xl border-2 border-[#0fbcb0] bg-[#F8F1E7]"
+                        className="p-5 md:p-6 rounded-2xl border-2 border-[#0fbcb0] bg-[#faf3e6]"
                       >
                         <Label className="text-lg font-medium text-foreground">Enter your approximate budget or range (optional)</Label>
                         <div className="relative mt-3">

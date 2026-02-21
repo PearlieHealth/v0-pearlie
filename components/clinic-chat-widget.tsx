@@ -378,7 +378,7 @@ export function ClinicChatWidget({
                           )}
                         >
                           {message.sender_type === "bot" ? (
-                            <div className="max-w-[90%] flex items-start gap-2 bg-[#F8F1E7] border border-[#F8F1E7] rounded-xl px-3 py-2">
+                            <div className="max-w-[90%] flex items-start gap-2 bg-[#faf3e6] border border-[#faf3e6] rounded-xl px-3 py-2">
                               <Heart className="w-3.5 h-3.5 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
                               <p className="text-xs text-neutral-600 whitespace-pre-wrap">{message.content}</p>
                             </div>

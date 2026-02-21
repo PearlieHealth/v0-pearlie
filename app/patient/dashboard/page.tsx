@@ -928,7 +928,7 @@ export default function PatientDashboard() {
             <section>
               <button
                 onClick={() => setShowOtherClinics(!showOtherClinics)}
-                className="flex items-center justify-between w-full text-left py-2.5 px-4 rounded-xl bg-[#F8F1E7] hover:bg-[#F8F1E7]/80 transition-colors"
+                className="flex items-center justify-between w-full text-left py-2.5 px-4 rounded-xl bg-[#faf3e6] hover:bg-[#faf3e6]/80 transition-colors"
               >
                 <h2 className="text-xs sm:text-sm font-semibold text-[#004443] uppercase tracking-wide">
                   Other clinics ({otherClinics.length})

@@ -307,7 +307,7 @@ export function EmbeddedClinicChat({
                     }`}
                   >
                     {msg.sender_type === "bot" ? (
-                      <div className="max-w-[90%] flex items-start gap-2 bg-[#F8F1E7] border border-[#F8F1E7] rounded-xl px-3 py-2">
+                      <div className="max-w-[90%] flex items-start gap-2 bg-[#faf3e6] border border-[#faf3e6] rounded-xl px-3 py-2">
                         <Heart className="w-3 h-3 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
                         <p className="text-[11px] text-[#555] whitespace-pre-wrap">{msg.content}</p>
                       </div>

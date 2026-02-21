@@ -4,11 +4,11 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Teal & Cream color palette — inspired by The London Dental Centre */
+  /* Teal & Cream color palette — cream inspired by Yorkshire Dental Suite */
   --primary: #0fbcb0;
   --primary-hover: #0da399;
   --primary-foreground: #ffffff;
-  --secondary: #F8F1E7;
+  --secondary: #faf3e6;
   --secondary-foreground: #333333;
   --foreground: #222222;
   --muted-foreground: #666666;
@@ -18,15 +18,15 @@
   --card-foreground: #222222;
   --popover: #ffffff;
   --popover-foreground: #222222;
-  --muted: #F8F1E7;
-  --accent: #F8F1E7;
+  --muted: #faf3e6;
+  --accent: #faf3e6;
   --accent-foreground: #222222;
 
   /* Teal palette */
   --teal: #0fbcb0;
   --teal-dark: #3c8481;
   --teal-hover: #0da399;
-  --cream: #F8F1E7;
+  --cream: #faf3e6;
   --dark-teal-bg: #004443;
 
   --deep-teal: #0fbcb0;
