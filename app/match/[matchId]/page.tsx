@@ -943,12 +943,14 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                     </Link>
                                   </Button>
                                 )}
-                                <Link
-                                  href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}
-                                  className="text-sm font-medium text-[#004443] hover:text-[#004443]/70 transition-colors"
+                                <Button
+                                  className="flex-1 h-11 lg:h-10 rounded-full font-medium text-sm border border-[#004443]/20 bg-white hover:bg-[#004443]/5 text-[#004443]"
+                                  asChild
                                 >
-                                  View Profile
-                                </Link>
+                                  <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}>
+                                    View Profile
+                                  </Link>
+                                </Button>
                               </div>
                             </div>
                           </Card>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -65,6 +65,7 @@ export function ClinicProfileContent() {
   const [isBookingRequesting, setIsBookingRequesting] = useState(false)
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
+  const chatSectionRef = useRef<HTMLDivElement>(null)
 
   const isChatOpen = searchParams?.get("chat") === "open"
 
@@ -75,6 +76,16 @@ export function ClinicProfileContent() {
       setShowMobileChat(true)
     }
   }, [isReply, isChatOpen, leadIdParam])
+
+  // Auto-scroll to chat section on desktop when arriving via chat=open or reply link
+  useEffect(() => {
+    if ((isReply || isChatOpen) && showChat && chatSectionRef.current) {
+      const timer = setTimeout(() => {
+        chatSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [isReply, isChatOpen, showChat])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -604,27 +615,29 @@ export function ClinicProfileContent() {
                     )}
                   </div>
 
-                  <Button
-                    size="lg"
-                    className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white"
-                    onClick={() => {
-                      trackTikTokEvent("Contact", { content_name: "message_clinic_profile" })
-                      setShowChat(!showChat)
-                    }}
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    {(lead?.id || leadIdParam || directLeadId) ? "Message Clinic" : "Enquire now"}
-                  </Button>
+                  <div ref={chatSectionRef} id="clinic-chat" className="space-y-3">
+                    <Button
+                      size="lg"
+                      className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white"
+                      onClick={() => {
+                        trackTikTokEvent("Contact", { content_name: "message_clinic_profile" })
+                        setShowChat(!showChat)
+                      }}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      {(lead?.id || leadIdParam || directLeadId) ? "Message Clinic" : "Enquire now"}
+                    </Button>
 
-                  <EmbeddedClinicChat
-                    leadId={lead?.id || leadIdParam || directLeadId || null}
-                    clinicId={clinic.id}
-                    clinicName={clinic.name}
-                    isOpen={showChat}
-                    onToggle={() => setShowChat(false)}
-                    onLeadCreated={(newLeadId) => setDirectLeadId(newLeadId)}
-                    leadEmail={lead?.email || null}
-                  />
+                    <EmbeddedClinicChat
+                      leadId={lead?.id || leadIdParam || directLeadId || null}
+                      clinicId={clinic.id}
+                      clinicName={clinic.name}
+                      isOpen={showChat}
+                      onToggle={() => setShowChat(false)}
+                      onLeadCreated={(newLeadId) => setDirectLeadId(newLeadId)}
+                      leadEmail={lead?.email || null}
+                    />
+                  </div>
 
                   {clinic.accepts_nhs && (
                     <div className="pt-3 border-t border-[#e5e5e5]">
