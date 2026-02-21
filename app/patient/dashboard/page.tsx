@@ -41,6 +41,9 @@ interface Lead {
   postcode: string
   created_at: string
   is_verified: boolean
+  booking_date?: string | null
+  booking_time?: string | null
+  booking_clinic_id?: string | null
 }
 
 interface Match {
@@ -907,6 +910,8 @@ export default function PatientDashboard() {
                 onMessageClick={handleMessageClick}
                 onRequestAppointment={handleRequestAppointment}
                 appointmentRequested={appointmentRequestedClinics.has(selectedClinic.id)}
+                bookingDate={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_date : null}
+                bookingTime={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_time : null}
                 ctaRef={ctaRef}
                 providers={clinicProviders}
                 treatmentInterest={latestMatchLead?.treatment_interest}

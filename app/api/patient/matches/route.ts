@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     // Find all leads for this user (by user_id or email match)
     const { data: leads, error: leadsError } = await admin
       .from("leads")
-      .select("id, first_name, last_name, email, treatment_interest, postcode, created_at, is_verified, user_id")
+      .select("id, first_name, last_name, email, treatment_interest, postcode, created_at, is_verified, user_id, booking_date, booking_time, booking_clinic_id")
       .or(`user_id.eq.${user.id},email.eq.${user.email}`)
       .order("created_at", { ascending: false })
 

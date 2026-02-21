@@ -26,6 +26,7 @@ import {
 import Image from "next/image"
 import { getChipData } from "@/lib/chipData"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
+import { HOURLY_SLOTS } from "@/lib/constants"
 
 interface Clinic {
   id: string
@@ -89,6 +90,8 @@ interface BookingCardProps {
   onMessageClick: () => void
   onRequestAppointment?: (message: string) => void | Promise<void>
   appointmentRequested?: boolean
+  bookingDate?: string | null
+  bookingTime?: string | null
   ctaRef?: React.RefObject<HTMLDivElement | null>
   providers?: ProviderProfile[]
   treatmentInterest?: string
@@ -121,6 +124,8 @@ export function BookingCard({
   onMessageClick,
   onRequestAppointment,
   appointmentRequested,
+  bookingDate,
+  bookingTime,
   ctaRef,
   providers = [],
   treatmentInterest,
@@ -417,15 +422,40 @@ export function BookingCard({
           )}
 
           {/* Appointment sent banner */}
-          {appointmentRequested && (
-            <div className="rounded-xl bg-green-50 border border-green-200 p-3 flex items-center gap-2.5">
-              <CheckCircle2 className="w-4.5 h-4.5 text-green-600 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-green-700">Appointment request sent</p>
-                <p className="text-xs text-green-600/70">The clinic will get back to you shortly</p>
+          {appointmentRequested && (() => {
+            const formattedBookingDate = bookingDate
+              ? new Date(bookingDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
+              : null
+            const formattedBookingTime = bookingTime
+              ? (HOURLY_SLOTS.find((s) => s.key === bookingTime)?.label || bookingTime)
+              : null
+
+            return (
+              <div className="rounded-xl bg-green-50 border border-green-200 p-4 space-y-3">
+                <div className="flex items-start gap-2.5">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-green-700">
+                      Appointment already requested
+                      {formattedBookingDate && (
+                        <> for {formattedBookingDate}{formattedBookingTime && <> at {formattedBookingTime}</>}</>
+                      )}
+                    </p>
+                    <p className="text-xs text-green-600/80 mt-1">
+                      The clinic will get back to you shortly. For any changes, please message the clinic directly.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                  onClick={onMessageClick}
+                >
+                  <MessageCircle className="w-4 h-4 mr-1.5" />
+                  Message Clinic
+                </Button>
               </div>
-            </div>
-          )}
+            )
+          })()}
         </div>
 
         {/* More details accordion */}
@@ -684,33 +714,29 @@ export function BookingCard({
 
         {/* CTA: Message + Request appointment */}
         <div ref={ctaRef} className="space-y-2 pt-3 border-t border-border/40">
-          <div className="flex items-center gap-3">
-            <Button
-              className="flex-1 h-11 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
-              onClick={onMessageClick}
-            >
-              <MessageCircle className="w-4 h-4 mr-1.5" />
-              Message Clinic
-            </Button>
-            {onRequestAppointment && !appointmentRequested && !pendingAppointment && (
+          {!appointmentRequested && (
+            <div className="flex items-center gap-3">
               <Button
-                className="flex-1 h-11 rounded-full text-sm font-medium bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
-                onClick={() => {
-                  setPendingAppointment({
-                    message: "Hi! I'd like to request an appointment. What times do you have available?",
-                  })
-                }}
+                className="flex-1 h-11 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
+                onClick={onMessageClick}
               >
-                <CalendarCheck className="w-4 h-4 mr-1.5" />
-                Request Appointment
+                <MessageCircle className="w-4 h-4 mr-1.5" />
+                Message Clinic
               </Button>
-            )}
-          </div>
-          {appointmentRequested && (
-            <p className="text-xs text-center text-green-600 font-medium flex items-center justify-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Appointment request sent
-            </p>
+              {onRequestAppointment && !pendingAppointment && (
+                <Button
+                  className="flex-1 h-11 rounded-full text-sm font-medium bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
+                  onClick={() => {
+                    setPendingAppointment({
+                      message: "Hi! I'd like to request an appointment. What times do you have available?",
+                    })
+                  }}
+                >
+                  <CalendarCheck className="w-4 h-4 mr-1.5" />
+                  Request Appointment
+                </Button>
+              )}
+            </div>
           )}
         </div>
       </div>
