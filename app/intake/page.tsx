@@ -22,6 +22,7 @@ import {
 
 import { trackEvent } from "@/lib/analytics"
 import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
+import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { slideVariants, slideTransition } from "@/lib/slide-variants"
 import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap } from "lucide-react"
 import {
@@ -421,10 +422,13 @@ export default function IntakePage() {
         ...utmParams, // P2: Include UTM tracking params
       }
 
+      const tiktokEventId = generateTikTokEventId()
+
       const leadRes = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          tiktok_event_id: tiktokEventId,
           treatmentInterest: formData.treatments.join(", "),
           postcode: formData.postcode,
           isEmergency,
@@ -470,7 +474,7 @@ export default function IntakePage() {
         flow: isEmergency ? "emergency" : "planning",
         urgency: isEmergency ? formData.urgency : null,
         cost_approach: formData.costApproach || null,
-      })
+      }, tiktokEventId)
 
       trackEvent("lead_submitted", {
         leadId,

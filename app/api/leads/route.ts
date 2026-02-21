@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { FORM_VERSION, SCHEMA_VERSION } from "@/lib/intake-form-config"
 import { createRateLimiter } from "@/lib/rate-limit"
+import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
 
 // Rate limit: 5 lead submissions per email per 10 minutes
 const leadRateLimiter = createRateLimiter({ windowMs: 10 * 60 * 1000, maxAttempts: 5 })
@@ -245,6 +246,24 @@ export async function POST(request: Request) {
     // Record successful submission for rate limiting
     leadRateLimiter.record(rateLimitKey)
     leadIpLimiter.record(ip)
+
+    // Fire TikTok CompleteRegistration event (server-side, non-blocking)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
+    trackTikTokServerEvent({
+      event: "CompleteRegistration",
+      eventId: body.tiktok_event_id || undefined,
+      url: `${appUrl}/intake`,
+      email: email as string | null,
+      phone: phone as string | null,
+      externalId: insertedLead.id,
+      ip,
+      userAgent: extractUserAgent(request),
+      properties: {
+        content_name: "intake_form",
+        content_type: "lead",
+        content_id: insertedLead.id,
+      },
+    }).catch(() => {})
 
     return NextResponse.json({ leadId: insertedLead.id }, { status: 201 })
   } catch (error) {

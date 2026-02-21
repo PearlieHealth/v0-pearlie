@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -13,6 +13,8 @@ import { LoadingAnimation } from "@/components/loading-animation"
 import StatsCard from "@/components/stats-card"
 import ClinicCarousel from "@/components/clinic-carousel"
 import { ScrollingMarquee } from "@/components/scrolling-marquee"
+import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
+import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { SiteFooter } from "@/components/site-footer"
 import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config"
 
@@ -60,6 +62,12 @@ export default function Home() {
     } catch {
       localStorage.removeItem("pearlie_last_match")
     }
+  }, [])
+
+  const handleFindClinicClick = useCallback(() => {
+    const eventId = generateTikTokEventId()
+    trackTikTokEvent("Search", { content_name: "find_my_clinic" }, eventId)
+    trackTikTokServerRelay("Search", { event_id: eventId, properties: { content_name: "find_my_clinic" } })
   }, [])
 
   const [wordIndex, setWordIndex] = useState(0)
@@ -182,7 +190,7 @@ export default function Home() {
                             className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-10 py-5 h-auto rounded-full font-semibold hover:shadow-lg transition-all shadow-md text-lg border-0"
                             asChild
                           >
-                            <Link href="/intake">
+                            <Link href="/intake" onClick={handleFindClinicClick}>
                               Find my clinic
                               <ArrowRight className="ml-2 w-5 h-5" />
                             </Link>
@@ -445,7 +453,7 @@ export default function Home() {
                       className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all group border-0"
                       asChild
                     >
-                      <Link href="/intake">
+                      <Link href="/intake" onClick={handleFindClinicClick}>
                         Find my clinic
                         <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </Link>
@@ -538,7 +546,7 @@ export default function Home() {
                   className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-xl hover:shadow-2xl transition-all text-lg font-semibold border-0"
                   asChild
                 >
-                  <Link href="/intake">
+                  <Link href="/intake" onClick={handleFindClinicClick}>
                     Find my clinic
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>

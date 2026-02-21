@@ -29,7 +29,8 @@ import { ClinicCardSkeleton } from "@/components/clinic-card-skeleton"
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { trackEvent, setMatchContext, setMatchId } from "@/lib/analytics"
-import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
+import { identifyForTikTok, trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
+import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { MatchFiltersPanel } from "@/components/match-filters-panel"
 import { OTPVerification } from "@/components/otp-verification"
 import { getChipData } from "@/lib/chipData"
@@ -935,7 +936,16 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   <Button
                                     className="flex-1 h-11 lg:h-10 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
                                     asChild
-                                    onClick={() => trackTikTokEvent("Contact", { content_name: "message_clinic_match_page" })}
+                                    onClick={() => {
+                                      const contactEventId = generateTikTokEventId()
+                                      trackTikTokEvent("Contact", { content_name: "message_clinic_match_page" }, contactEventId)
+                                      trackTikTokServerRelay("Contact", {
+                                        event_id: contactEventId,
+                                        lead_id: leadId || match.lead_id,
+                                        clinic_id: clinic.id,
+                                        properties: { content_name: "message_clinic_match_page" },
+                                      })
+                                    }}
                                   >
                                     <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>
                                       <MessageCircle className="w-4 h-4 mr-1.5" />
