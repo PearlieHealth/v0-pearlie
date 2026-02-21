@@ -81,13 +81,40 @@ export default function BookingConfirmPage() {
       }
 
       try {
-        const clinicRes = await fetch(`/api/clinics/${clinicId}`)
+        // Fetch clinic data and check booking status in parallel
+        const [clinicRes, statusRes] = await Promise.all([
+          fetch(`/api/clinics/${clinicId}`),
+          fetch(`/api/booking/status?leadId=${leadId}&clinicId=${clinicId}`),
+        ])
+
         if (!clinicRes.ok) {
           throw new Error("Failed to fetch clinic details")
         }
 
         const clinicData = await clinicRes.json()
         setClinic(clinicData.clinic || clinicData)
+
+        // Check if booking was already requested (handles page refresh / revisit)
+        if (statusRes.ok) {
+          const statusData = await statusRes.json()
+          if (statusData.alreadyRequested) {
+            setConfirmed(true)
+            if (statusData.conversationId) {
+              setConversationId(statusData.conversationId)
+            }
+            // Try auto-login: check if already authenticated first
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+              setIsAuthenticated(true)
+              if (statusData.conversationId) {
+                fetchMessages(statusData.conversationId)
+              }
+            }
+            setLoading(false)
+            return
+          }
+        }
 
         try {
           const leadRes = await fetch(`/api/leads/${leadId}`)
@@ -107,7 +134,7 @@ export default function BookingConfirmPage() {
     }
 
     fetchData()
-  }, [clinicId, leadId, dateStr, time])
+  }, [clinicId, leadId, dateStr, time, fetchMessages])
 
   // Auto-login and fetch messages after booking is confirmed
   const performAutoLogin = useCallback(async (tokenHash: string) => {
@@ -168,6 +195,22 @@ export default function BookingConfirmPage() {
       })
 
       const data = await response.json()
+
+      // Handle 409: booking already requested — treat as success, not error
+      if (response.status === 409 && data.alreadyRequested) {
+        setConfirmed(true)
+        if (data.conversationId) {
+          setConversationId(data.conversationId)
+        }
+        if (data.tokenHash) {
+          const loggedIn = await performAutoLogin(data.tokenHash)
+          if (loggedIn && data.conversationId) {
+            await fetchMessages(data.conversationId)
+          }
+        }
+        setSubmitting(false)
+        return
+      }
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to submit booking request")

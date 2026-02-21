@@ -227,8 +227,26 @@ export async function POST(request: Request) {
           .single()
 
         if (convCheck?.appointment_requested_at) {
+          // Generate a fresh magic link token for auto-login on the confirm page
+          let duplicateTokenHash: string | null = null
+          try {
+            const { data: linkData } = await supabase.auth.admin.generateLink({
+              type: "magiclink",
+              email: lead.email,
+              options: { redirectTo: `${process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"}/auth/callback?next=${encodeURIComponent("/patient/dashboard")}` },
+            })
+            if (linkData?.properties?.hashed_token) {
+              duplicateTokenHash = linkData.properties.hashed_token
+            }
+          } catch {}
+
           return NextResponse.json(
-            { error: "An appointment request has already been sent for this clinic." },
+            {
+              error: "An appointment request has already been sent for this clinic.",
+              alreadyRequested: true,
+              conversationId,
+              tokenHash: duplicateTokenHash,
+            },
             { status: 409 }
           )
         }
