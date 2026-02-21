@@ -90,6 +90,26 @@ export default function BookingConfirmPage() {
     fetchData()
   }, [clinicId, leadId])
 
+  // Check if an appointment was already requested for this lead+clinic pair
+  // (handles revisiting the URL after already confirming)
+  useEffect(() => {
+    if (!clinicId || !leadId) return
+    async function checkExistingAppointment() {
+      try {
+        const res = await fetch(`/api/chat/messages?leadId=${leadId}&clinicId=${clinicId}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.appointmentRequestedAt) {
+            setConfirmed(true)
+          }
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+    checkExistingAppointment()
+  }, [clinicId, leadId])
+
   const handleConfirmBooking = async () => {
     // Validate all required data is present (use leadId from URL params directly)
     if (!clinic?.id || !leadId || !dateStr || !time) {
@@ -111,7 +131,13 @@ export default function BookingConfirmPage() {
       })
 
       const data = await response.json()
-      
+
+      if (response.status === 409) {
+        // Already requested — show confirmed state with chat instead of error
+        setConfirmed(true)
+        return
+      }
+
       if (!response.ok) {
         throw new Error(data.error || "Failed to submit booking request")
       }
@@ -185,6 +211,10 @@ export default function BookingConfirmPage() {
               <span>{timeLabel}</span>
             </div>
           </div>
+
+          <p className="text-sm text-muted-foreground mb-4">
+            Want to change your appointment? Message the clinic below.
+          </p>
 
           <div className="mb-6">
             <EmbeddedClinicChat
