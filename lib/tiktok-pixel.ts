@@ -55,8 +55,50 @@ export async function identifyForTikTok({
   }
 }
 
-export function trackTikTokEvent(event: string, params?: Record<string, unknown>): void {
+export function trackTikTokEvent(event: string, params?: Record<string, unknown>, eventId?: string): void {
   if (typeof window === "undefined") return
   if (!hasConsentForMarketing() || !window.ttq) return
-  window.ttq.track(event, params)
+  const eventParams = eventId ? { ...params, event_id: eventId } : params
+  window.ttq.track(event, eventParams)
+}
+
+/**
+ * Send an event to the server-side TikTok Events API relay.
+ * Fire-and-forget: never blocks, never throws.
+ */
+export function trackTikTokServerRelay(
+  event: string,
+  options?: {
+    event_id?: string
+    properties?: Record<string, unknown>
+    lead_id?: string | null
+    clinic_id?: string | null
+  },
+): void {
+  if (typeof window === "undefined") return
+
+  try {
+    const payload = {
+      event,
+      event_id: options?.event_id,
+      properties: options?.properties,
+      lead_id: options?.lead_id || null,
+      clinic_id: options?.clinic_id || null,
+      url: window.location.href,
+    }
+
+    if (navigator.sendBeacon) {
+      const blob = new Blob([JSON.stringify(payload)], { type: "application/json" })
+      navigator.sendBeacon("/api/tiktok/track", blob)
+    } else {
+      fetch("/api/tiktok/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      }).catch(() => {})
+    }
+  } catch {
+    // Silent fail — tracking must never break the app
+  }
 }

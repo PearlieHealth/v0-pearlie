@@ -6,6 +6,7 @@ import { sendEmailWithRetry } from "@/lib/email-send"
 import { EMAIL_FROM } from "@/lib/email-config"
 import { HOURLY_SLOTS } from "@/lib/constants"
 import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
+import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
 
 // 10 booking requests per IP per hour
 const bookingIpLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, maxAttempts: 10 })
@@ -325,6 +326,23 @@ export async function POST(request: Request) {
         `,
       }).catch((err) => console.error("[booking-request] Patient email failed:", err))
     }
+
+    // Fire TikTok Lead event (appointment request = real lead, non-blocking)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
+    trackTikTokServerEvent({
+      event: "Lead",
+      url: `${appUrl}/booking/confirm`,
+      email: lead.email || null,
+      phone: lead.phone || null,
+      externalId: leadId,
+      ip: extractIp(request),
+      userAgent: extractUserAgent(request),
+      properties: {
+        content_name: "appointment_request",
+        content_type: "booking",
+        content_id: clinicId,
+      },
+    }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -23,7 +23,8 @@ import {
 } from "lucide-react"
 import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
-import { trackTikTokEvent } from "@/lib/tiktok-pixel"
+import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
+import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
 import { HOURLY_SLOTS } from "@/lib/constants"
@@ -160,6 +161,30 @@ export function ClinicProfileContent() {
 
     fetchData()
   }, [params, matchId])
+
+  // Fire TikTok ViewContent when clinic profile loads
+  const viewContentFired = useRef(false)
+  useEffect(() => {
+    if (!clinic || loading || isPreview || viewContentFired.current) return
+    viewContentFired.current = true
+
+    const eventId = generateTikTokEventId()
+    trackTikTokEvent("ViewContent", {
+      content_name: clinic.name,
+      content_type: "clinic",
+      content_id: clinic.id,
+    }, eventId)
+    trackTikTokServerRelay("ViewContent", {
+      event_id: eventId,
+      lead_id: lead?.id || leadIdParam,
+      clinic_id: clinic.id,
+      properties: {
+        content_name: clinic.name,
+        content_type: "clinic",
+        content_id: clinic.id,
+      },
+    })
+  }, [clinic, loading, isPreview, lead?.id, leadIdParam])
 
   // Check if an appointment was already requested for this clinic
   // (persists across refreshes via the conversation's appointment_requested_at field)
@@ -608,7 +633,14 @@ export function ClinicProfileContent() {
                     size="lg"
                     className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white"
                     onClick={() => {
-                      trackTikTokEvent("Contact", { content_name: "message_clinic_profile" })
+                      const contactEventId = generateTikTokEventId()
+                      trackTikTokEvent("Contact", { content_name: "message_clinic_profile" }, contactEventId)
+                      trackTikTokServerRelay("Contact", {
+                        event_id: contactEventId,
+                        lead_id: lead?.id || leadIdParam || directLeadId,
+                        clinic_id: clinic?.id,
+                        properties: { content_name: "message_clinic_profile" },
+                      })
                       setShowChat(!showChat)
                     }}
                   >
@@ -826,7 +858,14 @@ export function ClinicProfileContent() {
               size="lg"
               className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation shadow-md"
               onClick={() => {
-                trackTikTokEvent("Contact", { content_name: "message_clinic_profile_mobile" })
+                const contactEventId = generateTikTokEventId()
+                trackTikTokEvent("Contact", { content_name: "message_clinic_profile_mobile" }, contactEventId)
+                trackTikTokServerRelay("Contact", {
+                  event_id: contactEventId,
+                  lead_id: lead?.id || leadIdParam || directLeadId,
+                  clinic_id: clinic?.id,
+                  properties: { content_name: "message_clinic_profile_mobile" },
+                })
                 setShowMobileChat(true)
               }}
             >

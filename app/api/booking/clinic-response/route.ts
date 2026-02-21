@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { trackTikTokServerEvent } from "@/lib/tiktok-events-api"
 
 export async function POST(request: Request) {
   try {
@@ -79,13 +80,30 @@ export async function POST(request: Request) {
       lead_id: lead.id,
       clinic_id: lead.booking_clinic_id,
       session_id: lead.session_id || "00000000-0000-0000-0000-000000000000",
-      metadata: { 
+      metadata: {
         action,
         decline_reason: declineReason || null,
         booking_date: lead.booking_date,
         booking_time: lead.booking_time,
       },
     })
+
+    // Fire TikTok Schedule event when clinic confirms (non-blocking)
+    if (action === "confirm") {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
+      trackTikTokServerEvent({
+        event: "Schedule",
+        url: `${appUrl}/clinic/appointments`,
+        email: lead.email || null,
+        phone: lead.phone || null,
+        externalId: lead.id,
+        properties: {
+          content_name: "appointment_confirmed",
+          content_type: "booking",
+          content_id: lead.booking_clinic_id,
+        },
+      }).catch(() => {})
+    }
 
     return NextResponse.json({
       success: true,
