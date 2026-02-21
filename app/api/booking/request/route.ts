@@ -231,7 +231,7 @@ export async function POST(request: Request) {
 
       if (conversationId) {
         // Insert the booking request as a chat message
-        await supabase.from("messages").insert({
+        const { error: msgError } = await supabase.from("messages").insert({
           conversation_id: conversationId,
           sender_type: "patient",
           content: `Appointment request\nDate: ${dateLabelForMsg}\nTime: ${timeLabelForMsg}\n\nI'd like to request an appointment at this time. Looking forward to hearing from you!`,
@@ -240,16 +240,22 @@ export async function POST(request: Request) {
           status: "sent",
         })
 
-        // Update conversation unread flags and mark appointment as requested
-        await supabase
-          .from("conversations")
-          .update({
-            unread_by_clinic: true,
-            unread_count_clinic: currentUnreadCount + 1,
-            last_message_at: new Date().toISOString(),
-            appointment_requested_at: new Date().toISOString(),
-          })
-          .eq("id", conversationId)
+        if (msgError) {
+          console.error("[booking-request] Failed to insert booking message:", msgError)
+        }
+
+        // Only mark appointment as requested if the message was actually inserted
+        if (!msgError) {
+          await supabase
+            .from("conversations")
+            .update({
+              unread_by_clinic: true,
+              unread_count_clinic: currentUnreadCount + 1,
+              last_message_at: new Date().toISOString(),
+              appointment_requested_at: new Date().toISOString(),
+            })
+            .eq("id", conversationId)
+        }
       }
     } catch (convError) {
       // Don't fail the booking if conversation creation fails

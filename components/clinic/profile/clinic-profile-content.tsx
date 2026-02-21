@@ -629,6 +629,7 @@ export function ClinicProfileContent() {
                     </Button>
 
                     <EmbeddedClinicChat
+                      key={`desktop-chat-${bookingConfirmed}`}
                       leadId={lead?.id || leadIdParam || directLeadId || null}
                       clinicId={clinic.id}
                       clinicName={clinic.name}
@@ -687,6 +688,7 @@ export function ClinicProfileContent() {
             </div>
             <div className="flex-1 min-h-0 flex flex-col">
               <EmbeddedClinicChat
+                key={`mobile-chat-${bookingConfirmed}`}
                 leadId={lead?.id || leadIdParam || directLeadId || null}
                 clinicId={clinic.id}
                 clinicName={clinic.name}

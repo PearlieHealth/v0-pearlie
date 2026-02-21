@@ -9,6 +9,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { HOURLY_SLOTS } from "@/lib/constants"
 import { trackTikTokEvent } from "@/lib/tiktok-pixel"
+import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
 
 interface Clinic {
   id: string
@@ -166,16 +167,15 @@ export default function BookingConfirmPage() {
   if (confirmed) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-lg w-full p-8 text-center">
-          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
+        <Card className="max-w-lg w-full p-8">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
+            </div>
+            <h1 className="text-2xl font-semibold mb-4">Appointment Request Sent!</h1>
           </div>
-          <h1 className="text-2xl font-semibold mb-3">Appointment Request Sent!</h1>
-          <p className="text-muted-foreground mb-6">
-            Your appointment request has been sent to <strong>{clinic?.name}</strong>.
-          </p>
 
-          <div className="bg-muted/50 rounded-lg p-4 mb-6 text-left space-y-2">
+          <div className="bg-muted/50 rounded-lg p-4 mb-6 space-y-2">
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="w-4 h-4 text-muted-foreground" />
               <span>{formattedDate}</span>
@@ -186,34 +186,28 @@ export default function BookingConfirmPage() {
             </div>
           </div>
 
-          <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-lg p-4 mb-6">
-            <h3 className="font-medium text-teal-800 dark:text-teal-200 mb-2">What happens next?</h3>
-            <ul className="text-sm text-teal-700 dark:text-teal-300 space-y-2 text-left">
-              <li className="flex items-start gap-2">
-                <MessageCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                The clinic will review your request and contact you shortly
-              </li>
-              <li className="flex items-start gap-2">
-                <Clock className="w-4 h-4 mt-0.5 shrink-0" />
-                Check your email for their response
-              </li>
-            </ul>
+          <div className="mb-6">
+            <EmbeddedClinicChat
+              leadId={leadId}
+              clinicId={clinicId || ""}
+              clinicName={clinic?.name || ""}
+              isOpen={true}
+              onToggle={() => {}}
+            />
           </div>
 
-          <p className="text-sm text-muted-foreground mb-4">
-            You can also monitor and manage all your requests from your personal dashboard.
-          </p>
+          <div className="text-center">
+            <Button asChild className="w-full mb-3">
+              <Link href="/patient/dashboard">Go to your dashboard</Link>
+            </Button>
 
-          <Button asChild className="w-full mb-3">
-            <Link href="/patient/dashboard">Go to your dashboard</Link>
-          </Button>
-
-          <Link
-            href={matchId ? `/match/${matchId}` : "/"}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {matchId ? "Back to results" : "Back to home"}
-          </Link>
+            <Link
+              href={matchId ? `/match/${matchId}` : "/"}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {matchId ? "Back to results" : "Back to home"}
+            </Link>
+          </div>
         </Card>
       </div>
     )
