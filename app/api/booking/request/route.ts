@@ -147,6 +147,10 @@ export async function POST(request: Request) {
       year: "numeric",
     })
 
+    // Hoist conversationId and tokenHash so they're accessible in the final response
+    let conversationId: string | null = null
+    let tokenHash: string | null = null
+
     try {
       // Get or create conversation
       const { data: existingConvs } = await supabase
@@ -156,7 +160,7 @@ export async function POST(request: Request) {
         .eq("clinic_id", clinicId)
         .limit(1)
 
-      let conversationId: string | null = existingConvs?.[0]?.id || null
+      conversationId = existingConvs?.[0]?.id || null
       let currentUnreadCount = existingConvs?.[0]?.unread_count_clinic || 0
 
       if (!conversationId) {
@@ -285,6 +289,10 @@ export async function POST(request: Request) {
         })
         if (linkData?.properties?.action_link) {
           viewDashboardUrl = linkData.properties.action_link
+          // Capture hashed_token for client-side auto-login on the confirm page
+          if (linkData.properties.hashed_token) {
+            tokenHash = linkData.properties.hashed_token
+          }
           // Ensure redirect_to points to our app URL (Supabase may use Site URL)
           try {
             const linkUrl = new URL(viewDashboardUrl)
@@ -361,7 +369,11 @@ export async function POST(request: Request) {
       },
     }).catch(() => {})
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({
+      success: true,
+      conversationId: conversationId ?? null,
+      tokenHash: tokenHash ?? null,
+    })
   } catch (error) {
     console.error("[booking-request] Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

@@ -1,14 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { MapPin, Calendar, Clock, Phone, CheckCircle2, Loader2, ArrowLeft, MessageCircle } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { MapPin, Calendar, Clock, CheckCircle2, Loader2, ArrowLeft, MessageCircle, Send, Heart } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { HOURLY_SLOTS } from "@/lib/constants"
 import { trackTikTokEvent } from "@/lib/tiktok-pixel"
+import { createClient } from "@/lib/supabase/client"
+import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
 
 interface Clinic {
   id: string
@@ -29,6 +32,14 @@ interface Lead {
   treatment_interest: string
 }
 
+interface Message {
+  id: string
+  content: string
+  sender_type: "patient" | "clinic" | "bot"
+  status?: "sent" | "delivered" | "read"
+  created_at: string
+}
+
 export default function BookingConfirmPage() {
   const searchParams = useSearchParams()
   const clinicId = searchParams.get("clinicId")
@@ -44,6 +55,19 @@ export default function BookingConfirmPage() {
   const [confirmed, setConfirmed] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Chat state (used after booking confirmation)
+  const [conversationId, setConversationId] = useState<string | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [newMessage, setNewMessage] = useState("")
+  const [isSending, setIsSending] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [botTyping, setBotTyping] = useState(false)
+  const [loadingMessages, setLoadingMessages] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+  // Bot message IDs queued for delayed display
+  const delayedBotMsgIds = useRef<Set<string>>(new Set())
+
   // Parse the date
   const appointmentDate = dateStr ? new Date(dateStr) : null
   const timeLabel = HOURLY_SLOTS.find((s) => s.key === time)?.label || time
@@ -57,9 +81,7 @@ export default function BookingConfirmPage() {
       }
 
       try {
-        // Fetch clinic data (public endpoint) and lead data (requires auth)
         const clinicRes = await fetch(`/api/clinics/${clinicId}`)
-
         if (!clinicRes.ok) {
           throw new Error("Failed to fetch clinic details")
         }
@@ -67,8 +89,6 @@ export default function BookingConfirmPage() {
         const clinicData = await clinicRes.json()
         setClinic(clinicData.clinic || clinicData)
 
-        // Lead fetch requires auth — may fail if session cookie hasn't propagated yet.
-        // The booking flow still works without it (we have leadId from URL params).
         try {
           const leadRes = await fetch(`/api/leads/${leadId}`)
           if (leadRes.ok) {
@@ -87,10 +107,48 @@ export default function BookingConfirmPage() {
     }
 
     fetchData()
-  }, [clinicId, leadId])
+  }, [clinicId, leadId, dateStr, time])
+
+  // Auto-login and fetch messages after booking is confirmed
+  const performAutoLogin = useCallback(async (tokenHash: string) => {
+    try {
+      const supabase = createClient()
+      const { error: otpError } = await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: "magiclink",
+      })
+      if (!otpError) {
+        setIsAuthenticated(true)
+        return true
+      }
+      console.warn("[booking-confirm] Auto-login failed:", otpError.message)
+    } catch (err) {
+      console.warn("[booking-confirm] Auto-login error:", err)
+    }
+    return false
+  }, [])
+
+  const fetchMessages = useCallback(async (convId: string) => {
+    setLoadingMessages(true)
+    try {
+      const res = await fetch(`/api/patient/conversations/${convId}/messages`)
+      if (res.ok) {
+        const data = await res.json()
+        const allMsgs: Message[] = data.messages || []
+        // Filter out bot messages queued for delayed typing animation
+        const visible = delayedBotMsgIds.current.size > 0
+          ? allMsgs.filter((m) => !delayedBotMsgIds.current.has(m.id))
+          : allMsgs
+        setMessages(visible)
+      }
+    } catch (err) {
+      console.error("[booking-confirm] Failed to fetch messages:", err)
+    } finally {
+      setLoadingMessages(false)
+    }
+  }, [])
 
   const handleConfirmBooking = async () => {
-    // Validate all required data is present (use leadId from URL params directly)
     if (!clinic?.id || !leadId || !dateStr || !time) {
       setError("Missing booking information. Please go back and select a time slot.")
       return
@@ -110,19 +168,139 @@ export default function BookingConfirmPage() {
       })
 
       const data = await response.json()
-      
+
       if (!response.ok) {
         throw new Error(data.error || "Failed to submit booking request")
       }
 
       setConfirmed(true)
       trackTikTokEvent("PlaceAnOrder", { content_name: "booking_confirmed_standalone" })
+
+      // Store conversationId for chat
+      if (data.conversationId) {
+        setConversationId(data.conversationId)
+      }
+
+      // Auto-login using the magic link token, then fetch chat messages
+      if (data.tokenHash) {
+        const loggedIn = await performAutoLogin(data.tokenHash)
+        if (loggedIn && data.conversationId) {
+          await fetchMessages(data.conversationId)
+        }
+      }
     } catch (err) {
       console.error("Error submitting booking:", err)
       setError(err instanceof Error ? err.message : "Failed to submit booking request")
     } finally {
       setSubmitting(false)
     }
+  }
+
+  // Real-time chat handler
+  const handleNewRealtimeMessage = useCallback((msg: RealtimeMessage) => {
+    if (delayedBotMsgIds.current.has(msg.id)) return
+    if (msg.sender_type === "bot" || msg.sender_type === "clinic") {
+      setBotTyping(false)
+    }
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === msg.id)) return prev
+      return [...prev, msg].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )
+    })
+  }, [])
+
+  const handleStatusChange = useCallback((msgId: string, status: string) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, status: status as Message["status"] } : m))
+    )
+  }, [])
+
+  // Real-time subscription for chat
+  const { otherTyping, sendTyping } = useChatChannel({
+    conversationId,
+    userType: "patient",
+    onNewMessage: handleNewRealtimeMessage,
+    onStatusChange: handleStatusChange,
+    enabled: !!conversationId && isAuthenticated,
+  })
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messages.length > 0 || botTyping) {
+      const timer = setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+      }, 50)
+      return () => clearTimeout(timer)
+    }
+  }, [messages, botTyping])
+
+  // Send message handler
+  async function handleSend(e?: React.FormEvent) {
+    e?.preventDefault()
+    if (!newMessage.trim() || isSending || !clinicId || !leadId) return
+
+    setIsSending(true)
+    try {
+      const res = await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadId,
+          clinicId,
+          content: newMessage.trim(),
+          senderType: "patient",
+        }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setMessages((prev) => [...prev, data.message])
+        setNewMessage("")
+
+        // If conversation was just created, update state
+        if (data.conversationId && !conversationId) {
+          setConversationId(data.conversationId)
+        }
+
+        // Handle bot auto-replies with typing indicator
+        if (data.botMessages?.length) {
+          data.botMessages.forEach((botMsg: Message) => delayedBotMsgIds.current.add(botMsg.id))
+          setBotTyping(true)
+          let cumulativeDelay = 0
+          data.botMessages.forEach((botMsg: Message, i: number) => {
+            const typingDuration = 3000
+            const gapBetween = 500
+            const showAt = cumulativeDelay + typingDuration
+            cumulativeDelay = showAt + gapBetween
+
+            setTimeout(() => {
+              delayedBotMsgIds.current.delete(botMsg.id)
+              setBotTyping(false)
+              setMessages((prev) => {
+                if (prev.some((m) => m.id === botMsg.id)) return prev
+                return [...prev, botMsg].sort(
+                  (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                )
+              })
+              if (i < data.botMessages.length - 1) {
+                setTimeout(() => setBotTyping(true), gapBetween)
+              }
+            }, showAt)
+          })
+        }
+      }
+    } catch (err) {
+      console.error("Failed to send message:", err)
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  function formatTime(dateStr: string): string {
+    try {
+      return new Date(dateStr).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+    } catch { return "" }
   }
 
   // Format date for display
@@ -163,32 +341,40 @@ export default function BookingConfirmPage() {
     )
   }
 
+  // ── Success / Confirmation State ────────────────────────────────────
   if (confirmed) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-lg w-full p-8 text-center">
-          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
-          </div>
-          <h1 className="text-2xl font-semibold mb-3">Appointment Request Sent!</h1>
-          <p className="text-muted-foreground mb-6">
-            Your appointment request has been sent to <strong>{clinic?.name}</strong>.
-          </p>
-
-          <div className="bg-muted/50 rounded-lg p-4 mb-6 text-left space-y-2">
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <span>{formattedDate}</span>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
+          {/* Success Header */}
+          <div className="text-center">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <span>{timeLabel}</span>
-            </div>
+            <h1 className="text-2xl font-semibold mb-2">Appointment Request Sent!</h1>
+            <p className="text-muted-foreground">
+              Your appointment request has been sent to <strong>{clinic?.name}</strong>.
+            </p>
           </div>
 
-          <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-lg p-4 mb-6">
+          {/* Date/Time Summary */}
+          <Card className="p-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <span>{formattedDate}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <span>{timeLabel}</span>
+              </div>
+            </div>
+          </Card>
+
+          {/* What Happens Next */}
+          <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-lg p-4">
             <h3 className="font-medium text-teal-800 dark:text-teal-200 mb-2">What happens next?</h3>
-            <ul className="text-sm text-teal-700 dark:text-teal-300 space-y-2 text-left">
+            <ul className="text-sm text-teal-700 dark:text-teal-300 space-y-2">
               <li className="flex items-start gap-2">
                 <MessageCircle className="w-4 h-4 mt-0.5 shrink-0" />
                 The clinic will review your request and contact you shortly
@@ -200,25 +386,145 @@ export default function BookingConfirmPage() {
             </ul>
           </div>
 
-          <p className="text-sm text-muted-foreground mb-4">
-            You can also monitor and manage all your requests from your personal dashboard.
-          </p>
+          {/* Embedded Chat */}
+          {conversationId && (
+            <Card className="overflow-hidden">
+              {/* Chat Header */}
+              <div className="px-4 py-3 border-b border-border/40 bg-card flex items-center gap-3">
+                {clinic?.images?.[0] ? (
+                  <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-muted ring-1 ring-border flex-shrink-0">
+                    <Image src={clinic.images[0]} alt={clinic.name} fill className="object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm font-semibold">
+                      {(clinic?.name || "C").charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="font-semibold text-foreground text-sm truncate leading-tight">{clinic?.name || "Clinic"}</p>
+                  <p className="text-[10px] text-primary font-medium leading-tight">Chat with clinic</p>
+                </div>
+              </div>
 
-          <Button asChild className="w-full mb-3">
-            <Link href="/patient/dashboard">Go to your dashboard</Link>
-          </Button>
+              {/* Messages */}
+              <div
+                ref={chatContainerRef}
+                className="max-h-[320px] overflow-y-auto px-4 py-3 bg-background"
+              >
+                {loadingMessages ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="text-center py-6 space-y-2">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mx-auto">
+                      <MessageCircle className="w-5 h-5 text-primary" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Send a message to {clinic?.name || "the clinic"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${msg.sender_type === "patient" ? "justify-end" : "justify-start"}`}
+                      >
+                        <div
+                          className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${
+                            msg.sender_type === "patient"
+                              ? "bg-primary text-white rounded-br-sm"
+                              : msg.sender_type === "bot"
+                              ? "bg-secondary border border-border rounded-bl-sm"
+                              : "bg-muted rounded-bl-sm"
+                          }`}
+                        >
+                          {msg.sender_type === "bot" && (
+                            <p className="text-[9px] text-muted-foreground/60 mb-0.5 flex items-center gap-1">
+                              <Heart className="w-2.5 h-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
+                              Pearlie AI
+                            </p>
+                          )}
+                          <p className={`text-sm whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
+                            {msg.content}
+                          </p>
+                          <p className={`text-[10px] mt-0.5 ${
+                            msg.sender_type === "patient" ? "text-white/60" : "text-muted-foreground"
+                          }`}>
+                            {formatTime(msg.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {(otherTyping || botTyping) && (
+                      <div className="flex justify-start">
+                        <div className="bg-secondary border border-border rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm">
+                          <p className="text-[9px] text-muted-foreground/60 mb-1 flex items-center gap-1">
+                            <Heart className="w-2.5 h-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
+                            Pearlie AI
+                          </p>
+                          <div className="flex gap-1">
+                            <span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                            <span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                            <span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+              </div>
 
-          <Link
-            href={matchId ? `/match/${matchId}` : "/"}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {matchId ? "Back to results" : "Back to home"}
-          </Link>
-        </Card>
+              {/* Composer */}
+              {isAuthenticated && (
+                <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/40">
+                  <Input
+                    value={newMessage}
+                    onChange={(e) => { setNewMessage(e.target.value); sendTyping() }}
+                    placeholder="Type a message..."
+                    className="flex-1 text-sm rounded-lg border-border/60 focus-visible:ring-primary/30"
+                    disabled={isSending}
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={!newMessage.trim() || isSending}
+                    className="bg-primary hover:bg-primary/90 text-white h-9 w-9 rounded-lg"
+                  >
+                    {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  </Button>
+                </form>
+              )}
+            </Card>
+          )}
+
+          {/* Dashboard + Back Links */}
+          <div className="text-center space-y-3">
+            <p className="text-sm text-muted-foreground">
+              You can also monitor and manage all your requests from your personal dashboard.
+            </p>
+
+            <Button asChild className="w-full">
+              <Link href="/patient/dashboard">Go to your dashboard</Link>
+            </Button>
+
+            <Link
+              href={matchId ? `/match/${matchId}` : "/"}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors block"
+            >
+              {matchId ? "Back to results" : "Back to home"}
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
 
+  // ── Pre-confirmation Form ───────────────────────────────────────────
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
@@ -303,12 +609,10 @@ export default function BookingConfirmPage() {
             "Confirm Request"
           )}
         </Button>
-        
+
         <p className="text-xs text-muted-foreground text-center mt-4">
           By confirming, your details will be sent to the clinic who will contact you to confirm your appointment.
         </p>
-
-        
       </main>
     </div>
   )
