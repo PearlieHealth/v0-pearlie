@@ -72,6 +72,45 @@ export default function BookingConfirmPage() {
   const appointmentDate = dateStr ? new Date(dateStr) : null
   const timeLabel = HOURLY_SLOTS.find((s) => s.key === time)?.label || time
 
+  // Auto-login and fetch messages after booking is confirmed
+  const performAutoLogin = useCallback(async (tokenHash: string) => {
+    try {
+      const supabase = createClient()
+      const { error: otpError } = await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: "magiclink",
+      })
+      if (!otpError) {
+        setIsAuthenticated(true)
+        return true
+      }
+      console.warn("[booking-confirm] Auto-login failed:", otpError.message)
+    } catch (err) {
+      console.warn("[booking-confirm] Auto-login error:", err)
+    }
+    return false
+  }, [])
+
+  const fetchMessages = useCallback(async (convId: string) => {
+    setLoadingMessages(true)
+    try {
+      const res = await fetch(`/api/patient/conversations/${convId}/messages`)
+      if (res.ok) {
+        const data = await res.json()
+        const allMsgs: Message[] = data.messages || []
+        // Filter out bot messages queued for delayed typing animation
+        const visible = delayedBotMsgIds.current.size > 0
+          ? allMsgs.filter((m) => !delayedBotMsgIds.current.has(m.id))
+          : allMsgs
+        setMessages(visible)
+      }
+    } catch (err) {
+      console.error("[booking-confirm] Failed to fetch messages:", err)
+    } finally {
+      setLoadingMessages(false)
+    }
+  }, [])
+
   useEffect(() => {
     async function fetchData() {
       if (!clinicId || !leadId || !dateStr || !time) {
@@ -135,45 +174,6 @@ export default function BookingConfirmPage() {
 
     fetchData()
   }, [clinicId, leadId, dateStr, time, fetchMessages])
-
-  // Auto-login and fetch messages after booking is confirmed
-  const performAutoLogin = useCallback(async (tokenHash: string) => {
-    try {
-      const supabase = createClient()
-      const { error: otpError } = await supabase.auth.verifyOtp({
-        token_hash: tokenHash,
-        type: "magiclink",
-      })
-      if (!otpError) {
-        setIsAuthenticated(true)
-        return true
-      }
-      console.warn("[booking-confirm] Auto-login failed:", otpError.message)
-    } catch (err) {
-      console.warn("[booking-confirm] Auto-login error:", err)
-    }
-    return false
-  }, [])
-
-  const fetchMessages = useCallback(async (convId: string) => {
-    setLoadingMessages(true)
-    try {
-      const res = await fetch(`/api/patient/conversations/${convId}/messages`)
-      if (res.ok) {
-        const data = await res.json()
-        const allMsgs: Message[] = data.messages || []
-        // Filter out bot messages queued for delayed typing animation
-        const visible = delayedBotMsgIds.current.size > 0
-          ? allMsgs.filter((m) => !delayedBotMsgIds.current.has(m.id))
-          : allMsgs
-        setMessages(visible)
-      }
-    } catch (err) {
-      console.error("[booking-confirm] Failed to fetch messages:", err)
-    } finally {
-      setLoadingMessages(false)
-    }
-  }, [])
 
   const handleConfirmBooking = async () => {
     if (!clinic?.id || !leadId || !dateStr || !time) {
