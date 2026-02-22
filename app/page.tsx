@@ -107,7 +107,7 @@ export default function Home() {
                       autoPlay
                       muted
                       playsInline
-                      className="w-full h-auto rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.06)]"
+                      className="w-full h-auto rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.06)] scale-x-[-1]"
                     >
                       <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
                     </video>
