@@ -89,37 +89,11 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative md:min-h-[85vh] lg:min-h-[90vh] pt-24 pb-12 md:pt-24 md:pb-20 lg:pt-28 lg:pb-24 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
+          <section className="relative md:min-h-[85vh] lg:min-h-[90vh] pt-28 pb-12 md:pt-32 md:pb-20 lg:pt-36 lg:pb-24 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
             <div className="container mx-auto px-6 lg:px-10">
               <div className="max-w-7xl mx-auto">
 
-                {/* Big header — sits high, spans left */}
-                <motion.h1
-                  className="text-3xl md:text-5xl lg:text-[3.75rem] xl:text-[4.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-8 md:mb-12 lg:mb-14 text-center lg:text-left lg:max-w-[60%]"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.1 }}
-                >
-                  Where finding a dentist finally feels{" "}
-                  <span className="inline-block relative overflow-hidden align-bottom" style={{ height: "1.15em" }}>
-                    {/* Invisible sizer to hold width of current word */}
-                    <span className="invisible">{rotatingWords[wordIndex]}</span>
-                    <AnimatePresence mode="wait">
-                      <motion.span
-                        key={rotatingWords[wordIndex]}
-                        className="absolute inset-0 text-[#0fbcb0]"
-                        initial={{ y: "100%", opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: "-100%", opacity: 0 }}
-                        transition={{ duration: 0.4, ease: "easeInOut" }}
-                      >
-                        {rotatingWords[wordIndex]}
-                      </motion.span>
-                    </AnimatePresence>
-                  </span>.
-                </motion.h1>
-
-                {/* Body text LEFT + Video RIGHT */}
+                {/* Desktop: Text LEFT, Video RIGHT */}
                 <div className="flex flex-col lg:flex-row items-start gap-8 md:gap-14 lg:gap-20">
 
                   {/* Video — desktop right, mobile below text */}
@@ -139,8 +113,33 @@ export default function Home() {
                     </video>
                   </motion.div>
 
-                  {/* Body text + CTA — desktop left, mobile first */}
+                  {/* Text content — desktop left, mobile first */}
                   <div className="order-1 lg:order-1 flex-1 text-center lg:text-left">
+                    <motion.h1
+                      className="text-3xl md:text-5xl lg:text-[3.75rem] xl:text-[4.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-3 md:mb-4 lg:mb-5"
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 0.1 }}
+                    >
+                      Where finding a dentist finally feels{" "}
+                      <span className="inline-block relative overflow-hidden align-bottom" style={{ height: "1.15em" }}>
+                        {/* Invisible sizer to hold width of current word */}
+                        <span className="invisible">{rotatingWords[wordIndex]}</span>
+                        <AnimatePresence mode="wait">
+                          <motion.span
+                            key={rotatingWords[wordIndex]}
+                            className="absolute inset-0 text-[#0fbcb0]"
+                            initial={{ y: "100%", opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: "-100%", opacity: 0 }}
+                            transition={{ duration: 0.4, ease: "easeInOut" }}
+                          >
+                            {rotatingWords[wordIndex]}
+                          </motion.span>
+                        </AnimatePresence>
+                      </span>.
+                    </motion.h1>
+
                     <motion.p
                       className="text-[15px] md:text-lg text-[#666] mb-5 md:mb-6 leading-[1.5] max-w-lg mx-auto lg:mx-0"
                       initial={{ opacity: 0, y: 16 }}
