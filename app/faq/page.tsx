@@ -3,7 +3,6 @@ import { HelpCircle } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
-import { MobileNavMenu } from "@/components/mobile-nav-menu"
 import { SiteFooter } from "@/components/site-footer"
 
 export const metadata = {
@@ -15,7 +14,6 @@ export default function FAQPage() {
   return (
     <div className="min-h-screen bg-background">
       <MainNav />
-      <MobileNavMenu />
 
       <main>
         <section className="pt-32 pb-12 sm:pt-32 sm:pb-20 bg-background">
