@@ -106,7 +106,10 @@ export default function BookingConfirmPage() {
         const visible = delayedBotMsgIds.current.size > 0
           ? allMsgs.filter((m) => !delayedBotMsgIds.current.has(m.id))
           : allMsgs
-        setMessages(visible)
+        // Only overwrite if API returned messages; preserve optimistic messages otherwise
+        if (visible.length > 0) {
+          setMessages(visible)
+        }
         // Sync conversationId from API response
         if (data.conversationId && !conversationId) {
           setConversationId(data.conversationId)
@@ -239,11 +242,13 @@ export default function BookingConfirmPage() {
         setMessages([data.bookingMessage])
       }
 
-      // Try auto-login for realtime (best-effort), then fetch full message list
+      // Try auto-login for realtime features (best-effort).
+      // fetchMessages is triggered automatically by the useEffect when
+      // conversationId changes — no need to call it explicitly here,
+      // which would overwrite the optimistic message with a loading spinner.
       if (data.tokenHash) {
         await performAutoLogin(data.tokenHash)
       }
-      await fetchMessages()
     } catch (err) {
       console.error("Error submitting booking:", err)
       setError(err instanceof Error ? err.message : "Failed to submit booking request")
@@ -463,7 +468,7 @@ export default function BookingConfirmPage() {
                 ref={chatContainerRef}
                 className="max-h-[320px] overflow-y-auto px-4 py-3 bg-background"
               >
-                {loadingMessages ? (
+                {messages.length === 0 && loadingMessages ? (
                   <div className="flex items-center justify-center py-6">
                     <Loader2 className="w-5 h-5 animate-spin text-primary" />
                   </div>
