@@ -529,7 +529,21 @@ export default function PatientDashboard() {
 
     if (!clinicId || !leadId) return
 
+    const messageText = newMessage.trim()
+
+    // Optimistic: show user message immediately before API call
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: messageText,
+      sender_type: "patient",
+      status: "sent",
+      created_at: new Date().toISOString(),
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
+    setNewMessage("")
     setIsSending(true)
+
     try {
       const res = await fetch("/api/chat/send", {
         method: "POST",
@@ -537,14 +551,14 @@ export default function PatientDashboard() {
         body: JSON.stringify({
           leadId,
           clinicId,
-          content: newMessage.trim(),
+          content: messageText,
           senderType: "patient",
         }),
       })
       if (res.ok) {
         const data = await res.json()
-        setMessages((prev) => [...prev, data.message])
-        setNewMessage("")
+        // Replace optimistic message with server version
+        setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
 
         // If this was a pending chat (first message), the backend created
         // the conversation. We need to update our state.
@@ -564,7 +578,7 @@ export default function PatientDashboard() {
           setInboxConversations((prev) =>
             prev.map((c) =>
               c.id === selectedConv.id
-                ? { ...c, latest_message: newMessage.trim().substring(0, 100), latest_message_sender: "patient", last_message_at: new Date().toISOString() }
+                ? { ...c, latest_message: messageText.substring(0, 100), latest_message_sender: "patient", last_message_at: new Date().toISOString() }
                 : c
             )
           )
@@ -599,6 +613,8 @@ export default function PatientDashboard() {
           })
         }
       } else {
+        // Remove optimistic message on error
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
         const errData = await res.json().catch(() => ({}))
         if (res.status === 403) {
           setChatError("Please verify your email before sending messages.")
@@ -610,6 +626,7 @@ export default function PatientDashboard() {
       }
     } catch (err) {
       console.error("Failed to send message:", err)
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
       setChatError("Failed to send. Please try again.")
     } finally {
       setIsSending(false)
@@ -697,6 +714,17 @@ export default function PatientDashboard() {
     // Open the chat UI first so the user sees it
     openConversationForClinic(selectedClinicId)
 
+    // Optimistic: show appointment message immediately
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: message,
+      sender_type: "patient",
+      status: "sent",
+      created_at: new Date().toISOString(),
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
+
     // Send appointment request via API with messageType for server-side tracking
     try {
       const res = await fetch("/api/chat/send", {
@@ -712,7 +740,8 @@ export default function PatientDashboard() {
       })
       if (res.ok) {
         const data = await res.json()
-        setMessages((prev) => [...prev, data.message])
+        // Replace optimistic message with server version
+        setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
 
         // Mark the conversation locally as having an appointment request
         // so the UI updates immediately without waiting for a re-fetch.
@@ -762,11 +791,15 @@ export default function PatientDashboard() {
           })
         }
       } else if (res.status === 409) {
-        // Already requested (server-side duplicate check) — refresh inbox to sync
+        // Already requested (server-side duplicate check) — remove optimistic, refresh inbox
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
         fetchInbox()
+      } else {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
       }
     } catch (err) {
       console.error("Failed to send appointment request:", err)
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
       setChatError("Failed to send appointment request. Please try again.")
     }
   }

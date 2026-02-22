@@ -190,7 +190,21 @@ export function ClinicChatWidget({
     e.preventDefault()
     if (!newMessage.trim() || isSending) return
 
+    const messageText = newMessage.trim()
+
+    // Optimistic: show user message immediately before API call
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: messageText,
+      sender_type: "patient",
+      status: "sent",
+      created_at: new Date().toISOString(),
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
+    setNewMessage("")
     setIsSending(true)
+
     try {
       const response = await fetch("/api/chat/send", {
         method: "POST",
@@ -198,24 +212,28 @@ export function ClinicChatWidget({
         body: JSON.stringify({
           leadId,
           clinicId,
-          content: newMessage.trim(),
+          content: messageText,
           senderType: "patient",
         }),
       })
 
       if (response.ok) {
         const data = await response.json()
-        // Add the patient message immediately
-        setMessages((prev) => [...prev, data.message])
-        setNewMessage("")
+        // Replace optimistic message with server version
+        setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
         setConversationId(data.conversationId)
         // Drip-feed bot messages with typing delay
         if (data.botMessages?.length) {
           queueBotMessages(data.botMessages)
         }
+      } else {
+        // Remove optimistic message on error
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
       }
     } catch (error) {
       console.error("[Chat] Failed to send message:", error)
+      // Remove optimistic message on error
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
     } finally {
       setIsSending(false)
     }

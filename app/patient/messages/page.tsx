@@ -224,6 +224,19 @@ export default function PatientMessagesPage() {
     e.preventDefault()
     if (!selectedConversation || !newMessage.trim() || isSending) return
 
+    const messageText = newMessage.trim()
+
+    // Optimistic: show user message immediately before API call
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: messageText,
+      sender_type: "patient",
+      status: "sent",
+      created_at: new Date().toISOString(),
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
+    setNewMessage("")
     setIsSending(true)
     setError(null)
 
@@ -234,15 +247,15 @@ export default function PatientMessagesPage() {
         body: JSON.stringify({
           leadId: activeLeadId || selectedConversation.lead_id,
           clinicId: activeClinicId || selectedConversation.clinic_id,
-          content: newMessage.trim(),
+          content: messageText,
           senderType: "patient",
         }),
       })
 
       if (response.ok) {
         const data = await response.json()
-        setMessages((prev) => [...prev, data.message])
-        setNewMessage("")
+        // Replace optimistic message with server version
+        setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
         // Queue bot messages with typing delay
         if (data.botMessages?.length) {
           data.botMessages.forEach((botMsg: Message, i: number) => {
@@ -257,12 +270,15 @@ export default function PatientMessagesPage() {
           })
         }
       } else if (response.status === 403) {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
         setError("Please verify your email before sending messages.")
       } else {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
         const errData = await response.json().catch(() => ({}))
         setError(errData.error || "Failed to send message.")
       }
     } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
       setError("Something went wrong. Please try again.")
     } finally {
       setIsSending(false)

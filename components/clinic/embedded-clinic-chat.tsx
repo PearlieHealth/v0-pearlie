@@ -158,7 +158,21 @@ export function EmbeddedClinicChat({
       return
     }
 
+    const messageText = newMessage.trim()
+
+    // Optimistic: show user message immediately before API call
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: messageText,
+      sender_type: "patient",
+      status: "sent",
+      created_at: new Date().toISOString(),
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
+    setNewMessage("")
     setIsSending(true)
+
     try {
       const response = await fetch("/api/chat/send", {
         method: "POST",
@@ -166,26 +180,25 @@ export function EmbeddedClinicChat({
         body: JSON.stringify({
           leadId,
           clinicId,
-          content: newMessage.trim(),
+          content: messageText,
           senderType: "patient",
         }),
       })
 
       if (response.ok) {
         const data = await response.json()
-        // Add the patient message immediately
-        setMessages((prev) => [...prev, data.message])
+        // Replace optimistic message with server version
+        setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
         setConversationId(data.conversationId)
-        setNewMessage("")
         setError(null)
         // Drip-feed bot messages with typing delay
         if (data.botMessages?.length) {
           queueBotMessages(data.botMessages)
         }
       } else if (response.status === 403) {
-        // Store the message so it can be resent after OTP verification
-        pendingMessageRef.current = newMessage.trim()
-        setNewMessage("")
+        // Remove optimistic message and store for resend after OTP
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
+        pendingMessageRef.current = messageText
         if (leadEmailProp) {
           setLeadEmail(leadEmailProp)
           setShowOtpVerify(true)
@@ -194,10 +207,12 @@ export function EmbeddedClinicChat({
           setError("Please verify your email before sending messages.")
         }
       } else {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
         const errData = await response.json().catch(() => ({}))
         setError(errData.error || "Failed to send message. Please try again.")
       }
     } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
       setError("Something went wrong. Please try again.")
     } finally {
       setIsSending(false)
