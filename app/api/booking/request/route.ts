@@ -147,12 +147,20 @@ export async function POST(request: Request) {
 
     // Auto-create a chat conversation with the booking request so both patient
     // (in their dashboard) and clinic (in their inbox) can see and continue it.
-    const bookingMessageContent = `Hello, I would like to request an appointment at ${clinic.name}`
+    const timeLabel = HOURLY_SLOTS.find((s: { key: string; label: string }) => s.key === time)?.label || time
+    const formattedDate = new Date(date + "T00:00:00").toLocaleDateString("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+    const bookingMessageContent = `Hello, I would like to request an appointment at ${clinic.name} on ${formattedDate} at ${timeLabel}`
 
     // Hoist conversationId, tokenHash, and bookingMessage so they're accessible in the final response
     let conversationId: string | null = null
     let tokenHash: string | null = null
     let bookingMessage: { id: string; content: string; sender_type: string; status: string; created_at: string } | null = null
+    let botMessages: { id: string; content: string; sender_type: string; status?: string; created_at: string }[] = []
 
     try {
       // Get or create conversation
@@ -272,7 +280,23 @@ export async function POST(request: Request) {
           bookingMessage = insertedMsg
         }
 
-        // Update conversation unread flags and mark appointment as requested
+        // Insert bot acknowledgement so the patient knows why there's no immediate reply
+        const botAckContent = `Thanks for your appointment request! 🗓️\n\n${clinic.name} will review your request for ${formattedDate} at ${timeLabel} and get back to you shortly — clinics typically respond within 24 hours.\n\nIn the meantime, feel free to send any questions or additional details here.`
+        const { data: botMsg, error: botMsgError } = await supabase.from("messages").insert({
+          conversation_id: conversationId,
+          sender_type: "bot",
+          content: botAckContent,
+          sent_via: "chat",
+          message_type: "bot-greeting",
+        }).select("id, content, sender_type, created_at").single()
+
+        if (botMsgError) {
+          console.error("[booking-request] Failed to insert bot ack message:", botMsgError)
+        } else if (botMsg) {
+          botMessages.push(botMsg)
+        }
+
+        // Update conversation unread flags, mark appointment as requested, and flag bot as greeted
         await supabase
           .from("conversations")
           .update({
@@ -280,6 +304,7 @@ export async function POST(request: Request) {
             unread_count_clinic: currentUnreadCount + 1,
             last_message_at: new Date().toISOString(),
             appointment_requested_at: new Date().toISOString(),
+            bot_greeted: true,
           })
           .eq("id", conversationId)
       }
@@ -401,6 +426,7 @@ export async function POST(request: Request) {
       conversationId: conversationId ?? null,
       tokenHash: tokenHash ?? null,
       bookingMessage: bookingMessage ?? null,
+      botMessages,
     })
   } catch (error) {
     console.error("[booking-request] Error:", error)

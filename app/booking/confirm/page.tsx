@@ -242,6 +242,33 @@ export default function BookingConfirmPage() {
         setMessages([data.bookingMessage])
       }
 
+      // Show bot acknowledgement reply with typing indicator animation
+      if (data.botMessages?.length) {
+        data.botMessages.forEach((botMsg: Message) => delayedBotMsgIds.current.add(botMsg.id))
+        setBotTyping(true)
+        let cumulativeDelay = 0
+        data.botMessages.forEach((botMsg: Message, i: number) => {
+          const typingDuration = 3000
+          const gapBetween = 500
+          const showAt = cumulativeDelay + typingDuration
+          cumulativeDelay = showAt + gapBetween
+
+          setTimeout(() => {
+            delayedBotMsgIds.current.delete(botMsg.id)
+            setBotTyping(false)
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === botMsg.id)) return prev
+              return [...prev, botMsg].sort(
+                (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              )
+            })
+            if (i < data.botMessages.length - 1) {
+              setTimeout(() => setBotTyping(true), gapBetween)
+            }
+          }, showAt)
+        })
+      }
+
       // Try auto-login for realtime features (best-effort).
       // fetchMessages is triggered automatically by the useEffect when
       // conversationId changes — no need to call it explicitly here,
