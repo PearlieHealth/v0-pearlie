@@ -167,93 +167,6 @@ export default function Home() {
     }
   }, [])
 
-  // Mobile iOS Safari: full pipeline reset on tab/app resume.
-  // iOS tears down the video decoder on background and leaves a stale
-  // frame visible. Seeking alone doesn't reliably flush it. The only
-  // reliable fix is video.load() which rebuilds the entire pipeline,
-  // then restore position and playback state.
-  const heroVideoRef = useRef<HTMLVideoElement>(null)
-  const videoStateRef = useRef({ ended: false, time: 0, playing: false })
-
-  useEffect(() => {
-    const isMobile = window.innerWidth < 1024
-    if (!isMobile) return
-
-    const video = heroVideoRef.current
-    if (!video) return
-    const state = videoStateRef.current
-
-    const onEnded = () => { state.ended = true; state.playing = false }
-    const onTimeUpdate = () => { state.time = video.currentTime }
-    const onPlay = () => { state.playing = true }
-    const onPause = () => { if (!state.ended) state.playing = !video.ended }
-    video.addEventListener("ended", onEnded)
-    video.addEventListener("timeupdate", onTimeUpdate)
-    video.addEventListener("play", onPlay)
-    video.addEventListener("pause", onPause)
-
-    const onVisibilityChange = () => {
-      const v = heroVideoRef.current
-      if (!v) return
-
-      if (document.visibilityState === "hidden") {
-        // Snapshot state before iOS tears down decoder
-        state.time = v.currentTime
-        state.playing = !v.paused && !v.ended
-        return
-      }
-
-      // --- Visible: full pipeline reset ---
-      v.pause()
-      // Hide video during recovery to prevent frozen frame flash
-      v.style.opacity = "0"
-
-      const savedTime = state.time
-      const wasEnded = state.ended
-      const wasPlaying = state.playing
-
-      // load() forces iOS to rebuild the decoder from scratch
-      v.load()
-
-      const restore = () => {
-        v.removeEventListener("loadeddata", restore)
-        clearTimeout(fallback)
-
-        if (wasEnded) {
-          // Show last frame: seek to just before end
-          v.currentTime = Math.max(0, v.duration - 0.05)
-          v.pause()
-        } else {
-          v.currentTime = Math.min(savedTime, Math.max(0, v.duration - 0.1))
-          if (wasPlaying) {
-            v.play().catch(() => {})
-          }
-        }
-
-        // Fade back in after decoder has rendered a fresh frame
-        requestAnimationFrame(() => { v.style.opacity = "1" })
-      }
-
-      v.addEventListener("loadeddata", restore)
-      // Timeout fallback in case loadeddata doesn't fire
-      const fallback = setTimeout(restore, 2000)
-    }
-
-    document.addEventListener("visibilitychange", onVisibilityChange)
-    // Also handle bfcache (back/forward navigation)
-    window.addEventListener("pageshow", (e) => {
-      if (e.persisted) onVisibilityChange()
-    })
-
-    return () => {
-      video.removeEventListener("ended", onEnded)
-      video.removeEventListener("timeupdate", onTimeUpdate)
-      video.removeEventListener("play", onPlay)
-      video.removeEventListener("pause", onPause)
-      document.removeEventListener("visibilitychange", onVisibilityChange)
-    }
-  }, [])
-
   const handleFindClinicClick = useCallback(() => {
     const eventId = generateTikTokEventId()
     trackTikTokEvent("Search", { content_name: "find_my_clinic" }, eventId)
@@ -285,17 +198,14 @@ export default function Home() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
                   >
-                    <div className="relative w-full aspect-[3/4] rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] overflow-hidden">
-                      <video
-                        ref={heroVideoRef}
-                        autoPlay
-                        muted
-                        playsInline
-                        className="absolute inset-0 w-full h-full object-cover scale-x-[-1] transition-opacity duration-200"
-                      >
-                        <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
-                      </video>
-                    </div>
+                    <video
+                      autoPlay
+                      muted
+                      playsInline
+                      className="w-full h-auto rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] scale-x-[-1]"
+                    >
+                      <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
+                    </video>
                   </motion.div>
 
                   {/* Text content — desktop left, mobile first */}
