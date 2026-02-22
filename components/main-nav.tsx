@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Heart } from "lucide-react"
+import { Heart, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNavMenu } from "@/components/mobile-nav-menu"
 import { cn } from "@/lib/utils"
@@ -104,7 +104,16 @@ export function MainNav() {
           </div>
 
           {/* Mobile Navigation */}
-          <MobileNavMenu />
+          <div className="flex md:hidden items-center gap-1">
+            <Link
+              href="/intake"
+              className="flex items-center justify-center h-10 w-10 rounded-full bg-[#0fbcb0] text-white hover:bg-[#0da399] transition-colors"
+            >
+              <Search className="h-4 w-4" />
+              <span className="sr-only">Find my clinic</span>
+            </Link>
+            <MobileNavMenu />
+          </div>
         </div>
       </div>
     </header>
