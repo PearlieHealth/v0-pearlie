@@ -208,11 +208,6 @@ export default function Home() {
       // Hide video during recovery to prevent frozen frame flash
       v.style.opacity = "0"
 
-      // Pin rendered size so load() doesn't collapse the layout
-      const rect = v.getBoundingClientRect()
-      v.style.width = rect.width + "px"
-      v.style.height = rect.height + "px"
-
       const savedTime = state.time
       const wasEnded = state.ended
       const wasPlaying = state.playing
@@ -235,12 +230,8 @@ export default function Home() {
           }
         }
 
-        // Remove pinned size and fade back in
-        requestAnimationFrame(() => {
-          v.style.width = ""
-          v.style.height = ""
-          v.style.opacity = "1"
-        })
+        // Fade back in after decoder has rendered a fresh frame
+        requestAnimationFrame(() => { v.style.opacity = "1" })
       }
 
       v.addEventListener("loadeddata", restore)
@@ -294,15 +285,17 @@ export default function Home() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
                   >
-                    <video
-                      ref={heroVideoRef}
-                      autoPlay
-                      muted
-                      playsInline
-                      className="w-full h-auto rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] scale-x-[-1] transition-opacity duration-200"
-                    >
-                      <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
-                    </video>
+                    <div className="relative w-full aspect-[3/4] rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] overflow-hidden">
+                      <video
+                        ref={heroVideoRef}
+                        autoPlay
+                        muted
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover scale-x-[-1] transition-opacity duration-200"
+                      >
+                        <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
+                      </video>
+                    </div>
                   </motion.div>
 
                   {/* Text content — desktop left, mobile first */}
