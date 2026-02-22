@@ -416,38 +416,32 @@ export default function Home() {
 
                   {/* Content */}
                   <div className="lg:pl-4">
-                    <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-foreground text-balance">
-                      Qualified, vetted dental clinics you can <span className="text-[#0fbcb0]">trust</span>
+                    {/* Small accent label */}
+                    <span className="inline-block text-xs font-semibold tracking-[0.15em] uppercase text-[#0fbcb0] mb-4">
+                      Quality &amp; Trust
+                    </span>
+
+                    <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-foreground leading-[1.05]">
+                      We shortlist.<br />You decide.<br /><span className="text-[#0fbcb0]">With confidence.</span>
                     </h2>
-                    <p className="text-lg text-muted-foreground leading-snug mb-6">
-                      Access a carefully curated network of clinics reviewed for clinical quality, communication, patient experience, and transparency. Helping you make confident, informed dental decisions.
+
+                    <p className="text-lg text-muted-foreground leading-snug mb-8">
+                      Every clinic on Pearlie is carefully reviewed for clinical standards, transparency, and patient experience. We focus on quality over quantity — so you only see clinics that meet our standards.
                     </p>
-                    <div className="space-y-4 mb-8">
+
+                    <div className="space-y-3 mb-10">
                       {[
-                        {
-                          title: "Patient-first clinics",
-                          desc: "Clinics selected for their communication style, empathy, and patient-centred care, so you feel heard, respected, and supported at every step.",
-                        },
-                        {
-                          title: "Transparent & ethical care",
-                          desc: "Clear explanations, honest recommendations, and upfront pricing",
-                        },
-                        {
-                          title: "Highly rated clinics",
-                          desc: "Clinics rated highly by patients for comfort, results, and experience — so you know what to expect before you book.",
-                        },
+                        "Personally reviewed by Pearlie",
+                        "Transparent pricing & clear communication",
+                        "Highly rated for patient care and results",
                       ].map((item, i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl">
-                          <div className="rounded-full bg-white p-1.5 mt-0.5 shadow-sm">
-                            <CheckCircle2 className="w-4 h-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground">{item.title}</p>
-                            <p className="text-sm text-muted-foreground">{item.desc}</p>
-                          </div>
+                        <div key={i} className="flex items-center gap-3">
+                          <CheckCircle2 className="w-5 h-5 text-[#0fbcb0] flex-shrink-0" />
+                          <span className="text-foreground font-medium">{item}</span>
                         </div>
                       ))}
                     </div>
+
                     <Button
                       size="lg"
                       className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] group border-0"
