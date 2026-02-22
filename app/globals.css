@@ -8,7 +8,7 @@
   --primary: #0fbcb0;
   --primary-hover: #0da399;
   --primary-foreground: #ffffff;
-  --secondary: #faf3e6;
+  --secondary: #f8f7f1;
   --secondary-foreground: #3d3838;
   --foreground: #3d3838;
   --muted-foreground: #666666;
@@ -18,8 +18,8 @@
   --card-foreground: #3d3838;
   --popover: #fdfdf4;
   --popover-foreground: #3d3838;
-  --muted: #faf3e6;
-  --accent: #faf3e6;
+  --muted: #f8f7f1;
+  --accent: #f8f7f1;
   --accent-foreground: #3d3838;
 
   /* Teal palette */
@@ -206,6 +206,6 @@
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.04em;
   color: var(--primary);
 }

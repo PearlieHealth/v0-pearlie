@@ -293,7 +293,7 @@ export default function AboutPage() {
               </p>
               <Button
                 size="lg"
-                className="text-lg px-10 py-6 h-auto bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-md hover:shadow-lg transition-all"
+                className="text-lg px-10 py-6 h-auto bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all"
                 asChild
               >
                 <Link href="/intake">Get my clinic matches</Link>
