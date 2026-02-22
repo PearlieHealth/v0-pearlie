@@ -3,7 +3,6 @@
 import React from "react"
 
 import { useState } from "react"
-import { createBrowserClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -23,17 +22,16 @@ export default function ForgotPasswordPage() {
     setIsLoading(true)
     setError("")
 
-    const supabase = createBrowserClient()
-
     try {
-      // Use NEXT_PUBLIC_APP_URL for production, fallback to current origin
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${baseUrl}/auth/confirm`,
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       })
+      const data = await res.json()
 
-      if (resetError) {
-        setError(resetError.message)
+      if (!res.ok) {
+        setError(data.error || "An error occurred. Please try again.")
         setIsLoading(false)
         return
       }
@@ -42,7 +40,7 @@ export default function ForgotPasswordPage() {
     } catch (err) {
       setError("An error occurred. Please try again.")
     }
-    
+
     setIsLoading(false)
   }
 

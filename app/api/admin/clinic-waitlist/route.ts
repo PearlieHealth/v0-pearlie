@@ -2,9 +2,9 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { STARTER_TAGS } from "@/lib/matching/tag-validation"
 import { verifyAdminAuth } from "@/lib/admin-auth"
-import { escapeHtml } from "@/lib/escape-html"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
+import crypto from "crypto"
 
 export async function GET() {
   const auth = await verifyAdminAuth()
@@ -112,6 +112,22 @@ export async function PATCH(request: Request) {
       // Link clinic ID to waitlist entry
       updateData.clinic_id = clinicId
 
+      // Generate invite token for the clinic owner
+      const inviteToken = crypto.randomBytes(32).toString("hex")
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 7) // 7 days expiry
+
+      await supabase.from("clinic_invites").insert({
+        clinic_id: clinicId,
+        email: entry.email.toLowerCase(),
+        token: inviteToken,
+        role: "CLINIC_ADMIN",
+        expires_at: expiresAt.toISOString(),
+      })
+
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+      const inviteUrl = `${baseUrl}/clinic/accept-invite?token=${inviteToken}`
+
       const emailLogId = crypto.randomUUID()
       await supabase.from("waitlist_email_log").insert({
         id: emailLogId,
@@ -121,36 +137,21 @@ export async function PATCH(request: Request) {
         status: "pending",
       })
 
-      // Step 5: Send approval email
+      // Step 5: Send branded invite email
       try {
-        const emailResult = await sendEmailWithRetry({
-          from: EMAIL_FROM.CLINICS,
+        const emailResult = await sendRegisteredEmail({
+          type: EMAIL_TYPE.WAITLIST_APPROVAL,
           to: entry.email,
-          subject: "You're in — complete your clinic profile",
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-              <h1 style="color: #1a1a1a;">Welcome to Pearlie</h1>
-              <p>Hi ${escapeHtml(entry.owner_name)},</p>
-              <p>Great news — <strong>${escapeHtml(entry.clinic_name)}</strong> has been approved for early access to Pearlie.</p>
-              <p>You're now part of our founding clinic cohort. This means:</p>
-              <ul>
-                <li>Priority placement in patient matches</li>
-                <li>Shape the matching algorithm with your feedback</li>
-                <li>Lock in founding partner pricing</li>
-              </ul>
-              <p><strong>Next step:</strong> Complete your clinic profile to start receiving matched patients.</p>
-              <p style="margin-top: 24px;">
-                <a href="${process.env.NEXT_PUBLIC_BASE_URL || "https://pearlie.org"}/admin/clinics" 
-                   style="background: #1a1a1a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
-                  Complete Clinic Profile
-                </a>
-              </p>
-              <p style="margin-top: 24px; color: #666; font-size: 14px;">
-                Questions? Reply to this email and we'll help you get set up.
-              </p>
-              <p style="color: #666; font-size: 14px;">— The Pearlie Team</p>
-            </div>
-          `,
+          data: {
+            clinicName: entry.clinic_name,
+            contactName: entry.owner_name,
+            inviteUrl,
+            expiresAt,
+            _waitlistId: id,
+            _email: entry.email,
+          },
+          clinicId,
+          waitlistId: id,
         })
 
         await supabase
@@ -184,28 +185,16 @@ export async function PATCH(request: Request) {
 
       // Step 5: Send rejection email
       try {
-        const emailResult = await sendEmailWithRetry({
-          from: EMAIL_FROM.CLINICS,
+        const emailResult = await sendRegisteredEmail({
+          type: EMAIL_TYPE.WAITLIST_REJECTION,
           to: entry.email,
-          subject: "Your Pearlie application",
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-              <h1 style="color: #1a1a1a;">Thank you for applying</h1>
-              <p>Hi ${escapeHtml(entry.owner_name)},</p>
-              <p>Thank you for your interest in joining Pearlie with ${escapeHtml(entry.clinic_name)}.</p>
-              <p>Unfortunately, we're unable to include your clinic in this cohort. This may be due to:</p>
-              <ul>
-                <li>Geographic coverage priorities for this phase</li>
-                <li>Treatment specialization focus</li>
-                <li>Capacity constraints in your area</li>
-              </ul>
-              <p>We're continuously expanding and would love to reconsider your application in the future. 
-                 We'll keep your details on file and reach out when we open up more spots.</p>
-              <p style="margin-top: 24px; color: #666; font-size: 14px;">
-                Best regards,<br/>The Pearlie Team
-              </p>
-            </div>
-          `,
+          data: {
+            ownerName: entry.owner_name,
+            clinicName: entry.clinic_name,
+            _waitlistId: id,
+            _email: entry.email,
+          },
+          waitlistId: id,
         })
 
         await supabase

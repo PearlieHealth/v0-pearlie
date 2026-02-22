@@ -1,10 +1,9 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
 import { verifyAdminAuth } from "@/lib/admin-auth"
-import { escapeHtml } from "@/lib/escape-html"
 import crypto from "crypto"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 
 export async function POST(request: Request) {
   const auth = await verifyAdminAuth()
@@ -34,8 +33,8 @@ export async function POST(request: Request) {
     // Generate a temporary password for the user
     const tempPassword = `Pearlie${crypto.randomUUID().slice(0, 8)}!`
 
-    // Generate an invite token
-    const inviteToken = `invite-${crypto.randomUUID().slice(0, 8)}`
+    // Generate a secure invite token
+    const inviteToken = crypto.randomBytes(32).toString("hex")
 
     // 1. Create the clinic
     const { data: clinic, error: clinicError } = await supabaseAdmin
@@ -107,7 +106,25 @@ export async function POST(request: Request) {
       }
     }
 
-    // 4. Log successful provisioning
+    // 4. Create invite in clinic_invites table
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + 7) // 7 days expiry
+
+    await supabaseAdmin.from("clinic_invites").insert({
+      clinic_id: clinic.id,
+      email: primaryContactEmail.toLowerCase(),
+      token: inviteToken,
+      role: "CLINIC_ADMIN",
+      expires_at: expiresAt.toISOString(),
+    })
+
+    // 5. Update clinic with notification email
+    await supabaseAdmin
+      .from("clinics")
+      .update({ notification_email: primaryContactEmail })
+      .eq("id", clinic.id)
+
+    // 6. Log successful provisioning
     await supabaseAdmin.from("provisioning_logs").insert({
       clinic_id: clinic.id,
       clinic_name: clinicName,
@@ -118,42 +135,34 @@ export async function POST(request: Request) {
       invite_token: inviteToken,
     })
 
-    // 5. Send login credentials email
-    {
-      const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"}/clinic/login`
+    // 7. Send branded invite email
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+    const inviteUrl = `${baseUrl}/clinic/accept-invite?token=${inviteToken}`
 
-      await sendEmailWithRetry({
-        from: EMAIL_FROM.NOREPLY,
+    let emailSent = false
+    try {
+      const result = await sendRegisteredEmail({
+        type: EMAIL_TYPE.CLINIC_PROVISION_INVITE,
         to: primaryContactEmail,
-        subject: `Your ${clinicName} Portal Login - Pearlie`,
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #1a1a1a;">Welcome to Pearlie</h1>
-            <p>Your account has been created to manage <strong>${escapeHtml(clinicName)}</strong> on Pearlie's clinic portal.</p>
-
-            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <p style="margin: 0 0 10px 0;"><strong>Your Login Credentials:</strong></p>
-              <p style="margin: 5px 0;">Email: <strong>${escapeHtml(primaryContactEmail)}</strong></p>
-              <p style="margin: 5px 0;">Password: <strong>${escapeHtml(tempPassword)}</strong></p>
-            </div>
-            
-            <a href="${loginUrl}" style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
-              Log In to Your Dashboard
-            </a>
-            
-            <p style="color: #666; font-size: 14px; margin-top: 20px;">
-              For security, we recommend changing your password after your first login.
-              You can do this in Settings > Security.
-            </p>
-          </div>
-        `,
+        data: { clinicName, inviteUrl, expiresAt, _clinicId: clinic.id, _email: primaryContactEmail },
+        clinicId: clinic.id,
       })
+      emailSent = result.success && !result.skipped
+      if (!result.success && !result.skipped) {
+        console.error("[provision-clinic] Failed to send invite email:", result.error)
+      }
+    } catch (emailErr) {
+      console.error("[provision-clinic] Email sending error:", emailErr)
     }
 
     return NextResponse.json({
       success: true,
       clinicId: clinic.id,
-      message: "Clinic provisioned successfully. Login credentials sent via email.",
+      inviteUrl,
+      emailSent,
+      message: emailSent
+        ? `Clinic provisioned successfully. Invite sent to ${primaryContactEmail}.`
+        : `Clinic provisioned. Email could not be sent - share the invite link manually.`,
     })
   } catch (error) {
     console.error("Provisioning error:", error)

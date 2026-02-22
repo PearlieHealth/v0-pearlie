@@ -2,8 +2,8 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createRateLimiter } from "@/lib/rate-limit"
 import { escapeHtml } from "@/lib/escape-html"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 
 // Rate limiters: per-IP and per-email
 const ipLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, maxAttempts: 10 })
@@ -131,54 +131,14 @@ export async function POST(request: NextRequest) {
       greeting = `Hi ${escapeHtml(lead.first_name)}`
     }
 
-    // Send branded email via Resend
-    const emailResult = await sendEmailWithRetry({
-      from: EMAIL_FROM.NOREPLY,
+    // Send branded email via registry
+    const emailResult = await sendRegisteredEmail({
+      type: EMAIL_TYPE.PATIENT_MAGIC_LINK,
       to: email,
-      subject: "Your Pearlie login link",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8f7f4; margin: 0; padding: 40px 20px;">
-          <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-            <div style="text-align: center; margin-bottom: 32px;">
-              <h1 style="font-size: 24px; font-weight: 600; color: #1a1a1a; margin: 0;">Pearlie</h1>
-            </div>
-
-            <p style="font-size: 16px; color: #4a4a4a; line-height: 1.6; margin-bottom: 8px;">
-              ${greeting},
-            </p>
-
-            <p style="font-size: 16px; color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
-              Click the button below to sign in to your Pearlie account and view your matched clinics.
-            </p>
-
-            <div style="text-align: center; margin-bottom: 24px;">
-              <a href="${magicLink}" style="display: inline-block; background: #0fbcb0; color: white; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 12px;">
-                Sign in to Pearlie
-              </a>
-            </div>
-
-            <p style="font-size: 14px; color: #888; line-height: 1.5; margin-bottom: 8px;">
-              This link expires in 1 hour. If you didn't request this, you can safely ignore this email.
-            </p>
-
-            <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;">
-
-            <p style="font-size: 12px; color: #aaa; text-align: center;">
-              Pearlie - Find your perfect dental clinic match
-            </p>
-          </div>
-        </body>
-        </html>
-      `,
+      data: { greeting, magicLink, _email: email },
     })
 
-    if (!emailResult.success) {
+    if (!emailResult.success && !emailResult.skipped) {
       console.error("[LoginLink] Email send failed:", emailResult.error)
       return NextResponse.json({ error: "Failed to send login link. Please try again." }, { status: 500 })
     }

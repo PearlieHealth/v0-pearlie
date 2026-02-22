@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { escapeHtml } from "@/lib/escape-html"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 
 export async function POST(request: Request) {
   try {
@@ -93,28 +92,14 @@ export async function POST(request: Request) {
 
     // Send confirmation email on submission
     try {
-      await sendEmailWithRetry({
-        from: EMAIL_FROM.CLINICS,
+      await sendRegisteredEmail({
+        type: EMAIL_TYPE.WAITLIST_CONFIRMATION,
         to: email.toLowerCase().trim(),
-        subject: "We received your application",
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #1a1a1a;">Application Received</h1>
-            <p>Hi ${escapeHtml(ownerName.trim())},</p>
-            <p>Thank you for applying to join Pearlie with <strong>${escapeHtml(clinicName.trim())}</strong>.</p>
-            <p>We're reviewing applications for our founding clinic cohort and will be in touch soon with next steps.</p>
-            <p>What happens next:</p>
-            <ul>
-              <li>We review your application (typically 2-3 business days)</li>
-              <li>If approved, you'll receive setup instructions</li>
-              <li>Complete your clinic profile and start receiving matched patients</li>
-            </ul>
-            <p style="margin-top: 24px; color: #666; font-size: 14px;">
-              Questions? Reply to this email and we'll get back to you.
-            </p>
-            <p style="color: #666; font-size: 14px;">— The Pearlie Team</p>
-          </div>
-        `,
+        data: {
+          ownerName: ownerName.trim(),
+          clinicName: clinicName.trim(),
+          _email: email.toLowerCase().trim(),
+        },
       })
     } catch (emailError) {
       console.error("Error sending confirmation email:", emailError)

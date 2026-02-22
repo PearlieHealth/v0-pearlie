@@ -271,18 +271,18 @@ async function sendDirectLeadClinicNotification(
     to: recipientEmail,
     subject: `New enquiry from ${lead.first_name || "a patient"} ${lead.last_name || ""} via your profile`,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: white; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
+      <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
           <h1 style="margin: 0; font-size: 20px;">New Direct Enquiry</h1>
           <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">A verified patient enquired from your profile</p>
         </div>
         <div style="padding: 30px; background-color: #f9fafb;">
-          <div style="background: white; border-radius: 8px; padding: 20px; border-left: 4px solid #0d9488; margin-bottom: 20px;">
+          <div style="background: white; border-radius: 8px; padding: 20px; border-left: 4px solid #0fbcb0; margin-bottom: 20px;">
             <h2 style="margin: 0 0 12px; font-size: 16px; color: #1a1a1a;">Patient Details</h2>
             <table style="width: 100%; font-size: 14px; color: #4b5563;">
               <tr><td style="padding: 4px 0; font-weight: 600; width: 120px;">Name</td><td>${safeName}</td></tr>
-              <tr><td style="padding: 4px 0; font-weight: 600;">Email</td><td><a href="mailto:${safeEmail}" style="color: #0d9488;">${safeEmail}</a></td></tr>
-              <tr><td style="padding: 4px 0; font-weight: 600;">Phone</td><td><a href="tel:${safePhone}" style="color: #0d9488;">${safePhone}</a></td></tr>
+              <tr><td style="padding: 4px 0; font-weight: 600;">Email</td><td><a href="mailto:${safeEmail}" style="color: #0fbcb0;">${safeEmail}</a></td></tr>
+              <tr><td style="padding: 4px 0; font-weight: 600;">Phone</td><td><a href="tel:${safePhone}" style="color: #0fbcb0;">${safePhone}</a></td></tr>
               <tr><td style="padding: 4px 0; font-weight: 600;">Treatment</td><td>${safeTreatment}</td></tr>
               <tr><td style="padding: 4px 0; font-weight: 600;">Timing</td><td>${safeTiming}</td></tr>
             </table>
@@ -294,7 +294,7 @@ async function sendDirectLeadClinicNotification(
           </div>
           <div style="text-align: center;">
             <a href="${appUrl}/clinic/inbox"
-               style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-size: 14px; font-weight: 600;">
+               style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-size: 14px; font-weight: 600;">
               View in Inbox
             </a>
           </div>
