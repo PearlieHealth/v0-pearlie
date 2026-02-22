@@ -312,7 +312,7 @@ export default function Home() {
                 <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8 mb-14 md:mb-10">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-end">
-                    <div className="relative w-full max-w-[280px] lg:max-w-[230px]">
+                    <div className="relative w-full max-w-[200px] lg:max-w-[230px]">
                       {/* Step number */}
                       <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">01</span>
                       {/* Phone mockup with form illustration */}
