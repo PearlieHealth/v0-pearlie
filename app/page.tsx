@@ -89,7 +89,7 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative md:min-h-[85vh] lg:min-h-[90vh] pt-28 pb-12 md:pt-32 md:pb-20 lg:pt-36 lg:pb-24 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
+          <section className="relative md:min-h-[85vh] lg:min-h-[90vh] pt-32 pb-12 md:pt-32 md:pb-20 lg:pt-36 lg:pb-24 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
             <div className="container mx-auto px-6 lg:px-10">
               <div className="max-w-7xl mx-auto">
 
@@ -116,7 +116,7 @@ export default function Home() {
                   {/* Text content — desktop left, mobile first */}
                   <div className="order-1 lg:order-1 flex-1 text-center lg:text-left lg:pt-6">
                     <motion.h1
-                      className="text-3xl md:text-5xl lg:text-[3.75rem] xl:text-[4.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-8 md:mb-14 lg:mb-20"
+                      className="text-[2.25rem] md:text-5xl lg:text-[3.75rem] xl:text-[4.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-8 md:mb-14 lg:mb-20"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
