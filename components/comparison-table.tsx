@@ -37,7 +37,7 @@ export function ComparisonTable() {
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-4 text-white leading-[1.1]">
               Clarity before commitment.<br />
               Confidence before booking.<br />
-              <span className="text-[#0fbcb0]">No pressure.</span>
+              <span className="text-[#0fbcb0]">Peace of mind.</span>
             </h2>
 
             <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
