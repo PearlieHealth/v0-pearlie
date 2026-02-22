@@ -146,7 +146,7 @@ export default function Home() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
                     >
-                      Matching you with carefully reviewed clinics based on your needs, preferences, and timing — so you can choose with confidence.
+                      Matching you with carefully reviewed clinics based on your Needs, Preferences, and Timing NOT just Location — so you can choose with confidence.
                     </motion.p>
 
                     <motion.div
