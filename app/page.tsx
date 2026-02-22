@@ -167,6 +167,27 @@ export default function Home() {
     }
   }, [])
 
+  // iOS Safari: resume video on return from background.
+  // iOS pauses the video when backgrounded and sometimes doesn't auto-resume.
+  // Just call play() — no seeking, no load(), no layout changes.
+  const heroVideoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    if (window.innerWidth >= 1024) return
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return
+      const v = heroVideoRef.current
+      if (!v || v.ended) return
+      v.play().catch(() => {})
+    }
+    document.addEventListener("visibilitychange", onVisible)
+    window.addEventListener("pageshow", onVisible)
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible)
+      window.removeEventListener("pageshow", onVisible)
+    }
+  }, [])
+
   const handleFindClinicClick = useCallback(() => {
     const eventId = generateTikTokEventId()
     trackTikTokEvent("Search", { content_name: "find_my_clinic" }, eventId)
@@ -199,6 +220,7 @@ export default function Home() {
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
                   >
                     <video
+                      ref={heroVideoRef}
                       autoPlay
                       muted
                       playsInline
