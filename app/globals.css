@@ -180,11 +180,15 @@
 .marquee-track {
   animation: marquee-scroll var(--marquee-speed, 30s) linear infinite;
   width: max-content;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .marquee-track-reverse {
   animation: marquee-scroll-reverse var(--marquee-speed, 30s) linear infinite;
   width: max-content;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 /* Vertical scrolling marquee (clinic photos) */

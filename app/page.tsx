@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, RotateCcw, Search } from "lucide-react"
+import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, RotateCcw, Search, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import Image from "next/image"
@@ -23,12 +23,12 @@ const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREA
 
 const marqueeItems = [
   { text: "Trusted UK Clinics", icon: <Shield className="w-3.5 h-3.5" /> },
-  { text: "Free To Use", icon: <Sparkles className="w-3.5 h-3.5" /> },
-  { text: "Independent", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
-  { text: "Verified Dental Practices", icon: <Heart className="w-3.5 h-3.5" /> },
+  { text: "Free to Use", icon: <Sparkles className="w-3.5 h-3.5" /> },
+  { text: "Independent Platform", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+  { text: "Live Chat with Clinics", icon: <MessageCircle className="w-3.5 h-3.5" /> },
+  { text: "Book Directly Online", icon: <CalendarCheck className="w-3.5 h-3.5" /> },
 ]
 
-const rotatingWords = ["right", "easy", "simple", "clear", "effortless"]
 
 
 interface LastMatch {
@@ -88,7 +88,7 @@ function PatientExperiences() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="py-16 md:py-28 lg:py-32 bg-[#f8f7f1] overflow-hidden">
+    <section ref={sectionRef} className="py-16 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32 bg-[#f8f7f1] overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
@@ -167,18 +167,51 @@ export default function Home() {
     }
   }, [])
 
+  // iOS Safari: resume video on return from background.
+  // iOS pauses the video when backgrounded and sometimes doesn't auto-resume.
+  // Tries play() automatically; if that fails, shows a subtle "Tap to resume" overlay.
+  const heroVideoRef = useRef<HTMLVideoElement>(null)
+  const [showResumeHint, setShowResumeHint] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === "undefined" || window.innerWidth >= 1024) return
+    const v = heroVideoRef.current
+    if (!v) return
+
+    const hideHint = () => setShowResumeHint(false)
+
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return
+      if (!v || v.ended) return
+      // Try auto-resuming; if blocked, show tap hint
+      v.play().then(hideHint).catch(() => {
+        if (!v.ended) setShowResumeHint(true)
+      })
+    }
+
+    // Hide hint whenever playback actually starts
+    v.addEventListener("playing", hideHint)
+    document.addEventListener("visibilitychange", onVisible)
+    window.addEventListener("pageshow", onVisible)
+    return () => {
+      v.removeEventListener("playing", hideHint)
+      document.removeEventListener("visibilitychange", onVisible)
+      window.removeEventListener("pageshow", onVisible)
+    }
+  }, [])
+
+  const handleHeroVideoTap = useCallback(() => {
+    const v = heroVideoRef.current
+    if (!v) return
+    if (v.ended) return // already finished — stay on last frame
+    v.play().catch(() => {})
+    setShowResumeHint(false)
+  }, [])
+
   const handleFindClinicClick = useCallback(() => {
     const eventId = generateTikTokEventId()
     trackTikTokEvent("Search", { content_name: "find_my_clinic" }, eventId)
     trackTikTokServerRelay("Search", { event_id: eventId, properties: { content_name: "find_my_clinic" } })
-  }, [])
-
-  const [wordIndex, setWordIndex] = useState(0)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setWordIndex((i) => (i + 1) % rotatingWords.length)
-    }, 2500)
-    return () => clearInterval(interval)
   }, [])
 
   return (
@@ -192,64 +225,61 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative md:min-h-[85vh] lg:min-h-[90vh] pt-32 pb-12 md:pt-32 md:pb-20 lg:pt-36 lg:pb-24 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
-            <div className="container mx-auto px-6 lg:px-10">
-              <div className="max-w-7xl mx-auto">
+          <section className="relative md:min-h-[70vh] lg:min-h-[100vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:flex lg:flex-col lg:pt-20 lg:pb-0 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
+            <div className="px-6 md:px-14 lg:flex-1 lg:flex lg:items-center">
+              <div className="max-w-7xl lg:w-full">
 
                 {/* Desktop: Text LEFT, Video RIGHT */}
-                <div className="flex flex-col lg:flex-row items-start gap-8 md:gap-14 lg:gap-20">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8 md:gap-14 lg:gap-20">
 
                   {/* Video — desktop right, mobile below text */}
                   <motion.div
-                    className="order-2 lg:order-2 flex-1 w-full max-w-xs md:max-w-md lg:max-w-[90%] mx-auto lg:mx-0"
+                    className="order-2 lg:order-2 flex-1 w-full max-w-[17rem] md:max-w-[24rem] lg:max-w-[78%] mx-auto lg:mx-0 lg:ml-auto"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
                   >
-                    <video
-                      autoPlay
-                      muted
-                      playsInline
-                      className="w-full h-auto rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] scale-x-[-1]"
-                    >
-                      <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
-                    </video>
+                    {/* relative wrapper for tap overlay — no layout impact */}
+                    <div className="relative" onClick={handleHeroVideoTap}>
+                      <video
+                        ref={heroVideoRef}
+                        autoPlay
+                        muted
+                        playsInline
+                        className="w-full h-auto rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] scale-x-[-1]"
+                      >
+                        <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
+                      </video>
+                      {/* Subtle resume hint — mobile only, shown when video is stuck */}
+                      {showResumeHint && (
+                        <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-black/10 lg:hidden">
+                          <span className="text-white/90 text-sm font-medium px-4 py-2 rounded-full bg-black/30 backdrop-blur-sm">
+                            Tap to resume
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </motion.div>
 
                   {/* Text content — desktop left, mobile first */}
-                  <div className="order-1 lg:order-1 flex-1 text-center lg:text-left lg:pt-6">
+                  <div className="order-1 lg:order-1 flex-1 text-center lg:text-left">
                     <motion.h1
-                      className="text-[2.25rem] md:text-5xl lg:text-[3.75rem] xl:text-[4.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-8 md:mb-14 lg:mb-20"
+                      className="text-[clamp(1.65rem,6.8vw,2.3rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-black mb-8 md:mb-14 lg:mb-24 -mx-2 md:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
                     >
-                      Where finding a dentist finally feels{" "}
-                      <span className="inline-flex relative overflow-hidden align-baseline" style={{ height: "1em", verticalAlign: "baseline" }}>
-                        {/* Invisible sizer to hold width of current word */}
-                        <span className="invisible">{rotatingWords[wordIndex]}</span>
-                        <AnimatePresence mode="wait">
-                          <motion.span
-                            key={rotatingWords[wordIndex]}
-                            className="absolute left-0 top-0 text-[#0fbcb0]"
-                            initial={{ y: "100%", opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: "-100%", opacity: 0 }}
-                            transition={{ duration: 0.4, ease: "easeInOut" }}
-                          >
-                            {rotatingWords[wordIndex]}
-                          </motion.span>
-                        </AnimatePresence>
-                      </span>
+                      <span className="block whitespace-nowrap">Find the <span className="text-[#0fbcb0]">right</span> dentist.</span>
+                      <span className="block whitespace-nowrap mt-1 md:mt-2">Not just the closest one.</span>
                     </motion.h1>
 
                     <motion.p
-                      className="text-[15px] md:text-lg text-[#666] mb-5 md:mb-6 leading-[1.5] max-w-lg mx-auto lg:mx-0"
+                      className="text-[15px] md:text-lg text-black mb-5 md:mb-6 lg:mb-8 leading-[1.5] max-w-lg mx-auto lg:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
                     >
-                      Matching you with carefully reviewed clinics based on your Needs, Preferences, and Timing NOT just Location — so you can choose with confidence.
+                      Matching you with carefully reviewed clinics based on your budget, needs, preferences, and timing — so you can choose with confidence.
                     </motion.p>
 
                     <motion.div
@@ -258,7 +288,7 @@ export default function Home() {
                       transition={{ duration: 0.8, delay: 0.3 }}
                     >
                       {lastMatch ? (
-                        <div className="flex flex-col justify-center lg:justify-start gap-2 md:gap-3 max-w-md">
+                        <div className="flex flex-col lg:flex-row justify-center lg:justify-start gap-2 md:gap-3 max-w-md lg:max-w-none">
                           <Link
                             href={`/match/${lastMatch.matchId}`}
                             className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
@@ -267,8 +297,8 @@ export default function Home() {
                               <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-[#0fbcb0]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm md:text-[15px] font-semibold text-[#3d3838]">Return to your matches</p>
-                              <p className="text-xs text-[#666] mt-0.5 leading-snug">View the clinics we matched you with</p>
+                              <p className="text-sm md:text-[15px] font-semibold text-black">Return to your matches</p>
+                              <p className="text-xs text-black mt-0.5 leading-snug">View the clinics we matched you with</p>
                             </div>
                             <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
                           </Link>
@@ -280,8 +310,8 @@ export default function Home() {
                               <Search className="w-4 h-4 md:w-5 md:h-5 text-[#004443]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm md:text-[15px] font-semibold text-[#3d3838]">Start a new search</p>
-                              <p className="text-xs text-[#666] mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
+                              <p className="text-sm md:text-[15px] font-semibold text-black">Start a new search</p>
+                              <p className="text-xs text-black mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
                             </div>
                             <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
                           </Link>
@@ -303,7 +333,7 @@ export default function Home() {
                             onClick={() => {
                               document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
                             }}
-                            className="px-4 md:px-6 py-1.5 md:py-2.5 h-auto rounded-full font-heading font-normal text-sm md:text-[15px] text-[#555] hover:text-[#3d3838] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                            className="px-4 md:px-6 py-1.5 md:py-2.5 h-auto rounded-full font-heading font-normal text-sm md:text-[15px] text-black hover:text-black border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
                           >
                             How it works
                           </button>
@@ -321,26 +351,26 @@ export default function Home() {
           <ScrollingMarquee items={marqueeItems} speed={35} />
 
           {/* How it works section */}
-          <section id="how-it-works" className="py-20 md:py-32 lg:py-36 bg-white relative overflow-hidden">
+          <section id="how-it-works" className="py-16 md:pt-8 md:pb-11 lg:pt-10 lg:pb-13 bg-white relative overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-7xl mx-auto">
                 {/* Section header */}
-                <div className="text-center mb-16 md:mb-24">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.5rem] font-heading font-bold tracking-[-0.03em] text-[#004443]">
+                <div className="text-center mb-12 md:mb-8">
+                  <h2 className="text-[2rem] sm:text-[2.6rem] md:text-[2.6rem] lg:text-[3.25rem] font-heading font-bold tracking-[-0.03em] text-[#004443]">
                     How It Works
                   </h2>
                 </div>
 
                 {/* Step 1 - Image Left, Text Right */}
-                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 mb-20 md:mb-32">
+                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8 mb-14 md:mb-10">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-end">
-                    <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
+                    <div className="relative w-full max-w-[280px] lg:max-w-[230px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
                       {/* Step number */}
-                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-9xl font-bold text-[#004443]/20 select-none leading-none z-0">01</span>
+                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">01</span>
                       {/* Phone mockup with form illustration */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
-                        <div className="bg-white rounded-2xl p-5 shadow-sm">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-4 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                        <div className="bg-white rounded-2xl p-4 lg:p-3 shadow-sm">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center">
                               <Sparkles className="w-5 h-5 text-primary" />
@@ -371,26 +401,25 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
-                      Tell us what matters to you
+                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-[#004443]">
+                      Tell us what you're looking for
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
-                      Answer a few quick questions about what you're looking for and what's important to you, at your own
-                      pace.
+                    <p className="text-base md:text-[0.9rem] text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
+                      Answer a few simple questions about your treatment, budget, location, and preferences. It only takes a minute.
                     </p>
                   </div>
                 </div>
 
                 {/* Step 2 - Text Left, Image Right */}
-                <div className="flex flex-col lg:flex-row-reverse items-center gap-8 lg:gap-16 mb-20 md:mb-32">
+                <div className="flex flex-col lg:flex-row-reverse items-center gap-6 lg:gap-8 mb-14 md:mb-10">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-start">
-                    <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
+                    <div className="relative w-full max-w-[280px] lg:max-w-[230px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
                       {/* Step number */}
-                      <span className="absolute -top-6 -right-2 lg:-right-8 text-8xl lg:text-9xl font-bold text-[#004443]/20 select-none leading-none z-0">02</span>
+                      <span className="absolute -top-6 -right-2 lg:-right-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">02</span>
                       {/* Phone mockup with clinic cards */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
-                        <div className="space-y-4">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                        <div className="space-y-4 lg:space-y-2">
                           {/* Clinic card 1 */}
                           <div className="bg-white rounded-2xl p-4 shadow-sm border border-border/60">
                             <div className="flex items-start gap-3">
@@ -439,26 +468,25 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
-                      We recommend carefully matched clinics
+                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-[#004443]">
+                      We match you with the right clinics
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
-                      Based on your answers, we'll recommend trusted clinics near you that fit your preferences — so
-                      you're not overwhelmed with options.
+                    <p className="text-base md:text-[0.9rem] text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
+                      Based on your answers, we suggest carefully reviewed clinics in London that meet our standards for quality and transparency — so you're not overwhelmed with endless searching.
                     </p>
                   </div>
                 </div>
 
                 {/* Step 3 - Image Left, Text Right */}
-                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-end">
-                    <div className="relative w-full max-w-[320px] lg:max-w-[380px]">
+                    <div className="relative w-full max-w-[280px] lg:max-w-[230px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
                       {/* Step number */}
-                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-9xl font-bold text-[#004443]/20 select-none leading-none z-0">03</span>
+                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">03</span>
                       {/* Phone mockup with booking */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
-                        <div className="bg-white rounded-2xl p-5 shadow-sm">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                        <div className="bg-white rounded-2xl p-5 lg:p-3 shadow-sm">
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
                               <CalendarCheck className="w-5 h-5 text-primary" />
@@ -496,12 +524,11 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
-                      You choose if and when to book
+                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-[#004443]">
+                      Compare. Chat. Book.
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
-                      Review your options, explore each clinic, <span className="text-[#0fbcb0] font-medium">live chat and book directly</span> with the one that feels right
-                      for you. No pressure. No obligation.
+                    <p className="text-base md:text-[0.9rem] text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
+                      Compare clinics side-by-side, chat directly with them, and book online when you're ready. All in one place.
                     </p>
                   </div>
                 </div>
@@ -510,7 +537,7 @@ export default function Home() {
           </section>
 
           {/* Trusted clinics section */}
-          <section className="py-16 md:py-28 lg:py-32">
+          <section className="py-16 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-7xl mx-auto">
                 <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
@@ -524,7 +551,7 @@ export default function Home() {
                       Quality &amp; Trust
                     </span>
 
-                    <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-foreground leading-[1.05]">
+                    <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443] leading-[1.05]">
                       We shortlist.<br />You decide.<br /><span className="text-[#0fbcb0]">With confidence.</span>
                     </h2>
 
@@ -568,7 +595,7 @@ export default function Home() {
           <PatientExperiences />
 
           {/* CTA section - dark teal background */}
-          <section className="py-24 md:py-32 lg:py-36 bg-[#004443] text-white relative overflow-hidden">
+          <section className="py-24 md:pt-24 md:pb-32 lg:pt-28 lg:pb-36 bg-[#004443] text-white relative overflow-hidden">
             {/* Decorative background blobs */}
             <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-white/[0.03] blur-3xl pointer-events-none" />
             <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-[#0fbcb0]/[0.08] blur-2xl pointer-events-none" />

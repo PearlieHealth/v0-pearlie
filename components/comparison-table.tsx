@@ -4,13 +4,14 @@ import { Check, X, Sparkles, Clock, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-const withPearlieFeatures = [
+const withPearlieFeatures: Array<string | { text: string; href: string }> = [
   "Time to think before deciding",
   "Know what matters to you first",
   "Matched to the right clinic",
   "Compare options side-by-side",
   "Chat directly with clinics",
   "Book simply, when ready",
+  { text: "Confidence with the Pearlie Guarantee", href: "/about#pearlie-guarantee" },
 ]
 
 const traditionalFeatures = [
@@ -70,14 +71,25 @@ export function ComparisonTable() {
 
               {/* Features */}
               <ul className="space-y-4">
-                {withPearlieFeatures.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                      <Check className="w-4 h-4 text-emerald-400" strokeWidth={3} />
-                    </div>
-                    <span className="text-white font-medium">{feature}</span>
-                  </li>
-                ))}
+                {withPearlieFeatures.map((feature, index) => {
+                  const isLink = typeof feature === "object"
+                  const text = isLink ? feature.text : feature
+                  return (
+                    <li key={index} className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                        <Check className="w-4 h-4 text-emerald-400" strokeWidth={3} />
+                      </div>
+                      {isLink ? (
+                        <Link href={feature.href} className="text-white font-medium hover:underline inline-flex items-center gap-1.5">
+                          {text}
+                          <Info className="w-4 h-4 text-white/50" />
+                        </Link>
+                      ) : (
+                        <span className="text-white font-medium">{text}</span>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
 
