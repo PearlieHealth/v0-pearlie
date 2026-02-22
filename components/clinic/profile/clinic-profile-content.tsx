@@ -66,6 +66,7 @@ export function ClinicProfileContent() {
   const [isBookingRequesting, setIsBookingRequesting] = useState(false)
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
+  const [appointmentRequestedAt, setAppointmentRequestedAt] = useState<string | null>(null)
 
   const isChatOpen = searchParams?.get("chat") === "open"
 
@@ -202,6 +203,7 @@ export function ClinicProfileContent() {
           const data = await res.json()
           if (data.appointmentRequestedAt) {
             setBookingConfirmed(true)
+            setAppointmentRequestedAt(data.appointmentRequestedAt)
           }
         }
       } catch {
@@ -275,6 +277,7 @@ export function ClinicProfileContent() {
       if (response.status === 409) {
         // Already requested — just mark as confirmed
         setBookingConfirmed(true)
+        setAppointmentRequestedAt(new Date().toISOString())
         setPendingAppointment(null)
         setShowChat(true)
         setShowMobileChat(true)
@@ -287,6 +290,7 @@ export function ClinicProfileContent() {
       }
 
       setBookingConfirmed(true)
+      setAppointmentRequestedAt(new Date().toISOString())
       setPendingAppointment(null)
 
       // Open chat so user sees the appointment message
@@ -617,11 +621,16 @@ export function ClinicProfileContent() {
 
                     {/* Success banner */}
                     {bookingConfirmed && (
-                      <div className="rounded-xl bg-green-50 border border-green-200 p-3 flex items-center gap-2.5">
-                        <CheckCircle2 className="w-4.5 h-4.5 text-green-600 flex-shrink-0" />
+                      <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 flex items-start gap-2.5">
+                        <CalendarCheck className="w-[18px] h-[18px] text-blue-600 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-sm font-medium text-green-700">Appointment request sent</p>
-                          <p className="text-xs text-green-600/70">
+                          <p className="text-sm font-medium text-blue-700">Appointment requested</p>
+                          {appointmentRequestedAt && (
+                            <p className="text-xs text-blue-600/70">
+                              Requested {new Date(appointmentRequestedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             The clinic will get back to you shortly
                           </p>
                         </div>
@@ -845,12 +854,18 @@ export function ClinicProfileContent() {
 
       {/* Mobile sticky CTA - success state with message button */}
       {bookingConfirmed && !showMobileChat && !showMobilePicker && (
-        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-green-50 border-t border-green-200 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50">
+        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-blue-50 border-t border-blue-200 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50">
           <div className="flex items-center gap-2.5 max-w-lg mx-auto mb-3">
-            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+            <CalendarCheck className="w-5 h-5 text-blue-600 flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium text-green-700">Appointment request sent</p>
-              <p className="text-xs text-green-600/70">The clinic will get back to you shortly</p>
+              <p className="text-sm font-medium text-blue-700">Appointment requested</p>
+              {appointmentRequestedAt ? (
+                <p className="text-xs text-blue-600/70">
+                  Requested {new Date(appointmentRequestedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">The clinic will get back to you shortly</p>
+              )}
             </div>
           </div>
           <div className="max-w-lg mx-auto">

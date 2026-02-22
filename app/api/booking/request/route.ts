@@ -67,6 +67,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Lead not found" }, { status: 404 })
     }
 
+    // Require email verification before allowing appointment requests
+    if (!lead.is_verified) {
+      return NextResponse.json(
+        { error: "Please verify your email before requesting appointments" },
+        { status: 403 }
+      )
+    }
+
     // Generate booking token for confirm/decline links
     const bookingToken = randomBytes(16).toString("hex")
     
@@ -139,13 +147,20 @@ export async function POST(request: Request) {
 
     // Auto-create a chat conversation with the booking request so both patient
     // (in their dashboard) and clinic (in their inbox) can see and continue it.
-    const timeLabelForMsg = HOURLY_SLOTS?.find((s: { key: string; label: string }) => s.key === time)?.label || time
-    const dateLabelForMsg = new Date(date).toLocaleDateString("en-GB", {
+    const timeLabel = HOURLY_SLOTS.find((s: { key: string; label: string }) => s.key === time)?.label || time
+    const formattedDate = new Date(date + "T00:00:00").toLocaleDateString("en-GB", {
       weekday: "long",
       day: "numeric",
       month: "long",
       year: "numeric",
     })
+    const bookingMessageContent = `Hello, I would like to request an appointment at ${clinic.name} on ${formattedDate} at ${timeLabel}`
+
+    // Hoist conversationId, tokenHash, and bookingMessage so they're accessible in the final response
+    let conversationId: string | null = null
+    let tokenHash: string | null = null
+    let bookingMessage: { id: string; content: string; sender_type: string; status: string; created_at: string } | null = null
+    let botMessages: { id: string; content: string; sender_type: string; status?: string; created_at: string }[] = []
 
     try {
       // Get or create conversation
@@ -156,7 +171,7 @@ export async function POST(request: Request) {
         .eq("clinic_id", clinicId)
         .limit(1)
 
-      let conversationId: string | null = existingConvs?.[0]?.id || null
+      conversationId = existingConvs?.[0]?.id || null
       let currentUnreadCount = existingConvs?.[0]?.unread_count_clinic || 0
 
       if (!conversationId) {
@@ -223,8 +238,26 @@ export async function POST(request: Request) {
           .single()
 
         if (convCheck?.appointment_requested_at) {
+          // Generate a fresh magic link token for auto-login on the confirm page
+          let duplicateTokenHash: string | null = null
+          try {
+            const { data: linkData } = await supabase.auth.admin.generateLink({
+              type: "magiclink",
+              email: lead.email,
+              options: { redirectTo: `${process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"}/auth/callback?next=${encodeURIComponent("/patient/dashboard")}` },
+            })
+            if (linkData?.properties?.hashed_token) {
+              duplicateTokenHash = linkData.properties.hashed_token
+            }
+          } catch {}
+
           return NextResponse.json(
-            { error: "An appointment request has already been sent for this clinic." },
+            {
+              error: "An appointment request has already been sent for this clinic.",
+              alreadyRequested: true,
+              conversationId,
+              tokenHash: duplicateTokenHash,
+            },
             { status: 409 }
           )
         }
@@ -232,16 +265,38 @@ export async function POST(request: Request) {
 
       if (conversationId) {
         // Insert the booking request as a chat message
-        await supabase.from("messages").insert({
+        const { data: insertedMsg, error: msgError } = await supabase.from("messages").insert({
           conversation_id: conversationId,
           sender_type: "patient",
-          content: `Appointment request\nDate: ${dateLabelForMsg}\nTime: ${timeLabelForMsg}\n\nI'd like to request an appointment at this time. Looking forward to hearing from you!`,
-          sent_via: "booking",
+          content: bookingMessageContent,
+          sent_via: "chat",
           message_type: "booking-request",
           status: "sent",
-        })
+        }).select("id, content, sender_type, status, created_at").single()
 
-        // Update conversation unread flags and mark appointment as requested
+        if (msgError) {
+          console.error("[booking-request] Failed to insert booking message:", msgError)
+        } else if (insertedMsg) {
+          bookingMessage = insertedMsg
+        }
+
+        // Insert bot acknowledgement so the patient knows why there's no immediate reply
+        const botAckContent = `Thanks for your appointment request! 🗓️\n\n${clinic.name} will review your request for ${formattedDate} at ${timeLabel} and get back to you shortly.\n\nIn the meantime, feel free to send any questions or additional details here.`
+        const { data: botMsg, error: botMsgError } = await supabase.from("messages").insert({
+          conversation_id: conversationId,
+          sender_type: "bot",
+          content: botAckContent,
+          sent_via: "chat",
+          message_type: "bot-greeting",
+        }).select("id, content, sender_type, created_at").single()
+
+        if (botMsgError) {
+          console.error("[booking-request] Failed to insert bot ack message:", botMsgError)
+        } else if (botMsg) {
+          botMessages.push(botMsg)
+        }
+
+        // Update conversation unread flags, mark appointment as requested, and flag bot as greeted
         await supabase
           .from("conversations")
           .update({
@@ -249,6 +304,7 @@ export async function POST(request: Request) {
             unread_count_clinic: currentUnreadCount + 1,
             last_message_at: new Date().toISOString(),
             appointment_requested_at: new Date().toISOString(),
+            bot_greeted: true,
           })
           .eq("id", conversationId)
       }
@@ -285,6 +341,10 @@ export async function POST(request: Request) {
         })
         if (linkData?.properties?.action_link) {
           viewDashboardUrl = linkData.properties.action_link
+          // Capture hashed_token for client-side auto-login on the confirm page
+          if (linkData.properties.hashed_token) {
+            tokenHash = linkData.properties.hashed_token
+          }
           // Ensure redirect_to points to our app URL (Supabase may use Site URL)
           try {
             const linkUrl = new URL(viewDashboardUrl)
@@ -361,7 +421,13 @@ export async function POST(request: Request) {
       },
     }).catch(() => {})
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({
+      success: true,
+      conversationId: conversationId ?? null,
+      tokenHash: tokenHash ?? null,
+      bookingMessage: bookingMessage ?? null,
+      botMessages,
+    })
   } catch (error) {
     console.error("[booking-request] Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

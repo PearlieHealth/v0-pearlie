@@ -192,11 +192,33 @@ export async function GET(request: NextRequest) {
       clinicTyping = typingAge < 10000
     }
 
+    // Fetch booking details from leads table for this lead+clinic pair
+    let bookingDate: string | null = null
+    let bookingTime: string | null = null
+    let bookingStatus: string | null = null
+
+    if (conversation.appointment_requested_at) {
+      const { data: leadBooking } = await supabase
+        .from("leads")
+        .select("booking_date, booking_time, booking_status, booking_clinic_id")
+        .eq("id", leadId)
+        .maybeSingle()
+
+      if (leadBooking?.booking_clinic_id === clinicId) {
+        bookingDate = leadBooking.booking_date || null
+        bookingTime = leadBooking.booking_time || null
+        bookingStatus = leadBooking.booking_status || "pending"
+      }
+    }
+
     return NextResponse.json({
       messages: allMessages,
       conversationId: conversation.id,
       clinicTyping,
       appointmentRequestedAt: conversation.appointment_requested_at || null,
+      bookingDate,
+      bookingTime,
+      bookingStatus,
     })
   } catch (error) {
     console.error("[Chat] Unexpected error:", error)

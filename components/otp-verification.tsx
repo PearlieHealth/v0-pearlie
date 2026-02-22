@@ -104,6 +104,9 @@ export function OTPVerification({ leadId, email, onVerified, onBack }: OTPVerifi
       // patient is fully logged in after OTP — no separate login step needed.
       const token = data.sessionToken || data.tokenHash
       let sessionEstablished = false
+      if (data.sessionFailed) {
+        console.warn("[OTP] Server could not generate session token — patient is verified but session not established")
+      }
       if (token) {
         try {
           const supabase = createClient()
