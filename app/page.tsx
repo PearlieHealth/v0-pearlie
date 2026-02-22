@@ -193,8 +193,8 @@ export default function Home() {
 
           {/* Hero section — calm, split layout */}
           <section className="relative md:min-h-[85vh] lg:min-h-[90vh] pt-32 pb-12 md:pt-32 md:pb-20 lg:pt-36 lg:pb-24 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
-            <div className="container mx-auto px-6 lg:px-10">
-              <div className="max-w-7xl mx-auto">
+            <div className="px-6 md:px-14">
+              <div className="max-w-7xl">
 
                 {/* Desktop: Text LEFT, Video RIGHT */}
                 <div className="flex flex-col lg:flex-row items-start gap-8 md:gap-14 lg:gap-20">
@@ -258,7 +258,7 @@ export default function Home() {
                       transition={{ duration: 0.8, delay: 0.3 }}
                     >
                       {lastMatch ? (
-                        <div className="flex flex-col justify-center lg:justify-start gap-2 md:gap-3 max-w-md">
+                        <div className="flex flex-col lg:flex-row justify-center lg:justify-start gap-2 md:gap-3 max-w-md lg:max-w-none">
                           <Link
                             href={`/match/${lastMatch.matchId}`}
                             className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
