@@ -81,7 +81,7 @@ function generateTestEmailHTML(
       <head>
         <meta charset="utf-8">
         <style>
-          body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #1f2937; }
+          body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; }
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
           .test-banner { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: 600; }
           .header { background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }

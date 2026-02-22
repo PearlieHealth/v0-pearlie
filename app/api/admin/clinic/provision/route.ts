@@ -1,10 +1,9 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
-import { generateInviteEmailHTML } from "@/lib/email-templates"
 import { verifyAdminAuth } from "@/lib/admin-auth"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 
 /**
  * Clinic Provisioning API
@@ -127,22 +126,24 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
     const inviteUrl = `${baseUrl}/clinic/accept-invite?token=${inviteToken}`
 
-    // Send invite email
+    // Send invite email via centralized email system
     let emailSent = false
     try {
-      const result = await sendEmailWithRetry({
-        from: EMAIL_FROM.CLINICS,
+      const result = await sendRegisteredEmail({
+        type: EMAIL_TYPE.CLINIC_PROVISION_INVITE,
         to: primary_contact_email,
-        subject: `You're invited to join ${clinic_name} on Pearlie`,
-        html: generateInviteEmailHTML({
+        data: {
           clinicName: clinic_name,
           contactName: primary_contact_name,
           inviteUrl,
           expiresAt,
-        }),
+          _clinicId: clinic_id,
+          _email: primary_contact_email,
+        },
+        clinicId: clinic_id,
       })
 
-      if (!result.success) {
+      if (!result.success && !result.skipped) {
         console.error("[v0] Failed to send invite email:", result.error)
       } else {
         emailSent = true

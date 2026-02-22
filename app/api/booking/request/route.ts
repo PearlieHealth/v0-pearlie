@@ -369,7 +369,7 @@ export async function POST(request: Request) {
         subject: `Appointment request sent to ${clinic.name}`,
         headers: unsubHeaders,
         html: `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+          <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
             <div style="text-align: center; margin-bottom: 32px;">
               <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Appointment Request Sent</h1>
             </div>
@@ -391,7 +391,7 @@ export async function POST(request: Request) {
               </p>
             </div>
             <div style="text-align: center; margin-bottom: 24px;">
-              <a href="${viewDashboardUrl}" style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
+              <a href="${viewDashboardUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
                 View your dashboard
               </a>
             </div>

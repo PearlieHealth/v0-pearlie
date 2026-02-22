@@ -3,9 +3,9 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getBotClinicReplied } from "@/lib/chat-bot"
 import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 import { escapeHtml } from "@/lib/escape-html"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
-import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders, isUnsubscribed } from "@/lib/unsubscribe"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
+import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
 import { createRateLimiter } from "@/lib/rate-limit"
 
 // 20 messages per clinic per minute
@@ -180,81 +180,62 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (lead?.email && clinic) {
-          const unsubscribed = await isUnsubscribed(lead.email, "patient_notifications")
-          if (!unsubscribed) {
-            const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
-            const trimmedContent = content.trim()
-            const safeFirstName = lead.first_name ? ` ${escapeHtml(lead.first_name)}` : ""
-            const safeClinicName = escapeHtml(clinic.name)
-            const safeContent = escapeHtml(trimmedContent.substring(0, 500)) + (trimmedContent.length > 500 ? "..." : "")
-            const unsubFooter = generateUnsubscribeFooterHtml(
-              generateUnsubscribeHeaders(lead.email, "patient_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
-            )
+          const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+          const trimmedContent = content.trim()
+          const safeFirstName = lead.first_name ? escapeHtml(lead.first_name) : ""
+          const safeClinicName = escapeHtml(clinic.name)
+          const safeContent = escapeHtml(trimmedContent.substring(0, 500)) + (trimmedContent.length > 500 ? "..." : "")
+          const unsubFooter = generateUnsubscribeFooterHtml(
+            generateUnsubscribeHeaders(lead.email, "patient_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
+          )
 
-            // Generate a magic link so the patient is auto-logged in when they click
-            const messagesPath = `/patient/messages?conversationId=${conversationId}`
-            const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(messagesPath)}`
-            let viewReplyUrl = `${appUrl}${messagesPath}` // fallback: plain link
+          // Generate a magic link so the patient is auto-logged in when they click
+          const messagesPath = `/patient/messages?conversationId=${conversationId}`
+          const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(messagesPath)}`
+          let viewReplyUrl = `${appUrl}${messagesPath}` // fallback: plain link
 
-            try {
-              const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
-                type: "magiclink",
-                email: lead.email,
-                options: { redirectTo },
-              })
-              if (linkData?.properties?.action_link) {
-                viewReplyUrl = linkData.properties.action_link
-                // Ensure redirect_to points to our app URL (Supabase may use Site URL)
-                try {
-                  const linkUrl = new URL(viewReplyUrl)
-                  const currentRedirect = linkUrl.searchParams.get("redirect_to")
-                  if (currentRedirect) {
-                    const redirectHost = new URL(currentRedirect).hostname
-                    const appHost = new URL(appUrl).hostname
-                    if (redirectHost !== appHost) {
-                      linkUrl.searchParams.set("redirect_to", redirectTo)
-                      viewReplyUrl = linkUrl.toString()
-                    }
-                  }
-                } catch {}
-              }
-            } catch (linkErr) {
-              // Non-critical: fall back to plain URL (patient will need to log in manually)
-              console.warn("[Chat] Failed to generate magic link for patient notification:", linkErr)
-            }
-
-            await sendEmailWithRetry({
-              from: EMAIL_FROM.NOTIFICATIONS,
-              to: lead.email,
-              subject: `${clinic.name} has replied to your message`,
-              headers: generateUnsubscribeHeaders(lead.email, "patient_notifications"),
-              html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <div style="background-color: #0d9488; color: white; padding: 20px; text-align: center;">
-                    <h1 style="margin: 0;">You've Got a Reply!</h1>
-                  </div>
-                  <div style="padding: 30px; background-color: #f9fafb;">
-                    <p style="color: #374151; font-size: 16px;">
-                      Hi${safeFirstName}, <strong>${safeClinicName}</strong> has replied to your message:
-                    </p>
-                    <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0d9488;">
-                      <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${safeContent}</p>
-                    </div>
-                    <div style="text-align: center; margin-top: 30px;">
-                      <a href="${viewReplyUrl}"
-                         style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                        View &amp; Reply
-                      </a>
-                    </div>
-                  </div>
-                  <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
-                    <p>This is an automated message from Pearlie</p>
-                    ${unsubFooter}
-                  </div>
-                </div>
-              `,
+          try {
+            const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+              type: "magiclink",
+              email: lead.email,
+              options: { redirectTo },
             })
+            if (linkData?.properties?.action_link) {
+              viewReplyUrl = linkData.properties.action_link
+              // Ensure redirect_to points to our app URL (Supabase may use Site URL)
+              try {
+                const linkUrl = new URL(viewReplyUrl)
+                const currentRedirect = linkUrl.searchParams.get("redirect_to")
+                if (currentRedirect) {
+                  const redirectHost = new URL(currentRedirect).hostname
+                  const appHost = new URL(appUrl).hostname
+                  if (redirectHost !== appHost) {
+                    linkUrl.searchParams.set("redirect_to", redirectTo)
+                    viewReplyUrl = linkUrl.toString()
+                  }
+                }
+              } catch {}
+            }
+          } catch (linkErr) {
+            // Non-critical: fall back to plain URL (patient will need to log in manually)
+            console.warn("[Chat] Failed to generate magic link for patient notification:", linkErr)
           }
+
+          await sendRegisteredEmail({
+            type: EMAIL_TYPE.CLINIC_REPLY_TO_PATIENT,
+            to: lead.email,
+            data: {
+              patientFirstName: safeFirstName,
+              clinicName: safeClinicName,
+              messagePreview: safeContent,
+              viewReplyUrl,
+              unsubscribeFooterHtml: unsubFooter,
+              _conversationId: conversationId,
+            },
+            headers: generateUnsubscribeHeaders(lead.email, "patient_notifications"),
+            clinicId: clinicUser.clinic_id,
+            leadId: conversation.lead_id,
+          })
         }
       } catch (emailError) {
         // Don't fail the reply if email notification fails

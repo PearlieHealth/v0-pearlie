@@ -387,7 +387,7 @@ function sendEscalationEmail(
     to: clinicEmail,
     subject,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: ${isEmergency ? "#dc2626" : "#d97706"}; color: white; padding: 20px; text-align: center;">
           <h1 style="margin: 0;">${heading}</h1>
         </div>
@@ -400,7 +400,7 @@ function sendEscalationEmail(
           </div>` : ""}
           <div style="text-align: center; margin-top: 30px;">
             <a href="${inboxUrl}"
-               style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+               style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View in Inbox
             </a>
           </div>
