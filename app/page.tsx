@@ -189,7 +189,7 @@ export default function Home() {
               <div className="max-w-7xl lg:w-full">
 
                 {/* Desktop: Text LEFT, Video RIGHT */}
-                <div className="flex flex-col lg:flex-row items-start gap-8 md:gap-14 lg:gap-20">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8 md:gap-14 lg:gap-20">
 
                   {/* Video — desktop right, mobile below text */}
                   <motion.div
