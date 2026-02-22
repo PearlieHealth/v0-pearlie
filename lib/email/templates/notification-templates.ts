@@ -79,7 +79,7 @@ export function renderLeadActionEmail(data: LeadActionPayload): string {
   <head>
     <meta charset="utf-8">
     <style>
-      body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #1f2937; }
+      body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; }
       .container { max-width: 600px; margin: 0 auto; padding: 20px; }
       .header { background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
       .content { background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
@@ -281,7 +281,7 @@ export function renderBookingConfirmationEmail(data: BookingConfirmationPayload)
   <head>
     <meta charset="utf-8">
     <style>
-      body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #1f2937; }
+      body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; }
       .container { max-width: 600px; margin: 0 auto; padding: 20px; }
       .header { background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
       .content { background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
@@ -388,7 +388,7 @@ export interface ChatToClinicPayload {
 }
 
 export function renderChatToClinicEmail(data: ChatToClinicPayload): string {
-  return `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
   <div style="background-color: #0fbcb0; color: white; padding: 20px; text-align: center;">
     <h1 style="margin: 0;">New Patient Message</h1>
   </div>
@@ -428,7 +428,7 @@ export interface ClinicReplyToPatientPayload {
 export function renderClinicReplyToPatientEmail(data: ClinicReplyToPatientPayload): string {
   const safeFirstName = data.patientFirstName ? ` ${data.patientFirstName}` : ""
 
-  return `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
   <div style="background-color: #0fbcb0; color: white; padding: 20px; text-align: center;">
     <h1 style="margin: 0;">You've Got a Reply!</h1>
   </div>

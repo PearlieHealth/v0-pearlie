@@ -369,7 +369,7 @@ export async function POST(request: Request) {
         subject: `Appointment request sent to ${clinic.name}`,
         headers: unsubHeaders,
         html: `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+          <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
             <div style="text-align: center; margin-bottom: 32px;">
               <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Appointment Request Sent</h1>
             </div>

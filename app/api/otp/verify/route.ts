@@ -271,7 +271,7 @@ async function sendDirectLeadClinicNotification(
     to: recipientEmail,
     subject: `New enquiry from ${lead.first_name || "a patient"} ${lead.last_name || ""} via your profile`,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
           <h1 style="margin: 0; font-size: 20px;">New Direct Enquiry</h1>
           <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">A verified patient enquired from your profile</p>

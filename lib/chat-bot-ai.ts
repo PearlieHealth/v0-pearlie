@@ -387,7 +387,7 @@ function sendEscalationEmail(
     to: clinicEmail,
     subject,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: ${isEmergency ? "#dc2626" : "#d97706"}; color: white; padding: 20px; text-align: center;">
           <h1 style="margin: 0;">${heading}</h1>
         </div>

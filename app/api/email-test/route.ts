@@ -28,7 +28,7 @@ export async function GET() {
       to: testEmail,
       subject: "Pearlie Email Test",
       html: `
-        <div style="font-family: sans-serif; padding: 20px;">
+        <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; padding: 20px;">
           <h1>Email system is working!</h1>
           <p>This is a test email from Pearlie's notification system.</p>
           <p><strong>Time:</strong> ${new Date().toISOString()}</p>
