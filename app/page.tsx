@@ -261,26 +261,26 @@ export default function Home() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-center lg:justify-start gap-2 md:gap-3">
                           <Link
                             href={`/match/${lastMatch.matchId}`}
-                            className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                            className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] sm:flex-1"
                           >
                             <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
                               <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-[#0fbcb0]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[15px] font-semibold text-[#3d3838]">Return to your matches</p>
+                              <p className="text-sm md:text-[15px] font-semibold text-[#3d3838]">Return to your matches</p>
                               <p className="text-xs text-[#666] mt-0.5 leading-snug">View the clinics we matched you with</p>
                             </div>
                             <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
                           </Link>
                           <Link
                             href="/intake"
-                            className="group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                            className="group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] sm:flex-1"
                           >
                             <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#f8f7f1] flex items-center justify-center flex-shrink-0">
                               <Search className="w-4 h-4 md:w-5 md:h-5 text-[#004443]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[15px] font-semibold text-[#3d3838]">Start a new search</p>
+                              <p className="text-sm md:text-[15px] font-semibold text-[#3d3838]">Start a new search</p>
                               <p className="text-xs text-[#666] mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
                             </div>
                             <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
