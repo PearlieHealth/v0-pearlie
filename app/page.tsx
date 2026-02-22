@@ -122,13 +122,13 @@ export default function Home() {
                       transition={{ duration: 0.8, delay: 0.1 }}
                     >
                       Where finding a dentist finally feels{" "}
-                      <span className="inline-block relative overflow-hidden align-bottom" style={{ height: "1.15em" }}>
+                      <span className="inline-flex relative overflow-hidden align-baseline" style={{ height: "1em", verticalAlign: "baseline" }}>
                         {/* Invisible sizer to hold width of current word */}
                         <span className="invisible">{rotatingWords[wordIndex]}</span>
                         <AnimatePresence mode="wait">
                           <motion.span
                             key={rotatingWords[wordIndex]}
-                            className="absolute inset-0 text-[#0fbcb0]"
+                            className="absolute left-0 top-0 text-[#0fbcb0]"
                             initial={{ y: "100%", opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: "-100%", opacity: 0 }}
@@ -137,7 +137,7 @@ export default function Home() {
                             {rotatingWords[wordIndex]}
                           </motion.span>
                         </AnimatePresence>
-                      </span>.
+                      </span>
                     </motion.h1>
 
                     <motion.p
