@@ -417,7 +417,7 @@ export default function Home() {
                   {/* Content */}
                   <div className="lg:pl-4">
                     {/* Small accent label */}
-                    <span className="inline-block text-xs font-semibold tracking-[0.15em] uppercase text-[#0fbcb0] mb-4">
+                    <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443] mb-4">
                       Quality &amp; Trust
                     </span>
 
