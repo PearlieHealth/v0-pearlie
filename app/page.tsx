@@ -184,16 +184,16 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative md:min-h-[70vh] lg:min-h-[100vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:pt-32 lg:pb-10 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
-            <div className="px-6 md:px-14">
-              <div className="max-w-7xl">
+          <section className="relative md:min-h-[70vh] lg:min-h-[100vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:flex lg:flex-col lg:pt-0 lg:pb-0 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
+            <div className="px-6 md:px-14 lg:flex-1 lg:flex lg:items-center">
+              <div className="max-w-7xl lg:w-full">
 
                 {/* Desktop: Text LEFT, Video RIGHT */}
                 <div className="flex flex-col lg:flex-row items-start gap-8 md:gap-14 lg:gap-20">
 
                   {/* Video — desktop right, mobile below text */}
                   <motion.div
-                    className="order-2 lg:order-2 flex-1 w-full max-w-[17rem] md:max-w-[24rem] lg:max-w-[78%] mx-auto lg:mx-0 lg:ml-auto lg:-mt-[1rem]"
+                    className="order-2 lg:order-2 flex-1 w-full max-w-[17rem] md:max-w-[24rem] lg:max-w-[78%] mx-auto lg:mx-0 lg:ml-auto"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
@@ -209,7 +209,7 @@ export default function Home() {
                   </motion.div>
 
                   {/* Text content — desktop left, mobile first */}
-                  <div className="order-1 lg:order-1 flex-1 text-center lg:text-left lg:pt-6">
+                  <div className="order-1 lg:order-1 flex-1 text-center lg:text-left">
                     <motion.h1
                       className="text-[clamp(1.65rem,6.8vw,2.3rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-black mb-8 md:mb-14 lg:mb-24 -mx-2 md:mx-0"
                       initial={{ opacity: 0, y: 16 }}
