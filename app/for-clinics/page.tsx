@@ -27,7 +27,7 @@ export default function ForClinicsPage() {
             </p>
 
             {/* Headline - max 10 words, strong, decisive */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-medium tracking-tight text-foreground mb-6 leading-[1.1]">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-medium tracking-tighter text-foreground mb-6 leading-[1.1]">
               <span className="block">Better-fit patients.</span>
               <span className="block">Higher conversion.</span>
             </h1>
@@ -273,7 +273,7 @@ export default function ForClinicsPage() {
       <section className="py-24 bg-secondary/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl sm:text-4xl font-heading font-medium tracking-tight text-foreground mb-4">
+            <h2 className="text-3xl sm:text-4xl font-heading font-medium tracking-tighter text-foreground mb-4">
               This is how modern clinics grow.
             </h2>
             <p className="text-lg text-muted-foreground mb-10">Not more leads. Better decisions.</p>
