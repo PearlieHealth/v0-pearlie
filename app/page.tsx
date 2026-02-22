@@ -371,7 +371,7 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
+                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-[#004443]">
                       Tell us what matters to you
                     </h3>
                     <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
@@ -439,7 +439,7 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
+                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-[#004443]">
                       We recommend carefully matched clinics
                     </h3>
                     <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
@@ -496,7 +496,7 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
+                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-[#004443]">
                       You choose if and when to book
                     </h3>
                     <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
@@ -524,7 +524,7 @@ export default function Home() {
                       Quality &amp; Trust
                     </span>
 
-                    <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-foreground leading-[1.05]">
+                    <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443] leading-[1.05]">
                       We shortlist.<br />You decide.<br /><span className="text-[#0fbcb0]">With confidence.</span>
                     </h2>
 
