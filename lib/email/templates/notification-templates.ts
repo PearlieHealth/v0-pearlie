@@ -81,7 +81,7 @@ export function renderLeadActionEmail(data: LeadActionPayload): string {
     <style>
       body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #1f2937; }
       .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-      .header { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
+      .header { background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
       .content { background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
       .badge { display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; margin-bottom: 10px; }
       .urgent-badge { background: #fef3c7; color: #92400e; }
@@ -191,7 +191,7 @@ export function renderLeadActionEmail(data: LeadActionPayload): string {
 
         <div class="highlight-box">
           <strong>Conversion Tips:</strong>
-          <ul style="margin: 10px 0 0; padding-left: 20px; color: #166534;">
+          <ul style="margin: 10px 0 0; padding-left: 20px; color: #0f766e;">
             ${timing === "asap" ? "<li>This patient wants treatment ASAP - respond quickly!</li>" : ""}
             ${anxiety && anxiety !== "not_anxious" ? "<li>Patient has dental anxiety - be gentle and reassuring</li>" : ""}
             ${costApproach === "payments_preferred" ? "<li>Mention your finance options early in the conversation</li>" : ""}
@@ -209,7 +209,7 @@ export function renderLeadActionEmail(data: LeadActionPayload): string {
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
           <p style="margin-bottom: 15px; color: #374151; font-weight: 500;">Once you've contacted this patient, please update the booking status:</p>
           <div style="display: inline-block;">
-            <a href="${confirmUrl}" style="display: inline-block; background: #166534; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; margin-right: 12px;">
+            <a href="${confirmUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; margin-right: 12px;">
               Confirm Booking
             </a>
             <a href="${declineUrl}" style="display: inline-block; background: #f3f4f6; color: #374151; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; border: 1px solid #d1d5db;">
@@ -283,16 +283,16 @@ export function renderBookingConfirmationEmail(data: BookingConfirmationPayload)
     <style>
       body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #1f2937; }
       .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-      .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
+      .header { background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
       .content { background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
       .badge { display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; margin-bottom: 10px; }
       .urgent-badge { background: #fef3c7; color: #92400e; }
-      .time-badge { background: #ecfdf5; color: #065f46; margin-right: 8px; margin-bottom: 8px; }
+      .time-badge { background: #f0fdfa; color: #0f766e; margin-right: 8px; margin-bottom: 8px; }
       .field { margin-bottom: 15px; }
       .label { font-size: 13px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
       .value { font-size: 16px; color: #111827; margin-top: 4px; }
-      .cta-box { background: #f0fdf4; border: 2px solid #86efac; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center; }
-      .cta-button { display: inline-block; background: #059669; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; }
+      .cta-box { background: #f0fdfa; border: 2px solid #99f6e4; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center; }
+      .cta-button { display: inline-block; background: #0fbcb0; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; }
       .section-title { font-size: 14px; font-weight: 700; color: #374151; margin: 25px 0 12px; padding-top: 15px; border-top: 1px solid #e5e7eb; }
       .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
     </style>
@@ -355,8 +355,8 @@ export function renderBookingConfirmationEmail(data: BookingConfirmationPayload)
         ` : ""}
 
         <div class="cta-box">
-          <h3 style="margin: 0 0 10px; color: #065f46;">Ready to Book?</h3>
-          <p style="margin: 0 0 15px; color: #047857;">Contact ${safeFirstName} to schedule their appointment</p>
+          <h3 style="margin: 0 0 10px; color: #0f766e;">Ready to Book?</h3>
+          <p style="margin: 0 0 15px; color: #0da399;">Contact ${safeFirstName} to schedule their appointment</p>
           ${data.phone ? `<a href="tel:${safePhone}" class="cta-button">Call ${safePhone}</a>` : ""}
           ${data.email && !data.phone ? `<a href="mailto:${safeEmail}" class="cta-button">Email ${safeFirstName}</a>` : ""}
         </div>
@@ -389,19 +389,19 @@ export interface ChatToClinicPayload {
 
 export function renderChatToClinicEmail(data: ChatToClinicPayload): string {
   return `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <div style="background-color: #0d9488; color: white; padding: 20px; text-align: center;">
+  <div style="background-color: #0fbcb0; color: white; padding: 20px; text-align: center;">
     <h1 style="margin: 0;">New Patient Message</h1>
   </div>
   <div style="padding: 30px; background-color: #f9fafb;">
     <p style="color: #374151; font-size: 16px;">
       You have received a new message from <strong>${data.patientName}</strong>:
     </p>
-    <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0d9488;">
+    <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0fbcb0;">
       <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${data.messagePreview}</p>
     </div>
     <div style="text-align: center; margin-top: 30px;">
       <a href="${data.inboxUrl}"
-         style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+         style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
         View in Inbox
       </a>
     </div>
@@ -429,19 +429,19 @@ export function renderClinicReplyToPatientEmail(data: ClinicReplyToPatientPayloa
   const safeFirstName = data.patientFirstName ? ` ${data.patientFirstName}` : ""
 
   return `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <div style="background-color: #0d9488; color: white; padding: 20px; text-align: center;">
+  <div style="background-color: #0fbcb0; color: white; padding: 20px; text-align: center;">
     <h1 style="margin: 0;">You've Got a Reply!</h1>
   </div>
   <div style="padding: 30px; background-color: #f9fafb;">
     <p style="color: #374151; font-size: 16px;">
       Hi${safeFirstName}, <strong>${data.clinicName}</strong> has replied to your message:
     </p>
-    <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0d9488;">
+    <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0fbcb0;">
       <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${data.messagePreview}</p>
     </div>
     <div style="text-align: center; margin-top: 30px;">
       <a href="${data.viewReplyUrl}"
-         style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+         style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
         View &amp; Reply
       </a>
     </div>

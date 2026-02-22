@@ -391,7 +391,7 @@ export async function POST(request: Request) {
               </p>
             </div>
             <div style="text-align: center; margin-bottom: 24px;">
-              <a href="${viewDashboardUrl}" style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
+              <a href="${viewDashboardUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
                 View your dashboard
               </a>
             </div>

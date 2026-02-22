@@ -400,7 +400,7 @@ function sendEscalationEmail(
           </div>` : ""}
           <div style="text-align: center; margin-top: 30px;">
             <a href="${inboxUrl}"
-               style="background-color: #0d9488; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+               style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View in Inbox
             </a>
           </div>

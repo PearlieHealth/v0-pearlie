@@ -135,7 +135,7 @@ export async function GET(request: Request) {
                 Hi ${firstName}, you matched with <strong>${clinicCount} clinic${clinicCount !== 1 ? "s" : ""}</strong> near <strong>${postcode}</strong>. Your personalised matches are ready to view.
               </p>
               <div style="text-align: center; margin-bottom: 32px;">
-                <a href="${matchLink}" style="display: inline-block; background: #1a1a1a; color: white; padding: 14px 36px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 16px;">
+                <a href="${matchLink}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 36px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 16px;">
                   View matches
                 </a>
               </div>
