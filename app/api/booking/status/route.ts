@@ -29,9 +29,32 @@ export async function GET(request: Request) {
       .maybeSingle()
 
     const alreadyRequested = !!conv?.appointment_requested_at
+
+    // Include booking details when an appointment has been requested
+    let bookingDate: string | null = null
+    let bookingTime: string | null = null
+    let bookingStatus: string | null = null
+
+    if (alreadyRequested) {
+      const { data: lead } = await supabase
+        .from("leads")
+        .select("booking_date, booking_time, booking_status, booking_clinic_id")
+        .eq("id", leadId)
+        .maybeSingle()
+
+      if (lead?.booking_clinic_id === clinicId) {
+        bookingDate = lead.booking_date || null
+        bookingTime = lead.booking_time || null
+        bookingStatus = lead.booking_status || "pending"
+      }
+    }
+
     return NextResponse.json({
       alreadyRequested,
-      conversationId: alreadyRequested ? conv.id : null,
+      conversationId: alreadyRequested ? conv!.id : null,
+      bookingDate,
+      bookingTime,
+      bookingStatus,
     })
   } catch (error) {
     console.error("[booking-status] Error:", error)

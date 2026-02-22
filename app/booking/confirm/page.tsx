@@ -12,6 +12,7 @@ import { HOURLY_SLOTS } from "@/lib/constants"
 import { trackTikTokEvent } from "@/lib/tiktok-pixel"
 import { createClient } from "@/lib/supabase/client"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
+import { AppointmentBanner } from "@/components/appointment-banner"
 
 interface Clinic {
   id: string
@@ -91,10 +92,13 @@ export default function BookingConfirmPage() {
     return false
   }, [])
 
-  const fetchMessages = useCallback(async (convId: string) => {
+  // Use the OTP-friendly /api/chat/messages endpoint (works without session auth
+  // for verified leads) so the chat always works even if auto-login fails.
+  const fetchMessages = useCallback(async () => {
+    if (!clinicId || !leadId) return
     setLoadingMessages(true)
     try {
-      const res = await fetch(`/api/patient/conversations/${convId}/messages`)
+      const res = await fetch(`/api/chat/messages?leadId=${leadId}&clinicId=${clinicId}`)
       if (res.ok) {
         const data = await res.json()
         const allMsgs: Message[] = data.messages || []
@@ -103,13 +107,17 @@ export default function BookingConfirmPage() {
           ? allMsgs.filter((m) => !delayedBotMsgIds.current.has(m.id))
           : allMsgs
         setMessages(visible)
+        // Sync conversationId from API response
+        if (data.conversationId && !conversationId) {
+          setConversationId(data.conversationId)
+        }
       }
     } catch (err) {
       console.error("[booking-confirm] Failed to fetch messages:", err)
     } finally {
       setLoadingMessages(false)
     }
-  }, [])
+  }, [clinicId, leadId, conversationId])
 
   useEffect(() => {
     async function fetchData() {
@@ -141,15 +149,16 @@ export default function BookingConfirmPage() {
             if (statusData.conversationId) {
               setConversationId(statusData.conversationId)
             }
-            // Try auto-login: check if already authenticated first
+            // Try session auth for realtime, but always fetch messages
+            // via the OTP-friendly endpoint (doesn't need session)
             const supabase = createClient()
             const { data: { user } } = await supabase.auth.getUser()
             if (user) {
               setIsAuthenticated(true)
-              if (statusData.conversationId) {
-                fetchMessages(statusData.conversationId)
-              }
             }
+            // Always fetch messages — the OTP-friendly endpoint works
+            // for verified leads even without a session
+            fetchMessages()
             setLoading(false)
             return
           }
@@ -202,12 +211,11 @@ export default function BookingConfirmPage() {
         if (data.conversationId) {
           setConversationId(data.conversationId)
         }
+        // Try auto-login for realtime, but always fetch messages via OTP endpoint
         if (data.tokenHash) {
-          const loggedIn = await performAutoLogin(data.tokenHash)
-          if (loggedIn && data.conversationId) {
-            await fetchMessages(data.conversationId)
-          }
+          await performAutoLogin(data.tokenHash)
         }
+        await fetchMessages()
         setSubmitting(false)
         return
       }
@@ -224,13 +232,11 @@ export default function BookingConfirmPage() {
         setConversationId(data.conversationId)
       }
 
-      // Auto-login using the magic link token, then fetch chat messages
+      // Try auto-login for realtime (best-effort), then always fetch messages
       if (data.tokenHash) {
-        const loggedIn = await performAutoLogin(data.tokenHash)
-        if (loggedIn && data.conversationId) {
-          await fetchMessages(data.conversationId)
-        }
+        await performAutoLogin(data.tokenHash)
       }
+      await fetchMessages()
     } catch (err) {
       console.error("Error submitting booking:", err)
       setError(err instanceof Error ? err.message : "Failed to submit booking request")
@@ -265,7 +271,7 @@ export default function BookingConfirmPage() {
     userType: "patient",
     onNewMessage: handleNewRealtimeMessage,
     onStatusChange: handleStatusChange,
-    enabled: !!conversationId && isAuthenticated,
+    enabled: !!conversationId,
   })
 
   // Auto-scroll to bottom when messages change
@@ -400,20 +406,6 @@ export default function BookingConfirmPage() {
             </p>
           </div>
 
-          {/* Date/Time Summary */}
-          <Card className="p-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span>{formattedDate}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <span>{timeLabel}</span>
-              </div>
-            </div>
-          </Card>
-
           {/* What Happens Next */}
           <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-lg p-4">
             <h3 className="font-medium text-teal-800 dark:text-teal-200 mb-2">What happens next?</h3>
@@ -428,6 +420,14 @@ export default function BookingConfirmPage() {
               </li>
             </ul>
           </div>
+
+          {/* Appointment Banner */}
+          <AppointmentBanner
+            bookingDate={dateStr}
+            bookingTime={time}
+            bookingStatus="pending"
+            clinicName={clinic?.name}
+          />
 
           {/* Embedded Chat */}
           {conversationId && (
@@ -522,26 +522,24 @@ export default function BookingConfirmPage() {
                 )}
               </div>
 
-              {/* Composer */}
-              {isAuthenticated && (
-                <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/40">
-                  <Input
-                    value={newMessage}
-                    onChange={(e) => { setNewMessage(e.target.value); sendTyping() }}
-                    placeholder="Type a message..."
-                    className="flex-1 text-sm rounded-lg border-border/60 focus-visible:ring-primary/30"
-                    disabled={isSending}
-                  />
-                  <Button
-                    type="submit"
-                    size="icon"
-                    disabled={!newMessage.trim() || isSending}
-                    className="bg-primary hover:bg-primary/90 text-white h-9 w-9 rounded-lg"
-                  >
-                    {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  </Button>
-                </form>
-              )}
+              {/* Composer — always shown; /api/chat/send supports OTP-verified leads */}
+              <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/40">
+                <Input
+                  value={newMessage}
+                  onChange={(e) => { setNewMessage(e.target.value); sendTyping() }}
+                  placeholder="Type a message..."
+                  className="flex-1 text-sm rounded-lg border-border/60 focus-visible:ring-primary/30"
+                  disabled={isSending}
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  disabled={!newMessage.trim() || isSending}
+                  className="bg-primary hover:bg-primary/90 text-white h-9 w-9 rounded-lg"
+                >
+                  {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </Button>
+              </form>
             </Card>
           )}
 

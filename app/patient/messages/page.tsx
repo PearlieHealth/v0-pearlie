@@ -15,6 +15,7 @@ import {
   ChevronLeft,
 } from "lucide-react"
 import Link from "next/link"
+import { AppointmentBanner } from "@/components/appointment-banner"
 
 interface Conversation {
   id: string
@@ -27,6 +28,7 @@ interface Conversation {
   clinics: { id: string; name: string; images?: string[] } | null
   latest_message: string | null
   latest_message_sender: string | null
+  appointment_requested_at?: string | null
 }
 
 interface Message {
@@ -57,6 +59,8 @@ export default function PatientMessagesPage() {
   // Store clinicId and leadId from the messages API response
   const [activeClinicId, setActiveClinicId] = useState<string | null>(null)
   const [activeLeadId, setActiveLeadId] = useState<string | null>(null)
+  // Booking info for the selected conversation
+  const [bookingInfo, setBookingInfo] = useState<{ date: string | null; time: string | null; status: string | null }>({ date: null, time: null, status: null })
 
   // ── Match lg: breakpoint (1024px) for mobile/tablet layout ──────
   useEffect(() => {
@@ -170,6 +174,7 @@ export default function PatientMessagesPage() {
     setSelectedConversation(conv)
     setIsLoadingMessages(true)
     setError(null)
+    setBookingInfo({ date: null, time: null, status: null })
 
     try {
       const response = await fetch(`/api/patient/conversations/${conv.id}/messages`)
@@ -184,6 +189,20 @@ export default function PatientMessagesPage() {
             c.id === conv.id ? { ...c, unread_by_patient: false, unread_count_patient: 0 } : c
           )
         )
+      }
+      // Fetch booking info if this conversation has an appointment request
+      if (conv.appointment_requested_at) {
+        const statusRes = await fetch(`/api/booking/status?leadId=${conv.lead_id}&clinicId=${conv.clinic_id}`)
+        if (statusRes.ok) {
+          const statusData = await statusRes.json()
+          if (statusData.alreadyRequested) {
+            setBookingInfo({
+              date: statusData.bookingDate || null,
+              time: statusData.bookingTime || null,
+              status: statusData.bookingStatus || "pending",
+            })
+          }
+        }
       }
     } catch {
       setError("Failed to load messages")
@@ -325,6 +344,18 @@ export default function PatientMessagesPage() {
             </div>
           </div>
         </div>
+
+        {/* Appointment banner */}
+        {bookingInfo.date && (
+          <div className="px-3 pt-2.5 pb-0 flex-shrink-0">
+            <AppointmentBanner
+              bookingDate={bookingInfo.date}
+              bookingTime={bookingInfo.time}
+              bookingStatus={bookingInfo.status}
+              compact
+            />
+          </div>
+        )}
 
         {/* Messages */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3 bg-[#fafafa]">
@@ -701,6 +732,18 @@ export default function PatientMessagesPage() {
                       </span>
                     </div>
                   </div>
+
+                  {/* Desktop appointment banner */}
+                  {bookingInfo.date && (
+                    <div className="px-5 pt-2.5 pb-0 flex-shrink-0">
+                      <AppointmentBanner
+                        bookingDate={bookingInfo.date}
+                        bookingTime={bookingInfo.time}
+                        bookingStatus={bookingInfo.status}
+                        compact
+                      />
+                    </div>
+                  )}
 
                   {/* Messages */}
                   <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#fafafa] min-h-0">

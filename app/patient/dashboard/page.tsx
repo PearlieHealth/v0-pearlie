@@ -29,6 +29,7 @@ import { useChatChannel, usePatientConversationUpdates, type RealtimeMessage } f
 import { BookingCard } from "@/components/match/booking-card"
 import { OtherClinicCard } from "@/components/match/other-clinic-card"
 import { useIsMobile } from "@/components/ui/use-mobile"
+import { AppointmentBanner } from "@/components/appointment-banner"
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -1216,6 +1217,18 @@ export default function PatientDashboard() {
                   </div>
                 </div>
 
+                {/* Appointment banner for this conversation */}
+                {selectedConv?.appointment_requested_at && latestMatchLead?.booking_clinic_id === selectedConv.clinic_id && (
+                  <div className="px-4 pt-2.5 pb-0 flex-shrink-0">
+                    <AppointmentBanner
+                      bookingDate={latestMatchLead.booking_date}
+                      bookingTime={latestMatchLead.booking_time}
+                      bookingStatus={null}
+                      compact
+                    />
+                  </div>
+                )}
+
                 {/* Messages — plain scrollable div (not Radix ScrollArea,
                     which wraps content in an internal Viewport that breaks
                     ref-based scrollTo and flex height constraints) */}
@@ -1373,6 +1386,18 @@ export default function PatientDashboard() {
               </button>
             </div>
           </div>
+
+          {/* Mobile appointment banner */}
+          {selectedConv?.appointment_requested_at && latestMatchLead?.booking_clinic_id === selectedConv.clinic_id && (
+            <div className="px-3 pt-2.5 pb-0 flex-shrink-0">
+              <AppointmentBanner
+                bookingDate={latestMatchLead.booking_date}
+                bookingTime={latestMatchLead.booking_time}
+                bookingStatus={null}
+                compact
+              />
+            </div>
+          )}
 
           {/* Messages — flex-1 takes remaining space, scrollable */}
           <div

@@ -10,6 +10,7 @@ import { MessageCircle, X, Send, Loader2, Heart, Check, CheckCheck } from "lucid
 import { cn } from "@/lib/utils"
 import { OTPVerification } from "@/components/otp-verification"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
+import { AppointmentBanner } from "@/components/appointment-banner"
 
 interface Message {
   id: string
@@ -48,6 +49,7 @@ export function ClinicChatWidget({
   const [unreadCount, setUnreadCount] = useState(0)
   const [showVerifyPrompt, setShowVerifyPrompt] = useState(false)
   const [leadInfo, setLeadInfo] = useState<{ name: string; email: string } | null>(null)
+  const [bookingInfo, setBookingInfo] = useState<{ date: string | null; time: string | null; status: string | null }>({ date: null, time: null, status: null })
   const scrollRef = useRef<HTMLDivElement>(null)
   const botTypingTimers = useRef<NodeJS.Timeout[]>([])
   const queuedBotIds = useRef<Set<string>>(new Set())
@@ -168,6 +170,14 @@ export function ClinicChatWidget({
         setMessages(data.messages || [])
         setConversationId(data.conversationId)
         setUnreadCount(0)
+        // Capture booking details from API
+        if (data.appointmentRequestedAt) {
+          setBookingInfo({
+            date: data.bookingDate || null,
+            time: data.bookingTime || null,
+            status: data.bookingStatus || "pending",
+          })
+        }
       }
     } catch (error) {
       console.error("[Chat] Failed to fetch messages:", error)
@@ -342,6 +352,18 @@ export function ClinicChatWidget({
               </div>
             )}
           </div>
+
+          {/* Appointment Banner */}
+          {bookingInfo.date && (
+            <div className="px-4 pt-3 pb-0">
+              <AppointmentBanner
+                bookingDate={bookingInfo.date}
+                bookingTime={bookingInfo.time}
+                bookingStatus={bookingInfo.status}
+                compact
+              />
+            </div>
+          )}
 
           {/* Messages */}
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
