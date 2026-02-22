@@ -116,7 +116,7 @@ export default function Home() {
                   {/* Text content — desktop right, mobile first */}
                   <div className="order-1 lg:order-2 flex-1 text-center lg:text-left">
                     <motion.h1
-                      className="text-4xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[1.15] font-heading font-medium tracking-[-0.03em] text-[#3d3838] mb-6"
+                      className="text-4xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-10"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
@@ -141,7 +141,7 @@ export default function Home() {
                     </motion.h1>
 
                     <motion.p
-                      className="text-lg md:text-xl text-[#666] mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0"
+                      className="text-base md:text-lg text-[#666] mb-10 leading-[1.4] max-w-lg mx-auto lg:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
@@ -186,8 +186,8 @@ export default function Home() {
                       ) : (
                         <div className="flex flex-row items-center justify-center lg:justify-start gap-4">
                           <Button
-                            size="lg"
-                            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-10 py-5 h-auto rounded-full font-semibold hover:shadow-lg transition-all shadow-md text-lg border-0"
+                            size="default"
+                            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-7 py-3 h-auto rounded-full font-normal hover:shadow-lg transition-all shadow-md text-[15px] border-0"
                             asChild
                           >
                             <Link href="/intake" onClick={handleFindClinicClick}>
@@ -200,7 +200,7 @@ export default function Home() {
                             onClick={() => {
                               document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
                             }}
-                            className="px-6 py-3 h-auto rounded-full font-heading font-medium text-lg text-[#555] hover:text-[#3d3838] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all"
+                            className="px-6 py-2.5 h-auto rounded-full font-heading font-normal text-[15px] text-[#555] hover:text-[#3d3838] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all"
                           >
                             How it works
                           </button>
@@ -223,7 +223,7 @@ export default function Home() {
               <div className="max-w-6xl mx-auto">
                 {/* Section header */}
                 <div className="text-center mb-16 md:mb-24">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-medium tracking-[-0.03em] text-[#004443]">
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-bold tracking-[-0.03em] text-[#004443]">
                     How It Works
                   </h2>
                 </div>
@@ -416,7 +416,7 @@ export default function Home() {
 
                   {/* Content */}
                   <div className="lg:pl-4">
-                    <h2 className="text-3xl sm:text-4xl font-heading font-medium tracking-[-0.03em] mb-6 text-foreground text-balance">
+                    <h2 className="text-3xl sm:text-4xl font-heading font-bold tracking-[-0.03em] mb-6 text-foreground text-balance">
                       Qualified, vetted dental clinics you can <span className="text-[#0fbcb0]">trust</span>
                     </h2>
                     <p className="text-lg text-muted-foreground leading-relaxed mb-6">
@@ -472,7 +472,7 @@ export default function Home() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-12 md:mb-16">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-medium tracking-[-0.03em] mb-6 text-[#004443]">
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
                     What Patients Say
                   </h2>
                   <p className="text-lg text-muted-foreground">
@@ -535,7 +535,7 @@ export default function Home() {
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="max-w-3xl mx-auto text-center">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-medium tracking-[-0.03em] mb-6 text-balance">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-balance">
                   Ready to find the right dental clinic for you?
                 </h2>
                 <p className="text-lg md:text-xl mb-10 opacity-90 leading-relaxed">

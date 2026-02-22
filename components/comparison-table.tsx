@@ -33,7 +33,7 @@ export function ComparisonTable() {
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-medium tracking-[-0.03em] mb-6 text-[#0fbcb0]">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#0fbcb0]">
               Why Pearlie
             </h2>
             <h3 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white">
