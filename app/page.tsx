@@ -167,9 +167,12 @@ export default function Home() {
     }
   }, [])
 
-  // Mobile video: prevent Safari freeze on tab/app switch
+  // Mobile video: prevent iOS Safari freeze on tab/app switch.
+  // iOS pauses the video decoder on background. On return, the element
+  // appears frozen on a stale frame. A seek (currentTime assignment)
+  // forces the decoder to re-render a fresh frame before we resume.
   const heroVideoRef = useRef<HTMLVideoElement>(null)
-  const videoEndedRef = useRef(false)
+  const videoStateRef = useRef({ ended: false, savedTime: 0 })
 
   useEffect(() => {
     const isMobile = window.innerWidth < 1024
@@ -177,30 +180,47 @@ export default function Home() {
 
     const video = heroVideoRef.current
     if (!video) return
+    const state = videoStateRef.current
 
-    const onEnded = () => { videoEndedRef.current = true }
+    const onEnded = () => { state.ended = true }
+    const onTimeUpdate = () => { state.savedTime = video.currentTime }
     video.addEventListener("ended", onEnded)
+    video.addEventListener("timeupdate", onTimeUpdate)
 
-    const onVisibilityChange = () => {
-      if (document.visibilityState !== "visible") return
+    const onHidden = () => {
+      // Snapshot position before iOS tears down the decoder
+      state.savedTime = video.currentTime
+    }
+
+    const onVisible = () => {
       const v = heroVideoRef.current
       if (!v) return
 
-      if (videoEndedRef.current) {
-        // Always show last frame after video ended
-        v.currentTime = v.duration || v.currentTime
-      } else {
-        // Resume or restart if iOS blocked resume
-        v.play().catch(() => {
-          v.currentTime = 0
-          v.play().catch(() => {})
-        })
+      if (state.ended) {
+        // Seek to last frame — forces decoder to render it
+        v.currentTime = v.duration
+        return
       }
+
+      // Force a seek to the saved position to flush the stale frame,
+      // then resume playback once the decoder is ready
+      v.currentTime = state.savedTime
+      const onSeeked = () => {
+        v.removeEventListener("seeked", onSeeked)
+        v.play().catch(() => {})
+      }
+      v.addEventListener("seeked", onSeeked)
+    }
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") onHidden()
+      else if (document.visibilityState === "visible") onVisible()
     }
     document.addEventListener("visibilitychange", onVisibilityChange)
 
     return () => {
       video.removeEventListener("ended", onEnded)
+      video.removeEventListener("timeupdate", onTimeUpdate)
       document.removeEventListener("visibilitychange", onVisibilityChange)
     }
   }, [])
