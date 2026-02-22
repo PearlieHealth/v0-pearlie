@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Email verified successfully",
-      ...(sessionToken ? { sessionToken } : {}),
+      ...(sessionToken ? { sessionToken } : { sessionFailed: true }),
     })
   } catch (error) {
     console.error("[OTP] Unexpected error:", error)

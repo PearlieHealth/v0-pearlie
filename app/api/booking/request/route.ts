@@ -67,6 +67,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Lead not found" }, { status: 404 })
     }
 
+    // Require email verification before allowing appointment requests
+    if (!lead.is_verified) {
+      return NextResponse.json(
+        { error: "Please verify your email before requesting appointments" },
+        { status: 403 }
+      )
+    }
+
     // Generate booking token for confirm/decline links
     const bookingToken = randomBytes(16).toString("hex")
     

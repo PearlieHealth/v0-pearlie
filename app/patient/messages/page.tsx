@@ -75,7 +75,16 @@ export default function PatientMessagesPage() {
   useEffect(() => {
     async function checkAuth() {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+
+      // Retry up to 3 times with 1-second delays to handle mobile browsers
+      // where auth cookies may not propagate immediately after OTP verification.
+      let user = null
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { data: { user: u } } = await supabase.auth.getUser()
+        if (u) { user = u; break }
+        if (attempt < 2) await new Promise((r) => setTimeout(r, 1000))
+      }
+
       if (!user) {
         const returnUrl = `/patient/messages${isValidConversationId ? `?conversationId=${conversationIdParam}` : ""}`
         router.replace(`/patient/login?next=${encodeURIComponent(returnUrl)}`)
