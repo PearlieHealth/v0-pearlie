@@ -193,7 +193,7 @@ export default function Home() {
 
                   {/* Video — desktop right, mobile below text */}
                   <motion.div
-                    className="order-2 lg:order-2 flex-1 w-full max-w-[23rem] md:max-w-[32.2rem] lg:max-w-full mx-auto lg:mx-0 lg:mt-[1.2rem]"
+                    className="order-2 lg:order-2 flex-1 w-full max-w-xs md:max-w-md lg:max-w-[90%] mx-auto lg:mx-0 lg:-mt-[6.5rem]"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
@@ -211,7 +211,7 @@ export default function Home() {
                   {/* Text content — desktop left, mobile first */}
                   <div className="order-1 lg:order-1 flex-1 text-center lg:text-left lg:pt-6">
                     <motion.h1
-                      className="text-[clamp(1.23rem,4.93vw,1.7rem)] md:text-[2.3rem] lg:text-[2.87rem] xl:text-[3.44rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-black mb-8 md:mb-14 lg:mb-20"
+                      className="text-[clamp(1.45rem,5.8vw,2rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-black mb-8 md:mb-14 lg:mb-20"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
