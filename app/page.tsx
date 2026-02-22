@@ -93,12 +93,12 @@ export default function Home() {
             <div className="container mx-auto px-6 lg:px-10">
               <div className="max-w-6xl mx-auto">
 
-                {/* Desktop: Text LEFT, Video RIGHT */}
+                {/* Desktop: Video LEFT, Text RIGHT (like YDS) */}
                 <div className="flex flex-col lg:flex-row items-center gap-8 md:gap-14 lg:gap-20">
 
-                  {/* Video — desktop right, mobile below text */}
+                  {/* Video — desktop left, mobile below text */}
                   <motion.div
-                    className="order-2 lg:order-2 flex-1 w-full max-w-xs md:max-w-md lg:max-w-none"
+                    className="order-2 lg:order-1 flex-1 w-full max-w-xs md:max-w-md lg:max-w-none"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
@@ -113,8 +113,8 @@ export default function Home() {
                     </video>
                   </motion.div>
 
-                  {/* Text content — desktop left, mobile first */}
-                  <div className="order-1 lg:order-1 flex-1 text-center lg:text-left">
+                  {/* Text content — desktop right, mobile first */}
+                  <div className="order-1 lg:order-2 flex-1 text-center lg:text-left">
                     <motion.h1
                       className="text-3xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-3 md:mb-4 lg:mb-5"
                       initial={{ opacity: 0, y: 16 }}
