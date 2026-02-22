@@ -89,7 +89,7 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative md:min-h-[85vh] lg:min-h-[90vh] flex flex-col justify-center pt-32 pb-12 md:pt-40 md:pb-20 lg:pt-44 lg:pb-24 bg-gradient-to-b from-[#f2ead9] via-[#f6efe2] to-[#faf3e6] overflow-hidden">
+          <section className="relative md:min-h-[85vh] lg:min-h-[90vh] pt-28 pb-12 md:pt-32 md:pb-20 lg:pt-36 lg:pb-24 bg-gradient-to-b from-[#f2ead9] via-[#f6efe2] to-[#faf3e6] overflow-hidden">
             <div className="container mx-auto px-6 lg:px-10">
               <div className="max-w-6xl mx-auto">
 
