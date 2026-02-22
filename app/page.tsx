@@ -208,6 +208,11 @@ export default function Home() {
       // Hide video during recovery to prevent frozen frame flash
       v.style.opacity = "0"
 
+      // Pin rendered size so load() doesn't collapse the layout
+      const rect = v.getBoundingClientRect()
+      v.style.width = rect.width + "px"
+      v.style.height = rect.height + "px"
+
       const savedTime = state.time
       const wasEnded = state.ended
       const wasPlaying = state.playing
@@ -230,8 +235,12 @@ export default function Home() {
           }
         }
 
-        // Fade back in after decoder has rendered a fresh frame
-        requestAnimationFrame(() => { v.style.opacity = "1" })
+        // Remove pinned size and fade back in
+        requestAnimationFrame(() => {
+          v.style.width = ""
+          v.style.height = ""
+          v.style.opacity = "1"
+        })
       }
 
       v.addEventListener("loadeddata", restore)
