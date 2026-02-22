@@ -622,7 +622,7 @@ export function ClinicProfileContent() {
                     {/* Success banner */}
                     {bookingConfirmed && (
                       <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 flex items-start gap-2.5">
-                        <CalendarCheck className="w-4.5 h-4.5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <CalendarCheck className="w-[18px] h-[18px] text-blue-600 flex-shrink-0 mt-0.5" />
                         <div>
                           <p className="text-sm font-medium text-blue-700">Appointment requested</p>
                           {appointmentRequestedAt && (

@@ -109,7 +109,7 @@ export default function MatchPage() {
   const [minDistanceMiles, setMinDistanceMiles] = useState<number | null>(null)
   const [notifyingClinics, setNotifyingClinics] = useState<Set<string>>(new Set())
   const [unreadCount, setUnreadCount] = useState(0)
-  const [appointmentRequestedClinics, setAppointmentRequestedClinics] = useState<Map<string, string>>(new Map()) // clinicId -> appointment_requested_at
+  const [appointmentRequestedClinics, setAppointmentRequestedClinics] = useState<Record<string, string>>({}) // clinicId -> appointment_requested_at
   const [leadId, setLeadId] = useState<string | null>(null)
   const [isVerified, setIsVerified] = useState<boolean | null>(null)
   const [leadEmail, setLeadEmail] = useState<string | null>(null)
@@ -256,10 +256,10 @@ export default function MatchPage() {
           setUnreadCount(total)
 
           // Track which clinics already have appointment requests
-          const requested = new Map<string, string>()
+          const requested: Record<string, string> = {}
           conversations.forEach((c: { clinic_id: string; appointment_requested_at?: string | null }) => {
             if (c.appointment_requested_at) {
-              requested.set(c.clinic_id, c.appointment_requested_at)
+              requested[c.clinic_id] = c.appointment_requested_at
             }
           })
           setAppointmentRequestedClinics(requested)
@@ -930,14 +930,14 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                               {/* Availability / Already Requested */}
                               <div className="mb-4 lg:mb-3">
-                                {appointmentRequestedClinics.has(clinic.id) ? (
+                                {appointmentRequestedClinics[clinic.id] ? (
                                   <div className="rounded-xl bg-blue-50 border border-blue-200 p-3.5">
                                     <div className="flex items-start gap-2.5">
-                                      <CalendarCheck className="w-4.5 h-4.5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                      <CalendarCheck className="w-[18px] h-[18px] text-blue-600 flex-shrink-0 mt-0.5" />
                                       <div>
                                         <p className="text-sm font-medium text-blue-700">Appointment already requested</p>
                                         <p className="text-xs text-muted-foreground mt-0.5">
-                                          Requested {new Date(appointmentRequestedClinics.get(clinic.id)!).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                          Requested {new Date(appointmentRequestedClinics[clinic.id]).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                                         </p>
                                         <p className="text-xs text-muted-foreground mt-1">
                                           The clinic will get back to you shortly.

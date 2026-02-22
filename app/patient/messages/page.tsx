@@ -174,7 +174,7 @@ export default function PatientMessagesPage() {
     setSelectedConversation(conv)
     setIsLoadingMessages(true)
     setError(null)
-    setBookingInfo({ date: null, time: null, status: null })
+    setBookingInfo({ date: null, time: null, requestedAt: null })
 
     try {
       const response = await fetch(`/api/patient/conversations/${conv.id}/messages`)
