@@ -184,7 +184,7 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative md:min-h-[70vh] lg:min-h-[74vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:pt-32 lg:pb-16 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
+          <section className="relative md:min-h-[70vh] lg:min-h-[74vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:pt-32 lg:pb-10 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
             <div className="px-6 md:px-14">
               <div className="max-w-7xl">
 
@@ -211,7 +211,7 @@ export default function Home() {
                   {/* Text content — desktop left, mobile first */}
                   <div className="order-1 lg:order-1 flex-1 text-center lg:text-left lg:pt-6">
                     <motion.h1
-                      className="text-[clamp(1.65rem,6.8vw,2.3rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-black mb-8 md:mb-14 lg:mb-20 -mx-2 md:mx-0"
+                      className="text-[clamp(1.65rem,6.8vw,2.3rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-black mb-8 md:mb-14 lg:mb-24 -mx-2 md:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
@@ -221,7 +221,7 @@ export default function Home() {
                     </motion.h1>
 
                     <motion.p
-                      className="text-[15px] md:text-lg text-black mb-5 md:mb-6 leading-[1.5] max-w-lg mx-auto lg:mx-0"
+                      className="text-[15px] md:text-lg text-black mb-5 md:mb-6 lg:mb-8 leading-[1.5] max-w-lg mx-auto lg:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
