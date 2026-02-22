@@ -819,7 +819,7 @@ export function ClinicProfileContent() {
 
       {/* Mobile sticky CTA */}
       {!showMobileChat && !showMobilePicker && !pendingAppointment && !bookingConfirmed && (
-        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-[#F8F1E7] to-white border-t border-[#0fbcb0]/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(15,188,176,0.12)]">
+        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-[#faf3e6] to-white border-t border-[#0fbcb0]/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(15,188,176,0.12)]">
           <p className="text-xs text-[#666] text-center mb-2">No booking fees on Pearlie</p>
           <div className="flex gap-3 max-w-lg mx-auto">
             <Button
@@ -833,7 +833,7 @@ export function ClinicProfileContent() {
             <Button
               size="lg"
               variant="outline"
-              className="flex-1 border-[#0fbcb0]/30 bg-white hover:bg-[#F8F1E7] text-[#1a1a1a] min-h-[48px] touch-manipulation"
+              className="flex-1 border-[#0fbcb0]/30 bg-white hover:bg-[#faf3e6] text-[#1a1a1a] min-h-[48px] touch-manipulation"
               onClick={() => setShowMobilePicker(true)}
             >
               <Calendar className="h-4 w-4 mr-2" />

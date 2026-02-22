@@ -89,16 +89,16 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative pt-24 pb-10 md:pt-28 md:pb-14 lg:pt-32 lg:pb-16 bg-gradient-to-b from-[#e2d9cf] via-[#ebe4db] to-[#f1ece5] overflow-hidden">
+          <section className="relative pt-28 pb-4 md:pt-28 md:pb-14 lg:pt-32 lg:pb-16 bg-gradient-to-b from-[#f2ead9] via-[#f6efe2] to-[#faf3e6] overflow-hidden">
             <div className="container mx-auto px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
 
                 {/* Desktop: Video LEFT, Text RIGHT */}
-                <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+                <div className="flex flex-col lg:flex-row items-center gap-4 md:gap-12 lg:gap-16">
 
                   {/* Video — desktop left, mobile below text */}
                   <motion.div
-                    className="order-2 lg:order-1 flex-1 w-full max-w-md lg:max-w-none"
+                    className="order-2 lg:order-1 flex-1 w-full max-w-xs md:max-w-md lg:max-w-none"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
@@ -116,7 +116,7 @@ export default function Home() {
                   {/* Text content — desktop right, mobile first */}
                   <div className="order-1 lg:order-2 flex-1 text-center lg:text-left">
                     <motion.h1
-                      className="text-4xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[1.15] font-bold text-[#222] mb-6"
+                      className="text-3xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-3 md:mb-10"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
@@ -141,7 +141,7 @@ export default function Home() {
                     </motion.h1>
 
                     <motion.p
-                      className="text-lg md:text-xl text-[#666] mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0"
+                      className="text-[15px] md:text-lg text-[#666] mb-5 md:mb-10 leading-[1.4] max-w-lg mx-auto lg:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
@@ -155,29 +155,29 @@ export default function Home() {
                       transition={{ duration: 0.8, delay: 0.3 }}
                     >
                       {lastMatch ? (
-                        <div className="flex flex-col sm:flex-row items-stretch justify-center lg:justify-start gap-3 max-w-xl">
+                        <div className="flex flex-col sm:flex-row items-stretch justify-center lg:justify-start gap-2 md:gap-3 max-w-xl">
                           <Link
                             href={`/match/${lastMatch.matchId}`}
-                            className="flex-1 group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all"
+                            className="flex-1 group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all"
                           >
-                            <div className="w-10 h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                              <RotateCcw className="w-5 h-5 text-[#0fbcb0]" />
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
+                              <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-[#0fbcb0]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[15px] font-semibold text-[#222]">Return to your matches</p>
+                              <p className="text-[15px] font-semibold text-[#3d3838]">Return to your matches</p>
                               <p className="text-xs text-[#666] mt-0.5 leading-snug">View the clinics we matched you with</p>
                             </div>
                             <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
                           </Link>
                           <Link
                             href="/intake"
-                            className="flex-1 group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#bbb] transition-all"
+                            className="flex-1 group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all"
                           >
-                            <div className="w-10 h-10 rounded-full bg-[#F8F1E7] flex items-center justify-center flex-shrink-0">
-                              <Search className="w-5 h-5 text-[#004443]" />
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#faf3e6] flex items-center justify-center flex-shrink-0">
+                              <Search className="w-4 h-4 md:w-5 md:h-5 text-[#004443]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[15px] font-semibold text-[#222]">Start a new search</p>
+                              <p className="text-[15px] font-semibold text-[#3d3838]">Start a new search</p>
                               <p className="text-xs text-[#666] mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
                             </div>
                             <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
@@ -186,13 +186,13 @@ export default function Home() {
                       ) : (
                         <div className="flex flex-row items-center justify-center lg:justify-start gap-4">
                           <Button
-                            size="lg"
-                            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-10 py-5 h-auto rounded-full font-semibold hover:shadow-lg transition-all shadow-md text-lg border-0"
+                            size="default"
+                            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-5 md:px-7 py-2 md:py-3 h-auto rounded-full font-normal hover:shadow-lg transition-all shadow-md text-sm md:text-[15px] border-0"
                             asChild
                           >
                             <Link href="/intake" onClick={handleFindClinicClick}>
                               Find my clinic
-                              <ArrowRight className="ml-2 w-5 h-5" />
+                              <ArrowRight className="ml-1.5 md:ml-2 w-4 h-4 md:w-5 md:h-5" />
                             </Link>
                           </Button>
 
@@ -200,7 +200,7 @@ export default function Home() {
                             onClick={() => {
                               document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
                             }}
-                            className="px-6 py-3 h-auto rounded-full font-semibold text-lg text-[#555] hover:text-[#222] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all"
+                            className="px-4 md:px-6 py-1.5 md:py-2.5 h-auto rounded-full font-heading font-normal text-sm md:text-[15px] text-[#555] hover:text-[#3d3838] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all"
                           >
                             How it works
                           </button>
@@ -223,7 +223,7 @@ export default function Home() {
               <div className="max-w-6xl mx-auto">
                 {/* Section header */}
                 <div className="text-center mb-16 md:mb-24">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-[#004443]">
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-bold tracking-[-0.03em] text-[#004443]">
                     How It Works
                   </h2>
                 </div>
@@ -416,7 +416,7 @@ export default function Home() {
 
                   {/* Content */}
                   <div className="lg:pl-4">
-                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6 text-foreground text-balance">
+                    <h2 className="text-3xl sm:text-4xl font-heading font-bold tracking-[-0.03em] mb-6 text-foreground text-balance">
                       Qualified, vetted dental clinics you can <span className="text-[#0fbcb0]">trust</span>
                     </h2>
                     <p className="text-lg text-muted-foreground leading-relaxed mb-6">
@@ -468,11 +468,11 @@ export default function Home() {
           <ComparisonTable />
 
           {/* Testimonials section */}
-          <section className="py-16 md:py-28 lg:py-32 bg-[#F8F1E7]">
+          <section className="py-16 md:py-28 lg:py-32 bg-[#faf3e6]">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-12 md:mb-16">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 text-[#004443]">
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
                     What Patients Say
                   </h2>
                   <p className="text-lg text-muted-foreground">
@@ -535,7 +535,7 @@ export default function Home() {
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="max-w-3xl mx-auto text-center">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-balance">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-balance">
                   Ready to find the right dental clinic for you?
                 </h2>
                 <p className="text-lg md:text-xl mb-10 opacity-90 leading-relaxed">

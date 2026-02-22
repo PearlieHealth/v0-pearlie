@@ -25,7 +25,7 @@ export function ScrollingMarquee({ items, speed = 30, variant = "light" }: Scrol
   const renderItems = () =>
     items.map((item, i) => (
       <span key={i} className="flex items-center gap-2 shrink-0 mx-6 sm:mx-10">
-        <span className={`flex items-center gap-2 text-sm font-bold uppercase tracking-[0.15em] whitespace-nowrap ${textClass}`}>
+        <span className={`flex items-center gap-2 text-base font-heading font-medium uppercase tracking-[0.02em] whitespace-nowrap ${textClass}`}>
           {item.icon}
           {item.text}
         </span>

@@ -28,7 +28,7 @@ export function SiteFooter() {
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
                 <Heart className="w-5 h-5 text-[#0fbcb0] fill-[#0fbcb0]" />
-                <span className="text-lg font-bold text-white">Pearlie</span>
+                <span className="text-lg font-heading font-bold text-white">Pearlie</span>
               </div>
               <p className="text-sm text-white/60 leading-relaxed">
                 Independent dental matching platform. Helping you find the right clinic, on your terms.
