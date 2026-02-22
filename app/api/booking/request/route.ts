@@ -147,17 +147,12 @@ export async function POST(request: Request) {
 
     // Auto-create a chat conversation with the booking request so both patient
     // (in their dashboard) and clinic (in their inbox) can see and continue it.
-    const timeLabelForMsg = HOURLY_SLOTS?.find((s: { key: string; label: string }) => s.key === time)?.label || time
-    const dateLabelForMsg = new Date(date).toLocaleDateString("en-GB", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    })
+    const bookingMessageContent = `Hello, I would like to request an appointment at ${clinic.name}`
 
-    // Hoist conversationId and tokenHash so they're accessible in the final response
+    // Hoist conversationId, tokenHash, and bookingMessage so they're accessible in the final response
     let conversationId: string | null = null
     let tokenHash: string | null = null
+    let bookingMessage: { id: string; content: string; sender_type: string; status: string; created_at: string } | null = null
 
     try {
       // Get or create conversation
@@ -262,14 +257,20 @@ export async function POST(request: Request) {
 
       if (conversationId) {
         // Insert the booking request as a chat message
-        await supabase.from("messages").insert({
+        const { data: insertedMsg, error: msgError } = await supabase.from("messages").insert({
           conversation_id: conversationId,
           sender_type: "patient",
-          content: `Appointment request\nDate: ${dateLabelForMsg}\nTime: ${timeLabelForMsg}\n\nI'd like to request an appointment at this time. Looking forward to hearing from you!`,
+          content: bookingMessageContent,
           sent_via: "booking",
           message_type: "booking-request",
           status: "sent",
-        })
+        }).select("id, content, sender_type, status, created_at").single()
+
+        if (msgError) {
+          console.error("[booking-request] Failed to insert booking message:", msgError)
+        } else if (insertedMsg) {
+          bookingMessage = insertedMsg
+        }
 
         // Update conversation unread flags and mark appointment as requested
         await supabase
@@ -399,6 +400,7 @@ export async function POST(request: Request) {
       success: true,
       conversationId: conversationId ?? null,
       tokenHash: tokenHash ?? null,
+      bookingMessage: bookingMessage ?? null,
     })
   } catch (error) {
     console.error("[booking-request] Error:", error)

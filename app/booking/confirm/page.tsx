@@ -232,7 +232,14 @@ export default function BookingConfirmPage() {
         setConversationId(data.conversationId)
       }
 
-      // Try auto-login for realtime (best-effort), then always fetch messages
+      // Optimistically display the booking message immediately so the chat
+      // is never empty — don't rely solely on fetchMessages which can have
+      // timing or auth issues on mobile.
+      if (data.bookingMessage) {
+        setMessages([data.bookingMessage])
+      }
+
+      // Try auto-login for realtime (best-effort), then fetch full message list
       if (data.tokenHash) {
         await performAutoLogin(data.tokenHash)
       }
