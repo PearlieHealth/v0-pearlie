@@ -86,7 +86,7 @@
 }
 
 @theme inline {
-  --font-sans: "Cabin", "Cabin Fallback";
+  --font-sans: "Inter Tight", sans-serif;
   --font-heading: "DM Sans", sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback";
   --color-background: var(--background);
