@@ -321,25 +321,25 @@ export default function Home() {
           <ScrollingMarquee items={marqueeItems} speed={35} />
 
           {/* How it works section */}
-          <section id="how-it-works" className="py-20 md:py-16 lg:py-20 bg-white relative overflow-hidden">
+          <section id="how-it-works" className="py-20 md:py-14 lg:py-16 bg-white relative overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-7xl mx-auto">
                 {/* Section header */}
-                <div className="text-center mb-16 md:mb-12">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.5rem] font-heading font-bold tracking-[-0.03em] text-[#004443]">
+                <div className="text-center mb-16 md:mb-10">
+                  <h2 className="text-4xl sm:text-5xl md:text-5xl lg:text-[3.75rem] font-heading font-bold tracking-[-0.03em] text-[#004443]">
                     How It Works
                   </h2>
                 </div>
 
                 {/* Step 1 - Image Left, Text Right */}
-                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12 mb-20 md:mb-16">
+                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-10 mb-20 md:mb-14">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-end">
-                    <div className="relative w-full max-w-[320px] lg:max-w-[280px]">
+                    <div className="relative w-full max-w-[320px] lg:max-w-[250px]">
                       {/* Step number */}
-                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-9xl font-bold text-[#004443]/20 select-none leading-none z-0">01</span>
+                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">01</span>
                       {/* Phone mockup with form illustration */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-4 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
                         <div className="bg-white rounded-2xl p-5 lg:p-3 shadow-sm">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center">
@@ -371,10 +371,10 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 text-[#004443]">
+                    <h3 className="text-2xl sm:text-3xl md:text-3xl font-bold mb-2 text-[#004443]">
                       Tell us what matters to you
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
+                    <p className="text-lg md:text-base text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
                       Answer a few quick questions about what you're looking for and what's important to you, at your own
                       pace.
                     </p>
@@ -382,14 +382,14 @@ export default function Home() {
                 </div>
 
                 {/* Step 2 - Text Left, Image Right */}
-                <div className="flex flex-col lg:flex-row-reverse items-center gap-8 lg:gap-12 mb-20 md:mb-16">
+                <div className="flex flex-col lg:flex-row-reverse items-center gap-8 lg:gap-10 mb-20 md:mb-14">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-start">
-                    <div className="relative w-full max-w-[320px] lg:max-w-[280px]">
+                    <div className="relative w-full max-w-[320px] lg:max-w-[250px]">
                       {/* Step number */}
-                      <span className="absolute -top-6 -right-2 lg:-right-8 text-8xl lg:text-9xl font-bold text-[#004443]/20 select-none leading-none z-0">02</span>
+                      <span className="absolute -top-6 -right-2 lg:-right-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">02</span>
                       {/* Phone mockup with clinic cards */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-4 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
                         <div className="space-y-4 lg:space-y-2">
                           {/* Clinic card 1 */}
                           <div className="bg-white rounded-2xl p-4 shadow-sm border border-border/60">
@@ -439,10 +439,10 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 text-[#004443]">
+                    <h3 className="text-2xl sm:text-3xl md:text-3xl font-bold mb-2 text-[#004443]">
                       We recommend carefully matched clinics
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
+                    <p className="text-lg md:text-base text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
                       Based on your answers, we'll recommend trusted clinics near you that fit your preferences — so
                       you're not overwhelmed with options.
                     </p>
@@ -450,14 +450,14 @@ export default function Home() {
                 </div>
 
                 {/* Step 3 - Image Left, Text Right */}
-                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-10">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-end">
-                    <div className="relative w-full max-w-[320px] lg:max-w-[280px]">
+                    <div className="relative w-full max-w-[320px] lg:max-w-[250px]">
                       {/* Step number */}
-                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-9xl font-bold text-[#004443]/20 select-none leading-none z-0">03</span>
+                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">03</span>
                       {/* Phone mockup with booking */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-4 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
                         <div className="bg-white rounded-2xl p-5 lg:p-3 shadow-sm">
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
@@ -496,10 +496,10 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 text-[#004443]">
+                    <h3 className="text-2xl sm:text-3xl md:text-3xl font-bold mb-2 text-[#004443]">
                       You choose if and when to book
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
+                    <p className="text-lg md:text-base text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
                       Review your options, explore each clinic, <span className="text-[#0fbcb0] font-medium">live chat and book directly</span> with the one that feels right
                       for you. No pressure. No obligation.
                     </p>
