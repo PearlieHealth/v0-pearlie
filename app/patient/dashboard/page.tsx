@@ -45,6 +45,9 @@ interface Lead {
   booking_date?: string | null
   booking_time?: string | null
   booking_clinic_id?: string | null
+  booking_status?: string | null
+  booking_decline_reason?: string | null
+  booking_cancel_reason?: string | null
 }
 
 interface Match {
@@ -949,6 +952,9 @@ export default function PatientDashboard() {
                 appointmentRequestedAt={appointmentRequestedClinicsMap.get(selectedClinic.id) || null}
                 bookingDate={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_date : null}
                 bookingTime={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_time : null}
+                bookingStatus={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_status : null}
+                bookingDeclineReason={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_decline_reason : null}
+                bookingCancelReason={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_cancel_reason : null}
                 ctaRef={ctaRef}
                 providers={clinicProviders}
                 treatmentInterest={latestMatchLead?.treatment_interest}

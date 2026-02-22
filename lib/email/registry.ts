@@ -29,6 +29,10 @@ import {
   renderBookingConfirmationEmail,
   renderChatToClinicEmail,
   renderClinicReplyToPatientEmail,
+  renderAppointmentConfirmedEmail,
+  renderAppointmentDeclinedEmail,
+  renderAppointmentRescheduledEmail,
+  renderAppointmentCancelledEmail,
 } from "./templates/notification-templates"
 
 // ---------------------------------------------------------------------------
@@ -49,6 +53,10 @@ export const EMAIL_TYPE = {
   BOOKING_CONFIRMATION: "booking_confirmation",
   CHAT_NOTIFICATION_TO_CLINIC: "chat_notification_to_clinic",
   CLINIC_REPLY_TO_PATIENT: "clinic_reply_to_patient",
+  APPOINTMENT_CONFIRMED: "appointment_confirmed",
+  APPOINTMENT_DECLINED: "appointment_declined",
+  APPOINTMENT_RESCHEDULED: "appointment_rescheduled",
+  APPOINTMENT_CANCELLED: "appointment_cancelled",
 } as const
 
 export type EmailType = (typeof EMAIL_TYPE)[keyof typeof EMAIL_TYPE]
@@ -176,6 +184,16 @@ const clinicReplySchema = z.object({
   clinicName: z.string(),
   messagePreview: z.string(),
   viewReplyUrl: z.string(),
+  unsubscribeFooterHtml: z.string(),
+})
+
+const appointmentNotificationSchema = z.object({
+  patientFirstName: z.string(),
+  clinicName: z.string(),
+  bookingDate: z.string(),
+  bookingTime: z.string(),
+  reason: z.string().nullable().optional(),
+  viewUrl: z.string(),
   unsubscribeFooterHtml: z.string(),
 })
 
@@ -348,6 +366,56 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     generateHtml: renderClinicReplyToPatientEmail,
     idempotencyKey: (data) => `clinic_reply:${data._conversationId}:${tenMinBucket()}`,
   },
+
+  // --- Appointment Lifecycle (to patient) ---
+
+  [EMAIL_TYPE.APPOINTMENT_CONFIRMED]: {
+    type: EMAIL_TYPE.APPOINTMENT_CONFIRMED,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: "patient_notifications",
+    notificationPreferenceKey: null,
+    defaultSubject: (data) => `Your appointment at ${data.clinicName} is confirmed`,
+    payloadSchema: appointmentNotificationSchema,
+    generateHtml: renderAppointmentConfirmedEmail,
+    idempotencyKey: (data) => `appt_confirmed:${data._conversationId}:${hourBucket()}`,
+  },
+
+  [EMAIL_TYPE.APPOINTMENT_DECLINED]: {
+    type: EMAIL_TYPE.APPOINTMENT_DECLINED,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: "patient_notifications",
+    notificationPreferenceKey: null,
+    defaultSubject: (data) => `${data.clinicName} couldn't accommodate your request`,
+    payloadSchema: appointmentNotificationSchema,
+    generateHtml: renderAppointmentDeclinedEmail,
+    idempotencyKey: (data) => `appt_declined:${data._conversationId}:${hourBucket()}`,
+  },
+
+  [EMAIL_TYPE.APPOINTMENT_RESCHEDULED]: {
+    type: EMAIL_TYPE.APPOINTMENT_RESCHEDULED,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: "patient_notifications",
+    notificationPreferenceKey: null,
+    defaultSubject: (data) => `${data.clinicName} has rescheduled your appointment`,
+    payloadSchema: appointmentNotificationSchema,
+    generateHtml: renderAppointmentRescheduledEmail,
+    idempotencyKey: (data) => `appt_rescheduled:${data._conversationId}:${hourBucket()}`,
+  },
+
+  [EMAIL_TYPE.APPOINTMENT_CANCELLED]: {
+    type: EMAIL_TYPE.APPOINTMENT_CANCELLED,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: "patient_notifications",
+    notificationPreferenceKey: null,
+    defaultSubject: (data) => `Your appointment at ${data.clinicName} has been cancelled`,
+    payloadSchema: appointmentNotificationSchema,
+    generateHtml: renderAppointmentCancelledEmail,
+    idempotencyKey: (data) => `appt_cancelled:${data._conversationId}:${hourBucket()}`,
+  },
 }
 
 /**
@@ -367,4 +435,8 @@ export const EMAIL_TYPE_LABELS: Record<EmailType, string> = {
   [EMAIL_TYPE.BOOKING_CONFIRMATION]: "Booking Confirmation",
   [EMAIL_TYPE.CHAT_NOTIFICATION_TO_CLINIC]: "Chat → Clinic",
   [EMAIL_TYPE.CLINIC_REPLY_TO_PATIENT]: "Clinic Reply → Patient",
+  [EMAIL_TYPE.APPOINTMENT_CONFIRMED]: "Appointment Confirmed → Patient",
+  [EMAIL_TYPE.APPOINTMENT_DECLINED]: "Appointment Declined → Patient",
+  [EMAIL_TYPE.APPOINTMENT_RESCHEDULED]: "Appointment Rescheduled → Patient",
+  [EMAIL_TYPE.APPOINTMENT_CANCELLED]: "Appointment Cancelled → Patient",
 }

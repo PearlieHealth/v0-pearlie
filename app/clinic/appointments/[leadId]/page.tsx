@@ -36,6 +36,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BookingDialog } from "@/components/clinic/booking-dialog"
+import { AppointmentActionCard } from "@/components/clinic/appointment-action-card"
 
 interface Lead {
   id: string
@@ -693,6 +694,31 @@ export default function AppointmentDetailPage() {
                     </div>
                   )}
                 </div>
+              </SidebarSection>
+            )}
+
+            {/* Section: Appointment Management */}
+            {lead && (lead as any).booking_status && clinic && (
+              <SidebarSection
+                title="Appointment"
+                icon={<CalendarCheck className="w-4 h-4 text-[#0fbcb0]" />}
+                expanded={true}
+                onToggle={() => {}}
+              >
+                <AppointmentActionCard
+                  leadId={lead.id}
+                  clinicId={clinic.id}
+                  bookingStatus={(lead as any).booking_status}
+                  bookingDate={(lead as any).booking_date || null}
+                  bookingTime={(lead as any).booking_time || null}
+                  bookingDeclineReason={(lead as any).booking_decline_reason || null}
+                  bookingCancelReason={(lead as any).booking_cancel_reason || null}
+                  bookingConfirmedAt={(lead as any).booking_confirmed_at || null}
+                  bookingDeclinedAt={(lead as any).booking_declined_at || null}
+                  bookingCancelledAt={(lead as any).booking_cancelled_at || null}
+                  bookingRescheduledAt={(lead as any).booking_rescheduled_at || null}
+                  onUpdate={fetchData}
+                />
               </SidebarSection>
             )}
 

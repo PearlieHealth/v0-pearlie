@@ -93,6 +93,9 @@ interface BookingCardProps {
   appointmentRequestedAt?: string | null // ISO timestamp
   bookingDate?: string | null
   bookingTime?: string | null
+  bookingStatus?: string | null
+  bookingDeclineReason?: string | null
+  bookingCancelReason?: string | null
   ctaRef?: React.RefObject<HTMLDivElement | null>
   providers?: ProviderProfile[]
   treatmentInterest?: string
@@ -128,6 +131,9 @@ export function BookingCard({
   appointmentRequestedAt,
   bookingDate,
   bookingTime,
+  bookingStatus,
+  bookingDeclineReason,
+  bookingCancelReason,
   ctaRef,
   providers = [],
   treatmentInterest,
@@ -423,8 +429,8 @@ export function BookingCard({
             </div>
           )}
 
-          {/* Appointment sent banner */}
-          {appointmentRequested && (() => {
+          {/* Appointment status banner */}
+          {(appointmentRequested || bookingStatus === "confirmed" || bookingStatus === "declined" || bookingStatus === "cancelled") && (() => {
             const formattedBookingDate = bookingDate
               ? new Date(bookingDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
               : null
@@ -435,6 +441,87 @@ export function BookingCard({
               ? new Date(appointmentRequestedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
               : null
 
+            // Confirmed
+            if (bookingStatus === "confirmed") {
+              return (
+                <div className="rounded-xl bg-green-50 border border-green-200 p-4 space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-green-700">
+                        Appointment confirmed
+                        {formattedBookingDate && (
+                          <> for {formattedBookingDate}{formattedBookingTime && <> at {formattedBookingTime}</>}</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    onClick={onMessageClick}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    Message Clinic
+                  </Button>
+                </div>
+              )
+            }
+
+            // Declined
+            if (bookingStatus === "declined") {
+              return (
+                <div className="rounded-xl bg-red-50 border border-red-200 p-4 space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <X className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-red-700">Request declined</p>
+                      {bookingDeclineReason && (
+                        <p className="text-xs text-red-600/80 mt-0.5">{bookingDeclineReason}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        You can request a new appointment time.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    onClick={onMessageClick}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    Message Clinic
+                  </Button>
+                </div>
+              )
+            }
+
+            // Cancelled
+            if (bookingStatus === "cancelled") {
+              return (
+                <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <X className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-700">Appointment cancelled</p>
+                      {bookingCancelReason && (
+                        <p className="text-xs text-gray-600/80 mt-0.5">{bookingCancelReason}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        You can request a new appointment time.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    onClick={onMessageClick}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    Message Clinic
+                  </Button>
+                </div>
+              )
+            }
+
+            // Default: Pending/requested (original behavior)
             return (
               <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 space-y-3">
                 <div className="flex items-start gap-2.5">

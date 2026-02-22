@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     // Find all leads for this user (by user_id or email match)
     const { data: leads, error: leadsError } = await admin
       .from("leads")
-      .select("id, first_name, last_name, email, treatment_interest, postcode, created_at, is_verified, user_id, booking_date, booking_time, booking_clinic_id")
+      .select("id, first_name, last_name, email, treatment_interest, postcode, created_at, is_verified, user_id, booking_date, booking_time, booking_clinic_id, booking_status, booking_decline_reason, booking_cancel_reason")
       .or(`user_id.eq.${user.id},email.eq.${user.email}`)
       .order("created_at", { ascending: false })
 
@@ -51,6 +51,39 @@ export async function GET(request: Request) {
         .from("leads")
         .update({ user_id: user.id })
         .in("id", unlinkedLeads.map((l) => l.id))
+    }
+
+    // Auto-expire stale appointment requests (pending > 30 days)
+    const staleLeadIds = leads
+      .filter((l) => l.booking_status === "pending" && l.booking_date)
+      .filter((l) => {
+        const bookingDate = new Date(l.booking_date + "T00:00:00")
+        const thirtyDaysAgo = new Date()
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+        return bookingDate < thirtyDaysAgo
+      })
+      .map((l) => l.id)
+
+    if (staleLeadIds.length > 0) {
+      await admin
+        .from("leads")
+        .update({ booking_status: "expired" })
+        .in("id", staleLeadIds)
+
+      // Clear appointment_requested_at on conversations so patient can re-request
+      for (const sLeadId of staleLeadIds) {
+        await admin
+          .from("conversations")
+          .update({ appointment_requested_at: null })
+          .eq("lead_id", sLeadId)
+      }
+
+      // Update local data to reflect expiry
+      for (const lead of leads) {
+        if (staleLeadIds.includes(lead.id)) {
+          lead.booking_status = "expired"
+        }
+      }
     }
 
     const leadIds = leads.map((l) => l.id)
