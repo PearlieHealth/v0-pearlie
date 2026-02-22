@@ -89,16 +89,16 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative md:min-h-[85vh] lg:min-h-[90vh] pt-28 pb-12 md:pt-32 md:pb-20 lg:pt-36 lg:pb-24 bg-gradient-to-b from-[#f2ead9] via-[#f6efe2] to-[#faf3e6] overflow-hidden">
+          <section className="relative md:min-h-[85vh] lg:min-h-[90vh] pt-28 pb-12 md:pt-32 md:pb-20 lg:pt-36 lg:pb-24 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
             <div className="container mx-auto px-6 lg:px-10">
-              <div className="max-w-6xl mx-auto">
+              <div className="max-w-7xl mx-auto">
 
-                {/* Desktop: Video LEFT, Text RIGHT (like YDS) */}
-                <div className="flex flex-col lg:flex-row items-center gap-8 md:gap-14 lg:gap-20">
+                {/* Desktop: Text LEFT, Video RIGHT */}
+                <div className="flex flex-col lg:flex-row items-start gap-8 md:gap-14 lg:gap-20">
 
-                  {/* Video — desktop left, mobile below text */}
+                  {/* Video — desktop right, mobile below text */}
                   <motion.div
-                    className="order-2 lg:order-1 flex-1 w-full max-w-xs md:max-w-md lg:max-w-none"
+                    className="order-2 lg:order-2 flex-1 w-full max-w-xs md:max-w-md lg:max-w-none"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
@@ -113,10 +113,10 @@ export default function Home() {
                     </video>
                   </motion.div>
 
-                  {/* Text content — desktop right, mobile first */}
-                  <div className="order-1 lg:order-2 flex-1 text-center lg:text-left">
+                  {/* Text content — desktop left, mobile first */}
+                  <div className="order-1 lg:order-1 flex-1 text-center lg:text-left">
                     <motion.h1
-                      className="text-3xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-3 md:mb-4 lg:mb-5"
+                      className="text-3xl md:text-5xl lg:text-[3.75rem] xl:text-[4.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-3 md:mb-4 lg:mb-5"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
@@ -146,7 +146,7 @@ export default function Home() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
                     >
-                      Matching you with the right clinic for your needs, preferences, and timing — not just whoever is closest.
+                      Matching you with carefully reviewed clinics based on your needs, preferences, and timing — so you can choose with confidence.
                     </motion.p>
 
                     <motion.div
@@ -158,7 +158,7 @@ export default function Home() {
                         <div className="flex flex-col sm:flex-row items-stretch justify-center lg:justify-start gap-2 md:gap-3 max-w-xl">
                           <Link
                             href={`/match/${lastMatch.matchId}`}
-                            className="flex-1 group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all"
+                            className="flex-1 group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
                           >
                             <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
                               <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-[#0fbcb0]" />
@@ -171,9 +171,9 @@ export default function Home() {
                           </Link>
                           <Link
                             href="/intake"
-                            className="flex-1 group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all"
+                            className="flex-1 group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
                           >
-                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#faf3e6] flex items-center justify-center flex-shrink-0">
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#f8f7f1] flex items-center justify-center flex-shrink-0">
                               <Search className="w-4 h-4 md:w-5 md:h-5 text-[#004443]" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -187,7 +187,7 @@ export default function Home() {
                         <div className="flex flex-row items-center justify-center lg:justify-start gap-4">
                           <Button
                             size="default"
-                            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-5 md:px-7 py-2 md:py-3 h-auto rounded-full font-normal hover:shadow-lg transition-all shadow-md text-sm md:text-[15px] border-0"
+                            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-5 md:px-7 py-2 md:py-3 h-auto rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] text-sm md:text-[15px] border-0"
                             asChild
                           >
                             <Link href="/intake" onClick={handleFindClinicClick}>
@@ -200,7 +200,7 @@ export default function Home() {
                             onClick={() => {
                               document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
                             }}
-                            className="px-4 md:px-6 py-1.5 md:py-2.5 h-auto rounded-full font-heading font-normal text-sm md:text-[15px] text-[#555] hover:text-[#3d3838] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all"
+                            className="px-4 md:px-6 py-1.5 md:py-2.5 h-auto rounded-full font-heading font-normal text-sm md:text-[15px] text-[#555] hover:text-[#3d3838] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
                           >
                             How it works
                           </button>
@@ -220,10 +220,10 @@ export default function Home() {
           {/* How it works section */}
           <section id="how-it-works" className="py-20 md:py-32 lg:py-36 bg-white relative overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="max-w-6xl mx-auto">
+              <div className="max-w-7xl mx-auto">
                 {/* Section header */}
                 <div className="text-center mb-16 md:mb-24">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-bold tracking-[-0.03em] text-[#004443]">
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.5rem] font-heading font-bold tracking-[-0.03em] text-[#004443]">
                     How It Works
                   </h2>
                 </div>
@@ -268,10 +268,10 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
+                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
                       Tell us what matters to you
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
+                    <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
                       Answer a few quick questions about what you're looking for and what's important to you, at your own
                       pace.
                     </p>
@@ -336,10 +336,10 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
+                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
                       We recommend carefully matched clinics
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
+                    <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
                       Based on your answers, we'll recommend trusted clinics near you that fit your preferences — so
                       you're not overwhelmed with options.
                     </p>
@@ -393,10 +393,10 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
+                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
                       You choose if and when to book
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
+                    <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
                       Review your options, explore each clinic, <span className="text-[#0fbcb0] font-medium">live chat and book directly</span> with the one that feels right
                       for you. No pressure. No obligation.
                     </p>
@@ -409,17 +409,17 @@ export default function Home() {
           {/* Trusted clinics section */}
           <section className="py-16 md:py-28 lg:py-32">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="max-w-6xl mx-auto">
+              <div className="max-w-7xl mx-auto">
                 <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
                   {/* Clinic Carousel */}
                   <ClinicCarousel />
 
                   {/* Content */}
                   <div className="lg:pl-4">
-                    <h2 className="text-3xl sm:text-4xl font-heading font-bold tracking-[-0.03em] mb-6 text-foreground text-balance">
+                    <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-foreground text-balance">
                       Qualified, vetted dental clinics you can <span className="text-[#0fbcb0]">trust</span>
                     </h2>
-                    <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                    <p className="text-lg text-muted-foreground leading-snug mb-6">
                       Access a carefully curated network of clinics reviewed for clinical quality, communication, patient experience, and transparency. Helping you make confident, informed dental decisions.
                     </p>
                     <div className="space-y-4 mb-8">
@@ -450,7 +450,7 @@ export default function Home() {
                     </div>
                     <Button
                       size="lg"
-                      className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all group border-0"
+                      className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] group border-0"
                       asChild
                     >
                       <Link href="/intake" onClick={handleFindClinicClick}>
@@ -468,11 +468,11 @@ export default function Home() {
           <ComparisonTable />
 
           {/* Testimonials section */}
-          <section className="py-16 md:py-28 lg:py-32 bg-[#faf3e6]">
+          <section className="py-16 md:py-28 lg:py-32 bg-[#f8f7f1]">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="max-w-6xl mx-auto">
+              <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-12 md:mb-16">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.5rem] font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
                     What Patients Say
                   </h2>
                   <p className="text-lg text-muted-foreground">
@@ -508,7 +508,7 @@ export default function Home() {
                           <Star key={j} className="w-5 h-5 text-foreground fill-primary" />
                         ))}
                       </div>
-                      <p className="text-muted-foreground leading-relaxed mb-6">
+                      <p className="text-muted-foreground leading-snug mb-6">
                         &ldquo;{testimonial.text}&rdquo;
                       </p>
                       <div className="flex items-center gap-3">
@@ -535,15 +535,15 @@ export default function Home() {
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="max-w-3xl mx-auto text-center">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-balance">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-6 text-balance">
                   Ready to find the right dental clinic for you?
                 </h2>
-                <p className="text-lg md:text-xl mb-10 opacity-90 leading-relaxed">
+                <p className="text-lg md:text-xl mb-10 opacity-90 leading-snug">
                   Answer a few quick questions and we&apos;ll match you with trusted clinics near you.
                 </p>
                 <Button
                   size="lg"
-                  className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-xl hover:shadow-2xl transition-all text-lg font-semibold border-0"
+                  className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] text-lg font-normal border-0"
                   asChild
                 >
                   <Link href="/intake" onClick={handleFindClinicClick}>
