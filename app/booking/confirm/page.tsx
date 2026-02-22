@@ -425,7 +425,7 @@ export default function BookingConfirmPage() {
           <AppointmentBanner
             bookingDate={dateStr}
             bookingTime={time}
-            bookingStatus="pending"
+            requestedAt={new Date().toISOString()}
             clinicName={clinic?.name}
           />
 

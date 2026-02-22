@@ -49,7 +49,7 @@ export function ClinicChatWidget({
   const [unreadCount, setUnreadCount] = useState(0)
   const [showVerifyPrompt, setShowVerifyPrompt] = useState(false)
   const [leadInfo, setLeadInfo] = useState<{ name: string; email: string } | null>(null)
-  const [bookingInfo, setBookingInfo] = useState<{ date: string | null; time: string | null; status: string | null }>({ date: null, time: null, status: null })
+  const [bookingInfo, setBookingInfo] = useState<{ date: string | null; time: string | null; requestedAt: string | null }>({ date: null, time: null, requestedAt: null })
   const scrollRef = useRef<HTMLDivElement>(null)
   const botTypingTimers = useRef<NodeJS.Timeout[]>([])
   const queuedBotIds = useRef<Set<string>>(new Set())
@@ -175,7 +175,7 @@ export function ClinicChatWidget({
           setBookingInfo({
             date: data.bookingDate || null,
             time: data.bookingTime || null,
-            status: data.bookingStatus || "pending",
+            requestedAt: data.appointmentRequestedAt,
           })
         }
       }
@@ -359,7 +359,7 @@ export function ClinicChatWidget({
               <AppointmentBanner
                 bookingDate={bookingInfo.date}
                 bookingTime={bookingInfo.time}
-                bookingStatus={bookingInfo.status}
+                requestedAt={bookingInfo.requestedAt}
                 compact
               />
             </div>

@@ -90,6 +90,7 @@ interface BookingCardProps {
   onMessageClick: () => void
   onRequestAppointment?: (message: string) => void | Promise<void>
   appointmentRequested?: boolean
+  appointmentRequestedAt?: string | null // ISO timestamp
   bookingDate?: string | null
   bookingTime?: string | null
   ctaRef?: React.RefObject<HTMLDivElement | null>
@@ -124,6 +125,7 @@ export function BookingCard({
   onMessageClick,
   onRequestAppointment,
   appointmentRequested,
+  appointmentRequestedAt,
   bookingDate,
   bookingTime,
   ctaRef,
@@ -429,19 +431,27 @@ export function BookingCard({
             const formattedBookingTime = bookingTime
               ? (HOURLY_SLOTS.find((s) => s.key === bookingTime)?.label || bookingTime)
               : null
+            const formattedRequestedAt = appointmentRequestedAt
+              ? new Date(appointmentRequestedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+              : null
 
             return (
-              <div className="rounded-xl bg-green-50 border border-green-200 p-4 space-y-3">
+              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 space-y-3">
                 <div className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <CalendarCheck className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-semibold text-green-700">
-                      Appointment already requested
+                    <p className="text-sm font-semibold text-blue-700">
+                      Appointment requested
                       {formattedBookingDate && (
                         <> for {formattedBookingDate}{formattedBookingTime && <> at {formattedBookingTime}</>}</>
                       )}
                     </p>
-                    <p className="text-xs text-green-600/80 mt-1">
+                    {formattedRequestedAt && (
+                      <p className="text-xs text-blue-600/70 mt-0.5">
+                        Requested {formattedRequestedAt}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
                       The clinic will get back to you shortly. For any changes, please message the clinic directly.
                     </p>
                   </div>

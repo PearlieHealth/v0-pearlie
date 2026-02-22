@@ -189,11 +189,13 @@ export default function PatientDashboard() {
 
   // Derive which clinics have appointment requests from server-side conversation data.
   // This persists across sessions, devices, and logouts.
-  const appointmentRequestedClinics = new Set<string>(
+  // Map: clinicId -> appointment_requested_at timestamp
+  const appointmentRequestedClinicsMap = new Map<string, string>(
     inboxConversations
       .filter((c) => c.appointment_requested_at)
-      .map((c) => c.clinic_id)
+      .map((c) => [c.clinic_id, c.appointment_requested_at!])
   )
+  const appointmentRequestedClinics = new Set(appointmentRequestedClinicsMap.keys())
 
   // "Pending chat" — when user clicks message on a clinic with no conversation yet.
   // We show the chat UI with this clinicId+leadId so they can type, and the
@@ -911,6 +913,7 @@ export default function PatientDashboard() {
                 onMessageClick={handleMessageClick}
                 onRequestAppointment={handleRequestAppointment}
                 appointmentRequested={appointmentRequestedClinics.has(selectedClinic.id)}
+                appointmentRequestedAt={appointmentRequestedClinicsMap.get(selectedClinic.id) || null}
                 bookingDate={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_date : null}
                 bookingTime={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_time : null}
                 ctaRef={ctaRef}
@@ -1223,7 +1226,7 @@ export default function PatientDashboard() {
                     <AppointmentBanner
                       bookingDate={latestMatchLead.booking_date}
                       bookingTime={latestMatchLead.booking_time}
-                      bookingStatus={null}
+                      requestedAt={selectedConv?.appointment_requested_at || null}
                       compact
                     />
                   </div>
@@ -1393,7 +1396,7 @@ export default function PatientDashboard() {
               <AppointmentBanner
                 bookingDate={latestMatchLead.booking_date}
                 bookingTime={latestMatchLead.booking_time}
-                bookingStatus={null}
+                requestedAt={selectedConv.appointment_requested_at}
                 compact
               />
             </div>

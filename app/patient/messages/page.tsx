@@ -60,7 +60,7 @@ export default function PatientMessagesPage() {
   const [activeClinicId, setActiveClinicId] = useState<string | null>(null)
   const [activeLeadId, setActiveLeadId] = useState<string | null>(null)
   // Booking info for the selected conversation
-  const [bookingInfo, setBookingInfo] = useState<{ date: string | null; time: string | null; status: string | null }>({ date: null, time: null, status: null })
+  const [bookingInfo, setBookingInfo] = useState<{ date: string | null; time: string | null; requestedAt: string | null }>({ date: null, time: null, requestedAt: null })
 
   // ── Match lg: breakpoint (1024px) for mobile/tablet layout ──────
   useEffect(() => {
@@ -199,7 +199,7 @@ export default function PatientMessagesPage() {
             setBookingInfo({
               date: statusData.bookingDate || null,
               time: statusData.bookingTime || null,
-              status: statusData.bookingStatus || "pending",
+              requestedAt: conv.appointment_requested_at || null,
             })
           }
         }
@@ -351,7 +351,7 @@ export default function PatientMessagesPage() {
             <AppointmentBanner
               bookingDate={bookingInfo.date}
               bookingTime={bookingInfo.time}
-              bookingStatus={bookingInfo.status}
+              requestedAt={bookingInfo.requestedAt}
               compact
             />
           </div>
@@ -739,7 +739,7 @@ export default function PatientMessagesPage() {
                       <AppointmentBanner
                         bookingDate={bookingInfo.date}
                         bookingTime={bookingInfo.time}
-                        bookingStatus={bookingInfo.status}
+                        requestedAt={bookingInfo.requestedAt}
                         compact
                       />
                     </div>
