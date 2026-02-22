@@ -193,7 +193,7 @@ export default function Home() {
 
                   {/* Video — desktop right, mobile below text */}
                   <motion.div
-                    className="order-2 lg:order-2 flex-1 w-full max-w-xs md:max-w-md lg:max-w-[90%] mx-auto lg:mx-0 lg:mt-[1.2rem]"
+                    className="order-2 lg:order-2 flex-1 w-full max-w-[23rem] md:max-w-[32.2rem] lg:max-w-full mx-auto lg:mx-0 lg:mt-[1.2rem]"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
