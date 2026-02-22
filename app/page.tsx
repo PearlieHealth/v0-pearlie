@@ -148,9 +148,6 @@ export default function Home() {
   })
   const treatments = HOMEPAGE_TREATMENTS
 
-  const [videoReady, setVideoReady] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
-
   const [lastMatch, setLastMatch] = useState<LastMatch | null>(null)
   useEffect(() => {
     try {
@@ -201,24 +198,14 @@ export default function Home() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
                   >
-                    <div className="relative" style={{ aspectRatio: "9/16" }}>
-                      {/* Poster placeholder — visible instantly, fades out when video is ready */}
-                      <div
-                        className={`absolute inset-0 rounded-3xl bg-gradient-to-br from-[#e8e5dd] via-[#ece9e2] to-[#dfd9cf] shadow-[0_4px_30px_rgba(0,0,0,0.04)] transition-opacity duration-300 ease-out ${videoReady ? "opacity-0 pointer-events-none" : "opacity-100"}`}
-                      />
-                      {/* Video — loads in background, cross-fades in when ready */}
-                      <video
-                        ref={videoRef}
-                        autoPlay
-                        muted
-                        playsInline
-                        preload="auto"
-                        onCanPlayThrough={() => setVideoReady(true)}
-                        className={`absolute inset-0 w-full h-full object-cover rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] scale-x-[-1] transition-opacity duration-300 ease-out ${videoReady ? "opacity-100" : "opacity-0"}`}
-                      >
-                        <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
-                      </video>
-                    </div>
+                    <video
+                      autoPlay
+                      muted
+                      playsInline
+                      className="w-full h-auto rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] scale-x-[-1]"
+                    >
+                      <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
+                    </video>
                   </motion.div>
 
                   {/* Text content — desktop left, mobile first */}
