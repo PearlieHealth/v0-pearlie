@@ -138,28 +138,26 @@ export async function POST(request: NextRequest) {
         if (!createError && newUser?.user) {
           authUserId = newUser.user.id
         } else if (createError?.message?.toLowerCase().includes("already")) {
-          // User already exists — look them up with a targeted paginated query
-          const { data: existingUsers } = await supabase.auth.admin.listUsers({
-            page: 1,
-            perPage: 1,
-          })
-          // listUsers doesn't filter by email, so search with a broader query
-          // and match manually. Use a small perPage since we just need to find one.
-          const { data: allPages } = await supabase.auth.admin.listUsers({
-            page: 1,
-            perPage: 50,
-          })
-          const existingUser = allPages?.users?.find(
-            (u) => u.email?.toLowerCase() === lead.email?.toLowerCase()
-          )
-          if (existingUser) {
-            authUserId = existingUser.id
-            // Ensure patient role is set on existing user
-            await supabase.auth.admin.updateUser(existingUser.id, {
-              user_metadata: { ...existingUser.user_metadata, role: "patient" },
-            }).catch(() => {})
+          // User already exists — look them up with a broader paginated query
+          try {
+            const { data: allPages } = await supabase.auth.admin.listUsers({
+              page: 1,
+              perPage: 1000,
+            })
+            const existingUser = allPages?.users?.find(
+              (u) => u.email?.toLowerCase() === lead.email?.toLowerCase()
+            )
+            if (existingUser) {
+              authUserId = existingUser.id
+              // Ensure patient role is set on existing user
+              await supabase.auth.admin.updateUser(existingUser.id, {
+                user_metadata: { ...existingUser.user_metadata, role: "patient" },
+              }).catch(() => {})
+            }
+          } catch {
+            // Non-critical — session token generation below does not need authUserId
           }
-        } else {
+        } else if (createError) {
           console.error("[OTP] Failed to create auth user:", createError)
         }
 
@@ -173,38 +171,25 @@ export async function POST(request: NextRequest) {
               if (error) console.error("[OTP] Failed to link user_id:", error)
             })
         }
-
-        // Phase 3: Generate a session token so the client can auto-sign in
-        if (authUserId && lead.email) {
-          try {
-            const { data: linkData } = await supabase.auth.admin.generateLink({
-              type: "magiclink",
-              email: lead.email,
-            })
-            if (linkData?.properties?.hashed_token) {
-              sessionToken = linkData.properties.hashed_token
-            }
-          } catch (linkError) {
-            console.error("[OTP] Failed to generate session token:", linkError)
-          }
-        }
       } catch (accountError) {
         console.error("[OTP] Error creating patient account:", accountError)
       }
     }
 
-    // Generate session token for existing users too (if they don't have one yet)
-    if (!sessionToken && lead.user_id && lead.email) {
+    // Phase 3: Generate a session token so the client can auto-sign in.
+    // This only needs the email — generateLink will find the auth user internally.
+    // Kept outside the user-creation block so it works for both new and existing users.
+    if (lead.email) {
       try {
-        const { data: linkData } = await supabase.auth.admin.generateLink({
+        const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
           type: "magiclink",
           email: lead.email,
         })
-        if (linkData?.properties?.hashed_token) {
+        if (!linkError && linkData?.properties?.hashed_token) {
           sessionToken = linkData.properties.hashed_token
         }
-      } catch {
-        // Non-critical
+      } catch (linkError) {
+        console.error("[OTP] Failed to generate session token:", linkError)
       }
     }
 
