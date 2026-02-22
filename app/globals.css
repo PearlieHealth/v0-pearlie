@@ -9,18 +9,18 @@
   --primary-hover: #0da399;
   --primary-foreground: #ffffff;
   --secondary: #faf3e6;
-  --secondary-foreground: #333333;
-  --foreground: #222222;
+  --secondary-foreground: #3d3838;
+  --foreground: #3d3838;
   --muted-foreground: #666666;
   --background: #ffffff;
   --border: #e8e8e8;
   --card: #ffffff;
-  --card-foreground: #222222;
+  --card-foreground: #3d3838;
   --popover: #ffffff;
-  --popover-foreground: #222222;
+  --popover-foreground: #3d3838;
   --muted: #faf3e6;
   --accent: #faf3e6;
-  --accent-foreground: #222222;
+  --accent-foreground: #3d3838;
 
   /* Teal palette */
   --teal: #0fbcb0;

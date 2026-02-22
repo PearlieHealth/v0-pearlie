@@ -614,11 +614,11 @@ export default function IntakePage() {
           </div>
         )}
         <div className="flex-1">
-          <span className={`text-lg md:text-xl font-medium block ${selected ? "text-[#222]" : "text-[#222]"}`}>
+          <span className={`text-lg md:text-xl font-medium block ${selected ? "text-[#3d3838]" : "text-[#3d3838]"}`}>
             {children}
           </span>
           {hint && (
-            <span className={`text-sm mt-1 block ${selected ? "text-[#0fbcb0]" : "text-[#222]/50"}`}>
+            <span className={`text-sm mt-1 block ${selected ? "text-[#0fbcb0]" : "text-[#3d3838]/50"}`}>
               {hint}
             </span>
           )}
@@ -658,7 +658,7 @@ export default function IntakePage() {
         {icon}
       </motion.div>
       <motion.h1
-        className="text-3xl md:text-4xl font-bold text-[#222] tracking-tight text-balance"
+        className="text-3xl md:text-4xl font-bold text-[#3d3838] tracking-tight text-balance"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.1 }}
@@ -666,7 +666,7 @@ export default function IntakePage() {
         {title}
       </motion.h1>
       <motion.p
-        className="text-[#222]/70 text-lg"
+        className="text-[#3d3838]/70 text-lg"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.2 }}
@@ -715,7 +715,7 @@ export default function IntakePage() {
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
             </div>
-            <span className="text-sm font-medium text-[#222]/70">{progressPercent}%</span>
+            <span className="text-sm font-medium text-[#3d3838]/70">{progressPercent}%</span>
           </div>
 
           <div className="w-16" />
@@ -746,8 +746,8 @@ export default function IntakePage() {
           {matchFailed && (
             <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-4">
               <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
-              <h2 className="text-lg font-semibold text-[#222]">We couldn&apos;t find your matches</h2>
-              <p className="text-sm text-[#222]/70">{matchFailed}</p>
+              <h2 className="text-lg font-semibold text-[#3d3838]">We couldn&apos;t find your matches</h2>
+              <p className="text-sm text-[#3d3838]/70">{matchFailed}</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
                   onClick={handleMatchRetry}
@@ -1050,8 +1050,8 @@ export default function IntakePage() {
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#faf3e6] text-[#0fbcb0]"}`}>
                               {option.value === "weekend" ? <Calendar className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                             </div>
-                            <span className="font-semibold text-[#222]">{option.label}</span>
-                            <span className="text-sm text-[#222]/60">{option.time}</span>
+                            <span className="font-semibold text-[#3d3838]">{option.label}</span>
+                            <span className="text-sm text-[#3d3838]/60">{option.time}</span>
                           </div>
                         </motion.button>
                       </motion.div>
@@ -1349,7 +1349,7 @@ export default function IntakePage() {
 
                   {/* Trust indicators */}
                   <motion.div
-                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#222]/50"
+                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#3d3838]/50"
                     initial={hasAnimated ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: hasAnimated ? 0 : 0.7 }}
