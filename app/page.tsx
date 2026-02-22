@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -36,6 +36,109 @@ interface LastMatch {
   clinicCount: number
   treatment: string
   createdAt: string
+}
+
+const testimonials = [
+  {
+    label: "New to London",
+    text: "I\u2019d just moved to London and didn\u2019t know where to begin. Instead of scrolling endlessly, I answered a few questions and had solid options straight away.",
+    name: "Sophie M.",
+  },
+  {
+    label: "Emergency",
+    text: "I needed to be seen quickly, but I didn\u2019t want to rush into the wrong place. Pearlie helped me compare properly before booking.",
+    name: "James R.",
+  },
+  {
+    label: "Second Opinion",
+    text: "I wasn\u2019t sure what treatment I actually needed. Pearlie matched me with clinics that explained my options clearly, without pushing anything.",
+    name: "Priya K.",
+  },
+  {
+    label: "Invisalign",
+    text: "I wanted Invisalign but didn\u2019t know where to start. The clinics Pearlie suggested had experience with adult cases like mine. I finally felt confident choosing.",
+    name: "Tom H.",
+  },
+  {
+    label: "Cosmetic",
+    text: "I was overwhelmed researching cosmetic dentists. Pearlie matched me with a clinic that specialised in natural-looking results. The consultation felt thoughtful \u2014 not salesy.",
+    name: "Amara L.",
+  },
+  {
+    label: "Nervous Patient",
+    text: "I\u2019m a nervous patient and usually avoid dentists. The clinic I found through Pearlie really understood that. It made the whole process feel manageable.",
+    name: "Hannah W.",
+  },
+]
+
+function PatientExperiences() {
+  const railRef = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.disconnect() } },
+      { threshold: 0.15 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <section ref={sectionRef} className="py-16 md:py-28 lg:py-32 bg-[#f8f7f1] overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12 md:mb-16">
+            <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443] mb-4">
+              Patient Experiences
+            </span>
+            <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443] leading-[1.05]">
+              Real stories.<br />Thoughtful decisions.<br /><span className="text-[#0fbcb0]">Confident choices.</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+              Real experiences from people who used Pearlie to choose with confidence.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Horizontal scroll rail */}
+      <div
+        ref={railRef}
+        className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide px-4 sm:px-6 lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] pb-4 -mb-4"
+      >
+        {testimonials.map((testimonial, i) => (
+          <motion.div
+            key={i}
+            className="snap-start flex-shrink-0 w-[280px] sm:w-[300px] md:w-[320px]"
+            initial={{ opacity: 0, y: 20 }}
+            animate={isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: i * 0.08, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <Card className="p-5 border border-[#e8e4dc] shadow-none rounded-2xl bg-white h-full flex flex-col hover:shadow-md hover:border-[#d5cfc8] hover:-translate-y-0.5 focus-within:shadow-md focus-within:border-[#d5cfc8] focus-within:-translate-y-0.5 transition-all duration-300 ease-out">
+              <span className="text-[9px] font-extrabold tracking-[0.1em] uppercase text-[#0fbcb0] mb-2.5">
+                {testimonial.label}
+              </span>
+              <p className="text-[14px] text-muted-foreground leading-snug mb-4 flex-1">
+                &ldquo;{testimonial.text}&rdquo;
+              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-[13px] font-semibold text-foreground">{testimonial.name}</p>
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, j) => (
+                    <Star key={j} className="w-3 h-3 fill-[#0fbcb0]/50 text-[#0fbcb0]/50" />
+                  ))}
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  )
 }
 
 export default function Home() {
@@ -89,16 +192,16 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative pt-24 pb-10 md:pt-28 md:pb-14 lg:pt-32 lg:pb-16 bg-gradient-to-b from-[#e2d9cf] via-[#ebe4db] to-[#f1ece5] overflow-hidden">
-            <div className="container mx-auto px-6 lg:px-8">
-              <div className="max-w-6xl mx-auto">
+          <section className="relative md:min-h-[85vh] lg:min-h-[90vh] pt-32 pb-12 md:pt-32 md:pb-20 lg:pt-36 lg:pb-24 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
+            <div className="container mx-auto px-6 lg:px-10">
+              <div className="max-w-7xl mx-auto">
 
-                {/* Desktop: Video LEFT, Text RIGHT */}
-                <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+                {/* Desktop: Text LEFT, Video RIGHT */}
+                <div className="flex flex-col lg:flex-row items-start gap-8 md:gap-14 lg:gap-20">
 
-                  {/* Video — desktop left, mobile below text */}
+                  {/* Video — desktop right, mobile below text */}
                   <motion.div
-                    className="order-2 lg:order-1 flex-1 w-full max-w-md lg:max-w-none"
+                    className="order-2 lg:order-2 flex-1 w-full max-w-xs md:max-w-md lg:max-w-[90%] mx-auto lg:mx-0"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
@@ -107,28 +210,28 @@ export default function Home() {
                       autoPlay
                       muted
                       playsInline
-                      className="w-full h-auto rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.06)]"
+                      className="w-full h-auto rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] scale-x-[-1]"
                     >
                       <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
                     </video>
                   </motion.div>
 
-                  {/* Text content — desktop right, mobile first */}
-                  <div className="order-1 lg:order-2 flex-1 text-center lg:text-left">
+                  {/* Text content — desktop left, mobile first */}
+                  <div className="order-1 lg:order-1 flex-1 text-center lg:text-left lg:pt-6">
                     <motion.h1
-                      className="text-4xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[1.15] font-bold text-[#222] mb-6"
+                      className="text-[2.25rem] md:text-5xl lg:text-[3.75rem] xl:text-[4.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-8 md:mb-14 lg:mb-20"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
                     >
                       Where finding a dentist finally feels{" "}
-                      <span className="inline-block relative overflow-hidden align-bottom" style={{ height: "1.15em" }}>
+                      <span className="inline-flex relative overflow-hidden align-baseline" style={{ height: "1em", verticalAlign: "baseline" }}>
                         {/* Invisible sizer to hold width of current word */}
                         <span className="invisible">{rotatingWords[wordIndex]}</span>
                         <AnimatePresence mode="wait">
                           <motion.span
                             key={rotatingWords[wordIndex]}
-                            className="absolute inset-0 text-[#0fbcb0]"
+                            className="absolute left-0 top-0 text-[#0fbcb0]"
                             initial={{ y: "100%", opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: "-100%", opacity: 0 }}
@@ -137,16 +240,16 @@ export default function Home() {
                             {rotatingWords[wordIndex]}
                           </motion.span>
                         </AnimatePresence>
-                      </span>.
+                      </span>
                     </motion.h1>
 
                     <motion.p
-                      className="text-lg md:text-xl text-[#666] mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0"
+                      className="text-[15px] md:text-lg text-[#666] mb-5 md:mb-6 leading-[1.5] max-w-lg mx-auto lg:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
                     >
-                      Matching you with the right clinic for your needs, preferences, and timing — not just whoever is closest.
+                      Matching you with carefully reviewed clinics based on your Needs, Preferences, and Timing NOT just Location — so you can choose with confidence.
                     </motion.p>
 
                     <motion.div
@@ -155,29 +258,29 @@ export default function Home() {
                       transition={{ duration: 0.8, delay: 0.3 }}
                     >
                       {lastMatch ? (
-                        <div className="flex flex-col sm:flex-row items-stretch justify-center lg:justify-start gap-3 max-w-xl">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-center lg:justify-start gap-2 md:gap-3">
                           <Link
                             href={`/match/${lastMatch.matchId}`}
-                            className="flex-1 group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all"
+                            className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] sm:flex-1"
                           >
-                            <div className="w-10 h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                              <RotateCcw className="w-5 h-5 text-[#0fbcb0]" />
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
+                              <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-[#0fbcb0]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[15px] font-semibold text-[#222]">Return to your matches</p>
+                              <p className="text-sm md:text-[15px] font-semibold text-[#3d3838]">Return to your matches</p>
                               <p className="text-xs text-[#666] mt-0.5 leading-snug">View the clinics we matched you with</p>
                             </div>
                             <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
                           </Link>
                           <Link
                             href="/intake"
-                            className="flex-1 group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#bbb] transition-all"
+                            className="group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] sm:flex-1"
                           >
-                            <div className="w-10 h-10 rounded-full bg-[#F8F1E7] flex items-center justify-center flex-shrink-0">
-                              <Search className="w-5 h-5 text-[#004443]" />
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#f8f7f1] flex items-center justify-center flex-shrink-0">
+                              <Search className="w-4 h-4 md:w-5 md:h-5 text-[#004443]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[15px] font-semibold text-[#222]">Start a new search</p>
+                              <p className="text-sm md:text-[15px] font-semibold text-[#3d3838]">Start a new search</p>
                               <p className="text-xs text-[#666] mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
                             </div>
                             <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
@@ -186,13 +289,13 @@ export default function Home() {
                       ) : (
                         <div className="flex flex-row items-center justify-center lg:justify-start gap-4">
                           <Button
-                            size="lg"
-                            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-10 py-5 h-auto rounded-full font-semibold hover:shadow-lg transition-all shadow-md text-lg border-0"
+                            size="default"
+                            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-5 md:px-7 py-2 md:py-3 h-auto rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] text-sm md:text-[15px] border-0"
                             asChild
                           >
                             <Link href="/intake" onClick={handleFindClinicClick}>
                               Find my clinic
-                              <ArrowRight className="ml-2 w-5 h-5" />
+                              <ArrowRight className="ml-1.5 md:ml-2 w-4 h-4 md:w-5 md:h-5" />
                             </Link>
                           </Button>
 
@@ -200,7 +303,7 @@ export default function Home() {
                             onClick={() => {
                               document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
                             }}
-                            className="px-6 py-3 h-auto rounded-full font-semibold text-lg text-[#555] hover:text-[#222] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all"
+                            className="px-4 md:px-6 py-1.5 md:py-2.5 h-auto rounded-full font-heading font-normal text-sm md:text-[15px] text-[#555] hover:text-[#3d3838] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
                           >
                             How it works
                           </button>
@@ -220,10 +323,10 @@ export default function Home() {
           {/* How it works section */}
           <section id="how-it-works" className="py-20 md:py-32 lg:py-36 bg-white relative overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="max-w-6xl mx-auto">
+              <div className="max-w-7xl mx-auto">
                 {/* Section header */}
                 <div className="text-center mb-16 md:mb-24">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-[#004443]">
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.5rem] font-heading font-bold tracking-[-0.03em] text-[#004443]">
                     How It Works
                   </h2>
                 </div>
@@ -268,10 +371,10 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
+                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
                       Tell us what matters to you
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
+                    <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
                       Answer a few quick questions about what you're looking for and what's important to you, at your own
                       pace.
                     </p>
@@ -336,10 +439,10 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
+                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
                       We recommend carefully matched clinics
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
+                    <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
                       Based on your answers, we'll recommend trusted clinics near you that fit your preferences — so
                       you're not overwhelmed with options.
                     </p>
@@ -393,10 +496,10 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-foreground">
+                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-foreground">
                       You choose if and when to book
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
+                    <p className="text-lg text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
                       Review your options, explore each clinic, <span className="text-[#0fbcb0] font-medium">live chat and book directly</span> with the one that feels right
                       for you. No pressure. No obligation.
                     </p>
@@ -409,48 +512,42 @@ export default function Home() {
           {/* Trusted clinics section */}
           <section className="py-16 md:py-28 lg:py-32">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="max-w-6xl mx-auto">
+              <div className="max-w-7xl mx-auto">
                 <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
                   {/* Clinic Carousel */}
                   <ClinicCarousel />
 
                   {/* Content */}
                   <div className="lg:pl-4">
-                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6 text-foreground text-balance">
-                      Qualified, vetted dental clinics you can <span className="text-[#0fbcb0]">trust</span>
+                    {/* Small accent label */}
+                    <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443] mb-4">
+                      Quality &amp; Trust
+                    </span>
+
+                    <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-foreground leading-[1.05]">
+                      We shortlist.<br />You decide.<br /><span className="text-[#0fbcb0]">With confidence.</span>
                     </h2>
-                    <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                      Access a carefully curated network of clinics reviewed for clinical quality, communication, patient experience, and transparency. Helping you make confident, informed dental decisions.
+
+                    <p className="text-lg text-muted-foreground leading-snug mb-8">
+                      Every clinic on Pearlie is carefully reviewed for clinical standards, transparency, and patient experience. We focus on quality over quantity — so you only see clinics that meet our standards.
                     </p>
-                    <div className="space-y-4 mb-8">
+
+                    <div className="space-y-3 mb-10">
                       {[
-                        {
-                          title: "Patient-first clinics",
-                          desc: "Clinics selected for their communication style, empathy, and patient-centred care, so you feel heard, respected, and supported at every step.",
-                        },
-                        {
-                          title: "Transparent & ethical care",
-                          desc: "Clear explanations, honest recommendations, and upfront pricing",
-                        },
-                        {
-                          title: "Highly rated clinics",
-                          desc: "Clinics rated highly by patients for comfort, results, and experience — so you know what to expect before you book.",
-                        },
+                        "Personally reviewed by Pearlie",
+                        "Transparent pricing & clear communication",
+                        "Highly rated for patient care and results",
                       ].map((item, i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl">
-                          <div className="rounded-full bg-white p-1.5 mt-0.5 shadow-sm">
-                            <CheckCircle2 className="w-4 h-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground">{item.title}</p>
-                            <p className="text-sm text-muted-foreground">{item.desc}</p>
-                          </div>
+                        <div key={i} className="flex items-center gap-3">
+                          <CheckCircle2 className="w-5 h-5 text-[#0fbcb0] flex-shrink-0" />
+                          <span className="text-foreground font-medium">{item}</span>
                         </div>
                       ))}
                     </div>
+
                     <Button
                       size="lg"
-                      className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all group border-0"
+                      className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] group border-0"
                       asChild
                     >
                       <Link href="/intake" onClick={handleFindClinicClick}>
@@ -467,65 +564,8 @@ export default function Home() {
           {/* Comparison table */}
           <ComparisonTable />
 
-          {/* Testimonials section */}
-          <section className="py-16 md:py-28 lg:py-32 bg-[#F8F1E7]">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="max-w-6xl mx-auto">
-                <div className="text-center mb-12 md:mb-16">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 text-[#004443]">
-                    What Patients Say
-                  </h2>
-                  <p className="text-lg text-muted-foreground">
-                    Real experiences from people who found the right clinic for them
-                  </p>
-                </div>
-                <div className="grid md:grid-cols-3 gap-6">
-                  {[
-                    {
-                      text: "The matching was spot-on! Found a fantastic clinic near me that specialized in nervous patients. Couldn't be happier with the service.",
-                      name: "Sophie",
-                      location: "Clapham",
-                      initial: "S",
-                    },
-                    {
-                      text: "Saved me hours of research. The clinics they matched me with were ideal for my cosmetic work and budget. Really impressed!",
-                      name: "James",
-                      location: "Shoreditch",
-                      initial: "J",
-                    },
-                    {
-                      text: "Finally, someone who gets it! No more scrolling through dozens of clinic websites. Quick, easy, and exactly what I needed.",
-                      name: "Amara",
-                      location: "Camden",
-                      initial: "A",
-                    },
-                  ].map((testimonial, i) => (
-                    <Card key={i} className="p-5 sm:p-8 border-0 shadow-lg rounded-3xl bg-white h-full">
-                      {/* Decorative quote */}
-                      <span className="text-5xl text-primary/10 font-serif leading-none block -mb-2" aria-hidden="true">&ldquo;</span>
-                      <div className="flex gap-1 mb-4">
-                        {[...Array(5)].map((_, j) => (
-                          <Star key={j} className="w-5 h-5 text-foreground fill-primary" />
-                        ))}
-                      </div>
-                      <p className="text-muted-foreground leading-relaxed mb-6">
-                        &ldquo;{testimonial.text}&rdquo;
-                      </p>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                          {testimonial.initial}
-                        </div>
-                        <div>
-                          <p className="font-bold text-foreground">{testimonial.name}</p>
-                          <p className="text-sm text-muted-foreground">{testimonial.location}</p>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
+          {/* Patient Experiences section */}
+          <PatientExperiences />
 
           {/* CTA section - dark teal background */}
           <section className="py-24 md:py-32 lg:py-36 bg-[#004443] text-white relative overflow-hidden">
@@ -535,15 +575,15 @@ export default function Home() {
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="max-w-3xl mx-auto text-center">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-balance">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-6 text-balance">
                   Ready to find the right dental clinic for you?
                 </h2>
-                <p className="text-lg md:text-xl mb-10 opacity-90 leading-relaxed">
+                <p className="text-lg md:text-xl mb-10 opacity-90 leading-snug">
                   Answer a few quick questions and we&apos;ll match you with trusted clinics near you.
                 </p>
                 <Button
                   size="lg"
-                  className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-xl hover:shadow-2xl transition-all text-lg font-semibold border-0"
+                  className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] text-lg font-normal border-0"
                   asChild
                 >
                   <Link href="/intake" onClick={handleFindClinicClick}>

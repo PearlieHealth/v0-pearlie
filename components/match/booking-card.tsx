@@ -473,7 +473,7 @@ export function BookingCard({
           <button
             type="button"
             onClick={() => setShowMoreDetails(!showMoreDetails)}
-            className="flex items-center justify-center gap-2 text-sm font-semibold text-[#004443] hover:text-[#004443]/80 transition-colors w-full py-3 rounded-xl bg-[#F8F1E7] hover:bg-[#F8F1E7]/80"
+            className="flex items-center justify-center gap-2 text-sm font-semibold text-[#004443] hover:text-[#004443]/80 transition-colors w-full py-3 rounded-xl bg-[#faf3e6] hover:bg-[#faf3e6]/80"
           >
             {showMoreDetails ? (
               <ChevronUp className="w-4 h-4" />

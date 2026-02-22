@@ -505,7 +505,7 @@ export default function AppointmentDetailPage() {
                               className={cn(
                                 "rounded-2xl",
                                 msg.sender_type === "bot"
-                                  ? "max-w-[52%] px-3 py-2 bg-gradient-to-br from-teal-50 to-[#F8F1E7] border border-teal-100 rounded-bl-md"
+                                  ? "max-w-[52%] px-3 py-2 bg-gradient-to-br from-teal-50 to-[#faf3e6] border border-teal-100 rounded-bl-md"
                                   : "max-w-[75%] px-4 py-2.5",
                                 msg.sender_type === "clinic"
                                   ? "bg-[#0fbcb0] text-white rounded-br-md"

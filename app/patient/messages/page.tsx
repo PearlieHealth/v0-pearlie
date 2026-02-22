@@ -568,7 +568,7 @@ export default function PatientMessagesPage() {
               }`}
             >
               {msg.sender_type === "bot" ? (
-                <div className="max-w-[90%] flex items-start gap-2 bg-gradient-to-r from-teal-50 to-[#F8F1E7] border border-teal-100/50 rounded-xl px-3 py-2">
+                <div className="max-w-[90%] flex items-start gap-2 bg-gradient-to-r from-teal-50 to-[#faf3e6] border border-teal-100/50 rounded-xl px-3 py-2">
                   <Heart className="w-3 h-3 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
                   <p className="text-[11px] text-[#555] whitespace-pre-wrap">{msg.content}</p>
                 </div>

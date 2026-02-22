@@ -204,8 +204,8 @@ export default function PatientLoginPage() {
             </div>
             <span className="font-semibold text-xl text-[#0fbcb0]">Pearlie</span>
           </Link>
-          <h1 className="text-2xl font-semibold text-[#222] mb-2">Welcome back</h1>
-          <p className="text-[#222]/70">Sign in to view your matches and conversations.</p>
+          <h1 className="text-2xl font-semibold text-[#3d3838] mb-2">Welcome back</h1>
+          <p className="text-[#3d3838]/70">Sign in to view your matches and conversations.</p>
         </div>
 
         {success ? (
@@ -213,13 +213,13 @@ export default function PatientLoginPage() {
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-xl font-semibold text-[#222]">Signed in</h2>
-            <p className="text-[#222]/70">Redirecting to your dashboard...</p>
+            <h2 className="text-xl font-semibold text-[#3d3838]">Signed in</h2>
+            <p className="text-[#3d3838]/70">Redirecting to your dashboard...</p>
           </div>
         ) : step === "email" ? (
           <div className="space-y-6">
             <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-medium text-[#222]">
+              <Label htmlFor="email" className="text-sm font-medium text-[#3d3838]">
                 Email address
               </Label>
               <Input
@@ -245,14 +245,14 @@ export default function PatientLoginPage() {
               </Button>
             </div>
 
-            <p className="text-center text-xs text-[#222]/40">
+            <p className="text-center text-xs text-[#3d3838]/40">
               We&apos;ll send a 6-digit code to your email. No password needed.
             </p>
           </div>
         ) : (
           <div className="space-y-6">
             <div className="text-center">
-              <p className="text-[#222]/70 mb-6">
+              <p className="text-[#3d3838]/70 mb-6">
                 Enter the 6-digit code sent to <strong>{maskedEmail}</strong>
               </p>
             </div>
@@ -296,7 +296,7 @@ export default function PatientLoginPage() {
             <div className="flex items-center justify-between">
               <button
                 onClick={() => { setStep("email"); setOtp(["", "", "", "", "", ""]); setError("") }}
-                className="text-sm text-[#222]/50 hover:text-[#222] transition-colors"
+                className="text-sm text-[#3d3838]/50 hover:text-[#3d3838] transition-colors"
               >
                 Use a different email
               </button>
@@ -317,7 +317,7 @@ export default function PatientLoginPage() {
 
         {/* Back to home */}
         <div className="text-center mt-8">
-          <Link href="/" className="text-sm text-[#222]/50 hover:text-[#222] transition-colors">
+          <Link href="/" className="text-sm text-[#3d3838]/50 hover:text-[#3d3838] transition-colors">
             Back to home
           </Link>
         </div>

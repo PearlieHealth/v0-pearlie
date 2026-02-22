@@ -555,7 +555,7 @@ export function ChatHistoryPanel() {
                               </span>
                             )}
                             {message.sender_type === "bot" ? (
-                              <div className="max-w-[80%] flex items-start gap-2 bg-gradient-to-r from-teal-50 to-[#F8F1E7] border border-teal-100/50 rounded-xl px-3 py-2">
+                              <div className="max-w-[80%] flex items-start gap-2 bg-gradient-to-r from-teal-50 to-[#faf3e6] border border-teal-100/50 rounded-xl px-3 py-2">
                                 <Heart className="w-3.5 h-3.5 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
                                 <p className="text-xs text-neutral-500 whitespace-pre-wrap">
                                   {message.content}

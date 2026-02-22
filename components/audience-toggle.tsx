@@ -13,7 +13,7 @@ export function AudienceToggle({ activeView, onToggle }: AudienceToggleProps) {
       <button
         onClick={() => onToggle("patients")}
         className={cn(
-          "px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap",
+          "px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.66,0,0.1,1)] whitespace-nowrap",
           activeView === "patients"
             ? "bg-primary text-white shadow-sm"
             : "text-muted-foreground hover:text-foreground",
@@ -24,7 +24,7 @@ export function AudienceToggle({ activeView, onToggle }: AudienceToggleProps) {
       <button
         onClick={() => onToggle("clinics")}
         className={cn(
-          "px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap",
+          "px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.66,0,0.1,1)] whitespace-nowrap",
           activeView === "clinics"
             ? "bg-primary text-white shadow-sm"
             : "text-muted-foreground hover:text-foreground",

@@ -23,7 +23,7 @@ export default function AboutPage() {
         <section className="py-16 sm:py-24 md:py-32 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-6 sm:mb-8 text-white text-balance">
+              <h1 className="text-3xl sm:text-5xl md:text-7xl font-heading font-bold tracking-[-0.03em] mb-6 sm:mb-8 text-white text-balance">
                 Find the right dental clinic for you
               </h1>
               <p className="text-xl md:text-2xl text-white/75 leading-relaxed max-w-3xl mx-auto">
@@ -38,7 +38,7 @@ export default function AboutPage() {
         <section className="py-12 sm:py-20 md:py-24 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12 sm:mb-16">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-[#004443]">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
                 Our clinic network
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
@@ -53,11 +53,11 @@ export default function AboutPage() {
         </section>
 
         {/* What Pearlie Does — cream background with richer descriptions */}
-        <section className="py-12 sm:py-20 md:py-28 bg-[#F8F1E7]">
+        <section className="py-12 sm:py-20 md:py-28 bg-[#faf3e6]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-12 sm:mb-16">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-[#004443]">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
                   What Pearlie does
                 </h2>
               </div>
@@ -114,7 +114,7 @@ export default function AboutPage() {
         <section className="py-12 sm:py-20 md:py-28 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-10 sm:mb-14 text-center text-[#004443]">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-10 sm:mb-14 text-center text-[#004443]">
                 Why we built Pearlie
               </h2>
               <div className="space-y-6 text-muted-foreground leading-relaxed text-lg max-w-3xl mx-auto">
@@ -149,10 +149,10 @@ export default function AboutPage() {
         </section>
 
         {/* Our Commitment — cream background */}
-        <section className="py-12 sm:py-20 md:py-28 bg-[#F8F1E7]">
+        <section className="py-12 sm:py-20 md:py-28 bg-[#faf3e6]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-[#004443]">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
                 Our commitment
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
@@ -173,7 +173,7 @@ export default function AboutPage() {
                 <div className="inline-flex items-center gap-2.5 mb-5">
                   <ShieldCheck className="w-8 h-8 text-[#0fbcb0]" />
                 </div>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-white">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-white">
                   Our promise: Pearlie Guarantee
                 </h2>
                 <p className="text-lg sm:text-xl text-white/75 max-w-3xl mx-auto leading-relaxed">
@@ -282,10 +282,10 @@ export default function AboutPage() {
         </section>
 
         {/* CTA Section — cream background, single clear action */}
-        <section className="py-12 sm:py-20 md:py-28 bg-[#F8F1E7]">
+        <section className="py-12 sm:py-20 md:py-28 bg-[#faf3e6]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 text-[#004443]">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
                 Ready to find your clinic match?
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground mb-10 leading-relaxed">
@@ -293,7 +293,7 @@ export default function AboutPage() {
               </p>
               <Button
                 size="lg"
-                className="text-lg px-10 py-6 h-auto bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-md hover:shadow-lg transition-all"
+                className="text-lg px-10 py-6 h-auto bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all"
                 asChild
               >
                 <Link href="/intake">Get my clinic matches</Link>

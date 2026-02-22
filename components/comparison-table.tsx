@@ -4,26 +4,22 @@ import { Check, X, Sparkles, Clock, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-const withPearlieFeatures: Array<string | { text: string; href: string }> = [
+const withPearlieFeatures = [
   "Time to think before deciding",
   "Know what matters to you first",
   "Matched to the right clinic",
   "Compare options side-by-side",
-  "Chat directly with clinics online",
-  "Book appointments online, simply",
-  "Manage messages and visits in one place",
-  { text: "Confidence with the Pearlie Guarantee", href: "/about#pearlie-guarantee" },
+  "Chat directly with clinics",
+  "Book simply, when ready",
 ]
 
-const withoutPearlieFeatures = [
+const traditionalFeatures = [
   "Rushed into decisions",
-  "Unclear on your priorities",
+  "Unclear on priorities",
   "Random clinic selection",
   "No easy way to compare",
   "Calling multiple clinics",
-  "Repeating your story again and again",
-  "Potential sales pressure",
-  "Uncertainty before committing",
+  "Repeating your story",
 ]
 
 export function ComparisonTable() {
@@ -33,14 +29,19 @@ export function ComparisonTable() {
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 text-[#0fbcb0]">
+            {/* Small accent label */}
+            <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#0fbcb0] mb-4">
               Why Pearlie
+            </span>
+
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-4 text-white leading-[1.1]">
+              Clarity before commitment.<br />
+              Confidence before booking.<br />
+              <span className="text-[#0fbcb0]">Peace of mind.</span>
             </h2>
-            <h3 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white">
-              Dental decisions shouldn&apos;t feel stressful.
-            </h3>
+
             <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
-              Pearlie gives you space to think before you&apos;re in the chair.
+              Pearlie gives you space to understand your options before making a decision.
             </p>
           </div>
 
@@ -69,29 +70,18 @@ export function ComparisonTable() {
 
               {/* Features */}
               <ul className="space-y-4">
-                {withPearlieFeatures.map((feature, index) => {
-                  const isLink = typeof feature === "object"
-                  const text = isLink ? feature.text : feature
-                  return (
-                    <li key={index} className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                        <Check className="w-4 h-4 text-emerald-400" strokeWidth={3} />
-                      </div>
-                      {isLink ? (
-                        <Link href={feature.href} className="text-white font-medium hover:underline inline-flex items-center gap-1.5">
-                          {text}
-                          <Info className="w-4 h-4 text-white/50" />
-                        </Link>
-                      ) : (
-                        <span className="text-white font-medium">{text}</span>
-                      )}
-                    </li>
-                  )
-                })}
+                {withPearlieFeatures.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-4 h-4 text-emerald-400" strokeWidth={3} />
+                    </div>
+                    <span className="text-white font-medium">{feature}</span>
+                  </li>
+                ))}
               </ul>
             </div>
 
-            {/* Without Pearlie Card */}
+            {/* The Traditional Way Card */}
             <div className="rounded-3xl border border-white/20 bg-white/5 backdrop-blur-sm p-5 sm:p-8 h-full">
               {/* Header */}
               <div className="flex items-center gap-3 mb-6">
@@ -99,14 +89,14 @@ export function ComparisonTable() {
                   <Clock className="w-7 h-7 text-white/50" strokeWidth={2} />
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-white/60">On your own</h4>
-                  <p className="text-sm text-white/40">The traditional way.</p>
+                  <h4 className="text-xl font-bold text-white/60">The traditional way</h4>
+                  <p className="text-sm text-white/40">Less clarity. More pressure.</p>
                 </div>
               </div>
 
               {/* Features */}
               <ul className="space-y-4">
-                {withoutPearlieFeatures.map((feature, index) => (
+                {traditionalFeatures.map((feature, index) => (
                   <li key={index} className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
                       <X className="w-4 h-4 text-red-400" strokeWidth={2.5} />
@@ -116,13 +106,6 @@ export function ComparisonTable() {
                 ))}
               </ul>
             </div>
-          </div>
-
-          {/* Tagline */}
-          <div className="text-center mb-10">
-            <p className="text-lg text-white/70 font-medium leading-relaxed max-w-xl mx-auto">
-              Taking time to think isn&apos;t hesitation. It&apos;s good decision-making.
-            </p>
           </div>
 
           {/* CTA */}
