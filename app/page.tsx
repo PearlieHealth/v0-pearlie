@@ -89,12 +89,12 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative pt-28 pb-4 md:pt-28 md:pb-14 lg:pt-32 lg:pb-16 bg-gradient-to-b from-[#f2ead9] via-[#f6efe2] to-[#faf3e6] overflow-hidden">
-            <div className="container mx-auto px-6 lg:px-8">
+          <section className="relative md:min-h-[85vh] lg:min-h-[90vh] flex flex-col justify-center pt-32 pb-12 md:pt-40 md:pb-20 lg:pt-44 lg:pb-24 bg-gradient-to-b from-[#f2ead9] via-[#f6efe2] to-[#faf3e6] overflow-hidden">
+            <div className="container mx-auto px-6 lg:px-10">
               <div className="max-w-6xl mx-auto">
 
                 {/* Desktop: Video LEFT, Text RIGHT */}
-                <div className="flex flex-col lg:flex-row items-center gap-4 md:gap-12 lg:gap-16">
+                <div className="flex flex-col lg:flex-row items-center gap-8 md:gap-14 lg:gap-20">
 
                   {/* Video — desktop left, mobile below text */}
                   <motion.div
@@ -107,7 +107,7 @@ export default function Home() {
                       autoPlay
                       muted
                       playsInline
-                      className="w-full h-auto rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.06)] scale-x-[-1]"
+                      className="w-full h-auto rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] scale-x-[-1]"
                     >
                       <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
                     </video>
@@ -116,7 +116,7 @@ export default function Home() {
                   {/* Text content — desktop right, mobile first */}
                   <div className="order-1 lg:order-2 flex-1 text-center lg:text-left">
                     <motion.h1
-                      className="text-3xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-3 md:mb-10"
+                      className="text-3xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-3 md:mb-4 lg:mb-5"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
@@ -141,7 +141,7 @@ export default function Home() {
                     </motion.h1>
 
                     <motion.p
-                      className="text-[15px] md:text-lg text-[#666] mb-5 md:mb-10 leading-[1.4] max-w-lg mx-auto lg:mx-0"
+                      className="text-[15px] md:text-lg text-[#666] mb-5 md:mb-6 leading-[1.5] max-w-lg mx-auto lg:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
