@@ -76,11 +76,9 @@ export function AppointmentBanner({
               </span>
             )}
           </div>
-          {(clinicName || formattedRequestedAt) && (
+          {clinicName && (
             <p className="text-xs text-muted-foreground mt-1">
-              {clinicName && <>at {clinicName}</>}
-              {clinicName && formattedRequestedAt && <> &middot; </>}
-              {formattedRequestedAt && <>requested {formattedRequestedAt}</>}
+              at {clinicName}
             </p>
           )}
         </div>
