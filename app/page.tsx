@@ -116,7 +116,7 @@ export default function Home() {
                   {/* Text content — desktop right, mobile first */}
                   <div className="order-1 lg:order-2 flex-1 text-center lg:text-left">
                     <motion.h1
-                      className="text-4xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[1.15] font-heading font-medium tracking-tighter text-[#3d3838] mb-6"
+                      className="text-4xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[1.15] font-heading font-medium tracking-[-0.07em] text-[#3d3838] mb-6"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
@@ -223,7 +223,7 @@ export default function Home() {
               <div className="max-w-6xl mx-auto">
                 {/* Section header */}
                 <div className="text-center mb-16 md:mb-24">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-medium tracking-tighter text-[#004443]">
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-medium tracking-[-0.07em] text-[#004443]">
                     How It Works
                   </h2>
                 </div>
@@ -472,7 +472,7 @@ export default function Home() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-12 md:mb-16">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-medium tracking-tighter mb-6 text-[#004443]">
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-heading font-medium tracking-[-0.07em] mb-6 text-[#004443]">
                     What Patients Say
                   </h2>
                   <p className="text-lg text-muted-foreground">

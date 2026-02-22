@@ -23,7 +23,7 @@ export default function AboutPage() {
         <section className="py-16 sm:py-24 md:py-32 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-3xl sm:text-5xl md:text-7xl font-heading font-medium tracking-tighter mb-6 sm:mb-8 text-white text-balance">
+              <h1 className="text-3xl sm:text-5xl md:text-7xl font-heading font-medium tracking-[-0.07em] mb-6 sm:mb-8 text-white text-balance">
                 Find the right dental clinic for you
               </h1>
               <p className="text-xl md:text-2xl text-white/75 leading-relaxed max-w-3xl mx-auto">
