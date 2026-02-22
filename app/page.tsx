@@ -122,7 +122,7 @@ function PatientExperiences() {
               <span className="text-[9px] font-extrabold tracking-[0.1em] uppercase text-[#0fbcb0] mb-2.5">
                 {testimonial.label}
               </span>
-              <p className="text-[14px] text-muted-foreground leading-snug mb-4 flex-1 line-clamp-3 md:line-clamp-2">
+              <p className="text-[14px] text-muted-foreground leading-snug mb-4 flex-1 line-clamp-3 md:line-clamp-none">
                 &ldquo;{testimonial.text}&rdquo;
               </p>
               <div className="flex items-center justify-between">
