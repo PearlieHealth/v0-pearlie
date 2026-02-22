@@ -298,26 +298,26 @@ export default function Home() {
           <ScrollingMarquee items={marqueeItems} speed={35} />
 
           {/* How it works section */}
-          <section id="how-it-works" className="py-20 md:py-14 lg:py-16 bg-white relative overflow-hidden">
+          <section id="how-it-works" className="py-16 md:py-11 lg:py-13 bg-white relative overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-7xl mx-auto">
                 {/* Section header */}
-                <div className="text-center mb-16 md:mb-10">
-                  <h2 className="text-4xl sm:text-5xl md:text-5xl lg:text-[3.75rem] font-heading font-bold tracking-[-0.03em] text-[#004443]">
+                <div className="text-center mb-12 md:mb-8">
+                  <h2 className="text-[2rem] sm:text-[2.6rem] md:text-[2.6rem] lg:text-[3.25rem] font-heading font-bold tracking-[-0.03em] text-[#004443]">
                     How It Works
                   </h2>
                 </div>
 
                 {/* Step 1 - Image Left, Text Right */}
-                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-10 mb-20 md:mb-14">
+                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8 mb-14 md:mb-10">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-end">
-                    <div className="relative w-full max-w-[320px] lg:max-w-[250px]">
+                    <div className="relative w-full max-w-[280px] lg:max-w-[230px]">
                       {/* Step number */}
                       <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">01</span>
                       {/* Phone mockup with form illustration */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
-                        <div className="bg-white rounded-2xl p-5 lg:p-3 shadow-sm">
+                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-4 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
+                        <div className="bg-white rounded-2xl p-4 lg:p-3 shadow-sm">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center">
                               <Sparkles className="w-5 h-5 text-primary" />
@@ -348,20 +348,20 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl md:text-3xl font-bold mb-2 text-[#004443]">
+                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-[#004443]">
                       Tell us what you're looking for
                     </h3>
-                    <p className="text-lg md:text-base text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
+                    <p className="text-base md:text-[0.9rem] text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
                       Answer a few simple questions about your treatment, budget, location, and preferences. It only takes a minute.
                     </p>
                   </div>
                 </div>
 
                 {/* Step 2 - Text Left, Image Right */}
-                <div className="flex flex-col lg:flex-row-reverse items-center gap-8 lg:gap-10 mb-20 md:mb-14">
+                <div className="flex flex-col lg:flex-row-reverse items-center gap-6 lg:gap-8 mb-14 md:mb-10">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-start">
-                    <div className="relative w-full max-w-[320px] lg:max-w-[250px]">
+                    <div className="relative w-full max-w-[280px] lg:max-w-[230px]">
                       {/* Step number */}
                       <span className="absolute -top-6 -right-2 lg:-right-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">02</span>
                       {/* Phone mockup with clinic cards */}
@@ -415,20 +415,20 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl md:text-3xl font-bold mb-2 text-[#004443]">
+                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-[#004443]">
                       We match you with the right clinics
                     </h3>
-                    <p className="text-lg md:text-base text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
+                    <p className="text-base md:text-[0.9rem] text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
                       Based on your answers, we suggest carefully reviewed clinics in London that meet our standards for quality and transparency — so you're not overwhelmed with endless searching.
                     </p>
                   </div>
                 </div>
 
                 {/* Step 3 - Image Left, Text Right */}
-                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-10">
+                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-end">
-                    <div className="relative w-full max-w-[320px] lg:max-w-[250px]">
+                    <div className="relative w-full max-w-[280px] lg:max-w-[230px]">
                       {/* Step number */}
                       <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">03</span>
                       {/* Phone mockup with booking */}
@@ -471,10 +471,10 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-2xl sm:text-3xl md:text-3xl font-bold mb-2 text-[#004443]">
+                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-[#004443]">
                       Compare. Chat. Book.
                     </h3>
-                    <p className="text-lg md:text-base text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
+                    <p className="text-base md:text-[0.9rem] text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
                       Compare clinics side-by-side, chat directly with them, and book online when you're ready. All in one place.
                     </p>
                   </div>
