@@ -824,7 +824,7 @@ export function ClinicProfileContent() {
           <div className="flex gap-3 max-w-lg mx-auto">
             <Button
               size="lg"
-              className="flex-1 bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation shadow-md"
+              className="flex-1 bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation"
               onClick={() => setShowMobileChat(true)}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
@@ -856,7 +856,7 @@ export function ClinicProfileContent() {
           <div className="max-w-lg mx-auto">
             <Button
               size="lg"
-              className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation shadow-md"
+              className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation"
               onClick={() => {
                 const contactEventId = generateTikTokEventId()
                 trackTikTokEvent("Contact", { content_name: "message_clinic_profile_mobile" }, contactEventId)

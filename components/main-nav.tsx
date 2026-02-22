@@ -46,7 +46,7 @@ export function MainNav() {
               <button
                 onClick={() => handleToggle("patients")}
                 className={cn(
-                  "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300",
+                  "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.66,0,0.1,1)]",
                   isForPatients
                     ? "bg-white/90 text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground",
@@ -57,7 +57,7 @@ export function MainNav() {
               <button
                 onClick={() => handleToggle("clinics")}
                 className={cn(
-                  "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300",
+                  "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.66,0,0.1,1)]",
                   isForClinics
                     ? "bg-white/90 text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground",
@@ -96,7 +96,7 @@ export function MainNav() {
             </Link>
             <Button
               size="lg"
-              className="text-sm px-6 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-md hover:shadow-lg transition-all border-0"
+              className="text-sm px-6 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0"
               asChild
             >
               <Link href="/intake">Find my clinic</Link>
