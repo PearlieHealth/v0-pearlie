@@ -1,15 +1,25 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Heart, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNavMenu } from "@/components/mobile-nav-menu"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
 
 export function MainNav() {
   const pathname = usePathname()
   const router = useRouter()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session)
+    })
+  }, [])
 
   const isForClinics = pathname === "/for-clinics"
   const isForPatients = pathname === "/" || pathname === "/intake"
@@ -89,7 +99,7 @@ export function MainNav() {
           {/* CTA Buttons - Right */}
           <div className="hidden md:flex items-center gap-3">
             <Link
-              href="/patient/login"
+              href={isAuthenticated ? "/patient/dashboard" : "/patient/login"}
               className="text-sm font-heading font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
             >
               My account

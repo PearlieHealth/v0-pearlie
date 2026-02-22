@@ -430,7 +430,7 @@ export function BookingCard({
           )}
 
           {/* Appointment status banner */}
-          {(appointmentRequested || bookingStatus === "confirmed" || bookingStatus === "declined" || bookingStatus === "cancelled") && (() => {
+          {(appointmentRequested || bookingStatus === "confirmed" || bookingStatus === "declined" || bookingStatus === "cancelled" || bookingStatus === "completed") && (() => {
             const formattedBookingDate = bookingDate
               ? new Date(bookingDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
               : null
@@ -507,6 +507,32 @@ export function BookingCard({
                       )}
                       <p className="text-xs text-muted-foreground mt-1">
                         You can request a new appointment time.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    onClick={onMessageClick}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    Message Clinic
+                  </Button>
+                </div>
+              )
+            }
+
+            // Completed
+            if (bookingStatus === "completed") {
+              return (
+                <div className="rounded-xl bg-green-50 border border-green-200 p-4 space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-green-700">
+                        Appointment completed
+                        {formattedBookingDate && (
+                          <> on {formattedBookingDate}</>
+                        )}
                       </p>
                     </div>
                   </div>

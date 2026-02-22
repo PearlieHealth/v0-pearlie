@@ -1,16 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, Heart, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
 
 export function MobileNavMenu() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session)
+    })
+  }, [])
 
   const isForClinics = pathname === "/for-clinics"
   const isForPatients = pathname === "/" || pathname === "/intake"
@@ -111,7 +120,7 @@ export function MobileNavMenu() {
               className="w-full text-base h-12 rounded-full"
               asChild
             >
-              <Link href="/patient/login" onClick={() => setOpen(false)}>
+              <Link href={isAuthenticated ? "/patient/dashboard" : "/patient/login"} onClick={() => setOpen(false)}>
                 My account
               </Link>
             </Button>

@@ -619,7 +619,9 @@ export default function PatientDashboard() {
         // Remove optimistic message on error
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
         const errData = await res.json().catch(() => ({}))
-        if (res.status === 403) {
+        if (res.status === 401) {
+          setChatError("Your session has expired. Please log in again to continue chatting.")
+        } else if (res.status === 403) {
           setChatError("Please verify your email before sending messages.")
         } else if (res.status === 429) {
           setChatError(errData.error || "Too many messages. Please wait a moment.")
@@ -1172,6 +1174,8 @@ export default function PatientDashboard() {
 
                 {inboxConversations.map((conv) => {
                   const isActive = selectedConvId === conv.id && !isInPendingChat
+                  const convLead = data?.leads?.find((l) => l.id === conv.lead_id)
+                  const treatmentLabel = convLead?.treatment_interest
                   return (
                     <button
                       key={conv.id}
@@ -1202,9 +1206,14 @@ export default function PatientDashboard() {
                       {/* Content */}
                       <div className="min-w-0 flex-1 space-y-0.5">
                         <div className="flex items-center justify-between gap-2">
-                          <p className={`text-[13px] truncate ${conv.unread_by_patient ? "font-bold text-foreground" : "font-semibold text-foreground/80"}`}>
-                            {conv.clinics?.name || "Clinic"}
-                          </p>
+                          <div className="min-w-0">
+                            <p className={`text-[13px] truncate ${conv.unread_by_patient ? "font-bold text-foreground" : "font-semibold text-foreground/80"}`}>
+                              {conv.clinics?.name || "Clinic"}
+                            </p>
+                            {treatmentLabel && (
+                              <span className="text-[10px] text-muted-foreground/70 truncate block">{treatmentLabel}</span>
+                            )}
+                          </div>
                           <span className="text-[10px] text-muted-foreground flex-shrink-0">
                             {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
                           </span>
@@ -1360,7 +1369,16 @@ export default function PatientDashboard() {
                 {/* Error feedback */}
                 {chatError && (
                   <div className="px-4 py-1.5 flex-shrink-0">
-                    <p className="text-xs text-red-500">{chatError}</p>
+                    {chatError.includes("session has expired") ? (
+                      <p className="text-xs text-red-500">
+                        {chatError}{" "}
+                        <a href="/patient/login?next=/patient/dashboard" className="underline font-medium hover:text-red-700">
+                          Log in
+                        </a>
+                      </p>
+                    ) : (
+                      <p className="text-xs text-red-500">{chatError}</p>
+                    )}
                   </div>
                 )}
 
@@ -1536,7 +1554,16 @@ export default function PatientDashboard() {
           {/* Error feedback */}
           {chatError && (
             <div className="px-3 py-1.5 flex-shrink-0 bg-card">
-              <p className="text-xs text-red-500">{chatError}</p>
+              {chatError.includes("session has expired") ? (
+                <p className="text-xs text-red-500">
+                  {chatError}{" "}
+                  <a href="/patient/login?next=/patient/dashboard" className="underline font-medium hover:text-red-700">
+                    Log in
+                  </a>
+                </p>
+              ) : (
+                <p className="text-xs text-red-500">{chatError}</p>
+              )}
             </div>
           )}
 

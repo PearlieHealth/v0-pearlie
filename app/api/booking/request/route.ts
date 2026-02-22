@@ -75,6 +75,23 @@ export async function POST(request: Request) {
       )
     }
 
+    // Cap concurrent pending appointment requests per user (max 5)
+    const pendingFilter = lead.user_id
+      ? `user_id.eq.${lead.user_id},email.eq.${lead.email}`
+      : `email.eq.${lead.email}`
+    const { count: pendingCount } = await supabase
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .or(pendingFilter)
+      .eq("booking_status", "pending")
+
+    if ((pendingCount || 0) >= 5) {
+      return NextResponse.json(
+        { error: "You can have at most 5 pending appointment requests. Please wait for a response before requesting more." },
+        { status: 429 }
+      )
+    }
+
     // Generate booking token for confirm/decline links
     const bookingToken = randomBytes(16).toString("hex")
     
