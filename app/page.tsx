@@ -122,15 +122,17 @@ function PatientExperiences() {
               <span className="text-[9px] font-extrabold tracking-[0.1em] uppercase text-[#0fbcb0] mb-2.5">
                 {testimonial.label}
               </span>
-              <div className="flex gap-0.5 mb-3">
-                {[...Array(5)].map((_, j) => (
-                  <Star key={j} className="w-3 h-3 fill-[#0fbcb0]/50 text-[#0fbcb0]/50" />
-                ))}
-              </div>
               <p className="text-[14px] text-muted-foreground leading-snug mb-4 flex-1 line-clamp-3 md:line-clamp-2">
                 &ldquo;{testimonial.text}&rdquo;
               </p>
-              <p className="text-[13px] font-semibold text-foreground">{testimonial.name}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-[13px] font-semibold text-foreground">{testimonial.name}</p>
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, j) => (
+                    <Star key={j} className="w-3 h-3 fill-[#0fbcb0]/50 text-[#0fbcb0]/50" />
+                  ))}
+                </div>
+              </div>
             </Card>
           </motion.div>
         ))}
