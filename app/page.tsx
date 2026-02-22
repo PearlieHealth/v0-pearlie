@@ -28,7 +28,6 @@ const marqueeItems = [
   { text: "Verified Dental Practices", icon: <Heart className="w-3.5 h-3.5" /> },
 ]
 
-const rotatingWords = ["right", "easy", "simple", "clear", "effortless"]
 
 
 interface LastMatch {
@@ -173,14 +172,6 @@ export default function Home() {
     trackTikTokServerRelay("Search", { event_id: eventId, properties: { content_name: "find_my_clinic" } })
   }, [])
 
-  const [wordIndex, setWordIndex] = useState(0)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setWordIndex((i) => (i + 1) % rotatingWords.length)
-    }, 2500)
-    return () => clearInterval(interval)
-  }, [])
-
   return (
     <>
       <AnimatePresence>
@@ -224,23 +215,9 @@ export default function Home() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
                     >
-                      Where finding a dentist finally feels{" "}
-                      <span className="inline-flex relative overflow-hidden align-baseline" style={{ height: "1em", verticalAlign: "baseline" }}>
-                        {/* Invisible sizer to hold width of current word */}
-                        <span className="invisible">{rotatingWords[wordIndex]}</span>
-                        <AnimatePresence mode="wait">
-                          <motion.span
-                            key={rotatingWords[wordIndex]}
-                            className="absolute left-0 top-0 text-[#0fbcb0]"
-                            initial={{ y: "100%", opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: "-100%", opacity: 0 }}
-                            transition={{ duration: 0.4, ease: "easeInOut" }}
-                          >
-                            {rotatingWords[wordIndex]}
-                          </motion.span>
-                        </AnimatePresence>
-                      </span>
+                      Find the <span className="text-[#0fbcb0]">right</span> clinic.
+                      <br />
+                      <span className="font-medium">Not just the closest one.</span>
                     </motion.h1>
 
                     <motion.p
@@ -249,7 +226,7 @@ export default function Home() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
                     >
-                      Matching you with carefully reviewed clinics based on your needs, preferences, and Timing not just location — so you can choose with confidence.
+                      Matching you with carefully reviewed clinics based on your budget, needs, preferences, and timing — so you can choose with confidence.
                     </motion.p>
 
                     <motion.div
@@ -372,11 +349,10 @@ export default function Home() {
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
                     <h3 className="text-2xl sm:text-3xl md:text-3xl font-bold mb-2 text-[#004443]">
-                      Tell us what matters to you
+                      Tell us what you're looking for
                     </h3>
                     <p className="text-lg md:text-base text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
-                      Answer a few quick questions about what you're looking for and what's important to you, at your own
-                      pace.
+                      Answer a few simple questions about your treatment, budget, location, and preferences. It only takes a minute.
                     </p>
                   </div>
                 </div>
@@ -440,11 +416,10 @@ export default function Home() {
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
                     <h3 className="text-2xl sm:text-3xl md:text-3xl font-bold mb-2 text-[#004443]">
-                      We recommend carefully matched clinics
+                      We match you with the right clinics
                     </h3>
                     <p className="text-lg md:text-base text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
-                      Based on your answers, we'll recommend trusted clinics near you that fit your preferences — so
-                      you're not overwhelmed with options.
+                      Based on your answers, we suggest carefully reviewed clinics in London that meet our standards for quality and transparency — so you're not overwhelmed with endless searching.
                     </p>
                   </div>
                 </div>
@@ -497,11 +472,10 @@ export default function Home() {
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
                     <h3 className="text-2xl sm:text-3xl md:text-3xl font-bold mb-2 text-[#004443]">
-                      You choose if and when to book
+                      Compare. Chat. Book.
                     </h3>
                     <p className="text-lg md:text-base text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
-                      Review your options, explore each clinic, <span className="text-[#0fbcb0] font-medium">live chat and book directly</span> with the one that feels right
-                      for you. No pressure. No obligation.
+                      Compare clinics side-by-side, chat directly with them, and book online when you're ready. All in one place.
                     </p>
                   </div>
                 </div>
