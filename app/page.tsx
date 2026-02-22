@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, RotateCcw, Search } from "lucide-react"
+import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, RotateCcw, Search, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import Image from "next/image"
@@ -23,9 +23,10 @@ const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREA
 
 const marqueeItems = [
   { text: "Trusted UK Clinics", icon: <Shield className="w-3.5 h-3.5" /> },
-  { text: "Free To Use", icon: <Sparkles className="w-3.5 h-3.5" /> },
-  { text: "Independent", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
-  { text: "Verified Dental Practices", icon: <Heart className="w-3.5 h-3.5" /> },
+  { text: "Free to Use", icon: <Sparkles className="w-3.5 h-3.5" /> },
+  { text: "Independent Platform", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+  { text: "Live Chat with Clinics", icon: <MessageCircle className="w-3.5 h-3.5" /> },
+  { text: "Book Directly Online", icon: <CalendarCheck className="w-3.5 h-3.5" /> },
 ]
 
 
