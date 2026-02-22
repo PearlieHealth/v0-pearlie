@@ -12,11 +12,11 @@
   --secondary-foreground: #3d3838;
   --foreground: #3d3838;
   --muted-foreground: #666666;
-  --background: #ffffff;
-  --border: #e8e8e8;
-  --card: #ffffff;
+  --background: #fdfdf4;
+  --border: #e2dada;
+  --card: #fdfdf4;
   --card-foreground: #3d3838;
-  --popover: #ffffff;
+  --popover: #fdfdf4;
   --popover-foreground: #3d3838;
   --muted: #faf3e6;
   --accent: #faf3e6;
@@ -32,7 +32,7 @@
   --deep-teal: #0fbcb0;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: #ffffff;
-  --input: #e8e8e8;
+  --input: #e2dada;
   --ring: #0fbcb0;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -133,6 +133,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    letter-spacing: -0.02em;
   }
 }
 
