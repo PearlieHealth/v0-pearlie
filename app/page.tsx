@@ -184,7 +184,7 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative md:min-h-[70vh] lg:min-h-[74vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:pt-32 lg:pb-10 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
+          <section className="relative md:min-h-[70vh] lg:min-h-[100vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:pt-32 lg:pb-10 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
             <div className="px-6 md:px-14">
               <div className="max-w-7xl">
 
