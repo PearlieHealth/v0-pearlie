@@ -167,6 +167,44 @@ export default function Home() {
     }
   }, [])
 
+  // Mobile video: prevent Safari freeze on tab/app switch
+  const heroVideoRef = useRef<HTMLVideoElement>(null)
+  const videoEndedRef = useRef(false)
+
+  useEffect(() => {
+    const isMobile = window.innerWidth < 1024
+    if (!isMobile) return
+
+    const video = heroVideoRef.current
+    if (!video) return
+
+    const onEnded = () => { videoEndedRef.current = true }
+    video.addEventListener("ended", onEnded)
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return
+      const v = heroVideoRef.current
+      if (!v) return
+
+      if (videoEndedRef.current) {
+        // Always show last frame after video ended
+        v.currentTime = v.duration || v.currentTime
+      } else {
+        // Resume or restart if iOS blocked resume
+        v.play().catch(() => {
+          v.currentTime = 0
+          v.play().catch(() => {})
+        })
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange)
+
+    return () => {
+      video.removeEventListener("ended", onEnded)
+      document.removeEventListener("visibilitychange", onVisibilityChange)
+    }
+  }, [])
+
   const handleFindClinicClick = useCallback(() => {
     const eventId = generateTikTokEventId()
     trackTikTokEvent("Search", { content_name: "find_my_clinic" }, eventId)
@@ -199,6 +237,7 @@ export default function Home() {
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
                   >
                     <video
+                      ref={heroVideoRef}
                       autoPlay
                       muted
                       playsInline
