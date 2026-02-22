@@ -18,7 +18,7 @@ export default function FAQPage() {
       <MobileNavMenu />
 
       <main>
-        <section className="py-12 sm:py-20 bg-background">
+        <section className="pt-32 pb-12 sm:pt-32 sm:pb-20 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
               <div className="flex items-center gap-3 mb-6">

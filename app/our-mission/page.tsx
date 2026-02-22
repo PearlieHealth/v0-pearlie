@@ -169,7 +169,7 @@ export default function OurMissionPage() {
       {/* ───────────────────────────────────────────────────────────────
           Section 1 — The Problem (dark teal hero with stat cards)
       ─────────────────────────────────────────────────────────────── */}
-      <section className="relative pt-24 pb-20 md:pt-32 md:pb-28 overflow-hidden bg-[#004443]">
+      <section className="relative pt-32 pb-20 md:pt-32 md:pb-28 overflow-hidden bg-[#004443]">
         {/* Subtle decorative glow */}
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[#0fbcb0]/[0.06] blur-[120px] pointer-events-none" />
 
