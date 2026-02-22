@@ -33,7 +33,7 @@ export function ScrollingMarquee({ items, speed = 30, variant = "light" }: Scrol
     ))
 
   return (
-    <div className={`${bgClass} py-5 overflow-hidden`} aria-hidden="true">
+    <div className={`${bgClass} py-3 overflow-hidden`} aria-hidden="true">
       <div
         className="flex items-center marquee-track"
         style={{ "--marquee-speed": `${speed}s` } as React.CSSProperties}
