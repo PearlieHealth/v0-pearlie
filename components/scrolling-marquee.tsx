@@ -25,7 +25,7 @@ export function ScrollingMarquee({ items, speed = 30, variant = "light" }: Scrol
   const renderItems = () =>
     items.map((item, i) => (
       <span key={i} className="flex items-center gap-2 shrink-0 mx-6 sm:mx-10">
-        <span className={`flex items-center gap-2 text-base font-bold uppercase tracking-[0.2em] whitespace-nowrap ${textClass}`}>
+        <span className={`flex items-center gap-2 text-base font-heading font-medium uppercase tracking-[0.2em] whitespace-nowrap ${textClass}`}>
           {item.icon}
           {item.text}
         </span>
@@ -33,7 +33,7 @@ export function ScrollingMarquee({ items, speed = 30, variant = "light" }: Scrol
     ))
 
   return (
-    <div className={`${bgClass} py-3 overflow-hidden`} aria-hidden="true">
+    <div className={`${bgClass} py-5 overflow-hidden`} aria-hidden="true">
       <div
         className="flex items-center marquee-track"
         style={{ "--marquee-speed": `${speed}s` } as React.CSSProperties}

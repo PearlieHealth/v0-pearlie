@@ -37,12 +37,12 @@ export function MainNav() {
             <div className="rounded-full bg-[#0fbcb0] p-1.5">
               <Heart className="w-4 h-4 text-white fill-white" />
             </div>
-            <span className="text-2xl font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
+            <span className="text-2xl font-heading font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
           </Link>
 
           {/* Toggle - For Patients / For Clinics */}
           <div className="hidden md:flex items-center">
-            <div className="flex items-center bg-black/[0.04] rounded-full p-1">
+            <div className="flex items-center bg-black/[0.04] rounded-full p-1 font-heading">
               <button
                 onClick={() => handleToggle("patients")}
                 className={cn(
@@ -69,7 +69,7 @@ export function MainNav() {
           </div>
 
           {/* Desktop Navigation - Center */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1 font-heading">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -90,7 +90,7 @@ export function MainNav() {
           <div className="hidden md:flex items-center gap-3">
             <Link
               href="/patient/login"
-              className="text-sm font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
+              className="text-sm font-heading font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
             >
               My account
             </Link>
