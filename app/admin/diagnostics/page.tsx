@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { CheckCircle2, XCircle, AlertCircle, Code } from "lucide-react"
 import { runDiagnostics } from "@/lib/analytics/diagnostics"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"

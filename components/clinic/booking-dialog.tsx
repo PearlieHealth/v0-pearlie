@@ -4,6 +4,7 @@ import React from "react"
 
 import { useState } from "react"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -82,6 +83,18 @@ export function BookingDialog({ leadId, clinicId, patientName, onClose, onSucces
         }
         return
       }
+
+      // Fire TikTok Schedule event (server-side via relay)
+      trackTikTokServerRelay("Schedule", {
+        lead_id: leadId,
+        clinic_id: clinicId,
+        properties: {
+          content_name: "appointment_confirmed",
+          content_type: "booking",
+          content_id: clinicId,
+          value: expectedValue ? parseFloat(expectedValue) : undefined,
+        },
+      })
 
       onSuccess()
     } catch (err) {

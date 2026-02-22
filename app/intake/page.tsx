@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { trackEvent } from "@/lib/analytics"
+import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
+import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { slideVariants, slideTransition } from "@/lib/slide-variants"
 import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap } from "lucide-react"
 import {
@@ -53,6 +55,11 @@ export default function IntakePage() {
   const formStartTimeRef = useRef<number>(Date.now())
   const [animatedSteps, setAnimatedSteps] = useState<Set<number>>(new Set())
   const [outsideLondonArea, setOutsideLondonArea] = useState<string | null>(null)
+  const [matchFailed, setMatchFailed] = useState<string | null>(null)
+  const [matchRetryLeadId, setMatchRetryLeadId] = useState<string | null>(null)
+  const [waitlistEmail, setWaitlistEmail] = useState("")
+  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false)
+  const [waitlistDone, setWaitlistDone] = useState(false)
 
   const [utmParams, setUtmParams] = useState<Record<string, string>>({})
 
@@ -415,10 +422,13 @@ export default function IntakePage() {
         ...utmParams, // P2: Include UTM tracking params
       }
 
+      const tiktokEventId = generateTikTokEventId()
+
       const leadRes = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          tiktok_event_id: tiktokEventId,
           treatmentInterest: formData.treatments.join(", "),
           postcode: formData.postcode,
           isEmergency,
@@ -456,6 +466,16 @@ export default function IntakePage() {
       localStorage.setItem("pearlie_lead_id", leadId)
       localStorage.removeItem("pearlie_intake_progress")
 
+      await identifyForTikTok({ email: formData.email, phone: formData.phone, externalId: leadId })
+      trackTikTokEvent("CompleteRegistration", {
+        content_name: "intake_form",
+        treatment: formData.treatments.join(", "),
+        postcode: formData.postcode,
+        flow: isEmergency ? "emergency" : "planning",
+        urgency: isEmergency ? formData.urgency : null,
+        cost_approach: formData.costApproach || null,
+      }, tiktokEventId)
+
       trackEvent("lead_submitted", {
         leadId,
         meta: {
@@ -492,7 +512,9 @@ export default function IntakePage() {
       if (!matchData?.matchId) {
         // Store leadId for potential manual retry
         localStorage.setItem("pearlie_failed_lead_id", leadId)
-        throw new Error(lastMatchError || "Failed to create match after 3 attempts")
+        setMatchRetryLeadId(leadId)
+        setMatchFailed(lastMatchError || "Failed to create match after 3 attempts")
+        return
       }
 
       // I1: Clear form draft after successful submission
@@ -505,6 +527,40 @@ export default function IntakePage() {
       toast({ title: "Something went wrong", description: `Please try again or contact support. (${errMsg})`, variant: "destructive" })
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  // Retry match creation with backoff
+  async function handleMatchRetry() {
+    if (!matchRetryLeadId) return
+    setIsSubmitting(true)
+    setMatchFailed(null)
+    let matchData = null
+    let lastErr = ""
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const matchRes = await fetch("/api/match", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ leadId: matchRetryLeadId }),
+        })
+        if (matchRes.ok) {
+          matchData = await matchRes.json()
+          break
+        }
+        lastErr = `Match failed (${matchRes.status})`
+        if (matchRes.status < 500) break
+      } catch {
+        lastErr = "Network error during matching"
+      }
+      if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)))
+    }
+    setIsSubmitting(false)
+    if (matchData?.matchId) {
+      localStorage.removeItem("pearlie_form_draft")
+      router.push(`/match/${matchData.matchId}`)
+    } else {
+      setMatchFailed(lastErr || "Still unable to create match")
     }
   }
 
@@ -534,7 +590,7 @@ export default function IntakePage() {
         group relative w-full p-4 sm:p-5 md:p-6 rounded-2xl border-2 text-left ${className}
         transition-all duration-200 ease-out
         ${selected
-          ? "border-[#0fbcb0] bg-[#F8F1E7] shadow-md"
+          ? "border-[#0fbcb0] bg-[#faf3e6] shadow-md"
           : disabled
             ? "border-border/50 bg-muted/30 opacity-50 cursor-not-allowed"
             : "border-border bg-white hover:border-[#0fbcb0]/50 hover:shadow-md active:scale-[0.98]"
@@ -558,11 +614,11 @@ export default function IntakePage() {
           </div>
         )}
         <div className="flex-1">
-          <span className={`text-lg md:text-xl font-medium block ${selected ? "text-[#222]" : "text-[#222]"}`}>
+          <span className={`text-lg md:text-xl font-medium block ${selected ? "text-[#3d3838]" : "text-[#3d3838]"}`}>
             {children}
           </span>
           {hint && (
-            <span className={`text-sm mt-1 block ${selected ? "text-[#0fbcb0]" : "text-[#222]/50"}`}>
+            <span className={`text-sm mt-1 block ${selected ? "text-[#0fbcb0]" : "text-[#3d3838]/50"}`}>
               {hint}
             </span>
           )}
@@ -602,7 +658,7 @@ export default function IntakePage() {
         {icon}
       </motion.div>
       <motion.h1
-        className="text-3xl md:text-4xl font-bold text-[#222] tracking-tight text-balance"
+        className="text-3xl md:text-4xl font-bold text-[#3d3838] tracking-tight text-balance"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.1 }}
@@ -610,7 +666,7 @@ export default function IntakePage() {
         {title}
       </motion.h1>
       <motion.p
-        className="text-[#222]/70 text-lg"
+        className="text-[#3d3838]/70 text-lg"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.2 }}
@@ -651,7 +707,7 @@ export default function IntakePage() {
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="w-32 h-2 bg-[#F8F1E7] rounded-full overflow-hidden">
+            <div className="w-32 h-2 bg-[#faf3e6] rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-[#0fbcb0] hover:bg-[#0da399] rounded-full"
                 initial={{ width: 0 }}
@@ -659,7 +715,7 @@ export default function IntakePage() {
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
             </div>
-            <span className="text-sm font-medium text-[#222]/70">{progressPercent}%</span>
+            <span className="text-sm font-medium text-[#3d3838]/70">{progressPercent}%</span>
           </div>
 
           <div className="w-16" />
@@ -686,6 +742,34 @@ export default function IntakePage() {
       {/* Main content */}
       <main className="flex-1 flex flex-col">
         <div className="flex-1 max-w-2xl w-full mx-auto px-4 py-8 md:py-12">
+          {/* Match failure inline card */}
+          {matchFailed && (
+            <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-4">
+              <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
+              <h2 className="text-lg font-semibold text-[#3d3838]">We couldn&apos;t find your matches</h2>
+              <p className="text-sm text-[#3d3838]/70">{matchFailed}</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  onClick={handleMatchRetry}
+                  disabled={isSubmitting}
+                  className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                >
+                  {isSubmitting ? "Retrying..." : "Try again"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setMatchFailed(null)
+                    setMatchRetryLeadId(null)
+                    setStep(1)
+                  }}
+                >
+                  Start over
+                </Button>
+              </div>
+            </div>
+          )}
+
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -957,17 +1041,17 @@ export default function IntakePage() {
                             w-full p-5 rounded-2xl border-2 transition-all duration-200 text-center
                             ${
                               formData.preferred_times.includes(option.value)
-                                ? "border-[#0fbcb0] bg-[#F8F1E7] ring-1 ring-[#0fbcb0]/20"
-                                : "border-border bg-card hover:border-[#0fbcb0]/50 hover:bg-[#F8F1E7]/50"
+                                ? "border-[#0fbcb0] bg-[#faf3e6] ring-1 ring-[#0fbcb0]/20"
+                                : "border-border bg-card hover:border-[#0fbcb0]/50 hover:bg-[#faf3e6]/50"
                             }
                           `}
                         >
                           <div className="flex flex-col items-center gap-2">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#F8F1E7] text-[#0fbcb0]"}`}>
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#faf3e6] text-[#0fbcb0]"}`}>
                               {option.value === "weekend" ? <Calendar className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                             </div>
-                            <span className="font-semibold text-[#222]">{option.label}</span>
-                            <span className="text-sm text-[#222]/60">{option.time}</span>
+                            <span className="font-semibold text-[#3d3838]">{option.label}</span>
+                            <span className="text-sm text-[#3d3838]/60">{option.time}</span>
                           </div>
                         </motion.button>
                       </motion.div>
@@ -1117,7 +1201,7 @@ export default function IntakePage() {
                     {formData.strictBudgetMode === "share_range" && (
                       <motion.div
                         {...fadeUp(0.1)}
-                        className="p-5 md:p-6 rounded-2xl border-2 border-[#0fbcb0] bg-[#F8F1E7]"
+                        className="p-5 md:p-6 rounded-2xl border-2 border-[#0fbcb0] bg-[#faf3e6]"
                       >
                         <Label className="text-lg font-medium text-foreground">Enter your approximate budget or range (optional)</Label>
                         <div className="relative mt-3">
@@ -1265,7 +1349,7 @@ export default function IntakePage() {
 
                   {/* Trust indicators */}
                   <motion.div
-                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#222]/50"
+                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#3d3838]/50"
                     initial={hasAnimated ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: hasAnimated ? 0 : 0.7 }}
@@ -1291,22 +1375,71 @@ export default function IntakePage() {
         </div>
       </main>
 
-      {/* Outside London hard-block dialog */}
-      <AlertDialog open={outsideLondonArea !== null} onOpenChange={(open) => { if (!open) setOutsideLondonArea(null) }}>
+      {/* Outside London hard-block dialog with waitlist */}
+      <AlertDialog open={outsideLondonArea !== null} onOpenChange={(open) => { if (!open) { setOutsideLondonArea(null); setWaitlistDone(false) } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>We're not in your area yet</AlertDialogTitle>
-            <AlertDialogDescription className="text-base leading-relaxed">
-              We're currently serving patients in <span className="font-semibold text-foreground">{SUPPORTED_REGION}</span> only.
-              {outsideLondonArea && (
-                <> It looks like you're in <span className="font-semibold text-foreground">{outsideLondonArea}</span>.</>
-              )}
-              {" "}We're expanding soon — watch this space!
+            <AlertDialogTitle>We&apos;re not in your area yet</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="text-base leading-relaxed space-y-4">
+                <p>
+                  We&apos;re currently serving patients in <span className="font-semibold text-foreground">{SUPPORTED_REGION}</span> only.
+                  {outsideLondonArea && (
+                    <> It looks like you&apos;re in <span className="font-semibold text-foreground">{outsideLondonArea}</span>.</>
+                  )}
+                  {" "}We&apos;re expanding soon!
+                </p>
+
+                {!waitlistDone ? (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Get notified when we launch in your area:</p>
+                    <div className="flex gap-2">
+                      <Input
+                        type="email"
+                        placeholder="your@email.com"
+                        value={waitlistEmail || formData.email}
+                        onChange={(e) => setWaitlistEmail(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        size="sm"
+                        disabled={!(waitlistEmail || formData.email).includes("@") || waitlistSubmitting}
+                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                        onClick={async () => {
+                          setWaitlistSubmitting(true)
+                          try {
+                            await fetch("/api/waitlist", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                email: waitlistEmail || formData.email,
+                                postcode: formData.postcode,
+                                area: outsideLondonArea || "outside_london",
+                              }),
+                            })
+                            setWaitlistDone(true)
+                          } catch {
+                            // Silently fail
+                          } finally {
+                            setWaitlistSubmitting(false)
+                          }
+                        }}
+                      >
+                        {waitlistSubmitting ? "..." : "Notify me"}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#0fbcb0] font-medium">
+                    Thanks! We&apos;ll let you know when we expand to your area.
+                  </p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0">
-              Got it
+              {waitlistDone ? "Done" : "Got it"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

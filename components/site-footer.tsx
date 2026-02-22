@@ -21,14 +21,14 @@ export function SiteFooter() {
   return (
     <footer className="bg-[#004443] text-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             {/* Brand */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
                 <Heart className="w-5 h-5 text-[#0fbcb0] fill-[#0fbcb0]" />
-                <span className="text-lg font-bold text-white">Pearlie</span>
+                <span className="text-lg font-heading font-bold text-white">Pearlie</span>
               </div>
               <p className="text-sm text-white/60 leading-relaxed">
                 Independent dental matching platform. Helping you find the right clinic, on your terms.

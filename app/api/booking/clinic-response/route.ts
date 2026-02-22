@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { trackTikTokServerEvent } from "@/lib/tiktok-events-api"
 
 export async function POST(request: Request) {
   try {
@@ -26,12 +27,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid or expired booking token" }, { status: 404 })
     }
 
-    // Check if already responded
+    // If already responded, return success with existing data so the page
+    // shows the confirmation rather than an error (clinic may click link twice)
     if (lead.booking_status === "confirmed" || lead.booking_status === "declined") {
-      return NextResponse.json({ 
-        error: "This booking has already been responded to",
-        currentStatus: lead.booking_status 
-      }, { status: 400 })
+      return NextResponse.json({
+        success: true,
+        action: lead.booking_status,
+        alreadyResponded: true,
+        lead: {
+          id: lead.id,
+          firstName: lead.first_name,
+          lastName: lead.last_name,
+          email: lead.email,
+          phone: lead.phone,
+          bookingDate: lead.booking_date,
+          bookingTime: lead.booking_time,
+        },
+        clinic: {
+          id: lead.booking_clinic_id,
+          name: lead.clinics?.name || null,
+        },
+      })
     }
 
     // Update lead status
@@ -64,7 +80,7 @@ export async function POST(request: Request) {
       lead_id: lead.id,
       clinic_id: lead.booking_clinic_id,
       session_id: lead.session_id || "00000000-0000-0000-0000-000000000000",
-      metadata: { 
+      metadata: {
         action,
         decline_reason: declineReason || null,
         booking_date: lead.booking_date,
@@ -72,11 +88,41 @@ export async function POST(request: Request) {
       },
     })
 
+    // Fire TikTok Schedule event when clinic confirms (non-blocking)
+    if (action === "confirm") {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
+      trackTikTokServerEvent({
+        event: "Schedule",
+        url: `${appUrl}/clinic/appointments`,
+        email: lead.email || null,
+        phone: lead.phone || null,
+        externalId: lead.id,
+        properties: {
+          content_name: "appointment_confirmed",
+          content_type: "booking",
+          content_id: lead.booking_clinic_id,
+        },
+      }).catch(() => {})
+    }
+
     return NextResponse.json({
       success: true,
       action,
       leadId: lead.id,
       clinicName: lead.clinics?.name || null,
+      lead: {
+        id: lead.id,
+        firstName: lead.first_name,
+        lastName: lead.last_name,
+        email: lead.email,
+        phone: lead.phone,
+        bookingDate: lead.booking_date,
+        bookingTime: lead.booking_time,
+      },
+      clinic: {
+        id: lead.booking_clinic_id,
+        name: lead.clinics?.name || null,
+      },
     })
   } catch (error) {
     console.error("[clinic-response] Error:", error)

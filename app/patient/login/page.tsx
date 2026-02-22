@@ -13,7 +13,9 @@ import Link from "next/link"
 export default function PatientLoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const nextParam = searchParams?.get("next")
+  const rawNext = searchParams?.get("next")
+  // Only allow internal paths to prevent open redirect attacks
+  const nextParam = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : null
   const [email, setEmail] = useState("")
   const [step, setStep] = useState<"email" | "otp">("email")
   const [leadId, setLeadId] = useState<string | null>(null)
@@ -35,12 +37,17 @@ export default function PatientLoginPage() {
     }
   }, [cooldown])
 
-  // Redirect if already logged in
+  // Redirect if already logged in (but not if they're a clinic user)
   useEffect(() => {
     async function checkAuth() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
+        // Clinic users should not be auto-redirected to patient dashboard
+        if (user.user_metadata?.role === "clinic") {
+          setCheckingAuth(false)
+          return
+        }
         router.replace(nextParam || "/patient/dashboard")
       } else {
         setCheckingAuth(false)
@@ -103,21 +110,32 @@ export default function PatientLoginPage() {
         throw new Error(data.error || "Verification failed")
       }
 
-      // Establish browser session
-      if (data.tokenHash) {
-        try {
-          const supabase = createClient()
-          await supabase.auth.verifyOtp({
-            token_hash: data.tokenHash,
-            type: "magiclink",
-          })
-        } catch (sessionError) {
-          console.error("[Patient Login] Failed to establish browser session:", sessionError)
-        }
+      // Establish browser session — strict: fail if token missing or invalid
+      if (!data.tokenHash) {
+        throw new Error("Login succeeded but session token was not generated. Please try again.")
+      }
+
+      const supabase = createClient()
+      const { error: sessionError } = await supabase.auth.verifyOtp({
+        token_hash: data.tokenHash,
+        type: "magiclink",
+      })
+
+      if (sessionError) {
+        console.error("[Patient Login] verifyOtp error:", sessionError)
+        throw new Error(sessionError.message || "Failed to establish browser session")
+      }
+
+      // Confirm session is actually set before redirecting (critical for mobile
+      // browsers where cookie persistence can be delayed)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error("Session could not be confirmed. Please try again.")
       }
 
       setSuccess(true)
-      setTimeout(() => router.replace(nextParam || "/patient/dashboard"), 1000)
+      // Give mobile browsers time to flush cookies before navigation
+      setTimeout(() => router.replace(nextParam || "/patient/dashboard"), 1500)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed")
     } finally {
@@ -186,8 +204,8 @@ export default function PatientLoginPage() {
             </div>
             <span className="font-semibold text-xl text-[#0fbcb0]">Pearlie</span>
           </Link>
-          <h1 className="text-2xl font-semibold text-[#222] mb-2">Welcome back</h1>
-          <p className="text-[#222]/70">Sign in to view your matches and conversations.</p>
+          <h1 className="text-2xl font-semibold text-[#3d3838] mb-2">Welcome back</h1>
+          <p className="text-[#3d3838]/70">Sign in to view your matches and conversations.</p>
         </div>
 
         {success ? (
@@ -195,13 +213,13 @@ export default function PatientLoginPage() {
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-xl font-semibold text-[#222]">Signed in</h2>
-            <p className="text-[#222]/70">Redirecting to your dashboard...</p>
+            <h2 className="text-xl font-semibold text-[#3d3838]">Signed in</h2>
+            <p className="text-[#3d3838]/70">Redirecting to your dashboard...</p>
           </div>
         ) : step === "email" ? (
           <div className="space-y-6">
             <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-medium text-[#222]">
+              <Label htmlFor="email" className="text-sm font-medium text-[#3d3838]">
                 Email address
               </Label>
               <Input
@@ -227,19 +245,19 @@ export default function PatientLoginPage() {
               </Button>
             </div>
 
-            <p className="text-center text-xs text-[#222]/40">
+            <p className="text-center text-xs text-[#3d3838]/40">
               We&apos;ll send a 6-digit code to your email. No password needed.
             </p>
           </div>
         ) : (
           <div className="space-y-6">
             <div className="text-center">
-              <p className="text-[#222]/70 mb-6">
+              <p className="text-[#3d3838]/70 mb-6">
                 Enter the 6-digit code sent to <strong>{maskedEmail}</strong>
               </p>
             </div>
 
-            <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+            <div className="flex gap-1.5 sm:gap-2 justify-center" onPaste={handlePaste}>
               {otp.map((digit, index) => (
                 <Input
                   key={index}
@@ -250,7 +268,7 @@ export default function PatientLoginPage() {
                   value={digit}
                   onChange={(e) => handleInputChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-xl font-semibold"
+                  className="w-11 h-14 sm:w-12 text-center text-xl font-semibold"
                   disabled={isLoading}
                 />
               ))}
@@ -278,7 +296,7 @@ export default function PatientLoginPage() {
             <div className="flex items-center justify-between">
               <button
                 onClick={() => { setStep("email"); setOtp(["", "", "", "", "", ""]); setError("") }}
-                className="text-sm text-[#222]/50 hover:text-[#222] transition-colors"
+                className="text-sm text-[#3d3838]/50 hover:text-[#3d3838] transition-colors"
               >
                 Use a different email
               </button>
@@ -299,7 +317,7 @@ export default function PatientLoginPage() {
 
         {/* Back to home */}
         <div className="text-center mt-8">
-          <Link href="/" className="text-sm text-[#222]/50 hover:text-[#222] transition-colors">
+          <Link href="/" className="text-sm text-[#3d3838]/50 hover:text-[#3d3838] transition-colors">
             Back to home
           </Link>
         </div>

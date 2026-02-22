@@ -4,35 +4,35 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Teal & Cream color palette — inspired by The London Dental Centre */
+  /* Teal & Cream color palette — cream inspired by Yorkshire Dental Suite */
   --primary: #0fbcb0;
   --primary-hover: #0da399;
   --primary-foreground: #ffffff;
-  --secondary: #F8F1E7;
-  --secondary-foreground: #333333;
-  --foreground: #222222;
+  --secondary: #f8f7f1;
+  --secondary-foreground: #3d3838;
+  --foreground: #3d3838;
   --muted-foreground: #666666;
-  --background: #ffffff;
-  --border: #e8e8e8;
-  --card: #ffffff;
-  --card-foreground: #222222;
-  --popover: #ffffff;
-  --popover-foreground: #222222;
-  --muted: #F8F1E7;
-  --accent: #F8F1E7;
-  --accent-foreground: #222222;
+  --background: #fdfdf4;
+  --border: #e2dada;
+  --card: #fdfdf4;
+  --card-foreground: #3d3838;
+  --popover: #fdfdf4;
+  --popover-foreground: #3d3838;
+  --muted: #f8f7f1;
+  --accent: #f8f7f1;
+  --accent-foreground: #3d3838;
 
   /* Teal palette */
   --teal: #0fbcb0;
   --teal-dark: #3c8481;
   --teal-hover: #0da399;
-  --cream: #F8F1E7;
+  --cream: #faf3e6;
   --dark-teal-bg: #004443;
 
   --deep-teal: #0fbcb0;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: #ffffff;
-  --input: #e8e8e8;
+  --input: #e2dada;
   --ring: #0fbcb0;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -86,7 +86,8 @@
 }
 
 @theme inline {
-  --font-sans: "Cabin", "Cabin Fallback";
+  --font-sans: "Inter Tight", sans-serif;
+  --font-heading: "DM Sans", sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback";
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -132,6 +133,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -166,8 +168,22 @@
   }
 }
 
+@keyframes marquee-scroll-reverse {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 .marquee-track {
   animation: marquee-scroll var(--marquee-speed, 30s) linear infinite;
+  width: max-content;
+}
+
+.marquee-track-reverse {
+  animation: marquee-scroll-reverse var(--marquee-speed, 30s) linear infinite;
   width: max-content;
 }
 
@@ -190,6 +206,6 @@
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.04em;
   color: var(--primary);
 }

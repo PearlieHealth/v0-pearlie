@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -17,11 +17,17 @@ import {
   Eye,
   Pencil,
   ImageIcon,
+  Loader2,
+  CalendarCheck,
+  CheckCircle2,
 } from "lucide-react"
 import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
+import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
+import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
+import { HOURLY_SLOTS } from "@/lib/constants"
 
 import { HighlightBadgeStrip } from "./highlight-badge-strip"
 import { PatientContextBanner } from "./patient-context-banner"
@@ -51,14 +57,26 @@ export function ClinicProfileContent() {
   const [showMobilePicker, setShowMobilePicker] = useState(false)
   const [directLeadId, setDirectLeadId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("overview")
+  const [pendingAppointment, setPendingAppointment] = useState<{
+    date: Date
+    time: string
+    dateLabel: string
+    timeLabel: string
+  } | null>(null)
+  const [isBookingRequesting, setIsBookingRequesting] = useState(false)
+  const [bookingConfirmed, setBookingConfirmed] = useState(false)
+  const [bookingError, setBookingError] = useState<string | null>(null)
+  const [appointmentRequestedAt, setAppointmentRequestedAt] = useState<string | null>(null)
 
-  // Auto-open chat when patient arrives via email reply link
+  const isChatOpen = searchParams?.get("chat") === "open"
+
+  // Auto-open chat when patient arrives via email reply link or dashboard chat link
   useEffect(() => {
-    if (isReply && leadIdParam) {
+    if ((isReply || isChatOpen) && leadIdParam) {
       setShowChat(true)
       setShowMobileChat(true)
     }
-  }, [isReply, leadIdParam])
+  }, [isReply, isChatOpen, leadIdParam])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -145,6 +163,57 @@ export function ClinicProfileContent() {
     fetchData()
   }, [params, matchId])
 
+  // Fire TikTok ViewContent when clinic profile loads
+  const viewContentFired = useRef(false)
+  useEffect(() => {
+    if (!clinic || loading || isPreview || viewContentFired.current) return
+    viewContentFired.current = true
+
+    const eventId = generateTikTokEventId()
+    trackTikTokEvent("ViewContent", {
+      content_name: clinic.name,
+      content_type: "clinic",
+      content_id: clinic.id,
+    }, eventId)
+    trackTikTokServerRelay("ViewContent", {
+      event_id: eventId,
+      lead_id: lead?.id || leadIdParam,
+      clinic_id: clinic.id,
+      properties: {
+        content_name: clinic.name,
+        content_type: "clinic",
+        content_id: clinic.id,
+      },
+    })
+  }, [clinic, loading, isPreview, lead?.id, leadIdParam])
+
+  // Check if an appointment was already requested for this clinic
+  // (persists across refreshes via the conversation's appointment_requested_at field)
+  useEffect(() => {
+    const checkAppointmentStatus = async () => {
+      const effectiveLeadId = lead?.id || leadIdParam || directLeadId
+      const effectiveClinicId = clinic?.id
+      if (!effectiveLeadId || !effectiveClinicId) return
+
+      try {
+        const res = await fetch(
+          `/api/chat/messages?leadId=${effectiveLeadId}&clinicId=${effectiveClinicId}`
+        )
+        if (res.ok) {
+          const data = await res.json()
+          if (data.appointmentRequestedAt) {
+            setBookingConfirmed(true)
+            setAppointmentRequestedAt(data.appointmentRequestedAt)
+          }
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+
+    checkAppointmentStatus()
+  }, [lead?.id, leadIdParam, directLeadId, clinic?.id])
+
   const handleBookAppointment = (date?: Date, time?: string) => {
     trackEvent("book_clicked", {
       leadId: lead?.id || null,
@@ -155,18 +224,101 @@ export function ClinicProfileContent() {
         has_slot: !!(date && time),
       },
     })
+    trackTikTokEvent("PlaceAnOrder", { content_name: "confirm_request" })
 
-    if (date && time && lead?.id) {
-      const dateStr = date.toISOString().split("T")[0]
-      window.location.href = `/booking/confirm?clinicId=${clinic?.id}&leadId=${lead.id}&date=${dateStr}&time=${time}`
-    } else if (lead?.id) {
+    if (date && time && (lead?.id || leadIdParam || directLeadId)) {
+      const dateLabel = date.toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })
+      const timeLabel =
+        HOURLY_SLOTS.find((s: { key: string; label: string }) => s.key === time)?.label || time
+      setBookingError(null)
+      setPendingAppointment({ date, time, dateLabel, timeLabel })
+    } else if (lead?.id || leadIdParam || directLeadId) {
       const picker = document.getElementById("clinic-date-picker")
       if (picker) {
         picker.scrollIntoView({ behavior: "smooth", block: "center" })
       }
     } else {
-      window.location.href = "/"
+      // No lead — open chat/enquiry form instead of redirecting away
+      setShowChat(true)
+      setShowMobileChat(true)
     }
+  }
+
+  const handleConfirmBooking = async () => {
+    if (!pendingAppointment || !clinic?.id) return
+    const bookingLeadId = lead?.id || leadIdParam || directLeadId
+    if (!bookingLeadId) return
+
+    // Already requested — just show the success state
+    if (bookingConfirmed) return
+
+    setIsBookingRequesting(true)
+    setBookingError(null)
+    try {
+      // Format date as YYYY-MM-DD using local date components (not toISOString which uses UTC)
+      const d = pendingAppointment.date
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+
+      const response = await fetch("/api/booking/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadId: bookingLeadId,
+          clinicId: clinic.id,
+          date: dateStr,
+          time: pendingAppointment.time,
+        }),
+      })
+
+      if (response.status === 409) {
+        // Already requested — just mark as confirmed
+        setBookingConfirmed(true)
+        setAppointmentRequestedAt(new Date().toISOString())
+        setPendingAppointment(null)
+        setShowChat(true)
+        setShowMobileChat(true)
+        return
+      }
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to submit booking request")
+      }
+
+      setBookingConfirmed(true)
+      setAppointmentRequestedAt(new Date().toISOString())
+      setPendingAppointment(null)
+
+      // Open chat so user sees the appointment message
+      setShowChat(true)
+      setShowMobileChat(true)
+
+      trackEvent("booking_confirmed_inline", {
+        leadId: bookingLeadId,
+        clinicId: clinic.id,
+        meta: {
+          match_id: matchId || undefined,
+          source: "clinic_page_inline",
+        },
+      })
+      trackTikTokEvent("PlaceAnOrder", { content_name: "booking_confirmed_inline" })
+    } catch (error) {
+      console.error("Error submitting booking:", error)
+      setBookingError(
+        error instanceof Error ? error.message : "Something went wrong. Please try again."
+      )
+    } finally {
+      setIsBookingRequesting(false)
+    }
+  }
+
+  const handleCancelPendingBooking = () => {
+    setPendingAppointment(null)
+    setBookingError(null)
   }
 
   const handleCallClinic = () => {
@@ -405,18 +557,101 @@ export function ClinicProfileContent() {
 
                 <div className="p-4 space-y-3">
                   <div id="clinic-date-picker">
-                    <ClinicDatePicker
-                      availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
-                      availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
-                      acceptsSameDay={clinic.accepts_same_day || false}
-                      onSelectSlot={(date, time) => handleBookAppointment(date, time)}
-                    />
+                    {!bookingConfirmed && !pendingAppointment && (
+                      <ClinicDatePicker
+                        availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
+                        availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
+                        acceptsSameDay={clinic.accepts_same_day || false}
+                        onSelectSlot={(date, time) => handleBookAppointment(date, time)}
+                        maxVisible={5}
+                      />
+                    )}
+
+                    {/* Inline confirmation step */}
+                    {pendingAppointment && !bookingConfirmed && (
+                      <div className="rounded-xl border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-4 animate-in fade-in duration-200">
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div>
+                            <p className="text-xs font-semibold text-[#004443] uppercase tracking-wide">
+                              Confirm your request
+                            </p>
+                            <p className="text-sm text-[#1a1a1a] mt-1">
+                              <span className="font-semibold">{pendingAppointment.dateLabel}</span>{" "}
+                              at <span className="font-semibold">{pendingAppointment.timeLabel}</span>
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleCancelPendingBooking}
+                            className="text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-black/5 transition-colors flex-shrink-0"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          This will send a message to {clinic.name} requesting this appointment.
+                        </p>
+                        {bookingError && (
+                          <p className="text-xs text-red-600 mb-3">{bookingError}</p>
+                        )}
+                        <div className="flex gap-2">
+                          <Button
+                            className="flex-1 h-10 rounded-full text-sm font-semibold bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
+                            disabled={isBookingRequesting}
+                            onClick={handleConfirmBooking}
+                          >
+                            {isBookingRequesting ? (
+                              <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                            ) : (
+                              <CalendarCheck className="w-4 h-4 mr-1.5" />
+                            )}
+                            {isBookingRequesting ? "Sending..." : "Confirm request"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="h-10 rounded-full text-sm px-5"
+                            onClick={handleCancelPendingBooking}
+                            disabled={isBookingRequesting}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Success banner */}
+                    {bookingConfirmed && (
+                      <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 flex items-start gap-2.5">
+                        <CalendarCheck className="w-[18px] h-[18px] text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-blue-700">Appointment requested</p>
+                          {appointmentRequestedAt && (
+                            <p className="text-xs text-blue-600/70">
+                              Requested {new Date(appointmentRequestedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            The clinic will get back to you shortly
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <Button
                     size="lg"
                     className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white"
-                    onClick={() => setShowChat(!showChat)}
+                    onClick={() => {
+                      const contactEventId = generateTikTokEventId()
+                      trackTikTokEvent("Contact", { content_name: "message_clinic_profile" }, contactEventId)
+                      trackTikTokServerRelay("Contact", {
+                        event_id: contactEventId,
+                        lead_id: lead?.id || leadIdParam || directLeadId,
+                        clinic_id: clinic?.id,
+                        properties: { content_name: "message_clinic_profile" },
+                      })
+                      setShowChat(!showChat)
+                    }}
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
                     {(lead?.id || leadIdParam || directLeadId) ? "Message Clinic" : "Enquire now"}
@@ -429,6 +664,7 @@ export function ClinicProfileContent() {
                     isOpen={showChat}
                     onToggle={() => setShowChat(false)}
                     onLeadCreated={(newLeadId) => setDirectLeadId(newLeadId)}
+                    leadEmail={lead?.email || null}
                   />
 
                   {clinic.accepts_nhs && (
@@ -486,6 +722,7 @@ export function ClinicProfileContent() {
                 onToggle={() => setShowMobileChat(false)}
                 hideHeader
                 onLeadCreated={(newLeadId) => setDirectLeadId(newLeadId)}
+                leadEmail={lead?.email || null}
               />
             </div>
           </div>
@@ -523,14 +760,80 @@ export function ClinicProfileContent() {
         </div>
       )}
 
+      {/* Mobile Booking Confirmation Bottom Sheet */}
+      {pendingAppointment && !bookingConfirmed && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={handleCancelPendingBooking}
+            onKeyDown={() => {}}
+            role="presentation"
+          />
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl animate-in slide-in-from-bottom duration-300">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
+              <h3 className="font-semibold text-[#1a1a1a]">Confirm Your Request</h3>
+              <button
+                type="button"
+                onClick={handleCancelPendingBooking}
+                className="p-1 rounded-full hover:bg-[#f5f5f5]"
+              >
+                <X className="h-5 w-5 text-[#666]" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <div className="rounded-xl border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-4">
+                <p className="text-xs font-semibold text-[#004443] uppercase tracking-wide">
+                  Appointment details
+                </p>
+                <p className="text-sm text-[#1a1a1a] mt-1">
+                  <span className="font-semibold">{pendingAppointment.dateLabel}</span>{" "}
+                  at <span className="font-semibold">{pendingAppointment.timeLabel}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  at {clinic.name}
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This will send a message to {clinic.name} requesting this appointment.
+              </p>
+              {bookingError && (
+                <p className="text-xs text-red-600">{bookingError}</p>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1 h-12 rounded-full text-sm font-semibold bg-[#004443] hover:bg-[#004443]/90 text-white border-0 touch-manipulation"
+                  disabled={isBookingRequesting}
+                  onClick={handleConfirmBooking}
+                >
+                  {isBookingRequesting ? (
+                    <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <CalendarCheck className="w-4 h-4 mr-1.5" />
+                  )}
+                  {isBookingRequesting ? "Sending..." : "Confirm request"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-12 rounded-full text-sm px-5 touch-manipulation"
+                  onClick={handleCancelPendingBooking}
+                  disabled={isBookingRequesting}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile sticky CTA */}
-      {!showMobileChat && !showMobilePicker && (
-        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-[#F8F1E7] to-white border-t border-[#0fbcb0]/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(15,188,176,0.12)]">
+      {!showMobileChat && !showMobilePicker && !pendingAppointment && !bookingConfirmed && (
+        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-[#faf3e6] to-white border-t border-[#0fbcb0]/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(15,188,176,0.12)]">
           <p className="text-xs text-[#666] text-center mb-2">No booking fees on Pearlie</p>
           <div className="flex gap-3 max-w-lg mx-auto">
             <Button
               size="lg"
-              className="flex-1 bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation shadow-md"
+              className="flex-1 bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation"
               onClick={() => setShowMobileChat(true)}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
@@ -539,11 +842,50 @@ export function ClinicProfileContent() {
             <Button
               size="lg"
               variant="outline"
-              className="flex-1 border-[#0fbcb0]/30 bg-white hover:bg-[#F8F1E7] text-[#1a1a1a] min-h-[48px] touch-manipulation"
+              className="flex-1 border-[#0fbcb0]/30 bg-white hover:bg-[#faf3e6] text-[#1a1a1a] min-h-[48px] touch-manipulation"
               onClick={() => setShowMobilePicker(true)}
             >
               <Calendar className="h-4 w-4 mr-2" />
               Request a Visit
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile sticky CTA - success state with message button */}
+      {bookingConfirmed && !showMobileChat && !showMobilePicker && (
+        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-blue-50 border-t border-blue-200 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50">
+          <div className="flex items-center gap-2.5 max-w-lg mx-auto mb-3">
+            <CalendarCheck className="w-5 h-5 text-blue-600 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-blue-700">Appointment requested</p>
+              {appointmentRequestedAt ? (
+                <p className="text-xs text-blue-600/70">
+                  Requested {new Date(appointmentRequestedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">The clinic will get back to you shortly</p>
+              )}
+            </div>
+          </div>
+          <div className="max-w-lg mx-auto">
+            <Button
+              size="lg"
+              className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation"
+              onClick={() => {
+                const contactEventId = generateTikTokEventId()
+                trackTikTokEvent("Contact", { content_name: "message_clinic_profile_mobile" }, contactEventId)
+                trackTikTokServerRelay("Contact", {
+                  event_id: contactEventId,
+                  lead_id: lead?.id || leadIdParam || directLeadId,
+                  clinic_id: clinic?.id,
+                  properties: { content_name: "message_clinic_profile_mobile" },
+                })
+                setShowMobileChat(true)
+              }}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Message Clinic
             </Button>
           </div>
         </div>

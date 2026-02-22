@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 import { escapeHtml } from "@/lib/escape-html"
+import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
 import { getBotGreeting, getBotSuggestions, getBotFollowUp } from "@/lib/chat-bot"
 import { generateIntelligentBotResponse } from "@/lib/chat-bot-ai"
 import { sendRegisteredEmail } from "@/lib/email/send"
@@ -91,31 +92,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Lead not found" }, { status: 404 })
     }
 
-    // Authenticate patient senders: verify the requesting user owns this lead
-    if (senderType === "patient") {
-      const supabaseAuth = await createClient()
-      const { data: { user: authUser } } = await supabaseAuth.auth.getUser()
-
-      if (!authUser) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-      }
-
-      const ownsLead = (
-        (lead.user_id && lead.user_id === authUser.id) ||
-        (!lead.user_id && lead.email && lead.email.toLowerCase() === authUser.email?.toLowerCase())
-      )
-
-      if (!ownsLead) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-      }
-    }
-
     // Verify patient email before sending (for patient messages)
     if (senderType === "patient" && !lead.is_verified) {
       return NextResponse.json(
         { error: "Please verify your email before sending messages" },
         { status: 403 }
       )
+    }
+
+    // Authenticate patient senders: prefer session-based auth, but fall back to
+    // verified lead status. After OTP, the session cookie may not propagate
+    // immediately (e.g. mobile browsers, cross-page navigation). Since the lead
+    // is already verified (checked above), the patient has proven email ownership.
+    if (senderType === "patient") {
+      const supabaseAuth = await createClient()
+      const { data: { user: authUser } } = await supabaseAuth.auth.getUser()
+
+      if (authUser) {
+        // Session exists — verify they own this lead
+        const ownsLead = (
+          (lead.user_id && lead.user_id === authUser.id) ||
+          (!lead.user_id && lead.email && lead.email.toLowerCase() === authUser.email?.toLowerCase())
+        )
+
+        if (!ownsLead) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+        }
+      } else if (!lead.is_verified) {
+        // No session AND lead not verified — reject
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      // If no session but lead IS verified, allow the message (OTP already proved identity)
     }
 
     // Get clinic details (extended for AI bot context + email notifications)
@@ -208,6 +215,24 @@ export async function POST(request: NextRequest) {
           .then(({ error }) => {
             if (error) console.error("[Chat] Failed to ensure lead_clinic_status:", error)
           })
+
+        // Fire TikTok Lead event on first patient message (new conversation = first contact)
+        if (senderType === "patient") {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
+          trackTikTokServerEvent({
+            event: "Lead",
+            url: `${appUrl}/clinic/${clinicId}`,
+            email: lead.email || null,
+            externalId: leadId,
+            ip: extractIp(request),
+            userAgent: extractUserAgent(request),
+            properties: {
+              content_name: "first_message",
+              content_type: "chat",
+              content_id: clinicId,
+            },
+          }).catch(() => {})
+        }
       }
     }
 

@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MessageCircle, X, Send, Loader2, Heart, Check, CheckCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { OTPVerification } from "@/components/otp-verification"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
+import { AppointmentBanner } from "@/components/appointment-banner"
 
 interface Message {
   id: string
@@ -34,8 +36,9 @@ export function ClinicChatWidget({
   clinicName,
   patientName,
   patientEmail,
-  isEmailVerified = false,
+  isEmailVerified: isEmailVerifiedProp = false,
 }: ClinicChatWidgetProps) {
+  const [verified, setVerified] = useState(isEmailVerifiedProp)
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
@@ -46,6 +49,7 @@ export function ClinicChatWidget({
   const [unreadCount, setUnreadCount] = useState(0)
   const [showVerifyPrompt, setShowVerifyPrompt] = useState(false)
   const [leadInfo, setLeadInfo] = useState<{ name: string; email: string } | null>(null)
+  const [bookingInfo, setBookingInfo] = useState<{ date: string | null; time: string | null; requestedAt: string | null }>({ date: null, time: null, requestedAt: null })
   const scrollRef = useRef<HTMLDivElement>(null)
   const botTypingTimers = useRef<NodeJS.Timeout[]>([])
   const queuedBotIds = useRef<Set<string>>(new Set())
@@ -119,10 +123,10 @@ export function ClinicChatWidget({
 
   // Fetch lead info on mount if verified
   useEffect(() => {
-    if (isEmailVerified && leadId) {
+    if (verified && leadId) {
       fetchLeadInfo()
     }
-  }, [isEmailVerified, leadId])
+  }, [verified, leadId])
 
   // Fetch messages when widget opens
   useEffect(() => {
@@ -166,6 +170,14 @@ export function ClinicChatWidget({
         setMessages(data.messages || [])
         setConversationId(data.conversationId)
         setUnreadCount(0)
+        // Capture booking details from API
+        if (data.appointmentRequestedAt) {
+          setBookingInfo({
+            date: data.bookingDate || null,
+            time: data.bookingTime || null,
+            requestedAt: data.appointmentRequestedAt,
+          })
+        }
       }
     } catch (error) {
       console.error("[Chat] Failed to fetch messages:", error)
@@ -178,7 +190,21 @@ export function ClinicChatWidget({
     e.preventDefault()
     if (!newMessage.trim() || isSending) return
 
+    const messageText = newMessage.trim()
+
+    // Optimistic: show user message immediately before API call
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: messageText,
+      sender_type: "patient",
+      status: "sent",
+      created_at: new Date().toISOString(),
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
+    setNewMessage("")
     setIsSending(true)
+
     try {
       const response = await fetch("/api/chat/send", {
         method: "POST",
@@ -186,24 +212,28 @@ export function ClinicChatWidget({
         body: JSON.stringify({
           leadId,
           clinicId,
-          content: newMessage.trim(),
+          content: messageText,
           senderType: "patient",
         }),
       })
 
       if (response.ok) {
         const data = await response.json()
-        // Add the patient message immediately
-        setMessages((prev) => [...prev, data.message])
-        setNewMessage("")
+        // Replace optimistic message with server version
+        setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
         setConversationId(data.conversationId)
         // Drip-feed bot messages with typing delay
         if (data.botMessages?.length) {
           queueBotMessages(data.botMessages)
         }
+      } else {
+        // Remove optimistic message on error
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
       }
     } catch (error) {
       console.error("[Chat] Failed to send message:", error)
+      // Remove optimistic message on error
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
     } finally {
       setIsSending(false)
     }
@@ -255,7 +285,7 @@ export function ClinicChatWidget({
       {/* Chat Button */}
       <button
         onClick={() => {
-          if (!isEmailVerified) {
+          if (!verified) {
             setShowVerifyPrompt(true)
           } else {
             setIsOpen(true)
@@ -274,7 +304,7 @@ export function ClinicChatWidget({
         )}
       </button>
 
-      {/* Email Verification Required Prompt */}
+      {/* Inline OTP Verification Modal */}
       {showVerifyPrompt && (
         <div className="fixed bottom-6 right-6 z-50 w-[380px] rounded-2xl bg-white shadow-2xl border border-neutral-200 p-6">
           <div className="flex items-center justify-between mb-4">
@@ -289,18 +319,30 @@ export function ClinicChatWidget({
           <p className="text-neutral-600 mb-4">
             Please verify your email address to message {clinicName}. This helps us keep the conversation secure.
           </p>
-          <Button
-            onClick={() => {
-              setShowVerifyPrompt(false)
-              const otpSection = document.getElementById("otp-verification")
-              if (otpSection) {
-                otpSection.scrollIntoView({ behavior: "smooth" })
-              }
-            }}
-            className="w-full bg-teal-600 hover:bg-teal-700"
-          >
-            Verify Email
-          </Button>
+          {patientEmail ? (
+            <OTPVerification
+              leadId={leadId}
+              email={patientEmail}
+              onVerified={() => {
+                setVerified(true)
+                setShowVerifyPrompt(false)
+                setIsOpen(true)
+              }}
+            />
+          ) : (
+            <Button
+              onClick={() => {
+                setShowVerifyPrompt(false)
+                const otpSection = document.getElementById("otp-verification")
+                if (otpSection) {
+                  otpSection.scrollIntoView({ behavior: "smooth" })
+                }
+              }}
+              className="w-full bg-teal-600 hover:bg-teal-700"
+            >
+              Verify Email
+            </Button>
+          )}
         </div>
       )}
 
@@ -328,6 +370,18 @@ export function ClinicChatWidget({
               </div>
             )}
           </div>
+
+          {/* Appointment Banner */}
+          {bookingInfo.date && (
+            <div className="px-4 pt-3 pb-0">
+              <AppointmentBanner
+                bookingDate={bookingInfo.date}
+                bookingTime={bookingInfo.time}
+                requestedAt={bookingInfo.requestedAt}
+                compact
+              />
+            </div>
+          )}
 
           {/* Messages */}
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
@@ -364,7 +418,7 @@ export function ClinicChatWidget({
                           )}
                         >
                           {message.sender_type === "bot" ? (
-                            <div className="max-w-[90%] flex items-start gap-2 bg-[#F8F1E7] border border-[#F8F1E7] rounded-xl px-3 py-2">
+                            <div className="max-w-[90%] flex items-start gap-2 bg-[#faf3e6] border border-[#faf3e6] rounded-xl px-3 py-2">
                               <Heart className="w-3.5 h-3.5 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
                               <p className="text-xs text-neutral-600 whitespace-pre-wrap">{message.content}</p>
                             </div>

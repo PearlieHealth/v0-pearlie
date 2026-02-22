@@ -57,6 +57,13 @@ export default function ClinicLoginPage() {
           return
         }
 
+        // Tag this user as a clinic user so middleware can distinguish roles
+        if (data.session.user.user_metadata?.role !== "clinic") {
+          await supabase.auth.updateUser({
+            data: { role: "clinic" },
+          }).catch(() => {})
+        }
+
         // Check if admin-created account needs to set their own password
         if (data.session.user.user_metadata?.must_change_password) {
           window.location.href = "/clinic/set-password"

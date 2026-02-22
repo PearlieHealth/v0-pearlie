@@ -1,6 +1,12 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+let _resend: Resend | null = null
+function getResend() {
+  if (!_resend) {
+    _resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return _resend
+}
 
 interface SendEmailParams {
   from: string
@@ -35,7 +41,7 @@ export async function sendEmailWithRetry(
   let lastError: unknown
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const { data, error } = await resend.emails.send(params)
+      const { data, error } = await getResend().emails.send(params)
       if (error) {
         lastError = error
         // Don't retry validation errors

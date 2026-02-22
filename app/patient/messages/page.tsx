@@ -15,6 +15,7 @@ import {
   ChevronLeft,
 } from "lucide-react"
 import Link from "next/link"
+import { AppointmentBanner } from "@/components/appointment-banner"
 
 interface Conversation {
   id: string
@@ -27,6 +28,7 @@ interface Conversation {
   clinics: { id: string; name: string; images?: string[] } | null
   latest_message: string | null
   latest_message_sender: string | null
+  appointment_requested_at?: string | null
 }
 
 interface Message {
@@ -57,6 +59,8 @@ export default function PatientMessagesPage() {
   // Store clinicId and leadId from the messages API response
   const [activeClinicId, setActiveClinicId] = useState<string | null>(null)
   const [activeLeadId, setActiveLeadId] = useState<string | null>(null)
+  // Booking info for the selected conversation
+  const [bookingInfo, setBookingInfo] = useState<{ date: string | null; time: string | null; requestedAt: string | null }>({ date: null, time: null, requestedAt: null })
 
   // ── Match lg: breakpoint (1024px) for mobile/tablet layout ──────
   useEffect(() => {
@@ -71,7 +75,16 @@ export default function PatientMessagesPage() {
   useEffect(() => {
     async function checkAuth() {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+
+      // Retry up to 3 times with 1-second delays to handle mobile browsers
+      // where auth cookies may not propagate immediately after OTP verification.
+      let user = null
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { data: { user: u } } = await supabase.auth.getUser()
+        if (u) { user = u; break }
+        if (attempt < 2) await new Promise((r) => setTimeout(r, 1000))
+      }
+
       if (!user) {
         const returnUrl = `/patient/messages${isValidConversationId ? `?conversationId=${conversationIdParam}` : ""}`
         router.replace(`/patient/login?next=${encodeURIComponent(returnUrl)}`)
@@ -138,11 +151,14 @@ export default function PatientMessagesPage() {
       if (response.ok) {
         const data = await response.json()
         setConversations(data.conversations || [])
+        setError(null)
       } else if (response.status === 401) {
         router.replace("/patient/login")
+      } else {
+        setError("Couldn't load conversations. Please try again.")
       }
     } catch {
-      // Silently fail
+      setError("Couldn't load conversations. Check your connection and try again.")
     } finally {
       setIsLoading(false)
     }
@@ -158,7 +174,8 @@ export default function PatientMessagesPage() {
         setActiveLeadId(data.leadId || null)
       }
     } catch {
-      // Silently fail
+      // Background polling — silent fail is acceptable here
+      console.warn("[messages] Background poll failed for", conversationId)
     }
   }
 
@@ -166,6 +183,7 @@ export default function PatientMessagesPage() {
     setSelectedConversation(conv)
     setIsLoadingMessages(true)
     setError(null)
+    setBookingInfo({ date: null, time: null, requestedAt: null })
 
     try {
       const response = await fetch(`/api/patient/conversations/${conv.id}/messages`)
@@ -181,6 +199,20 @@ export default function PatientMessagesPage() {
           )
         )
       }
+      // Fetch booking info if this conversation has an appointment request
+      if (conv.appointment_requested_at) {
+        const statusRes = await fetch(`/api/booking/status?leadId=${conv.lead_id}&clinicId=${conv.clinic_id}`)
+        if (statusRes.ok) {
+          const statusData = await statusRes.json()
+          if (statusData.alreadyRequested) {
+            setBookingInfo({
+              date: statusData.bookingDate || null,
+              time: statusData.bookingTime || null,
+              requestedAt: conv.appointment_requested_at || null,
+            })
+          }
+        }
+      }
     } catch {
       setError("Failed to load messages")
     } finally {
@@ -192,6 +224,19 @@ export default function PatientMessagesPage() {
     e.preventDefault()
     if (!selectedConversation || !newMessage.trim() || isSending) return
 
+    const messageText = newMessage.trim()
+
+    // Optimistic: show user message immediately before API call
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: messageText,
+      sender_type: "patient",
+      status: "sent",
+      created_at: new Date().toISOString(),
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
+    setNewMessage("")
     setIsSending(true)
     setError(null)
 
@@ -202,15 +247,15 @@ export default function PatientMessagesPage() {
         body: JSON.stringify({
           leadId: activeLeadId || selectedConversation.lead_id,
           clinicId: activeClinicId || selectedConversation.clinic_id,
-          content: newMessage.trim(),
+          content: messageText,
           senderType: "patient",
         }),
       })
 
       if (response.ok) {
         const data = await response.json()
-        setMessages((prev) => [...prev, data.message])
-        setNewMessage("")
+        // Replace optimistic message with server version
+        setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
         // Queue bot messages with typing delay
         if (data.botMessages?.length) {
           data.botMessages.forEach((botMsg: Message, i: number) => {
@@ -225,12 +270,15 @@ export default function PatientMessagesPage() {
           })
         }
       } else if (response.status === 403) {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
         setError("Please verify your email before sending messages.")
       } else {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
         const errData = await response.json().catch(() => ({}))
         setError(errData.error || "Failed to send message.")
       }
     } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
       setError("Something went wrong. Please try again.")
     } finally {
       setIsSending(false)
@@ -241,7 +289,7 @@ export default function PatientMessagesPage() {
     const supabase = createClient()
     await supabase.auth.signOut()
     try { localStorage.removeItem("pearlie_last_match") } catch {}
-    router.replace("/patient/login")
+    window.location.href = "/patient/login"
   }
 
   // ── Formatting helpers ───────────────────────────────────────────
@@ -321,6 +369,18 @@ export default function PatientMessagesPage() {
             </div>
           </div>
         </div>
+
+        {/* Appointment banner */}
+        {bookingInfo.date && (
+          <div className="px-3 pt-2.5 pb-0 flex-shrink-0">
+            <AppointmentBanner
+              bookingDate={bookingInfo.date}
+              bookingTime={bookingInfo.time}
+              requestedAt={bookingInfo.requestedAt}
+              compact
+            />
+          </div>
+        )}
 
         {/* Messages */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3 bg-[#fafafa]">
@@ -419,7 +479,18 @@ export default function PatientMessagesPage() {
           </button>
         </div>
 
-        {conversations.length === 0 ? (
+        {error && !isLoading && conversations.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
+            <MessageCircle className="h-10 w-10 text-red-300 mb-2" />
+            <p className="text-[#666] font-medium">{error}</p>
+            <button
+              onClick={() => { setError(null); setIsLoading(true); fetchConversations() }}
+              className="mt-4 text-sm text-primary hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+        ) : conversations.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
             <MessageCircle className="h-10 w-10 text-[#ccc] mb-2" />
             <p className="text-[#666] font-medium">No conversations yet</p>
@@ -513,7 +584,7 @@ export default function PatientMessagesPage() {
               }`}
             >
               {msg.sender_type === "bot" ? (
-                <div className="max-w-[90%] flex items-start gap-2 bg-gradient-to-r from-teal-50 to-[#F8F1E7] border border-teal-100/50 rounded-xl px-3 py-2">
+                <div className="max-w-[90%] flex items-start gap-2 bg-gradient-to-r from-teal-50 to-[#faf3e6] border border-teal-100/50 rounded-xl px-3 py-2">
                   <Heart className="w-3 h-3 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
                   <p className="text-[11px] text-[#555] whitespace-pre-wrap">{msg.content}</p>
                 </div>
@@ -586,7 +657,18 @@ export default function PatientMessagesPage() {
           )}
         </h1>
 
-        {conversations.length === 0 ? (
+        {error && !isLoading && conversations.length === 0 ? (
+          <div className="bg-white rounded-xl border border-[#e5e5e5] p-12 text-center">
+            <MessageCircle className="h-12 w-12 text-red-300 mx-auto mb-3" />
+            <p className="text-[#666] font-medium">{error}</p>
+            <button
+              onClick={() => { setError(null); setIsLoading(true); fetchConversations() }}
+              className="inline-block mt-4 text-sm text-primary hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+        ) : conversations.length === 0 ? (
           <div className="bg-white rounded-xl border border-[#e5e5e5] p-12 text-center">
             <MessageCircle className="h-12 w-12 text-[#ccc] mx-auto mb-3" />
             <p className="text-[#666] font-medium">No conversations yet</p>
@@ -675,6 +757,18 @@ export default function PatientMessagesPage() {
                       </span>
                     </div>
                   </div>
+
+                  {/* Desktop appointment banner */}
+                  {bookingInfo.date && (
+                    <div className="px-5 pt-2.5 pb-0 flex-shrink-0">
+                      <AppointmentBanner
+                        bookingDate={bookingInfo.date}
+                        bookingTime={bookingInfo.time}
+                        requestedAt={bookingInfo.requestedAt}
+                        compact
+                      />
+                    </div>
+                  )}
 
                   {/* Messages */}
                   <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#fafafa] min-h-0">

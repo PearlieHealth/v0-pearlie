@@ -64,21 +64,17 @@ export async function POST(request: NextRequest) {
     ) ? next : "/patient/dashboard"
     const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(sanitizedNext)}`
 
-    // Check if user exists in Supabase auth; if not, create them first
-    const { data: existingUsers } = await supabase.auth.admin.listUsers()
-    const userExists = existingUsers?.users?.some(
-      (u) => u.email?.toLowerCase() === email.toLowerCase()
-    )
+    // Ensure auth user exists — try creating first (avoids unbounded listUsers())
+    const { error: createError } = await supabase.auth.admin.createUser({
+      email,
+      email_confirm: false,
+      user_metadata: { role: "patient" },
+    })
 
-    if (!userExists) {
-      // Don't auto-confirm — the magic link click will confirm the email
-      const { error: createError } = await supabase.auth.admin.createUser({
-        email,
-        email_confirm: false,
-        user_metadata: { role: "patient" },
-      })
-
-      if (createError) {
+    if (createError) {
+      // "already registered" means user exists — that's fine, continue
+      const isAlreadyRegistered = createError.message?.toLowerCase().includes("already")
+      if (!isAlreadyRegistered) {
         console.error("[LoginLink] Error creating user:", createError)
         return NextResponse.json(
           { error: "We couldn't find an account with that email. Please complete the intake form first." },
@@ -136,11 +132,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Send branded email via registry
-    await sendRegisteredEmail({
+    const emailResult = await sendRegisteredEmail({
       type: EMAIL_TYPE.PATIENT_MAGIC_LINK,
       to: email,
       data: { greeting, magicLink, _email: email },
     })
+
+    if (!emailResult.success && !emailResult.skipped) {
+      console.error("[LoginLink] Email send failed:", emailResult.error)
+      return NextResponse.json({ error: "Failed to send login link. Please try again." }, { status: 500 })
+    }
 
     return NextResponse.json({
       success: true,

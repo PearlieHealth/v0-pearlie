@@ -18,12 +18,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
+    // Prevent clinic users from accessing patient data
+    if (user.user_metadata?.role === "clinic") {
+      return NextResponse.json({ error: "Not authorized" }, { status: 403 })
+    }
+
     const admin = createAdminClient()
 
     // Find all leads for this user (by user_id or email match)
     const { data: leads, error: leadsError } = await admin
       .from("leads")
-      .select("id, first_name, last_name, email, treatment_interest, postcode, created_at, is_verified, user_id")
+      .select("id, first_name, last_name, email, treatment_interest, postcode, created_at, is_verified, user_id, booking_date, booking_time, booking_clinic_id")
       .or(`user_id.eq.${user.id},email.eq.${user.email}`)
       .order("created_at", { ascending: false })
 

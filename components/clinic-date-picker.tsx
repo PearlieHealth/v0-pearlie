@@ -12,6 +12,7 @@ interface ClinicDatePickerProps {
   acceptsSameDay: boolean
   onSelectSlot: (date: Date, time: string) => void
   className?: string
+  maxVisible?: number // Override max visible dates (useful for narrow containers like sidebars)
 }
 
 // Map day index (0 = Sunday) to day key
@@ -51,20 +52,25 @@ export function ClinicDatePicker({
   acceptsSameDay = false,
   onSelectSlot,
   className,
+  maxVisible,
 }: ClinicDatePickerProps) {
   const [startIndex, setStartIndex] = useState(0)
   const [selectedDateIndex, setSelectedDateIndex] = useState<number | null>(null)
   const [hasAutoSelected, setHasAutoSelected] = useState(false)
-  const [visibleCount, setVisibleCount] = useState(7)
+  const [visibleCount, setVisibleCount] = useState(maxVisible || 7)
 
   // Show fewer date columns on mobile for larger touch targets
   useEffect(() => {
+    if (maxVisible) {
+      setVisibleCount(maxVisible)
+      return
+    }
     const mq = window.matchMedia('(max-width: 639px)')
     setVisibleCount(mq.matches ? 5 : 7)
     const handler = (e: MediaQueryListEvent) => setVisibleCount(e.matches ? 5 : 7)
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
-  }, [])
+  }, [maxVisible])
   
   // Generate next 14 days
   const dates = useMemo(() => {
@@ -189,7 +195,7 @@ export function ClinicDatePicker({
                 onClick={() => handleDateSelect(idx)}
                 disabled={!dateInfo.isAvailable}
                 className={cn(
-                  "flex-1 min-w-[60px] py-2 px-1 rounded-lg border text-center transition-all",
+                  "flex-1 min-w-0 py-2 px-1 rounded-lg border text-center transition-all",
                   dateInfo.isAvailable
                     ? isSelected
                       ? "border-[#004443] bg-[#004443]/10 text-[#004443]"
@@ -197,16 +203,9 @@ export function ClinicDatePicker({
                     : "border-muted bg-muted/30 text-muted-foreground cursor-not-allowed opacity-60"
                 )}
               >
-                <div className="text-[11px] sm:text-xs text-muted-foreground">{dayShort}</div>
-                <div className={cn("text-sm sm:text-base font-semibold", isSelected && "text-[#004443]")}>{monthShort} {dateNum}</div>
-                <div className={cn(
-                  "text-xs",
-                  dateInfo.isAvailable
-                    ? isSelected ? "text-[#004443]" : "text-muted-foreground"
-                    : "text-muted-foreground"
-                )}>
-                  {dateInfo.isAvailable ? `${slotCount} appts` : "Closed"}
-                </div>
+                <div className="text-[10px] text-muted-foreground leading-tight">{dayShort}</div>
+                <div className={cn("text-base font-semibold leading-tight", isSelected && "text-[#004443]")}>{dateNum}</div>
+                <div className="text-[10px] text-muted-foreground leading-tight">{monthShort}</div>
               </button>
             )
           })}
@@ -231,13 +230,13 @@ export function ClinicDatePicker({
           </p>
           
           {availableSlots.length > 0 ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {availableSlots.map((slot) => (
                 <Button
                   key={slot.key}
                   variant="outline"
                   size="sm"
-                  className="min-w-[80px] bg-transparent hover:bg-[#004443] hover:text-white hover:border-[#004443] transition-colors"
+                  className="min-w-0 bg-transparent hover:bg-[#004443] hover:text-white hover:border-[#004443] transition-colors text-xs px-2"
                   onClick={() => handleTimeSelect(slot.key)}
                 >
                   {slot.label}

@@ -69,19 +69,26 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Protect patient dashboard routes
-  const isPatientDashboard = request.nextUrl.pathname.startsWith("/patient/dashboard") || request.nextUrl.pathname.startsWith("/patient/messages")
-  if (isPatientDashboard && !user) {
+  // Protect all patient routes (except login)
+  const isPatientProtected = request.nextUrl.pathname.startsWith("/patient/") &&
+    !request.nextUrl.pathname.startsWith("/patient/login")
+  if (isPatientProtected && !user) {
     const url = request.nextUrl.clone()
     url.pathname = "/patient/login"
+    url.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search)
     return NextResponse.redirect(url)
   }
 
   // If logged-in patient tries to access patient login, redirect to dashboard
+  // Only redirect if the user is NOT a clinic user (handles legacy patients with no role)
   if (request.nextUrl.pathname === "/patient/login" && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = "/patient/dashboard"
-    return NextResponse.redirect(url)
+    const userRole = user.user_metadata?.role
+    if (userRole !== "clinic") {
+      const url = request.nextUrl.clone()
+      url.pathname = "/patient/dashboard"
+      return NextResponse.redirect(url)
+    }
+    // Clinic users stay on patient login (they can sign in with a different account)
   }
 
   return supabaseResponse

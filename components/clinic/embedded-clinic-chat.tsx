@@ -5,6 +5,7 @@ import React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { MessageCircle, Send, ChevronDown, Heart, Check, CheckCheck } from "lucide-react"
 import { DirectEnquiryForm } from "@/components/clinic/direct-enquiry-form"
+import { OTPVerification } from "@/components/otp-verification"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
 
 interface Message {
@@ -23,6 +24,7 @@ interface EmbeddedClinicChatProps {
   onToggle: () => void
   hideHeader?: boolean
   onLeadCreated?: (leadId: string) => void
+  leadEmail?: string | null
 }
 
 export function EmbeddedClinicChat({
@@ -33,6 +35,7 @@ export function EmbeddedClinicChat({
   onToggle,
   hideHeader = false,
   onLeadCreated,
+  leadEmail: leadEmailProp,
 }: EmbeddedClinicChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
@@ -41,6 +44,9 @@ export function EmbeddedClinicChat({
   const [isLoading, setIsLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showOtpVerify, setShowOtpVerify] = useState(false)
+  const [leadEmail, setLeadEmail] = useState<string | null>(leadEmailProp || null)
+  const pendingMessageRef = useRef<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const botTypingTimers = useRef<NodeJS.Timeout[]>([])
   const queuedBotIds = useRef<Set<string>>(new Set())
@@ -152,7 +158,21 @@ export function EmbeddedClinicChat({
       return
     }
 
+    const messageText = newMessage.trim()
+
+    // Optimistic: show user message immediately before API call
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: messageText,
+      sender_type: "patient",
+      status: "sent",
+      created_at: new Date().toISOString(),
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
+    setNewMessage("")
     setIsSending(true)
+
     try {
       const response = await fetch("/api/chat/send", {
         method: "POST",
@@ -160,29 +180,39 @@ export function EmbeddedClinicChat({
         body: JSON.stringify({
           leadId,
           clinicId,
-          content: newMessage.trim(),
+          content: messageText,
           senderType: "patient",
         }),
       })
 
       if (response.ok) {
         const data = await response.json()
-        // Add the patient message immediately
-        setMessages((prev) => [...prev, data.message])
+        // Replace optimistic message with server version
+        setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
         setConversationId(data.conversationId)
-        setNewMessage("")
         setError(null)
         // Drip-feed bot messages with typing delay
         if (data.botMessages?.length) {
           queueBotMessages(data.botMessages)
         }
       } else if (response.status === 403) {
-        setError("Please verify your email before sending messages. Check your inbox for the verification link.")
+        // Remove optimistic message and store for resend after OTP
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
+        pendingMessageRef.current = messageText
+        if (leadEmailProp) {
+          setLeadEmail(leadEmailProp)
+          setShowOtpVerify(true)
+          setError(null)
+        } else {
+          setError("Please verify your email before sending messages.")
+        }
       } else {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
         const errData = await response.json().catch(() => ({}))
         setError(errData.error || "Failed to send message. Please try again.")
       }
     } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
       setError("Something went wrong. Please try again.")
     } finally {
       setIsSending(false)
@@ -292,7 +322,7 @@ export function EmbeddedClinicChat({
                     }`}
                   >
                     {msg.sender_type === "bot" ? (
-                      <div className="max-w-[90%] flex items-start gap-2 bg-[#F8F1E7] border border-[#F8F1E7] rounded-xl px-3 py-2">
+                      <div className="max-w-[90%] flex items-start gap-2 bg-[#faf3e6] border border-[#faf3e6] rounded-xl px-3 py-2">
                         <Heart className="w-3 h-3 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
                         <p className="text-[11px] text-[#555] whitespace-pre-wrap">{msg.content}</p>
                       </div>
@@ -360,6 +390,30 @@ export function EmbeddedClinicChat({
             </div>
           )}
 
+          {/* Inline OTP verification on 403 */}
+          {showOtpVerify && leadId && leadEmail && (
+            <div className="p-3 border-t border-[#e5e5e5] bg-[#fafafa]">
+              <p className="text-xs text-[#666] mb-2">Verify your email to send messages:</p>
+              <OTPVerification
+                leadId={leadId}
+                email={leadEmail}
+                onVerified={() => {
+                  setShowOtpVerify(false)
+                  // Retry the pending message
+                  if (pendingMessageRef.current) {
+                    setNewMessage(pendingMessageRef.current)
+                    pendingMessageRef.current = null
+                    // Auto-send after a brief delay
+                    setTimeout(() => {
+                      handleSend()
+                    }, 200)
+                  }
+                }}
+              />
+            </div>
+          )}
+
+          {!showOtpVerify && (
           <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white overflow-hidden">
             <div className="flex items-center gap-2">
               <input
@@ -393,6 +447,7 @@ export function EmbeddedClinicChat({
               </button>
             </div>
           </form>
+          )}
         </>
       )}
     </div>

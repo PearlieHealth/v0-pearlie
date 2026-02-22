@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Loader2, ArrowRight, User, Mail, Phone, Shield } from "lucide-react"
 import { OTPVerification } from "@/components/otp-verification"
 import { trackEvent, setLeadId as setAnalyticsLeadId } from "@/lib/analytics"
+import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
 
 const TREATMENT_OPTIONS = [
   "Dental Implants",
@@ -72,6 +73,8 @@ export function DirectEnquiryForm({ clinicId, clinicName, onLeadCreated }: Direc
       const data = await response.json()
       setLeadId(data.leadId)
       setAnalyticsLeadId(data.leadId)
+      await identifyForTikTok({ email: email.trim(), phone: phone.trim(), externalId: data.leadId })
+      trackTikTokEvent("CompleteRegistration", { content_name: "direct_enquiry", treatment: treatment || null })
       trackEvent("lead_submitted", {
         leadId: data.leadId,
         clinicId,
@@ -91,7 +94,9 @@ export function DirectEnquiryForm({ clinicId, clinicName, onLeadCreated }: Direc
         <OTPVerification
           leadId={leadId}
           email={email.trim()}
-          onVerified={() => {
+          onVerified={async () => {
+            await identifyForTikTok({ email: email.trim(), phone: phone.trim(), externalId: leadId })
+            trackTikTokEvent("CompleteRegistration", { content_name: "otp_verified_direct" })
             trackEvent("email_verified", {
               leadId,
               clinicId,

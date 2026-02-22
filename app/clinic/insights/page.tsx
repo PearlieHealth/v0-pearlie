@@ -28,38 +28,41 @@ import {
   Legend,
 } from "recharts"
 import {
-  TrendingUp,
   TrendingDown,
   Users,
   CalendarCheck,
-  Clock,
   Target,
-  Eye,
-  MousePointerClick,
+  PoundSterling,
 } from "lucide-react"
+import { parseRawAnswers } from "@/lib/intake-form-config"
+import { getTreatmentValue } from "@/lib/analytics/treatment-values"
+import { SCHEMA_VERSION } from "@/lib/intake-form-config"
+import { PatientIntentBreakdownCard } from "@/components/admin/patient-intent-breakdown-card"
+import { MatchReasonsCard } from "@/components/admin/match-reasons-card"
+import { AdminCardErrorBoundary } from "@/components/admin/admin-card-error-boundary"
 
 interface InsightData {
-  conversionRate: number
-  avgResponseTime: number
   totalLeads: number
-  totalBooked: number
+  bookingsConfirmed: number
+  bookingsPending: number
+  bookingsDeclined: number
+  conversionRate: number
+  revenueMin: number
+  revenueMax: number
   treatmentBreakdown: { name: string; value: number }[]
   statusBreakdown: { name: string; value: number }[]
   weeklyTrend: { week: string; leads: number; booked: number }[]
   monthlyComparison: { month: string; leads: number; booked: number; rate: number }[]
-  // Funnel metrics
   funnel: {
     views: number
     clicks: number
     bookClicks: number
     bookings: number
   }
-  // Patient intent breakdown
-  intentBreakdown: {
-    anxiety: { name: string; value: number }[]
-    budget: { name: string; value: number }[]
-    urgency: { name: string; value: number }[]
-  }
+  // Full data for admin components
+  leads: any[]
+  currentFormLeads: any[]
+  matchResults: any[]
 }
 
 const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"]
@@ -70,6 +73,7 @@ export default function InsightsPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   const fetchData = useCallback(async () => {
+    setIsLoading(true)
     const supabase = createBrowserClient()
 
     const { data: { session } } = await supabase.auth.getSession()
@@ -109,122 +113,129 @@ export default function InsightsPage() {
     else if (timeRange === "90d") startDate = subDays(now, 90)
     else startDate = subMonths(now, 12)
 
-    // Fetch all data
-    const { data: matchResults } = await supabase
-      .from("match_results")
-      .select(`
-        lead_id,
-        created_at,
-        leads(id, created_at, raw_answers)
-      `)
-      .eq("clinic_id", clinicId)
-      .gte("created_at", startDate.toISOString())
+    // Fetch all data in parallel — expanded to get full lead records + match reasons
+    const [matchResultsRes, statusesRes, eventsRes] = await Promise.all([
+      supabase
+        .from("match_results")
+        .select("*, leads(*)")
+        .eq("clinic_id", clinicId)
+        .gte("created_at", startDate.toISOString()),
+      supabase
+        .from("lead_clinic_status")
+        .select("*")
+        .eq("clinic_id", clinicId),
+      supabase
+        .from("analytics_events")
+        .select("*")
+        .eq("clinic_id", clinicId)
+        .gte("created_at", startDate.toISOString())
+        .limit(5000),
+    ])
 
-    if (!matchResults || matchResults.length === 0) {
+    const matchResults = matchResultsRes.data || []
+    const statuses = statusesRes.data || []
+    const analyticsEvents = eventsRes.data || []
+
+    if (matchResults.length === 0) {
       setData({
-        conversionRate: 0,
-        avgResponseTime: 0,
         totalLeads: 0,
-        totalBooked: 0,
+        bookingsConfirmed: 0,
+        bookingsPending: 0,
+        bookingsDeclined: 0,
+        conversionRate: 0,
+        revenueMin: 0,
+        revenueMax: 0,
         treatmentBreakdown: [],
         statusBreakdown: [],
         weeklyTrend: [],
         monthlyComparison: [],
         funnel: { views: 0, clicks: 0, bookClicks: 0, bookings: 0 },
-        intentBreakdown: { anxiety: [], budget: [], urgency: [] },
+        leads: [],
+        currentFormLeads: [],
+        matchResults: [],
       })
       setIsLoading(false)
       return
     }
 
-    const leadIds = matchResults.map(mr => mr.lead_id)
+    // Extract full lead records from the join
+    const leads = matchResults
+      .map((mr: any) => mr.leads)
+      .filter(Boolean)
 
-    const { data: statuses } = await supabase
-      .from("lead_clinic_status")
-      .select("*")
-      .eq("clinic_id", clinicId)
-      .in("lead_id", leadIds)
+    // Filter to current form version for patient insight components
+    const currentFormLeads = leads.filter(
+      (lead: any) => lead?.schema_version >= SCHEMA_VERSION
+    )
 
-    const statusMap = new Map(statuses?.map(s => [s.lead_id, s]) || [])
+    // Match results without the nested leads (for MatchReasonsCard)
+    const matchResultsClean = matchResults.map(({ leads: _, ...rest }: any) => rest)
 
-    // Fetch funnel metrics from analytics_events
-    const { data: analyticsEvents } = await supabase
-      .from("analytics_events")
-      .select("event_name, lead_id")
-      .eq("clinic_id", clinicId)
-      .gte("created_at", startDate.toISOString())
+    const statusMap = new Map(statuses.map((s: any) => [s.lead_id, s]))
+    const leadIds = matchResults.map((mr: any) => mr.lead_id)
 
-    const funnelViews = analyticsEvents?.filter(e => e.event_name === "clinic_card_viewed").length || 0
-    const funnelClicks = analyticsEvents?.filter(e => e.event_name === "clinic_opened").length || 0
-    const funnelBookClicks = analyticsEvents?.filter(e => e.event_name === "book_clicked").length || 0
+    // Funnel from analytics events
+    const funnelViews = analyticsEvents.filter((e: any) => e.event_name === "clinic_card_viewed").length
+    const funnelClicks = analyticsEvents.filter((e: any) => e.event_name === "clinic_opened").length
+    const funnelBookClicks = analyticsEvents.filter((e: any) => e.event_name === "book_clicked").length
 
-    // Patient intent breakdown from raw_answers
-    const anxietyLabels: Record<string, string> = {
-      "not_anxious": "Not anxious",
-      "a_bit_nervous": "A bit nervous",
-      "quite_anxious": "Quite anxious",
-      "very_anxious": "Very anxious",
-      "prefer-sedation": "Prefers sedation",
-    }
-    const budgetLabels: Record<string, string> = {
-      "monthly_payments": "Monthly payments",
-      "spread_cost": "Spread cost",
-      "strict_budget": "Strict budget",
-      "want_clarity": "Wants clear pricing",
-      "flexible": "Flexible",
-      "not_main_concern": "Not main concern",
-    }
-    const urgencyLabels: Record<string, string> = {
-      "asap": "ASAP",
-      "this_week": "This week",
-      "this_month": "This month",
-      "next_few_months": "Next few months",
-      "just_exploring": "Just exploring",
-    }
-
-    const anxietyCounts: Record<string, number> = {}
-    const budgetCounts: Record<string, number> = {}
-    const urgencyCounts: Record<string, number> = {}
-
-    matchResults.forEach(mr => {
-      const lead = mr.leads as { raw_answers?: Record<string, unknown> } | null
-      const answers = lead?.raw_answers || {}
-      
-      const anxiety = (answers.anxietyLevel as string) || (answers.anxiety_level as string) || "unknown"
-      const budget = (answers.costApproach as string) || (answers.cost_approach as string) || "unknown"
-      const urgency = (answers.treatment_timeline as string) || (answers.urgency as string) || "unknown"
-      
-      if (anxiety !== "unknown") anxietyCounts[anxiety] = (anxietyCounts[anxiety] || 0) + 1
-      if (budget !== "unknown") budgetCounts[budget] = (budgetCounts[budget] || 0) + 1
-      if (urgency !== "unknown") urgencyCounts[urgency] = (urgencyCounts[urgency] || 0) + 1
+    // Booking stats from leads — only count bookings for THIS clinic
+    let bookingsConfirmed = 0
+    let bookingsPending = 0
+    let bookingsDeclined = 0
+    leads.forEach((lead: any) => {
+      // Only count if the booking is for this clinic (or no clinic specified)
+      if (lead?.booking_clinic_id && lead.booking_clinic_id !== clinicId) return
+      if (lead?.booking_status === "confirmed") bookingsConfirmed++
+      else if (lead?.booking_status === "pending" || lead?.booking_status === "requested") bookingsPending++
+      else if (lead?.booking_status === "declined") bookingsDeclined++
     })
 
-    const intentBreakdown = {
-      anxiety: Object.entries(anxietyCounts).map(([key, value]) => ({ 
-        name: anxietyLabels[key] || key.replace(/_/g, " "), 
-        value 
-      })).sort((a, b) => b.value - a.value),
-      budget: Object.entries(budgetCounts).map(([key, value]) => ({ 
-        name: budgetLabels[key] || key.replace(/_/g, " "), 
-        value 
-      })).sort((a, b) => b.value - a.value),
-      urgency: Object.entries(urgencyCounts).map(([key, value]) => ({ 
-        name: urgencyLabels[key] || key.replace(/_/g, " "), 
-        value 
-      })).sort((a, b) => b.value - a.value),
-    }
+    // Revenue opportunity from leads who clicked book for this clinic
+    const bookedLeadIds = new Set(
+      analyticsEvents
+        .filter((e: any) => e.event_name === "book_clicked")
+        .map((e: any) => e.lead_id)
+        .filter(Boolean)
+    )
+    let revenueMin = 0
+    let revenueMax = 0
+    leads.forEach((lead: any) => {
+      if (!bookedLeadIds.has(lead?.id)) return
+      const parsed = parseRawAnswers(lead?.raw_answers)
+      const treatments = parsed?.treatments || []
+      treatments.forEach((t: string) => {
+        if (t) {
+          const value = getTreatmentValue(t)
+          revenueMin += value.minPence
+          revenueMax += value.maxPence
+        }
+      })
+    })
+    revenueMin = revenueMin / 100 // pence to pounds
+    revenueMax = revenueMax / 100
 
-    // Calculate insights
+    // Also count from lead_clinic_status BOOKED_CONFIRMED as a fallback
+    const statusBooked = statuses.filter((s: any) => s.status === "BOOKED_CONFIRMED").length
+    const totalBooked = Math.max(bookingsConfirmed, statusBooked)
+
     const totalLeads = matchResults.length
-    const bookedLeads = statuses?.filter(s => s.status === "BOOKED_CONFIRMED").length || 0
-    const conversionRate = totalLeads > 0 ? Math.round((bookedLeads / totalLeads) * 100) : 0
+    const conversionRate = totalLeads > 0 ? Math.round((totalBooked / totalLeads) * 100) : 0
 
-    // Treatment breakdown
+    // Treatment breakdown using parseRawAnswers for accuracy
     const treatmentCounts: Record<string, number> = {}
-    matchResults.forEach(mr => {
-      const lead = mr.leads as { raw_answers?: Record<string, unknown> } | null
-      const treatment = (lead?.raw_answers?.treatment as string) || "Other"
-      treatmentCounts[treatment] = (treatmentCounts[treatment] || 0) + 1
+    leads.forEach((lead: any) => {
+      const parsed = parseRawAnswers(lead?.raw_answers)
+      const treatments = parsed?.treatments || []
+      if (treatments.length > 0) {
+        treatments.forEach((t: string) => {
+          if (t) treatmentCounts[t] = (treatmentCounts[t] || 0) + 1
+        })
+      } else {
+        // Fallback for leads without parsed treatments
+        const treatment = (lead?.raw_answers?.treatment as string) || "Other"
+        treatmentCounts[treatment] = (treatmentCounts[treatment] || 0) + 1
+      }
     })
     const treatmentBreakdown = Object.entries(treatmentCounts)
       .map(([name, value]) => ({ name, value }))
@@ -241,7 +252,7 @@ export default function InsightsPage() {
       NO_RESPONSE: 0,
       CLOSED: 0,
     }
-    matchResults.forEach(mr => {
+    matchResults.forEach((mr: any) => {
       const status = statusMap.get(mr.lead_id)?.status || "NEW"
       statusCounts[status] = (statusCounts[status] || 0) + 1
     })
@@ -260,7 +271,7 @@ export default function InsightsPage() {
       weeklyData[weekKey] = { leads: 0, booked: 0 }
     }
 
-    matchResults.forEach(mr => {
+    matchResults.forEach((mr: any) => {
       const weekStart = subDays(new Date(mr.created_at), new Date(mr.created_at).getDay())
       const weekKey = format(weekStart, "MMM d")
       if (weeklyData[weekKey]) {
@@ -284,13 +295,13 @@ export default function InsightsPage() {
       const monthEnd = endOfMonth(monthDate)
       const monthKey = format(monthDate, "MMM")
 
-      const monthLeads = matchResults.filter(mr => {
+      const monthLeads = matchResults.filter((mr: any) => {
         const date = new Date(mr.created_at)
         return date >= monthStart && date <= monthEnd
       })
 
       const monthBooked = monthLeads.filter(
-        ml => statusMap.get(ml.lead_id)?.status === "BOOKED_CONFIRMED"
+        (ml: any) => statusMap.get(ml.lead_id)?.status === "BOOKED_CONFIRMED"
       ).length
 
       monthlyData.push({
@@ -302,10 +313,13 @@ export default function InsightsPage() {
     }
 
     setData({
-      conversionRate,
-      avgResponseTime: 2.4, // Placeholder
       totalLeads,
-      totalBooked: bookedLeads,
+      bookingsConfirmed,
+      bookingsPending,
+      bookingsDeclined,
+      conversionRate,
+      revenueMin,
+      revenueMax,
       treatmentBreakdown,
       statusBreakdown,
       weeklyTrend,
@@ -314,9 +328,11 @@ export default function InsightsPage() {
         views: funnelViews,
         clicks: funnelClicks,
         bookClicks: funnelBookClicks,
-        bookings: bookedLeads,
+        bookings: totalBooked,
       },
-      intentBreakdown,
+      leads,
+      currentFormLeads,
+      matchResults: matchResultsClean,
     })
 
     setIsLoading(false)
@@ -379,7 +395,7 @@ export default function InsightsPage() {
                 <TrendingDown className="h-4 w-4 text-muted-foreground rotate-[-90deg]" />
               </div>
             </div>
-            
+
             {/* Clicks */}
             <div className="flex-1 relative">
               <div className="bg-indigo-50 dark:bg-indigo-950/30 p-6 text-center h-full flex flex-col justify-center">
@@ -398,7 +414,7 @@ export default function InsightsPage() {
                 <TrendingDown className="h-4 w-4 text-muted-foreground rotate-[-90deg]" />
               </div>
             </div>
-            
+
             {/* Book Clicks */}
             <div className="flex-1 relative">
               <div className="bg-amber-50 dark:bg-amber-950/30 p-6 text-center h-full flex flex-col justify-center">
@@ -417,7 +433,7 @@ export default function InsightsPage() {
                 <TrendingDown className="h-4 w-4 text-muted-foreground rotate-[-90deg]" />
               </div>
             </div>
-            
+
             {/* Bookings */}
             <div className="flex-1">
               <div className="bg-green-50 dark:bg-green-950/30 rounded-r-lg md:rounded-r-xl p-6 text-center h-full flex flex-col justify-center">
@@ -434,12 +450,12 @@ export default function InsightsPage() {
               </div>
             </div>
           </div>
-          
+
           {/* Overall conversion */}
           <div className="mt-4 pt-4 border-t flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Overall conversion (views to bookings)</span>
             <span className="font-semibold">
-              {(data?.funnel.views || 0) > 0 
+              {(data?.funnel.views || 0) > 0
                 ? ((data?.funnel.bookings || 0) / (data?.funnel.views || 1) * 100).toFixed(2)
                 : "0.00"}%
             </span>
@@ -458,6 +474,9 @@ export default function InsightsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.totalLeads || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Patients matched to your clinic
+            </p>
           </CardContent>
         </Card>
 
@@ -469,7 +488,18 @@ export default function InsightsPage() {
             <CalendarCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data?.totalBooked || 0}</div>
+            <div className="text-2xl font-bold">{data?.bookingsConfirmed || 0}</div>
+            <div className="flex gap-3 text-xs mt-1">
+              {(data?.bookingsPending || 0) > 0 && (
+                <span className="text-amber-600">{data?.bookingsPending} pending</span>
+              )}
+              {(data?.bookingsDeclined || 0) > 0 && (
+                <span className="text-red-500">{data?.bookingsDeclined} declined</span>
+              )}
+              {(data?.bookingsConfirmed || 0) === 0 && (data?.bookingsPending || 0) === 0 && (data?.bookingsDeclined || 0) === 0 && (
+                <span className="text-muted-foreground">No booking activity yet</span>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -482,28 +512,45 @@ export default function InsightsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.conversionRate || 0}%</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Leads to confirmed bookings
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Avg Response Time
+              Revenue Opportunity
             </CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <PoundSterling className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data?.avgResponseTime || 0}h</div>
+            <div className="text-2xl font-bold">
+              {(data?.revenueMin || 0) > 0
+                ? `£${Math.round(data!.revenueMin).toLocaleString()}`
+                : "—"}
+            </div>
+            {(data?.revenueMax || 0) > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Up to £{Math.round(data!.revenueMax).toLocaleString()}
+              </p>
+            )}
+            {(data?.revenueMin || 0) === 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                From patients who clicked book
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts */}
+      {/* Charts & Insights */}
       <Tabs defaultValue="trends" className="space-y-4">
         <TabsList>
           <TabsTrigger value="trends">Trends</TabsTrigger>
           <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
-          <TabsTrigger value="intent">Patient Intent</TabsTrigger>
+          <TabsTrigger value="intent">Patient Insights</TabsTrigger>
           <TabsTrigger value="comparison">Comparison</TabsTrigger>
         </TabsList>
 
@@ -608,112 +655,15 @@ export default function InsightsPage() {
         </TabsContent>
 
         <TabsContent value="intent" className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-3">
-            {/* Anxiety Levels */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Anxiety Levels</CardTitle>
-                <CardDescription>How anxious are your leads?</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {data?.intentBreakdown.anxiety && data.intentBreakdown.anxiety.length > 0 ? (
-                  <div className="space-y-3">
-                    {data.intentBreakdown.anxiety.map((item, idx) => {
-                      const total = data.intentBreakdown.anxiety.reduce((sum, i) => sum + i.value, 0)
-                      const percent = total > 0 ? (item.value / total) * 100 : 0
-                      const colors = ["bg-green-500", "bg-yellow-500", "bg-orange-500", "bg-red-500", "bg-purple-500"]
-                      return (
-                        <div key={item.name} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">{item.name}</span>
-                            <span className="font-medium">{item.value} ({percent.toFixed(0)}%)</span>
-                          </div>
-                          <div className="h-2 bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full ${colors[idx % colors.length]} rounded-full transition-all`}
-                              style={{ width: `${percent}%` }}
-                            />
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">No anxiety data available</p>
-                )}
-              </CardContent>
-            </Card>
+          {/* Patient Intent Breakdown — uses the same component as admin for consistency */}
+          <AdminCardErrorBoundary cardName="Patient Intent Breakdown">
+            <PatientIntentBreakdownCard leads={data?.currentFormLeads || []} />
+          </AdminCardErrorBoundary>
 
-            {/* Budget Preferences */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Budget Preferences</CardTitle>
-                <CardDescription>How do leads want to pay?</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {data?.intentBreakdown.budget && data.intentBreakdown.budget.length > 0 ? (
-                  <div className="space-y-3">
-                    {data.intentBreakdown.budget.map((item, idx) => {
-                      const total = data.intentBreakdown.budget.reduce((sum, i) => sum + i.value, 0)
-                      const percent = total > 0 ? (item.value / total) * 100 : 0
-                      const colors = ["bg-blue-500", "bg-indigo-500", "bg-cyan-500", "bg-teal-500", "bg-sky-500"]
-                      return (
-                        <div key={item.name} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">{item.name}</span>
-                            <span className="font-medium">{item.value} ({percent.toFixed(0)}%)</span>
-                          </div>
-                          <div className="h-2 bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full ${colors[idx % colors.length]} rounded-full transition-all`}
-                              style={{ width: `${percent}%` }}
-                            />
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">No budget data available</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Urgency */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Treatment Urgency</CardTitle>
-                <CardDescription>When do leads want treatment?</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {data?.intentBreakdown.urgency && data.intentBreakdown.urgency.length > 0 ? (
-                  <div className="space-y-3">
-                    {data.intentBreakdown.urgency.map((item, idx) => {
-                      const total = data.intentBreakdown.urgency.reduce((sum, i) => sum + i.value, 0)
-                      const percent = total > 0 ? (item.value / total) * 100 : 0
-                      const colors = ["bg-red-500", "bg-orange-500", "bg-amber-500", "bg-lime-500", "bg-emerald-500"]
-                      return (
-                        <div key={item.name} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">{item.name}</span>
-                            <span className="font-medium">{item.value} ({percent.toFixed(0)}%)</span>
-                          </div>
-                          <div className="h-2 bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full ${colors[idx % colors.length]} rounded-full transition-all`}
-                              style={{ width: `${percent}%` }}
-                            />
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">No urgency data available</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          {/* Match Reasons — why patients are being matched to this clinic */}
+          <AdminCardErrorBoundary cardName="Match Reasons">
+            <MatchReasonsCard matchResults={data?.matchResults || []} />
+          </AdminCardErrorBoundary>
         </TabsContent>
 
         <TabsContent value="comparison" className="space-y-4">

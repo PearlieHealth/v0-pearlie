@@ -34,7 +34,7 @@ export function MobileNavMenu() {
             <div className="rounded-full bg-primary p-1.5">
               <Heart className="w-4 h-4 text-white fill-white" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-foreground">Pearlie</span>
+            <span className="text-xl font-heading font-bold tracking-tight text-foreground">Pearlie</span>
           </Link>
           <button
             onClick={() => setOpen(false)}
@@ -46,7 +46,7 @@ export function MobileNavMenu() {
         </div>
 
         {/* Navigation links */}
-        <nav className="flex flex-col px-6 py-6">
+        <nav className="flex flex-col px-6 py-6 font-heading">
           <div className="flex items-center bg-secondary/50 rounded-full p-1 border border-border mb-6">
             <Link
               href="/"
@@ -92,13 +92,6 @@ export function MobileNavMenu() {
             >
               FAQ
             </Link>
-            <Link
-              href="/admin"
-              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              Admin
-            </Link>
           </div>
 
           {/* CTA Buttons */}
@@ -118,7 +111,7 @@ export function MobileNavMenu() {
               className="w-full text-base h-12 rounded-full"
               asChild
             >
-              <Link href="/patient/dashboard" onClick={() => setOpen(false)}>
+              <Link href="/patient/login" onClick={() => setOpen(false)}>
                 My account
               </Link>
             </Button>

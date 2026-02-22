@@ -307,6 +307,42 @@ export function parseRawAnswers(rawAnswers: Record<string, any> | null | undefin
 }
 
 /**
+ * Extract treatments from a lead, preferring raw_answers.treatments_selected (array)
+ * over the treatment_interest column (comma-joined string that breaks on treatments
+ * containing commas, e.g. "Emergency dental issue (pain, swelling, broken tooth)").
+ */
+export function getTreatmentsFromLead(lead: { raw_answers?: Record<string, any> | null; treatment_interest?: string | null } | null | undefined): string[] {
+  if (!lead) return []
+
+  // Prefer the structured array from raw_answers
+  const parsed = parseRawAnswers(lead.raw_answers)
+  if (parsed?.treatments && parsed.treatments.length > 0) {
+    return parsed.treatments
+  }
+
+  // Fallback: match treatment_interest against known options
+  const interest = lead.treatment_interest?.trim()
+  if (!interest) return []
+
+  // Try to match known treatments from TREATMENT_OPTIONS
+  const matched: string[] = []
+  let remaining = interest
+
+  for (const option of TREATMENT_OPTIONS) {
+    if (remaining.includes(option)) {
+      matched.push(option)
+      remaining = remaining.replace(option, "")
+    }
+  }
+
+  // If we found known treatments, use them
+  if (matched.length > 0) return matched
+
+  // Last resort: return the whole string as one treatment
+  return [interest]
+}
+
+/**
  * Get all possible values for a field (useful for analytics aggregation)
  */
 export function getAllOptionsForField(fieldType: "timing" | "cost" | "location" | "anxiety" | "blocker" | "value" | "urgency"): string[] {

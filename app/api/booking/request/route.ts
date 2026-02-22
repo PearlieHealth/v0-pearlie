@@ -2,6 +2,11 @@ import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { randomBytes } from "crypto"
 import { createRateLimiter } from "@/lib/rate-limit"
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
+import { HOURLY_SLOTS } from "@/lib/constants"
+import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
+import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
 
 // 10 booking requests per IP per hour
 const bookingIpLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, maxAttempts: 10 })
@@ -23,6 +28,17 @@ export async function POST(request: Request) {
 
     if (!clinicId || !leadId || !date || !time) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
+
+    // Validate date format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(new Date(date + "T00:00:00Z").getTime())) {
+      return NextResponse.json({ error: "Invalid date format" }, { status: 400 })
+    }
+
+    // Validate time slot
+    const validTime = HOURLY_SLOTS.some((s: { key: string }) => s.key === time)
+    if (!validTime) {
+      return NextResponse.json({ error: "Invalid time slot" }, { status: 400 })
     }
 
     const supabase = createAdminClient()
@@ -49,6 +65,14 @@ export async function POST(request: Request) {
     if (leadError || !lead) {
       console.error("[booking-request] Lead not found:", leadError)
       return NextResponse.json({ error: "Lead not found" }, { status: 404 })
+    }
+
+    // Require email verification before allowing appointment requests
+    if (!lead.is_verified) {
+      return NextResponse.json(
+        { error: "Please verify your email before requesting appointments" },
+        { status: 403 }
+      )
     }
 
     // Generate booking token for confirm/decline links
@@ -121,7 +145,289 @@ export async function POST(request: Request) {
       metadata: { date, time, source: "booking_confirmation" },
     })
 
-    return NextResponse.json({ success: true })
+    // Auto-create a chat conversation with the booking request so both patient
+    // (in their dashboard) and clinic (in their inbox) can see and continue it.
+    const timeLabel = HOURLY_SLOTS.find((s: { key: string; label: string }) => s.key === time)?.label || time
+    const formattedDate = new Date(date + "T00:00:00").toLocaleDateString("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+    const bookingMessageContent = `Hello, I would like to request an appointment at ${clinic.name} on ${formattedDate} at ${timeLabel}`
+
+    // Hoist conversationId, tokenHash, and bookingMessage so they're accessible in the final response
+    let conversationId: string | null = null
+    let tokenHash: string | null = null
+    let bookingMessage: { id: string; content: string; sender_type: string; status: string; created_at: string } | null = null
+    let botMessages: { id: string; content: string; sender_type: string; status?: string; created_at: string }[] = []
+
+    try {
+      // Get or create conversation
+      const { data: existingConvs } = await supabase
+        .from("conversations")
+        .select("id, unread_count_clinic")
+        .eq("lead_id", leadId)
+        .eq("clinic_id", clinicId)
+        .limit(1)
+
+      conversationId = existingConvs?.[0]?.id || null
+      let currentUnreadCount = existingConvs?.[0]?.unread_count_clinic || 0
+
+      if (!conversationId) {
+        const { data: newConv, error: convError } = await supabase
+          .from("conversations")
+          .insert({
+            lead_id: leadId,
+            clinic_id: clinicId,
+            status: "active",
+            unread_by_clinic: true,
+            unread_by_patient: false,
+          })
+          .select("id")
+          .single()
+
+        if (convError) {
+          // Handle race condition — conversation may have just been created
+          if (convError.code === "23505") {
+            const { data: raceConv } = await supabase
+              .from("conversations")
+              .select("id, unread_count_clinic")
+              .eq("lead_id", leadId)
+              .eq("clinic_id", clinicId)
+              .limit(1)
+            conversationId = raceConv?.[0]?.id || null
+            currentUnreadCount = raceConv?.[0]?.unread_count_clinic || 0
+          } else {
+            console.error("[booking-request] Failed to create conversation:", convError)
+          }
+        } else {
+          conversationId = newConv?.id || null
+
+          // Ensure match_results entry exists so the clinic sees this lead
+          await supabase.from("match_results").upsert(
+            {
+              lead_id: leadId,
+              clinic_id: clinicId,
+              score: 0,
+              reasons: ["Patient requested an appointment"],
+              tier: "conversation",
+              rank: 0,
+            },
+            { onConflict: "lead_id,clinic_id", ignoreDuplicates: true }
+          ).then(({ error: e }) => { if (e) console.error("[booking-request] match_results upsert:", e) })
+
+          // Ensure lead_clinic_status entry exists
+          await supabase.from("lead_clinic_status").upsert(
+            {
+              lead_id: leadId,
+              clinic_id: clinicId,
+              status: "NEW",
+            },
+            { onConflict: "lead_id,clinic_id", ignoreDuplicates: true }
+          ).then(({ error: e }) => { if (e) console.error("[booking-request] lead_clinic_status upsert:", e) })
+        }
+      }
+
+      // Check for existing appointment request to prevent duplicates
+      if (conversationId) {
+        const { data: convCheck } = await supabase
+          .from("conversations")
+          .select("appointment_requested_at")
+          .eq("id", conversationId)
+          .single()
+
+        if (convCheck?.appointment_requested_at) {
+          // Generate a fresh magic link token for auto-login on the confirm page
+          let duplicateTokenHash: string | null = null
+          try {
+            const { data: linkData } = await supabase.auth.admin.generateLink({
+              type: "magiclink",
+              email: lead.email,
+              options: { redirectTo: `${process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"}/auth/callback?next=${encodeURIComponent("/patient/dashboard")}` },
+            })
+            if (linkData?.properties?.hashed_token) {
+              duplicateTokenHash = linkData.properties.hashed_token
+            }
+          } catch {}
+
+          return NextResponse.json(
+            {
+              error: "An appointment request has already been sent for this clinic.",
+              alreadyRequested: true,
+              conversationId,
+              tokenHash: duplicateTokenHash,
+            },
+            { status: 409 }
+          )
+        }
+      }
+
+      if (conversationId) {
+        // Insert the booking request as a chat message
+        const { data: insertedMsg, error: msgError } = await supabase.from("messages").insert({
+          conversation_id: conversationId,
+          sender_type: "patient",
+          content: bookingMessageContent,
+          sent_via: "chat",
+          message_type: "booking-request",
+          status: "sent",
+        }).select("id, content, sender_type, status, created_at").single()
+
+        if (msgError) {
+          console.error("[booking-request] Failed to insert booking message:", msgError)
+        } else if (insertedMsg) {
+          bookingMessage = insertedMsg
+        }
+
+        // Insert bot acknowledgement so the patient knows why there's no immediate reply
+        const botAckContent = `Thanks for your appointment request! 🗓️\n\n${clinic.name} will review your request for ${formattedDate} at ${timeLabel} and get back to you shortly.\n\nIn the meantime, feel free to send any questions or additional details here.`
+        const { data: botMsg, error: botMsgError } = await supabase.from("messages").insert({
+          conversation_id: conversationId,
+          sender_type: "bot",
+          content: botAckContent,
+          sent_via: "chat",
+          message_type: "bot-greeting",
+        }).select("id, content, sender_type, created_at").single()
+
+        if (botMsgError) {
+          console.error("[booking-request] Failed to insert bot ack message:", botMsgError)
+        } else if (botMsg) {
+          botMessages.push(botMsg)
+        }
+
+        // Update conversation unread flags, mark appointment as requested, and flag bot as greeted
+        await supabase
+          .from("conversations")
+          .update({
+            unread_by_clinic: true,
+            unread_count_clinic: currentUnreadCount + 1,
+            last_message_at: new Date().toISOString(),
+            appointment_requested_at: new Date().toISOString(),
+            bot_greeted: true,
+          })
+          .eq("id", conversationId)
+      }
+    } catch (convError) {
+      // Don't fail the booking if conversation creation fails
+      console.error("[booking-request] Conversation creation error:", convError)
+    }
+
+    // Send confirmation email to patient (non-blocking)
+    if (lead.email) {
+      const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+      const timeLabel = HOURLY_SLOTS?.find((s: { key: string; label: string }) => s.key === time)?.label || time
+      const formattedDate = new Date(date).toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+
+      const unsubHeaders = generateUnsubscribeHeaders(lead.email, "patient_notifications")
+      const unsubUrl = unsubHeaders["List-Unsubscribe"].replace(/[<>]/g, "")
+      const unsubFooter = generateUnsubscribeFooterHtml(unsubUrl)
+
+      // Generate magic link so patient is auto-logged in when they click
+      const dashboardPath = "/patient/dashboard"
+      const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(dashboardPath)}`
+      let viewDashboardUrl = `${appUrl}${dashboardPath}` // fallback: plain link
+
+      try {
+        const { data: linkData } = await supabase.auth.admin.generateLink({
+          type: "magiclink",
+          email: lead.email,
+          options: { redirectTo },
+        })
+        if (linkData?.properties?.action_link) {
+          viewDashboardUrl = linkData.properties.action_link
+          // Capture hashed_token for client-side auto-login on the confirm page
+          if (linkData.properties.hashed_token) {
+            tokenHash = linkData.properties.hashed_token
+          }
+          // Ensure redirect_to points to our app URL (Supabase may use Site URL)
+          try {
+            const linkUrl = new URL(viewDashboardUrl)
+            const currentRedirect = linkUrl.searchParams.get("redirect_to")
+            if (currentRedirect) {
+              const redirectHost = new URL(currentRedirect).hostname
+              const appHost = new URL(appUrl).hostname
+              if (redirectHost !== appHost) {
+                linkUrl.searchParams.set("redirect_to", redirectTo)
+                viewDashboardUrl = linkUrl.toString()
+              }
+            }
+          } catch {}
+        }
+      } catch (linkErr) {
+        console.warn("[booking-request] Failed to generate magic link:", linkErr)
+      }
+
+      sendEmailWithRetry({
+        from: EMAIL_FROM.NOTIFICATIONS,
+        to: lead.email,
+        subject: `Appointment request sent to ${clinic.name}`,
+        headers: unsubHeaders,
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+            <div style="text-align: center; margin-bottom: 32px;">
+              <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Appointment Request Sent</h1>
+            </div>
+            <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 8px;">
+              Hi ${lead.first_name || "there"},
+            </p>
+            <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+              Your appointment request has been sent to <strong>${clinic.name}</strong>.
+            </p>
+            <div style="background: #f5f5f5; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;">Clinic</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">${clinic.name}</p>
+              <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;">Date &amp; time</p>
+              <p style="margin: 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">${formattedDate} &middot; ${timeLabel}</p>
+            </div>
+            <div style="background: #FFF8E1; border: 1px solid #FFE082; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+              <p style="margin: 0; font-size: 14px; color: #6D4C00; line-height: 1.5;">
+                The clinic will confirm your appointment shortly. They typically respond within 24&ndash;48 hours.
+              </p>
+            </div>
+            <div style="text-align: center; margin-bottom: 24px;">
+              <a href="${viewDashboardUrl}" style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                View your dashboard
+              </a>
+            </div>
+            <p style="font-size: 12px; color: #999; text-align: center;">
+              Pearlie &mdash; Finding your perfect dental match
+            </p>
+            ${unsubFooter}
+          </div>
+        `,
+      }).catch((err) => console.error("[booking-request] Patient email failed:", err))
+    }
+
+    // Fire TikTok Lead event (appointment request = real lead, non-blocking)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
+    trackTikTokServerEvent({
+      event: "Lead",
+      url: `${appUrl}/booking/confirm`,
+      email: lead.email || null,
+      phone: lead.phone || null,
+      externalId: leadId,
+      ip: extractIp(request),
+      userAgent: extractUserAgent(request),
+      properties: {
+        content_name: "appointment_request",
+        content_type: "booking",
+        content_id: clinicId,
+      },
+    }).catch(() => {})
+
+    return NextResponse.json({
+      success: true,
+      conversationId: conversationId ?? null,
+      tokenHash: tokenHash ?? null,
+      bookingMessage: bookingMessage ?? null,
+      botMessages,
+    })
   } catch (error) {
     console.error("[booking-request] Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

@@ -21,6 +21,7 @@ import {
   Shield,
   Clock,
   MessageCircle,
+  CalendarCheck,
 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
@@ -29,6 +30,8 @@ import { ClinicCardSkeleton } from "@/components/clinic-card-skeleton"
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { trackEvent, setMatchContext, setMatchId } from "@/lib/analytics"
+import { identifyForTikTok, trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
+import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { MatchFiltersPanel } from "@/components/match-filters-panel"
 import { OTPVerification } from "@/components/otp-verification"
 import { getChipData } from "@/lib/chipData"
@@ -106,9 +109,14 @@ export default function MatchPage() {
   const [minDistanceMiles, setMinDistanceMiles] = useState<number | null>(null)
   const [notifyingClinics, setNotifyingClinics] = useState<Set<string>>(new Set())
   const [unreadCount, setUnreadCount] = useState(0)
+  const [appointmentRequestedClinics, setAppointmentRequestedClinics] = useState<Record<string, string>>({}) // clinicId -> appointment_requested_at
   const [leadId, setLeadId] = useState<string | null>(null)
   const [isVerified, setIsVerified] = useState<boolean | null>(null)
   const [leadEmail, setLeadEmail] = useState<string | null>(null)
+  const [leadPostcode, setLeadPostcode] = useState<string | null>(null)
+  const [zeroMatchEmail, setZeroMatchEmail] = useState("")
+  const [zeroMatchSubmitting, setZeroMatchSubmitting] = useState(false)
+  const [zeroMatchWaitlistDone, setZeroMatchWaitlistDone] = useState(false)
   const [filters, setFilters] = useState<any>({
     distanceMiles: null,
     prioritiseDistance: false,
@@ -154,6 +162,7 @@ export default function MatchPage() {
 
       setIsVerified(data.lead?.isVerified ?? false)
       setLeadEmail(data.lead?.email ?? null)
+      setLeadPostcode(data.lead?.postcode ?? null)
 
       if (data.lead?.latitude && data.lead?.longitude) {
         const location = { lat: data.lead.latitude, lon: data.lead.longitude }
@@ -232,22 +241,32 @@ export default function MatchPage() {
     }
   }, [matchId]) // Remove userLocation dependency since API handles distance now
 
-  // Fetch unread message count for the messages badge
+  // Fetch unread message count and appointment request status for the messages badge
   useEffect(() => {
-    async function fetchUnread() {
+    async function fetchConversations() {
       try {
         const res = await fetch("/api/patient/conversations")
         if (res.ok) {
           const data = await res.json()
-          const total = (data.conversations || []).reduce(
+          const conversations = data.conversations || []
+          const total = conversations.reduce(
             (sum: number, c: { unread_count_patient?: number }) => sum + (c.unread_count_patient || 0),
             0
           )
           setUnreadCount(total)
+
+          // Track which clinics already have appointment requests
+          const requested: Record<string, string> = {}
+          conversations.forEach((c: { clinic_id: string; appointment_requested_at?: string | null }) => {
+            if (c.appointment_requested_at) {
+              requested[c.clinic_id] = c.appointment_requested_at
+            }
+          })
+          setAppointmentRequestedClinics(requested)
         }
       } catch {}
     }
-    fetchUnread()
+    fetchConversations()
   }, [])
 
   const filteredAndRankedClinics = (() => {
@@ -430,8 +449,10 @@ export default function MatchPage() {
     }
   }, [visibleClinics, matchId, trackedCardViews, displayedClinics]) // Depend on visibleClinics and displayedClinics
 
-  const handleVerificationSuccess = () => {
+  const handleVerificationSuccess = async (data?: { sessionToken?: string; sessionEstablished?: boolean }) => {
     setIsVerified(true)
+    await identifyForTikTok({ email: leadEmail || undefined, externalId: leadId || undefined })
+    trackTikTokEvent("CompleteRegistration", { content_name: "otp_verified_match" })
     trackEvent("email_verified", { leadId, matchId })
     // Save match for "return to matches" on landing page
     try {
@@ -442,6 +463,12 @@ export default function MatchPage() {
         createdAt: new Date().toISOString(),
       }))
     } catch {}
+    // Session is already established by OTPVerification component (await + confirm).
+    // Re-fetch matches now that the user is authenticated — the API will return
+    // lead location data (lat/lon/postcode) for the owner, enabling the map.
+    if (data?.sessionEstablished) {
+      fetchInitialMatches()
+    }
   }
 
   if (loading) {
@@ -584,13 +611,63 @@ export default function MatchPage() {
               </div>
               <EmptyTitle className="text-[#004443]">No matching clinics found</EmptyTitle>
               <EmptyDescription className="text-muted-foreground">
-                We couldn't find clinics matching your criteria right now. We're growing our network — check back soon or try a different postcode.
+                We couldn&apos;t find clinics matching your criteria right now. We&apos;re growing our network — try one of the options below.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Button asChild variant="default">
-                <Link href="/intake">Start a new search</Link>
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button asChild variant="default" className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0">
+                  <Link href="/intake">Try a different postcode</Link>
+                </Button>
+              </div>
+
+              {/* Waitlist email capture */}
+              {!zeroMatchWaitlistDone ? (
+                <div className="mt-6 max-w-sm mx-auto">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Get notified when we add clinics in your area:
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={zeroMatchEmail}
+                      onChange={(e) => setZeroMatchEmail(e.target.value)}
+                      className="flex-1 h-10 px-3 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]/40"
+                    />
+                    <Button
+                      size="sm"
+                      disabled={!zeroMatchEmail.includes("@") || zeroMatchSubmitting}
+                      className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                      onClick={async () => {
+                        setZeroMatchSubmitting(true)
+                        try {
+                          await fetch("/api/waitlist", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              email: zeroMatchEmail,
+                              postcode: leadPostcode || "unknown",
+                              area: "zero_matches",
+                            }),
+                          })
+                          setZeroMatchWaitlistDone(true)
+                        } catch {
+                          // Silently fail
+                        } finally {
+                          setZeroMatchSubmitting(false)
+                        }
+                      }}
+                    >
+                      {zeroMatchSubmitting ? "..." : "Notify me"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-4 text-sm text-[#0fbcb0] font-medium">
+                  We&apos;ll notify you when clinics are available in your area.
+                </p>
+              )}
             </EmptyContent>
           </Empty>
         )}
@@ -619,7 +696,7 @@ export default function MatchPage() {
                 {/* Mobile: filter button + map toggle */}
                 <div className="flex items-center gap-2 mb-4 lg:hidden">
                   <MatchFiltersPanel filters={filters} onFiltersChange={setFilters} isMobile />
-                  {userLocation && (
+                  {allClinicsData.some(c => c.latitude && c.longitude) && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -851,17 +928,35 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                 </div>
                               </div>
 
-                              {/* Availability */}
+                              {/* Availability / Already Requested */}
                               <div className="mb-4 lg:mb-3">
-                                <ClinicDatePicker
-                                  availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
-                                  availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
-                                  acceptsSameDay={clinic.accepts_same_day || false}
-                                  onSelectSlot={(date, time) => {
-                                    const dateStr = date.toISOString().split("T")[0]
-                                    window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&time=${time}`
-                                  }}
-                                />
+                                {appointmentRequestedClinics[clinic.id] ? (
+                                  <div className="rounded-xl bg-blue-50 border border-blue-200 p-3.5">
+                                    <div className="flex items-start gap-2.5">
+                                      <CalendarCheck className="w-[18px] h-[18px] text-blue-600 flex-shrink-0 mt-0.5" />
+                                      <div>
+                                        <p className="text-sm font-medium text-blue-700">Appointment already requested</p>
+                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                          Requested {new Date(appointmentRequestedClinics[clinic.id]).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          The clinic will get back to you shortly.
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <ClinicDatePicker
+                                    availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
+                                    availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
+                                    acceptsSameDay={clinic.accepts_same_day || false}
+                                    onSelectSlot={(date, time) => {
+                                      trackTikTokEvent("InitiateCheckout", { content_name: "select_time_slot" })
+                                      const dateStr = date.toISOString().split("T")[0]
+                                      window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&time=${time}&matchId=${matchId}`
+                                    }}
+                                  />
+                                )}
                               </div>
 
                               {/* CTA */}
@@ -870,6 +965,16 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   <Button
                                     className="flex-1 h-11 lg:h-10 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
                                     asChild
+                                    onClick={() => {
+                                      const contactEventId = generateTikTokEventId()
+                                      trackTikTokEvent("Contact", { content_name: "message_clinic_match_page" }, contactEventId)
+                                      trackTikTokServerRelay("Contact", {
+                                        event_id: contactEventId,
+                                        lead_id: leadId || match.lead_id,
+                                        clinic_id: clinic.id,
+                                        properties: { content_name: "message_clinic_match_page" },
+                                      })
+                                    }}
                                   >
                                     <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>
                                       <MessageCircle className="w-4 h-4 mr-1.5" />
@@ -877,12 +982,15 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                     </Link>
                                   </Button>
                                 )}
-                                <Link
-                                  href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}
-                                  className="text-sm font-medium text-[#004443] hover:text-[#004443]/70 transition-colors"
+                                <Button
+                                  variant="outline"
+                                  className="flex-1 h-11 lg:h-10 rounded-full font-medium text-sm text-[#004443] border-[#004443]/20 hover:bg-[#004443]/5"
+                                  asChild
                                 >
-                                  View Profile
-                                </Link>
+                                  <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}>
+                                    View Profile
+                                  </Link>
+                                </Button>
                               </div>
                             </div>
                           </Card>
@@ -982,8 +1090,8 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
               {/* RIGHT: Map + Filters + Trust (desktop only) */}
               <aside className="hidden lg:block flex-1 max-w-[480px] order-2">
                 <div className="sticky top-24 space-y-4">
-                  {/* Map - square */}
-                  {userLocation && (
+                  {/* Map - square (show whenever we have clinics with coordinates) */}
+                  {allClinicsData.some(c => c.latitude && c.longitude) && (
                     <div className="aspect-square rounded-2xl overflow-hidden shadow-sm border border-border/50">
                       <GoogleClinicsMap clinics={allClinicsData} highlightedClinicId={highlightedClinicId} onClinicHover={handleClinicHover} onClinicClick={handleMapClinicClick} />
                     </div>

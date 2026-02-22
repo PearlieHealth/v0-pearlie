@@ -29,6 +29,7 @@ import { useChatChannel, usePatientConversationUpdates, type RealtimeMessage } f
 import { BookingCard } from "@/components/match/booking-card"
 import { OtherClinicCard } from "@/components/match/other-clinic-card"
 import { useIsMobile } from "@/components/ui/use-mobile"
+import { AppointmentBanner } from "@/components/appointment-banner"
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -41,6 +42,9 @@ interface Lead {
   postcode: string
   created_at: string
   is_verified: boolean
+  booking_date?: string | null
+  booking_time?: string | null
+  booking_clinic_id?: string | null
 }
 
 interface Match {
@@ -185,11 +189,13 @@ export default function PatientDashboard() {
 
   // Derive which clinics have appointment requests from server-side conversation data.
   // This persists across sessions, devices, and logouts.
-  const appointmentRequestedClinics = new Set<string>(
+  // Map: clinicId -> appointment_requested_at timestamp
+  const appointmentRequestedClinicsMap = new Map<string, string>(
     inboxConversations
       .filter((c) => c.appointment_requested_at)
-      .map((c) => c.clinic_id)
+      .map((c) => [c.clinic_id, c.appointment_requested_at!])
   )
+  const appointmentRequestedClinics = new Set(appointmentRequestedClinicsMap.keys())
 
   // "Pending chat" — when user clicks message on a clinic with no conversation yet.
   // We show the chat UI with this clinicId+leadId so they can type, and the
@@ -222,8 +228,24 @@ export default function PatientDashboard() {
   async function fetchDashboard() {
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+
+      // On mobile browsers, auth cookies may still be propagating after OTP
+      // verification. Retry a few times with short delays before giving up.
+      let user = null
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { data: { user: u } } = await supabase.auth.getUser()
+        if (u) { user = u; break }
+        if (attempt < 2) {
+          await new Promise((r) => setTimeout(r, 1000))
+        }
+      }
       if (!user) { router.replace("/patient/login?next=/patient/dashboard"); return }
+
+      // Prevent clinic users from accessing patient dashboard
+      if (user.user_metadata?.role === "clinic") {
+        router.replace("/clinic")
+        return
+      }
 
       const res = await fetch(`/api/patient/matches?matchesLimit=${PAGE_SIZE}&convsLimit=${PAGE_SIZE}`)
       if (!res.ok) {
@@ -326,6 +348,7 @@ export default function PatientDashboard() {
   useEffect(() => {
     if (selectedConvId) {
       setPendingChatClinic(null) // Clear pending state when a real conv is selected
+      setChatError(null) // Clear any previous chat errors
       // Skip fetch when we just sent a message that created this conversation —
       // we already have the correct messages in state and a fetch would
       // replace them (including bot messages queued for delayed display).
@@ -506,7 +529,21 @@ export default function PatientDashboard() {
 
     if (!clinicId || !leadId) return
 
+    const messageText = newMessage.trim()
+
+    // Optimistic: show user message immediately before API call
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: messageText,
+      sender_type: "patient",
+      status: "sent",
+      created_at: new Date().toISOString(),
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
+    setNewMessage("")
     setIsSending(true)
+
     try {
       const res = await fetch("/api/chat/send", {
         method: "POST",
@@ -514,14 +551,14 @@ export default function PatientDashboard() {
         body: JSON.stringify({
           leadId,
           clinicId,
-          content: newMessage.trim(),
+          content: messageText,
           senderType: "patient",
         }),
       })
       if (res.ok) {
         const data = await res.json()
-        setMessages((prev) => [...prev, data.message])
-        setNewMessage("")
+        // Replace optimistic message with server version
+        setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
 
         // If this was a pending chat (first message), the backend created
         // the conversation. We need to update our state.
@@ -541,7 +578,7 @@ export default function PatientDashboard() {
           setInboxConversations((prev) =>
             prev.map((c) =>
               c.id === selectedConv.id
-                ? { ...c, latest_message: newMessage.trim().substring(0, 100), latest_message_sender: "patient", last_message_at: new Date().toISOString() }
+                ? { ...c, latest_message: messageText.substring(0, 100), latest_message_sender: "patient", last_message_at: new Date().toISOString() }
                 : c
             )
           )
@@ -576,6 +613,8 @@ export default function PatientDashboard() {
           })
         }
       } else {
+        // Remove optimistic message on error
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
         const errData = await res.json().catch(() => ({}))
         if (res.status === 403) {
           setChatError("Please verify your email before sending messages.")
@@ -587,6 +626,7 @@ export default function PatientDashboard() {
       }
     } catch (err) {
       console.error("Failed to send message:", err)
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
       setChatError("Failed to send. Please try again.")
     } finally {
       setIsSending(false)
@@ -612,10 +652,13 @@ export default function PatientDashboard() {
     const supabase = createClient()
     await supabase.auth.signOut()
     try { localStorage.removeItem("pearlie_last_match") } catch {}
-    router.replace("/patient/login")
+    window.location.href = "/patient/login"
   }
 
   function openConversationForClinic(clinicId: string, { openDrawer = true }: { openDrawer?: boolean } = {}) {
+    // Clear any previous chat errors when switching conversations
+    setChatError(null)
+
     // Match by both clinic_id AND lead_id so we pick the right conversation
     // when a patient has multiple leads/searches with the same clinic.
     const conv = inboxConversations.find(
@@ -671,6 +714,17 @@ export default function PatientDashboard() {
     // Open the chat UI first so the user sees it
     openConversationForClinic(selectedClinicId)
 
+    // Optimistic: show appointment message immediately
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: message,
+      sender_type: "patient",
+      status: "sent",
+      created_at: new Date().toISOString(),
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
+
     // Send appointment request via API with messageType for server-side tracking
     try {
       const res = await fetch("/api/chat/send", {
@@ -686,7 +740,8 @@ export default function PatientDashboard() {
       })
       if (res.ok) {
         const data = await res.json()
-        setMessages((prev) => [...prev, data.message])
+        // Replace optimistic message with server version
+        setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
 
         // Mark the conversation locally as having an appointment request
         // so the UI updates immediately without waiting for a re-fetch.
@@ -736,11 +791,15 @@ export default function PatientDashboard() {
           })
         }
       } else if (res.status === 409) {
-        // Already requested (server-side duplicate check) — refresh inbox to sync
+        // Already requested (server-side duplicate check) — remove optimistic, refresh inbox
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
         fetchInbox()
+      } else {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
       }
     } catch (err) {
       console.error("Failed to send appointment request:", err)
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
       setChatError("Failed to send appointment request. Please try again.")
     }
   }
@@ -824,17 +883,12 @@ export default function PatientDashboard() {
                 </span>
               )}
             </button>
-            {/* Sign out — desktop: icon + text, mobile: avatar */}
+            {/* Sign out */}
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors p-2 sm:p-0"
             >
-              <div className="sm:hidden h-8 w-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform">
-                <span className="text-white text-xs font-semibold">
-                  {(data?.user?.name || data?.user?.email || "U").charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <LogOut className="w-4 h-4 hidden sm:block" />
+              <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
@@ -892,6 +946,9 @@ export default function PatientDashboard() {
                 onMessageClick={handleMessageClick}
                 onRequestAppointment={handleRequestAppointment}
                 appointmentRequested={appointmentRequestedClinics.has(selectedClinic.id)}
+                appointmentRequestedAt={appointmentRequestedClinicsMap.get(selectedClinic.id) || null}
+                bookingDate={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_date : null}
+                bookingTime={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_time : null}
                 ctaRef={ctaRef}
                 providers={clinicProviders}
                 treatmentInterest={latestMatchLead?.treatment_interest}
@@ -913,7 +970,7 @@ export default function PatientDashboard() {
             <section>
               <button
                 onClick={() => setShowOtherClinics(!showOtherClinics)}
-                className="flex items-center justify-between w-full text-left py-2.5 px-4 rounded-xl bg-[#F8F1E7] hover:bg-[#F8F1E7]/80 transition-colors"
+                className="flex items-center justify-between w-full text-left py-2.5 px-4 rounded-xl bg-[#faf3e6] hover:bg-[#faf3e6]/80 transition-colors"
               >
                 <h2 className="text-xs sm:text-sm font-semibold text-[#004443] uppercase tracking-wide">
                   Other clinics ({otherClinics.length})
@@ -1196,6 +1253,18 @@ export default function PatientDashboard() {
                   </div>
                 </div>
 
+                {/* Appointment banner for this conversation */}
+                {selectedConv?.appointment_requested_at && latestMatchLead?.booking_clinic_id === selectedConv.clinic_id && (
+                  <div className="px-4 pt-2.5 pb-0 flex-shrink-0">
+                    <AppointmentBanner
+                      bookingDate={latestMatchLead.booking_date}
+                      bookingTime={latestMatchLead.booking_time}
+                      requestedAt={selectedConv?.appointment_requested_at || null}
+                      compact
+                    />
+                  </div>
+                )}
+
                 {/* Messages — plain scrollable div (not Radix ScrollArea,
                     which wraps content in an internal Viewport that breaks
                     ref-based scrollTo and flex height constraints) */}
@@ -1353,6 +1422,18 @@ export default function PatientDashboard() {
               </button>
             </div>
           </div>
+
+          {/* Mobile appointment banner */}
+          {selectedConv?.appointment_requested_at && latestMatchLead?.booking_clinic_id === selectedConv.clinic_id && (
+            <div className="px-3 pt-2.5 pb-0 flex-shrink-0">
+              <AppointmentBanner
+                bookingDate={latestMatchLead.booking_date}
+                bookingTime={latestMatchLead.booking_time}
+                requestedAt={selectedConv.appointment_requested_at}
+                compact
+              />
+            </div>
+          )}
 
           {/* Messages — flex-1 takes remaining space, scrollable */}
           <div

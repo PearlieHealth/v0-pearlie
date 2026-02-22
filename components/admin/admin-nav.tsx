@@ -16,6 +16,7 @@ import {
   Users,
   Settings,
   Mail,
+  MessageSquare,
   MoreHorizontal,
 } from "lucide-react"
 import { AdminLogoutButton } from "./admin-auth-provider"
@@ -67,6 +68,7 @@ const navGroups: NavGroup[] = [
     label: "Operations",
     items: [
       { href: "/admin/pilot-checklist", label: "Pilot Checklist", shortLabel: "Pilot", icon: CheckSquare },
+      { href: "/admin/chat-history", label: "Chat History", shortLabel: "Chats", icon: MessageSquare },
       { href: "/admin/email-logs", label: "Email Logs", shortLabel: "Emails", icon: Mail },
       { href: "/admin/settings", label: "Settings", icon: Settings },
     ],
@@ -114,7 +116,7 @@ export function AdminNav(_props?: { currentPath?: string }) {
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all",
                       active
                         ? "bg-[#004443] text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-[#F8F1E7] hover:text-foreground",
+                        : "text-muted-foreground hover:bg-[#faf3e6] hover:text-foreground",
                     )}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -131,7 +133,7 @@ export function AdminNav(_props?: { currentPath?: string }) {
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all",
                       overflowHasActive
                         ? "bg-[#004443] text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-[#F8F1E7] hover:text-foreground",
+                        : "text-muted-foreground hover:bg-[#faf3e6] hover:text-foreground",
                     )}
                   >
                     <MoreHorizontal className="w-3.5 h-3.5" />
@@ -174,7 +176,7 @@ export function AdminNav(_props?: { currentPath?: string }) {
                       "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all",
                       active
                         ? "bg-[#004443] text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-[#F8F1E7] hover:text-foreground",
+                        : "text-muted-foreground hover:bg-[#faf3e6] hover:text-foreground",
                     )}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -190,7 +192,7 @@ export function AdminNav(_props?: { currentPath?: string }) {
                       "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all",
                       allNavItems.slice(3).some((item) => isActive(item.href))
                         ? "bg-[#004443] text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-[#F8F1E7] hover:text-foreground",
+                        : "text-muted-foreground hover:bg-[#faf3e6] hover:text-foreground",
                     )}
                   >
                     <MoreHorizontal className="w-3.5 h-3.5" />

@@ -5,21 +5,11 @@ import React from "react"
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { format } from "date-fns"
+import { format, formatDistanceToNow } from "date-fns"
 import {
   ArrowLeft,
   Mail,
@@ -39,8 +29,10 @@ import {
   DollarSign,
   Brain,
   Activity,
-  Globe,
   Sparkles,
+  ChevronDown,
+  ChevronUp,
+  CalendarCheck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BookingDialog } from "@/components/clinic/booking-dialog"
@@ -104,18 +96,6 @@ interface Message {
   created_at: string
 }
 
-const STATUS_OPTIONS = [
-  { value: "NEW", label: "New Request" },
-  { value: "CONTACTED", label: "Contacted" },
-  { value: "IN_PROGRESS", label: "In Progress" },
-  { value: "BOOKED_PENDING", label: "Booked - Pending" },
-  { value: "BOOKED_CONFIRMED", label: "Booked - Confirmed" },
-  { value: "ATTENDED", label: "Attended" },
-  { value: "NOT_SUITABLE", label: "Not Suitable" },
-  { value: "NO_RESPONSE", label: "No Response" },
-  { value: "CLOSED", label: "Closed" },
-]
-
 const TREATMENT_LABELS: Record<string, string> = {
   dental_implants: "Dental Implants",
   composite_bonding: "Composite Bonding",
@@ -127,25 +107,6 @@ const TREATMENT_LABELS: Record<string, string> = {
   emergency: "Emergency",
   root_canal: "Root Canal",
   dentures: "Dentures",
-}
-
-// Progress stepper steps
-const PROGRESS_STEPS = [
-  { key: "new", label: "New Request" },
-  { key: "scheduled", label: "Scheduled" },
-  { key: "completed", label: "Completed" },
-]
-
-function getProgressIndex(status: string, hasBooking: boolean) {
-  if (status === "ATTENDED" || status === "CLOSED" || status === "BOOKED_CONFIRMED") return 2
-  if (
-    status === "BOOKED_PENDING" ||
-    hasBooking ||
-    status === "IN_PROGRESS" ||
-    status === "CONTACTED"
-  )
-    return 1
-  return 0
 }
 
 export default function AppointmentDetailPage() {
@@ -166,10 +127,20 @@ export default function AppointmentDetailPage() {
   const [isSending, setIsSending] = useState(false)
   const [showBookingDialog, setShowBookingDialog] = useState(false)
 
-  const [editStatus, setEditStatus] = useState("NEW")
   const [newMessage, setNewMessage] = useState("")
   const [newNote, setNewNote] = useState("")
   const [showNoteInput, setShowNoteInput] = useState(false)
+
+  // Collapsible sidebar sections
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    intent: true,
+    match: false,
+    notes: false,
+  })
+
+  const toggleSection = (key: string) => {
+    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
 
   const fetchData = useCallback(async () => {
     const supabase = createBrowserClient()
@@ -229,7 +200,6 @@ export default function AppointmentDetailPage() {
     if (matchData) setMatchResult(matchData as MatchResult)
     if (statusData) {
       setStatus(statusData)
-      setEditStatus((statusData.status || "NEW").toUpperCase())
     }
     if (bookingData) setBooking(bookingData)
     if (convData) {
@@ -294,36 +264,6 @@ export default function AppointmentDetailPage() {
     }
   }, [messages])
 
-  const handleSaveStatus = async (overrideStatus?: string) => {
-    if (!clinic) return
-    const statusToSave = overrideStatus || editStatus
-    setIsSaving(true)
-    const supabase = createBrowserClient()
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
-    if (status) {
-      await supabase
-        .from("lead_clinic_status")
-        .update({
-          status: statusToSave,
-          updated_by: session?.user.id,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", status.id)
-    } else {
-      await supabase.from("lead_clinic_status").insert({
-        lead_id: leadId,
-        clinic_id: clinic.id,
-        status: statusToSave,
-        updated_by: session?.user.id,
-      })
-    }
-
-    await fetchData()
-    setIsSaving(false)
-  }
 
   const handleAddNote = async () => {
     if (!clinic || !newNote.trim()) return
@@ -402,554 +342,377 @@ export default function AppointmentDetailPage() {
     TREATMENT_LABELS[lead.raw_answers?.treatment as string] ||
     (lead.raw_answers?.treatment as string) ||
     "Dental Treatment"
-  const progressIndex = getProgressIndex(
-    editStatus,
-    !!booking
-  )
-  const contactPreference = lead.raw_answers?.preferred_contact as string
 
   return (
-    <div className="p-6 flex flex-col min-h-full">
-      {/* Back button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="w-fit mb-4 text-[#0fbcb0] hover:text-[#0da399] hover:bg-[#F8F1E7] shrink-0"
-        onClick={() => router.push("/clinic/appointments")}
-      >
-        <ArrowLeft className="w-4 h-4 mr-1" />
-        Back to appointments
-      </Button>
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
+      {/* ── HEADER BAR ── */}
+      <div className="shrink-0 border-b bg-white px-6 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              onClick={() => router.push("/clinic/appointments")}
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
 
-      {/* Three-column layout */}
-      <div className="flex-1 grid grid-cols-[300px_1fr_380px] gap-6">
-        {/* LEFT COLUMN - Patient Info */}
-        <ScrollArea className="pr-4">
-          <div className="space-y-6">
-            {/* Patient header */}
             <div>
-              <h1 className="text-2xl font-bold">
-                {lead.first_name} {lead.last_name}
-              </h1>
-              <div className="mt-3 space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Mail className="w-4 h-4" />
-                  <a href={`mailto:${lead.email}`} className="hover:underline">
+              <div className="flex items-center gap-3">
+                <h1 className="text-lg font-bold">
+                  {lead.first_name} {lead.last_name}
+                </h1>
+                {lead.source && lead.source !== "match" && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    {lead.source === "direct_profile" ? "Direct" : lead.source.replace(/_/g, " ")}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                <span>{treatment}</span>
+                <span className="text-muted-foreground/40">|</span>
+                {lead.email && (
+                  <a href={`mailto:${lead.email}`} className="hover:underline flex items-center gap-1">
+                    <Mail className="w-3 h-3" />
                     {lead.email}
                   </a>
-                </div>
+                )}
                 {lead.phone && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Phone className="w-4 h-4" />
-                    <a href={`tel:${lead.phone}`} className="hover:underline">
+                  <>
+                    <span className="text-muted-foreground/40">|</span>
+                    <a href={`tel:${lead.phone}`} className="hover:underline flex items-center gap-1">
+                      <Phone className="w-3 h-3" />
                       {lead.phone}
                     </a>
-                  </div>
+                  </>
                 )}
                 {lead.postcode && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    {lead.postcode}
-                  </div>
+                  <>
+                    <span className="text-muted-foreground/40">|</span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {lead.postcode}
+                    </span>
+                  </>
                 )}
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Calendar className="w-4 h-4" />
-                  {format(new Date(lead.created_at), "d MMM yyyy")}
-                </div>
-                {lead.source && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <Globe className="w-4 h-4 text-muted-foreground" />
-                    <Badge variant="secondary" className="text-xs">
-                      {lead.source === "match" ? "From matching" : lead.source === "direct_profile" ? "Direct enquiry" : lead.source.replace(/_/g, " ")}
-                    </Badge>
-                  </div>
+                <span className="text-muted-foreground/40">|</span>
+                <span>{formatDistanceToNow(new Date(lead.created_at), { addSuffix: true })}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Header actions */}
+          <div className="flex items-center gap-2">
+            {lead.phone && (
+              <Button size="sm" variant="outline" className="gap-1.5 bg-transparent" asChild>
+                <a href={`tel:${lead.phone}`}>
+                  <Phone className="w-3.5 h-3.5" />
+                  Call
+                </a>
+              </Button>
+            )}
+            {!booking && (
+              <Button
+                size="sm"
+                className="gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => setShowBookingDialog(true)}
+              >
+                <CalendarCheck className="w-3.5 h-3.5" />
+                Appointment confirmed with patient
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── MAIN: Chat + Sidebar ── */}
+      <div className="flex-1 grid grid-cols-[1fr_380px] min-h-0">
+        {/* ── CHAT COLUMN ── */}
+        <div className="flex flex-col border-r min-h-0">
+          {/* Booking banner if scheduled */}
+          {booking && (
+            <div className="shrink-0 bg-green-50 border-b border-green-100 px-6 py-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm">
+                <CalendarCheck className="w-4 h-4 text-green-600" />
+                <span className="text-green-700 font-medium">
+                  Appointment: {format(new Date(booking.appointment_datetime), "EEE d MMM yyyy 'at' h:mm a")}
+                </span>
+                {booking.booking_method && (
+                  <Badge variant="secondary" className="text-[10px] bg-green-100 text-green-700">
+                    {booking.booking_method.replace(/_/g, " ")}
+                  </Badge>
                 )}
               </div>
             </div>
+          )}
 
-            <Separator />
-
-            {/* Patient Intent */}
-            {(() => {
-              const ra = lead.raw_answers || {}
-              const treatmentsSelected = ra.treatments_selected as string[] | undefined
-              const treatmentSingle = ra.treatment as string | undefined
-              const anxietyLevel = ra.anxiety_level as string | undefined
-              const costApproach = ra.cost_approach as string | undefined
-              const budgetRange = ra.budget_range as string | undefined
-              const urgency = ra.urgency as string | undefined
-              const decisionValues = ra.values as string[] | undefined
-              const blockers = ra.blocker as string[] | undefined
-              const blockerLabels = ra.blocker_labels as string[] | undefined
-              const painScore = ra.pain_score as number | undefined
-              const hasSwelling = ra.has_swelling === true
-              const hasBleeding = ra.has_bleeding === true
-              const outcomePriority = ra.outcome_priority as string | undefined
-              const isEmergency = ra.is_emergency as boolean | undefined
-              const preferredTimes = ra.preferred_times as string[] | undefined
-              const locationPref = ra.location_preference as string | undefined
-
-              // Determine treatment display
-              const treatmentDisplay = treatmentsSelected?.length
-                ? treatmentsSelected.join(", ")
-                : treatmentSingle
-                  ? (TREATMENT_LABELS[treatmentSingle] || treatmentSingle.replace(/_/g, " "))
-                  : null
-
-              const hasMedicalFlags = (painScore !== undefined && painScore > 0) || hasSwelling || hasBleeding
-              const hasIntent = treatmentDisplay || anxietyLevel || costApproach || budgetRange || urgency || decisionValues?.length || blockers?.length || hasMedicalFlags || outcomePriority || preferredTimes?.length || locationPref
-
-              if (!hasIntent) return null
-
-              const anxietyConfig: Record<string, { label: string; color: string }> = {
-                comfortable: { label: "Comfortable", color: "bg-green-100 text-green-700" },
-                slightly_anxious: { label: "Slightly anxious", color: "bg-yellow-100 text-yellow-700" },
-                quite_anxious: { label: "Quite anxious", color: "bg-orange-100 text-orange-700" },
-                very_anxious: { label: "Very anxious", color: "bg-red-100 text-red-700" },
-                // Legacy values
-                none: { label: "Comfortable", color: "bg-green-100 text-green-700" },
-                mild: { label: "Slightly anxious", color: "bg-yellow-100 text-yellow-700" },
-                moderate: { label: "Quite anxious", color: "bg-orange-100 text-orange-700" },
-                severe: { label: "Very anxious", color: "bg-red-100 text-red-700" },
-                high: { label: "Very anxious", color: "bg-red-100 text-red-700" },
-              }
-
-              const costLabels: Record<string, string> = {
-                best_outcome: "Wants the best outcome regardless of cost",
-                understand_value: "Wants to understand value before committing",
-                comfort_range: "Has a comfortable budget range in mind",
-                strict_budget: "Strict budget constraints",
-                // Legacy v4 values
-                options_first: "Wants to explore options first",
-                upfront_pricing: "Prefers upfront pricing",
-                finance_preferred: "Prefers finance / payment plans",
-              }
-
-              const urgencyLabels: Record<string, string> = {
-                // Emergency urgency
-                today: "Needs to be seen today",
-                tomorrow: "Needs to be seen tomorrow",
-                next_few_days: "Within the next few days",
-                // Planning urgency
-                asap: "As soon as possible",
-                within_week: "Within a week",
-                few_weeks: "Within a few weeks",
-                exploring: "Just exploring options",
-              }
-
-              const budgetLabels: Record<string, string> = {
-                budget: "Budget-conscious",
-                mid: "Mid-range",
-                premium: "Premium",
-              }
-
-              const blockerCodeLabels: Record<string, string> = {
-                NOT_WORTH_COST: "Unsure about cost and whether it's the right investment",
-                NEED_MORE_TIME: "Wants to understand everything and take time deciding",
-                UNSURE_OPTION: "Not sure which treatment option is right",
-                WORRIED_COMPLEX: "Worried it might be more complicated than expected",
-                BAD_EXPERIENCE: "Has had a bad dental experience before",
-                NO_CONCERN: "No particular concerns",
-              }
-
-              return (
-                <div>
-                  <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                    <Heart className="w-4 h-4 text-[#0fbcb0]" />
-                    Patient Intent
-                  </h3>
-                  <div className="space-y-3">
-                    {/* Treatment */}
-                    {treatmentDisplay && (
-                      <div className="flex items-start gap-2">
-                        <Sparkles className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Treatment Interest</p>
-                          <p className="text-sm font-medium">{treatmentDisplay}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Urgency */}
-                    {(urgency || isEmergency) && (
-                      <div className="flex items-start gap-2">
-                        <Clock className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Urgency</p>
-                          <p className="text-sm font-medium">
-                            {isEmergency && !urgency ? "Emergency" : urgencyLabels[urgency!] || urgency?.replace(/_/g, " ")}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Anxiety Level */}
-                    {anxietyLevel && (
-                      <div className="flex items-start gap-2">
-                        <Brain className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Anxiety Level</p>
-                          <Badge className={cn("text-xs mt-0.5", anxietyConfig[anxietyLevel]?.color || "bg-muted text-muted-foreground")}>
-                            {anxietyConfig[anxietyLevel]?.label || anxietyLevel.replace(/_/g, " ")}
-                          </Badge>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Budget / Cost */}
-                    {(budgetRange || costApproach) && (
-                      <div className="flex items-start gap-2">
-                        <DollarSign className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Budget & Cost</p>
-                          {budgetRange && (
-                            <p className="text-sm font-medium">{budgetLabels[budgetRange] || budgetRange.replace(/_/g, " ")}</p>
-                          )}
-                          {costApproach && (
-                            <p className="text-xs text-muted-foreground mt-0.5">{costLabels[costApproach] || costApproach.replace(/_/g, " ")}</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Medical Flags - only show if there's actual positive data */}
-                    {hasMedicalFlags && (
-                      <div className="flex items-start gap-2">
-                        <Activity className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Medical Flags</p>
-                          <div className="flex flex-wrap gap-1 mt-0.5">
-                            {painScore !== undefined && painScore > 0 && (
-                              <Badge variant="secondary" className={cn("text-xs", painScore >= 7 ? "bg-red-100 text-red-700" : painScore >= 4 ? "bg-orange-100 text-orange-700" : "bg-muted")}>
-                                Pain: {painScore}/10
-                              </Badge>
-                            )}
-                            {hasSwelling && (
-                              <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">Swelling</Badge>
-                            )}
-                            {hasBleeding && (
-                              <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">Bleeding</Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* What Matters (decision values) */}
-                    {decisionValues && decisionValues.length > 0 && (
-                      <div className="flex items-start gap-2">
-                        <Star className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">What Matters Most</p>
-                          <div className="flex flex-wrap gap-1 mt-0.5">
-                            {decisionValues.map((v, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">{v}</Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Concerns / Blockers */}
-                    {blockers && blockers.length > 0 && blockers[0] !== "NO_CONCERN" && (
-                      <div className="flex items-start gap-2">
-                        <AlertTriangle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Concerns / Barriers</p>
-                          <div className="flex flex-wrap gap-1 mt-0.5">
-                            {(blockerLabels || blockers).map((b, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs bg-amber-50 text-amber-700">
-                                {blockerLabels ? b : (blockerCodeLabels[b] || (typeof b === "string" ? b.replace(/_/g, " ") : b))}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Outcome Priority */}
-                    {outcomePriority && (
-                      <div className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Outcome Priority</p>
-                          <p className="text-sm">{outcomePriority}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Preferred Times */}
-                    {preferredTimes && preferredTimes.length > 0 && (
-                      <div className="flex items-start gap-2">
-                        <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Preferred Times</p>
-                          <div className="flex flex-wrap gap-1 mt-0.5">
-                            {preferredTimes.map((t, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs capitalize">{t}</Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Location Preference */}
-                    {locationPref && (
-                      <div className="flex items-start gap-2">
-                        <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Location Preference</p>
-                          <p className="text-sm capitalize">{locationPref.replace(/_/g, " ")}</p>
-                        </div>
-                      </div>
-                    )}
+          {/* Messages area */}
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full" ref={scrollRef}>
+              <div className="px-6 py-4">
+                {!conversation ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                    <MessageSquare className="w-12 h-12 mb-3 text-muted-foreground/30" />
+                    <p className="font-medium">No conversation yet</p>
+                    <p className="text-sm mt-1">Messages will appear when the patient reaches out</p>
                   </div>
-                </div>
-              )
-            })()}
-
-            <Separator />
-
-            {/* Match Score + Breakdown */}
-            {matchResult && (
-              <div>
-                <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
-                  Match Score
-                </h3>
-
-                {/* Overall percentage */}
-                {matchResult.score !== undefined && matchResult.score > 0 && (
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="flex items-center justify-center w-14 h-14 rounded-full border-2 border-[#0fbcb0]">
-                      <span className="text-lg font-bold text-[#0fbcb0]">{matchResult.score}%</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Match Percentage</p>
-                      <p className="text-xs text-muted-foreground">Based on patient preferences</p>
-                    </div>
+                ) : messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                    <MessageSquare className="w-12 h-12 mb-3 text-muted-foreground/30" />
+                    <p className="font-medium">No messages yet</p>
                   </div>
-                )}
+                ) : (
+                  <div className="space-y-3 max-w-2xl mx-auto">
+                    {messages.map((msg, idx) => {
+                      const prevMsg = idx > 0 ? messages[idx - 1] : null
+                      const showBotLabel = msg.sender_type === "bot" && (!prevMsg || prevMsg.sender_type !== "bot")
 
-                {/* Category breakdown */}
-                {matchResult.match_breakdown && matchResult.match_breakdown.length > 0 && (
-                  <div className="space-y-2 mb-4">
-                    {matchResult.match_breakdown.map((cat) => {
-                      const ratio = cat.maxPoints > 0 ? cat.points / cat.maxPoints : 0
-                      const pct = Math.round(ratio * 100)
-                      const categoryLabels: Record<string, string> = {
-                        treatment: "Treatment match",
-                        priorities: "Patient priorities",
-                        blockers: "Concerns addressed",
-                        anxiety: "Anxiety support",
-                        cost: "Cost & value fit",
-                        distance: "Location proximity",
-                        availability: "Appointment times",
-                      }
+                      // Show date separator
+                      const msgDate = format(new Date(msg.created_at), "d MMM yyyy")
+                      const prevDate = prevMsg ? format(new Date(prevMsg.created_at), "d MMM yyyy") : null
+                      const showDateSeparator = msgDate !== prevDate
+
                       return (
-                        <div key={cat.category}>
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="text-xs text-muted-foreground">{categoryLabels[cat.category] || cat.category}</span>
-                            <span className="text-xs font-medium">{pct}%</span>
-                          </div>
-                          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <React.Fragment key={msg.id}>
+                          {showDateSeparator && (
+                            <div className="flex items-center gap-3 py-2">
+                              <div className="flex-1 h-px bg-muted" />
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                                {msgDate}
+                              </span>
+                              <div className="flex-1 h-px bg-muted" />
+                            </div>
+                          )}
+                          <div
+                            className={cn(
+                              "flex flex-col",
+                              msg.sender_type === "clinic" ? "items-end" : "items-start"
+                            )}
+                          >
+                            {showBotLabel && (
+                              <span className="text-[10px] font-medium mb-0.5 px-1 text-[#0fbcb0] flex items-center gap-1">
+                                <Heart className="w-2.5 h-2.5 fill-[#0fbcb0] text-[#0fbcb0]" />
+                                Pearlie
+                              </span>
+                            )}
+                            {msg.sender_type === "patient" && (!prevMsg || prevMsg.sender_type !== "patient") && (
+                              <span className="text-[10px] font-medium mb-0.5 px-1 text-muted-foreground">
+                                {lead.first_name}
+                              </span>
+                            )}
                             <div
-                              className="h-full rounded-full bg-[#0fbcb0]"
-                              style={{ width: `${pct}%` }}
-                            />
+                              className={cn(
+                                "rounded-2xl",
+                                msg.sender_type === "bot"
+                                  ? "max-w-[52%] px-3 py-2 bg-gradient-to-br from-teal-50 to-[#faf3e6] border border-teal-100 rounded-bl-md"
+                                  : "max-w-[75%] px-4 py-2.5",
+                                msg.sender_type === "clinic"
+                                  ? "bg-[#0fbcb0] text-white rounded-br-md"
+                                  : msg.sender_type === "patient"
+                                    ? "bg-muted rounded-bl-md"
+                                    : ""
+                              )}
+                            >
+                              <p
+                                className={cn(
+                                  "whitespace-pre-wrap leading-relaxed",
+                                  msg.sender_type === "bot" ? "text-xs text-neutral-600" : "text-sm"
+                                )}
+                              >
+                                {msg.content}
+                              </p>
+                              {msg.sender_type === "bot" && (
+                                <p className="text-[9px] text-[#0fbcb0]/70 mt-1 italic">Automated message</p>
+                              )}
+                              <p
+                                className={cn(
+                                  "text-[10px] mt-1",
+                                  msg.sender_type === "clinic" ? "text-white/60" : "text-muted-foreground/60"
+                                )}
+                              >
+                                {format(new Date(msg.created_at), "h:mm a")}
+                              </p>
+                            </div>
                           </div>
-                        </div>
+                        </React.Fragment>
                       )
                     })}
                   </div>
                 )}
-
-                {/* Match reasons */}
-                {matchResult.reasons && matchResult.reasons.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                      Why They Were Matched
-                    </p>
-                    <ul className="space-y-2">
-                      {matchResult.reasons.map((reason, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                          <span>{reason}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
+            </ScrollArea>
+          </div>
+
+          {/* Quick actions + message input */}
+          {conversation && (
+            <div className="shrink-0 border-t bg-white">
+              <div className="flex gap-2 px-6 pt-3 pb-2 overflow-x-auto">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs flex-shrink-0 rounded-full bg-transparent"
+                  onClick={() =>
+                    setNewMessage(
+                      "I have the following times available:\n- \n- \n\nWould any of these work for you?"
+                    )
+                  }
+                >
+                  <Clock className="w-3 h-3 mr-1" />
+                  Suggest times
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs flex-shrink-0 rounded-full bg-transparent"
+                  onClick={() =>
+                    setNewMessage(
+                      "To help process your request, could you please provide the following:\n- "
+                    )
+                  }
+                >
+                  <MessageSquare className="w-3 h-3 mr-1" />
+                  Request info
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs flex-shrink-0 rounded-full bg-transparent"
+                  onClick={() =>
+                    setNewMessage(
+                      "Great news! Your appointment has been confirmed. We look forward to seeing you."
+                    )
+                  }
+                >
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Confirm booking
+                </Button>
+              </div>
+              <form onSubmit={handleSendMessage} className="flex gap-2 px-6 pb-4">
+                <Textarea
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Type a message..."
+                  className="flex-1 min-h-[42px] max-h-[120px] resize-none"
+                  disabled={isSending}
+                  rows={1}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSendMessage(e)
+                    }
+                  }}
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  disabled={!newMessage.trim() || isSending}
+                  className="bg-[#0fbcb0] hover:bg-[#0da399] text-white h-[42px] w-[42px] shrink-0"
+                >
+                  {isSending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
+              </form>
+            </div>
+          )}
+        </div>
+
+        {/* ── RIGHT SIDEBAR ── */}
+        <ScrollArea className="h-full">
+          <div className="p-5 space-y-1">
+
+            {/* Section: Patient Intent */}
+            <SidebarSection
+              title="Patient Details"
+              icon={<Heart className="w-4 h-4 text-[#0fbcb0]" />}
+              expanded={expandedSections.intent}
+              onToggle={() => toggleSection("intent")}
+            >
+              <PatientIntent lead={lead} />
+            </SidebarSection>
+
+
+            {/* Section: Match Score */}
+            {matchResult && (
+              <SidebarSection
+                title="Match Score"
+                icon={<Sparkles className="w-4 h-4 text-[#0fbcb0]" />}
+                expanded={expandedSections.match}
+                onToggle={() => toggleSection("match")}
+                badge={matchResult.score ? `${matchResult.score}%` : undefined}
+              >
+                <div className="space-y-3">
+                  {/* Category breakdown */}
+                  {matchResult.match_breakdown && matchResult.match_breakdown.length > 0 && (
+                    <div className="space-y-2">
+                      {matchResult.match_breakdown.map((cat) => {
+                        const ratio = cat.maxPoints > 0 ? cat.points / cat.maxPoints : 0
+                        const pct = Math.round(ratio * 100)
+                        const categoryLabels: Record<string, string> = {
+                          treatment: "Treatment match",
+                          priorities: "Patient priorities",
+                          blockers: "Concerns addressed",
+                          anxiety: "Anxiety support",
+                          cost: "Cost & value fit",
+                          distance: "Location proximity",
+                          availability: "Appointment times",
+                        }
+                        return (
+                          <div key={cat.category}>
+                            <div className="flex items-center justify-between mb-0.5">
+                              <span className="text-xs text-muted-foreground">{categoryLabels[cat.category] || cat.category}</span>
+                              <span className="text-xs font-medium">{pct}%</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-[#0fbcb0]"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Match reasons */}
+                  {matchResult.reasons && matchResult.reasons.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Why they matched</p>
+                      <ul className="space-y-1.5">
+                        {matchResult.reasons.map((reason, i) => (
+                          <li key={i} className="flex items-start gap-2 text-xs">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-green-600 mt-0.5 flex-shrink-0" />
+                            <span>{reason}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </SidebarSection>
             )}
 
-          </div>
-        </ScrollArea>
-
-        {/* CENTER COLUMN - Appointment Management */}
-        <ScrollArea className="pr-4">
-          <div className="space-y-6">
-            {/* Progress Stepper */}
-            <div className="flex items-center gap-0">
-              {PROGRESS_STEPS.map((step, i) => (
-                <div key={step.key} className="flex items-center flex-1">
-                  <div className="flex flex-col items-center flex-1">
-                    <div
-                      className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2",
-                        i <= progressIndex
-                          ? "bg-[#0fbcb0] border-[#0fbcb0] text-white"
-                          : "border-muted-foreground/30 text-muted-foreground"
-                      )}
-                    >
-                      {i < progressIndex ? (
-                        <CheckCircle2 className="w-5 h-5" />
-                      ) : (
-                        i + 1
-                      )}
-                    </div>
-                    <p
-                      className={cn(
-                        "text-xs mt-1.5 text-center",
-                        i <= progressIndex
-                          ? "text-[#0fbcb0] font-medium"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      {step.label}
-                    </p>
-                  </div>
-                  {i < PROGRESS_STEPS.length - 1 && (
-                    <div
-                      className={cn(
-                        "h-0.5 flex-1 -mt-5",
-                        i < progressIndex ? "bg-[#0fbcb0]" : "bg-muted-foreground/20"
-                      )}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Schedule / Status Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-[#0fbcb0]">
-                  {booking ? "Appointment Details" : "Schedule Appointment"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Treatment Type
-                  </p>
-                  <p className="font-medium mt-0.5">{treatment}</p>
-                </div>
-
-                {booking && (
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Appointment Date
-                    </p>
-                    <p className="font-medium mt-0.5">
-                      {format(
-                        new Date(booking.appointment_datetime),
-                        "EEEE, d MMMM yyyy 'at' h:mm a"
-                      )}
-                    </p>
-                  </div>
-                )}
-
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
-                    Status
-                  </p>
-                  <Select value={editStatus} onValueChange={setEditStatus}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STATUS_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center gap-2 pt-2 flex-wrap">
-                  {!booking && (
-                    <Button
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                      onClick={() => setShowBookingDialog(true)}
-                    >
-                      <Calendar className="w-4 h-4 mr-1.5" />
-                      Confirm Appointment
-                    </Button>
-                  )}
-                  {editStatus === "BOOKED_CONFIRMED" && booking && (
-                    <Button
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                      disabled={isSaving}
-                      onClick={() => {
-                        setEditStatus("ATTENDED")
-                        handleSaveStatus("ATTENDED")
-                      }}
-                    >
-                      <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                      Confirm Attendance
-                    </Button>
-                  )}
-                  {editStatus === "ATTENDED" && (
-                    <Badge className="bg-green-100 text-green-700 border-green-200 text-sm px-3 py-1.5">
-                      <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                      Attended
-                    </Badge>
-                  )}
-                  <Button
-                    variant="outline"
-                    onClick={() => handleSaveStatus()}
-                    disabled={isSaving}
-                    className="bg-transparent"
-                  >
-                    {isSaving ? "Saving..." : "Save Status"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Staff Notes */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <StickyNote className="w-5 h-5" />
-                    Staff Notes
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {(!status?.staff_notes || status.staff_notes.length === 0) &&
-                !showNoteInput ? (
-                  <p className="text-sm text-muted-foreground mb-3">
-                    No internal staff notes added
-                  </p>
-                ) : (
-                  <div className="space-y-3 mb-3">
-                    {(status?.staff_notes || []).map((note, i) => (
-                      <div
-                        key={i}
-                        className="bg-muted/50 rounded-lg p-3"
-                      >
-                        <p className="text-sm">{note.text}</p>
-                        <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
-                          <span>{note.created_by}</span>
-                          <span>-</span>
-                          <span>
-                            {format(new Date(note.created_at), "d MMM, h:mm a")}
-                          </span>
-                        </div>
+            {/* Section: Staff Notes */}
+            <SidebarSection
+              title="Staff Notes"
+              icon={<StickyNote className="w-4 h-4 text-[#0fbcb0]" />}
+              expanded={expandedSections.notes}
+              onToggle={() => toggleSection("notes")}
+              badge={status?.staff_notes?.length ? `${status.staff_notes.length}` : undefined}
+            >
+              <div className="space-y-3">
+                {status?.staff_notes && status.staff_notes.length > 0 && (
+                  <div className="space-y-2">
+                    {status.staff_notes.map((note, i) => (
+                      <div key={i} className="bg-muted/50 rounded-lg p-2.5">
+                        <p className="text-xs">{note.text}</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {note.created_by} · {format(new Date(note.created_at), "d MMM, h:mm a")}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -962,19 +725,21 @@ export default function AppointmentDetailPage() {
                       onChange={(e) => setNewNote(e.target.value)}
                       placeholder="Write an internal note..."
                       rows={3}
+                      className="text-xs"
                     />
                     <div className="flex gap-2">
                       <Button
                         size="sm"
                         onClick={handleAddNote}
                         disabled={!newNote.trim() || isSaving}
-                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
+                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white text-xs h-7"
                       >
-                        Save Note
+                        Save
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
+                        className="text-xs h-7"
                         onClick={() => {
                           setShowNoteInput(false)
                           setNewNote("")
@@ -987,196 +752,18 @@ export default function AppointmentDetailPage() {
                 ) : (
                   <Button
                     variant="outline"
-                    className="w-full bg-transparent"
+                    size="sm"
+                    className="w-full bg-transparent text-xs h-8"
                     onClick={() => setShowNoteInput(true)}
                   >
-                    <Plus className="w-4 h-4 mr-1.5" />
+                    <Plus className="w-3 h-3 mr-1" />
                     Add Note
                   </Button>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </SidebarSection>
           </div>
         </ScrollArea>
-
-        {/* RIGHT COLUMN - Chat */}
-        <Card className="flex flex-col min-h-0 max-h-[calc(100vh-8rem)] sticky top-6">
-          <CardHeader className="border-b pb-3 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base">
-                  Chat with {lead.first_name}
-                </CardTitle>
-                {contactPreference && (
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Contact preference: {contactPreference}
-                  </p>
-                )}
-              </div>
-              {lead.phone && (
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="rounded-full bg-transparent"
-                  asChild
-                >
-                  <a href={`tel:${lead.phone}`}>
-                    <Phone className="w-4 h-4" />
-                  </a>
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full p-4" ref={scrollRef}>
-              {!conversation ? (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
-                  <MessageSquare className="w-10 h-10 mb-2 text-muted-foreground/40" />
-                  <p className="text-sm">No conversation started yet</p>
-                  <p className="text-xs">
-                    Messages will appear when the patient reaches out
-                  </p>
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
-                  <MessageSquare className="w-10 h-10 mb-2 text-muted-foreground/40" />
-                  <p className="text-sm">No messages yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {messages.map((msg, idx) => {
-                    const prevMsg = idx > 0 ? messages[idx - 1] : null
-                    const showBotLabel = msg.sender_type === "bot" && (!prevMsg || prevMsg.sender_type !== "bot")
-
-                    return (
-                      <div
-                        key={msg.id}
-                        className={cn(
-                          "flex flex-col",
-                          msg.sender_type === "clinic"
-                            ? "items-end"
-                            : "items-start"
-                        )}
-                      >
-                        {showBotLabel && (
-                          <span className="text-[10px] font-medium mb-0.5 px-1 text-[#0fbcb0] flex items-center gap-1">
-                            <Heart className="w-2.5 h-2.5 fill-[#0fbcb0] text-[#0fbcb0]" />
-                            Pearlie
-                          </span>
-                        )}
-                        <div
-                          className={cn(
-                            "max-w-[85%] rounded-2xl px-4 py-2.5",
-                            msg.sender_type === "clinic"
-                              ? "bg-[#0fbcb0] text-white rounded-br-sm"
-                              : msg.sender_type === "bot"
-                              ? "bg-gradient-to-br from-teal-50 to-[#F8F1E7] border border-teal-100 rounded-bl-sm"
-                              : "bg-muted rounded-bl-sm"
-                          )}
-                        >
-                          <p className={cn(
-                            "text-sm whitespace-pre-wrap",
-                            msg.sender_type === "bot" && "text-neutral-600"
-                          )}>
-                            {msg.content}
-                          </p>
-                          {msg.sender_type === "bot" && (
-                            <p className="text-[9px] text-[#0fbcb0]/70 mt-1 italic">Automated message</p>
-                          )}
-                          <p
-                            className={cn(
-                              "text-xs mt-1",
-                              msg.sender_type === "clinic"
-                                ? "text-white/60"
-                                : "text-muted-foreground"
-                            )}
-                          >
-                            {format(new Date(msg.created_at), "h:mm a")}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </ScrollArea>
-          </div>
-
-          {/* Quick actions + input */}
-          <div className="border-t flex-shrink-0">
-            {conversation && (
-              <>
-                <div className="flex gap-2 px-4 pt-3 pb-2 overflow-x-auto">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-xs flex-shrink-0 rounded-full bg-transparent"
-                    onClick={() =>
-                      setNewMessage(
-                        "I have the following times available:\n- \n- \n\nWould any of these work for you?"
-                      )
-                    }
-                  >
-                    <Clock className="w-3 h-3 mr-1" />
-                    Suggest times
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-xs flex-shrink-0 rounded-full bg-transparent"
-                    onClick={() =>
-                      setNewMessage(
-                        "To help process your request, could you please provide the following:\n- "
-                      )
-                    }
-                  >
-                    <MessageSquare className="w-3 h-3 mr-1" />
-                    Request info
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-xs flex-shrink-0 rounded-full bg-transparent"
-                    onClick={() =>
-                      setNewMessage(
-                        `Great news! Your appointment has been confirmed. We look forward to seeing you.`
-                      )
-                    }
-                  >
-                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                    Confirm booking
-                  </Button>
-                </div>
-                <form
-                  onSubmit={handleSendMessage}
-                  className="flex gap-2 px-4 pb-4"
-                >
-                  <Input
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type message to patient..."
-                    className="flex-1"
-                    disabled={isSending}
-                  />
-                  <Button
-                    type="submit"
-                    size="icon"
-                    disabled={!newMessage.trim() || isSending}
-                    className="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
-                  >
-                    {isSending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
-                  </Button>
-                </form>
-              </>
-            )}
-          </div>
-        </Card>
       </div>
 
       {showBookingDialog && clinic && (
@@ -1194,3 +781,236 @@ export default function AppointmentDetailPage() {
     </div>
   )
 }
+
+// ── Collapsible sidebar section ──
+function SidebarSection({
+  title,
+  icon,
+  expanded,
+  onToggle,
+  badge,
+  children,
+}: {
+  title: string
+  icon: React.ReactNode
+  expanded: boolean
+  onToggle: () => void
+  badge?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="border-b last:border-b-0">
+      <button
+        onClick={onToggle}
+        className="flex items-center justify-between w-full py-3 text-left hover:bg-muted/30 transition-colors -mx-1 px-1 rounded"
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <span className="text-sm font-semibold">{title}</span>
+          {badge && (
+            <span className="text-[10px] font-medium bg-[#0fbcb0]/10 text-[#0fbcb0] px-1.5 py-0.5 rounded-full">
+              {badge}
+            </span>
+          )}
+        </div>
+        {expanded ? (
+          <ChevronUp className="w-4 h-4 text-muted-foreground" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+        )}
+      </button>
+      {expanded && <div className="pb-4">{children}</div>}
+    </div>
+  )
+}
+
+// ── Patient Intent display ──
+function PatientIntent({ lead }: { lead: Lead }) {
+  const ra = lead.raw_answers || {}
+  const treatmentsSelected = ra.treatments_selected as string[] | undefined
+  const treatmentSingle = ra.treatment as string | undefined
+  const anxietyLevel = ra.anxiety_level as string | undefined
+  const costApproach = ra.cost_approach as string | undefined
+  const budgetRange = ra.budget_range as string | undefined
+  const urgency = ra.urgency as string | undefined
+  const decisionValues = ra.values as string[] | undefined
+  const blockers = ra.blocker as string[] | undefined
+  const blockerLabels = ra.blocker_labels as string[] | undefined
+  const painScore = ra.pain_score as number | undefined
+  const hasSwelling = ra.has_swelling === true
+  const hasBleeding = ra.has_bleeding === true
+  const outcomePriority = ra.outcome_priority as string | undefined
+  const isEmergency = ra.is_emergency as boolean | undefined
+  const preferredTimes = ra.preferred_times as string[] | undefined
+  const locationPref = ra.location_preference as string | undefined
+
+  const treatmentDisplay = treatmentsSelected?.length
+    ? treatmentsSelected.join(", ")
+    : treatmentSingle
+      ? (TREATMENT_LABELS[treatmentSingle] || treatmentSingle.replace(/_/g, " "))
+      : null
+
+  const hasMedicalFlags = (painScore !== undefined && painScore > 0) || hasSwelling || hasBleeding
+
+  const anxietyConfig: Record<string, { label: string; color: string }> = {
+    comfortable: { label: "Comfortable", color: "bg-green-100 text-green-700" },
+    slightly_anxious: { label: "Slightly anxious", color: "bg-yellow-100 text-yellow-700" },
+    quite_anxious: { label: "Quite anxious", color: "bg-orange-100 text-orange-700" },
+    very_anxious: { label: "Very anxious", color: "bg-red-100 text-red-700" },
+    none: { label: "Comfortable", color: "bg-green-100 text-green-700" },
+    mild: { label: "Slightly anxious", color: "bg-yellow-100 text-yellow-700" },
+    moderate: { label: "Quite anxious", color: "bg-orange-100 text-orange-700" },
+    severe: { label: "Very anxious", color: "bg-red-100 text-red-700" },
+    high: { label: "Very anxious", color: "bg-red-100 text-red-700" },
+  }
+
+  const costLabels: Record<string, string> = {
+    best_outcome: "Best outcome regardless of cost",
+    understand_value: "Wants to understand value first",
+    comfort_range: "Has a budget range in mind",
+    strict_budget: "Strict budget constraints",
+    options_first: "Wants to explore options first",
+    upfront_pricing: "Prefers upfront pricing",
+    finance_preferred: "Prefers finance / payment plans",
+  }
+
+  const urgencyLabels: Record<string, string> = {
+    today: "Needs to be seen today",
+    tomorrow: "Needs to be seen tomorrow",
+    next_few_days: "Within the next few days",
+    asap: "As soon as possible",
+    within_week: "Within a week",
+    few_weeks: "Within a few weeks",
+    exploring: "Just exploring options",
+  }
+
+  const blockerCodeLabels: Record<string, string> = {
+    NOT_WORTH_COST: "Unsure about cost",
+    NEED_MORE_TIME: "Needs time to decide",
+    UNSURE_OPTION: "Not sure which treatment",
+    WORRIED_COMPLEX: "Worried about complexity",
+    BAD_EXPERIENCE: "Past bad experience",
+    NO_CONCERN: "No concerns",
+  }
+
+  const rows: Array<{ icon: React.ReactNode; label: string; value: React.ReactNode }> = []
+
+  if (treatmentDisplay) {
+    rows.push({
+      icon: <Sparkles className="w-3.5 h-3.5" />,
+      label: "Treatment",
+      value: <span className="text-xs">{treatmentDisplay}</span>,
+    })
+  }
+
+  if (urgency || isEmergency) {
+    rows.push({
+      icon: <Clock className="w-3.5 h-3.5" />,
+      label: "Urgency",
+      value: (
+        <span className="text-xs">
+          {isEmergency && !urgency ? "Emergency" : urgencyLabels[urgency!] || urgency?.replace(/_/g, " ")}
+        </span>
+      ),
+    })
+  }
+
+  if (anxietyLevel) {
+    const config = anxietyConfig[anxietyLevel]
+    rows.push({
+      icon: <Brain className="w-3.5 h-3.5" />,
+      label: "Anxiety",
+      value: (
+        <span className="text-xs">
+          {config?.label || anxietyLevel.replace(/_/g, " ")}
+        </span>
+      ),
+    })
+  }
+
+  if (budgetRange || costApproach) {
+    rows.push({
+      icon: <DollarSign className="w-3.5 h-3.5" />,
+      label: "Budget",
+      value: (
+        <span className="text-xs">
+          {costApproach ? (costLabels[costApproach] || costApproach.replace(/_/g, " ")) : (budgetRange?.replace(/_/g, " "))}
+        </span>
+      ),
+    })
+  }
+
+  if (hasMedicalFlags) {
+    const flags: string[] = []
+    if (painScore !== undefined && painScore > 0) flags.push(`Pain ${painScore}/10`)
+    if (hasSwelling) flags.push("Swelling")
+    if (hasBleeding) flags.push("Bleeding")
+    rows.push({
+      icon: <Activity className="w-3.5 h-3.5" />,
+      label: "Medical",
+      value: <span className="text-xs">{flags.join(", ")}</span>,
+    })
+  }
+
+  if (decisionValues && decisionValues.length > 0) {
+    rows.push({
+      icon: <Star className="w-3.5 h-3.5" />,
+      label: "Values",
+      value: <span className="text-xs">{decisionValues.join(", ")}</span>,
+    })
+  }
+
+  if (blockers && blockers.length > 0 && blockers[0] !== "NO_CONCERN") {
+    const labels = (blockerLabels || blockers).map((b) =>
+      blockerLabels ? b : (blockerCodeLabels[b] || (typeof b === "string" ? b.replace(/_/g, " ") : b))
+    )
+    rows.push({
+      icon: <AlertTriangle className="w-3.5 h-3.5" />,
+      label: "Concerns",
+      value: <span className="text-xs">{labels.join(", ")}</span>,
+    })
+  }
+
+  if (outcomePriority) {
+    rows.push({
+      icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+      label: "Priority",
+      value: <span className="text-xs">{outcomePriority}</span>,
+    })
+  }
+
+  if (preferredTimes && preferredTimes.length > 0) {
+    rows.push({
+      icon: <Calendar className="w-3.5 h-3.5" />,
+      label: "Times",
+      value: <span className="text-xs capitalize">{preferredTimes.join(", ")}</span>,
+    })
+  }
+
+  if (locationPref) {
+    rows.push({
+      icon: <MapPin className="w-3.5 h-3.5" />,
+      label: "Location",
+      value: <span className="text-xs capitalize">{locationPref.replace(/_/g, " ")}</span>,
+    })
+  }
+
+  if (rows.length === 0) {
+    return <p className="text-xs text-muted-foreground">No patient intent data available</p>
+  }
+
+  return (
+    <div className="space-y-2.5">
+      {rows.map((row, i) => (
+        <div key={i} className="flex items-start gap-2.5">
+          <div className="text-[#004443] mt-0.5 shrink-0">{row.icon}</div>
+          <div className="min-w-0">
+            <p className="text-[10px] text-[#004443] font-semibold uppercase tracking-wider">{row.label}</p>
+            <div className="mt-0.5 text-foreground">{row.value}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
