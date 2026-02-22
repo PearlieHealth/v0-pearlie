@@ -169,23 +169,43 @@ export default function Home() {
 
   // iOS Safari: resume video on return from background.
   // iOS pauses the video when backgrounded and sometimes doesn't auto-resume.
-  // Just call play() — no seeking, no load(), no layout changes.
+  // Tries play() automatically; if that fails, shows a subtle "Tap to resume" overlay.
   const heroVideoRef = useRef<HTMLVideoElement>(null)
+  const [showResumeHint, setShowResumeHint] = useState(false)
 
   useEffect(() => {
-    if (window.innerWidth >= 1024) return
+    if (typeof window === "undefined" || window.innerWidth >= 1024) return
+    const v = heroVideoRef.current
+    if (!v) return
+
+    const hideHint = () => setShowResumeHint(false)
+
     const onVisible = () => {
       if (document.visibilityState !== "visible") return
-      const v = heroVideoRef.current
       if (!v || v.ended) return
-      v.play().catch(() => {})
+      // Try auto-resuming; if blocked, show tap hint
+      v.play().then(hideHint).catch(() => {
+        if (!v.ended) setShowResumeHint(true)
+      })
     }
+
+    // Hide hint whenever playback actually starts
+    v.addEventListener("playing", hideHint)
     document.addEventListener("visibilitychange", onVisible)
     window.addEventListener("pageshow", onVisible)
     return () => {
+      v.removeEventListener("playing", hideHint)
       document.removeEventListener("visibilitychange", onVisible)
       window.removeEventListener("pageshow", onVisible)
     }
+  }, [])
+
+  const handleHeroVideoTap = useCallback(() => {
+    const v = heroVideoRef.current
+    if (!v) return
+    if (v.ended) return // already finished — stay on last frame
+    v.play().catch(() => {})
+    setShowResumeHint(false)
   }, [])
 
   const handleFindClinicClick = useCallback(() => {
@@ -219,15 +239,26 @@ export default function Home() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
                   >
-                    <video
-                      ref={heroVideoRef}
-                      autoPlay
-                      muted
-                      playsInline
-                      className="w-full h-auto rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] scale-x-[-1]"
-                    >
-                      <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
-                    </video>
+                    {/* relative wrapper for tap overlay — no layout impact */}
+                    <div className="relative" onClick={handleHeroVideoTap}>
+                      <video
+                        ref={heroVideoRef}
+                        autoPlay
+                        muted
+                        playsInline
+                        className="w-full h-auto rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] scale-x-[-1]"
+                      >
+                        <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
+                      </video>
+                      {/* Subtle resume hint — mobile only, shown when video is stuck */}
+                      {showResumeHint && (
+                        <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-black/10 lg:hidden">
+                          <span className="text-white/90 text-sm font-medium px-4 py-2 rounded-full bg-black/30 backdrop-blur-sm">
+                            Tap to resume
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </motion.div>
 
                   {/* Text content — desktop left, mobile first */}
