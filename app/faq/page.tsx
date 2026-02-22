@@ -23,7 +23,7 @@ export default function FAQPage() {
             <div className="max-w-3xl mx-auto">
               <div className="flex items-center gap-3 mb-6">
                 <HelpCircle className="w-8 h-8 text-primary" />
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-normal tracking-tight">Frequently asked questions</h1>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-medium tracking-tight">Frequently asked questions</h1>
               </div>
               <p className="text-lg text-muted-foreground mb-12">Everything you need to know about using Pearlie</p>
 

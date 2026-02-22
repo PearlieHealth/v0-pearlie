@@ -180,7 +180,7 @@ export default function OurMissionPage() {
                 <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-[#0fbcb0] mb-5">
                   The Problem
                 </span>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-normal text-white mb-5 text-balance leading-tight">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-medium text-white mb-5 text-balance leading-tight">
                   Millions across England are struggling to access basic dental care.
                 </h1>
                 <p className="text-lg text-white/60 max-w-2xl mx-auto">
@@ -219,7 +219,7 @@ export default function OurMissionPage() {
                 <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-[#3c8481] mb-4">
                   When Access Fails
                 </span>
-                <h2 className="text-3xl md:text-4xl font-heading font-normal text-[#004443]">
+                <h2 className="text-3xl md:text-4xl font-heading font-medium text-[#004443]">
                   What people are forced to do
                 </h2>
               </div>
@@ -355,7 +355,7 @@ export default function OurMissionPage() {
                 <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-[#0fbcb0] mb-4">
                   The Response
                 </span>
-                <h2 className="text-3xl md:text-4xl font-heading font-normal text-[#004443] mb-4">
+                <h2 className="text-3xl md:text-4xl font-heading font-medium text-[#004443] mb-4">
                   What the Pearlie Care Fund covers
                 </h2>
                 <p className="text-lg text-[#666] max-w-2xl mx-auto">
@@ -495,7 +495,7 @@ export default function OurMissionPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <FadeIn>
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl md:text-4xl font-heading font-normal text-white mb-6">
+              <h2 className="text-3xl md:text-4xl font-heading font-medium text-white mb-6">
                 Help us make this a reality
               </h2>
 
