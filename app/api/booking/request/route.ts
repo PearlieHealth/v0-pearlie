@@ -281,7 +281,7 @@ export async function POST(request: Request) {
         }
 
         // Insert bot acknowledgement so the patient knows why there's no immediate reply
-        const botAckContent = `Thanks for your appointment request! 🗓️\n\n${clinic.name} will review your request for ${formattedDate} at ${timeLabel} and get back to you shortly — clinics typically respond within 24 hours.\n\nIn the meantime, feel free to send any questions or additional details here.`
+        const botAckContent = `Thanks for your appointment request! 🗓️\n\n${clinic.name} will review your request for ${formattedDate} at ${timeLabel} and get back to you shortly.\n\nIn the meantime, feel free to send any questions or additional details here.`
         const { data: botMsg, error: botMsgError } = await supabase.from("messages").insert({
           conversation_id: conversationId,
           sender_type: "bot",
