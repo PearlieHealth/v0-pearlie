@@ -89,16 +89,16 @@ export default function Home() {
           <MainNav />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative pt-24 pb-10 md:pt-28 md:pb-14 lg:pt-32 lg:pb-16 bg-gradient-to-b from-[#f2ead9] via-[#f6efe2] to-[#faf3e6] overflow-hidden">
+          <section className="relative pt-28 pb-4 md:pt-28 md:pb-14 lg:pt-32 lg:pb-16 bg-gradient-to-b from-[#f2ead9] via-[#f6efe2] to-[#faf3e6] overflow-hidden">
             <div className="container mx-auto px-6 lg:px-8">
               <div className="max-w-6xl mx-auto">
 
                 {/* Desktop: Video LEFT, Text RIGHT */}
-                <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+                <div className="flex flex-col lg:flex-row items-center gap-4 md:gap-12 lg:gap-16">
 
                   {/* Video — desktop left, mobile below text */}
                   <motion.div
-                    className="order-2 lg:order-1 flex-1 w-full max-w-md lg:max-w-none"
+                    className="order-2 lg:order-1 flex-1 w-full max-w-xs md:max-w-md lg:max-w-none"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
@@ -116,7 +116,7 @@ export default function Home() {
                   {/* Text content — desktop right, mobile first */}
                   <div className="order-1 lg:order-2 flex-1 text-center lg:text-left">
                     <motion.h1
-                      className="text-4xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-10"
+                      className="text-3xl md:text-5xl lg:text-[3.25rem] xl:text-[3.5rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-3 md:mb-10"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
@@ -141,7 +141,7 @@ export default function Home() {
                     </motion.h1>
 
                     <motion.p
-                      className="text-base md:text-lg text-[#666] mb-10 leading-[1.4] max-w-lg mx-auto lg:mx-0"
+                      className="text-[15px] md:text-lg text-[#666] mb-5 md:mb-10 leading-[1.4] max-w-lg mx-auto lg:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
@@ -155,13 +155,13 @@ export default function Home() {
                       transition={{ duration: 0.8, delay: 0.3 }}
                     >
                       {lastMatch ? (
-                        <div className="flex flex-col sm:flex-row items-stretch justify-center lg:justify-start gap-3 max-w-xl">
+                        <div className="flex flex-col sm:flex-row items-stretch justify-center lg:justify-start gap-2 md:gap-3 max-w-xl">
                           <Link
                             href={`/match/${lastMatch.matchId}`}
-                            className="flex-1 group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all"
+                            className="flex-1 group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all"
                           >
-                            <div className="w-10 h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                              <RotateCcw className="w-5 h-5 text-[#0fbcb0]" />
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
+                              <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-[#0fbcb0]" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-[15px] font-semibold text-[#3d3838]">Return to your matches</p>
@@ -171,10 +171,10 @@ export default function Home() {
                           </Link>
                           <Link
                             href="/intake"
-                            className="flex-1 group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#bbb] transition-all"
+                            className="flex-1 group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all"
                           >
-                            <div className="w-10 h-10 rounded-full bg-[#faf3e6] flex items-center justify-center flex-shrink-0">
-                              <Search className="w-5 h-5 text-[#004443]" />
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#faf3e6] flex items-center justify-center flex-shrink-0">
+                              <Search className="w-4 h-4 md:w-5 md:h-5 text-[#004443]" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-[15px] font-semibold text-[#3d3838]">Start a new search</p>
@@ -187,12 +187,12 @@ export default function Home() {
                         <div className="flex flex-row items-center justify-center lg:justify-start gap-4">
                           <Button
                             size="default"
-                            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-7 py-3 h-auto rounded-full font-normal hover:shadow-lg transition-all shadow-md text-[15px] border-0"
+                            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-5 md:px-7 py-2 md:py-3 h-auto rounded-full font-normal hover:shadow-lg transition-all shadow-md text-sm md:text-[15px] border-0"
                             asChild
                           >
                             <Link href="/intake" onClick={handleFindClinicClick}>
                               Find my clinic
-                              <ArrowRight className="ml-2 w-5 h-5" />
+                              <ArrowRight className="ml-1.5 md:ml-2 w-4 h-4 md:w-5 md:h-5" />
                             </Link>
                           </Button>
 
@@ -200,7 +200,7 @@ export default function Home() {
                             onClick={() => {
                               document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
                             }}
-                            className="px-6 py-2.5 h-auto rounded-full font-heading font-normal text-[15px] text-[#555] hover:text-[#3d3838] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all"
+                            className="px-4 md:px-6 py-1.5 md:py-2.5 h-auto rounded-full font-heading font-normal text-sm md:text-[15px] text-[#555] hover:text-[#3d3838] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all"
                           >
                             How it works
                           </button>
