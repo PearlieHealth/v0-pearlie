@@ -88,7 +88,7 @@ function PatientExperiences() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="py-16 md:py-28 lg:py-32 bg-[#f8f7f1] overflow-hidden">
+    <section ref={sectionRef} className="py-16 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32 bg-[#f8f7f1] overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
@@ -311,7 +311,7 @@ export default function Home() {
           <ScrollingMarquee items={marqueeItems} speed={35} />
 
           {/* How it works section */}
-          <section id="how-it-works" className="py-16 md:py-11 lg:py-13 bg-white relative overflow-hidden">
+          <section id="how-it-works" className="py-16 md:pt-8 md:pb-11 lg:pt-10 lg:pb-13 bg-white relative overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-7xl mx-auto">
                 {/* Section header */}
@@ -497,7 +497,7 @@ export default function Home() {
           </section>
 
           {/* Trusted clinics section */}
-          <section className="py-16 md:py-28 lg:py-32">
+          <section className="py-16 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-7xl mx-auto">
                 <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
@@ -555,7 +555,7 @@ export default function Home() {
           <PatientExperiences />
 
           {/* CTA section - dark teal background */}
-          <section className="py-24 md:py-32 lg:py-36 bg-[#004443] text-white relative overflow-hidden">
+          <section className="py-24 md:pt-24 md:pb-32 lg:pt-28 lg:pb-36 bg-[#004443] text-white relative overflow-hidden">
             {/* Decorative background blobs */}
             <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-white/[0.03] blur-3xl pointer-events-none" />
             <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-[#0fbcb0]/[0.08] blur-2xl pointer-events-none" />
