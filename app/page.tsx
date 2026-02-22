@@ -215,9 +215,7 @@ export default function Home() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
                     >
-                      Find the <span className="text-[#0fbcb0]">right</span> dental clinic.
-                      <br />
-                      <span className="font-medium">Not just the closest one.</span>
+                      Find the <span className="text-[#0fbcb0]">right</span> dentist. Not just the closest one.
                     </motion.h1>
 
                     <motion.p
