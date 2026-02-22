@@ -219,7 +219,7 @@ export default function Home() {
                   {/* Text content — desktop left, mobile first */}
                   <div className="order-1 lg:order-1 flex-1 text-center lg:text-left lg:pt-6">
                     <motion.h1
-                      className="text-[2rem] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-[#3d3838] mb-8 md:mb-14 lg:mb-20"
+                      className="text-[2rem] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-black mb-8 md:mb-14 lg:mb-20"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
@@ -267,8 +267,8 @@ export default function Home() {
                               <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-[#0fbcb0]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm md:text-[15px] font-semibold text-[#3d3838]">Return to your matches</p>
-                              <p className="text-xs text-[#666] mt-0.5 leading-snug">View the clinics we matched you with</p>
+                              <p className="text-sm md:text-[15px] font-semibold text-black">Return to your matches</p>
+                              <p className="text-xs text-black mt-0.5 leading-snug">View the clinics we matched you with</p>
                             </div>
                             <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
                           </Link>
@@ -280,8 +280,8 @@ export default function Home() {
                               <Search className="w-4 h-4 md:w-5 md:h-5 text-[#004443]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm md:text-[15px] font-semibold text-[#3d3838]">Start a new search</p>
-                              <p className="text-xs text-[#666] mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
+                              <p className="text-sm md:text-[15px] font-semibold text-black">Start a new search</p>
+                              <p className="text-xs text-black mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
                             </div>
                             <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
                           </Link>
@@ -303,7 +303,7 @@ export default function Home() {
                             onClick={() => {
                               document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
                             }}
-                            className="px-4 md:px-6 py-1.5 md:py-2.5 h-auto rounded-full font-heading font-normal text-sm md:text-[15px] text-[#555] hover:text-[#3d3838] border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                            className="px-4 md:px-6 py-1.5 md:py-2.5 h-auto rounded-full font-heading font-normal text-sm md:text-[15px] text-black hover:text-black border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
                           >
                             How it works
                           </button>
