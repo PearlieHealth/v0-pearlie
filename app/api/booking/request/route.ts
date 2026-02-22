@@ -261,7 +261,7 @@ export async function POST(request: Request) {
           conversation_id: conversationId,
           sender_type: "patient",
           content: bookingMessageContent,
-          sent_via: "booking",
+          sent_via: "chat",
           message_type: "booking-request",
           status: "sent",
         }).select("id, content, sender_type, status, created_at").single()
