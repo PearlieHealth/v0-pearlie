@@ -78,10 +78,10 @@ export function SiteFooter() {
               <ul className="space-y-2.5">
                 <li>
                   <a
-                    href="mailto:hello@pearlie.co.uk"
+                    href="mailto:hello@pearlie.org"
                     className="text-sm text-white/60 hover:text-white transition-colors"
                   >
-                    hello@pearlie.co.uk
+                    hello@pearlie.org
                   </a>
                 </li>
                 <li>

@@ -233,7 +233,7 @@ export default function AboutPage() {
                     </AccordionTrigger>
                     <AccordionContent className="text-white/70 leading-relaxed">
                       Simply contact us at{" "}
-                      <a href="mailto:hello@pearlie.co.uk" className="text-[#0fbcb0] hover:underline">hello@pearlie.co.uk</a>{" "}
+                      <a href="mailto:hello@pearlie.org" className="text-[#0fbcb0] hover:underline">hello@pearlie.org</a>{" "}
                       within 30 days of your appointment. Let us know what happened and we&apos;ll arrange your next
                       consultation or check-up fee at no cost to you.
                     </AccordionContent>

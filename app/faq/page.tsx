@@ -184,7 +184,7 @@ export default function FAQPage() {
               <h2 className="text-3xl font-semibold tracking-tight mb-4">Still have questions?</h2>
               <p className="text-lg text-muted-foreground mb-8">We're here to help. Get in touch with our team.</p>
               <Button size="lg" variant="outline" asChild>
-                <a href="mailto:hello@pearlie.co.uk">Contact Us</a>
+                <a href="mailto:hello@pearlie.org">Contact Us</a>
               </Button>
             </div>
           </div>

@@ -29,24 +29,27 @@ export const metadata: Metadata = {
     template: "%s | Pearlie",
   },
   description:
-    "Connect with trusted dental clinics in your area. Complete our simple form and get matched with the right clinic for your needs.",
+    "Match with trusted, GDC-registered dental clinics in London and across the UK. Free, independent, and tailored to your needs.",
   generator: "Pearlie",
+  alternates: {
+    canonical: "https://pearlie.org",
+  },
   openGraph: {
     type: "website",
     locale: "en_GB",
     url: "https://pearlie.org",
     siteName: "Pearlie",
-    title: "Pearlie - Find the Right Dental Clinic for You",
+    title: "Pearlie - Find the Right Dental Clinic in London & UK",
     description:
-      "Connect with trusted dental clinics in your area. Complete our simple form and get matched with the right clinic for your needs.",
-    images: [{ url: "/apple-icon.jpg", width: 180, height: 180, alt: "Pearlie" }],
+      "Match with trusted, GDC-registered dental clinics in London and across the UK. Free, independent, and tailored to your needs.",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Pearlie - Find the Right Dental Clinic" }],
   },
   twitter: {
-    card: "summary",
-    title: "Pearlie - Find the Right Dental Clinic for You",
+    card: "summary_large_image",
+    title: "Pearlie - Find the Right Dental Clinic in London & UK",
     description:
-      "Connect with trusted dental clinics in your area.",
-    images: ["/apple-icon.jpg"],
+      "Match with trusted, GDC-registered dental clinics in London and across the UK.",
+    images: ["/og-image.jpg"],
   },
   icons: {
     icon: [
@@ -88,17 +91,66 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "WebApplication",
-              name: "Pearlie",
-              url: "https://pearlie.org",
-              description: "Dental clinic matching platform that connects patients with trusted dental clinics",
-              applicationCategory: "HealthApplication",
-              operatingSystem: "Web",
-              offers: {
-                "@type": "Offer",
-                price: "0",
-                priceCurrency: "GBP",
-              },
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://pearlie.org/#organization",
+                  name: "Pearlie",
+                  url: "https://pearlie.org",
+                  logo: "https://pearlie.org/apple-icon.jpg",
+                  description:
+                    "Independent dental clinic matching platform helping patients find the right dental clinic in London and across the UK.",
+                  founder: {
+                    "@type": "Person",
+                    name: "Dr Grei Mustaj",
+                  },
+                  contactPoint: {
+                    "@type": "ContactPoint",
+                    email: "hello@pearlie.org",
+                    contactType: "customer service",
+                  },
+                  areaServed: [
+                    {
+                      "@type": "City",
+                      name: "London",
+                      containedInPlace: {
+                        "@type": "Country",
+                        name: "United Kingdom",
+                      },
+                    },
+                    {
+                      "@type": "Country",
+                      name: "United Kingdom",
+                    },
+                  ],
+                  sameAs: [],
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://pearlie.org/#website",
+                  url: "https://pearlie.org",
+                  name: "Pearlie",
+                  publisher: { "@id": "https://pearlie.org/#organization" },
+                  potentialAction: {
+                    "@type": "SearchAction",
+                    target: "https://pearlie.org/intake",
+                    description: "Find your dental clinic match",
+                  },
+                },
+                {
+                  "@type": "WebApplication",
+                  name: "Pearlie",
+                  url: "https://pearlie.org",
+                  applicationCategory: "HealthApplication",
+                  operatingSystem: "Web",
+                  offers: {
+                    "@type": "Offer",
+                    price: "0",
+                    priceCurrency: "GBP",
+                  },
+                  provider: { "@id": "https://pearlie.org/#organization" },
+                },
+              ],
             }),
           }}
         />

@@ -2,8 +2,11 @@ import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
-  title: "For Dental Clinics",
-  description: "Join Pearlie to receive matched patients looking for your dental services. Priority placement, quality leads, and zero upfront cost.",
+  title: "For Dental Clinics - Join Pearlie's Network",
+  description: "Join Pearlie to receive matched patients in London and the UK looking for your dental services. Quality leads and zero upfront cost.",
+  alternates: {
+    canonical: "https://pearlie.org/for-clinics",
+  },
 }
 import { Card } from "@/components/ui/card"
 import { ArrowRight, CheckCircle2, X, Star, TrendingUp, Users, Eye } from "lucide-react"

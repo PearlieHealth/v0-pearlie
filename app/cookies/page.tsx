@@ -1,25 +1,22 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { MainNav } from "@/components/main-nav"
+import { SiteFooter } from "@/components/site-footer"
 
 export const metadata: Metadata = {
-  title: "Cookie Settings",
+  title: "Cookie Policy",
   description: "Manage your cookie preferences on Pearlie.",
+  alternates: {
+    canonical: "https://pearlie.org/cookies",
+  },
 }
 
 export default function CookiesPage() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card sticky top-0 z-40">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="text-2xl font-semibold tracking-tight">Pearlie</div>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <MainNav />
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-28">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-bold mb-4">Cookie Policy</h1>
           <p className="text-muted-foreground mb-8">Last updated: 15/01/2025</p>
@@ -153,6 +150,8 @@ export default function CookiesPage() {
           </div>
         </div>
       </main>
+
+      <SiteFooter />
     </div>
   )
 }

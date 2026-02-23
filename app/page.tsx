@@ -221,7 +221,7 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Content is always rendered underneath - loading screen slides up like a curtain to reveal it */}
-      <div className={`min-h-screen ${showLoading ? 'invisible' : 'visible'}`}>
+      <div className="min-h-screen">
           <MainNav />
 
           {/* Hero section — calm, split layout */}
