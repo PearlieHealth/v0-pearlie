@@ -83,35 +83,21 @@ export async function POST(request: NextRequest) {
 
         if (!createError && newUser?.user) {
           userId = newUser.user.id
-        } else if (createError?.message?.toLowerCase().includes("already")) {
-          // User already exists — look up by email using admin getUserByEmail
-          // (not available in all Supabase versions, so fall back to paginated list)
-          try {
-            const { data: users } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
-            const existing = users?.users?.find(
-              (u) => u.email?.toLowerCase() === lead.email?.toLowerCase()
-            )
-            if (existing) {
-              userId = existing.id
-              // Ensure patient role is set
-              await supabase.auth.admin.updateUser(existing.id, {
-                user_metadata: { ...existing.user_metadata, role: "patient" },
-              }).catch(() => {})
-            }
-          } catch {
-            // Non-critical — we still generated a session token below
+        } else if (createError) {
+          // User may already exist — generateLink below will resolve the user ID
+          if (!createError.message?.toLowerCase().includes("already")) {
+            console.error("[Patient OTP Verify] Error creating auth user:", createError)
           }
-        }
-
-        if (userId && userId !== lead.user_id) {
-          await supabase.from("leads").update({ user_id: userId }).eq("id", leadId)
         }
       } catch (accountError) {
         console.error("[Patient OTP Verify] Error ensuring auth user:", accountError)
       }
     }
 
-    // Generate magic link token for browser session
+    // Generate magic link token for browser session.
+    // generateLink returns both the hashed token AND the full user object,
+    // so we also use it to resolve userId for existing users (avoids
+    // the old listUsers() approach which broke at scale).
     let tokenHash: string | undefined
     if (lead.email) {
       try {
@@ -122,9 +108,22 @@ export async function POST(request: NextRequest) {
         if (!linkError && linkData?.properties?.hashed_token) {
           tokenHash = linkData.properties.hashed_token
         }
+        // Resolve user ID from generateLink response (works for both new and existing users)
+        if (!linkError && linkData?.user?.id && !userId) {
+          userId = linkData.user.id
+          // Ensure patient role is set on existing user
+          await supabase.auth.admin.updateUser(userId, {
+            user_metadata: { ...(linkData.user.user_metadata || {}), role: "patient" },
+          }).catch(() => {})
+        }
       } catch (tokenError) {
         console.error("[Patient OTP Verify] Error generating session token:", tokenError)
       }
+    }
+
+    // Link auth user to lead (covers both newly created and existing users)
+    if (userId && userId !== lead.user_id) {
+      await supabase.from("leads").update({ user_id: userId }).eq("id", leadId)
     }
 
     // Only clear OTP hash after session token is confirmed — if token generation

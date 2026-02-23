@@ -123,7 +123,6 @@ export async function POST(request: NextRequest) {
 
     if (!lead.user_id && lead.email) {
       try {
-        // Try creating the user directly — avoids listUsers() which fetches ALL users
         const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
           email: lead.email,
           email_confirm: true,
@@ -137,39 +136,11 @@ export async function POST(request: NextRequest) {
 
         if (!createError && newUser?.user) {
           authUserId = newUser.user.id
-        } else if (createError?.message?.toLowerCase().includes("already")) {
-          // User already exists — look them up with a broader paginated query
-          try {
-            const { data: allPages } = await supabase.auth.admin.listUsers({
-              page: 1,
-              perPage: 1000,
-            })
-            const existingUser = allPages?.users?.find(
-              (u) => u.email?.toLowerCase() === lead.email?.toLowerCase()
-            )
-            if (existingUser) {
-              authUserId = existingUser.id
-              // Ensure patient role is set on existing user
-              await supabase.auth.admin.updateUser(existingUser.id, {
-                user_metadata: { ...existingUser.user_metadata, role: "patient" },
-              }).catch(() => {})
-            }
-          } catch {
-            // Non-critical — session token generation below does not need authUserId
-          }
         } else if (createError) {
-          console.error("[OTP] Failed to create auth user:", createError)
-        }
-
-        // Link auth user to lead
-        if (authUserId && authUserId !== lead.user_id) {
-          await supabase
-            .from("leads")
-            .update({ user_id: authUserId })
-            .eq("id", leadId)
-            .then(({ error }) => {
-              if (error) console.error("[OTP] Failed to link user_id:", error)
-            })
+          // User may already exist — generateLink below will resolve the user ID
+          if (!createError.message?.toLowerCase().includes("already")) {
+            console.error("[OTP] Failed to create auth user:", createError)
+          }
         }
       } catch (accountError) {
         console.error("[OTP] Error creating patient account:", accountError)
@@ -177,8 +148,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Phase 3: Generate a session token so the client can auto-sign in.
-    // This only needs the email — generateLink will find the auth user internally.
-    // Kept outside the user-creation block so it works for both new and existing users.
+    // generateLink returns both the hashed token AND the full user object,
+    // so we also use it to resolve authUserId for existing users (avoids
+    // the old listUsers() approach which broke at scale).
     if (lead.email) {
       try {
         const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
@@ -188,9 +160,28 @@ export async function POST(request: NextRequest) {
         if (!linkError && linkData?.properties?.hashed_token) {
           sessionToken = linkData.properties.hashed_token
         }
+        // Resolve user ID from generateLink response (works for both new and existing users)
+        if (!linkError && linkData?.user?.id && !authUserId) {
+          authUserId = linkData.user.id
+          // Ensure patient role is set on existing user
+          await supabase.auth.admin.updateUser(authUserId, {
+            user_metadata: { ...(linkData.user.user_metadata || {}), role: "patient" },
+          }).catch(() => {})
+        }
       } catch (linkError) {
         console.error("[OTP] Failed to generate session token:", linkError)
       }
+    }
+
+    // Link auth user to lead (covers both newly created and existing users)
+    if (authUserId && authUserId !== lead.user_id) {
+      await supabase
+        .from("leads")
+        .update({ user_id: authUserId })
+        .eq("id", leadId)
+        .then(({ error }) => {
+          if (error) console.error("[OTP] Failed to link user_id:", error)
+        })
     }
 
     // Send clinic notification for direct profile leads (non-blocking)
