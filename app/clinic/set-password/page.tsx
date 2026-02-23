@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,13 +26,13 @@ export default function SetPasswordPage() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
-        router.replace("/clinic/login")
+        router.replace(clinicHref("/clinic/login"))
         return
       }
 
       // If they don't need to change password, send them to dashboard
       if (!user.user_metadata?.must_change_password) {
-        router.replace("/clinic")
+        router.replace(clinicHref("/clinic"))
         return
       }
 
@@ -73,7 +74,7 @@ export default function SetPasswordPage() {
 
       setSuccess(true)
       setTimeout(() => {
-        window.location.href = "/clinic"
+        window.location.href = clinicHref("/clinic")
       }, 1500)
     } catch {
       setError("An error occurred. Please try again.")

@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { portalUrl } from "@/lib/clinic-url"
 import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
@@ -59,7 +60,7 @@ export default function ForClinicsPage() {
                 className="text-base px-8 h-13 border-border text-foreground hover:bg-secondary bg-transparent"
                 asChild
               >
-                <Link href="/clinic/login">
+                <Link href={portalUrl("/clinic/login")}>
                   Log in to Clinic Portal
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>

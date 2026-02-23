@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 import { escapeHtml } from "@/lib/escape-html"
+import { portalUrl } from "@/lib/clinic-url"
 import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
 import { getBotGreeting, getBotSuggestions, getBotFollowUp } from "@/lib/chat-bot"
 import { generateIntelligentBotResponse } from "@/lib/chat-bot-ai"
@@ -355,7 +356,7 @@ export async function POST(request: NextRequest) {
           data: {
             patientName: safeName,
             messagePreview: safeContent,
-            inboxUrl: `${appUrl}/clinic/inbox`,
+            inboxUrl: portalUrl("/clinic/inbox"),
             unsubscribeFooterHtml: unsubFooter,
             _conversationId: conversation.id,
           },

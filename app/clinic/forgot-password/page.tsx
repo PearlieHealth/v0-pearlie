@@ -3,6 +3,7 @@
 import React from "react"
 
 import { useState } from "react"
+import { clinicHref } from "@/lib/clinic-url"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -76,7 +77,7 @@ export default function ForgotPasswordPage() {
                 </AlertDescription>
               </Alert>
               <Button variant="outline" className="w-full bg-transparent" asChild>
-                <Link href="/clinic/login">
+                <Link href={clinicHref("/clinic/login")}>
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Login
                 </Link>
@@ -102,7 +103,7 @@ export default function ForgotPasswordPage() {
               </Button>
 
               <Button variant="outline" className="w-full bg-transparent" asChild>
-                <Link href="/clinic/login">
+                <Link href={clinicHref("/clinic/login")}>
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Login
                 </Link>

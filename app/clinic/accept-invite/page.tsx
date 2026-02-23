@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -111,7 +112,7 @@ export default function AcceptInvitePage() {
       
       // Redirect to clinic dashboard
       setTimeout(() => {
-        router.push("/clinic")
+        router.push(clinicHref("/clinic"))
       }, 1500)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create account")

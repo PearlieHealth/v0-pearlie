@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Trash2, UserPlus, RefreshCw, Eye } from "lucide-react"
 import Link from "next/link"
+import { clinicHref } from "@/lib/clinic-url"
 
 interface Clinic {
   id: string
@@ -286,7 +287,7 @@ export default function ClinicUsersPage() {
               </p>
               <div className="space-y-2">
                 <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
-                  <Link href="/clinic/demo">
+                  <Link href={clinicHref("/clinic/demo")}>
                     <Eye className="w-4 h-4 mr-2" />
                     View Demo Dashboard
                   </Link>

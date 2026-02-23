@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 import { useRouter } from "next/navigation"
 
 const navItems = [
@@ -41,7 +42,7 @@ export function ClinicMobileNav({ clinicName }: ClinicMobileNavProps) {
   const handleLogout = async () => {
     const supabase = createBrowserClient()
     await supabase.auth.signOut()
-    router.push("/clinic/login")
+    router.push(clinicHref("/clinic/login"))
   }
 
   return (
@@ -56,7 +57,7 @@ export function ClinicMobileNav({ clinicName }: ClinicMobileNavProps) {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="p-4 border-b">
-            <Link href="/clinic" className="flex items-center gap-2" onClick={() => setOpen(false)}>
+            <Link href={clinicHref("/clinic")} className="flex items-center gap-2" onClick={() => setOpen(false)}>
               <div className="rounded-full bg-black p-1.5">
                 <Heart className="w-4 h-4 text-white fill-white" />
               </div>
@@ -68,13 +69,14 @@ export function ClinicMobileNav({ clinicName }: ClinicMobileNavProps) {
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1">
             {navItems.map((item) => {
-              const isActive = pathname === item.href || 
-                (item.href !== "/clinic" && pathname.startsWith(item.href))
-              
+              const resolvedHref = clinicHref(item.href)
+              const isActive = pathname === item.href || pathname === resolvedHref ||
+                (item.href !== "/clinic" && (pathname.startsWith(item.href) || pathname.startsWith(resolvedHref)))
+
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={resolvedHref}
                   onClick={() => setOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",

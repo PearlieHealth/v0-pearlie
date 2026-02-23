@@ -122,9 +122,12 @@ export async function POST(request: NextRequest) {
     
     console.log("[v0] Invite created successfully for", primary_contact_email)
 
-    // Build invite URL
+    // Build invite URL (portal-aware: link directly to portal when configured)
+    const portalDomain = process.env.NEXT_PUBLIC_PORTAL_DOMAIN
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
-    const inviteUrl = `${baseUrl}/clinic/accept-invite?token=${inviteToken}`
+    const inviteUrl = portalDomain
+      ? `https://${portalDomain}/accept-invite?token=${inviteToken}`
+      : `${baseUrl}/clinic/accept-invite?token=${inviteToken}`
 
     // Send invite email via centralized email system
     let emailSent = false

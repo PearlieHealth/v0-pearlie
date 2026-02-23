@@ -1,10 +1,23 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+/**
+ * Refresh the Supabase session and protect clinic / patient routes.
+ *
+ * @param request  The incoming request
+ * @param rewriteUrl  Optional NextURL — when provided the response is a
+ *                    rewrite to this URL instead of a plain next(). Used by
+ *                    the portal subdomain middleware to map clean paths
+ *                    (e.g. /leads) to /clinic/leads internally.
+ */
+export async function updateSession(request: NextRequest, rewriteUrl?: URL) {
+  // Use the rewrite URL (portal subdomain) to resolve the internal pathname
+  // while still forwarding the original request unchanged.
+  const internalPathname = rewriteUrl?.pathname ?? request.nextUrl.pathname
+
+  let supabaseResponse = rewriteUrl
+    ? NextResponse.rewrite(rewriteUrl, { request })
+    : NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,9 +31,9 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           )
-          supabaseResponse = NextResponse.next({
-            request,
-          })
+          supabaseResponse = rewriteUrl
+            ? NextResponse.rewrite(rewriteUrl, { request })
+            : NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
           )
@@ -42,36 +55,38 @@ export async function updateSession(request: NextRequest) {
   ]
   const AUTH_SEGMENTS = ["login", "demo", "accept-invite", "forgot-password", "reset-password", "set-password"]
 
-  const isUnderClinic = request.nextUrl.pathname.startsWith("/clinic/") || request.nextUrl.pathname === "/clinic"
-  const isPublicClinicsRoute = request.nextUrl.pathname.startsWith("/clinics") // Public clinic profiles with 's'
-  
+  const isUnderClinic = internalPathname.startsWith("/clinic/") || internalPathname === "/clinic"
+  const isPublicClinicsRoute = internalPathname.startsWith("/clinics") // Public clinic profiles with 's'
+
   if (isUnderClinic && !isPublicClinicsRoute) {
-    const segment = request.nextUrl.pathname.split("/")[2] // e.g. "/clinic/leads" -> "leads"
+    const segment = internalPathname.split("/")[2] // e.g. "/clinic/leads" -> "leads"
     const isAuthPage = segment && AUTH_SEGMENTS.includes(segment)
     const isDashboardPage = !segment || DASHBOARD_SEGMENTS.includes(segment)
-    // Anything that's NOT a dashboard page and NOT an auth page is a public profile (UUID or slug)
-    const isPublicProfilePage = segment && !isDashboardPage && !isAuthPage
 
     // Only protect dashboard pages -- redirect unauthenticated users to login
     if (isDashboardPage && !user) {
       const url = request.nextUrl.clone()
-      url.pathname = "/clinic/login"
+      url.pathname = rewriteUrl ? "/login" : "/clinic/login"
       return NextResponse.redirect(url)
     }
   }
 
   // If logged in user tries to access login page, redirect to dashboard
   // (but not if they still need to set their password)
-  if (request.nextUrl.pathname === "/clinic/login" && user) {
+  if (internalPathname === "/clinic/login" && user) {
     const mustChangePassword = user.user_metadata?.must_change_password
     const url = request.nextUrl.clone()
-    url.pathname = mustChangePassword ? "/clinic/set-password" : "/clinic"
+    if (rewriteUrl) {
+      url.pathname = mustChangePassword ? "/set-password" : "/"
+    } else {
+      url.pathname = mustChangePassword ? "/clinic/set-password" : "/clinic"
+    }
     return NextResponse.redirect(url)
   }
 
   // Protect all patient routes (except login)
-  const isPatientProtected = request.nextUrl.pathname.startsWith("/patient/") &&
-    !request.nextUrl.pathname.startsWith("/patient/login")
+  const isPatientProtected = internalPathname.startsWith("/patient/") &&
+    !internalPathname.startsWith("/patient/login")
   if (isPatientProtected && !user) {
     const url = request.nextUrl.clone()
     url.pathname = "/patient/login"
@@ -81,7 +96,7 @@ export async function updateSession(request: NextRequest) {
 
   // If logged-in patient tries to access patient login, redirect to dashboard
   // Only redirect if the user is NOT a clinic user (handles legacy patients with no role)
-  if (request.nextUrl.pathname === "/patient/login" && user) {
+  if (internalPathname === "/patient/login" && user) {
     const userRole = user.user_metadata?.role
     if (userRole !== "clinic") {
       const url = request.nextUrl.clone()
