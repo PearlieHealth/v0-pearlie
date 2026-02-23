@@ -125,8 +125,11 @@ export async function PATCH(request: Request) {
         expires_at: expiresAt.toISOString(),
       })
 
+      const portalDomain = process.env.NEXT_PUBLIC_PORTAL_DOMAIN
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
-      const inviteUrl = `${baseUrl}/clinic/accept-invite?token=${inviteToken}`
+      const inviteUrl = portalDomain
+        ? `https://${portalDomain}/accept-invite?token=${inviteToken}`
+        : `${baseUrl}/clinic/accept-invite?token=${inviteToken}`
 
       const emailLogId = crypto.randomUUID()
       await supabase.from("waitlist_email_log").insert({

@@ -69,7 +69,7 @@ export default async function middleware(request: NextRequest) {
     // If someone visits portal.pearlie.org/clinic/... redirect to strip the /clinic prefix
     // This catches links that still use the old /clinic/* format
     if (pathname === "/clinic" || pathname.startsWith("/clinic/")) {
-      const cleanPath = pathname === "/clinic" ? "/" : pathname.slice(7)
+      const cleanPath = pathname === "/clinic" ? "/" : (pathname.slice(7) || "/")
       const url = request.nextUrl.clone()
       url.pathname = cleanPath
       return NextResponse.redirect(url)
@@ -96,7 +96,7 @@ export default async function middleware(request: NextRequest) {
       const isKnownSegment = !segment || ALL_CLINIC_SEGMENTS.includes(segment)
 
       if (isKnownSegment) {
-        const cleanPath = pathname === "/clinic" ? "/" : pathname.slice(7)
+        const cleanPath = pathname === "/clinic" ? "/" : (pathname.slice(7) || "/")
         const url = request.nextUrl.clone()
         url.host = PORTAL_DOMAIN
         url.port = ""
