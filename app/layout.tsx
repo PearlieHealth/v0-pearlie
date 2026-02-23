@@ -1,5 +1,6 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
+import { DM_Sans, Inter_Tight } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { CookieBanner } from "@/components/cookie-banner"
 import { AnalyticsScripts } from "@/components/analytics-scripts"
@@ -7,11 +8,19 @@ import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "sonner"
 import "./globals.css"
 
-// TODO: Replace <link> tag below with next/font/google when deploying to Vercel:
-// import { DM_Sans, Inter_Tight } from "next/font/google"
-// const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-dm-sans", display: "swap" })
-// const interTight = Inter_Tight({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-inter-tight", display: "swap" })
-// Then add className={`${dmSans.variable} ${interTight.variable}`} to <html> and remove the <link> tag
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-dm-sans",
+  display: "swap",
+})
+
+const interTight = Inter_Tight({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter-tight",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pearlie.org"),
@@ -72,13 +81,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={`${dmSans.variable} ${interTight.variable}`}>
       <body className="font-sans antialiased">
         <script
           type="application/ld+json"

@@ -86,8 +86,8 @@
 }
 
 @theme inline {
-  --font-sans: "Inter Tight", sans-serif;
-  --font-heading: "DM Sans", sans-serif;
+  --font-sans: var(--font-inter-tight), "Inter Tight", sans-serif;
+  --font-heading: var(--font-dm-sans), "DM Sans", sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback";
   --color-background: var(--background);
   --color-foreground: var(--foreground);
