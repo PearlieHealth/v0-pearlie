@@ -128,6 +128,69 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
+  // ── Affiliate referral tracking ──
+  // Check for ?ref= param on any page load, store in cookie, and fire async tracking
+  const refCode = request.nextUrl.searchParams.get("ref")
+  if (refCode) {
+    const response = await updateSession(request)
+
+    // Set the referral cookie (30-day expiry, last-click attribution)
+    response.cookies.set("pearlie_ref", refCode, {
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: "/",
+      httpOnly: false, // Needs to be readable by client for form submissions
+      sameSite: "lax",
+    })
+
+    // Also store UTM params if present
+    const utmSource = request.nextUrl.searchParams.get("utm_source")
+    const utmMedium = request.nextUrl.searchParams.get("utm_medium")
+    const utmCampaign = request.nextUrl.searchParams.get("utm_campaign")
+
+    if (utmSource) {
+      response.cookies.set("pearlie_utm_source", utmSource, {
+        maxAge: 60 * 60 * 24 * 30,
+        path: "/",
+        httpOnly: false,
+        sameSite: "lax",
+      })
+    }
+    if (utmMedium) {
+      response.cookies.set("pearlie_utm_medium", utmMedium, {
+        maxAge: 60 * 60 * 24 * 30,
+        path: "/",
+        httpOnly: false,
+        sameSite: "lax",
+      })
+    }
+    if (utmCampaign) {
+      response.cookies.set("pearlie_utm_campaign", utmCampaign, {
+        maxAge: 60 * 60 * 24 * 30,
+        path: "/",
+        httpOnly: false,
+        sameSite: "lax",
+      })
+    }
+
+    // Fire async referral tracking (non-blocking)
+    const trackUrl = new URL("/api/track-referral", request.url)
+    fetch(trackUrl.toString(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        referral_code: refCode,
+        landing_page: pathname,
+        utm_source: utmSource || undefined,
+        utm_medium: utmMedium || undefined,
+        utm_campaign: utmCampaign || undefined,
+      }),
+    }).catch(() => {
+      // Silently fail — don't block page rendering
+    })
+
+    return response
+  }
+
   // ── Supabase session refresh for clinic / patient routes ──
   return await updateSession(request)
 }
