@@ -5,15 +5,42 @@ import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
 
-export const metadata = {
-  title: "FAQ | Pearlie",
-  description: "Frequently asked questions about Pearlie dental matching platform.",
-}
-
 export default function FAQPage() {
+  const faqItems = [
+    { question: "Is Pearlie free to use?", answer: "Yes. Pearlie is free for patients. There is no obligation to book or proceed with any clinic." },
+    { question: "Does Pearlie provide dental advice?", answer: "No. Pearlie does not provide dental or medical advice. All diagnosis, treatment planning, and clinical care are provided by independent dental clinics." },
+    { question: "How are clinics selected?", answer: "Clinics are selected based on practical factors such as location, services offered, availability, and suitability for your preferences. Not all clinics in an area are listed." },
+    { question: "Do I have to book with a clinic?", answer: "No. You are under no obligation to book or contact any clinic shown. Pearlie simply helps you explore suitable options." },
+    { question: "How does Pearlie make money?", answer: "Pearlie may receive a fee from clinics when a patient chooses to book following an introduction. Patients are never charged for using Pearlie." },
+    { question: "Are prices guaranteed?", answer: "No. Any pricing information shown is indicative only. Final treatment costs are discussed and agreed directly with the clinic." },
+    { question: "Does Pearlie replace my dentist?", answer: "No. Pearlie helps you find a clinic — it does not replace ongoing dental care or existing dentist relationships." },
+    { question: "What happens to my data?", answer: "Your data is used only to provide matching and is handled in line with our Privacy Policy. You can request deletion at any time." },
+    { question: "Is Pearlie part of the NHS?", answer: "No. Pearlie is an independent, private service and is not affiliated with, endorsed by, or connected to the National Health Service (NHS). Clinics listed on Pearlie are private dental practices." },
+    { question: "Can I compare clinics side by side?", answer: "Yes. You can review pricing, services, photos, reviews, and availability before deciding." },
+    { question: "What if I don't find the right clinic?", answer: "You can adjust your preferences or submit another match request. Pearlie is continuously expanding its clinic network." },
+    { question: "Do clinics pay to appear higher?", answer: "No. Clinic visibility is based on match relevance and profile completeness — not paid ranking." },
+  ]
+
   return (
     <div className="min-h-screen bg-background">
       <MainNav />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqItems.map((item) => ({
+              "@type": "Question",
+              name: item.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: item.answer,
+              },
+            })),
+          }),
+        }}
+      />
 
       <main>
         <section className="pt-32 pb-12 sm:pt-32 sm:pb-20 bg-background">

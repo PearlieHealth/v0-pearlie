@@ -7,12 +7,6 @@ import { MainNav } from "@/components/main-nav"
 import { ClinicNetworkCarousel } from "@/components/clinic-network-carousel"
 import { SiteFooter } from "@/components/site-footer"
 
-export const metadata = {
-  title: "About Pearlie | Independent Dental Matching Platform",
-  description:
-    "Learn about Pearlie, an independent dental matching platform helping patients find the right dental clinic quickly, transparently, and without pressure.",
-}
-
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
@@ -137,12 +131,13 @@ export default function AboutPage() {
               <div className="mt-12 sm:mt-16 text-center">
                 <Image
                   src="/dr-grei-mustaj-signature.png"
-                  alt="Founder signature"
+                  alt="Dr Grei Mustaj signature"
                   width={400}
                   height={100}
                   className="h-12 w-auto opacity-80 mx-auto"
                 />
-                <p className="text-sm text-muted-foreground mt-3">Founder &amp; CEO</p>
+                <p className="text-base font-semibold text-foreground mt-3">Dr Grei Mustaj</p>
+                <p className="text-sm text-muted-foreground mt-1">Founder &amp; CEO, Pearlie</p>
               </div>
             </div>
           </div>

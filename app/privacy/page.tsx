@@ -36,7 +36,7 @@ export default function PrivacyPage() {
         <div className="max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold text-stone-900 mb-2">Privacy Policy</h1>
           <p className="text-stone-500 mb-10">
-            Last updated: {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+            Last updated: 15 January 2025
           </p>
 
           <p className="text-stone-700 leading-relaxed mb-10">

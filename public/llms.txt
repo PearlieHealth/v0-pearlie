@@ -1,0 +1,43 @@
+# Pearlie — Dental Clinic Matching Platform
+
+> Pearlie is an independent dental clinic matching platform that helps patients in the UK find the right dental clinic for their needs — quickly, transparently, and without pressure.
+
+## What Pearlie Does
+
+Pearlie matches patients with trusted, GDC-registered dental clinics based on treatment needs, location, budget, and personal preferences. The service is free for patients. Clinics do not pay to appear higher in results — matching is based on relevance and fit.
+
+## Key Facts
+
+- Free for patients, no obligation to book
+- Independent — does not own or operate dental clinics
+- All listed clinics are GDC-registered and verified
+- Covers private dental treatments including Invisalign, dental implants, veneers, teeth whitening, composite bonding, and general dentistry
+- Primarily serves patients in London and across the UK
+- Founded by Dr Grei Mustaj
+
+## Pages
+
+- Homepage: https://pearlie.org/
+- About: https://pearlie.org/about
+- FAQ: https://pearlie.org/faq
+- Our Mission: https://pearlie.org/our-mission
+- Find Your Match: https://pearlie.org/intake
+- For Clinics: https://pearlie.org/for-clinics
+- Privacy Policy: https://pearlie.org/privacy
+- Terms of Use: https://pearlie.org/terms
+- Cookie Policy: https://pearlie.org/cookies
+
+## How It Works
+
+1. Patient completes a short intake form describing treatment needs, location, and preferences
+2. Pearlie matches the patient with suitable dental clinics from its verified network
+3. Patient reviews clinic profiles, compares options, and contacts clinics directly
+
+## The Pearlie Guarantee
+
+Every clinic on Pearlie is verified for quality care, transparent pricing, and GDC registration. If a patient's experience with a Pearlie-matched clinic doesn't meet expectations, Pearlie covers the cost of the next consultation or check-up at another clinic.
+
+## Contact
+
+- Website: https://pearlie.org
+- Email: hello@pearlie.co.uk

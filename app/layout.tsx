@@ -7,6 +7,12 @@ import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "sonner"
 import "./globals.css"
 
+// TODO: Replace <link> tag below with next/font/google when deploying to Vercel:
+// import { DM_Sans, Inter_Tight } from "next/font/google"
+// const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-dm-sans", display: "swap" })
+// const interTight = Inter_Tight({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-inter-tight", display: "swap" })
+// Then add className={`${dmSans.variable} ${interTight.variable}`} to <html> and remove the <link> tag
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://pearlie.org"),
   title: {
