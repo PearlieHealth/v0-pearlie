@@ -6,10 +6,15 @@ import Image from "next/image"
 import { MainNav } from "@/components/main-nav"
 import { ClinicNetworkCarousel } from "@/components/clinic-network-carousel"
 import { SiteFooter } from "@/components/site-footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://pearlie.org" },
+        { name: "About", url: "https://pearlie.org/about" },
+      ]} />
       <MainNav />
 
       <main>
@@ -161,6 +166,57 @@ export default function AboutPage() {
 
         {/* Our Promise: Pearlie Guarantee — dark teal background */}
         <section id="pearlie-guarantee" className="py-12 sm:py-20 md:py-28 bg-[#004443]">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: [
+                  {
+                    "@type": "Question",
+                    name: "What does the Pearlie Guarantee cover?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "The Pearlie Guarantee covers two things: first, that every clinic listed on our platform has been verified for quality care and GDC registration. Second, if your experience with a Pearlie-matched clinic doesn't meet your expectations, we'll cover the cost of your next consultation or check-up at another clinic.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "How do I claim the Satisfaction Promise?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "Simply contact us at hello@pearlie.org within 30 days of your appointment. Let us know what happened and we'll arrange your next consultation or check-up fee at no cost to you.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "Does the guarantee apply to all treatments?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "The Satisfaction Promise applies to your initial consultation or check-up booked through Pearlie. It does not cover the outcome of specific clinical treatments, which are the responsibility of the treating clinic. However, every clinic on Pearlie must meet our quality standards.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "How are clinics verified?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "We check that every clinic is GDC-registered, has positive patient feedback, and offers transparent pricing. Clinics that don't meet our standards are not listed. We review our network on an ongoing basis to maintain quality.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "Is there a cost to use the Pearlie Guarantee?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "No. The Pearlie Guarantee is included for every patient who books through our platform. There are no hidden fees or extra charges.",
+                    },
+                  },
+                ],
+              }),
+            }}
+          />
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               {/* Section header */}
@@ -293,6 +349,14 @@ export default function AboutPage() {
               >
                 <Link href="/intake">Get my clinic matches</Link>
               </Button>
+              <div className="flex flex-wrap gap-3 justify-center mt-6">
+                <Button size="lg" variant="outline" className="rounded-full border-[#004443]/20 text-[#004443]" asChild>
+                  <Link href="/faq">Read our FAQ</Link>
+                </Button>
+                <Button size="lg" variant="outline" className="rounded-full border-[#004443]/20 text-[#004443]" asChild>
+                  <Link href="/our-mission">Our Mission</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </section>

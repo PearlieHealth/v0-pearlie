@@ -14,10 +14,15 @@ import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import { ClinicWaitlistForm } from "@/components/clinic-waitlist-form"
 import { SiteFooter } from "@/components/site-footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export default function ForClinicsPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://pearlie.org" },
+        { name: "For Clinics", url: "https://pearlie.org/for-clinics" },
+      ]} />
       <MainNav />
 
       {/* HERO SECTION */}

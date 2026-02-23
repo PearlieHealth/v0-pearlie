@@ -104,6 +104,8 @@ export function SiteFooter() {
               </p>
               <p className="text-xs text-white/40 text-center sm:text-right max-w-md">
                 Pearlie is an independent matching service. We do not provide dental treatment or medical advice.
+                <br />
+                Pearlie Ltd — Company No. 16234337
               </p>
             </div>
           </div>

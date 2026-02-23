@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -13,6 +14,10 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://pearlie.org" },
+        { name: "Terms of Service", url: "https://pearlie.org/terms" },
+      ]} />
       <MainNav />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-28">

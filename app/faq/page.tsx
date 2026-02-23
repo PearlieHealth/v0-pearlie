@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export default function FAQPage() {
   const faqItems = [
@@ -23,6 +24,10 @@ export default function FAQPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://pearlie.org" },
+        { name: "FAQ", url: "https://pearlie.org/faq" },
+      ]} />
       <MainNav />
       <script
         type="application/ld+json"
@@ -183,9 +188,17 @@ export default function FAQPage() {
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-3xl font-semibold tracking-tight mb-4">Still have questions?</h2>
               <p className="text-lg text-muted-foreground mb-8">We're here to help. Get in touch with our team.</p>
-              <Button size="lg" variant="outline" asChild>
-                <a href="mailto:hello@pearlie.org">Contact Us</a>
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button size="lg" variant="outline" asChild>
+                  <a href="mailto:hello@pearlie.org">Contact Us</a>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <Link href="/about">About Pearlie</Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <Link href="/our-mission">Our Mission</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </section>

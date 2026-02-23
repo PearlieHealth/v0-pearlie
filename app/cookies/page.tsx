@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export const metadata: Metadata = {
   title: "Cookie Policy",
@@ -14,6 +15,10 @@ export const metadata: Metadata = {
 export default function CookiesPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://pearlie.org" },
+        { name: "Cookie Policy", url: "https://pearlie.org/cookies" },
+      ]} />
       <MainNav />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-28">
@@ -63,7 +68,7 @@ export default function CookiesPage() {
                     information about pages visited, time spent, and navigation patterns.
                   </p>
                   <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                    <li>Google Analytics (if implemented)</li>
+                    <li>Vercel Analytics</li>
                     <li>Page view tracking</li>
                     <li>User journey analysis</li>
                   </ul>
@@ -76,9 +81,9 @@ export default function CookiesPage() {
                     marketing campaigns.
                   </p>
                   <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                    <li>Meta Pixel (if implemented)</li>
+                    <li>Meta Pixel</li>
                     <li>Advertising campaign tracking</li>
-                    <li>Retargeting and personalization</li>
+                    <li>Retargeting and personalisation</li>
                   </ul>
                 </div>
               </div>

@@ -521,14 +521,28 @@ export default function OurMissionPage() {
                 And would like to contribute to the development of the Pearlie Care Fund, we would welcome a conversation.
               </p>
 
-              <a
-                href="mailto:hello@pearlie.org"
-                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/20 text-white px-6 py-3 rounded-full font-medium transition-all hover:border-white/30"
-              >
-                <Mail className="w-4 h-4" />
-                Contact us
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </a>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <a
+                  href="mailto:hello@pearlie.org"
+                  className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/20 text-white px-6 py-3 rounded-full font-medium transition-all hover:border-white/30"
+                >
+                  <Mail className="w-4 h-4" />
+                  Contact us
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </a>
+                <a
+                  href="/about"
+                  className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white px-6 py-3 rounded-full font-medium transition-all hover:border-white/20"
+                >
+                  About Pearlie
+                </a>
+                <a
+                  href="/faq"
+                  className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white px-6 py-3 rounded-full font-medium transition-all hover:border-white/20"
+                >
+                  FAQ
+                </a>
+              </div>
             </div>
           </FadeIn>
         </div>
