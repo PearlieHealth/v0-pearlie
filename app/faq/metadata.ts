@@ -1,7 +1,10 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "FAQ | Pearlie - Common Questions About Our Dental Matching Service",
+  title: "Frequently Asked Questions",
   description:
-    "Find answers to frequently asked questions about how Pearlie works, our clinic matching process, and getting started.",
+    "Find answers to common questions about how Pearlie matches you with dental clinics in London and the UK. Free, independent, no obligation.",
+  alternates: {
+    canonical: "https://pearlie.org/faq",
+  },
 }
