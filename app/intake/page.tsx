@@ -465,10 +465,6 @@ export default function IntakePage() {
       const { leadId } = await leadRes.json()
       localStorage.setItem("pearlie_lead_id", leadId)
       localStorage.removeItem("pearlie_intake_progress")
-      // Clear form draft immediately after lead creation to prevent duplicate
-      // leads on re-submit if the match step fails. Match retry uses
-      // pearlie_failed_lead_id instead.
-      localStorage.removeItem("pearlie_form_draft")
 
       await identifyForTikTok({ email: formData.email, phone: formData.phone, externalId: leadId })
       trackTikTokEvent("CompleteRegistration", {
@@ -520,6 +516,9 @@ export default function IntakePage() {
         setMatchFailed(lastMatchError || "Failed to create match after 3 attempts")
         return
       }
+
+      // I1: Clear form draft after successful submission
+      localStorage.removeItem("pearlie_form_draft")
 
       router.push(`/match/${matchData.matchId}`)
     } catch (error: unknown) {

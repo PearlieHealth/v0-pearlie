@@ -698,9 +698,6 @@ export default function PatientDashboard() {
         })
         setSelectedConvId(null)
         setMessages([])
-      } else if (!activeLeadId) {
-        setChatError("Please complete a search first to message a clinic.")
-        return
       }
     }
 
