@@ -36,6 +36,7 @@ import {
   Download,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { clinicHref } from "@/lib/clinic-url"
 
 interface Lead {
   id: string
@@ -700,8 +701,8 @@ export default function AppointmentsPage() {
               actionLabel="Respond"
               actionIcon={<MessageSquare className="w-4 h-4" />}
               actionColor="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
-              onAction={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
-              onView={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
+              onAction={(lead) => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
+              onView={(lead) => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
               showElapsed
               selectedLeads={selectedLeads}
               onToggleSelect={toggleSelect}
@@ -729,8 +730,8 @@ export default function AppointmentsPage() {
               actionLabel="Follow up"
               actionIcon={<MessageSquare className="w-4 h-4" />}
               actionColor="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
-              onAction={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
-              onView={(lead) => router.push(`/clinic/appointments/${lead.id}`)}
+              onAction={(lead) => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
+              onView={(lead) => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
               showElapsed
               selectedLeads={selectedLeads}
               onToggleSelect={toggleSelect}
@@ -755,7 +756,7 @@ export default function AppointmentsPage() {
               <Card
                 key={lead.id}
                 className="hover:bg-muted/30 transition-colors cursor-pointer"
-                onClick={() => router.push(`/clinic/appointments/${lead.id}`)}
+                onClick={() => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -827,7 +828,7 @@ export default function AppointmentsPage() {
                   <Card
                     key={lead.id}
                     className="hover:bg-muted/30 transition-colors cursor-pointer border-amber-200"
-                    onClick={() => router.push(`/clinic/appointments/${lead.id}`)}
+                    onClick={() => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -883,7 +884,7 @@ export default function AppointmentsPage() {
                     <Card
                       key={lead.id}
                       className="hover:bg-muted/30 transition-colors cursor-pointer opacity-90"
-                      onClick={() => router.push(`/clinic/appointments/${lead.id}`)}
+                      onClick={() => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">

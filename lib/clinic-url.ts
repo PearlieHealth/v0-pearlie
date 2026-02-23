@@ -42,15 +42,16 @@ export function clinicHref(path: string): string {
   if (!isPortalDomain()) return path
 
   if (path === "/clinic") return "/"
-  if (path.startsWith("/clinic/")) return path.slice(7) // strip "/clinic"
+  if (path.startsWith("/clinic/")) return path.slice(7) || "/" // strip "/clinic", handle trailing slash
   return path
 }
 
 /**
  * Build a full absolute URL to the portal for use on the main site
- * (e.g. the "Log in to Clinic Portal" button on /for-clinics).
+ * (e.g. the "Log in to Clinic Portal" button on /for-clinics)
+ * or in server-side code (e.g. email templates).
  *
- * Falls back to /clinic/* path when PORTAL_DOMAIN is not configured.
+ * Falls back to the internal path when PORTAL_DOMAIN is not configured.
  */
 export function portalUrl(internalPath: string): string {
   if (!PORTAL_HOSTNAME) return internalPath
@@ -58,7 +59,7 @@ export function portalUrl(internalPath: string): string {
   const clean = internalPath === "/clinic"
     ? "/"
     : internalPath.startsWith("/clinic/")
-      ? internalPath.slice(7)
+      ? (internalPath.slice(7) || "/")
       : internalPath
   return `https://${PORTAL_HOSTNAME}${clean}`
 }

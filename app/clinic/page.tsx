@@ -730,10 +730,10 @@ export default function ClinicDashboardPage() {
                     <div
                       key={lead.id}
                       className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
-                      onClick={() => router.push(`/clinic/leads/${lead.id}`)}
+                      onClick={() => router.push(clinicHref(`/clinic/leads/${lead.id}`))}
                       onKeyDown={(e) => {
                         if (e.key === "Enter")
-                          router.push(`/clinic/leads/${lead.id}`)
+                          router.push(clinicHref(`/clinic/leads/${lead.id}`))
                       }}
                       role="button"
                       tabIndex={0}

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 import { toast } from "sonner"
 
 interface UseClinicNotificationsOptions {
@@ -157,7 +158,7 @@ export function useClinicNotifications({ clinicId, enabled = true }: UseClinicNo
             description: "A new patient has been matched to your clinic",
             action: {
               label: "View leads",
-              onClick: () => window.location.assign("/clinic/appointments"),
+              onClick: () => window.location.assign(clinicHref("/clinic/appointments")),
             },
             duration: 8000,
           })
@@ -224,7 +225,7 @@ export function useClinicNotifications({ clinicId, enabled = true }: UseClinicNo
                 : (msg.content || "New message from patient").substring(0, 80),
               action: {
                 label: "View",
-                onClick: () => window.location.assign("/clinic/appointments"),
+                onClick: () => window.location.assign(clinicHref("/clinic/appointments")),
               },
               duration: 8000,
             })
