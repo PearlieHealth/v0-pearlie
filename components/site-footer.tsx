@@ -31,7 +31,7 @@ export function SiteFooter() {
                 <span className="text-lg font-heading font-bold text-white">Pearlie</span>
               </div>
               <p className="text-sm text-white/60 leading-relaxed">
-                Independent dental matching platform. Helping you find the right clinic, on your terms.
+                Founded in London. UK-founded and operated dental matching platform — helping you find the right clinic, on your terms.
               </p>
             </div>
 

@@ -1,6 +1,6 @@
 # Pearlie — Dental Clinic Matching Platform
 
-> Pearlie is an independent dental clinic matching platform that helps patients in the UK find the right dental clinic for their needs — quickly, transparently, and without pressure. Founded by Dr Grei Mustaj, BDS.
+> Pearlie is an independent dental clinic matching platform that helps patients in the UK find the right dental clinic for their needs — quickly, transparently, and without pressure. Founded in London by Dr Grei Muskaj, BDS, PGCert.
 
 ## What Pearlie Does
 
@@ -10,11 +10,19 @@ Pearlie matches patients with trusted, GDC-registered dental clinics based on tr
 
 - Free for patients — no sign-up fees, subscription charges, or hidden costs
 - Independent — does not own or operate dental clinics
-- All listed clinics are verified as registered with the General Dental Council (GDC)
+- All listed clinics are independently verified and confirmed as registered with the General Dental Council (GDC)
 - Covers private dental treatments including Invisalign, dental implants, veneers, teeth whitening, composite bonding, and general dentistry
 - Primarily serves patients in London and across the UK
-- Founded by Dr Grei Mustaj, BDS
+- Founded in London by Dr Grei Muskaj, BDS, PGCert
 - Backed by the Pearlie Guarantee — if your experience doesn't meet expectations, Pearlie covers your next consultation fee
+
+## Pearlie in Numbers
+
+- 20+ verified private clinics across London
+- 20+ London boroughs covered
+- 50+ registered dental professionals
+- 10+ treatment categories available
+- Expanding toward 500+ clinics across the UK
 
 ## How It Works
 
@@ -26,25 +34,34 @@ Pearlie matches patients with trusted, GDC-registered dental clinics based on tr
 ## Frequently Asked Questions
 
 ### Is Pearlie free to use?
-Yes. Pearlie is completely free for patients. There are no sign-up fees, subscription charges, or hidden costs. You are under no obligation to book or proceed with any clinic you are matched with.
+Pearlie is completely free for patients — there are no sign-up fees, subscription charges, or hidden costs. You are under no obligation to book or proceed with any clinic you are matched with.
 
 ### How are clinics selected?
 Clinics are selected based on location, services offered, availability, and suitability for patient preferences. Every clinic is verified as registered with the General Dental Council (GDC). Pearlie focuses on quality over quantity — not all clinics in an area are listed.
 
 ### Does Pearlie provide dental advice?
-No. Pearlie does not provide dental or medical advice. All diagnosis, treatment planning, and clinical care are provided by independent dental clinics.
+Pearlie does not provide dental or medical advice. All diagnosis, treatment planning, and clinical care are provided by independent dental clinics.
 
 ### How does Pearlie make money?
 Pearlie may receive a fee from clinics when a patient books following an introduction. Clinic fees do not influence which clinics are recommended — matching is based on relevance and fit.
 
 ### Is Pearlie part of the NHS?
-No. Pearlie is an independent, private service and is not affiliated with the NHS. Clinics listed on Pearlie are private dental practices.
+Pearlie is an independent, private service and is not affiliated with the NHS. Clinics listed on Pearlie are private dental practices.
 
 ### Do clinics pay to appear higher?
-No. Clinic visibility is based on match relevance and profile completeness — not paid ranking.
+Clinic visibility is based on match relevance and profile completeness — not paid ranking.
 
 ### What happens to my data?
 Patient data is used only for the matching service and handled under UK GDPR. Clinics only see details when the patient chooses to contact them. Data deletion can be requested at any time.
+
+### How much does Invisalign cost in London?
+Invisalign costs in London typically range from £2,500 to £5,500 depending on the complexity of your case and the clinic you choose. Pearlie helps you compare Invisalign providers across London so you can see indicative pricing, read reviews, and message clinics directly before committing.
+
+### How do I find a good dentist for dental implants?
+Finding the right dentist for dental implants means looking for a GDC-registered clinician with implant-specific experience, transparent pricing, and strong patient reviews. Pearlie matches you with verified implant providers in London based on your needs, budget, and location.
+
+### What should I look for when choosing a cosmetic dentist?
+When choosing a cosmetic dentist, look for GDC registration, before-and-after photos of previous work, transparent pricing, and patient reviews. Pearlie helps you find verified cosmetic dentists across London who specialise in treatments like veneers, composite bonding, and teeth whitening.
 
 ## The Pearlie Guarantee
 
@@ -52,7 +69,20 @@ Every clinic on Pearlie is verified for quality care, transparent pricing, and G
 
 ## About the Founder
 
-Pearlie was founded by Dr Grei Mustaj, BDS — a dentist who recognised that patients often struggle to find the right clinic among too many options, mixed opinions, and unclear pricing. Pearlie was built to bring clarity and confidence to that decision.
+> "Private dentistry should be transparent, accessible, and centred around patient confidence. Pearlie was created to bridge the gap between high-quality clinicians and patients who value clarity and trust."
+> — Dr Grei Muskaj BDS, PGCert
+
+Pearlie was founded by Dr Grei Muskaj, BDS, PGCert — a dentist who recognised that patients often struggle to find the right clinic among too many options, mixed opinions, and unclear pricing. Pearlie was built to bring clarity and confidence to that decision.
+
+## The Dental Access Crisis in the UK
+
+- 13 million adults in England have unmet dental needs (Source: BDA, 2024)
+- 5.6 million tried but failed to get an NHS dental appointment (Source: BDA, 2024)
+- 69% of those unable to access NHS care paid privately (Source: Ipsos, 2024)
+- 26% resorted to unsafe self-treatment (Source: Ipsos, 2024)
+- 1 in 10 adults reported dental pain from untreated problems (Source: GOV.UK Adult Oral Health Survey, 2021)
+
+Pearlie was created in response to this growing access gap — helping patients navigate private dental care with transparency, clarity, and confidence.
 
 ## Pages
 

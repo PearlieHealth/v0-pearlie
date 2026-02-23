@@ -102,7 +102,7 @@ export default function RootLayout({
                     "Independent dental clinic matching platform helping patients find the right dental clinic in London and across the UK.",
                   founder: {
                     "@type": "Person",
-                    name: "Dr Grei Mustaj",
+                    name: "Dr Grei Muskaj",
                   },
                   contactPoint: {
                     "@type": "ContactPoint",

@@ -10,24 +10,24 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: "GPTBot",
-        allow: "/",
+        allow: ["/", "/llms.txt"],
         disallow: ["/admin/", "/clinic/", "/patient/", "/api/", "/auth/", "/booking/"],
       },
       {
         userAgent: "ChatGPT-User",
-        allow: "/",
+        allow: ["/", "/llms.txt"],
       },
       {
         userAgent: "ClaudeBot",
-        allow: "/",
+        allow: ["/", "/llms.txt"],
       },
       {
         userAgent: "PerplexityBot",
-        allow: "/",
+        allow: ["/", "/llms.txt"],
       },
       {
         userAgent: "Applebot-Extended",
-        allow: "/",
+        allow: ["/", "/llms.txt"],
       },
     ],
     sitemap: "https://pearlie.org/sitemap.xml",

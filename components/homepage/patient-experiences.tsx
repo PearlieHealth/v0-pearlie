@@ -36,6 +36,11 @@ const testimonials = [
     text: "I\u2019m a nervous patient and usually avoid dentists. The clinic I found through Pearlie really understood that. It made the whole process feel manageable.",
     name: "Hannah W.",
   },
+  {
+    label: "Clinic Partner",
+    text: "Pearlie brings us patients who already know what they want \u2014 the matching and messaging saves time and improves the quality of enquiries.",
+    name: "London Dental Centre",
+  },
 ]
 
 export function PatientExperiences() {

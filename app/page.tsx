@@ -249,10 +249,14 @@ export default function Home() {
                   We shortlist.<br />You decide.<br /><span className="text-[#0fbcb0]">With confidence.</span>
                 </h2>
 
+                <p className="text-lg text-muted-foreground leading-snug mb-4">
+                  Whether you&apos;re considering Invisalign, dental implants, composite bonding, veneers, teeth whitening, or
+                  emergency dental care — Pearlie matches you with verified private dental clinics across London.
+                </p>
                 <p className="text-lg text-muted-foreground leading-snug mb-8">
-                  Every clinic on Pearlie is carefully reviewed for clinical standards, transparency, and patient experience. All clinics are verified as{" "}
+                  Every clinic is carefully reviewed for clinical standards, transparency, and patient experience. All clinics are verified as{" "}
                   <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#004443]">GDC-registered</a>.
-                  We focus on quality over quantity — so you only see clinics that meet our standards.
+                  Our network includes 20+ verified clinics across 20+ London boroughs — and we focus on quality over quantity.
                 </p>
 
                 <div className="space-y-3 mb-10">

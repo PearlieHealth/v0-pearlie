@@ -11,7 +11,7 @@ import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export const metadata: Metadata = {
   title: "About Pearlie - Independent Dental Clinic Matching",
-  description: "Pearlie is an independent dental matching platform founded by Dr Grei Mustaj. We help patients find trusted, GDC-registered clinics — free, transparent, and without pressure.",
+  description: "Pearlie is an independent dental matching platform founded by Dr Grei Muskaj. We help patients find trusted, GDC-registered clinics — free, transparent, and without pressure.",
   alternates: {
     canonical: "https://pearlie.org/about",
   },
@@ -37,11 +37,11 @@ export default function AboutPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-3xl sm:text-5xl md:text-7xl font-heading font-bold tracking-[-0.03em] mb-6 sm:mb-8 text-white text-balance">
-                Find the right dental clinic for you
+                Built to bring clarity to dental care
               </h1>
               <p className="text-xl md:text-2xl text-white/75 leading-relaxed max-w-3xl mx-auto">
-                Pearlie is an independent dental matching platform designed to help people find the right dental clinic
-                for their needs — quickly, transparently, and without pressure.
+                Pearlie is an independent dental matching platform founded in London by a dentist who saw how difficult
+                it was for patients to navigate private dental care with confidence.
               </p>
             </div>
           </div>
@@ -150,10 +150,10 @@ export default function AboutPage() {
               {/* Founder quote — GEO: citable pull quote with attribution */}
               <blockquote className="mt-10 sm:mt-14 border-l-4 border-[#0fbcb0] pl-6 py-2 max-w-3xl mx-auto">
                 <p className="text-lg sm:text-xl text-foreground italic leading-relaxed">
-                  &ldquo;Choosing a dentist shouldn&apos;t feel like guesswork. Every patient deserves clear information, honest comparisons, and the confidence to make the right decision for their health.&rdquo;
+                  &ldquo;Private dentistry should be transparent, accessible, and centred around patient confidence. Pearlie was created to bridge the gap between high-quality clinicians and patients who value clarity and trust.&rdquo;
                 </p>
                 <footer className="mt-3 text-sm text-muted-foreground">
-                  — Dr Grei Mustaj, BDS, Founder of Pearlie
+                  — Dr Grei Muskaj, BDS, PGCert, Founder of Pearlie
                 </footer>
               </blockquote>
 
@@ -161,12 +161,12 @@ export default function AboutPage() {
               <div className="mt-12 sm:mt-16 text-center">
                 <Image
                   src="/dr-grei-mustaj-signature.png"
-                  alt="Dr Grei Mustaj signature"
+                  alt="Dr Grei Muskaj signature"
                   width={400}
                   height={100}
                   className="h-12 w-auto opacity-80 mx-auto"
                 />
-                <p className="text-base font-semibold text-foreground mt-3">Dr Grei Mustaj, BDS</p>
+                <p className="text-base font-semibold text-foreground mt-3">Dr Grei Muskaj, BDS, PGCert</p>
                 <p className="text-sm text-muted-foreground mt-1">Founder &amp; CEO, Pearlie</p>
               </div>
             </div>
@@ -181,7 +181,9 @@ export default function AboutPage() {
                 Our commitment
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-                Every clinic on Pearlie is verified and GDC-registered. There are no hidden fees, no paid placements,
+                All clinics listed on Pearlie are independently verified and confirmed as registered with the{" "}
+                <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#004443]">General Dental Council (GDC)</a>,
+                ensuring they meet UK regulatory and professional standards. There are no hidden fees, no paid placements,
                 and no misleading rankings. We continuously refine our matching so that every recommendation is based
                 on fit — not advertising spend.
               </p>
@@ -265,7 +267,9 @@ export default function AboutPage() {
                   </div>
                   <h3 className="text-lg font-semibold mb-3 text-white">Verified for Quality</h3>
                   <p className="text-sm text-white/70 leading-relaxed">
-                    Every clinic is verified by Pearlie for quality care, transparent pricing, and GDC registration.
+                      Every clinic is verified by Pearlie for{" "}
+                    <a href="https://www.gdc-uk.org/registration/the-register" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-white">quality care</a>,
+                    transparent pricing, and GDC registration.
                   </p>
                 </div>
 
@@ -353,6 +357,39 @@ export default function AboutPage() {
                   </AccordionItem>
                 </Accordion>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Pearlie in Numbers — concrete stats */}
+        <section className="py-12 sm:py-20 md:py-28 bg-white">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
+                Pearlie in numbers
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mt-10">
+                <div>
+                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">20+</div>
+                  <p className="text-sm text-muted-foreground mt-2">Verified private clinics across London</p>
+                </div>
+                <div>
+                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">20+</div>
+                  <p className="text-sm text-muted-foreground mt-2">London boroughs covered</p>
+                </div>
+                <div>
+                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">50+</div>
+                  <p className="text-sm text-muted-foreground mt-2">Registered dental professionals</p>
+                </div>
+                <div>
+                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">10+</div>
+                  <p className="text-sm text-muted-foreground mt-2">Treatment categories available</p>
+                </div>
+              </div>
+              <p className="text-muted-foreground mt-8 max-w-2xl mx-auto leading-relaxed">
+                Pearlie is building one of the most transparent private dental networks in the UK — combining verified
+                clinicians, direct messaging, and structured patient matching. Expanding toward 500+ clinics across the UK.
+              </p>
             </div>
           </div>
         </section>
