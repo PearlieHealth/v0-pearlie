@@ -268,7 +268,7 @@ export default function AboutPage() {
                   <h3 className="text-lg font-semibold mb-3 text-white">Verified for Quality</h3>
                   <p className="text-sm text-white/70 leading-relaxed">
                       Every clinic is verified by Pearlie for{" "}
-                    <a href="https://www.gdc-uk.org/registration/the-register" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-white">quality care</a>,
+                    <a href="https://www.cqc.org.uk/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-white">quality care</a>,
                     transparent pricing, and GDC registration.
                   </p>
                 </div>
