@@ -86,30 +86,8 @@ export async function GET(request: Request) {
       }
     }
 
-    // Auto-complete past confirmed appointments (1+ day after booking_date)
-    const completableLeadIds = leads
-      .filter((l) => l.booking_status === "confirmed" && l.booking_date)
-      .filter((l) => {
-        const bookingDate = new Date(l.booking_date + "T00:00:00")
-        const yesterday = new Date()
-        yesterday.setDate(yesterday.getDate() - 1)
-        return bookingDate < yesterday
-      })
-      .map((l) => l.id)
-
-    if (completableLeadIds.length > 0) {
-      await admin
-        .from("leads")
-        .update({ booking_status: "completed", booking_completed_at: new Date().toISOString() })
-        .in("id", completableLeadIds)
-
-      // Update local data to reflect completion
-      for (const lead of leads) {
-        if (completableLeadIds.includes(lead.id)) {
-          lead.booking_status = "completed"
-        }
-      }
-    }
+    // Note: confirmed appointments are NOT auto-completed — only the clinic
+    // can mark an appointment as completed after verifying attendance.
 
     const leadIds = leads.map((l) => l.id)
 

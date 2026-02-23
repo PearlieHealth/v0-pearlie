@@ -31,6 +31,12 @@ export async function POST(request: NextRequest) {
       if (!validTime) {
         return NextResponse.json({ error: "Invalid time slot" }, { status: 400 })
       }
+      // Prevent rescheduling to a past date
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      if (new Date(newDate + "T00:00:00") < today) {
+        return NextResponse.json({ error: "Cannot reschedule to a past date" }, { status: 400 })
+      }
     }
 
     // Auth: verify clinic user
@@ -264,10 +270,9 @@ function formatDateLabel(dateStr: string | null): string {
   if (!dateStr) return "the scheduled date"
   try {
     return new Date(dateStr + "T00:00:00").toLocaleDateString("en-GB", {
-      weekday: "long",
+      weekday: "short",
       day: "numeric",
-      month: "long",
-      year: "numeric",
+      month: "short",
     })
   } catch {
     return dateStr

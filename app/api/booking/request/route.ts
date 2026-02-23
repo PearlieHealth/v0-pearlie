@@ -76,18 +76,35 @@ export async function POST(request: Request) {
     }
 
     // Cap concurrent pending appointment requests per user (max 5)
-    const pendingFilter = lead.user_id
-      ? `user_id.eq.${lead.user_id},email.eq.${lead.email}`
-      : `email.eq.${lead.email}`
-    const { count: pendingCount } = await supabase
+    const pendingQuery = supabase
       .from("leads")
       .select("*", { count: "exact", head: true })
-      .or(pendingFilter)
       .eq("booking_status", "pending")
+    if (lead.user_id) {
+      pendingQuery.eq("user_id", lead.user_id)
+    } else {
+      pendingQuery.eq("email", lead.email)
+    }
+    const { count: pendingCount } = await pendingQuery
 
     if ((pendingCount || 0) >= 5) {
       return NextResponse.json(
         { error: "You can have at most 5 pending appointment requests. Please wait for a response before requesting more." },
+        { status: 429 }
+      )
+    }
+
+    // Limit re-requests to same clinic after repeated declines (max 3)
+    const { count: declineCount } = await supabase
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .eq("email", lead.email)
+      .eq("booking_clinic_id", clinicId)
+      .eq("booking_status", "declined")
+
+    if ((declineCount || 0) >= 3) {
+      return NextResponse.json(
+        { error: "This clinic has declined your previous requests. Please message them directly to discuss." },
         { status: 429 }
       )
     }

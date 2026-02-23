@@ -13,11 +13,13 @@ export function MobileNavMenu() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session)
+      setUserRole(session?.user?.user_metadata?.role || null)
     })
   }, [])
 
@@ -120,7 +122,7 @@ export function MobileNavMenu() {
               className="w-full text-base h-12 rounded-full"
               asChild
             >
-              <Link href={isAuthenticated ? "/patient/dashboard" : "/patient/login"} onClick={() => setOpen(false)}>
+              <Link href={isAuthenticated ? (userRole === "clinic" ? "/clinic" : "/patient/dashboard") : "/patient/login"} onClick={() => setOpen(false)}>
                 My account
               </Link>
             </Button>

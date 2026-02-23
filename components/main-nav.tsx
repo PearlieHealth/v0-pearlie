@@ -13,11 +13,13 @@ export function MainNav() {
   const pathname = usePathname()
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session)
+      setUserRole(session?.user?.user_metadata?.role || null)
     })
   }, [])
 
@@ -99,7 +101,7 @@ export function MainNav() {
           {/* CTA Buttons - Right */}
           <div className="hidden md:flex items-center gap-3">
             <Link
-              href={isAuthenticated ? "/patient/dashboard" : "/patient/login"}
+              href={isAuthenticated ? (userRole === "clinic" ? "/clinic" : "/patient/dashboard") : "/patient/login"}
               className="text-sm font-heading font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
             >
               My account

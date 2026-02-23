@@ -222,6 +222,19 @@ export default function PatientDashboard() {
   // Are we in a "pending chat" (no conversation yet)?
   const isInPendingChat = pendingChatClinic !== null && selectedConvId === null
 
+  // ── Session expiry detection ──────────────────────────────────
+  const [isSessionExpired, setIsSessionExpired] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        setIsSessionExpired(true)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
   // ── Data fetching ────────────────────────────────────────────
 
   useEffect(() => {
@@ -685,6 +698,9 @@ export default function PatientDashboard() {
         })
         setSelectedConvId(null)
         setMessages([])
+      } else if (!activeLeadId) {
+        setChatError("Please complete a search first to message a clinic.")
+        return
       }
     }
 
@@ -855,6 +871,15 @@ export default function PatientDashboard() {
 
   return (
     <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-background flex flex-col">
+      {/* Session expiry banner */}
+      {isSessionExpired && (
+        <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-3 text-center text-sm">
+          <span className="text-destructive font-medium">Your session has expired.</span>{" "}
+          <Link href="/patient/login?next=/patient/dashboard" className="text-destructive underline hover:no-underline">
+            Log in again
+          </Link>
+        </div>
+      )}
       {/* Header */}
       <header className="bg-card border-b sticky top-0 z-50">
         <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
@@ -1353,7 +1378,8 @@ export default function PatientDashboard() {
                   )}
                 </div>
 
-                {/* Quick prompts */}
+                {/* Quick prompts — show until a couple of messages exchanged */}
+                {messages.length <= 2 && (
                 <div className="flex gap-1.5 px-4 py-2 overflow-x-auto flex-shrink-0 border-t border-border/40">
                   {QUICK_PROMPTS.map((prompt) => (
                     <button
@@ -1365,6 +1391,7 @@ export default function PatientDashboard() {
                     </button>
                   ))}
                 </div>
+                )}
 
                 {/* Error feedback */}
                 {chatError && (

@@ -134,8 +134,25 @@ export default function PatientLoginPage() {
       }
 
       setSuccess(true)
-      // Give mobile browsers time to flush cookies before navigation
-      setTimeout(() => router.replace(nextParam || "/patient/dashboard"), 1500)
+      // Poll for cookie persistence before redirecting (faster than fixed delay).
+      // Mobile browsers can be slow to flush cookies after verifyOtp.
+      const dest = nextParam || "/patient/dashboard"
+      const pollStart = Date.now()
+      const pollInterval = setInterval(async () => {
+        try {
+          const { data: { user: polledUser } } = await supabase.auth.getUser()
+          if (polledUser || Date.now() - pollStart > 3000) {
+            clearInterval(pollInterval)
+            router.replace(dest)
+          }
+        } catch {
+          // On error, fallback: redirect after timeout
+          if (Date.now() - pollStart > 3000) {
+            clearInterval(pollInterval)
+            router.replace(dest)
+          }
+        }
+      }, 200)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed")
     } finally {

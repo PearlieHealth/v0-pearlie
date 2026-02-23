@@ -365,7 +365,7 @@ export function BookingCard({
               availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
               acceptsSameDay={clinic.accepts_same_day || false}
               onSelectSlot={(date, time) => {
-                const dateLabel = date.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
+                const dateLabel = date.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
                 const msg = `Hi! I'd like to request an appointment on ${dateLabel} at ${time}. Would this time be available?`
                 setPendingAppointment({ message: msg, dateLabel, timeLabel: time })
               }}
@@ -432,7 +432,7 @@ export function BookingCard({
           {/* Appointment status banner */}
           {(appointmentRequested || bookingStatus === "confirmed" || bookingStatus === "declined" || bookingStatus === "cancelled" || bookingStatus === "completed") && (() => {
             const formattedBookingDate = bookingDate
-              ? new Date(bookingDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
+              ? new Date(bookingDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
               : null
             const formattedBookingTime = bookingTime
               ? (HOURLY_SLOTS.find((s) => s.key === bookingTime)?.label || bookingTime)

@@ -65,16 +65,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // OTP valid — clear it
-    await supabase
-      .from("leads")
-      .update({
-        otp_hash: null,
-        verification_attempts: 0,
-      })
-      .eq("id", leadId)
-
-    // Ensure auth user exists — try creating first (avoids unbounded listUsers())
+    // OTP valid — ensure auth user exists before clearing hash
+    // (If token generation fails, patient can retry with the same code)
     let userId = lead.user_id
     if (!userId && lead.email) {
       try {
@@ -133,6 +125,18 @@ export async function POST(request: NextRequest) {
       } catch (tokenError) {
         console.error("[Patient OTP Verify] Error generating session token:", tokenError)
       }
+    }
+
+    // Only clear OTP hash after session token is confirmed — if token generation
+    // failed, the patient can retry with the same code (attempts + expiry still apply)
+    if (tokenHash) {
+      await supabase
+        .from("leads")
+        .update({
+          otp_hash: null,
+          verification_attempts: 0,
+        })
+        .eq("id", leadId)
     }
 
     return NextResponse.json({
