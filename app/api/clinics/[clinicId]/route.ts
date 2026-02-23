@@ -144,7 +144,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
-    return NextResponse.json({ clinic: publicClinic })
+    return NextResponse.json(
+      { clinic: publicClinic },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+        },
+      },
+    )
   } catch (error) {
     console.error("Error in clinic API:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
