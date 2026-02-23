@@ -55,7 +55,7 @@ export function ClinicProfileContent() {
   const [showChat, setShowChat] = useState(false)
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [showMobilePicker, setShowMobilePicker] = useState(false)
-  const [directLeadId, setDirectLeadId] = useState<string | null>(null)
+  const [directLeadId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("overview")
   const [pendingAppointment, setPendingAppointment] = useState<{
     date: Date
@@ -242,9 +242,8 @@ export function ClinicProfileContent() {
         picker.scrollIntoView({ behavior: "smooth", block: "center" })
       }
     } else {
-      // No lead — open chat/enquiry form instead of redirecting away
-      setShowChat(true)
-      setShowMobileChat(true)
+      // No lead — redirect to intake form
+      router.push("/intake")
     }
   }
 
@@ -663,7 +662,7 @@ export function ClinicProfileContent() {
                     clinicName={clinic.name}
                     isOpen={showChat}
                     onToggle={() => setShowChat(false)}
-                    onLeadCreated={(newLeadId) => setDirectLeadId(newLeadId)}
+                    onLeadCreated={() => {}}
                     leadEmail={lead?.email || null}
                   />
 
@@ -721,7 +720,7 @@ export function ClinicProfileContent() {
                 isOpen={true}
                 onToggle={() => setShowMobileChat(false)}
                 hideHeader
-                onLeadCreated={(newLeadId) => setDirectLeadId(newLeadId)}
+                onLeadCreated={() => {}}
                 leadEmail={lead?.email || null}
               />
             </div>
