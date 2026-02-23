@@ -29,7 +29,7 @@ export default function FAQPage() {
     { question: "Can I compare clinics side by side?", answer: "Pearlie lets you compare clinics side by side — including services offered, pricing indications, patient reviews, clinic photos, and availability. This helps you make an informed decision without needing to call each clinic individually." },
     { question: "What if I don't find the right clinic?", answer: "You can adjust your preferences or submit another match request at any time. Pearlie's network includes 20+ verified private clinics across 20+ London boroughs, representing 50+ dental professionals. We are expanding toward 500+ clinics across the UK over the coming years." },
     { question: "Do clinics pay to appear higher?", answer: "Clinic visibility on Pearlie is based on match relevance and profile completeness — not paid ranking. Clinics cannot pay to appear higher in your results. This ensures recommendations are based on fit, not advertising spend." },
-    { question: "How much does Invisalign cost in London?", answer: "Invisalign costs in London typically range from £2,500 to £5,500 depending on the complexity of your case and the clinic you choose. Pearlie helps you compare Invisalign providers across London so you can see indicative pricing, read reviews, and message clinics directly before committing. All clinics on Pearlie are GDC-registered and verified for quality care." },
+    { question: "How much does Invisalign cost in London?", answer: "Invisalign in London starts from around £2,500 depending on the complexity of your case and the clinic you choose. Pearlie helps you compare Invisalign providers across London so you can see indicative pricing, read reviews, and message clinics directly before committing. All clinics on Pearlie are GDC-registered and verified for quality care." },
     { question: "How do I find a good dentist for dental implants?", answer: "Finding the right dentist for dental implants means looking for a GDC-registered clinician with implant-specific experience, transparent pricing, and strong patient reviews. Pearlie matches you with verified implant providers in London based on your needs, budget, and location — so you can compare options without endless searching." },
     { question: "What should I look for when choosing a cosmetic dentist?", answer: "When choosing a cosmetic dentist, look for GDC registration, before-and-after photos of previous work, transparent pricing, and patient reviews. Pearlie helps you find verified cosmetic dentists across London who specialise in treatments like veneers, composite bonding, and teeth whitening — matched to your specific goals and preferences." },
   ]
@@ -216,7 +216,7 @@ export default function FAQPage() {
                     How much does Invisalign cost in London?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Invisalign costs in London typically range from £2,500 to £5,500 depending on the complexity of your
+                    Invisalign in London starts from around £2,500 depending on the complexity of your
                     case and the clinic you choose. Pearlie helps you compare Invisalign providers across London so you can
                     see indicative pricing, read reviews, and message clinics directly before committing. All clinics on
                     Pearlie are{" "}
