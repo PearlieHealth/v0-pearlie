@@ -31,7 +31,7 @@ export function SiteFooter() {
                 <span className="text-lg font-heading font-bold text-white">Pearlie</span>
               </div>
               <p className="text-sm text-white/60 leading-relaxed">
-                Independent dental matching platform. Helping you find the right clinic, on your terms.
+                Founded in London. UK-founded and operated dental matching platform — helping you find the right clinic, on your terms.
               </p>
             </div>
 
@@ -78,10 +78,10 @@ export function SiteFooter() {
               <ul className="space-y-2.5">
                 <li>
                   <a
-                    href="mailto:hello@pearlie.co.uk"
+                    href="mailto:hello@pearlie.org"
                     className="text-sm text-white/60 hover:text-white transition-colors"
                   >
-                    hello@pearlie.co.uk
+                    hello@pearlie.org
                   </a>
                 </li>
                 <li>
@@ -104,6 +104,8 @@ export function SiteFooter() {
               </p>
               <p className="text-xs text-white/40 text-center sm:text-right max-w-md">
                 Pearlie is an independent matching service. We do not provide dental treatment or medical advice.
+                <br />
+                Pearlie Ltd — Company No. 16234337
               </p>
             </div>
           </div>

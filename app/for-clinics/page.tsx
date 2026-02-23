@@ -2,8 +2,11 @@ import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
-  title: "For Dental Clinics",
-  description: "Join Pearlie to receive matched patients looking for your dental services. Priority placement, quality leads, and zero upfront cost.",
+  title: "For Dental Clinics - Join Pearlie's Network",
+  description: "Join Pearlie to receive matched patients in London and the UK looking for your dental services. Quality leads and zero upfront cost.",
+  alternates: {
+    canonical: "https://pearlie.org/for-clinics",
+  },
 }
 import { Card } from "@/components/ui/card"
 import { ArrowRight, CheckCircle2, X, Star, TrendingUp, Users, Eye } from "lucide-react"
@@ -11,10 +14,15 @@ import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import { ClinicWaitlistForm } from "@/components/clinic-waitlist-form"
 import { SiteFooter } from "@/components/site-footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export default function ForClinicsPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://pearlie.org" },
+        { name: "For Clinics", url: "https://pearlie.org/for-clinics" },
+      ]} />
       <MainNav />
 
       {/* HERO SECTION */}

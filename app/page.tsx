@@ -227,7 +227,7 @@ export default function Home() {
           {/* Hero section — calm, split layout */}
           <section className="relative md:min-h-[70vh] lg:min-h-[100vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:flex lg:flex-col lg:pt-20 lg:pb-0 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
             <div className="px-6 md:px-14 lg:flex-1 lg:flex lg:items-center">
-              <div className="max-w-7xl lg:w-full">
+              <div className="max-w-7xl xl:max-w-[90rem] 2xl:max-w-[100rem] mx-auto lg:w-full">
 
                 {/* Desktop: Text LEFT, Video RIGHT */}
                 <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8 md:gap-14 lg:gap-20">
@@ -555,8 +555,14 @@ export default function Home() {
                       We shortlist.<br />You decide.<br /><span className="text-[#0fbcb0]">With confidence.</span>
                     </h2>
 
+                    <p className="text-lg text-muted-foreground leading-snug mb-4">
+                      Whether you're considering Invisalign, dental implants, composite bonding, veneers, teeth whitening, or
+                      emergency dental care — Pearlie matches you with verified private dental clinics across London.
+                    </p>
                     <p className="text-lg text-muted-foreground leading-snug mb-8">
-                      Every clinic on Pearlie is carefully reviewed for clinical standards, transparency, and patient experience. We focus on quality over quantity — so you only see clinics that meet our standards.
+                      Every clinic is carefully reviewed for clinical standards, transparency, and patient experience. All clinics are verified as{" "}
+                      <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#004443]">GDC-registered</a>.
+                      Our network includes 20+ verified clinics across 20+ London boroughs — and we focus on quality over quantity.
                     </p>
 
                     <div className="space-y-3 mb-10">

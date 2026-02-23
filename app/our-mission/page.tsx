@@ -181,10 +181,11 @@ export default function OurMissionPage() {
                   The Problem
                 </span>
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold tracking-[-0.03em] text-white mb-5 text-balance leading-tight">
-                  Millions across England are struggling to access basic dental care.
+                  Over 13 million adults in England have unmet dental needs.
                 </h1>
                 <p className="text-lg text-white/60 max-w-2xl mx-auto">
-                  These aren&apos;t just statistics — they&apos;re your neighbours, colleagues, and family members.
+                  These aren&apos;t just statistics — they represent real people forced to choose between high private costs,
+                  unsafe self-treatment, or going without care entirely.
                 </p>
               </div>
             </FadeIn>
@@ -331,7 +332,8 @@ export default function OurMissionPage() {
             </FadeIn>
 
             <p className="text-xs text-center text-[#999] mt-6">
-              Data sources: BDA, Ipsos, GOV.UK Adult Oral Health Survey
+              Data sources: BDA, Ipsos, GOV.UK Adult Oral Health Survey |{" "}
+              <a href="https://www.dentalhealth.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#666]">Oral Health Foundation</a>
             </p>
 
             {/* Framing paragraph */}
@@ -521,14 +523,28 @@ export default function OurMissionPage() {
                 And would like to contribute to the development of the Pearlie Care Fund, we would welcome a conversation.
               </p>
 
-              <a
-                href="mailto:hello@pearlie.co.uk"
-                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/20 text-white px-6 py-3 rounded-full font-medium transition-all hover:border-white/30"
-              >
-                <Mail className="w-4 h-4" />
-                Contact us
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </a>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <a
+                  href="mailto:hello@pearlie.org"
+                  className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/20 text-white px-6 py-3 rounded-full font-medium transition-all hover:border-white/30"
+                >
+                  <Mail className="w-4 h-4" />
+                  Contact us
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </a>
+                <a
+                  href="/about"
+                  className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white px-6 py-3 rounded-full font-medium transition-all hover:border-white/20"
+                >
+                  About Pearlie
+                </a>
+                <a
+                  href="/faq"
+                  className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white px-6 py-3 rounded-full font-medium transition-all hover:border-white/20"
+                >
+                  FAQ
+                </a>
+              </div>
             </div>
           </FadeIn>
         </div>

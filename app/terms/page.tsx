@@ -1,28 +1,34 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import { MainNav } from "@/components/main-nav"
+import { SiteFooter } from "@/components/site-footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export const metadata: Metadata = {
   title: "Terms of Service",
   description: "Pearlie terms of service — the rules and guidelines for using our dental clinic matching platform.",
+  alternates: {
+    canonical: "https://pearlie.org/terms",
+  },
+  openGraph: {
+    title: "Terms of Service | Pearlie",
+    description: "Terms and conditions for using Pearlie's dental clinic matching platform.",
+    url: "https://pearlie.org/terms",
+  },
 }
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card sticky top-0 z-40">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="text-2xl font-semibold tracking-tight">Pearlie</div>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://pearlie.org" },
+        { name: "Terms of Service", url: "https://pearlie.org/terms" },
+      ]} />
+      <MainNav />
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-28">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-bold mb-4">Terms of Use</h1>
-          <p className="text-muted-foreground mb-8">Last updated: {new Date().toLocaleDateString("en-GB")}</p>
+          <p className="text-muted-foreground mb-8">Last updated: 15/01/2025</p>
 
           <div className="prose prose-slate max-w-none space-y-8">
             <section>
@@ -153,6 +159,8 @@ export default function TermsPage() {
           </div>
         </div>
       </main>
+
+      <SiteFooter />
     </div>
   )
 }

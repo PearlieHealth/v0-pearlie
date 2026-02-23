@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { Shield, ShieldCheck, CheckCircle2, Heart, Users, MessageCircle, BadgeCheck } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -6,16 +7,28 @@ import Image from "next/image"
 import { MainNav } from "@/components/main-nav"
 import { ClinicNetworkCarousel } from "@/components/clinic-network-carousel"
 import { SiteFooter } from "@/components/site-footer"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
-export const metadata = {
-  title: "About Pearlie | Independent Dental Matching Platform",
-  description:
-    "Learn about Pearlie, an independent dental matching platform helping patients find the right dental clinic quickly, transparently, and without pressure.",
+export const metadata: Metadata = {
+  title: "About Pearlie - Independent Dental Clinic Matching",
+  description: "Pearlie is an independent dental matching platform founded by Dr Grei Muskaj. We help patients find trusted, GDC-registered clinics — free, transparent, and without pressure.",
+  alternates: {
+    canonical: "https://pearlie.org/about",
+  },
+  openGraph: {
+    title: "About Pearlie - Independent Dental Clinic Matching",
+    description: "Pearlie is an independent dental matching platform helping patients find trusted, GDC-registered clinics across the UK.",
+    url: "https://pearlie.org/about",
+  },
 }
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://pearlie.org" },
+        { name: "About", url: "https://pearlie.org/about" },
+      ]} />
       <MainNav />
 
       <main>
@@ -24,11 +37,11 @@ export default function AboutPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-3xl sm:text-5xl md:text-7xl font-heading font-bold tracking-[-0.03em] mb-6 sm:mb-8 text-white text-balance">
-                Find the right dental clinic for you
+                Built to bring clarity to dental care
               </h1>
               <p className="text-xl md:text-2xl text-white/75 leading-relaxed max-w-3xl mx-auto">
-                Pearlie is an independent dental matching platform designed to help people find the right dental clinic
-                for their needs — quickly, transparently, and without pressure.
+                Pearlie is an independent dental matching platform founded in London by a dentist who saw how difficult
+                it was for patients to navigate private dental care with confidence.
               </p>
             </div>
           </div>
@@ -42,8 +55,9 @@ export default function AboutPage() {
                 Our clinic network
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Pearlie partners with independent, trusted dental clinics across the UK. All clinics are verified,
-                GDC-registered, and committed to providing quality patient care.
+                Pearlie partners with independent, trusted dental clinics across the UK. All clinics are verified,{" "}
+                <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#004443]">GDC-registered</a>,
+                and committed to providing quality patient care.
               </p>
             </div>
           </div>
@@ -133,16 +147,27 @@ export default function AboutPage() {
                 </p>
               </div>
 
+              {/* Founder quote — GEO: citable pull quote with attribution */}
+              <blockquote className="mt-10 sm:mt-14 border-l-4 border-[#0fbcb0] pl-6 py-2 max-w-3xl mx-auto">
+                <p className="text-lg sm:text-xl text-foreground italic leading-relaxed">
+                  &ldquo;Private dentistry should be transparent, accessible, and centred around patient confidence. Pearlie was created to bridge the gap between high-quality clinicians and patients who value clarity and trust.&rdquo;
+                </p>
+                <footer className="mt-3 text-sm text-muted-foreground">
+                  — Dr Grei Muskaj, BDS, PGCert, Founder of Pearlie
+                </footer>
+              </blockquote>
+
               {/* Founder signature */}
               <div className="mt-12 sm:mt-16 text-center">
                 <Image
                   src="/dr-grei-mustaj-signature.png"
-                  alt="Founder signature"
+                  alt="Dr Grei Muskaj signature"
                   width={400}
                   height={100}
                   className="h-12 w-auto opacity-80 mx-auto"
                 />
-                <p className="text-sm text-muted-foreground mt-3">Founder &amp; CEO</p>
+                <p className="text-base font-semibold text-foreground mt-3">Dr Grei Muskaj, BDS, PGCert</p>
+                <p className="text-sm text-muted-foreground mt-1">Founder &amp; CEO, Pearlie</p>
               </div>
             </div>
           </div>
@@ -156,7 +181,9 @@ export default function AboutPage() {
                 Our commitment
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-                Every clinic on Pearlie is verified and GDC-registered. There are no hidden fees, no paid placements,
+                All clinics listed on Pearlie are independently verified and confirmed as registered with the{" "}
+                <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#004443]">General Dental Council (GDC)</a>,
+                ensuring they meet UK regulatory and professional standards. There are no hidden fees, no paid placements,
                 and no misleading rankings. We continuously refine our matching so that every recommendation is based
                 on fit — not advertising spend.
               </p>
@@ -166,6 +193,57 @@ export default function AboutPage() {
 
         {/* Our Promise: Pearlie Guarantee — dark teal background */}
         <section id="pearlie-guarantee" className="py-12 sm:py-20 md:py-28 bg-[#004443]">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: [
+                  {
+                    "@type": "Question",
+                    name: "What does the Pearlie Guarantee cover?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "The Pearlie Guarantee covers two things: first, that every clinic listed on our platform has been verified for quality care and GDC registration. Second, if your experience with a Pearlie-matched clinic doesn't meet your expectations, we'll cover the cost of your next consultation or check-up at another clinic.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "How do I claim the Satisfaction Promise?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "Simply contact us at hello@pearlie.org within 30 days of your appointment. Let us know what happened and we'll arrange your next consultation or check-up fee at no cost to you.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "Does the guarantee apply to all treatments?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "The Satisfaction Promise applies to your initial consultation or check-up booked through Pearlie. It does not cover the outcome of specific clinical treatments, which are the responsibility of the treating clinic. However, every clinic on Pearlie must meet our quality standards.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "How are clinics verified?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "We check that every clinic is GDC-registered, has positive patient feedback, and offers transparent pricing. Clinics that don't meet our standards are not listed. We review our network on an ongoing basis to maintain quality.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "Is there a cost to use the Pearlie Guarantee?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "No. The Pearlie Guarantee is included for every patient who books through our platform. There are no hidden fees or extra charges.",
+                    },
+                  },
+                ],
+              }),
+            }}
+          />
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               {/* Section header */}
@@ -189,7 +267,9 @@ export default function AboutPage() {
                   </div>
                   <h3 className="text-lg font-semibold mb-3 text-white">Verified for Quality</h3>
                   <p className="text-sm text-white/70 leading-relaxed">
-                    Every clinic is verified by Pearlie for quality care, transparent pricing, and GDC registration.
+                      Every clinic is verified by Pearlie for{" "}
+                    <a href="https://www.cqc.org.uk/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-white">quality care</a>,
+                    transparent pricing, and GDC registration.
                   </p>
                 </div>
 
@@ -238,7 +318,7 @@ export default function AboutPage() {
                     </AccordionTrigger>
                     <AccordionContent className="text-white/70 leading-relaxed">
                       Simply contact us at{" "}
-                      <a href="mailto:hello@pearlie.co.uk" className="text-[#0fbcb0] hover:underline">hello@pearlie.co.uk</a>{" "}
+                      <a href="mailto:hello@pearlie.org" className="text-[#0fbcb0] hover:underline">hello@pearlie.org</a>{" "}
                       within 30 days of your appointment. Let us know what happened and we&apos;ll arrange your next
                       consultation or check-up fee at no cost to you.
                     </AccordionContent>
@@ -281,6 +361,39 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* Pearlie in Numbers — concrete stats */}
+        <section className="py-12 sm:py-20 md:py-28 bg-white">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
+                Pearlie in numbers
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mt-10">
+                <div>
+                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">20+</div>
+                  <p className="text-sm text-muted-foreground mt-2">Verified private clinics across London</p>
+                </div>
+                <div>
+                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">20+</div>
+                  <p className="text-sm text-muted-foreground mt-2">London boroughs covered</p>
+                </div>
+                <div>
+                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">50+</div>
+                  <p className="text-sm text-muted-foreground mt-2">Registered dental professionals</p>
+                </div>
+                <div>
+                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">10+</div>
+                  <p className="text-sm text-muted-foreground mt-2">Treatment categories available</p>
+                </div>
+              </div>
+              <p className="text-muted-foreground mt-8 max-w-2xl mx-auto leading-relaxed">
+                Pearlie is building one of the most transparent private dental networks in the UK — combining verified
+                clinicians, direct messaging, and structured patient matching. Expanding toward 500+ clinics across the UK.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section — cream background, single clear action */}
         <section className="py-12 sm:py-20 md:py-28 bg-[#faf3e6]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -298,6 +411,14 @@ export default function AboutPage() {
               >
                 <Link href="/intake">Get my clinic matches</Link>
               </Button>
+              <div className="flex flex-wrap gap-3 justify-center mt-6">
+                <Button size="lg" variant="outline" className="rounded-full border-[#004443]/20 text-[#004443]" asChild>
+                  <Link href="/faq">Read our FAQ</Link>
+                </Button>
+                <Button size="lg" variant="outline" className="rounded-full border-[#004443]/20 text-[#004443]" asChild>
+                  <Link href="/our-mission">Our Mission</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </section>

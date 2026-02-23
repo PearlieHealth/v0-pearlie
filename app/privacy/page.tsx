@@ -1,15 +1,28 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { MobileNavMenu } from "@/components/mobile-nav-menu"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "Pearlie privacy policy — how we collect, use, and protect your personal data.",
+  alternates: {
+    canonical: "https://pearlie.org/privacy",
+  },
+  openGraph: {
+    title: "Privacy Policy | Pearlie",
+    description: "How Pearlie collects, uses, and protects your personal data under UK GDPR.",
+    url: "https://pearlie.org/privacy",
+  },
 }
 
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-[#f8f7f4]">
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://pearlie.org" },
+        { name: "Privacy Policy", url: "https://pearlie.org/privacy" },
+      ]} />
       <header className="border-b border-stone-200 bg-white sticky top-0 z-40">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
@@ -36,7 +49,7 @@ export default function PrivacyPage() {
         <div className="max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold text-stone-900 mb-2">Privacy Policy</h1>
           <p className="text-stone-500 mb-10">
-            Last updated: {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+            Last updated: 15 January 2025
           </p>
 
           <p className="text-stone-700 leading-relaxed mb-10">
