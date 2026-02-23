@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { HelpCircle } from "lucide-react"
 import Link from "next/link"
@@ -6,20 +7,28 @@ import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
+export const metadata: Metadata = {
+  title: "FAQ - Frequently Asked Questions",
+  description: "Common questions about Pearlie's free dental clinic matching service. Learn how clinics are selected, how pricing works, and how your data is protected under UK GDPR.",
+  alternates: {
+    canonical: "https://pearlie.org/faq",
+  },
+}
+
 export default function FAQPage() {
   const faqItems = [
-    { question: "Is Pearlie free to use?", answer: "Yes. Pearlie is free for patients. There is no obligation to book or proceed with any clinic." },
-    { question: "Does Pearlie provide dental advice?", answer: "No. Pearlie does not provide dental or medical advice. All diagnosis, treatment planning, and clinical care are provided by independent dental clinics." },
-    { question: "How are clinics selected?", answer: "Clinics are selected based on practical factors such as location, services offered, availability, and suitability for your preferences. Not all clinics in an area are listed." },
-    { question: "Do I have to book with a clinic?", answer: "No. You are under no obligation to book or contact any clinic shown. Pearlie simply helps you explore suitable options." },
-    { question: "How does Pearlie make money?", answer: "Pearlie may receive a fee from clinics when a patient chooses to book following an introduction. Patients are never charged for using Pearlie." },
-    { question: "Are prices guaranteed?", answer: "No. Any pricing information shown is indicative only. Final treatment costs are discussed and agreed directly with the clinic." },
-    { question: "Does Pearlie replace my dentist?", answer: "No. Pearlie helps you find a clinic — it does not replace ongoing dental care or existing dentist relationships." },
-    { question: "What happens to my data?", answer: "Your data is used only to provide matching and is handled in line with our Privacy Policy. You can request deletion at any time." },
-    { question: "Is Pearlie part of the NHS?", answer: "No. Pearlie is an independent, private service and is not affiliated with, endorsed by, or connected to the National Health Service (NHS). Clinics listed on Pearlie are private dental practices." },
-    { question: "Can I compare clinics side by side?", answer: "Yes. You can review pricing, services, photos, reviews, and availability before deciding." },
-    { question: "What if I don't find the right clinic?", answer: "You can adjust your preferences or submit another match request. Pearlie is continuously expanding its clinic network." },
-    { question: "Do clinics pay to appear higher?", answer: "No. Clinic visibility is based on match relevance and profile completeness — not paid ranking." },
+    { question: "Is Pearlie free to use?", answer: "Yes. Pearlie is completely free for patients. There are no sign-up fees, subscription charges, or hidden costs. You are under no obligation to book or proceed with any clinic you are matched with." },
+    { question: "Does Pearlie provide dental advice?", answer: "No. Pearlie does not provide dental or medical advice. All diagnosis, treatment planning, and clinical care are provided by independent dental clinics. For general dental health information, visit the NHS dental health pages." },
+    { question: "How are clinics selected?", answer: "Clinics are selected based on practical factors such as location, services offered, availability, and suitability for your preferences. Every clinic on Pearlie is verified as registered with the General Dental Council (GDC), the UK's dental regulator. Not all clinics in an area are listed — we focus on quality over quantity." },
+    { question: "Do I have to book with a clinic?", answer: "No. You are under no obligation to book or contact any clinic shown. Pearlie simply helps you explore suitable options. You can compare clinics, ask questions via chat, and decide in your own time." },
+    { question: "How does Pearlie make money?", answer: "Pearlie may receive a fee from clinics when a patient chooses to book following an introduction. This is how we keep the service free for patients. Importantly, clinic fees do not influence which clinics are recommended — matching is based on relevance and fit." },
+    { question: "Are prices guaranteed?", answer: "No. Any pricing information shown on Pearlie is indicative only and provided by the clinics themselves. Final treatment costs are always discussed and agreed directly between you and the clinic before any treatment begins." },
+    { question: "Does Pearlie replace my dentist?", answer: "No. Pearlie helps you find a clinic — it does not replace ongoing dental care or existing dentist relationships. If you already have a dentist you trust, Pearlie can still be useful when seeking a second opinion or specialist treatment." },
+    { question: "What happens to my data?", answer: "Your data is used only to provide the matching service and is handled in line with our Privacy Policy and UK GDPR. Clinics only see your details when you choose to contact them. You can request data deletion at any time by emailing privacy@pearlie.org." },
+    { question: "Is Pearlie part of the NHS?", answer: "No. Pearlie is an independent, private service and is not affiliated with, endorsed by, or connected to the National Health Service (NHS). Clinics listed on Pearlie are private dental practices. If you are looking for NHS dental services, visit the NHS Find a Dentist tool." },
+    { question: "Can I compare clinics side by side?", answer: "Yes. Pearlie lets you compare clinics side by side — including services offered, pricing indications, patient reviews, clinic photos, and availability. This helps you make an informed decision without needing to call each clinic individually." },
+    { question: "What if I don't find the right clinic?", answer: "You can adjust your preferences or submit another match request at any time. Pearlie is continuously expanding its clinic network across London and the wider UK to offer more options." },
+    { question: "Do clinics pay to appear higher?", answer: "No. Clinic visibility on Pearlie is based on match relevance and profile completeness — not paid ranking. Clinics cannot pay to appear higher in your results. This ensures recommendations are based on fit, not advertising spend." },
   ]
 
   return (
@@ -63,7 +72,8 @@ export default function FAQPage() {
                     Is Pearlie free to use?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes. Pearlie is free for patients. There is no obligation to book or proceed with any clinic.
+                    Yes. Pearlie is completely free for patients. There are no sign-up fees, subscription charges, or
+                    hidden costs. You are under no obligation to book or proceed with any clinic you are matched with.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -73,7 +83,11 @@ export default function FAQPage() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     No. Pearlie does not provide dental or medical advice. All diagnosis, treatment planning, and
-                    clinical care are provided by independent dental clinics.
+                    clinical care are provided by independent dental clinics. For general dental health information,
+                    visit the{" "}
+                    <a href="https://www.nhs.uk/live-well/healthy-teeth-and-gums/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      NHS dental health pages
+                    </a>.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -83,7 +97,10 @@ export default function FAQPage() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     Clinics are selected based on practical factors such as location, services offered, availability,
-                    and suitability for your preferences. Not all clinics in an area are listed.
+                    and suitability for your preferences. Every clinic on Pearlie is verified as registered with the{" "}
+                    <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      General Dental Council (GDC)
+                    </a>, the UK&apos;s dental regulator. Not all clinics in an area are listed — we focus on quality over quantity.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -93,7 +110,7 @@ export default function FAQPage() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     No. You are under no obligation to book or contact any clinic shown. Pearlie simply helps you
-                    explore suitable options.
+                    explore suitable options. You can compare clinics, ask questions via chat, and decide in your own time.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -103,7 +120,8 @@ export default function FAQPage() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     Pearlie may receive a fee from clinics when a patient chooses to book following an introduction.
-                    Patients are never charged for using Pearlie.
+                    This is how we keep the service free for patients. Importantly, clinic fees do not influence which
+                    clinics are recommended — matching is based on relevance and fit.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -112,8 +130,9 @@ export default function FAQPage() {
                     Are prices guaranteed?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    No. Any pricing information shown is indicative only. Final treatment costs are discussed and agreed
-                    directly with the clinic.
+                    No. Any pricing information shown on Pearlie is indicative only and provided by the clinics
+                    themselves. Final treatment costs are always discussed and agreed directly between you and the clinic
+                    before any treatment begins.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -123,7 +142,8 @@ export default function FAQPage() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     No. Pearlie helps you find a clinic — it does not replace ongoing dental care or existing dentist
-                    relationships.
+                    relationships. If you already have a dentist you trust, Pearlie can still be useful when seeking a
+                    second opinion or specialist treatment.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -132,8 +152,11 @@ export default function FAQPage() {
                     What happens to my data?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Your data is used only to provide matching and is handled in line with our Privacy Policy. You can
-                    request deletion at any time.
+                    Your data is used only to provide the matching service and is handled in line with our{" "}
+                    <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>{" "}
+                    and UK GDPR. Clinics only see your details when you choose to contact them. You can request data
+                    deletion at any time by emailing{" "}
+                    <a href="mailto:privacy@pearlie.org" className="text-primary hover:underline">privacy@pearlie.org</a>.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -156,7 +179,9 @@ export default function FAQPage() {
                     Can I compare clinics side by side?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes. You can review pricing, services, photos, reviews, and availability before deciding.
+                    Yes. Pearlie lets you compare clinics side by side — including services offered, pricing indications,
+                    patient reviews, clinic photos, and availability. This helps you make an informed decision without
+                    needing to call each clinic individually.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -165,8 +190,8 @@ export default function FAQPage() {
                     What if I don't find the right clinic?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    You can adjust your preferences or submit another match request. Pearlie is continuously expanding
-                    its clinic network.
+                    You can adjust your preferences or submit another match request at any time. Pearlie is continuously
+                    expanding its clinic network across London and the wider UK to offer more options.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -175,7 +200,9 @@ export default function FAQPage() {
                     Do clinics pay to appear higher?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    No. Clinic visibility is based on match relevance and profile completeness — not paid ranking.
+                    No. Clinic visibility on Pearlie is based on match relevance and profile completeness — not paid
+                    ranking. Clinics cannot pay to appear higher in your results. This ensures recommendations are based
+                    on fit, not advertising spend.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>

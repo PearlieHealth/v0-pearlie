@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { Shield, ShieldCheck, CheckCircle2, Heart, Users, MessageCircle, BadgeCheck } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -7,6 +8,19 @@ import { MainNav } from "@/components/main-nav"
 import { ClinicNetworkCarousel } from "@/components/clinic-network-carousel"
 import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
+
+export const metadata: Metadata = {
+  title: "About Pearlie - Independent Dental Clinic Matching",
+  description: "Pearlie is an independent dental matching platform founded by Dr Grei Mustaj. We help patients find trusted, GDC-registered clinics — free, transparent, and without pressure.",
+  alternates: {
+    canonical: "https://pearlie.org/about",
+  },
+  openGraph: {
+    title: "About Pearlie - Independent Dental Clinic Matching",
+    description: "Pearlie is an independent dental matching platform helping patients find trusted, GDC-registered clinics across the UK.",
+    url: "https://pearlie.org/about",
+  },
+}
 
 export default function AboutPage() {
   return (
@@ -41,8 +55,9 @@ export default function AboutPage() {
                 Our clinic network
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Pearlie partners with independent, trusted dental clinics across the UK. All clinics are verified,
-                GDC-registered, and committed to providing quality patient care.
+                Pearlie partners with independent, trusted dental clinics across the UK. All clinics are verified,{" "}
+                <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#004443]">GDC-registered</a>,
+                and committed to providing quality patient care.
               </p>
             </div>
           </div>
@@ -132,6 +147,16 @@ export default function AboutPage() {
                 </p>
               </div>
 
+              {/* Founder quote — GEO: citable pull quote with attribution */}
+              <blockquote className="mt-10 sm:mt-14 border-l-4 border-[#0fbcb0] pl-6 py-2 max-w-3xl mx-auto">
+                <p className="text-lg sm:text-xl text-foreground italic leading-relaxed">
+                  &ldquo;Choosing a dentist shouldn&apos;t feel like guesswork. Every patient deserves clear information, honest comparisons, and the confidence to make the right decision for their health.&rdquo;
+                </p>
+                <footer className="mt-3 text-sm text-muted-foreground">
+                  — Dr Grei Mustaj, BDS, Founder of Pearlie
+                </footer>
+              </blockquote>
+
               {/* Founder signature */}
               <div className="mt-12 sm:mt-16 text-center">
                 <Image
@@ -141,7 +166,7 @@ export default function AboutPage() {
                   height={100}
                   className="h-12 w-auto opacity-80 mx-auto"
                 />
-                <p className="text-base font-semibold text-foreground mt-3">Dr Grei Mustaj</p>
+                <p className="text-base font-semibold text-foreground mt-3">Dr Grei Mustaj, BDS</p>
                 <p className="text-sm text-muted-foreground mt-1">Founder &amp; CEO, Pearlie</p>
               </div>
             </div>

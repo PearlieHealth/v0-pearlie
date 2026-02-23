@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://pearlie.org/terms",
   },
+  openGraph: {
+    title: "Terms of Service | Pearlie",
+    description: "Terms and conditions for using Pearlie's dental clinic matching platform.",
+    url: "https://pearlie.org/terms",
+  },
 }
 
 export default function TermsPage() {

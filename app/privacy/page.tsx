@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://pearlie.org/privacy",
   },
+  openGraph: {
+    title: "Privacy Policy | Pearlie",
+    description: "How Pearlie collects, uses, and protects your personal data under UK GDPR.",
+    url: "https://pearlie.org/privacy",
+  },
 }
 
 export default function PrivacyPage() {

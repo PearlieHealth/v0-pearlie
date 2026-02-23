@@ -6,9 +6,14 @@ import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export const metadata: Metadata = {
   title: "Cookie Policy",
-  description: "Manage your cookie preferences on Pearlie.",
+  description: "Learn how Pearlie uses cookies for essential functionality, analytics, and marketing. Manage your preferences and control which optional cookies are active.",
   alternates: {
     canonical: "https://pearlie.org/cookies",
+  },
+  openGraph: {
+    title: "Cookie Policy | Pearlie",
+    description: "Learn how Pearlie uses cookies and manage your cookie preferences.",
+    url: "https://pearlie.org/cookies",
   },
 }
 

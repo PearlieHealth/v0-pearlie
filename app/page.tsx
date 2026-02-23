@@ -250,7 +250,9 @@ export default function Home() {
                 </h2>
 
                 <p className="text-lg text-muted-foreground leading-snug mb-8">
-                  Every clinic on Pearlie is carefully reviewed for clinical standards, transparency, and patient experience. We focus on quality over quantity — so you only see clinics that meet our standards.
+                  Every clinic on Pearlie is carefully reviewed for clinical standards, transparency, and patient experience. All clinics are verified as{" "}
+                  <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#004443]">GDC-registered</a>.
+                  We focus on quality over quantity — so you only see clinics that meet our standards.
                 </p>
 
                 <div className="space-y-3 mb-10">

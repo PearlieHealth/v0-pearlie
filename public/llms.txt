@@ -1,19 +1,58 @@
 # Pearlie — Dental Clinic Matching Platform
 
-> Pearlie is an independent dental clinic matching platform that helps patients in the UK find the right dental clinic for their needs — quickly, transparently, and without pressure.
+> Pearlie is an independent dental clinic matching platform that helps patients in the UK find the right dental clinic for their needs — quickly, transparently, and without pressure. Founded by Dr Grei Mustaj, BDS.
 
 ## What Pearlie Does
 
-Pearlie matches patients with trusted, GDC-registered dental clinics based on treatment needs, location, budget, and personal preferences. The service is free for patients. Clinics do not pay to appear higher in results — matching is based on relevance and fit.
+Pearlie matches patients with trusted, GDC-registered dental clinics based on treatment needs, location, budget, and personal preferences. The service is free for patients. Clinics do not pay to appear higher in results — matching is based on relevance and fit, not advertising spend.
 
 ## Key Facts
 
-- Free for patients, no obligation to book
+- Free for patients — no sign-up fees, subscription charges, or hidden costs
 - Independent — does not own or operate dental clinics
-- All listed clinics are GDC-registered and verified
+- All listed clinics are verified as registered with the General Dental Council (GDC)
 - Covers private dental treatments including Invisalign, dental implants, veneers, teeth whitening, composite bonding, and general dentistry
 - Primarily serves patients in London and across the UK
-- Founded by Dr Grei Mustaj
+- Founded by Dr Grei Mustaj, BDS
+- Backed by the Pearlie Guarantee — if your experience doesn't meet expectations, Pearlie covers your next consultation fee
+
+## How It Works
+
+1. Patient completes a short intake form describing treatment needs, location, and preferences
+2. Pearlie matches the patient with suitable dental clinics from its verified network
+3. Patient reviews clinic profiles, compares options side by side, and contacts clinics directly
+4. Patient can chat with clinics, ask questions, and book only when ready — no obligation
+
+## Frequently Asked Questions
+
+### Is Pearlie free to use?
+Yes. Pearlie is completely free for patients. There are no sign-up fees, subscription charges, or hidden costs. You are under no obligation to book or proceed with any clinic you are matched with.
+
+### How are clinics selected?
+Clinics are selected based on location, services offered, availability, and suitability for patient preferences. Every clinic is verified as registered with the General Dental Council (GDC). Pearlie focuses on quality over quantity — not all clinics in an area are listed.
+
+### Does Pearlie provide dental advice?
+No. Pearlie does not provide dental or medical advice. All diagnosis, treatment planning, and clinical care are provided by independent dental clinics.
+
+### How does Pearlie make money?
+Pearlie may receive a fee from clinics when a patient books following an introduction. Clinic fees do not influence which clinics are recommended — matching is based on relevance and fit.
+
+### Is Pearlie part of the NHS?
+No. Pearlie is an independent, private service and is not affiliated with the NHS. Clinics listed on Pearlie are private dental practices.
+
+### Do clinics pay to appear higher?
+No. Clinic visibility is based on match relevance and profile completeness — not paid ranking.
+
+### What happens to my data?
+Patient data is used only for the matching service and handled under UK GDPR. Clinics only see details when the patient chooses to contact them. Data deletion can be requested at any time.
+
+## The Pearlie Guarantee
+
+Every clinic on Pearlie is verified for quality care, transparent pricing, and GDC registration. If a patient's experience with a Pearlie-matched clinic doesn't meet expectations, Pearlie covers the cost of the next consultation or check-up at another clinic. The guarantee is included at no extra cost for every patient who books through Pearlie.
+
+## About the Founder
+
+Pearlie was founded by Dr Grei Mustaj, BDS — a dentist who recognised that patients often struggle to find the right clinic among too many options, mixed opinions, and unclear pricing. Pearlie was built to bring clarity and confidence to that decision.
 
 ## Pages
 
@@ -26,16 +65,6 @@ Pearlie matches patients with trusted, GDC-registered dental clinics based on tr
 - Privacy Policy: https://pearlie.org/privacy
 - Terms of Use: https://pearlie.org/terms
 - Cookie Policy: https://pearlie.org/cookies
-
-## How It Works
-
-1. Patient completes a short intake form describing treatment needs, location, and preferences
-2. Pearlie matches the patient with suitable dental clinics from its verified network
-3. Patient reviews clinic profiles, compares options, and contacts clinics directly
-
-## The Pearlie Guarantee
-
-Every clinic on Pearlie is verified for quality care, transparent pricing, and GDC registration. If a patient's experience with a Pearlie-matched clinic doesn't meet expectations, Pearlie covers the cost of the next consultation or check-up at another clinic.
 
 ## Contact
 
