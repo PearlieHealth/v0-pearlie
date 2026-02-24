@@ -4,7 +4,6 @@ import { createRateLimiter } from "@/lib/rate-limit"
 import { escapeHtml } from "@/lib/escape-html"
 import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
-import { getAppUrl } from "@/lib/clinic-url"
 
 // Rate limiters: per-IP and per-email
 const ipLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, maxAttempts: 10 })
@@ -55,7 +54,7 @@ export async function POST(request: NextRequest) {
     emailLimiter.record(normalizedEmail)
 
     const supabase = createAdminClient()
-    const appUrl = getAppUrl()
+    const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
 
     // Validate the next parameter against allowed prefixes
     const ALLOWED_PREFIXES = ["/clinic", "/intake", "/patient", "/match", "/admin", "/booking"]

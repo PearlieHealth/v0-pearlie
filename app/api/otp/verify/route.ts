@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyOTPHash, isOTPExpired } from "@/lib/otp/generate"
 import { sendEmailWithRetry } from "@/lib/email-send"
 import { EMAIL_FROM } from "@/lib/email-config"
-import { portalUrl, getAppUrl } from "@/lib/clinic-url"
+import { portalUrl } from "@/lib/clinic-url"
 import { escapeHtml } from "@/lib/escape-html"
 
 export async function POST(request: NextRequest) {
@@ -210,7 +210,7 @@ async function sendDirectLeadClinicNotification(
   const recipientEmail = clinic.notification_email || clinic.email
   if (!recipientEmail) return
 
-  const appUrl = getAppUrl()
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
   const safeName = escapeHtml(`${lead.first_name || ""} ${lead.last_name || ""}`.trim() || "A patient")
   const safeTreatment = escapeHtml(lead.treatment_interest || "Not specified")
   const safeEmail = escapeHtml(lead.email || "")

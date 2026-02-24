@@ -11,7 +11,6 @@
 
 import { sendEmailWithRetry } from "@/lib/email-send"
 import { EMAIL_FROM } from "@/lib/email-config"
-import { getAppUrl } from "@/lib/clinic-url"
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -381,7 +380,7 @@ function sendEscalationEmail(
   const intro = isEmergency
     ? `A patient has flagged a potential emergency in their conversation with <strong>${clinicName || "your clinic"}</strong>.`
     : `A patient has raised a complaint in their conversation with <strong>${clinicName || "your clinic"}</strong>.`
-  const inboxUrl = `${appUrl || getAppUrl()}/clinic/inbox`
+  const inboxUrl = `${appUrl || "https://pearlie.org"}/clinic/inbox`
 
   sendEmailWithRetry({
     from: EMAIL_FROM.NOTIFICATIONS,

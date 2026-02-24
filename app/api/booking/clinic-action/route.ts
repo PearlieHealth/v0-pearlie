@@ -6,7 +6,6 @@ import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
 import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
 import { HOURLY_SLOTS } from "@/lib/constants"
-import { getAppUrl } from "@/lib/clinic-url"
 
 const VALID_ACTIONS = ["confirm", "reschedule", "decline", "cancel"] as const
 type Action = (typeof VALID_ACTIONS)[number]
@@ -372,7 +371,7 @@ async function sendPatientNotificationEmail({
   newTime?: string
   reason?: string
 }) {
-  const appUrl = getAppUrl()
+  const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
   const dashboardPath = "/patient/dashboard"
   const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(dashboardPath)}`
   let viewUrl = `${appUrl}${dashboardPath}`

@@ -3,7 +3,6 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { sendEmailWithRetry } from "@/lib/email-send"
 import { EMAIL_FROM } from "@/lib/email-config"
 import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
-import { getAppUrl } from "@/lib/clinic-url"
 
 const BATCH_SIZE = 10
 
@@ -84,7 +83,7 @@ export async function GET(request: Request) {
         const clinicCount = match.clinic_ids?.length || 0
         const firstName = lead.first_name || "there"
         const postcode = lead.postcode || "your area"
-        const appUrl = getAppUrl()
+        const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
         const matchPath = `/match/${match.id}`
         const matchUrl = `${appUrl}${matchPath}`
 

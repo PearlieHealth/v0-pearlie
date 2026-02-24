@@ -7,7 +7,6 @@ import { EMAIL_FROM } from "@/lib/email-config"
 import { HOURLY_SLOTS } from "@/lib/constants"
 import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
 import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
-import { getAppUrl } from "@/lib/clinic-url"
 
 // 10 booking requests per IP per hour
 const bookingIpLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, maxAttempts: 10 })
@@ -279,7 +278,7 @@ export async function POST(request: Request) {
             const { data: linkData } = await supabase.auth.admin.generateLink({
               type: "magiclink",
               email: lead.email,
-              options: { redirectTo: `${getAppUrl()}/auth/callback?next=${encodeURIComponent("/patient/dashboard")}` },
+              options: { redirectTo: `${process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"}/auth/callback?next=${encodeURIComponent("/patient/dashboard")}` },
             })
             if (linkData?.properties?.hashed_token) {
               duplicateTokenHash = linkData.properties.hashed_token
@@ -350,7 +349,7 @@ export async function POST(request: Request) {
 
     // Send confirmation email to patient (non-blocking)
     if (lead.email) {
-      const appUrl = getAppUrl()
+      const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
       const timeLabel = HOURLY_SLOTS?.find((s: { key: string; label: string }) => s.key === time)?.label || time
       const formattedDate = new Date(date).toLocaleDateString("en-GB", {
         weekday: "long",
@@ -440,7 +439,7 @@ export async function POST(request: Request) {
     }
 
     // Fire TikTok Lead event (appointment request = real lead, non-blocking)
-    const appUrl = getAppUrl()
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
     trackTikTokServerEvent({
       event: "Lead",
       url: `${appUrl}/booking/confirm`,

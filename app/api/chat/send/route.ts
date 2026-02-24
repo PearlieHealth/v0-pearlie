@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 import { escapeHtml } from "@/lib/escape-html"
-import { portalUrl, getAppUrl } from "@/lib/clinic-url"
+import { portalUrl } from "@/lib/clinic-url"
 import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
 import { getBotGreeting, getBotSuggestions, getBotFollowUp } from "@/lib/chat-bot"
 import { generateIntelligentBotResponse } from "@/lib/chat-bot-ai"
@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
 
         // Fire TikTok Lead event on first patient message (new conversation = first contact)
         if (senderType === "patient") {
-          const appUrl = getAppUrl()
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
           trackTikTokServerEvent({
             event: "Lead",
             url: `${appUrl}/clinic/${clinicId}`,
@@ -339,7 +339,7 @@ export async function POST(request: NextRequest) {
       console.error("[Chat] Broadcast error:", broadcastError)
     }
 
-    const appUrl = getAppUrl()
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
 
     const clinicNotificationEmail = clinic.notification_email || clinic.email
     if (senderType === "patient" && clinicNotificationEmail) {

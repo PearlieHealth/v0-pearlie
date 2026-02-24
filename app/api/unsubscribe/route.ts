@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyToken } from "@/lib/unsubscribe"
-import { getAppUrl } from "@/lib/clinic-url"
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token")
@@ -25,7 +24,7 @@ export async function GET(request: NextRequest) {
     )
 
   // Redirect to confirmation page
-  const baseUrl = getAppUrl()
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
   return NextResponse.redirect(`${baseUrl}/unsubscribe?success=true`)
 }
 
