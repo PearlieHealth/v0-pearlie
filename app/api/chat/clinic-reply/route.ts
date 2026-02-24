@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     // Verify conversation belongs to this clinic
     const { data: conversation, error: convError } = await supabaseAdmin
       .from("conversations")
-      .select("id, clinic_id, lead_id, clinic_first_reply_at, unread_count_patient")
+      .select("id, clinic_id, lead_id, clinic_first_reply_at, unread_count_patient, conversation_state, muted_by_patient")
       .eq("id", conversationId)
       .single()
 
@@ -62,6 +62,45 @@ export async function POST(request: NextRequest) {
 
     if (conversation.clinic_id !== clinicUser.clinic_id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    }
+
+    // Block messages on closed conversations
+    if (conversation.conversation_state === "closed") {
+      return NextResponse.json(
+        { error: "This conversation is closed. No further messages can be sent." },
+        { status: 403 }
+      )
+    }
+
+    // Clinic follow-up limit: max 3 unanswered messages when patient hasn't replied
+    // Get the last patient message timestamp, then count clinic messages after it
+    const { data: lastPatientMsg } = await supabaseAdmin
+      .from("messages")
+      .select("created_at")
+      .eq("conversation_id", conversationId)
+      .eq("sender_type", "patient")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    // Count clinic messages sent after the last patient message (or all if no patient message)
+    let clinicFollowUpQuery = supabaseAdmin
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .eq("conversation_id", conversationId)
+      .eq("sender_type", "clinic")
+
+    if (lastPatientMsg?.created_at) {
+      clinicFollowUpQuery = clinicFollowUpQuery.gt("created_at", lastPatientMsg.created_at)
+    }
+
+    const { count: unansweredCount } = await clinicFollowUpQuery
+
+    if ((unansweredCount || 0) >= 3) {
+      return NextResponse.json(
+        { error: "You've reached the follow-up limit. Please wait for the patient to reply before sending more messages." },
+        { status: 429 }
+      )
     }
 
     // Create message with delivery status
@@ -164,8 +203,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send email notification to patient when clinic replies
-    {
+    // Send email notification to patient when clinic replies (skip if muted)
+    if (!conversation.muted_by_patient) {
       try {
         const { data: lead } = await supabaseAdmin
           .from("leads")

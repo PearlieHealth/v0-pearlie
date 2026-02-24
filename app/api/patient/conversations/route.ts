@@ -41,6 +41,7 @@ export async function GET() {
         id, clinic_id, lead_id, status, last_message_at,
         unread_by_patient, unread_count_patient,
         appointment_requested_at,
+        conversation_state, booked_at, closed_at, closed_reason, muted_by_patient,
         clinics:clinic_id (id, name, images)
       `)
       .in("lead_id", leadIds)

@@ -140,12 +140,20 @@ export async function POST(request: NextRequest) {
     // Get or create conversation using limit instead of single to avoid errors
     const { data: conversations } = await supabase
       .from("conversations")
-      .select("id, bot_greeted, unread_count_clinic, unread_count_patient")
+      .select("id, bot_greeted, unread_count_clinic, unread_count_patient, conversation_state")
       .eq("lead_id", leadId)
       .eq("clinic_id", clinicId)
       .limit(1)
 
-    let conversation = conversations?.[0] as { id: string; bot_greeted?: boolean; unread_count_clinic?: number; unread_count_patient?: number } | undefined
+    let conversation = conversations?.[0] as { id: string; bot_greeted?: boolean; unread_count_clinic?: number; unread_count_patient?: number; conversation_state?: string } | undefined
+
+    // Block messages on closed conversations
+    if (conversation?.conversation_state === "closed") {
+      return NextResponse.json(
+        { error: "This conversation is closed. No further messages can be sent." },
+        { status: 403 }
+      )
+    }
 
     if (!conversation) {
       // Create new conversation with unread flags

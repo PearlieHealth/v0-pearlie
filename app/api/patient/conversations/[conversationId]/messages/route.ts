@@ -27,7 +27,7 @@ export async function GET(
     // Get conversation
     const { data: conversation, error: convError } = await admin
       .from("conversations")
-      .select("id, lead_id, clinic_id")
+      .select("id, lead_id, clinic_id, conversation_state, muted_by_patient")
       .eq("id", conversationId)
       .single()
 
@@ -86,6 +86,8 @@ export async function GET(
       conversationId: conversation.id,
       clinicId: conversation.clinic_id,
       leadId: conversation.lead_id,
+      conversationState: conversation.conversation_state || "open",
+      mutedByPatient: conversation.muted_by_patient || false,
     })
   } catch (error) {
     console.error("[patient/conversations/messages] Error:", error)

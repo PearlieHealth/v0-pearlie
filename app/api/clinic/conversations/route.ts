@@ -31,7 +31,11 @@ export async function GET(request: NextRequest) {
         last_message_at,
         unread_by_clinic,
         unread_count_clinic,
-        created_at
+        created_at,
+        conversation_state,
+        booked_at,
+        closed_at,
+        closed_reason
       `)
       .eq("clinic_id", clinicUser.clinic_id)
       .order("last_message_at", { ascending: false, nullsFirst: false })
