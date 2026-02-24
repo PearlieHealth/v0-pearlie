@@ -549,47 +549,60 @@ export default function AppointmentDetailPage() {
           {/* Quick actions + message input */}
           {conversation && (
             <div className="shrink-0 border-t bg-white">
-              <div className="flex gap-2 px-6 pt-3 pb-2 overflow-x-auto">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs flex-shrink-0 rounded-full bg-transparent"
-                  onClick={() =>
-                    setNewMessage(
-                      "I have the following times available:\n- \n- \n\nWould any of these work for you?"
-                    )
-                  }
-                >
-                  <Clock className="w-3 h-3 mr-1" />
-                  Suggest times
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs flex-shrink-0 rounded-full bg-transparent"
-                  onClick={() =>
-                    setNewMessage(
-                      "To help process your request, could you please provide the following:\n- "
-                    )
-                  }
-                >
-                  <MessageSquare className="w-3 h-3 mr-1" />
-                  Request info
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs flex-shrink-0 rounded-full bg-transparent"
-                  onClick={() =>
-                    setNewMessage(
-                      "Great news! Your appointment has been confirmed. We look forward to seeing you."
-                    )
-                  }
-                >
-                  <CheckCircle2 className="w-3 h-3 mr-1" />
-                  Confirm booking
-                </Button>
-              </div>
+              {(() => {
+                const bs = (lead as any)?.booking_status
+                const isConfirmed = bs === "confirmed"
+                const isDeclined = bs === "declined"
+                const isPending = bs === "pending"
+                // Only show quick actions that make sense for the current booking state
+                return (
+                  <div className="flex gap-2 px-6 pt-3 pb-2 overflow-x-auto">
+                    {!isConfirmed && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs flex-shrink-0 rounded-full bg-transparent"
+                        onClick={() =>
+                          setNewMessage(
+                            "I have the following times available:\n- \n- \n\nWould any of these work for you?"
+                          )
+                        }
+                      >
+                        <Clock className="w-3 h-3 mr-1" />
+                        Suggest times
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs flex-shrink-0 rounded-full bg-transparent"
+                      onClick={() =>
+                        setNewMessage(
+                          "To help process your request, could you please provide the following:\n- "
+                        )
+                      }
+                    >
+                      <MessageSquare className="w-3 h-3 mr-1" />
+                      Request info
+                    </Button>
+                    {isConfirmed && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs flex-shrink-0 rounded-full bg-transparent"
+                        onClick={() =>
+                          setNewMessage(
+                            "Just a reminder about your upcoming appointment. Please let us know if you have any questions!"
+                          )
+                        }
+                      >
+                        <CalendarCheck className="w-3 h-3 mr-1" />
+                        Send reminder
+                      </Button>
+                    )}
+                  </div>
+                )
+              })()}
               <form onSubmit={handleSendMessage} className="flex gap-2 px-6 pb-4">
                 <Textarea
                   value={newMessage}

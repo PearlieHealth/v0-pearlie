@@ -359,7 +359,7 @@ export function BookingCard({
 
         {/* Availability — ClinicDatePicker always visible */}
         <div className="space-y-3">
-          {!appointmentRequested && (
+          {(!appointmentRequested || bookingStatus === "declined" || bookingStatus === "cancelled") && (
             <ClinicDatePicker
               availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
               availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
@@ -373,7 +373,7 @@ export function BookingCard({
           )}
 
           {/* Confirmation step */}
-          {pendingAppointment && !appointmentRequested && (
+          {pendingAppointment && (!appointmentRequested || bookingStatus === "declined" || bookingStatus === "cancelled") && (
             <div className="rounded-xl border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-4 animate-in fade-in duration-200">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
@@ -837,7 +837,7 @@ export function BookingCard({
 
         {/* CTA: Message + Request appointment */}
         <div ref={ctaRef} className="space-y-2 pt-3 border-t border-border/40">
-          {!appointmentRequested && (
+          {(!appointmentRequested || bookingStatus === "declined" || bookingStatus === "cancelled") && (
             <div className="flex items-center gap-3">
               <Button
                 className="flex-1 h-11 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"

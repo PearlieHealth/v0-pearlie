@@ -107,6 +107,34 @@ export async function POST(request: NextRequest) {
         .eq("lead_id", leadId)
         .eq("clinic_id", clinicUser.clinic_id)
 
+      // Also upsert into bookings table so Scheduled tab picks it up
+      const bookingDate = lead.booking_date
+      const bookingTime = lead.booking_time
+      if (bookingDate) {
+        const apptDatetime = bookingTime
+          ? `${bookingDate}T${bookingTime}:00`
+          : `${bookingDate}T09:00:00`
+        await supabaseAdmin.from("bookings").upsert(
+          {
+            lead_id: leadId,
+            clinic_id: clinicUser.clinic_id,
+            appointment_datetime: apptDatetime,
+            booking_method: "patient_request",
+            status: "confirmed",
+          },
+          { onConflict: "lead_id,clinic_id", ignoreDuplicates: false }
+        ).then(() => {}).catch(() => {
+          // If upsert fails (no unique constraint), try insert
+          supabaseAdmin.from("bookings").insert({
+            lead_id: leadId,
+            clinic_id: clinicUser.clinic_id,
+            appointment_datetime: apptDatetime,
+            booking_method: "patient_request",
+            status: "confirmed",
+          }).catch(() => {})
+        })
+      }
+
       const dateLabel = formatDateLabel(lead.booking_date)
       const timeLabel = formatTimeLabel(lead.booking_time)
       botMessageContent = `Your appointment has been confirmed for ${dateLabel} at ${timeLabel}.`
@@ -123,6 +151,29 @@ export async function POST(request: NextRequest) {
           booking_confirmed_at: now,
         })
         .eq("id", leadId)
+
+      // Also upsert into bookings table
+      const apptDatetime = newTime
+        ? `${newDate}T${newTime}:00`
+        : `${newDate}T09:00:00`
+      await supabaseAdmin.from("bookings").upsert(
+        {
+          lead_id: leadId,
+          clinic_id: clinicUser.clinic_id,
+          appointment_datetime: apptDatetime,
+          booking_method: "patient_request",
+          status: "confirmed",
+        },
+        { onConflict: "lead_id,clinic_id", ignoreDuplicates: false }
+      ).catch(() => {
+        supabaseAdmin.from("bookings").insert({
+          lead_id: leadId,
+          clinic_id: clinicUser.clinic_id,
+          appointment_datetime: apptDatetime,
+          booking_method: "patient_request",
+          status: "confirmed",
+        }).catch(() => {})
+      })
 
       const dateLabel = formatDateLabel(newDate)
       const timeLabel = formatTimeLabel(newTime)

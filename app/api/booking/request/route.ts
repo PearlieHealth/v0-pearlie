@@ -188,7 +188,7 @@ export async function POST(request: Request) {
       month: "long",
       year: "numeric",
     })
-    const bookingMessageContent = `Hello, I would like to request an appointment at ${clinic.name} on ${formattedDate} at ${timeLabel}`
+    const bookingMessageContent = `Hi! I'd like to request an appointment on ${formattedDate} at ${timeLabel}. Would this time be available?`
 
     // Hoist conversationId, tokenHash, and bookingMessage so they're accessible in the final response
     let conversationId: string | null = null
