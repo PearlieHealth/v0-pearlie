@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient()
 
-    // Verify user owns this clinic with admin/owner role
+    // Verify user belongs to this clinic
     const { data: clinicUser } = await supabase
       .from("clinic_users")
       .select("clinic_id, role")
@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
       .eq("clinic_id", clinicId)
       .single()
 
-    if (!clinicUser || !["clinic_admin", "clinic_owner", "clinic_user"].includes(clinicUser.role)) {
-      return NextResponse.json({ error: "Unauthorized to manage billing" }, { status: 403 })
+    if (!clinicUser) {
+      return NextResponse.json({ error: "Unauthorized for this clinic" }, { status: 403 })
     }
 
     // Get Stripe customer ID

@@ -31,11 +31,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized for this clinic" }, { status: 403 })
     }
 
-    // Only admin/owner can manage billing
-    if (!["clinic_admin", "clinic_owner", "clinic_user"].includes(clinicUser.role)) {
-      return NextResponse.json({ error: "Unauthorized to manage billing" }, { status: 403 })
-    }
-
     // Get clinic details
     const { data: clinic } = await supabase
       .from("clinics")
