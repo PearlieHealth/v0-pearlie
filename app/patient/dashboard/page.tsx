@@ -257,12 +257,6 @@ export default function PatientDashboard() {
       }
       if (!user) { router.replace("/patient/login?next=/patient/dashboard"); return }
 
-      // Prevent clinic users from accessing patient dashboard
-      if (user.user_metadata?.role === "clinic") {
-        router.replace("/")
-        return
-      }
-
       const res = await fetch(`/api/patient/matches?matchesLimit=${PAGE_SIZE}&convsLimit=${PAGE_SIZE}`)
       if (!res.ok) {
         if (res.status === 401) { router.replace("/patient/login?next=/patient/dashboard"); return }

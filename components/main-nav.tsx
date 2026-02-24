@@ -101,7 +101,7 @@ export function MainNav() {
           {/* CTA Buttons - Right */}
           <div className="hidden md:flex items-center gap-3">
             <Link
-              href={!isAuthenticated ? "/patient/login" : userRole === "clinic" ? "/clinic" : "/patient/dashboard"}
+              href={isAuthenticated ? "/patient/dashboard" : "/patient/login"}
               className="text-sm font-heading font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
             >
               My account
