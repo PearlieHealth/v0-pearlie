@@ -13,6 +13,41 @@ import {
 import { TIME_SLOT_OPTIONS, URGENCY_OPTIONS } from "@/lib/constants"
 
 // ---------------------------------------------------------------------------
+// 9. Match Nudge (to patient — "Your clinic matches are waiting")
+// ---------------------------------------------------------------------------
+
+export interface MatchNudgePayload {
+  firstName: string
+  clinicCount: number
+  postcode: string
+  matchLink: string
+  unsubscribeFooterHtml: string
+}
+
+export function renderMatchNudgeEmail(data: MatchNudgePayload): string {
+  return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+  <div style="text-align: center; margin-bottom: 32px;">
+    <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Your matches are waiting</h1>
+  </div>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    Hi ${data.firstName}, you matched with <strong>${data.clinicCount} clinic${data.clinicCount !== 1 ? "s" : ""}</strong> near <strong>${data.postcode}</strong>. Your personalised matches are ready to view.
+  </p>
+  <div style="text-align: center; margin-bottom: 32px;">
+    <a href="${data.matchLink}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 36px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 16px;">
+      View matches
+    </a>
+  </div>
+  <p style="font-size: 14px; color: #666; line-height: 1.5;">
+    Message a clinic to ask about treatments, availability, or anything else. They typically reply within a few hours.
+  </p>
+  <p style="font-size: 12px; color: #999; text-align: center; margin-top: 32px;">
+    Pearlie &mdash; Finding your perfect dental match
+  </p>
+  ${data.unsubscribeFooterHtml}
+</div>`
+}
+
+// ---------------------------------------------------------------------------
 // 10. Lead Action Notification (to clinic)
 // ---------------------------------------------------------------------------
 

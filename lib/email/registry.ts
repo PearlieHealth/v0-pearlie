@@ -25,6 +25,7 @@ import {
 } from "./templates/clinic-templates"
 
 import {
+  renderMatchNudgeEmail,
   renderLeadActionEmail,
   renderBookingConfirmationEmail,
   renderChatToClinicEmail,
@@ -57,6 +58,7 @@ export const EMAIL_TYPE = {
   APPOINTMENT_DECLINED: "appointment_declined",
   APPOINTMENT_RESCHEDULED: "appointment_rescheduled",
   APPOINTMENT_CANCELLED: "appointment_cancelled",
+  MATCH_NUDGE: "match_nudge",
 } as const
 
 export type EmailType = (typeof EMAIL_TYPE)[keyof typeof EMAIL_TYPE]
@@ -184,6 +186,14 @@ const clinicReplySchema = z.object({
   clinicName: z.string(),
   messagePreview: z.string(),
   viewReplyUrl: z.string(),
+  unsubscribeFooterHtml: z.string(),
+})
+
+const matchNudgeSchema = z.object({
+  firstName: z.string(),
+  clinicCount: z.number(),
+  postcode: z.string(),
+  matchLink: z.string(),
   unsubscribeFooterHtml: z.string(),
 })
 
@@ -416,6 +426,20 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     generateHtml: renderAppointmentCancelledEmail,
     idempotencyKey: (data) => `appt_cancelled:${data._conversationId}:${hourBucket()}`,
   },
+
+  // --- Match Nudge (to patient) ---
+
+  [EMAIL_TYPE.MATCH_NUDGE]: {
+    type: EMAIL_TYPE.MATCH_NUDGE,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: "patient_notifications",
+    notificationPreferenceKey: null,
+    defaultSubject: "Your clinic matches are waiting",
+    payloadSchema: matchNudgeSchema,
+    generateHtml: renderMatchNudgeEmail,
+    idempotencyKey: (data) => `match_nudge:${data._leadId}`,
+  },
 }
 
 /**
@@ -439,4 +463,5 @@ export const EMAIL_TYPE_LABELS: Record<EmailType, string> = {
   [EMAIL_TYPE.APPOINTMENT_DECLINED]: "Appointment Declined → Patient",
   [EMAIL_TYPE.APPOINTMENT_RESCHEDULED]: "Appointment Rescheduled → Patient",
   [EMAIL_TYPE.APPOINTMENT_CANCELLED]: "Appointment Cancelled → Patient",
+  [EMAIL_TYPE.MATCH_NUDGE]: "Match Nudge → Patient",
 }

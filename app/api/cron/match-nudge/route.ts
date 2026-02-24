@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
-import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
+import { generateUnsubscribeFooterHtml } from "@/lib/unsubscribe"
 
-const BATCH_SIZE = 10
+const BATCH_SIZE = 20
 
 export async function GET(request: Request) {
   try {
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
     const supabase = createAdminClient()
 
-    // Find matches older than 2 hours that haven't been nudged
+    // Find matches older than 2 hours that haven't been nudged yet
     const { data: matches, error: matchError } = await supabase
       .from("matches")
       .select("id, lead_id, clinic_ids, created_at")
@@ -34,15 +34,29 @@ export async function GET(request: Request) {
       return NextResponse.json({ processed: 0 })
     }
 
+    // Group matches by lead_id so each patient gets at most one email
+    const matchesByLead = new Map<string, typeof matches>()
+    for (const match of matches) {
+      const existing = matchesByLead.get(match.lead_id) || []
+      existing.push(match)
+      matchesByLead.set(match.lead_id, existing)
+    }
+
     let nudged = 0
 
-    for (const match of matches) {
+    for (const [leadId, leadMatches] of matchesByLead) {
       try {
+        // Collect all match IDs for this lead (to mark them all as nudged)
+        const matchIds = leadMatches.map((m) => m.id)
+
+        // Use the most recent match for the email content
+        const latestMatch = leadMatches[leadMatches.length - 1]
+
         // Check if the patient has sent any messages across ALL conversations
         const { data: conversations } = await supabase
           .from("conversations")
           .select("id")
-          .eq("lead_id", match.lead_id)
+          .eq("lead_id", leadId)
 
         if (conversations && conversations.length > 0) {
           const convIds = conversations.map((c) => c.id)
@@ -55,11 +69,11 @@ export async function GET(request: Request) {
             .single()
 
           if (patientMsg) {
-            // Patient already messaged, mark as nudged so we skip them next time
+            // Patient already messaged — mark ALL their matches as nudged, skip email
             await supabase
               .from("matches")
               .update({ nudge_email_sent_at: new Date().toISOString() })
-              .eq("id", match.id)
+              .in("id", matchIds)
             continue
           }
         }
@@ -68,28 +82,31 @@ export async function GET(request: Request) {
         const { data: lead } = await supabase
           .from("leads")
           .select("first_name, email, postcode")
-          .eq("id", match.lead_id)
+          .eq("id", leadId)
           .single()
 
         if (!lead?.email) {
-          // No email, skip and mark
+          // No email — mark all matches so we don't retry
           await supabase
             .from("matches")
             .update({ nudge_email_sent_at: new Date().toISOString() })
-            .eq("id", match.id)
+            .in("id", matchIds)
           continue
         }
 
-        const clinicCount = match.clinic_ids?.length || 0
+        // Aggregate total clinic count across all matches for this lead
+        const allClinicIds = new Set<string>()
+        for (const m of leadMatches) {
+          if (m.clinic_ids) {
+            for (const cid of m.clinic_ids) allClinicIds.add(cid)
+          }
+        }
+        const clinicCount = allClinicIds.size || latestMatch.clinic_ids?.length || 0
         const firstName = lead.first_name || "there"
         const postcode = lead.postcode || "your area"
         const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
-        const matchPath = `/match/${match.id}`
+        const matchPath = `/match/${latestMatch.id}`
         const matchUrl = `${appUrl}${matchPath}`
-
-        const unsubHeaders = generateUnsubscribeHeaders(lead.email, "patient_notifications")
-        const unsubUrl = unsubHeaders["List-Unsubscribe"].replace(/[<>]/g, "")
-        const unsubFooter = generateUnsubscribeFooterHtml(unsubUrl)
 
         // Generate magic link so patient is auto-logged in when they click
         const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(matchPath)}`
@@ -121,48 +138,44 @@ export async function GET(request: Request) {
           console.warn("[match-nudge] Failed to generate magic link:", linkErr)
         }
 
-        await sendEmailWithRetry({
-          from: EMAIL_FROM.NOTIFICATIONS,
+        const unsubFooter = generateUnsubscribeFooterHtml(
+          `${appUrl}/api/unsubscribe?email=${encodeURIComponent(lead.email)}&category=patient_notifications`
+        )
+
+        const result = await sendRegisteredEmail({
+          type: EMAIL_TYPE.MATCH_NUDGE,
           to: lead.email,
-          subject: "Your clinic matches are waiting",
-          headers: unsubHeaders,
-          html: `
-            <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
-              <div style="text-align: center; margin-bottom: 32px;">
-                <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Your matches are waiting</h1>
-              </div>
-              <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
-                Hi ${firstName}, you matched with <strong>${clinicCount} clinic${clinicCount !== 1 ? "s" : ""}</strong> near <strong>${postcode}</strong>. Your personalised matches are ready to view.
-              </p>
-              <div style="text-align: center; margin-bottom: 32px;">
-                <a href="${matchLink}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 36px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 16px;">
-                  View matches
-                </a>
-              </div>
-              <p style="font-size: 14px; color: #666; line-height: 1.5;">
-                Message a clinic to ask about treatments, availability, or anything else. They typically reply within a few hours.
-              </p>
-              <p style="font-size: 12px; color: #999; text-align: center; margin-top: 32px;">
-                Pearlie &mdash; Finding your perfect dental match
-              </p>
-              ${unsubFooter}
-            </div>
-          `,
+          data: {
+            firstName,
+            clinicCount,
+            postcode,
+            matchLink,
+            unsubscribeFooterHtml: unsubFooter,
+            // Internal fields for idempotency key (prefixed with _)
+            _leadId: leadId,
+          },
+          leadId,
         })
 
-        // Mark as nudged
+        if (result.skipped) {
+          console.log(`[match-nudge] Skipped lead ${leadId}: ${result.reason}`)
+        }
+
+        // Mark ALL matches for this lead as nudged (whether sent or skipped)
         await supabase
           .from("matches")
           .update({ nudge_email_sent_at: new Date().toISOString() })
-          .eq("id", match.id)
+          .in("id", matchIds)
 
-        nudged++
+        if (result.success && !result.skipped) {
+          nudged++
+        }
       } catch (err) {
-        console.error(`[match-nudge] Error processing match ${match.id}:`, err)
+        console.error(`[match-nudge] Error processing lead ${leadId}:`, err)
       }
     }
 
-    return NextResponse.json({ processed: matches.length, nudged })
+    return NextResponse.json({ processed: matches.length, leads: matchesByLead.size, nudged })
   } catch (error) {
     console.error("[match-nudge] Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
