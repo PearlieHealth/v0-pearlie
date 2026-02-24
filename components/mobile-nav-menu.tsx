@@ -122,7 +122,7 @@ export function MobileNavMenu() {
               className="w-full text-base h-12 rounded-full"
               asChild
             >
-              <Link href={isAuthenticated ? "/patient/dashboard" : "/patient/login"} onClick={() => setOpen(false)}>
+              <Link href={!isAuthenticated ? "/patient/login" : userRole === "clinic" ? "/clinic" : "/patient/dashboard"} onClick={() => setOpen(false)}>
                 My account
               </Link>
             </Button>
