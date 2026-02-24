@@ -927,31 +927,21 @@ export default function PatientDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3 sm:gap-3">
-            {/* Mobile inbox toggle */}
-            <button
-              onClick={() => {
-                if (isMobile) {
-                  setMobileInboxListOpen(true)
-                } else {
-                  setMobileInboxOpen(!mobileInboxOpen)
-                }
-              }}
-              className="lg:hidden relative flex items-center justify-center h-9 w-9 rounded-full hover:bg-muted/60 active:bg-muted transition-colors"
-            >
-              <MessageCircle className="w-5 h-5 text-foreground/60" />
-              {totalUnread > 0 && (
-                <span className="absolute top-0.5 right-0.5 bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
-                  {totalUnread}
-                </span>
-              )}
-            </button>
-            {/* Sign out */}
+            {/* Mobile: red sign out button (replaces chat icon) */}
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors p-2 sm:p-0"
+              className="lg:hidden flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-600 transition-colors p-2"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign out</span>
+              Sign out
+            </button>
+            {/* Desktop: sign out */}
+            <button
+              onClick={handleSignOut}
+              className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign out</span>
             </button>
           </div>
         </div>
@@ -965,20 +955,11 @@ export default function PatientDashboard() {
 
           {/* ─── MOBILE: Persistent navigation buttons ──────────── */}
           {isMobile && selectedClinic && (
-            <div className="sticky top-0 z-20 -mx-3 -mt-4 px-3 pt-3 pb-4 bg-background/95 backdrop-blur-sm border-b border-border/30 space-y-2.5">
+            <div className="sticky top-0 z-20 -mx-3 -mt-4 px-3 pt-3 pb-4 bg-background/95 backdrop-blur-sm border-b border-border/30 space-y-4">
               {/* Account info */}
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground truncate mr-2">
-                  Signed in as <span className="font-medium text-foreground/80">{data?.user?.email}</span>
-                </p>
-                <button
-                  onClick={handleSignOut}
-                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Sign out
-                </button>
-              </div>
+              <p className="text-xs text-muted-foreground truncate">
+                Signed in as <span className="font-medium text-foreground/80">{data?.user?.email}</span>
+              </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setMobileInboxListOpen(true)}
