@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     for (const leadId of leadIds) {
       const { data: existing } = await supabase
         .from("lead_clinic_status")
-        .select("id")
+        .select("lead_id")
         .eq("lead_id", leadId)
         .eq("clinic_id", clinicId)
         .single()
@@ -84,7 +84,8 @@ export async function POST(request: NextRequest) {
             updated_by: user.id,
             updated_at: now,
           })
-          .eq("id", existing.id)
+          .eq("lead_id", leadId)
+          .eq("clinic_id", clinicId)
 
         if (!error) updatedCount++
       } else {

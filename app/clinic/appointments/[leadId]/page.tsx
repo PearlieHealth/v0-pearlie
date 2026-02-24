@@ -36,7 +36,6 @@ import {
   CalendarCheck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { BookingDialog } from "@/components/clinic/booking-dialog"
 import { AppointmentActionCard } from "@/components/clinic/appointment-action-card"
 
 interface Lead {
@@ -127,7 +126,6 @@ export default function AppointmentDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const [showBookingDialog, setShowBookingDialog] = useState(false)
 
   const [newMessage, setNewMessage] = useState("")
   const [newNote, setNewNote] = useState("")
@@ -468,15 +466,25 @@ export default function AppointmentDetailPage() {
                 </a>
               </Button>
             )}
-            {!booking && (
+            {/* Confirm Attended button — shown when booking exists with past date and not yet marked attended */}
+            {booking && new Date(booking.appointment_datetime) <= new Date() &&
+              status?.status?.toUpperCase() !== "ATTENDED" &&
+              status?.status?.toUpperCase() !== "CLOSED" && (
               <Button
                 size="sm"
                 className="gap-1.5 bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => setShowBookingDialog(true)}
+                disabled={isSaving}
+                onClick={() => handleSaveStatus("ATTENDED")}
               >
-                <CalendarCheck className="w-3.5 h-3.5" />
-                Appointment confirmed with patient
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {isSaving ? "Saving..." : "Confirm attended"}
               </Button>
+            )}
+            {status?.status?.toUpperCase() === "ATTENDED" && (
+              <Badge className="bg-green-100 text-green-700 border-green-200 text-xs gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                Attended
+              </Badge>
             )}
           </div>
         </div>
@@ -606,9 +614,6 @@ export default function AppointmentDetailPage() {
               {(() => {
                 const bs = (lead as any)?.booking_status
                 const isConfirmed = bs === "confirmed"
-                const isDeclined = bs === "declined"
-                const isPending = bs === "pending"
-                // Only show quick actions that make sense for the current booking state
                 return (
                   <div className="flex gap-2 px-6 pt-3 pb-2 overflow-x-auto">
                     {!isConfirmed && (
@@ -860,18 +865,6 @@ export default function AppointmentDetailPage() {
         </ScrollArea>
       </div>
 
-      {showBookingDialog && clinic && (
-        <BookingDialog
-          leadId={leadId}
-          clinicId={clinic.id}
-          patientName={`${lead.first_name} ${lead.last_name}`}
-          onClose={() => setShowBookingDialog(false)}
-          onSuccess={() => {
-            setShowBookingDialog(false)
-            fetchData()
-          }}
-        />
-      )}
     </div>
   )
 }

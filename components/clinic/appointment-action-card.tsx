@@ -293,7 +293,7 @@ export function AppointmentActionCard({
   // Declined
   if (bookingStatus === "declined") {
     return (
-      <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+      <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
         <div className="flex items-center gap-2">
           <X className="h-4 w-4 text-red-500" />
           <h3 className="text-sm font-medium">Request Declined</h3>
@@ -306,7 +306,65 @@ export function AppointmentActionCard({
             {format(new Date(bookingDeclinedAt), "dd MMM yyyy 'at' HH:mm")}
           </p>
         )}
-        <p className="text-xs text-muted-foreground">Patient can request a new time.</p>
+
+        {activeAction === null && (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setActiveAction("reschedule")}
+              disabled={isSubmitting}
+            >
+              <RefreshCw className="h-3.5 w-3.5 mr-1" />
+              Reschedule
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={async () => {
+                setIsSubmitting(true)
+                try {
+                  const res = await fetch("/api/clinic/leads/bulk-status", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      leadIds: [leadId],
+                      clinicId,
+                      status: "CLOSED",
+                    }),
+                  })
+                  if (res.ok) {
+                    toast.success("Lead closed")
+                    onUpdate()
+                  }
+                } catch {
+                  toast.error("Failed to close lead")
+                } finally {
+                  setIsSubmitting(false)
+                }
+              }}
+              disabled={isSubmitting}
+              className="text-muted-foreground"
+            >
+              <X className="h-3.5 w-3.5 mr-1" />
+              {isSubmitting ? "Closing..." : "Close lead"}
+            </Button>
+          </div>
+        )}
+
+        {activeAction === "reschedule" && (
+          <RescheduleForm
+            newDate={newDate}
+            setNewDate={setNewDate}
+            newTime={newTime}
+            setNewTime={setNewTime}
+            message={message}
+            setMessage={setMessage}
+            isSubmitting={isSubmitting}
+            onSubmit={() => handleAction("reschedule")}
+            onCancel={() => { setActiveAction(null); setNewDate(undefined); setNewTime(""); setMessage("") }}
+          />
+        )}
       </div>
     )
   }
@@ -314,7 +372,7 @@ export function AppointmentActionCard({
   // Cancelled
   if (bookingStatus === "cancelled") {
     return (
-      <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+      <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
         <div className="flex items-center gap-2">
           <X className="h-4 w-4 text-muted-foreground" />
           <h3 className="text-sm font-medium">Appointment Cancelled</h3>
@@ -327,7 +385,65 @@ export function AppointmentActionCard({
             {format(new Date(bookingCancelledAt), "dd MMM yyyy 'at' HH:mm")}
           </p>
         )}
-        <p className="text-xs text-muted-foreground">Patient can request a new time.</p>
+
+        {activeAction === null && (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setActiveAction("reschedule")}
+              disabled={isSubmitting}
+            >
+              <RefreshCw className="h-3.5 w-3.5 mr-1" />
+              Reschedule
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={async () => {
+                setIsSubmitting(true)
+                try {
+                  const res = await fetch("/api/clinic/leads/bulk-status", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      leadIds: [leadId],
+                      clinicId,
+                      status: "CLOSED",
+                    }),
+                  })
+                  if (res.ok) {
+                    toast.success("Lead closed")
+                    onUpdate()
+                  }
+                } catch {
+                  toast.error("Failed to close lead")
+                } finally {
+                  setIsSubmitting(false)
+                }
+              }}
+              disabled={isSubmitting}
+              className="text-muted-foreground"
+            >
+              <X className="h-3.5 w-3.5 mr-1" />
+              {isSubmitting ? "Closing..." : "Close lead"}
+            </Button>
+          </div>
+        )}
+
+        {activeAction === "reschedule" && (
+          <RescheduleForm
+            newDate={newDate}
+            setNewDate={setNewDate}
+            newTime={newTime}
+            setNewTime={setNewTime}
+            message={message}
+            setMessage={setMessage}
+            isSubmitting={isSubmitting}
+            onSubmit={() => handleAction("reschedule")}
+            onCancel={() => { setActiveAction(null); setNewDate(undefined); setNewTime(""); setMessage("") }}
+          />
+        )}
       </div>
     )
   }

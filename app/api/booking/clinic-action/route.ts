@@ -166,6 +166,13 @@ export async function POST(request: NextRequest) {
         })
         .eq("id", leadId)
 
+      // Update lead_clinic_status to BOOKED_CONFIRMED so Scheduled tab picks it up
+      await supabaseAdmin
+        .from("lead_clinic_status")
+        .update({ status: "BOOKED_CONFIRMED", updated_at: now })
+        .eq("lead_id", leadId)
+        .eq("clinic_id", clinicUser.clinic_id)
+
       // Also upsert into bookings table
       const apptDatetime = newTime
         ? `${newDate}T${newTime}:00`
