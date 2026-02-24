@@ -101,48 +101,42 @@ export async function POST(request: Request) {
           .maybeSingle()
 
         if (conversion) {
-          await supabase
+          const { error: updateErr } = await supabase
             .from("referral_conversions")
             .update({
               status: "confirmed",
               confirmed_at: new Date().toISOString(),
             })
             .eq("id", conversion.id)
+            .eq("status", "pending_verification") // Guard: only if still pending
 
-          // Increment affiliate's total_earned
-          const { data: affiliate } = await supabase
-            .from("affiliates")
-            .select("total_earned")
-            .eq("id", conversion.affiliate_id)
-            .single()
+          // Only increment earnings if we actually updated the row (idempotent)
+          if (!updateErr) {
+            // Atomic increment — no race condition
+            await supabase.rpc("increment_affiliate_earned", {
+              aff_id: conversion.affiliate_id,
+              amount: conversion.commission_amount || 0,
+            })
 
-          if (affiliate) {
-            await supabase
+            // Send conversion email to affiliate (non-blocking)
+            const { data: affProfile } = await supabase
               .from("affiliates")
-              .update({
-                total_earned: (affiliate.total_earned || 0) + (conversion.commission_amount || 0),
-              })
+              .select("name, email")
               .eq("id", conversion.affiliate_id)
-          }
+              .single()
 
-          // Send conversion email to affiliate (non-blocking)
-          const { data: affProfile } = await supabase
-            .from("affiliates")
-            .select("name, email")
-            .eq("id", conversion.affiliate_id)
-            .single()
-
-          if (affProfile?.email) {
-            sendRegisteredEmail({
-              type: EMAIL_TYPE.AFFILIATE_CONVERSION,
-              to: affProfile.email,
-              data: {
-                affiliateName: affProfile.name,
-                commissionAmount: conversion.commission_amount || 0,
-                patientFirstName: lead.first_name || "A patient",
-                _conversionId: conversion.id,
-              },
-            }).catch(() => {})
+            if (affProfile?.email) {
+              sendRegisteredEmail({
+                type: EMAIL_TYPE.AFFILIATE_CONVERSION,
+                to: affProfile.email,
+                data: {
+                  affiliateName: affProfile.name,
+                  commissionAmount: conversion.commission_amount || 0,
+                  patientFirstName: lead.first_name || "A patient",
+                  _conversionId: conversion.id,
+                },
+              }).catch(() => {})
+            }
           }
         }
       } else if (action === "decline") {

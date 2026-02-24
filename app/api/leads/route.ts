@@ -250,7 +250,8 @@ export async function POST(request: Request) {
     // Affiliate tracking (non-blocking — never fails the lead creation)
     try {
       const refCode = body.referralCode as string | undefined
-      if (refCode) {
+      // Validate format: alphanumeric + hyphens only, max 32 chars
+      if (refCode && /^[a-zA-Z0-9-]{1,32}$/.test(refCode)) {
         const { data: affiliate } = await supabase
           .from("affiliates")
           .select("id, commission_per_booking")
@@ -259,29 +260,33 @@ export async function POST(request: Request) {
           .maybeSingle()
 
         if (affiliate) {
-          // Link lead to affiliate
-          await supabase
-            .from("leads")
-            .update({ affiliate_id: affiliate.id })
-            .eq("id", insertedLead.id)
-
-          // Try to find a matching referral click record (most recent from this affiliate)
+          // Require a referral click within the last 30 days
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
           const { data: recentReferral } = await supabase
             .from("referrals")
             .select("id")
             .eq("affiliate_id", affiliate.id)
+            .gte("created_at", thirtyDaysAgo)
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle()
 
-          // Create conversion record
-          await supabase.from("referral_conversions").insert({
-            affiliate_id: affiliate.id,
-            lead_id: insertedLead.id,
-            referral_id: recentReferral?.id || null,
-            status: "pending_verification",
-            commission_amount: affiliate.commission_per_booking || 0,
-          })
+          if (recentReferral) {
+            // Link lead to affiliate
+            await supabase
+              .from("leads")
+              .update({ affiliate_id: affiliate.id })
+              .eq("id", insertedLead.id)
+
+            // Create conversion record (unique constraint prevents duplicates)
+            await supabase.from("referral_conversions").insert({
+              affiliate_id: affiliate.id,
+              lead_id: insertedLead.id,
+              referral_id: recentReferral.id,
+              status: "pending_verification",
+              commission_amount: affiliate.commission_per_booking || 0,
+            })
+          }
         }
       }
     } catch (affErr) {

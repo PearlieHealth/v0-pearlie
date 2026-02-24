@@ -68,28 +68,21 @@ export async function POST(request: Request) {
         .maybeSingle()
 
       if (conversion) {
-        await supabaseAdmin
+        const { error: updateErr } = await supabaseAdmin
           .from("referral_conversions")
           .update({
             status: "confirmed",
             confirmed_at: new Date().toISOString(),
           })
           .eq("id", conversion.id)
+          .eq("status", "pending_verification") // Guard: only if still pending
 
-        // Increment affiliate's total_earned
-        const { data: affiliate } = await supabaseAdmin
-          .from("affiliates")
-          .select("total_earned")
-          .eq("id", conversion.affiliate_id)
-          .single()
-
-        if (affiliate) {
-          await supabaseAdmin
-            .from("affiliates")
-            .update({
-              total_earned: (affiliate.total_earned || 0) + (conversion.commission_amount || 0),
-            })
-            .eq("id", conversion.affiliate_id)
+        // Only increment if we actually updated (idempotent)
+        if (!updateErr) {
+          await supabaseAdmin.rpc("increment_affiliate_earned", {
+            aff_id: conversion.affiliate_id,
+            amount: conversion.commission_amount || 0,
+          })
         }
       }
     } catch (affErr) {

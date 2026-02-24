@@ -34,20 +34,12 @@ export async function PATCH(
       return NextResponse.json({ error: "Failed to update payout" }, { status: 500 })
     }
 
-    // If completed, update affiliate's total_paid
+    // If completed, atomically increment affiliate's total_paid
     if (status === "completed" && payout) {
-      const { data: affiliate } = await supabase
-        .from("affiliates")
-        .select("total_paid")
-        .eq("id", payout.affiliate_id)
-        .single()
-
-      if (affiliate) {
-        await supabase
-          .from("affiliates")
-          .update({ total_paid: (affiliate.total_paid || 0) + payout.amount })
-          .eq("id", payout.affiliate_id)
-      }
+      await supabase.rpc("increment_affiliate_paid", {
+        aff_id: payout.affiliate_id,
+        amount: payout.amount,
+      })
     }
 
     return NextResponse.json(payout)

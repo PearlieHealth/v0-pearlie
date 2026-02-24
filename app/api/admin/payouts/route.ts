@@ -38,7 +38,40 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid payout data" }, { status: 400 })
     }
 
+    if (!period_start || !period_end) {
+      return NextResponse.json({ error: "Period start and end are required" }, { status: 400 })
+    }
+
     const supabase = createAdminClient()
+
+    // Validate: payout amount must match confirmed conversions in period
+    const { data: conversions } = await supabase
+      .from("referral_conversions")
+      .select("commission_amount")
+      .eq("affiliate_id", affiliate_id)
+      .eq("status", "confirmed")
+      .gte("confirmed_at", period_start)
+      .lte("confirmed_at", period_end)
+
+    const confirmedTotal = (conversions || []).reduce(
+      (sum: number, c: { commission_amount: number }) => sum + (c.commission_amount || 0),
+      0
+    )
+
+    if (confirmedTotal <= 0) {
+      return NextResponse.json(
+        { error: "No confirmed conversions found for this period" },
+        { status: 400 }
+      )
+    }
+
+    // Allow partial payouts but not overpayment
+    if (amount > confirmedTotal + 0.01) {
+      return NextResponse.json(
+        { error: `Payout amount (£${amount}) exceeds confirmed commissions (£${confirmedTotal.toFixed(2)}) for this period` },
+        { status: 400 }
+      )
+    }
 
     const { data, error } = await supabase
       .from("affiliate_payouts")
@@ -46,14 +79,21 @@ export async function POST(request: Request) {
         affiliate_id,
         amount,
         payment_method: payment_method || null,
-        period_start: period_start || null,
-        period_end: period_end || null,
+        period_start,
+        period_end,
         status: "pending",
       })
       .select("*")
       .single()
 
     if (error) {
+      // Unique constraint violation = duplicate payout for this period
+      if (error.code === "23505") {
+        return NextResponse.json(
+          { error: "A payout already exists for this affiliate and period" },
+          { status: 409 }
+        )
+      }
       return NextResponse.json({ error: "Failed to create payout" }, { status: 500 })
     }
 
