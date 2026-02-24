@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
 import { FORM_VERSION, SCHEMA_VERSION } from "@/lib/intake-form-config"
 import { createRateLimiter } from "@/lib/rate-limit"
 import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
@@ -193,6 +194,17 @@ export async function POST(request: Request) {
       ? incomingBlockerLabels
       : blockerCodes
 
+    // If the user is already logged in, auto-verify the lead and link user_id.
+    // This happens when a logged-in patient starts a new search ("Continue as").
+    let authUserId: string | null = null
+    try {
+      const authClient = await createClient()
+      const { data: { user } } = await authClient.auth.getUser()
+      if (user?.id) {
+        authUserId = user.id
+      }
+    } catch {}
+
     const { data: insertedLead, error: insertError } = await supabase
       .from("leads")
       .insert({
@@ -233,7 +245,8 @@ export async function POST(request: Request) {
         schema_version: validatedData.schemaVersion,
         raw_answers: rawAnswers,
         source: body.source || "match",
-        is_verified: false,
+        is_verified: !!authUserId,
+        ...(authUserId ? { user_id: authUserId, verified_at: new Date().toISOString() } : {}),
       })
       .select()
       .single()
