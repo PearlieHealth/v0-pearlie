@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { formatDistanceToNow, format, differenceInHours, differenceInMinutes, subDays, isAfter } from "date-fns"
+import { formatDistanceToNow, format, differenceInHours, subDays, isAfter } from "date-fns"
 import {
   Search,
   Clock,
@@ -84,14 +84,6 @@ const TREATMENT_LABELS: Record<string, string> = {
 
 function getTimeAgo(dateStr: string) {
   return formatDistanceToNow(new Date(dateStr), { addSuffix: true })
-}
-
-function getElapsedColor(dateStr: string) {
-  const hours = differenceInHours(new Date(), new Date(dateStr))
-  if (hours < 2) return "text-green-600"
-  if (hours < 6) return "text-yellow-600"
-  if (hours < 24) return "text-orange-600"
-  return "text-red-600"
 }
 
 function getUrgencyColor(dateStr: string) {

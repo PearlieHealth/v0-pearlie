@@ -614,9 +614,6 @@ export default function AppointmentDetailPage() {
               {(() => {
                 const bs = (lead as any)?.booking_status
                 const isConfirmed = bs === "confirmed"
-                const isDeclined = bs === "declined"
-                const isPending = bs === "pending"
-                // Only show quick actions that make sense for the current booking state
                 return (
                   <div className="flex gap-2 px-6 pt-3 pb-2 overflow-x-auto">
                     {!isConfirmed && (
