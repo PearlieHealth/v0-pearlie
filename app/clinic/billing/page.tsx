@@ -75,6 +75,7 @@ interface BookingCharge {
   charge_created_at: string
   dispute_window_ends_at: string
   is_finalised: boolean
+  stripe_payment_intent_id: string | null
   refund_status: string | null
   refund_amount: number | null
   created_at: string
@@ -820,6 +821,12 @@ export default function BillingPage() {
                                   <Badge className="bg-green-100 text-green-700 border-green-200">
                                     Refunded
                                   </Badge>
+                                ) : charge.attendance_status === "auto_confirmed" && !charge.is_finalised ? (
+                                  <span className="text-xs text-muted-foreground">Window expired</span>
+                                ) : charge.is_finalised && charge.attendance_status === "confirmed" ? (
+                                  <Button variant="outline" size="sm" disabled title="Dispute window closed — contact support">
+                                    Dispute
+                                  </Button>
                                 ) : null}
                               </TableCell>
                             </TableRow>

@@ -39,7 +39,12 @@ export async function GET(request: NextRequest) {
       .lte("dispute_window_ends_at", windowEnd.toISOString())
       .limit(BATCH_SIZE)
 
-    if (error || !charges || charges.length === 0) {
+    if (error) {
+      console.error("[cron/dispute-reminders] Error fetching charges:", error)
+      return NextResponse.json({ error: "Failed to fetch charges" }, { status: 500 })
+    }
+
+    if (!charges || charges.length === 0) {
       return NextResponse.json({ processed: 0 })
     }
 

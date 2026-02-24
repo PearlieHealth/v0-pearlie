@@ -66,8 +66,15 @@ export async function GET(request: NextRequest) {
 
         if (chargeCount === 0) continue // No charges to bill
 
+        // Calculate exact days until the next 6th
         const dayOfMonth = now.getDate()
-        const daysUntilBilling = dayOfMonth <= 3 ? 6 - dayOfMonth : 6 - dayOfMonth + 30 // approximate
+        let billingDate: Date
+        if (dayOfMonth <= 6) {
+          billingDate = new Date(now.getFullYear(), now.getMonth(), 6)
+        } else {
+          billingDate = new Date(now.getFullYear(), now.getMonth() + 1, 6)
+        }
+        const daysUntilBilling = Math.ceil((billingDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
         await sendEmailWithRetry({
           from: EMAIL_FROM.NOTIFICATIONS,

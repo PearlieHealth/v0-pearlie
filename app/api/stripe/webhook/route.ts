@@ -32,6 +32,19 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // ── Idempotency check — skip if this Stripe event was already processed ──
+    const { data: existingEvent } = await supabase
+      .from("billing_events")
+      .select("id")
+      .eq("stripe_event_id", event.id)
+      .limit(1)
+      .maybeSingle()
+
+    if (existingEvent) {
+      console.log(`[stripe/webhook] Event ${event.id} already processed, skipping`)
+      return NextResponse.json({ received: true, duplicate: true })
+    }
+
     switch (event.type) {
       // ── Checkout completed (new subscription) ──
       case "checkout.session.completed": {

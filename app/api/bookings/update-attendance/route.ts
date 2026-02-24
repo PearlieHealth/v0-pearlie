@@ -33,11 +33,19 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    if (status === "exempt" && exemptionReason && !EXEMPTION_REASONS.includes(exemptionReason)) {
-      return NextResponse.json(
-        { error: `Invalid exemption reason. Must be one of: ${EXEMPTION_REASONS.join(", ")}` },
-        { status: 400 }
-      )
+    if (status === "exempt") {
+      if (!exemptionReason) {
+        return NextResponse.json(
+          { error: "exemptionReason is required when status is \"exempt\"" },
+          { status: 400 }
+        )
+      }
+      if (!EXEMPTION_REASONS.includes(exemptionReason)) {
+        return NextResponse.json(
+          { error: `Invalid exemption reason. Must be one of: ${EXEMPTION_REASONS.join(", ")}` },
+          { status: 400 }
+        )
+      }
     }
 
     const supabase = createAdminClient()
