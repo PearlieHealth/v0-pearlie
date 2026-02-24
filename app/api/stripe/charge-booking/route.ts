@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     // Get clinic subscription (or create a placeholder if none exists)
     let { data: sub } = await supabase
       .from("clinic_subscriptions")
-      .select("stripe_customer_id, status, free_leads_used, free_leads_limit, trial_ends_at")
+      .select("stripe_customer_id, status, free_leads_used, free_leads_limit")
       .eq("clinic_id", clinicId)
       .single()
 
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
           free_leads_used: 0,
           free_leads_limit: FREE_LEADS_LIMIT,
         })
-        .select("stripe_customer_id, status, free_leads_used, free_leads_limit, trial_ends_at")
+        .select("stripe_customer_id, status, free_leads_used, free_leads_limit")
         .single()
       sub = newSub
     }
@@ -219,46 +219,6 @@ export async function POST(request: NextRequest) {
         chargeId: charge?.id,
         paymentDeferred: true,
         message: "Booking charge recorded. Subscription is not active.",
-      })
-    }
-
-    // During trial period, record charge but don't collect payment
-    if (sub.status === "trialing") {
-      const { data: charge } = await supabase
-        .from("booking_charges")
-        .insert({
-          booking_id: bookingId || null,
-          lead_id: leadId || null,
-          clinic_id: clinicId,
-          patient_name: patientName || null,
-          treatment: treatment || null,
-          amount: BOOKING_FEE_AMOUNT,
-          currency: CURRENCY,
-          attendance_status: "auto_confirmed",
-          dispute_window_ends_at: getDisputeWindowEnd().toISOString(),
-        })
-        .select("id")
-        .single()
-
-      await supabase.from("billing_events").insert({
-        event_type: "booking_charged",
-        clinic_id: clinicId,
-        booking_charge_id: charge?.id,
-        metadata: {
-          amount: BOOKING_FEE_AMOUNT,
-          patient_name: patientName,
-          treatment,
-          trial_period: true,
-          trial_ends_at: sub.trial_ends_at,
-        },
-      })
-
-      return NextResponse.json({
-        success: true,
-        chargeId: charge?.id,
-        paymentDeferred: true,
-        trialPeriod: true,
-        message: "Booking charge recorded. Payment deferred during trial period.",
       })
     }
 

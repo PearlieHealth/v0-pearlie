@@ -51,7 +51,6 @@ import {
   FileDown,
   Filter,
   Gift,
-  Sparkles,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -64,7 +63,6 @@ interface Subscription {
   has_stripe_customer: boolean
   free_leads_used: number
   free_leads_limit: number
-  trial_ends_at: string | null
 }
 
 interface BookingCharge {
@@ -387,12 +385,12 @@ export default function BillingPage() {
                   <p className="font-medium text-[#004443]">Welcome! Your first 3 leads are free</p>
                   <p className="text-sm text-muted-foreground">
                     Start receiving patient matches right away — no subscription needed for your first 3 leads.
-                    When you&apos;re ready, set up a subscription with a 30-day free trial.
+                    When you&apos;re ready, set up a subscription to keep receiving leads.
                   </p>
                 </div>
                 <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-[#0fbcb0] hover:bg-[#0da399] text-white">
                   {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Start Free Trial
+                  Set Up Subscription
                 </Button>
               </CardContent>
             </Card>
@@ -405,12 +403,12 @@ export default function BillingPage() {
                 <div className="flex-1">
                   <p className="font-medium text-yellow-800">Free leads used up</p>
                   <p className="text-sm text-yellow-700">
-                    You&apos;ve used all {sub.free_leads_limit} free leads. Set up a subscription to continue receiving patient matches. Includes a 30-day free trial!
+                    You&apos;ve used all {sub.free_leads_limit} free leads. Set up a subscription to continue receiving patient matches.
                   </p>
                 </div>
                 <Button onClick={handleSetupSubscription} disabled={isRedirecting}>
                   {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Start Free Trial
+                  Set Up Subscription
                 </Button>
               </CardContent>
             </Card>
@@ -457,25 +455,6 @@ export default function BillingPage() {
                     />
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {sub?.status === "trialing" && sub.trial_ends_at && (
-            <Card className="border-blue-200 bg-blue-50">
-              <CardContent className="flex items-center gap-4 pt-6">
-                <Sparkles className="h-6 w-6 text-blue-600 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="font-medium text-blue-800">30-day free trial active</p>
-                  <p className="text-sm text-blue-700">
-                    Your trial ends on {formatDate(sub.trial_ends_at)}.
-                    During the trial, booking fees are recorded but not charged to your card.
-                    {" "}After the trial, your subscription and per-booking charges will begin automatically.
-                  </p>
-                </div>
-                <Badge className="bg-blue-100 text-blue-700 border-blue-200">
-                  {getDaysRemaining(sub.trial_ends_at)} days left
-                </Badge>
               </CardContent>
             </Card>
           )}
@@ -949,7 +928,6 @@ export default function BillingPage() {
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p className="font-medium text-foreground">Billing Policy</p>
                   <p>Your first <strong>3 patient leads are free</strong> — no booking fee charged. After that, each confirmed patient appointment incurs a £75 booking fee.</p>
-                  <p>New clinics get a <strong>30-day free trial</strong> — subscription fees and booking charges are deferred until the trial ends.</p>
                   <p>You have <strong>7 days</strong> from each charge date to report if a patient did not attend or is exempt (NHS, under 18, cancellation, duplicate, etc.).</p>
                   <p>After the 7-day window closes, the charge is automatically finalised. If you need help with a finalised charge, contact <a href="mailto:billing@pearlie.org" className="text-primary hover:underline">billing@pearlie.org</a>.</p>
                 </div>

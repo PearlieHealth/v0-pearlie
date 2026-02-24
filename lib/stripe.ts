@@ -32,6 +32,3 @@ export const CURRENCY = "gbp"
 
 // Number of free leads before billing kicks in
 export const FREE_LEADS_LIMIT = 3
-
-// Free trial duration in days
-export const TRIAL_PERIOD_DAYS = 30

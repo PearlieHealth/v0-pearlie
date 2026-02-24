@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getStripe, TRIAL_PERIOD_DAYS } from "@/lib/stripe"
+import { getStripe } from "@/lib/stripe"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     // Check if subscription already exists
     const { data: existingSub } = await supabase
       .from("clinic_subscriptions")
-      .select("stripe_customer_id, stripe_subscription_id, status, trial_ends_at")
+      .select("stripe_customer_id, stripe_subscription_id, status")
       .eq("clinic_id", clinicId)
       .single()
 
@@ -89,9 +89,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Billing not configured" }, { status: 500 })
     }
 
-    // Check if this clinic has already used a trial before
-    const hasUsedTrial = !!existingSub?.trial_ends_at
-
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
@@ -101,8 +98,6 @@ export async function POST(request: NextRequest) {
       cancel_url: cancelUrl || `${appUrl}/clinic/billing?setup=cancelled`,
       allow_promotion_codes: true,
       subscription_data: {
-        // 30-day free trial for first-time subscribers
-        ...(hasUsedTrial ? {} : { trial_period_days: TRIAL_PERIOD_DAYS }),
         metadata: {
           clinic_id: clinicId,
           plan_type: "basic",
