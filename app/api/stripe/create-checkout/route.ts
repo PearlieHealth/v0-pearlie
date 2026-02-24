@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Only admin/owner can manage billing
-    if (!["clinic_admin", "clinic_owner"].includes(clinicUser.role)) {
-      return NextResponse.json({ error: "Only clinic admins can manage billing" }, { status: 403 })
+    if (!["clinic_admin", "clinic_owner", "clinic_user"].includes(clinicUser.role)) {
+      return NextResponse.json({ error: "Unauthorized to manage billing" }, { status: 403 })
     }
 
     // Get clinic details

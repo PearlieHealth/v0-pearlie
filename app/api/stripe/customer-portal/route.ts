@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
       .eq("clinic_id", clinicId)
       .single()
 
-    if (!clinicUser || !["clinic_admin", "clinic_owner"].includes(clinicUser.role)) {
-      return NextResponse.json({ error: "Only clinic admins can manage billing" }, { status: 403 })
+    if (!clinicUser || !["clinic_admin", "clinic_owner", "clinic_user"].includes(clinicUser.role)) {
+      return NextResponse.json({ error: "Unauthorized to manage billing" }, { status: 403 })
     }
 
     // Get Stripe customer ID
