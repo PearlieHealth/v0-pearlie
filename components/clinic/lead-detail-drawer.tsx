@@ -23,6 +23,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Mail, Phone, Calendar, FileText, User } from "lucide-react"
 import { toast } from "sonner"
+import { AppointmentActionCard } from "./appointment-action-card"
 
 interface Lead {
   id: string
@@ -32,6 +33,15 @@ interface Lead {
   phone: string
   created_at: string
   raw_answers: Record<string, unknown>
+  booking_status?: string | null
+  booking_date?: string | null
+  booking_time?: string | null
+  booking_decline_reason?: string | null
+  booking_cancel_reason?: string | null
+  booking_confirmed_at?: string | null
+  booking_declined_at?: string | null
+  booking_cancelled_at?: string | null
+  booking_rescheduled_at?: string | null
   outcome?: {
     status: string
     contacted_at: string | null
@@ -182,6 +192,27 @@ export function LeadDetailDrawer({ lead, clinicId, onClose, onUpdate }: LeadDeta
               </div>
             </div>
           </div>
+
+          {/* Appointment Management */}
+          {lead.booking_status && (
+            <>
+              <Separator />
+              <AppointmentActionCard
+                leadId={lead.id}
+                clinicId={clinicId}
+                bookingStatus={lead.booking_status}
+                bookingDate={lead.booking_date || null}
+                bookingTime={lead.booking_time || null}
+                bookingDeclineReason={lead.booking_decline_reason || null}
+                bookingCancelReason={lead.booking_cancel_reason || null}
+                bookingConfirmedAt={lead.booking_confirmed_at || null}
+                bookingDeclinedAt={lead.booking_declined_at || null}
+                bookingCancelledAt={lead.booking_cancelled_at || null}
+                bookingRescheduledAt={lead.booking_rescheduled_at || null}
+                onUpdate={onUpdate}
+              />
+            </>
+          )}
 
           <Separator />
 

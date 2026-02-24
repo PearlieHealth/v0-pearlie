@@ -54,33 +54,23 @@ export function BookingDialog({ leadId, clinicId, patientName, onClose, onSucces
     setIsSubmitting(true)
 
     try {
-      const supabase = createBrowserClient()
-      const { data: { session } } = await supabase.auth.getSession()
-
-      if (!session) {
-        setError("You must be logged in")
-        return
-      }
-
       const appointmentDatetime = new Date(`${appointmentDate}T09:00`)
 
-      const { error: insertError } = await supabase
-        .from("bookings")
-        .insert({
-          lead_id: leadId,
-          clinic_id: clinicId,
-          appointment_datetime: appointmentDatetime.toISOString(),
-          booking_method: bookingMethod,
-          expected_value_gbp: expectedValue ? parseFloat(expectedValue) : null,
-          confirmed_by: session.user.id,
-        })
+      const res = await fetch("/api/clinic/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadId,
+          clinicId,
+          appointmentDatetime: appointmentDatetime.toISOString(),
+          bookingMethod,
+          expectedValueGbp: expectedValue ? parseFloat(expectedValue) : null,
+        }),
+      })
 
-      if (insertError) {
-        if (insertError.code === "23505") {
-          setError("A booking already exists for this lead")
-        } else {
-          setError(insertError.message)
-        }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || "Failed to create booking")
         return
       }
 

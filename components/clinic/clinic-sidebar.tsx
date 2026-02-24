@@ -36,6 +36,8 @@ interface ClinicSidebarProps {
   newLeadsCount?: number
   unrepliedCount?: number
   unreadMessagesCount?: number
+  /** Called after a nav link is clicked (used to close mobile sheet) */
+  onNavigate?: () => void
 }
 
 const navItems = [
@@ -78,9 +80,12 @@ const navItems = [
   },
 ]
 
-export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 0, unrepliedCount = 0, unreadMessagesCount = 0 }: ClinicSidebarProps) {
+export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 0, unrepliedCount = 0, unreadMessagesCount = 0, onNavigate }: ClinicSidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
+  // When onNavigate is provided we're inside a mobile Sheet — never collapse
+  const isMobile = !!onNavigate
+  const isCollapsed = collapsed && !isMobile
 
   const handleLogout = async () => {
     const supabase = createBrowserClient()
@@ -94,31 +99,31 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "flex flex-col h-screen bg-card border-r border-border transition-all duration-300",
-          collapsed ? "w-16" : "w-64"
+          "flex flex-col h-full min-h-0 bg-card border-r border-border transition-all duration-300",
+          isCollapsed ? "w-16" : "w-64"
         )}
       >
         {/* Header */}
         <div className={cn(
-          "flex items-center h-16 border-b border-border px-4",
-          collapsed ? "justify-center" : "justify-between"
+          "flex items-center h-14 border-b border-border px-4",
+          isCollapsed ? "justify-center" : "justify-between"
         )}>
-          {!collapsed && (
-            <Link href={clinicHref("/clinic")} className="flex items-center gap-2.5">
+          {!isCollapsed && (
+            <Link href={clinicHref("/clinic")} className="flex items-center gap-2.5" onClick={onNavigate}>
               <div className="rounded-full bg-[#faf3e6] p-1.5">
                 <Heart className="w-4 h-4 text-foreground fill-foreground" />
               </div>
               <span className="font-semibold text-lg">Pearlie</span>
             </Link>
           )}
-          {collapsed && (
+          {isCollapsed && (
             <Link href={clinicHref("/clinic")}>
               <div className="rounded-full bg-[#faf3e6] p-1.5">
                 <Heart className="w-4 h-4 text-foreground fill-foreground" />
               </div>
             </Link>
           )}
-          {!collapsed && (
+          {!isCollapsed && !isMobile && (
             <Button
               variant="ghost"
               size="icon"
@@ -131,7 +136,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
         </div>
 
         {/* Clinic Info */}
-        {!collapsed && (
+        {!isCollapsed && (
           <div className="px-4 py-3 border-b border-border">
             <p className="font-medium text-sm truncate">{clinicName}</p>
             <p className="text-xs text-muted-foreground capitalize">
@@ -141,7 +146,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
+        <nav className={cn("flex-1 py-3 px-2 space-y-0.5 overflow-y-auto", isMobile && "py-4 space-y-1")}>
           {filteredNavItems.map((item) => {
             const resolvedHref = clinicHref(item.href)
             const isActive = pathname === item.href || pathname === resolvedHref ||
@@ -154,23 +159,25 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
             const linkContent = (
               <Link
                 href={resolvedHref}
+                onClick={onNavigate}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+                  "flex items-center gap-3 px-3 rounded-lg transition-colors",
+                  isMobile ? "py-3 text-base" : "py-2.5",
                   isActive
                     ? "bg-[#faf3e6] text-[#0fbcb0] font-medium"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  collapsed && "justify-center px-2"
+                  isCollapsed && "justify-center px-2"
                 )}
               >
                 <div className="relative flex-shrink-0">
-                  <Icon className="h-5 w-5" />
-                  {showRedDot && collapsed && (
+                  <Icon className={cn("h-5 w-5", isMobile && "h-5 w-5")} />
+                  {showRedDot && isCollapsed && (
                     <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                       {combinedCount > 9 ? "9+" : combinedCount}
                     </span>
                   )}
                 </div>
-                {!collapsed && (
+                {!isCollapsed && (
                   <>
                     <span className="flex-1">{item.label}</span>
                     {showRedDot && (
@@ -188,7 +195,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
               </Link>
             )
 
-            if (collapsed) {
+            if (isCollapsed) {
               return (
                 <Tooltip key={item.href}>
                   <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
@@ -214,8 +221,8 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-border p-2">
-          {collapsed ? (
+        <div className={cn("border-t border-border p-2", isMobile && "p-3")}>
+          {isCollapsed ? (
             <>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -247,7 +254,10 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
           ) : (
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+              className={cn(
+                "w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10",
+                isMobile && "h-12 text-base"
+              )}
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />

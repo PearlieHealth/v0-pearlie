@@ -3,8 +3,7 @@
 import React from "react"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { MessageCircle, Send, ChevronDown, Heart, Check, CheckCheck } from "lucide-react"
-import { DirectEnquiryForm } from "@/components/clinic/direct-enquiry-form"
+import { MessageCircle, Send, ChevronDown, Heart, Check, CheckCheck, ArrowRight } from "lucide-react"
 import { OTPVerification } from "@/components/otp-verification"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
 
@@ -272,14 +271,25 @@ export function EmbeddedClinicChat({
         </div>
       )}
 
-      {/* Direct enquiry form for visitors without a leadId */}
+      {/* Redirect to intake for visitors without a leadId */}
       {!leadId && (
-        <div className={`overflow-y-auto bg-[#fafafa] ${hideHeader ? "flex-1 min-h-0" : "max-h-[400px]"}`}>
-          <DirectEnquiryForm
-            clinicId={clinicId}
-            clinicName={clinicName}
-            onLeadCreated={(newLeadId) => onLeadCreated?.(newLeadId)}
-          />
+        <div className={`overflow-y-auto bg-[#fafafa] ${hideHeader ? "flex-1 min-h-0" : "max-h-[400px]"} flex items-center justify-center p-6`}>
+          <div className="text-center max-w-[280px]">
+            <MessageCircle className="h-8 w-8 text-[#ccc] mx-auto mb-3" />
+            <h3 className="text-sm font-semibold text-[#1a1a1a] mb-1">
+              Quick form first
+            </h3>
+            <p className="text-xs text-[#666] mb-4 leading-relaxed">
+              Answer a few questions so {clinicName} can understand what you need. Takes under 2 minutes.
+            </p>
+            <a
+              href="/intake"
+              className="inline-flex items-center justify-center w-full bg-[#004443] hover:bg-[#003332] text-white h-10 text-sm font-medium rounded-full transition-colors"
+            >
+              Get started
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </a>
+          </div>
         </div>
       )}
 

@@ -88,11 +88,14 @@ interface BookingCardProps {
   clinic: Clinic
   isTopMatch: boolean
   onMessageClick: () => void
-  onRequestAppointment?: (message: string) => void | Promise<void>
+  onRequestAppointment?: (message: string, opts?: { date?: string; time?: string }) => void | Promise<void>
   appointmentRequested?: boolean
   appointmentRequestedAt?: string | null // ISO timestamp
   bookingDate?: string | null
   bookingTime?: string | null
+  bookingStatus?: string | null
+  bookingDeclineReason?: string | null
+  bookingCancelReason?: string | null
   ctaRef?: React.RefObject<HTMLDivElement | null>
   providers?: ProviderProfile[]
   treatmentInterest?: string
@@ -128,6 +131,9 @@ export function BookingCard({
   appointmentRequestedAt,
   bookingDate,
   bookingTime,
+  bookingStatus,
+  bookingDeclineReason,
+  bookingCancelReason,
   ctaRef,
   providers = [],
   treatmentInterest,
@@ -140,6 +146,8 @@ export function BookingCard({
     message: string
     dateLabel?: string
     timeLabel?: string
+    isoDate?: string  // YYYY-MM-DD for structured booking
+    slotTime?: string // HH:MM key for structured booking
   } | null>(null)
   const [isRequesting, setIsRequesting] = useState(false)
 
@@ -353,21 +361,22 @@ export function BookingCard({
 
         {/* Availability — ClinicDatePicker always visible */}
         <div className="space-y-3">
-          {!appointmentRequested && (
+          {(!appointmentRequested || bookingStatus === "declined" || bookingStatus === "cancelled") && (
             <ClinicDatePicker
               availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
               availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
               acceptsSameDay={clinic.accepts_same_day || false}
               onSelectSlot={(date, time) => {
-                const dateLabel = date.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
+                const dateLabel = date.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
+                const isoDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
                 const msg = `Hi! I'd like to request an appointment on ${dateLabel} at ${time}. Would this time be available?`
-                setPendingAppointment({ message: msg, dateLabel, timeLabel: time })
+                setPendingAppointment({ message: msg, dateLabel, timeLabel: time, isoDate, slotTime: time })
               }}
             />
           )}
 
           {/* Confirmation step */}
-          {pendingAppointment && !appointmentRequested && (
+          {pendingAppointment && (!appointmentRequested || bookingStatus === "declined" || bookingStatus === "cancelled") && (
             <div className="rounded-xl border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-4 animate-in fade-in duration-200">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
@@ -398,7 +407,12 @@ export function BookingCard({
                   onClick={async () => {
                     if (onRequestAppointment) {
                       setIsRequesting(true)
-                      await onRequestAppointment(pendingAppointment.message)
+                      await onRequestAppointment(
+                        pendingAppointment.message,
+                        pendingAppointment.isoDate && pendingAppointment.slotTime
+                          ? { date: pendingAppointment.isoDate, time: pendingAppointment.slotTime }
+                          : undefined
+                      )
                       setIsRequesting(false)
                       setPendingAppointment(null)
                     }
@@ -423,10 +437,10 @@ export function BookingCard({
             </div>
           )}
 
-          {/* Appointment sent banner */}
-          {appointmentRequested && (() => {
+          {/* Appointment status banner */}
+          {(appointmentRequested || bookingStatus === "confirmed" || bookingStatus === "declined" || bookingStatus === "cancelled" || bookingStatus === "completed") && (() => {
             const formattedBookingDate = bookingDate
-              ? new Date(bookingDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
+              ? new Date(bookingDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
               : null
             const formattedBookingTime = bookingTime
               ? (HOURLY_SLOTS.find((s) => s.key === bookingTime)?.label || bookingTime)
@@ -435,6 +449,113 @@ export function BookingCard({
               ? new Date(appointmentRequestedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
               : null
 
+            // Confirmed
+            if (bookingStatus === "confirmed") {
+              return (
+                <div className="rounded-xl bg-green-50 border border-green-200 p-4 space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-green-700">
+                        Appointment confirmed
+                        {formattedBookingDate && (
+                          <> for {formattedBookingDate}{formattedBookingTime && <> at {formattedBookingTime}</>}</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    onClick={onMessageClick}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    Message Clinic
+                  </Button>
+                </div>
+              )
+            }
+
+            // Declined
+            if (bookingStatus === "declined") {
+              return (
+                <div className="rounded-xl bg-red-50 border border-red-200 p-4 space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <X className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-red-700">Request declined</p>
+                      {bookingDeclineReason && (
+                        <p className="text-xs text-red-600/80 mt-0.5">{bookingDeclineReason}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        You can request a new appointment time.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    onClick={onMessageClick}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    Message Clinic
+                  </Button>
+                </div>
+              )
+            }
+
+            // Cancelled
+            if (bookingStatus === "cancelled") {
+              return (
+                <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <X className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-700">Appointment cancelled</p>
+                      {bookingCancelReason && (
+                        <p className="text-xs text-gray-600/80 mt-0.5">{bookingCancelReason}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        You can request a new appointment time.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    onClick={onMessageClick}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    Message Clinic
+                  </Button>
+                </div>
+              )
+            }
+
+            // Completed
+            if (bookingStatus === "completed") {
+              return (
+                <div className="rounded-xl bg-green-50 border border-green-200 p-4 space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-green-700">
+                        Appointment completed
+                        {formattedBookingDate && (
+                          <> on {formattedBookingDate}</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    onClick={onMessageClick}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    Message Clinic
+                  </Button>
+                </div>
+              )
+            }
+
+            // Default: Pending/requested (original behavior)
             return (
               <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 space-y-3">
                 <div className="flex items-start gap-2.5">
@@ -724,7 +845,7 @@ export function BookingCard({
 
         {/* CTA: Message + Request appointment */}
         <div ref={ctaRef} className="space-y-2 pt-3 border-t border-border/40">
-          {!appointmentRequested && (
+          {(!appointmentRequested || bookingStatus === "declined" || bookingStatus === "cancelled") && (
             <div className="flex items-center gap-3">
               <Button
                 className="flex-1 h-11 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"

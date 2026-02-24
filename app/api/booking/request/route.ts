@@ -75,6 +75,40 @@ export async function POST(request: Request) {
       )
     }
 
+    // Cap concurrent pending appointment requests per user (max 5)
+    const pendingQuery = supabase
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .eq("booking_status", "pending")
+    if (lead.user_id) {
+      pendingQuery.eq("user_id", lead.user_id)
+    } else {
+      pendingQuery.eq("email", lead.email)
+    }
+    const { count: pendingCount } = await pendingQuery
+
+    if ((pendingCount || 0) >= 5) {
+      return NextResponse.json(
+        { error: "You can have at most 5 pending appointment requests. Please wait for a response before requesting more." },
+        { status: 429 }
+      )
+    }
+
+    // Limit re-requests to same clinic after repeated declines (max 3)
+    const { count: declineCount } = await supabase
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .eq("email", lead.email)
+      .eq("booking_clinic_id", clinicId)
+      .eq("booking_status", "declined")
+
+    if ((declineCount || 0) >= 3) {
+      return NextResponse.json(
+        { error: "This clinic has declined your previous requests. Please message them directly to discuss." },
+        { status: 429 }
+      )
+    }
+
     // Generate booking token for confirm/decline links
     const bookingToken = randomBytes(16).toString("hex")
     
@@ -154,7 +188,7 @@ export async function POST(request: Request) {
       month: "long",
       year: "numeric",
     })
-    const bookingMessageContent = `Hello, I would like to request an appointment at ${clinic.name} on ${formattedDate} at ${timeLabel}`
+    const bookingMessageContent = `Hi! I'd like to request an appointment on ${formattedDate} at ${timeLabel}. Would this time be available?`
 
     // Hoist conversationId, tokenHash, and bookingMessage so they're accessible in the final response
     let conversationId: string | null = null

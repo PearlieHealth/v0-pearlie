@@ -45,6 +45,9 @@ interface Lead {
   booking_date?: string | null
   booking_time?: string | null
   booking_clinic_id?: string | null
+  booking_status?: string | null
+  booking_decline_reason?: string | null
+  booking_cancel_reason?: string | null
 }
 
 interface Match {
@@ -219,6 +222,19 @@ export default function PatientDashboard() {
   // Are we in a "pending chat" (no conversation yet)?
   const isInPendingChat = pendingChatClinic !== null && selectedConvId === null
 
+  // ── Session expiry detection ──────────────────────────────────
+  const [isSessionExpired, setIsSessionExpired] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        setIsSessionExpired(true)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
   // ── Data fetching ────────────────────────────────────────────
 
   useEffect(() => {
@@ -240,12 +256,6 @@ export default function PatientDashboard() {
         }
       }
       if (!user) { router.replace("/patient/login?next=/patient/dashboard"); return }
-
-      // Prevent clinic users from accessing patient dashboard
-      if (user.user_metadata?.role === "clinic") {
-        router.replace("/clinic")
-        return
-      }
 
       const res = await fetch(`/api/patient/matches?matchesLimit=${PAGE_SIZE}&convsLimit=${PAGE_SIZE}`)
       if (!res.ok) {
@@ -616,7 +626,9 @@ export default function PatientDashboard() {
         // Remove optimistic message on error
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
         const errData = await res.json().catch(() => ({}))
-        if (res.status === 403) {
+        if (res.status === 401) {
+          setChatError("Your session has expired. Please log in again to continue chatting.")
+        } else if (res.status === 403) {
           setChatError("Please verify your email before sending messages.")
         } else if (res.status === 429) {
           setChatError(errData.error || "Too many messages. Please wait a moment.")
@@ -705,7 +717,7 @@ export default function PatientDashboard() {
     if (selectedClinicId) openConversationForClinic(selectedClinicId)
   }
 
-  async function handleRequestAppointment(message: string) {
+  async function handleRequestAppointment(message: string, opts?: { date?: string; time?: string }) {
     if (!selectedClinicId || !activeLeadId) return
 
     // Block if already requested (server-side check is also in the API)
@@ -725,26 +737,47 @@ export default function PatientDashboard() {
     }
     setMessages((prev) => [...prev, optimisticMsg])
 
-    // Send appointment request via API with messageType for server-side tracking
+    // When we have structured date/time, use the full booking request API so the
+    // lead's booking_* fields are set and the clinic gets confirm/decline buttons.
+    // For generic "what times?" messages (no date/time), use chat/send.
+    const useBookingApi = !!(opts?.date && opts?.time)
+
     try {
-      const res = await fetch("/api/chat/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          leadId: activeLeadId,
-          clinicId: selectedClinicId,
-          content: message,
-          senderType: "patient",
-          messageType: "appointment_request",
-        }),
-      })
+      const res = useBookingApi
+        ? await fetch("/api/booking/request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              clinicId: selectedClinicId,
+              leadId: activeLeadId,
+              date: opts!.date,
+              time: opts!.time,
+            }),
+          })
+        : await fetch("/api/chat/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              leadId: activeLeadId,
+              clinicId: selectedClinicId,
+              content: message,
+              senderType: "patient",
+              messageType: "appointment_request",
+            }),
+          })
+
       if (res.ok) {
         const data = await res.json()
-        // Replace optimistic message with server version
-        setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
+
+        // Both APIs return the message (bookingMessage for booking/request, message for chat/send)
+        const serverMessage = useBookingApi ? data.bookingMessage : data.message
+        if (serverMessage) {
+          setMessages((prev) => prev.map((m) => m.id === tempId ? serverMessage : m))
+        } else {
+          setMessages((prev) => prev.filter((m) => m.id !== tempId))
+        }
 
         // Mark the conversation locally as having an appointment request
-        // so the UI updates immediately without waiting for a re-fetch.
         setInboxConversations((prev) =>
           prev.map((c) =>
             c.clinic_id === selectedClinicId
@@ -754,17 +787,31 @@ export default function PatientDashboard() {
         )
 
         // If new conversation was created, update state
-        if (data.conversationId && !inboxConversations.find((c) => c.clinic_id === selectedClinicId)) {
-          // Skip the auto-fetch — we already have the right messages in state
+        const convId = data.conversationId
+        if (convId && !inboxConversations.find((c) => c.clinic_id === selectedClinicId)) {
           skipNextConvFetch.current = true
-          setSelectedConvId(data.conversationId)
+          setSelectedConvId(convId)
           setPendingChatClinic(null)
-          fetchInbox() // re-fetch includes appointment_requested_at from server
+          fetchInbox()
+        }
+
+        // Update local lead data so booking status shows immediately
+        if (useBookingApi && data.success) {
+          setData((prev) => {
+            if (!prev) return prev
+            return {
+              ...prev,
+              leads: prev.leads.map((l) =>
+                l.id === activeLeadId
+                  ? { ...l, booking_status: "pending", booking_date: opts!.date!, booking_time: opts!.time!, booking_clinic_id: selectedClinicId }
+                  : l
+              ),
+            }
+          })
         }
 
         // Handle bot auto-replies with typing indicator
         if (data.botMessages?.length) {
-          // Register IDs so realtime handler ignores these (they'd bypass the delay)
           data.botMessages.forEach((botMsg: Message) => delayedBotMsgIds.current.add(botMsg.id))
 
           setBotTyping(true)
@@ -794,8 +841,14 @@ export default function PatientDashboard() {
         // Already requested (server-side duplicate check) — remove optimistic, refresh inbox
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
         fetchInbox()
+      } else if (res.status === 429) {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
+        const errData = await res.json().catch(() => ({}))
+        setChatError(errData.error || "Too many requests. Please wait a moment.")
       } else {
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
+        const errData = await res.json().catch(() => ({}))
+        setChatError(errData.error || "Failed to send appointment request.")
       }
     } catch (err) {
       console.error("Failed to send appointment request:", err)
@@ -850,6 +903,15 @@ export default function PatientDashboard() {
 
   return (
     <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-background flex flex-col">
+      {/* Session expiry banner */}
+      {isSessionExpired && (
+        <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-3 text-center text-sm">
+          <span className="text-destructive font-medium">Your session has expired.</span>{" "}
+          <Link href="/patient/login?next=/patient/dashboard" className="text-destructive underline hover:no-underline">
+            Log in again
+          </Link>
+        </div>
+      )}
       {/* Header */}
       <header className="bg-card border-b sticky top-0 z-50">
         <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
@@ -865,31 +927,21 @@ export default function PatientDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3 sm:gap-3">
-            {/* Mobile inbox toggle */}
-            <button
-              onClick={() => {
-                if (isMobile) {
-                  setMobileInboxListOpen(true)
-                } else {
-                  setMobileInboxOpen(!mobileInboxOpen)
-                }
-              }}
-              className="lg:hidden relative flex items-center justify-center h-9 w-9 rounded-full hover:bg-muted/60 active:bg-muted transition-colors"
-            >
-              <MessageCircle className="w-5 h-5 text-foreground/60" />
-              {totalUnread > 0 && (
-                <span className="absolute top-0.5 right-0.5 bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
-                  {totalUnread}
-                </span>
-              )}
-            </button>
-            {/* Sign out */}
+            {/* Mobile: red sign out button (replaces chat icon) */}
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors p-2 sm:p-0"
+              className="lg:hidden flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-600 transition-colors p-2"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign out</span>
+              Sign out
+            </button>
+            {/* Desktop: sign out */}
+            <button
+              onClick={handleSignOut}
+              className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign out</span>
             </button>
           </div>
         </div>
@@ -903,7 +955,11 @@ export default function PatientDashboard() {
 
           {/* ─── MOBILE: Persistent navigation buttons ──────────── */}
           {isMobile && selectedClinic && (
-            <div className="sticky top-0 z-20 -mx-3 -mt-4 px-3 pt-3 pb-2 bg-background/95 backdrop-blur-sm border-b border-border/30">
+            <div className="sticky top-0 z-20 -mx-3 -mt-4 px-3 pt-3 pb-4 bg-background/95 backdrop-blur-sm border-b border-border/30 space-y-4">
+              {/* Account info */}
+              <p className="text-xs text-muted-foreground truncate">
+                Signed in as <span className="font-medium text-foreground/80">{data?.user?.email}</span>
+              </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setMobileInboxListOpen(true)}
@@ -949,6 +1005,9 @@ export default function PatientDashboard() {
                 appointmentRequestedAt={appointmentRequestedClinicsMap.get(selectedClinic.id) || null}
                 bookingDate={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_date : null}
                 bookingTime={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_time : null}
+                bookingStatus={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_status : null}
+                bookingDeclineReason={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_decline_reason : null}
+                bookingCancelReason={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_cancel_reason : null}
                 ctaRef={ctaRef}
                 providers={clinicProviders}
                 treatmentInterest={latestMatchLead?.treatment_interest}
@@ -1166,6 +1225,8 @@ export default function PatientDashboard() {
 
                 {inboxConversations.map((conv) => {
                   const isActive = selectedConvId === conv.id && !isInPendingChat
+                  const convLead = data?.leads?.find((l) => l.id === conv.lead_id)
+                  const treatmentLabel = convLead?.treatment_interest
                   return (
                     <button
                       key={conv.id}
@@ -1196,9 +1257,14 @@ export default function PatientDashboard() {
                       {/* Content */}
                       <div className="min-w-0 flex-1 space-y-0.5">
                         <div className="flex items-center justify-between gap-2">
-                          <p className={`text-[13px] truncate ${conv.unread_by_patient ? "font-bold text-foreground" : "font-semibold text-foreground/80"}`}>
-                            {conv.clinics?.name || "Clinic"}
-                          </p>
+                          <div className="min-w-0">
+                            <p className={`text-[13px] truncate ${conv.unread_by_patient ? "font-bold text-foreground" : "font-semibold text-foreground/80"}`}>
+                              {conv.clinics?.name || "Clinic"}
+                            </p>
+                            {treatmentLabel && (
+                              <span className="text-[10px] text-muted-foreground/70 truncate block">{treatmentLabel}</span>
+                            )}
+                          </div>
                           <span className="text-[10px] text-muted-foreground flex-shrink-0">
                             {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
                           </span>
@@ -1338,7 +1404,8 @@ export default function PatientDashboard() {
                   )}
                 </div>
 
-                {/* Quick prompts */}
+                {/* Quick prompts — show until a couple of messages exchanged */}
+                {messages.length <= 2 && (
                 <div className="flex gap-1.5 px-4 py-2 overflow-x-auto flex-shrink-0 border-t border-border/40">
                   {QUICK_PROMPTS.map((prompt) => (
                     <button
@@ -1350,11 +1417,21 @@ export default function PatientDashboard() {
                     </button>
                   ))}
                 </div>
+                )}
 
                 {/* Error feedback */}
                 {chatError && (
                   <div className="px-4 py-1.5 flex-shrink-0">
-                    <p className="text-xs text-red-500">{chatError}</p>
+                    {chatError.includes("session has expired") ? (
+                      <p className="text-xs text-red-500">
+                        {chatError}{" "}
+                        <a href="/patient/login?next=/patient/dashboard" className="underline font-medium hover:text-red-700">
+                          Log in
+                        </a>
+                      </p>
+                    ) : (
+                      <p className="text-xs text-red-500">{chatError}</p>
+                    )}
                   </div>
                 )}
 
@@ -1530,7 +1607,16 @@ export default function PatientDashboard() {
           {/* Error feedback */}
           {chatError && (
             <div className="px-3 py-1.5 flex-shrink-0 bg-card">
-              <p className="text-xs text-red-500">{chatError}</p>
+              {chatError.includes("session has expired") ? (
+                <p className="text-xs text-red-500">
+                  {chatError}{" "}
+                  <a href="/patient/login?next=/patient/dashboard" className="underline font-medium hover:text-red-700">
+                    Log in
+                  </a>
+                </p>
+              ) : (
+                <p className="text-xs text-red-500">{chatError}</p>
+              )}
             </div>
           )}
 

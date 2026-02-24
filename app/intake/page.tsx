@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { PostcodeInput } from "@/components/postcode-input"
 import {
@@ -62,6 +63,23 @@ export default function IntakePage() {
   const [waitlistDone, setWaitlistDone] = useState(false)
 
   const [utmParams, setUtmParams] = useState<Record<string, string>>({})
+
+  // Auth state: detect if user is already logged in (e.g. returning after a previous intake OTP)
+  const [authUser, setAuthUser] = useState<{ email: string; firstName: string; lastName: string } | null>(null)
+  const [continueAsSomeoneElse, setContinueAsSomeoneElse] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email && user.user_metadata?.role === "patient") {
+        setAuthUser({
+          email: user.email,
+          firstName: user.user_metadata?.first_name || "",
+          lastName: user.user_metadata?.last_name || "",
+        })
+      }
+    })
+  }, [])
 
   const [formData, setFormData] = useState({
     treatments: [] as string[],
@@ -1241,6 +1259,58 @@ export default function IntakePage() {
                     subtitle="Your details are only shared with clinics you choose to contact."
                   />
 
+                  {/* Logged-in user: "Continue as" shortcut */}
+                  {authUser && !continueAsSomeoneElse ? (
+                    <motion.div className="space-y-5" {...fadeUp(0.3)}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            firstName: authUser.firstName,
+                            lastName: authUser.lastName,
+                            email: authUser.email,
+                            consentContact: true,
+                          }))
+                          // Submit after state update
+                          setTimeout(() => {
+                            const form = document.querySelector("form")
+                            if (form) form.requestSubmit()
+                          }, 50)
+                        }}
+                        disabled={isSubmitting}
+                        className="w-full p-5 sm:p-6 rounded-2xl border-2 border-[#0fbcb0] bg-[#faf3e6] text-left transition-all duration-200 hover:shadow-md active:scale-[0.98]"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-[#0fbcb0] flex items-center justify-center flex-shrink-0">
+                            <CheckCircle2 className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-lg font-semibold text-[#3d3838] block">
+                              {isSubmitting ? "Finding your matches..." : "Continue as"}
+                            </span>
+                            <span className="text-[#0fbcb0] font-medium truncate block">{authUser.email}</span>
+                          </div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          // Sign out current session before showing form
+                          const supabase = createClient()
+                          await supabase.auth.signOut()
+                          setAuthUser(null)
+                          setContinueAsSomeoneElse(true)
+                        }}
+                        className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+                      >
+                        Continue as someone else
+                      </button>
+                    </motion.div>
+                  ) : (
+                    /* Anonymous user or "someone else": normal contact form */
+                    <>
                   <motion.div className="space-y-5" {...fadeUp(0.3)}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
@@ -1346,6 +1416,8 @@ export default function IntakePage() {
                       {isSubmitting ? "Finding your matches..." : "Get my clinic matches"}
                     </Button>
                   </motion.div>
+                    </>
+                  )}
 
                   {/* Trust indicators */}
                   <motion.div

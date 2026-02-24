@@ -588,8 +588,21 @@ export default function BookingConfirmPage() {
               You can also monitor and manage all your requests from your personal dashboard.
             </p>
 
-            <Button asChild className="w-full">
-              <Link href="/patient/dashboard">Go to your dashboard</Link>
+            <Button
+              className="w-full"
+              onClick={async () => {
+                // Verify session exists before navigating — auto-login may have failed
+                const supabase = createClient()
+                const { data: { user } } = await supabase.auth.getUser()
+                if (user && user.user_metadata?.role !== "clinic") {
+                  // Full page load so middleware sees the fresh session cookie
+                  window.location.href = "/patient/dashboard"
+                } else {
+                  window.location.href = `/patient/login?next=${encodeURIComponent("/patient/dashboard")}`
+                }
+              }}
+            >
+              Go to your dashboard
             </Button>
 
             <Link

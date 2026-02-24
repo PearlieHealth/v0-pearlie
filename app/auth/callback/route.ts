@@ -17,11 +17,14 @@ export async function GET(request: Request) {
   const errorDescription = searchParams.get("error_description")
 
   // Determine error redirect based on the flow
-  const isPatientFlow = sanitizedNext ? (sanitizedNext.startsWith("/intake") || sanitizedNext.startsWith("/patient") || sanitizedNext.startsWith("/match") || sanitizedNext.startsWith("/booking")) : true
+  const isPatientFlow = sanitizedNext ? (sanitizedNext.startsWith("/intake") || sanitizedNext.startsWith("/patient") || sanitizedNext.startsWith("/match") || sanitizedNext.startsWith("/booking")) : !onPortal
   const clinicLoginPath = onPortal ? "/login" : "/clinic/login"
+  const errorParam = encodeURIComponent(errorDescription || error || "auth_failed")
   const errorRedirect = isPatientFlow
-    ? `${origin}/intake?error=${encodeURIComponent(errorDescription || error || "auth_failed")}`
-    : `${origin}${clinicLoginPath}?error=${encodeURIComponent(errorDescription || error || "auth_failed")}`
+    ? sanitizedNext
+      ? `${origin}/patient/login?error=${errorParam}&next=${encodeURIComponent(sanitizedNext)}`
+      : `${origin}/patient/login?error=${errorParam}`
+    : `${origin}${clinicLoginPath}?error=${errorParam}`
 
   // Handle errors from Supabase
   if (error) {
@@ -43,7 +46,7 @@ export async function GET(request: Request) {
       const { data: { user } } = await supabase.auth.getUser()
       const userRole = user?.user_metadata?.role
       const defaultRedirect = userRole === "clinic"
-        ? (onPortal ? "/" : "/clinic")
+        ? "/"
         : "/patient/dashboard"
       return NextResponse.redirect(`${origin}${defaultRedirect}`)
     }

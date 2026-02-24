@@ -3,6 +3,7 @@
  * These are the most complex templates, containing the rich patient-lead data.
  */
 import { escapeHtml } from "@/lib/escape-html"
+import { portalUrl } from "@/lib/clinic-url"
 import {
   TIMING_LABELS,
   COST_APPROACH_LABELS,
@@ -69,10 +70,6 @@ export function renderLeadActionEmail(data: LeadActionPayload): string {
   const safePhone = escapeHtml(data.phone || "")
   const safeTreatment = escapeHtml(data.treatment || "")
   const safePostcode = escapeHtml(data.postcode || "")
-
-  const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
-  const confirmUrl = data.bookingToken ? `${appUrl}/booking/clinic-response?token=${data.bookingToken}&action=confirm` : null
-  const declineUrl = data.bookingToken ? `${appUrl}/booking/clinic-response?token=${data.bookingToken}&action=decline` : null
 
   return `<!DOCTYPE html>
 <html>
@@ -205,20 +202,12 @@ export function renderLeadActionEmail(data: LeadActionPayload): string {
           <div class="value">${date}</div>
         </div>
 
-        ${confirmUrl && declineUrl ? `
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-          <p style="margin-bottom: 15px; color: #374151; font-weight: 500;">Once you've contacted this patient, please update the booking status:</p>
-          <div style="display: inline-block;">
-            <a href="${confirmUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; margin-right: 12px;">
-              Confirm Booking
-            </a>
-            <a href="${declineUrl}" style="display: inline-block; background: #f3f4f6; color: #374151; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; border: 1px solid #d1d5db;">
-              Decline
-            </a>
-          </div>
-          <p style="margin-top: 15px; font-size: 13px; color: #6b7280;">This helps us track conversions and improve patient matching</p>
+          <a href="${portalUrl("/clinic/leads")}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            Manage Lead
+          </a>
+          <p style="margin-top: 15px; font-size: 13px; color: #6b7280;">Log in to your clinic dashboard to respond to this patient</p>
         </div>
-        ` : ""}
       </div>
 
       <div class="footer">
@@ -423,6 +412,131 @@ export interface ClinicReplyToPatientPayload {
   messagePreview: string
   viewReplyUrl: string
   unsubscribeFooterHtml: string
+}
+
+// ---------------------------------------------------------------------------
+// 14–17. Appointment Lifecycle Notifications (to patient)
+// ---------------------------------------------------------------------------
+
+export interface AppointmentNotificationPayload {
+  patientFirstName: string
+  clinicName: string
+  bookingDate: string
+  bookingTime: string
+  reason?: string | null
+  viewUrl: string
+  unsubscribeFooterHtml: string
+}
+
+export function renderAppointmentConfirmedEmail(data: AppointmentNotificationPayload): string {
+  const safeFirstName = data.patientFirstName ? ` ${data.patientFirstName}` : ""
+  return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+  <div style="text-align: center; margin-bottom: 32px;">
+    <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Appointment Confirmed</h1>
+  </div>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 8px;">
+    Hi${safeFirstName},
+  </p>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    Great news! <strong>${data.clinicName}</strong> has confirmed your appointment.
+  </p>
+  <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: #166534;">Date &amp; time</p>
+    <p style="margin: 0; font-size: 18px; font-weight: 600; color: #14532d;">${data.bookingDate} &middot; ${data.bookingTime}</p>
+  </div>
+  <div style="text-align: center; margin-bottom: 24px;">
+    <a href="${data.viewUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
+      View your dashboard
+    </a>
+  </div>
+  <p style="font-size: 12px; color: #999; text-align: center;">Pearlie &mdash; Finding your perfect dental match</p>
+  ${data.unsubscribeFooterHtml}
+</div>`
+}
+
+export function renderAppointmentDeclinedEmail(data: AppointmentNotificationPayload): string {
+  const safeFirstName = data.patientFirstName ? ` ${data.patientFirstName}` : ""
+  return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+  <div style="text-align: center; margin-bottom: 32px;">
+    <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Appointment Update</h1>
+  </div>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 8px;">
+    Hi${safeFirstName},
+  </p>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    Unfortunately, <strong>${data.clinicName}</strong> was unable to accommodate your requested appointment time.
+  </p>
+  ${data.reason ? `
+  <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <p style="margin: 0; font-size: 14px; color: #991b1b; line-height: 1.5;">${data.reason}</p>
+  </div>` : ""}
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    You can request a new appointment time or message the clinic directly.
+  </p>
+  <div style="text-align: center; margin-bottom: 24px;">
+    <a href="${data.viewUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
+      View your dashboard
+    </a>
+  </div>
+  <p style="font-size: 12px; color: #999; text-align: center;">Pearlie &mdash; Finding your perfect dental match</p>
+  ${data.unsubscribeFooterHtml}
+</div>`
+}
+
+export function renderAppointmentRescheduledEmail(data: AppointmentNotificationPayload): string {
+  const safeFirstName = data.patientFirstName ? ` ${data.patientFirstName}` : ""
+  return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+  <div style="text-align: center; margin-bottom: 32px;">
+    <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Appointment Rescheduled</h1>
+  </div>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 8px;">
+    Hi${safeFirstName},
+  </p>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    <strong>${data.clinicName}</strong> has rescheduled your appointment to a new time.
+  </p>
+  <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: #1e40af;">New date &amp; time</p>
+    <p style="margin: 0; font-size: 18px; font-weight: 600; color: #1e3a8a;">${data.bookingDate} &middot; ${data.bookingTime}</p>
+  </div>
+  <div style="text-align: center; margin-bottom: 24px;">
+    <a href="${data.viewUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
+      View your dashboard
+    </a>
+  </div>
+  <p style="font-size: 12px; color: #999; text-align: center;">Pearlie &mdash; Finding your perfect dental match</p>
+  ${data.unsubscribeFooterHtml}
+</div>`
+}
+
+export function renderAppointmentCancelledEmail(data: AppointmentNotificationPayload): string {
+  const safeFirstName = data.patientFirstName ? ` ${data.patientFirstName}` : ""
+  return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+  <div style="text-align: center; margin-bottom: 32px;">
+    <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Appointment Cancelled</h1>
+  </div>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 8px;">
+    Hi${safeFirstName},
+  </p>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    Your appointment at <strong>${data.clinicName}</strong> has been cancelled.
+  </p>
+  ${data.reason ? `
+  <div style="background: #f5f5f5; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <p style="margin: 0 0 4px 0; font-size: 13px; color: #666;">Reason</p>
+    <p style="margin: 0; font-size: 14px; color: #333; line-height: 1.5;">${data.reason}</p>
+  </div>` : ""}
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    You can request a new appointment time or explore other clinics.
+  </p>
+  <div style="text-align: center; margin-bottom: 24px;">
+    <a href="${data.viewUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
+      View your dashboard
+    </a>
+  </div>
+  <p style="font-size: 12px; color: #999; text-align: center;">Pearlie &mdash; Finding your perfect dental match</p>
+  ${data.unsubscribeFooterHtml}
+</div>`
 }
 
 export function renderClinicReplyToPatientEmail(data: ClinicReplyToPatientPayload): string {

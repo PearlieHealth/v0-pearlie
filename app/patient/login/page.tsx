@@ -17,7 +17,7 @@ export default function PatientLoginPage() {
   // Only allow internal paths to prevent open redirect attacks
   const nextParam = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : null
   const [email, setEmail] = useState("")
-  const [step, setStep] = useState<"email" | "otp">("email")
+  const [step, setStep] = useState<"email" | "otp" | "no-account">("email")
   const [leadId, setLeadId] = useState<string | null>(null)
   const [maskedEmail, setMaskedEmail] = useState("")
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
@@ -76,11 +76,13 @@ export default function PatientLoginPage() {
 
       if (data.leadId) {
         setLeadId(data.leadId)
+        setMaskedEmail(data.email || email.replace(/(.{2})(.*)(@.*)/, "$1***$3"))
+        setStep("otp")
+        setCooldown(60)
+        setTimeout(() => inputRefs.current[0]?.focus(), 100)
+      } else {
+        setStep("no-account")
       }
-      setMaskedEmail(data.email || email.replace(/(.{2})(.*)(@.*)/, "$1***$3"))
-      setStep("otp")
-      setCooldown(60)
-      setTimeout(() => inputRefs.current[0]?.focus(), 100)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send code")
     } finally {
@@ -134,8 +136,25 @@ export default function PatientLoginPage() {
       }
 
       setSuccess(true)
-      // Give mobile browsers time to flush cookies before navigation
-      setTimeout(() => router.replace(nextParam || "/patient/dashboard"), 1500)
+      // Poll for cookie persistence before redirecting (faster than fixed delay).
+      // Mobile browsers can be slow to flush cookies after verifyOtp.
+      const dest = nextParam || "/patient/dashboard"
+      const pollStart = Date.now()
+      const pollInterval = setInterval(async () => {
+        try {
+          const { data: { user: polledUser } } = await supabase.auth.getUser()
+          if (polledUser || Date.now() - pollStart > 3000) {
+            clearInterval(pollInterval)
+            router.replace(dest)
+          }
+        } catch {
+          // On error, fallback: redirect after timeout
+          if (Date.now() - pollStart > 3000) {
+            clearInterval(pollInterval)
+            router.replace(dest)
+          }
+        }
+      }, 200)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed")
     } finally {
@@ -215,6 +234,30 @@ export default function PatientLoginPage() {
             </div>
             <h2 className="text-xl font-semibold text-[#3d3838]">Signed in</h2>
             <p className="text-[#3d3838]/70">Redirecting to your dashboard...</p>
+          </div>
+        ) : step === "no-account" ? (
+          <div className="space-y-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center mx-auto">
+              <Mail className="w-8 h-8 text-[#0fbcb0]" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-[#3d3838] mb-2">No account found</h2>
+              <p className="text-[#3d3838]/70">
+                We couldn&apos;t find an account with that email. Complete our quick intake form to get matched with a clinic and create your account.
+              </p>
+            </div>
+            <Button
+              className="w-full h-14 text-lg font-semibold rounded-2xl bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+              asChild
+            >
+              <Link href="/intake">Find my clinic</Link>
+            </Button>
+            <button
+              onClick={() => { setStep("email"); setError("") }}
+              className="text-sm text-[#3d3838]/50 hover:text-[#3d3838] transition-colors"
+            >
+              Try a different email
+            </button>
           </div>
         ) : step === "email" ? (
           <div className="space-y-6">

@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { trackTikTokServerEvent } from "@/lib/tiktok-events-api"
+import { escapeHtml } from "@/lib/escape-html"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
+import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
+import { HOURLY_SLOTS } from "@/lib/constants"
 
 export async function POST(request: Request) {
   try {
@@ -87,6 +92,124 @@ export async function POST(request: Request) {
         booking_time: lead.booking_time,
       },
     })
+
+    // Post bot message in chat + send patient email + clear appointment_requested_at on decline
+    const clinicName = lead.clinics?.name || "Your clinic"
+    {
+      try {
+        // Find conversation for this lead + clinic
+        const { data: conversation } = await supabase
+          .from("conversations")
+          .select("id")
+          .eq("lead_id", lead.id)
+          .eq("clinic_id", lead.booking_clinic_id)
+          .single()
+
+        const conversationId = conversation?.id || null
+
+        // Post bot message
+        if (conversationId) {
+          const dateLabel = lead.booking_date
+            ? new Date(lead.booking_date + "T00:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+            : "the scheduled date"
+          const timeLabel = HOURLY_SLOTS.find((s: { key: string }) => s.key === lead.booking_time)?.label || lead.booking_time || "the scheduled time"
+
+          let botContent = ""
+          if (action === "confirm") {
+            botContent = `Your appointment has been confirmed for ${dateLabel} at ${timeLabel}.`
+          } else {
+            botContent = `${clinicName} was unable to accommodate your requested time.`
+            if (declineReason) botContent += ` Reason: ${declineReason}`
+            botContent += "\nYou can request a new appointment time."
+          }
+
+          await supabase.from("messages").insert({
+            conversation_id: conversationId,
+            sender_type: "bot",
+            content: botContent,
+            message_type: "appointment_update",
+            status: "sent",
+          })
+
+          await supabase.from("conversations").update({
+            last_message_at: new Date().toISOString(),
+            unread_by_patient: true,
+            unread_count_patient: 1,
+          }).eq("id", conversationId)
+
+          // On decline: clear appointment_requested_at so patient can re-request
+          if (action === "decline") {
+            await supabase.from("conversations").update({
+              appointment_requested_at: null,
+            }).eq("id", conversationId)
+          }
+        }
+
+        // Send patient email notification
+        if (lead.email) {
+          const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+          const dashboardPath = "/patient/dashboard"
+          const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(dashboardPath)}`
+          let viewUrl = `${appUrl}${dashboardPath}`
+
+          try {
+            const { data: linkData } = await supabase.auth.admin.generateLink({
+              type: "magiclink",
+              email: lead.email,
+              options: { redirectTo },
+            })
+            if (linkData?.properties?.action_link) {
+              viewUrl = linkData.properties.action_link
+              try {
+                const linkUrl = new URL(viewUrl)
+                const currentRedirect = linkUrl.searchParams.get("redirect_to")
+                if (currentRedirect) {
+                  const redirectHost = new URL(currentRedirect).hostname
+                  const appHost = new URL(appUrl).hostname
+                  if (redirectHost !== appHost) {
+                    linkUrl.searchParams.set("redirect_to", redirectTo)
+                    viewUrl = linkUrl.toString()
+                  }
+                }
+              } catch {}
+            }
+          } catch {}
+
+          const unsubHeaders = generateUnsubscribeHeaders(lead.email, "patient_notifications")
+          const unsubFooter = generateUnsubscribeFooterHtml(
+            unsubHeaders["List-Unsubscribe"].replace(/[<>]/g, "")
+          )
+
+          const dateLabel = lead.booking_date
+            ? new Date(lead.booking_date + "T00:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+            : "TBD"
+          const timeLabel = HOURLY_SLOTS.find((s: { key: string }) => s.key === lead.booking_time)?.label || lead.booking_time || "TBD"
+
+          const emailType = action === "confirm" ? EMAIL_TYPE.APPOINTMENT_CONFIRMED : EMAIL_TYPE.APPOINTMENT_DECLINED
+
+          await sendRegisteredEmail({
+            type: emailType,
+            to: lead.email,
+            data: {
+              patientFirstName: escapeHtml(lead.first_name || ""),
+              clinicName: escapeHtml(clinicName),
+              bookingDate: dateLabel,
+              bookingTime: timeLabel,
+              reason: declineReason ? escapeHtml(declineReason) : null,
+              viewUrl,
+              unsubscribeFooterHtml: unsubFooter,
+              _conversationId: conversationId,
+            },
+            headers: unsubHeaders,
+            clinicId: lead.booking_clinic_id,
+            leadId: lead.id,
+          })
+        }
+      } catch (notifError) {
+        // Don't fail the response if notifications fail
+        console.error("[clinic-response] Notification error:", notifError)
+      }
+    }
 
     // Fire TikTok Schedule event when clinic confirms (non-blocking)
     if (action === "confirm") {
