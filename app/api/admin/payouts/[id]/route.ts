@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { verifyAdminAuth } from "@/lib/admin-auth"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { logAffiliateAudit } from "@/lib/affiliate-audit"
 
 export async function PATCH(
   request: Request,
@@ -31,6 +32,10 @@ export async function PATCH(
       .single()
 
     if (error) {
+      // State machine violation from DB trigger
+      if (error.message?.includes("Cannot change status")) {
+        return NextResponse.json({ error: error.message }, { status: 409 })
+      }
       return NextResponse.json({ error: "Failed to update payout" }, { status: 500 })
     }
 
@@ -39,6 +44,22 @@ export async function PATCH(
       await supabase.rpc("increment_affiliate_paid", {
         aff_id: payout.affiliate_id,
         amount: payout.amount,
+      })
+    }
+
+    // M4: Audit log
+    if (payout) {
+      logAffiliateAudit(supabase, {
+        affiliate_id: payout.affiliate_id,
+        action: `payout_${status}`,
+        entity_type: "affiliate_payout",
+        entity_id: payout.id,
+        details: {
+          amount: payout.amount,
+          new_status: status,
+          payment_reference: payment_reference || null,
+        },
+        performed_by: "admin",
       })
     }
 

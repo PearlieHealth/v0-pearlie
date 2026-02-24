@@ -3,6 +3,7 @@ import { verifyAdminAuth } from "@/lib/admin-auth"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
+import { logAffiliateAudit } from "@/lib/affiliate-audit"
 
 export async function GET() {
   const auth = await verifyAdminAuth()
@@ -107,6 +108,22 @@ export async function POST(request: Request) {
         .gte("confirmed_at", period_start)
         .lte("confirmed_at", period_end)
     }
+
+    // M4: Audit log
+    logAffiliateAudit(supabase, {
+      affiliate_id,
+      action: "payout_created",
+      entity_type: "affiliate_payout",
+      entity_id: data.id,
+      details: {
+        amount,
+        period_start,
+        period_end,
+        payment_method: payment_method || null,
+        confirmed_total: confirmedTotal,
+      },
+      performed_by: "admin",
+    })
 
     // Send payout notification email to affiliate (non-blocking)
     try {

@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { trackTikTokServerEvent } from "@/lib/tiktok-events-api"
 import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
+import { logAffiliateAudit } from "@/lib/affiliate-audit"
 
 export async function POST(request: Request) {
   try {
@@ -106,6 +107,7 @@ export async function POST(request: Request) {
             .update({
               status: "confirmed",
               confirmed_at: new Date().toISOString(),
+              booking_id: lead.booking_clinic_id || null, // M6: Populate booking_id
             })
             .eq("id", conversion.id)
             .eq("status", "pending_verification") // Guard: only if still pending
@@ -116,6 +118,19 @@ export async function POST(request: Request) {
             await supabase.rpc("increment_affiliate_earned", {
               aff_id: conversion.affiliate_id,
               amount: conversion.commission_amount || 0,
+            })
+
+            // M4: Audit log
+            logAffiliateAudit(supabase, {
+              affiliate_id: conversion.affiliate_id,
+              action: "conversion_confirmed",
+              entity_type: "referral_conversion",
+              entity_id: conversion.id,
+              details: {
+                lead_id: lead.id,
+                commission_amount: conversion.commission_amount || 0,
+                confirmed_by: "clinic",
+              },
             })
 
             // Send conversion email to affiliate (non-blocking)
@@ -140,11 +155,33 @@ export async function POST(request: Request) {
           }
         }
       } else if (action === "decline") {
+        // Get conversion before rejecting for audit log
+        const { data: conversion } = await supabase
+          .from("referral_conversions")
+          .select("id, affiliate_id, commission_amount")
+          .eq("lead_id", lead.id)
+          .eq("status", "pending_verification")
+          .maybeSingle()
+
         await supabase
           .from("referral_conversions")
           .update({ status: "rejected" })
           .eq("lead_id", lead.id)
           .eq("status", "pending_verification")
+
+        if (conversion) {
+          logAffiliateAudit(supabase, {
+            affiliate_id: conversion.affiliate_id,
+            action: "conversion_rejected",
+            entity_type: "referral_conversion",
+            entity_id: conversion.id,
+            details: {
+              lead_id: lead.id,
+              reason: "clinic_declined",
+              decline_reason: declineReason || null,
+            },
+          })
+        }
       }
     } catch (affErr) {
       console.error("[clinic-response] Affiliate tracking failed (non-blocking):", affErr)

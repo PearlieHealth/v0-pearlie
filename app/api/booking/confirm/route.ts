@@ -7,6 +7,7 @@ import { NextResponse } from "next/server"
 import { randomBytes } from "crypto"
 import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
+import { logAffiliateAudit } from "@/lib/affiliate-audit"
 
 /**
  * POST /api/booking/confirm
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
           .update({
             status: "confirmed",
             confirmed_at: new Date().toISOString(),
+            booking_id: clinicId || null, // M6: Populate booking_id
           })
           .eq("id", conversion.id)
           .eq("status", "pending_verification") // Guard: only if still pending
@@ -82,6 +84,20 @@ export async function POST(request: Request) {
           await supabaseAdmin.rpc("increment_affiliate_earned", {
             aff_id: conversion.affiliate_id,
             amount: conversion.commission_amount || 0,
+          })
+
+          // M4: Audit log
+          logAffiliateAudit(supabaseAdmin, {
+            affiliate_id: conversion.affiliate_id,
+            action: "conversion_confirmed",
+            entity_type: "referral_conversion",
+            entity_id: conversion.id,
+            details: {
+              lead_id: leadId,
+              clinic_id: clinicId,
+              commission_amount: conversion.commission_amount || 0,
+              confirmed_by: "patient",
+            },
           })
         }
       }

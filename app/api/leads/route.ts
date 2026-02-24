@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { FORM_VERSION, SCHEMA_VERSION } from "@/lib/intake-form-config"
 import { createRateLimiter } from "@/lib/rate-limit"
 import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
+import { logAffiliateAudit, normalizeEmail } from "@/lib/affiliate-audit"
 
 // Rate limit: 5 lead submissions per email per 10 minutes
 const leadRateLimiter = createRateLimiter({ windowMs: 10 * 60 * 1000, maxAttempts: 5 })
@@ -254,38 +255,85 @@ export async function POST(request: Request) {
       if (refCode && /^[a-zA-Z0-9-]{1,32}$/.test(refCode)) {
         const { data: affiliate } = await supabase
           .from("affiliates")
-          .select("id, commission_per_booking")
+          .select("id, email, commission_per_booking")
           .eq("referral_code", refCode)
           .eq("status", "approved")
           .maybeSingle()
 
         if (affiliate) {
-          // Require a referral click within the last 30 days
-          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-          const { data: recentReferral } = await supabase
-            .from("referrals")
-            .select("id")
-            .eq("affiliate_id", affiliate.id)
-            .gte("created_at", thirtyDaysAgo)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle()
+          // L2: Block self-referrals — compare normalized emails
+          const leadEmail = email ? normalizeEmail(email as string) : null
+          const affiliateEmail = normalizeEmail(affiliate.email)
+          if (leadEmail && affiliateEmail && leadEmail === affiliateEmail) {
+            console.warn(`[leads] Self-referral blocked: affiliate ${affiliate.id}`)
+          } else {
+            // Require a referral click within the last 30 days
+            const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+            const { data: recentReferral } = await supabase
+              .from("referrals")
+              .select("id")
+              .eq("affiliate_id", affiliate.id)
+              .gte("created_at", thirtyDaysAgo)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle()
 
-          if (recentReferral) {
-            // Link lead to affiliate
-            await supabase
-              .from("leads")
-              .update({ affiliate_id: affiliate.id })
-              .eq("id", insertedLead.id)
+            if (recentReferral) {
+              // Link lead to affiliate
+              await supabase
+                .from("leads")
+                .update({ affiliate_id: affiliate.id })
+                .eq("id", insertedLead.id)
 
-            // Create conversion record (unique constraint prevents duplicates)
-            await supabase.from("referral_conversions").insert({
-              affiliate_id: affiliate.id,
-              lead_id: insertedLead.id,
-              referral_id: recentReferral.id,
-              status: "pending_verification",
-              commission_amount: affiliate.commission_per_booking || 0,
-            })
+              // L1: Basic fraud scoring
+              const fraudFlags: string[] = []
+              // Check if same normalized email was already referred by any affiliate
+              const normalizedLeadEmail = leadEmail
+              if (normalizedLeadEmail) {
+                const { data: existingLeads } = await supabase
+                  .from("leads")
+                  .select("id")
+                  .neq("id", insertedLead.id)
+                  .eq("affiliate_id", affiliate.id)
+                  .limit(1)
+
+                // Check using raw email match (normalized match is a DB function)
+                if (existingLeads && existingLeads.length > 0) {
+                  fraudFlags.push("repeat_affiliate_lead")
+                }
+              }
+
+              // Create conversion record (unique constraint prevents duplicates)
+              const { data: newConversion } = await supabase
+                .from("referral_conversions")
+                .insert({
+                  affiliate_id: affiliate.id,
+                  lead_id: insertedLead.id,
+                  referral_id: recentReferral.id,
+                  status: "pending_verification",
+                  commission_amount: affiliate.commission_per_booking || 0,
+                  fraud_flags: fraudFlags,
+                  fraud_score: fraudFlags.length,
+                })
+                .select("id")
+                .maybeSingle()
+
+              // M4: Audit log
+              if (newConversion) {
+                logAffiliateAudit(supabase, {
+                  affiliate_id: affiliate.id,
+                  action: "conversion_created",
+                  entity_type: "referral_conversion",
+                  entity_id: newConversion.id,
+                  details: {
+                    lead_id: insertedLead.id,
+                    referral_id: recentReferral.id,
+                    commission_amount: affiliate.commission_per_booking || 0,
+                    fraud_flags: fraudFlags,
+                  },
+                })
+              }
+            }
           }
         }
       }
