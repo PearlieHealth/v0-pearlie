@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Heart,
   MessageCircle,
+  CreditCard,
 } from "lucide-react"
 import {
   Tooltip,
@@ -71,6 +72,12 @@ const navItems = [
     label: "Providers",
     icon: Users,
     roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
+  },
+  {
+    href: "/clinic/billing",
+    label: "Billing",
+    icon: CreditCard,
+    roles: ["CLINIC_ADMIN", "CORPORATE_ADMIN"],
   },
   {
     href: "/clinic/settings",
