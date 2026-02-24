@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Check,
   Sparkles,
+  LayoutDashboard,
 } from "lucide-react"
 
 // ─── Affiliate signup form ───
@@ -296,16 +297,25 @@ export default function AffiliatesPage() {
             </div>
             <span className="text-xl font-bold tracking-tight text-[#0D9B8A]">Pearlie</span>
           </Link>
-          <a
-            href="#apply"
-            className="px-5 py-2 rounded-[14px] text-sm font-bold text-white transition-all duration-300 hover:scale-[1.03]"
-            style={{
-              background: "linear-gradient(135deg, #FE2C55 0%, #25F4EE 100%)",
-              boxShadow: "0 0 20px rgba(254,44,85,0.3)",
-            }}
-          >
-            Apply Now
-          </a>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/affiliate/dashboard"
+              className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-[14px] text-sm font-semibold text-white bg-white/[0.05] border border-white/10 backdrop-blur-[10px] hover:bg-white/[0.1] hover:border-white/20 transition-all duration-300"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              Demo Dashboard
+            </Link>
+            <a
+              href="#apply"
+              className="px-5 py-2 rounded-[14px] text-sm font-bold text-white transition-all duration-300 hover:scale-[1.03]"
+              style={{
+                background: "linear-gradient(135deg, #FE2C55 0%, #25F4EE 100%)",
+                boxShadow: "0 0 20px rgba(254,44,85,0.3)",
+              }}
+            >
+              Apply Now
+            </a>
+          </div>
         </div>
       </header>
 
@@ -381,6 +391,13 @@ export default function AffiliatesPage() {
               >
                 Learn More
               </a>
+              <Link
+                href="/affiliate/dashboard"
+                className="flex items-center gap-2 px-8 py-4 rounded-[14px] font-semibold text-[#25F4EE] text-base hover:text-white transition-all duration-300"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Preview Dashboard
+              </Link>
             </motion.div>
 
             {/* Feature pills */}
