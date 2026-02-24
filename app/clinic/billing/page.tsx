@@ -50,6 +50,8 @@ import {
   ChevronRight,
   FileDown,
   Filter,
+  Gift,
+  Sparkles,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -60,6 +62,9 @@ interface Subscription {
   current_period_end: string | null
   cancel_at_period_end: boolean
   has_stripe_customer: boolean
+  free_leads_used: number
+  free_leads_limit: number
+  trial_ends_at: string | null
 }
 
 interface BookingCharge {
@@ -375,16 +380,37 @@ export default function BillingPage() {
         <TabsContent value="overview" className="space-y-6">
           {/* Subscription status alert */}
           {!sub && (
+            <Card className="border-[#0fbcb0]/30 bg-[#0fbcb0]/5">
+              <CardContent className="flex items-center gap-4 pt-6">
+                <Gift className="h-6 w-6 text-[#0fbcb0] flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-[#004443]">Welcome! Your first 3 leads are free</p>
+                  <p className="text-sm text-muted-foreground">
+                    Start receiving patient matches right away — no subscription needed for your first 3 leads.
+                    When you&apos;re ready, set up a subscription with a 30-day free trial.
+                  </p>
+                </div>
+                <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-[#0fbcb0] hover:bg-[#0da399] text-white">
+                  {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Start Free Trial
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {sub && !sub.has_stripe_customer && sub.free_leads_used >= sub.free_leads_limit && (
             <Card className="border-yellow-200 bg-yellow-50">
               <CardContent className="flex items-center gap-4 pt-6">
                 <AlertCircle className="h-6 w-6 text-yellow-600 flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="font-medium text-yellow-800">No active subscription</p>
-                  <p className="text-sm text-yellow-700">Set up a subscription to start receiving patient matches and manage billing.</p>
+                  <p className="font-medium text-yellow-800">Free leads used up</p>
+                  <p className="text-sm text-yellow-700">
+                    You&apos;ve used all {sub.free_leads_limit} free leads. Set up a subscription to continue receiving patient matches. Includes a 30-day free trial!
+                  </p>
                 </div>
                 <Button onClick={handleSetupSubscription} disabled={isRedirecting}>
                   {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Set Up Subscription
+                  Start Free Trial
                 </Button>
               </CardContent>
             </Card>
@@ -401,6 +427,55 @@ export default function BillingPage() {
                 <Button variant="destructive" onClick={handleManagePayment} disabled={isRedirecting}>
                   Update Payment
                 </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Free leads & trial banners */}
+          {sub && sub.free_leads_used < sub.free_leads_limit && (
+            <Card className="border-[#0fbcb0]/30 bg-[#0fbcb0]/5">
+              <CardContent className="flex items-center gap-4 pt-6">
+                <Gift className="h-6 w-6 text-[#0fbcb0] flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-[#004443]">
+                    Free leads: {sub.free_leads_used} of {sub.free_leads_limit} used
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Your first {sub.free_leads_limit} patient leads are completely free — no booking fee charged.
+                    {sub.free_leads_limit - sub.free_leads_used === 1
+                      ? " You have 1 free lead remaining."
+                      : ` You have ${sub.free_leads_limit - sub.free_leads_used} free leads remaining.`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: sub.free_leads_limit }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-3 h-3 rounded-full ${
+                        i < sub.free_leads_used ? "bg-[#0fbcb0]" : "bg-[#0fbcb0]/20"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {sub?.status === "trialing" && sub.trial_ends_at && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="flex items-center gap-4 pt-6">
+                <Sparkles className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-blue-800">30-day free trial active</p>
+                  <p className="text-sm text-blue-700">
+                    Your trial ends on {formatDate(sub.trial_ends_at)}.
+                    During the trial, booking fees are recorded but not charged to your card.
+                    {" "}After the trial, your subscription and per-booking charges will begin automatically.
+                  </p>
+                </div>
+                <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+                  {getDaysRemaining(sub.trial_ends_at)} days left
+                </Badge>
               </CardContent>
             </Card>
           )}
@@ -423,21 +498,17 @@ export default function BillingPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription className="flex items-center gap-1.5">
-                  <Calendar className="h-4 w-4" />
-                  Current Period
+                  <Gift className="h-4 w-4" />
+                  Free Leads
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {sub?.current_period_end ? (
-                  <>
-                    <p className="text-2xl font-bold">
-                      {formatDate(sub.current_period_end)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Next billing date</p>
-                  </>
-                ) : (
-                  <p className="text-2xl font-bold text-muted-foreground">—</p>
-                )}
+                <p className="text-2xl font-bold">
+                  {sub ? `${sub.free_leads_limit - sub.free_leads_used}` : "3"} <span className="text-base font-normal text-muted-foreground">remaining</span>
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {sub ? `${sub.free_leads_used} of ${sub.free_leads_limit} used` : "0 of 3 used"}
+                </p>
               </CardContent>
             </Card>
 
@@ -877,7 +948,9 @@ export default function BillingPage() {
                 <Shield className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p className="font-medium text-foreground">Billing Policy</p>
-                  <p>Each confirmed patient appointment incurs a booking fee. You have <strong>7 days</strong> from the charge date to report if a patient did not attend or is exempt (NHS, under 18, cancellation, duplicate, etc.).</p>
+                  <p>Your first <strong>3 patient leads are free</strong> — no booking fee charged. After that, each confirmed patient appointment incurs a £75 booking fee.</p>
+                  <p>New clinics get a <strong>30-day free trial</strong> — subscription fees and booking charges are deferred until the trial ends.</p>
+                  <p>You have <strong>7 days</strong> from each charge date to report if a patient did not attend or is exempt (NHS, under 18, cancellation, duplicate, etc.).</p>
                   <p>After the 7-day window closes, the charge is automatically finalised. If you need help with a finalised charge, contact <a href="mailto:billing@pearlie.org" className="text-primary hover:underline">billing@pearlie.org</a>.</p>
                 </div>
               </div>

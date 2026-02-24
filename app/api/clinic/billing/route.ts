@@ -129,6 +129,9 @@ export async function GET() {
             current_period_end: subscription.current_period_end,
             cancel_at_period_end: subscription.cancel_at_period_end,
             has_stripe_customer: !!subscription.stripe_customer_id,
+            free_leads_used: subscription.free_leads_used ?? 0,
+            free_leads_limit: subscription.free_leads_limit ?? 3,
+            trial_ends_at: subscription.trial_ends_at ?? null,
           }
         : null,
       charges: charges || [],

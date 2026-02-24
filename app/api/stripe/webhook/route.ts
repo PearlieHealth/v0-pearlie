@@ -61,6 +61,9 @@ export async function POST(request: NextRequest) {
           // Fetch subscription details from Stripe
           const subscription = await stripe.subscriptions.retrieve(subscriptionId)
 
+          // Determine status — Stripe uses "trialing" for trial period
+          const subStatus = subscription.status === "trialing" ? "trialing" : "active"
+
           await supabase
             .from("clinic_subscriptions")
             .upsert({
@@ -68,10 +71,14 @@ export async function POST(request: NextRequest) {
               stripe_customer_id: typeof session.customer === "string" ? session.customer : session.customer?.id || "",
               stripe_subscription_id: subscriptionId,
               plan_type: subscription.metadata?.plan_type || "basic",
-              status: "active",
+              status: subStatus,
               current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
               current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
               cancel_at_period_end: subscription.cancel_at_period_end,
+              // Store trial end date if on trial
+              ...(subscription.trial_end
+                ? { trial_ends_at: new Date(subscription.trial_end * 1000).toISOString() }
+                : {}),
               updated_at: new Date().toISOString(),
             }, { onConflict: "clinic_id" })
 
