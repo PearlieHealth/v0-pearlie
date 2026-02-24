@@ -334,7 +334,7 @@ export default function AppointmentsPage() {
         l.last_name?.toLowerCase().includes(q) ||
         l.email?.toLowerCase().includes(q) ||
         l.phone?.toLowerCase().includes(q) ||
-        getTreatmentLabel(l.raw_answers?.treatment as string).toLowerCase().includes(q)
+        getTreatmentLabel(l.raw_answers).toLowerCase().includes(q)
       if (!matchesSearch) return false
     }
 
@@ -479,7 +479,7 @@ export default function AppointmentsPage() {
       escapeCSV(`${l.first_name || ""} ${l.last_name || ""}`.trim()),
       escapeCSV(l.email || ""),
       escapeCSV(l.phone || ""),
-      escapeCSV(getTreatmentLabel(l.raw_answers?.treatment as string)),
+      escapeCSV(getTreatmentLabel(l.raw_answers)),
       escapeCSV((l.status?.status || "NEW").replace(/_/g, " ")),
       escapeCSV(l.source || "match"),
       escapeCSV(l.created_at ? format(new Date(l.created_at), "yyyy-MM-dd") : ""),
@@ -791,7 +791,7 @@ export default function AppointmentsPage() {
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {getTreatmentLabel(lead.raw_answers?.treatment as string)}
+                          {getTreatmentLabel(lead.raw_answers)}
                         </p>
                       </div>
                     </div>
@@ -865,7 +865,7 @@ export default function AppointmentsPage() {
                               {lead.first_name} {lead.last_name}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {getTreatmentLabel(lead.raw_answers?.treatment as string)}
+                              {getTreatmentLabel(lead.raw_answers)}
                             </p>
                           </div>
                         </div>
@@ -940,7 +940,7 @@ export default function AppointmentsPage() {
                                 {lead.first_name} {lead.last_name}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {getTreatmentLabel(lead.raw_answers?.treatment as string)}
+                                {getTreatmentLabel(lead.raw_answers)}
                               </p>
                             </div>
                           </div>
@@ -979,10 +979,20 @@ export default function AppointmentsPage() {
   )
 }
 
-// Helper
-function getTreatmentLabel(treatment: string | undefined) {
-  if (!treatment) return "General Enquiry"
-  return TREATMENT_LABELS[treatment] || treatment.replace(/_/g, " ")
+// Helper: extract treatment label from raw_answers, checking both new and legacy fields
+function getTreatmentLabel(rawAnswers: Record<string, unknown> | undefined | null) {
+  if (!rawAnswers) return "General Enquiry"
+  // Newer form versions use treatments_selected (array)
+  const treatmentsSelected = rawAnswers.treatments_selected as string[] | undefined
+  if (treatmentsSelected?.length) {
+    return treatmentsSelected.join(", ")
+  }
+  // Legacy form versions use treatment (string slug)
+  const treatment = rawAnswers.treatment as string | undefined
+  if (treatment) {
+    return TREATMENT_LABELS[treatment] || treatment.replace(/_/g, " ")
+  }
+  return "General Enquiry"
 }
 
 // ─── WhatsApp-style conversation row ───
@@ -995,7 +1005,7 @@ function ConversationRow({
   category: ConversationCategory
   onClick: () => void
 }) {
-  const treatment = getTreatmentLabel(lead.raw_answers?.treatment as string)
+  const treatment = getTreatmentLabel(lead.raw_answers)
   const hasUnread = lead.conversation?.unread_by_clinic
   const unreadCount = lead.conversation?.unread_count_clinic || 0
   const latestMessage = lead.conversation?.latest_message

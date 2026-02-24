@@ -392,10 +392,13 @@ export default function AppointmentDetailPage() {
     )
   }
 
-  const treatment =
-    TREATMENT_LABELS[lead.raw_answers?.treatment as string] ||
-    (lead.raw_answers?.treatment as string)?.replace(/_/g, " ") ||
-    "General Enquiry"
+  const treatmentsSelected = lead.raw_answers?.treatments_selected as string[] | undefined
+  const treatmentSingle = lead.raw_answers?.treatment as string | undefined
+  const treatment = treatmentsSelected?.length
+    ? treatmentsSelected.join(", ")
+    : treatmentSingle
+      ? (TREATMENT_LABELS[treatmentSingle] || treatmentSingle.replace(/_/g, " "))
+      : "General Enquiry"
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
