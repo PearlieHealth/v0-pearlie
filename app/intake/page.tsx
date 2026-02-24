@@ -62,6 +62,7 @@ export default function IntakePage() {
   const [waitlistDone, setWaitlistDone] = useState(false)
 
   const [utmParams, setUtmParams] = useState<Record<string, string>>({})
+  const [referralCode, setReferralCode] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     treatments: [] as string[],
@@ -290,6 +291,45 @@ export default function IntakePage() {
     } catch {}
   }, [])
 
+  // Capture affiliate referral code from URL or localStorage
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      let ref = params.get("ref")
+
+      if (!ref) {
+        // Check localStorage for previously stored referral
+        const stored = localStorage.getItem("pearlie_ref")
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (parsed.code && Date.now() - parsed.ts < 30 * 24 * 60 * 60 * 1000) {
+            ref = parsed.code
+          } else {
+            localStorage.removeItem("pearlie_ref")
+          }
+        }
+      }
+
+      if (ref) {
+        setReferralCode(ref)
+        // Persist with 30-day expiry
+        localStorage.setItem("pearlie_ref", JSON.stringify({ code: ref, ts: Date.now() }))
+        // Log the click (non-blocking)
+        fetch("/api/track-referral", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            referral_code: ref,
+            landing_page: window.location.pathname,
+            utm_source: params.get("utm_source") || undefined,
+            utm_medium: params.get("utm_medium") || undefined,
+            utm_campaign: params.get("utm_campaign") || undefined,
+          }),
+        }).catch(() => {})
+      }
+    } catch {}
+  }, [])
+
   // I1: Restore form data from localStorage on mount (if draft < 2 hours old)
   useEffect(() => {
     try {
@@ -458,6 +498,7 @@ export default function IntakePage() {
           rawAnswers,
           formVersion: FORM_VERSION,
           schemaVersion: SCHEMA_VERSION,
+          referralCode: referralCode || undefined,
         }),
       })
 
@@ -519,6 +560,8 @@ export default function IntakePage() {
 
       // I1: Clear form draft after successful submission
       localStorage.removeItem("pearlie_form_draft")
+      // Clear referral code after successful conversion
+      localStorage.removeItem("pearlie_ref")
 
       router.push(`/match/${matchData.matchId}`)
     } catch (error: unknown) {

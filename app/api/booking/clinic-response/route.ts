@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { trackTikTokServerEvent } from "@/lib/tiktok-events-api"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 
 export async function POST(request: Request) {
   try {
@@ -87,6 +89,72 @@ export async function POST(request: Request) {
         booking_time: lead.booking_time,
       },
     })
+
+    // Update affiliate conversion status (non-blocking)
+    try {
+      if (action === "confirm") {
+        const { data: conversion } = await supabase
+          .from("referral_conversions")
+          .select("id, affiliate_id, commission_amount")
+          .eq("lead_id", lead.id)
+          .eq("status", "pending_verification")
+          .maybeSingle()
+
+        if (conversion) {
+          await supabase
+            .from("referral_conversions")
+            .update({
+              status: "confirmed",
+              confirmed_at: new Date().toISOString(),
+            })
+            .eq("id", conversion.id)
+
+          // Increment affiliate's total_earned
+          const { data: affiliate } = await supabase
+            .from("affiliates")
+            .select("total_earned")
+            .eq("id", conversion.affiliate_id)
+            .single()
+
+          if (affiliate) {
+            await supabase
+              .from("affiliates")
+              .update({
+                total_earned: (affiliate.total_earned || 0) + (conversion.commission_amount || 0),
+              })
+              .eq("id", conversion.affiliate_id)
+          }
+
+          // Send conversion email to affiliate (non-blocking)
+          const { data: affProfile } = await supabase
+            .from("affiliates")
+            .select("name, email")
+            .eq("id", conversion.affiliate_id)
+            .single()
+
+          if (affProfile?.email) {
+            sendRegisteredEmail({
+              type: EMAIL_TYPE.AFFILIATE_CONVERSION,
+              to: affProfile.email,
+              data: {
+                affiliateName: affProfile.name,
+                commissionAmount: conversion.commission_amount || 0,
+                patientFirstName: lead.first_name || "A patient",
+                _conversionId: conversion.id,
+              },
+            }).catch(() => {})
+          }
+        }
+      } else if (action === "decline") {
+        await supabase
+          .from("referral_conversions")
+          .update({ status: "rejected" })
+          .eq("lead_id", lead.id)
+          .eq("status", "pending_verification")
+      }
+    } catch (affErr) {
+      console.error("[clinic-response] Affiliate tracking failed (non-blocking):", affErr)
+    }
 
     // Fire TikTok Schedule event when clinic confirms (non-blocking)
     if (action === "confirm") {

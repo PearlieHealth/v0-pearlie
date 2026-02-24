@@ -247,6 +247,47 @@ export async function POST(request: Request) {
     leadRateLimiter.record(rateLimitKey)
     leadIpLimiter.record(ip)
 
+    // Affiliate tracking (non-blocking — never fails the lead creation)
+    try {
+      const refCode = body.referralCode as string | undefined
+      if (refCode) {
+        const { data: affiliate } = await supabase
+          .from("affiliates")
+          .select("id, commission_per_booking")
+          .eq("referral_code", refCode)
+          .eq("status", "approved")
+          .maybeSingle()
+
+        if (affiliate) {
+          // Link lead to affiliate
+          await supabase
+            .from("leads")
+            .update({ affiliate_id: affiliate.id })
+            .eq("id", insertedLead.id)
+
+          // Try to find a matching referral click record (most recent from this affiliate)
+          const { data: recentReferral } = await supabase
+            .from("referrals")
+            .select("id")
+            .eq("affiliate_id", affiliate.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+
+          // Create conversion record
+          await supabase.from("referral_conversions").insert({
+            affiliate_id: affiliate.id,
+            lead_id: insertedLead.id,
+            referral_id: recentReferral?.id || null,
+            status: "pending_verification",
+            commission_amount: affiliate.commission_per_booking || 0,
+          })
+        }
+      }
+    } catch (affErr) {
+      console.error("[leads] Affiliate tracking failed (non-blocking):", affErr)
+    }
+
     // Fire TikTok CompleteRegistration event (server-side, non-blocking)
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
     trackTikTokServerEvent({

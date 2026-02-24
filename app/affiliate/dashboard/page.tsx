@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { AffiliateSidebar } from "@/components/affiliate/affiliate-sidebar"
+import { useAffiliate } from "@/hooks/use-affiliate"
 import {
   MousePointerClick,
   ArrowUpRight,
@@ -12,19 +14,9 @@ import {
   Copy,
   Check,
   TrendingUp,
+  Loader2,
 } from "lucide-react"
 
-// Placeholder data for demo — will be replaced with real API data
-const DEMO_STATS = {
-  total_clicks: 0,
-  total_conversions: 0,
-  conversion_rate: 0,
-  total_earned: 0,
-  pending_earnings: 0,
-  total_paid: 0,
-}
-
-const DEMO_REFERRAL_CODE = "AFF-demo1"
 const BASE_URL = "https://pearlie.org"
 
 function CopyLinkComponent({ referralCode }: { referralCode: string }) {
@@ -70,17 +62,14 @@ function StatCard({
   value,
   icon: Icon,
   isMoney,
-  trend,
 }: {
   label: string
   value: string | number
   icon: React.ComponentType<{ className?: string }>
   isMoney?: boolean
-  trend?: number
 }) {
   return (
     <div className="bg-white/[0.03] border border-white/[0.06] rounded-[20px] backdrop-blur-[20px] p-6 relative overflow-hidden">
-      {/* Gradient accent line at top */}
       <div
         className="absolute top-0 left-0 right-0 h-[3px]"
         style={{ background: "linear-gradient(135deg, #FE2C55 0%, #25F4EE 100%)" }}
@@ -92,49 +81,60 @@ function StatCard({
       <p className={`text-3xl font-extrabold ${isMoney ? "text-[#00F5A0]" : "text-white"}`}>
         {isMoney ? `£${value}` : value}
       </p>
-      {trend !== undefined && (
-        <div className="flex items-center gap-1 mt-2 text-sm">
-          <TrendingUp className="w-3.5 h-3.5 text-[#00F5A0]" />
-          <span className="text-[#00F5A0]">+{trend}%</span>
-          <span className="text-[#6B6B80]">vs last month</span>
-        </div>
-      )}
     </div>
   )
 }
 
 export default function AffiliateDashboardPage() {
-  const stats = DEMO_STATS
+  const router = useRouter()
+  const { profile, stats, loading, error } = useAffiliate()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-[#8B8BA3]" />
+      </div>
+    )
+  }
+
+  if (error === "not_authenticated" || !profile) {
+    router.push("/affiliate/login")
+    return null
+  }
+
+  const s = stats || {
+    total_clicks: 0,
+    total_conversions: 0,
+    conversion_rate: 0,
+    total_earned: 0,
+    pending_earnings: 0,
+    total_paid: 0,
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-white">
-      <AffiliateSidebar affiliateName="Demo Affiliate" />
+      <AffiliateSidebar affiliateName={profile.name} />
 
-      {/* Main content */}
       <main className="md:ml-60 p-6 md:p-8 pb-24 md:pb-8">
-        {/* Welcome bar */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold mb-1">Welcome back</h1>
+          <h1 className="text-2xl font-bold mb-1">Welcome back, {profile.name.split(" ")[0]}</h1>
           <p className="text-[#8B8BA3] text-sm">Here&apos;s your affiliate overview</p>
         </div>
 
-        {/* Referral link */}
         <div className="mb-8">
           <label className="block text-sm text-[#8B8BA3] mb-2">Your referral link</label>
-          <CopyLinkComponent referralCode={DEMO_REFERRAL_CODE} />
+          <CopyLinkComponent referralCode={profile.referral_code} />
         </div>
 
-        {/* Stats grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          <StatCard label="Total Clicks" value={stats.total_clicks} icon={MousePointerClick} />
-          <StatCard label="Conversions" value={stats.total_conversions} icon={ArrowUpRight} />
-          <StatCard label="Conversion Rate" value={`${stats.conversion_rate}%`} icon={Percent} />
-          <StatCard label="Total Earned" value={stats.total_earned} icon={Banknote} isMoney />
-          <StatCard label="Pending Earnings" value={stats.pending_earnings} icon={Clock} isMoney />
-          <StatCard label="Total Paid" value={stats.total_paid} icon={CheckCircle} isMoney />
+          <StatCard label="Total Clicks" value={s.total_clicks} icon={MousePointerClick} />
+          <StatCard label="Conversions" value={s.total_conversions} icon={ArrowUpRight} />
+          <StatCard label="Conversion Rate" value={`${s.conversion_rate}%`} icon={Percent} />
+          <StatCard label="Total Earned" value={s.total_earned} icon={Banknote} isMoney />
+          <StatCard label="Pending Earnings" value={s.pending_earnings} icon={Clock} isMoney />
+          <StatCard label="Total Paid" value={s.total_paid} icon={CheckCircle} isMoney />
         </div>
 
-        {/* Chart placeholder */}
         <div className="bg-white/[0.03] border border-white/[0.06] rounded-[20px] backdrop-blur-[20px] p-6">
           <h3 className="text-lg font-bold mb-4">Clicks & Conversions — Last 30 Days</h3>
           <div className="h-48 flex items-center justify-center text-[#6B6B80] text-sm">
@@ -148,13 +148,12 @@ export default function AffiliateDashboardPage() {
           </div>
         </div>
 
-        {/* Link builder */}
         <div className="mt-8 bg-white/[0.03] border border-white/[0.06] rounded-[20px] backdrop-blur-[20px] p-6">
           <h3 className="text-lg font-bold mb-4">Link Builder</h3>
           <p className="text-[#8B8BA3] text-sm mb-4">
             Add UTM parameters to track specific campaigns.
           </p>
-          <LinkBuilder referralCode={DEMO_REFERRAL_CODE} />
+          <LinkBuilder referralCode={profile.referral_code} />
         </div>
       </main>
     </div>

@@ -31,6 +31,11 @@ import {
   renderClinicReplyToPatientEmail,
 } from "./templates/notification-templates"
 
+import {
+  renderAffiliateConversionEmail,
+  renderAffiliatePayoutEmail,
+} from "./templates/affiliate-templates"
+
 // ---------------------------------------------------------------------------
 // Email type constants
 // ---------------------------------------------------------------------------
@@ -49,6 +54,8 @@ export const EMAIL_TYPE = {
   BOOKING_CONFIRMATION: "booking_confirmation",
   CHAT_NOTIFICATION_TO_CLINIC: "chat_notification_to_clinic",
   CLINIC_REPLY_TO_PATIENT: "clinic_reply_to_patient",
+  AFFILIATE_CONVERSION: "affiliate_conversion",
+  AFFILIATE_PAYOUT: "affiliate_payout",
 } as const
 
 export type EmailType = (typeof EMAIL_TYPE)[keyof typeof EMAIL_TYPE]
@@ -177,6 +184,19 @@ const clinicReplySchema = z.object({
   messagePreview: z.string(),
   viewReplyUrl: z.string(),
   unsubscribeFooterHtml: z.string(),
+})
+
+const affiliateConversionSchema = z.object({
+  affiliateName: z.string(),
+  commissionAmount: z.number(),
+  patientFirstName: z.string(),
+})
+
+const affiliatePayoutSchema = z.object({
+  affiliateName: z.string(),
+  amount: z.number(),
+  periodStart: z.string(),
+  periodEnd: z.string(),
 })
 
 // ---------------------------------------------------------------------------
@@ -348,6 +368,32 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     generateHtml: renderClinicReplyToPatientEmail,
     idempotencyKey: (data) => `clinic_reply:${data._conversationId}:${tenMinBucket()}`,
   },
+
+  // --- Affiliate ---
+
+  [EMAIL_TYPE.AFFILIATE_CONVERSION]: {
+    type: EMAIL_TYPE.AFFILIATE_CONVERSION,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: null,
+    notificationPreferenceKey: null,
+    defaultSubject: (data) => `You earned £${data.commissionAmount.toFixed(2)} from a referral!`,
+    payloadSchema: affiliateConversionSchema,
+    generateHtml: renderAffiliateConversionEmail,
+    idempotencyKey: (data) => `aff_conversion:${data._conversionId}`,
+  },
+
+  [EMAIL_TYPE.AFFILIATE_PAYOUT]: {
+    type: EMAIL_TYPE.AFFILIATE_PAYOUT,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: null,
+    notificationPreferenceKey: null,
+    defaultSubject: (data) => `Your Pearlie payout of £${data.amount.toFixed(2)} is being processed`,
+    payloadSchema: affiliatePayoutSchema,
+    generateHtml: renderAffiliatePayoutEmail,
+    idempotencyKey: (data) => `aff_payout:${data._payoutId}`,
+  },
 }
 
 /**
@@ -367,4 +413,6 @@ export const EMAIL_TYPE_LABELS: Record<EmailType, string> = {
   [EMAIL_TYPE.BOOKING_CONFIRMATION]: "Booking Confirmation",
   [EMAIL_TYPE.CHAT_NOTIFICATION_TO_CLINIC]: "Chat → Clinic",
   [EMAIL_TYPE.CLINIC_REPLY_TO_PATIENT]: "Clinic Reply → Patient",
+  [EMAIL_TYPE.AFFILIATE_CONVERSION]: "Affiliate Conversion",
+  [EMAIL_TYPE.AFFILIATE_PAYOUT]: "Affiliate Payout",
 }

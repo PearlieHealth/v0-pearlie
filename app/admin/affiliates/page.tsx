@@ -5,11 +5,10 @@ import { AdminNav } from "@/components/admin/admin-nav"
 import {
   Users,
   Search,
-  ChevronDown,
   Check,
   X,
   Loader2,
-  ExternalLink,
+  Banknote,
 } from "lucide-react"
 
 interface AffiliateRow {
@@ -48,6 +47,9 @@ export default function AdminAffiliatesPage() {
     value: string
   } | null>(null)
   const [selectedAffiliate, setSelectedAffiliate] = useState<AffiliateRow | null>(null)
+  const [payoutAmount, setPayoutAmount] = useState("")
+  const [payoutCreating, setPayoutCreating] = useState(false)
+  const [payoutSuccess, setPayoutSuccess] = useState(false)
 
   const fetchAffiliates = useCallback(async () => {
     try {
@@ -82,6 +84,38 @@ export default function AdminAffiliatesPage() {
       // ignore
     } finally {
       setUpdatingId(null)
+    }
+  }
+
+  const createPayout = async (affiliateId: string) => {
+    const amount = parseFloat(payoutAmount)
+    if (!amount || amount <= 0) return
+    setPayoutCreating(true)
+    setPayoutSuccess(false)
+    try {
+      const now = new Date()
+      const periodEnd = now.toISOString().split("T")[0]
+      const periodStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0]
+      const res = await fetch("/api/admin/payouts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          affiliate_id: affiliateId,
+          amount,
+          period_start: periodStart,
+          period_end: periodEnd,
+        }),
+      })
+      if (res.ok) {
+        setPayoutSuccess(true)
+        setPayoutAmount("")
+        await fetchAffiliates()
+        setTimeout(() => setPayoutSuccess(false), 3000)
+      }
+    } catch {
+      // ignore
+    } finally {
+      setPayoutCreating(false)
     }
   }
 
@@ -406,6 +440,41 @@ export default function AdminAffiliatesPage() {
                       <p className="text-xl font-bold text-[#004443]">£{selectedAffiliate.total_paid}</p>
                     </div>
                   </div>
+                  {/* Payout creation */}
+                  {selectedAffiliate.total_earned > selectedAffiliate.total_paid && (
+                    <div className="pt-4 border-t border-border">
+                      <label className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Create Payout
+                      </label>
+                      <p className="text-xs text-muted-foreground mt-1 mb-2">
+                        Unpaid balance: £{(selectedAffiliate.total_earned - selectedAffiliate.total_paid).toFixed(2)}
+                      </p>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">£</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            max={selectedAffiliate.total_earned - selectedAffiliate.total_paid}
+                            value={payoutAmount}
+                            onChange={(e) => setPayoutAmount(e.target.value)}
+                            placeholder="0.00"
+                            className="w-full pl-7 pr-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]/20"
+                          />
+                        </div>
+                        <button
+                          onClick={() => createPayout(selectedAffiliate.id)}
+                          disabled={payoutCreating || !payoutAmount || parseFloat(payoutAmount) <= 0}
+                          className="px-4 py-2 rounded-lg text-xs font-medium bg-[#0fbcb0] text-white hover:bg-[#0da399] transition-colors disabled:opacity-50 flex items-center gap-1"
+                        >
+                          <Banknote className="w-3.5 h-3.5" />
+                          {payoutCreating ? "Creating..." : payoutSuccess ? "Created!" : "Create"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="text-xs text-muted-foreground pt-2">
                     Applied: {new Date(selectedAffiliate.created_at).toLocaleDateString("en-GB")}
                   </div>

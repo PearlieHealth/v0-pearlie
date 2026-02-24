@@ -58,6 +58,44 @@ export async function POST(request: Request) {
       })
       .single()
 
+    // Update affiliate conversion if this lead has one (non-blocking)
+    try {
+      const { data: conversion } = await supabaseAdmin
+        .from("referral_conversions")
+        .select("id, affiliate_id, commission_amount")
+        .eq("lead_id", leadId)
+        .eq("status", "pending_verification")
+        .maybeSingle()
+
+      if (conversion) {
+        await supabaseAdmin
+          .from("referral_conversions")
+          .update({
+            status: "confirmed",
+            confirmed_at: new Date().toISOString(),
+          })
+          .eq("id", conversion.id)
+
+        // Increment affiliate's total_earned
+        const { data: affiliate } = await supabaseAdmin
+          .from("affiliates")
+          .select("total_earned")
+          .eq("id", conversion.affiliate_id)
+          .single()
+
+        if (affiliate) {
+          await supabaseAdmin
+            .from("affiliates")
+            .update({
+              total_earned: (affiliate.total_earned || 0) + (conversion.commission_amount || 0),
+            })
+            .eq("id", conversion.affiliate_id)
+        }
+      }
+    } catch (affErr) {
+      console.error("[booking/confirm] Affiliate tracking failed (non-blocking):", affErr)
+    }
+
     // Fetch lead and clinic data for email
     const { data: leadData, error: leadError } = await supabase
       .from("leads")

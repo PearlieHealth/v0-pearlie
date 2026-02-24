@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { verifyAdminAuth } from "@/lib/admin-auth"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 
 export async function GET() {
   const auth = await verifyAdminAuth()
@@ -53,6 +55,42 @@ export async function POST(request: Request) {
 
     if (error) {
       return NextResponse.json({ error: "Failed to create payout" }, { status: 500 })
+    }
+
+    // Mark confirmed conversions within the period as paid
+    if (period_start && period_end) {
+      await supabase
+        .from("referral_conversions")
+        .update({ status: "paid", paid_at: new Date().toISOString() })
+        .eq("affiliate_id", affiliate_id)
+        .eq("status", "confirmed")
+        .gte("confirmed_at", period_start)
+        .lte("confirmed_at", period_end)
+    }
+
+    // Send payout notification email to affiliate (non-blocking)
+    try {
+      const { data: affProfile } = await supabase
+        .from("affiliates")
+        .select("name, email")
+        .eq("id", affiliate_id)
+        .single()
+
+      if (affProfile?.email && period_start && period_end) {
+        sendRegisteredEmail({
+          type: EMAIL_TYPE.AFFILIATE_PAYOUT,
+          to: affProfile.email,
+          data: {
+            affiliateName: affProfile.name,
+            amount,
+            periodStart: period_start,
+            periodEnd: period_end,
+            _payoutId: data.id,
+          },
+        }).catch(() => {})
+      }
+    } catch {
+      // Non-blocking
     }
 
     return NextResponse.json(data)

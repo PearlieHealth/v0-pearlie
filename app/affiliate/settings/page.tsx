@@ -1,15 +1,54 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { AffiliateSidebar } from "@/components/affiliate/affiliate-sidebar"
-import { Copy, Check } from "lucide-react"
+import { useAffiliate } from "@/hooks/use-affiliate"
+import { Copy, Check, Loader2 } from "lucide-react"
 
-const DEMO_REFERRAL_CODE = "AFF-demo1"
 const BASE_URL = "https://pearlie.org"
 
 export default function AffiliateSettingsPage() {
+  const router = useRouter()
+  const { profile, loading: profileLoading, error } = useAffiliate()
   const [copied, setCopied] = useState(false)
-  const link = `${BASE_URL}/?ref=${DEMO_REFERRAL_CODE}`
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    tiktok_handle: "",
+    instagram_handle: "",
+    youtube_handle: "",
+  })
+
+  useEffect(() => {
+    if (profile) {
+      setForm({
+        name: profile.name || "",
+        phone: profile.phone || "",
+        tiktok_handle: profile.tiktok_handle || "",
+        instagram_handle: profile.instagram_handle || "",
+        youtube_handle: profile.youtube_handle || "",
+      })
+    }
+  }, [profile])
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-[#8B8BA3]" />
+      </div>
+    )
+  }
+
+  if (error === "not_authenticated" || !profile) {
+    router.push("/affiliate/login")
+    return null
+  }
+
+  const link = `${BASE_URL}/?ref=${profile.referral_code}`
 
   const handleCopy = () => {
     navigator.clipboard.writeText(link)
@@ -17,12 +56,32 @@ export default function AffiliateSettingsPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const handleSave = async () => {
+    setSaving(true)
+    setSaved(false)
+    try {
+      const res = await fetch("/api/affiliates/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      if (res.ok) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const inputClass =
     "w-full bg-[#1C1C2E] border border-white/[0.08] rounded-[14px] px-4 py-3.5 text-white placeholder:text-[#6B6B80] focus:outline-none focus:border-[#FE2C55]/40 focus:ring-1 focus:ring-[#FE2C55]/20 transition-all"
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-white">
-      <AffiliateSidebar affiliateName="Demo Affiliate" />
+      <AffiliateSidebar affiliateName={profile.name} />
 
       <main className="md:ml-60 p-6 md:p-8 pb-24 md:pb-8">
         <div className="mb-8">
@@ -36,13 +95,19 @@ export default function AffiliateSettingsPage() {
           <div className="space-y-4 max-w-lg">
             <div>
               <label className="block text-sm text-[#8B8BA3] mb-1.5">Name</label>
-              <input type="text" placeholder="Your name" className={inputClass} />
+              <input
+                type="text"
+                placeholder="Your name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className="block text-sm text-[#8B8BA3] mb-1.5">Email</label>
               <input
                 type="email"
-                placeholder="you@example.com"
+                value={profile.email}
                 disabled
                 className={inputClass + " opacity-50 cursor-not-allowed"}
               />
@@ -50,30 +115,58 @@ export default function AffiliateSettingsPage() {
             </div>
             <div>
               <label className="block text-sm text-[#8B8BA3] mb-1.5">Phone</label>
-              <input type="tel" placeholder="+44 7..." className={inputClass} />
+              <input
+                type="tel"
+                placeholder="+44 7..."
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                className={inputClass}
+              />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm text-[#8B8BA3] mb-1.5">TikTok</label>
-                <input type="text" placeholder="@handle" className={inputClass} />
+                <input
+                  type="text"
+                  placeholder="@handle"
+                  value={form.tiktok_handle}
+                  onChange={(e) => setForm({ ...form, tiktok_handle: e.target.value })}
+                  className={inputClass}
+                />
               </div>
               <div>
                 <label className="block text-sm text-[#8B8BA3] mb-1.5">Instagram</label>
-                <input type="text" placeholder="@handle" className={inputClass} />
+                <input
+                  type="text"
+                  placeholder="@handle"
+                  value={form.instagram_handle}
+                  onChange={(e) => setForm({ ...form, instagram_handle: e.target.value })}
+                  className={inputClass}
+                />
               </div>
               <div>
                 <label className="block text-sm text-[#8B8BA3] mb-1.5">YouTube</label>
-                <input type="text" placeholder="Channel" className={inputClass} />
+                <input
+                  type="text"
+                  placeholder="Channel"
+                  value={form.youtube_handle}
+                  onChange={(e) => setForm({ ...form, youtube_handle: e.target.value })}
+                  className={inputClass}
+                />
               </div>
             </div>
             <button
-              className="px-6 py-3 rounded-[14px] font-bold text-white text-sm transition-all duration-300"
+              onClick={handleSave}
+              disabled={saving}
+              className="px-6 py-3 rounded-[14px] font-bold text-white text-sm transition-all duration-300 disabled:opacity-50"
               style={{
-                background: "linear-gradient(135deg, #FE2C55 0%, #25F4EE 100%)",
-                boxShadow: "0 0 20px rgba(254,44,85,0.3)",
+                background: saved
+                  ? "rgba(0,245,160,0.2)"
+                  : "linear-gradient(135deg, #FE2C55 0%, #25F4EE 100%)",
+                boxShadow: saved ? "none" : "0 0 20px rgba(254,44,85,0.3)",
               }}
             >
-              Save Changes
+              {saving ? "Saving..." : saved ? "Saved!" : "Save Changes"}
             </button>
           </div>
         </div>
@@ -104,7 +197,7 @@ export default function AffiliateSettingsPage() {
             </button>
           </div>
           <p className="text-[#6B6B80] text-xs mt-2">
-            Referral code: <span className="text-white">{DEMO_REFERRAL_CODE}</span>
+            Referral code: <span className="text-white">{profile.referral_code}</span>
           </p>
         </div>
       </main>
