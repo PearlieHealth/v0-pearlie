@@ -10,6 +10,7 @@ const platformLinks = [
   { label: "For Clinics", href: "/for-clinics" },
   { label: "Our Mission", href: "/our-mission" },
   { label: "FAQ", href: "/faq" },
+  { label: "Affiliate Programme", href: "/affiliates" },
 ]
 
 const legalLinks = [

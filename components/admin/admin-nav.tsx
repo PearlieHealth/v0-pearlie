@@ -18,6 +18,7 @@ import {
   Mail,
   MessageSquare,
   MoreHorizontal,
+  Handshake,
 } from "lucide-react"
 import { AdminLogoutButton } from "./admin-auth-provider"
 import { cn } from "@/lib/utils"
@@ -62,6 +63,12 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/admin/test-match", label: "Test Match", icon: FlaskConical },
       { href: "/admin/tag-hygiene", label: "Match Readiness", shortLabel: "Readiness", icon: Tags },
+    ],
+  },
+  {
+    label: "Growth",
+    items: [
+      { href: "/admin/affiliates", label: "Affiliates", icon: Handshake },
     ],
   },
   {

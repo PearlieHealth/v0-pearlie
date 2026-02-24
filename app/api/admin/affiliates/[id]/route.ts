@@ -1,0 +1,55 @@
+import { NextResponse } from "next/server"
+import { verifyAdminAuth } from "@/lib/admin-auth"
+import { createAdminClient } from "@/lib/supabase/admin"
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = await verifyAdminAuth()
+  if (!auth.authenticated) return auth.response
+
+  try {
+    const { id } = await params
+    const body = await request.json()
+    const allowedFields = ["status", "commission_per_booking"]
+    const updates: Record<string, unknown> = {}
+
+    for (const field of allowedFields) {
+      if (field in body) {
+        updates[field] = body[field]
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: "No valid fields to update" }, { status: 400 })
+    }
+
+    // Validate status
+    if (updates.status && !["pending", "approved", "suspended"].includes(updates.status as string)) {
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 })
+    }
+
+    // Validate commission
+    if (updates.commission_per_booking !== undefined && (typeof updates.commission_per_booking !== "number" || updates.commission_per_booking < 0)) {
+      return NextResponse.json({ error: "Invalid commission amount" }, { status: 400 })
+    }
+
+    const supabase = createAdminClient()
+
+    const { data, error } = await supabase
+      .from("affiliates")
+      .update(updates)
+      .eq("id", id)
+      .select("*")
+      .single()
+
+    if (error) {
+      return NextResponse.json({ error: "Failed to update affiliate" }, { status: 500 })
+    }
+
+    return NextResponse.json(data)
+  } catch {
+    return NextResponse.json({ error: "Internal error" }, { status: 500 })
+  }
+}

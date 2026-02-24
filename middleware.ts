@@ -128,6 +128,50 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
+  // ── Affiliate referral tracking ──
+  // Check for ?ref= parameter and set a 30-day attribution cookie
+  const refCode = request.nextUrl.searchParams.get("ref")
+  if (refCode && /^AFF-[a-z0-9]{5}$/i.test(refCode)) {
+    const response = await updateSession(request)
+    // Set 30-day attribution cookie (last-click attribution)
+    response.cookies.set("perley_ref", refCode, {
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: "/",
+      httpOnly: false,
+      sameSite: "lax",
+    })
+    // Store UTM params if present
+    const utmSource = request.nextUrl.searchParams.get("utm_source")
+    const utmMedium = request.nextUrl.searchParams.get("utm_medium")
+    const utmCampaign = request.nextUrl.searchParams.get("utm_campaign")
+    if (utmSource || utmMedium || utmCampaign) {
+      response.cookies.set("perley_ref_utm", JSON.stringify({
+        source: utmSource || "",
+        medium: utmMedium || "",
+        campaign: utmCampaign || "",
+      }), {
+        maxAge: 30 * 24 * 60 * 60,
+        path: "/",
+        httpOnly: false,
+        sameSite: "lax",
+      })
+    }
+    // Fire async referral tracking (don't block response)
+    const trackUrl = new URL("/api/track-referral", request.nextUrl.origin)
+    fetch(trackUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        referral_code: refCode,
+        landing_page: pathname,
+        utm_source: utmSource || null,
+        utm_medium: utmMedium || null,
+        utm_campaign: utmCampaign || null,
+      }),
+    }).catch(() => {})
+    return response
+  }
+
   // ── Supabase session refresh for clinic / patient routes ──
   return await updateSession(request)
 }
