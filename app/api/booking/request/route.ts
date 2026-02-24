@@ -2,10 +2,10 @@ import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { randomBytes } from "crypto"
 import { createRateLimiter } from "@/lib/rate-limit"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
 import { HOURLY_SLOTS } from "@/lib/constants"
-import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
+import { generateUnsubscribeFooterHtml, generateUnsubscribeUrl } from "@/lib/unsubscribe"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
 
 // 10 booking requests per IP per hour
@@ -347,7 +347,7 @@ export async function POST(request: Request) {
       console.error("[booking-request] Conversation creation error:", convError)
     }
 
-    // Send confirmation email to patient (non-blocking)
+    // Send confirmation email to patient
     if (lead.email) {
       const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
       const timeLabel = HOURLY_SLOTS?.find((s: { key: string; label: string }) => s.key === time)?.label || time
@@ -358,8 +358,7 @@ export async function POST(request: Request) {
         year: "numeric",
       })
 
-      const unsubHeaders = generateUnsubscribeHeaders(lead.email, "patient_notifications")
-      const unsubUrl = unsubHeaders["List-Unsubscribe"].replace(/[<>]/g, "")
+      const unsubUrl = generateUnsubscribeUrl(lead.email, "patient_notifications")
       const unsubFooter = generateUnsubscribeFooterHtml(unsubUrl)
 
       // Generate magic link so patient is auto-logged in when they click
@@ -397,45 +396,25 @@ export async function POST(request: Request) {
         console.warn("[booking-request] Failed to generate magic link:", linkErr)
       }
 
-      sendEmailWithRetry({
-        from: EMAIL_FROM.NOTIFICATIONS,
-        to: lead.email,
-        subject: `Appointment request sent to ${clinic.name}`,
-        headers: unsubHeaders,
-        html: `
-          <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
-            <div style="text-align: center; margin-bottom: 32px;">
-              <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Appointment Request Sent</h1>
-            </div>
-            <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 8px;">
-              Hi ${lead.first_name || "there"},
-            </p>
-            <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
-              Your appointment request has been sent to <strong>${clinic.name}</strong>.
-            </p>
-            <div style="background: #f5f5f5; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-              <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;">Clinic</p>
-              <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">${clinic.name}</p>
-              <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;">Date &amp; time</p>
-              <p style="margin: 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">${formattedDate} &middot; ${timeLabel}</p>
-            </div>
-            <div style="background: #FFF8E1; border: 1px solid #FFE082; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-              <p style="margin: 0; font-size: 14px; color: #6D4C00; line-height: 1.5;">
-                The clinic will confirm your appointment shortly. They typically respond within 24&ndash;48 hours.
-              </p>
-            </div>
-            <div style="text-align: center; margin-bottom: 24px;">
-              <a href="${viewDashboardUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
-                View your dashboard
-              </a>
-            </div>
-            <p style="font-size: 12px; color: #999; text-align: center;">
-              Pearlie &mdash; Finding your perfect dental match
-            </p>
-            ${unsubFooter}
-          </div>
-        `,
-      }).catch((err) => console.error("[booking-request] Patient email failed:", err))
+      try {
+        await sendRegisteredEmail({
+          type: EMAIL_TYPE.BOOKING_REQUEST_SENT,
+          to: lead.email,
+          data: {
+            firstName: lead.first_name || "there",
+            clinicName: clinic.name,
+            formattedDate,
+            timeLabel,
+            dashboardUrl: viewDashboardUrl,
+            unsubscribeFooterHtml: unsubFooter,
+            _leadId: leadId,
+            _clinicId: clinicId,
+          },
+          leadId,
+        })
+      } catch (err) {
+        console.error("[booking-request] Patient email failed:", err)
+      }
     }
 
     // Fire TikTok Lead event (appointment request = real lead, non-blocking)

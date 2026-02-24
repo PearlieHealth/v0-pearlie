@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 import { formatAmountGBP } from "@/lib/billing"
+import { generateUnsubscribeFooterHtml, generateUnsubscribeUrl } from "@/lib/unsubscribe"
 
 const BATCH_SIZE = 100
 const DISPUTE_RATE_THRESHOLD = 0.4 // 40%
@@ -98,53 +99,28 @@ export async function GET(request: NextRequest) {
         if (!clinicEmail) continue
 
         const totalAmount = finalisedCharges.reduce((sum, c) => sum + c.amount, 0)
+        const unsubUrl = generateUnsubscribeUrl(clinicEmail, "clinic_notifications")
+        const unsubFooter = generateUnsubscribeFooterHtml(unsubUrl)
 
-        const chargeRows = finalisedCharges.map(c =>
-          `<tr>
-            <td style="padding: 6px 12px; border-bottom: 1px solid #eee;">${c.patient_name || "Unknown"}</td>
-            <td style="padding: 6px 12px; border-bottom: 1px solid #eee;">${c.treatment || "—"}</td>
-            <td style="padding: 6px 12px; border-bottom: 1px solid #eee;">${formatAmountGBP(c.amount)}</td>
-          </tr>`
-        ).join("")
-
-        await sendEmailWithRetry({
-          from: EMAIL_FROM.NOTIFICATIONS,
+        const result = await sendRegisteredEmail({
+          type: EMAIL_TYPE.BOOKING_CHARGE_FINALISED,
           to: clinicEmail,
-          subject: `${finalisedCharges.length} booking charge${finalisedCharges.length !== 1 ? "s" : ""} confirmed (${formatAmountGBP(totalAmount)})`,
-          html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
-              <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0 0 16px;">Charges Confirmed</h1>
-              <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
-                Hi ${clinic.name}, the following booking charges have been finalised after the 7-day dispute window closed:
-              </p>
-              <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 14px;">
-                <thead>
-                  <tr style="background: #f8f9fa;">
-                    <th style="padding: 6px 12px; text-align: left;">Patient</th>
-                    <th style="padding: 6px 12px; text-align: left;">Treatment</th>
-                    <th style="padding: 6px 12px; text-align: left;">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>${chargeRows}</tbody>
-                <tfoot>
-                  <tr style="font-weight: 700;">
-                    <td colspan="2" style="padding: 8px 12px;">Total</td>
-                    <td style="padding: 8px 12px;">${formatAmountGBP(totalAmount)}</td>
-                  </tr>
-                </tfoot>
-              </table>
-              <div style="text-align: center; margin-bottom: 24px;">
-                <a href="${appUrl}/clinic/billing" style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 28px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
-                  View Billing Dashboard
-                </a>
-              </div>
-              <p style="font-size: 12px; color: #999; text-align: center;">
-                Pearlie &mdash; Your dental clinic partner
-              </p>
-            </div>
-          `,
+          data: {
+            clinicName: clinic.name,
+            charges: finalisedCharges.map(c => ({
+              patientName: c.patient_name || "Unknown",
+              treatment: c.treatment || "—",
+              amount: formatAmountGBP(c.amount),
+            })),
+            totalAmount: formatAmountGBP(totalAmount),
+            billingUrl: `${appUrl}/clinic/billing`,
+            unsubscribeFooterHtml: unsubFooter,
+            _clinicId: clinicId,
+          },
+          clinicId,
         })
-        emailsSent++
+
+        if (result.success && !result.skipped) emailsSent++
       } catch (emailErr) {
         console.error(`[cron/finalise-bookings] Email error for clinic ${clinicId}:`, emailErr)
       }

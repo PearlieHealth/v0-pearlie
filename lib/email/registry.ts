@@ -34,6 +34,10 @@ import {
   renderAppointmentDeclinedEmail,
   renderAppointmentRescheduledEmail,
   renderAppointmentCancelledEmail,
+  renderBookingChargeFinalisedEmail,
+  renderBillingReminderEmail,
+  renderDisputeReminderEmail,
+  renderBookingRequestSentEmail,
 } from "./templates/notification-templates"
 
 // ---------------------------------------------------------------------------
@@ -59,6 +63,10 @@ export const EMAIL_TYPE = {
   APPOINTMENT_RESCHEDULED: "appointment_rescheduled",
   APPOINTMENT_CANCELLED: "appointment_cancelled",
   MATCH_NUDGE: "match_nudge",
+  BOOKING_CHARGE_FINALISED: "booking_charge_finalised",
+  BILLING_REMINDER: "billing_reminder",
+  DISPUTE_REMINDER: "dispute_reminder",
+  BOOKING_REQUEST_SENT: "booking_request_sent",
 } as const
 
 export type EmailType = (typeof EMAIL_TYPE)[keyof typeof EMAIL_TYPE]
@@ -95,6 +103,16 @@ function tenMinBucket(): string {
   const now = new Date()
   const slot = Math.floor(now.getUTCMinutes() / 10)
   return `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}-${now.getUTCHours()}-${slot}`
+}
+
+function dayBucket(): string {
+  const now = new Date()
+  return `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`
+}
+
+function monthBucket(): string {
+  const now = new Date()
+  return `${now.getUTCFullYear()}-${now.getUTCMonth()}`
 }
 
 // ---------------------------------------------------------------------------
@@ -194,6 +212,49 @@ const matchNudgeSchema = z.object({
   clinicCount: z.number(),
   postcode: z.string(),
   matchLink: z.string(),
+  unsubscribeFooterHtml: z.string(),
+})
+
+const bookingChargeFinalisedSchema = z.object({
+  clinicName: z.string(),
+  charges: z.array(z.object({
+    patientName: z.string(),
+    treatment: z.string(),
+    amount: z.string(),
+  })),
+  totalAmount: z.string(),
+  billingUrl: z.string(),
+  unsubscribeFooterHtml: z.string(),
+})
+
+const billingReminderSchema = z.object({
+  clinicName: z.string(),
+  totalAmount: z.string(),
+  chargeCount: z.number(),
+  daysUntilBilling: z.number(),
+  billingUrl: z.string(),
+  unsubscribeFooterHtml: z.string(),
+})
+
+const disputeReminderSchema = z.object({
+  clinicName: z.string(),
+  charges: z.array(z.object({
+    patientName: z.string(),
+    treatment: z.string(),
+    amount: z.string(),
+    daysLeft: z.string(),
+  })),
+  totalAmount: z.string(),
+  reviewUrl: z.string(),
+  unsubscribeFooterHtml: z.string(),
+})
+
+const bookingRequestSentSchema = z.object({
+  firstName: z.string(),
+  clinicName: z.string(),
+  formattedDate: z.string(),
+  timeLabel: z.string(),
+  dashboardUrl: z.string(),
   unsubscribeFooterHtml: z.string(),
 })
 
@@ -440,6 +501,60 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     generateHtml: renderMatchNudgeEmail,
     idempotencyKey: (data) => `match_nudge:${data._leadId}`,
   },
+
+  // --- Clinic Billing Notifications ---
+
+  [EMAIL_TYPE.BOOKING_CHARGE_FINALISED]: {
+    type: EMAIL_TYPE.BOOKING_CHARGE_FINALISED,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: "clinic_notifications",
+    notificationPreferenceKey: null,
+    defaultSubject: (data) =>
+      `${data.charges.length} booking charge${data.charges.length !== 1 ? "s" : ""} confirmed (${data.totalAmount})`,
+    payloadSchema: bookingChargeFinalisedSchema,
+    generateHtml: renderBookingChargeFinalisedEmail,
+    idempotencyKey: (data) => `charge_finalised:${data._clinicId}:${dayBucket()}`,
+  },
+
+  [EMAIL_TYPE.BILLING_REMINDER]: {
+    type: EMAIL_TYPE.BILLING_REMINDER,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: "clinic_notifications",
+    notificationPreferenceKey: null,
+    defaultSubject: (data) => `Billing reminder: ${data.totalAmount} due on the 6th`,
+    payloadSchema: billingReminderSchema,
+    generateHtml: renderBillingReminderEmail,
+    idempotencyKey: (data) => `billing_reminder:${data._clinicId}:${monthBucket()}`,
+  },
+
+  [EMAIL_TYPE.DISPUTE_REMINDER]: {
+    type: EMAIL_TYPE.DISPUTE_REMINDER,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: "clinic_notifications",
+    notificationPreferenceKey: null,
+    defaultSubject: (data) =>
+      `Dispute window closing soon for ${data.charges.length} booking charge${data.charges.length !== 1 ? "s" : ""}`,
+    payloadSchema: disputeReminderSchema,
+    generateHtml: renderDisputeReminderEmail,
+    idempotencyKey: (data) => `dispute_reminder:${data._clinicId}:${dayBucket()}`,
+  },
+
+  // --- Booking Request Confirmation (to patient) ---
+
+  [EMAIL_TYPE.BOOKING_REQUEST_SENT]: {
+    type: EMAIL_TYPE.BOOKING_REQUEST_SENT,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: "patient_notifications",
+    notificationPreferenceKey: null,
+    defaultSubject: (data) => `Appointment request sent to ${data.clinicName}`,
+    payloadSchema: bookingRequestSentSchema,
+    generateHtml: renderBookingRequestSentEmail,
+    idempotencyKey: (data) => `booking_request:${data._leadId}:${data._clinicId}`,
+  },
 }
 
 /**
@@ -464,4 +579,8 @@ export const EMAIL_TYPE_LABELS: Record<EmailType, string> = {
   [EMAIL_TYPE.APPOINTMENT_RESCHEDULED]: "Appointment Rescheduled → Patient",
   [EMAIL_TYPE.APPOINTMENT_CANCELLED]: "Appointment Cancelled → Patient",
   [EMAIL_TYPE.MATCH_NUDGE]: "Match Nudge → Patient",
+  [EMAIL_TYPE.BOOKING_CHARGE_FINALISED]: "Charges Finalised → Clinic",
+  [EMAIL_TYPE.BILLING_REMINDER]: "Billing Reminder → Clinic",
+  [EMAIL_TYPE.DISPUTE_REMINDER]: "Dispute Reminder → Clinic",
+  [EMAIL_TYPE.BOOKING_REQUEST_SENT]: "Booking Request Sent → Patient",
 }

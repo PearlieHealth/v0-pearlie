@@ -574,6 +574,211 @@ export function renderAppointmentCancelledEmail(data: AppointmentNotificationPay
 </div>`
 }
 
+// ---------------------------------------------------------------------------
+// 18. Booking Charge Finalised (to clinic — cron: finalise-bookings)
+// ---------------------------------------------------------------------------
+
+export interface BookingChargeFinalisedPayload {
+  clinicName: string
+  charges: { patientName: string; treatment: string; amount: string }[]
+  totalAmount: string
+  billingUrl: string
+  unsubscribeFooterHtml: string
+}
+
+export function renderBookingChargeFinalisedEmail(data: BookingChargeFinalisedPayload): string {
+  const chargeRows = data.charges.map(c =>
+    `<tr>
+      <td style="padding: 6px 12px; border-bottom: 1px solid #eee;">${c.patientName}</td>
+      <td style="padding: 6px 12px; border-bottom: 1px solid #eee;">${c.treatment}</td>
+      <td style="padding: 6px 12px; border-bottom: 1px solid #eee;">${c.amount}</td>
+    </tr>`
+  ).join("")
+
+  return `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+  <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0 0 16px;">Charges Confirmed</h1>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    Hi ${data.clinicName}, the following booking charges have been finalised after the 7-day dispute window closed:
+  </p>
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 14px;">
+    <thead>
+      <tr style="background: #f8f9fa;">
+        <th style="padding: 6px 12px; text-align: left;">Patient</th>
+        <th style="padding: 6px 12px; text-align: left;">Treatment</th>
+        <th style="padding: 6px 12px; text-align: left;">Amount</th>
+      </tr>
+    </thead>
+    <tbody>${chargeRows}</tbody>
+    <tfoot>
+      <tr style="font-weight: 700;">
+        <td colspan="2" style="padding: 8px 12px;">Total</td>
+        <td style="padding: 8px 12px;">${data.totalAmount}</td>
+      </tr>
+    </tfoot>
+  </table>
+  <div style="text-align: center; margin-bottom: 24px;">
+    <a href="${data.billingUrl}" style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 28px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
+      View Billing Dashboard
+    </a>
+  </div>
+  <p style="font-size: 12px; color: #999; text-align: center;">
+    Pearlie &mdash; Your dental clinic partner
+  </p>
+  ${data.unsubscribeFooterHtml}
+</div>`
+}
+
+// ---------------------------------------------------------------------------
+// 19. Billing Reminder (to clinic — cron: billing-reminders)
+// ---------------------------------------------------------------------------
+
+export interface BillingReminderPayload {
+  clinicName: string
+  totalAmount: string
+  chargeCount: number
+  daysUntilBilling: number
+  billingUrl: string
+  unsubscribeFooterHtml: string
+}
+
+export function renderBillingReminderEmail(data: BillingReminderPayload): string {
+  return `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+  <div style="text-align: center; margin-bottom: 32px;">
+    <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Billing Reminder</h1>
+  </div>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 16px;">
+    Hi ${data.clinicName},
+  </p>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    Your next billing date is <strong>the 6th of this month</strong> (${data.daysUntilBilling} days away).
+  </p>
+  <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+    <p style="font-size: 14px; color: #666; margin: 0 0 8px;">This period's charges:</p>
+    <p style="font-size: 28px; font-weight: 700; color: #1a1a1a; margin: 0;">
+      ${data.totalAmount}
+    </p>
+    <p style="font-size: 14px; color: #666; margin: 4px 0 0;">
+      ${data.chargeCount} confirmed appointment${data.chargeCount !== 1 ? "s" : ""}
+    </p>
+  </div>
+  <p style="font-size: 14px; color: #666; line-height: 1.5; margin-bottom: 24px;">
+    If any appointments were not attended, you can dispute them within 7 days of the charge in your billing dashboard.
+  </p>
+  <div style="text-align: center; margin-bottom: 32px;">
+    <a href="${data.billingUrl}" style="display: inline-block; background: #1a1a1a; color: white; padding: 14px 36px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 16px;">
+      View Billing
+    </a>
+  </div>
+  <p style="font-size: 12px; color: #999; text-align: center; margin-top: 32px;">
+    Pearlie &mdash; Your dental clinic partner
+  </p>
+  ${data.unsubscribeFooterHtml}
+</div>`
+}
+
+// ---------------------------------------------------------------------------
+// 20. Dispute Reminder (to clinic — cron: dispute-reminders)
+// ---------------------------------------------------------------------------
+
+export interface DisputeReminderPayload {
+  clinicName: string
+  charges: { patientName: string; treatment: string; amount: string; daysLeft: string }[]
+  totalAmount: string
+  reviewUrl: string
+  unsubscribeFooterHtml: string
+}
+
+export function renderDisputeReminderEmail(data: DisputeReminderPayload): string {
+  const chargeRows = data.charges.map(c =>
+    `<tr>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #eee;">${c.patientName}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #eee;">${c.treatment}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #eee;">${c.amount}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #c05621; font-weight: 600;">${c.daysLeft}</td>
+    </tr>`
+  ).join("")
+
+  return `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+  <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0 0 16px;">Dispute Window Closing Soon</h1>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 16px;">
+    Hi ${data.clinicName},
+  </p>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    You have <strong>${data.charges.length} booking charge${data.charges.length !== 1 ? "s" : ""}</strong> totalling <strong>${data.totalAmount}</strong> with dispute windows closing soon. If any patients did not attend, please report it now.
+  </p>
+  <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 14px;">
+    <thead>
+      <tr style="background: #f8f9fa;">
+        <th style="padding: 8px 12px; text-align: left;">Patient</th>
+        <th style="padding: 8px 12px; text-align: left;">Treatment</th>
+        <th style="padding: 8px 12px; text-align: left;">Amount</th>
+        <th style="padding: 8px 12px; text-align: left;">Time Left</th>
+      </tr>
+    </thead>
+    <tbody>${chargeRows}</tbody>
+  </table>
+  <div style="text-align: center; margin-bottom: 32px;">
+    <a href="${data.reviewUrl}" style="display: inline-block; background: #1a1a1a; color: white; padding: 14px 36px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 16px;">
+      Review Charges
+    </a>
+  </div>
+  <p style="font-size: 14px; color: #666; line-height: 1.5;">
+    After the dispute window closes, charges are automatically finalised and cannot be reversed. If a patient didn't attend, mark it as "Not Attended" for a full refund.
+  </p>
+  <p style="font-size: 12px; color: #999; text-align: center; margin-top: 32px;">
+    Pearlie &mdash; Your dental clinic partner
+  </p>
+  ${data.unsubscribeFooterHtml}
+</div>`
+}
+
+// ---------------------------------------------------------------------------
+// 21. Booking Request Sent (to patient — booking/request confirmation)
+// ---------------------------------------------------------------------------
+
+export interface BookingRequestSentPayload {
+  firstName: string
+  clinicName: string
+  formattedDate: string
+  timeLabel: string
+  dashboardUrl: string
+  unsubscribeFooterHtml: string
+}
+
+export function renderBookingRequestSentEmail(data: BookingRequestSentPayload): string {
+  return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+  <div style="text-align: center; margin-bottom: 32px;">
+    <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Appointment Request Sent</h1>
+  </div>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 8px;">
+    Hi ${data.firstName},
+  </p>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    Your appointment request has been sent to <strong>${data.clinicName}</strong>.
+  </p>
+  <div style="background: #f5f5f5; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;">Clinic</p>
+    <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">${data.clinicName}</p>
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;">Date &amp; time</p>
+    <p style="margin: 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">${data.formattedDate} &middot; ${data.timeLabel}</p>
+  </div>
+  <div style="background: #FFF8E1; border: 1px solid #FFE082; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <p style="margin: 0; font-size: 14px; color: #6D4C00; line-height: 1.5;">
+      The clinic will confirm your appointment shortly. They typically respond within 24&ndash;48 hours.
+    </p>
+  </div>
+  <div style="text-align: center; margin-bottom: 24px;">
+    <a href="${data.dashboardUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
+      View your dashboard
+    </a>
+  </div>
+  <p style="font-size: 12px; color: #999; text-align: center;">
+    Pearlie &mdash; Finding your perfect dental match
+  </p>
+  ${data.unsubscribeFooterHtml}
+</div>`
+}
+
 export function renderClinicReplyToPatientEmail(data: ClinicReplyToPatientPayload): string {
   const safeFirstName = data.patientFirstName ? ` ${data.patientFirstName}` : ""
 

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 import { formatAmountGBP } from "@/lib/billing"
+import { generateUnsubscribeFooterHtml, generateUnsubscribeUrl } from "@/lib/unsubscribe"
 
 const BATCH_SIZE = 20
 
@@ -76,46 +77,25 @@ export async function GET(request: NextRequest) {
         }
         const daysUntilBilling = Math.ceil((billingDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
-        await sendEmailWithRetry({
-          from: EMAIL_FROM.NOTIFICATIONS,
+        const unsubUrl = generateUnsubscribeUrl(clinicEmail, "clinic_notifications")
+        const unsubFooter = generateUnsubscribeFooterHtml(unsubUrl)
+
+        const result = await sendRegisteredEmail({
+          type: EMAIL_TYPE.BILLING_REMINDER,
           to: clinicEmail,
-          subject: `Billing reminder: ${formatAmountGBP(totalAmount)} due on the 6th`,
-          html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
-              <div style="text-align: center; margin-bottom: 32px;">
-                <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Billing Reminder</h1>
-              </div>
-              <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 16px;">
-                Hi ${clinic.name},
-              </p>
-              <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
-                Your next billing date is <strong>the 6th of this month</strong> (${daysUntilBilling} days away).
-              </p>
-              <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                <p style="font-size: 14px; color: #666; margin: 0 0 8px;">This period's charges:</p>
-                <p style="font-size: 28px; font-weight: 700; color: #1a1a1a; margin: 0;">
-                  ${formatAmountGBP(totalAmount)}
-                </p>
-                <p style="font-size: 14px; color: #666; margin: 4px 0 0;">
-                  ${chargeCount} confirmed appointment${chargeCount !== 1 ? "s" : ""}
-                </p>
-              </div>
-              <p style="font-size: 14px; color: #666; line-height: 1.5; margin-bottom: 24px;">
-                If any appointments were not attended, you can dispute them within 7 days of the charge in your billing dashboard.
-              </p>
-              <div style="text-align: center; margin-bottom: 32px;">
-                <a href="${appUrl}/clinic/billing" style="display: inline-block; background: #1a1a1a; color: white; padding: 14px 36px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 16px;">
-                  View Billing
-                </a>
-              </div>
-              <p style="font-size: 12px; color: #999; text-align: center; margin-top: 32px;">
-                Pearlie &mdash; Your dental clinic partner
-              </p>
-            </div>
-          `,
+          data: {
+            clinicName: clinic.name,
+            totalAmount: formatAmountGBP(totalAmount),
+            chargeCount,
+            daysUntilBilling,
+            billingUrl: `${appUrl}/clinic/billing`,
+            unsubscribeFooterHtml: unsubFooter,
+            _clinicId: sub.clinic_id,
+          },
+          clinicId: sub.clinic_id,
         })
 
-        sent++
+        if (result.success && !result.skipped) sent++
       } catch (err) {
         console.error(`[cron/billing-reminders] Error for clinic ${sub.clinic_id}:`, err)
       }
