@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { createRateLimiter } from "@/lib/rate-limit"
 import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
+import { getAppUrl } from "@/lib/clinic-url"
 
 // Rate limiters: per-IP and per-email
 const ipLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, maxAttempts: 10 })
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
     emailLimiter.record(normalizedEmail)
 
     const supabase = createAdminClient()
-    const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+    const appUrl = getAppUrl()
     const redirectTo = `${appUrl}/auth/confirm`
 
     // Generate a recovery link server-side (does NOT send an email)

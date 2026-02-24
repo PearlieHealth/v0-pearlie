@@ -7,6 +7,7 @@ import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
 import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
 import { createRateLimiter } from "@/lib/rate-limit"
+import { getAppUrl } from "@/lib/clinic-url"
 
 // 20 messages per clinic per minute
 const clinicReplyLimiter = createRateLimiter({ windowMs: 60 * 1000, maxAttempts: 20 })
@@ -180,7 +181,7 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (lead?.email && clinic) {
-          const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+          const appUrl = getAppUrl()
           const trimmedContent = content.trim()
           const safeFirstName = lead.first_name ? escapeHtml(lead.first_name) : ""
           const safeClinicName = escapeHtml(clinic.name)

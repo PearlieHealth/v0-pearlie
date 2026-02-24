@@ -1,5 +1,6 @@
 import crypto from "crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getAppUrl } from "@/lib/clinic-url"
 
 const UNSUBSCRIBE_SECRET = process.env.SUPABASE_JWT_SECRET || ""
 
@@ -42,7 +43,7 @@ export function verifyToken(token: string): { email: string; category: string } 
  * Generate a full unsubscribe URL for inclusion in emails.
  */
 export function generateUnsubscribeUrl(email: string, category: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+  const baseUrl = getAppUrl()
   const token = generateToken(email, category)
   return `${baseUrl}/api/unsubscribe?token=${token}`
 }

@@ -6,6 +6,7 @@ import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
 import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
 import { HOURLY_SLOTS } from "@/lib/constants"
+import { getAppUrl } from "@/lib/clinic-url"
 
 export async function POST(request: Request) {
   try {
@@ -147,7 +148,7 @@ export async function POST(request: Request) {
 
         // Send patient email notification
         if (lead.email) {
-          const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+          const appUrl = getAppUrl()
           const dashboardPath = "/patient/dashboard"
           const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(dashboardPath)}`
           let viewUrl = `${appUrl}${dashboardPath}`
@@ -214,7 +215,7 @@ export async function POST(request: Request) {
     // Fire TikTok Schedule event when clinic confirms (non-blocking)
     if (action === "confirm") {
       const portalDomain = process.env.NEXT_PUBLIC_PORTAL_DOMAIN
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
+      const appUrl = getAppUrl()
       trackTikTokServerEvent({
         event: "Schedule",
         url: portalDomain ? `https://${portalDomain}/appointments` : `${appUrl}/clinic/appointments`,

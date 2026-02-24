@@ -13,6 +13,22 @@
 const PORTAL_HOSTNAME = process.env.NEXT_PUBLIC_PORTAL_DOMAIN || ""
 
 /**
+ * Resolve the canonical app URL for the current deployment.
+ *
+ * Priority:
+ *   1. APP_URL (explicit override, server-only)
+ *   2. NEXT_PUBLIC_APP_URL (set in Vercel env vars)
+ *   3. VERCEL_URL (auto-set by Vercel on every preview deployment)
+ *   4. Fallback to production
+ */
+export function getAppUrl(): string {
+  if (process.env.APP_URL) return process.env.APP_URL
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return "https://pearlie.org"
+}
+
+/**
  * Check if the current page is being served from the portal subdomain.
  * Client-side only — returns false during SSR / in middleware.
  */

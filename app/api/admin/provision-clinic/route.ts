@@ -4,6 +4,7 @@ import { verifyAdminAuth } from "@/lib/admin-auth"
 import crypto from "crypto"
 import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
+import { getAppUrl } from "@/lib/clinic-url"
 
 export async function POST(request: Request) {
   const auth = await verifyAdminAuth()
@@ -137,7 +138,7 @@ export async function POST(request: Request) {
 
     // 7. Send branded invite email (portal-aware)
     const portalDomain = process.env.NEXT_PUBLIC_PORTAL_DOMAIN
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+    const baseUrl = getAppUrl()
     const inviteUrl = portalDomain
       ? `https://${portalDomain}/accept-invite?token=${inviteToken}`
       : `${baseUrl}/clinic/accept-invite?token=${inviteToken}`

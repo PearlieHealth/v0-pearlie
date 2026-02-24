@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { FORM_VERSION, SCHEMA_VERSION } from "@/lib/intake-form-config"
 import { createRateLimiter } from "@/lib/rate-limit"
 import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
+import { getAppUrl } from "@/lib/clinic-url"
 
 // Rate limit: 5 lead submissions per email per 10 minutes
 const leadRateLimiter = createRateLimiter({ windowMs: 10 * 60 * 1000, maxAttempts: 5 })
@@ -261,7 +262,7 @@ export async function POST(request: Request) {
     leadIpLimiter.record(ip)
 
     // Fire TikTok CompleteRegistration event (server-side, non-blocking)
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
+    const appUrl = getAppUrl()
     trackTikTokServerEvent({
       event: "CompleteRegistration",
       eventId: body.tiktok_event_id || undefined,

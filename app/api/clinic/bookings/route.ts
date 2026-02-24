@@ -6,6 +6,7 @@ import { EMAIL_TYPE } from "@/lib/email/registry"
 import { escapeHtml } from "@/lib/escape-html"
 import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
 import { HOURLY_SLOTS } from "@/lib/constants"
+import { getAppUrl } from "@/lib/clinic-url"
 
 /**
  * POST /api/clinic/bookings
@@ -155,7 +156,7 @@ export async function POST(request: NextRequest) {
     // 5. Send patient email notification
     if (lead.email && clinic) {
       try {
-        const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+        const appUrl = getAppUrl()
         const unsubFooter = generateUnsubscribeFooterHtml(
           generateUnsubscribeHeaders(lead.email, "patient_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
         )
