@@ -54,7 +54,7 @@ export function ClinicShell({ children }: ClinicShellProps) {
     const DASHBOARD_SEGMENTS = [
       ...AUTH_SEGMENTS,
       "profile", "leads", "inbox", "appointments", "bookings",
-      "insights", "settings", "team", "providers"
+      "insights", "settings", "team", "providers", "billing"
     ]
     const isDashboardPage = !pathSegment || DASHBOARD_SEGMENTS.includes(pathSegment)
     const isPublicProfilePage = onPortal
@@ -140,7 +140,7 @@ export function ClinicShell({ children }: ClinicShellProps) {
   const DASHBOARD_SEGMENTS_RENDER = [
     ...AUTH_SEGMENTS_RENDER,
     "profile", "leads", "inbox", "appointments", "bookings",
-    "insights", "settings", "team", "providers"
+    "insights", "settings", "team", "providers", "billing"
   ]
   const portalActive = isPortalDomain()
   const renderSegment = portalActive

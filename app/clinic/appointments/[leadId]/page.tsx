@@ -266,6 +266,60 @@ export default function AppointmentDetailPage() {
     }
   }, [messages])
 
+  const handleSaveStatus = async (overrideStatus?: string) => {
+    if (!clinic) return
+    const statusToSave = overrideStatus || status?.status || "NEW"
+    setIsSaving(true)
+    const supabase = createBrowserClient()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (status) {
+      await supabase
+        .from("lead_clinic_status")
+        .update({
+          status: statusToSave,
+          updated_by: session?.user.id,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", status.id)
+    } else {
+      await supabase.from("lead_clinic_status").insert({
+        lead_id: leadId,
+        clinic_id: clinic.id,
+        status: statusToSave,
+        updated_by: session?.user.id,
+      })
+    }
+
+    // Trigger booking charge when status is set to ATTENDED
+    if (statusToSave === "ATTENDED" && lead && session) {
+      try {
+        const treatmentName =
+          (lead.raw_answers?.treatment as string)?.replace(/_/g, " ") || "Treatment"
+        await fetch("/api/stripe/charge-booking", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            bookingId: booking?.id || null,
+            leadId: lead.id,
+            clinicId: clinic.id,
+            patientName: `${lead.first_name} ${lead.last_name}`.trim(),
+            treatment: treatmentName,
+          }),
+        })
+      } catch (err) {
+        console.error("Failed to create booking charge:", err)
+      }
+    }
+
+    await fetchData()
+    setIsSaving(false)
+  }
 
   const handleAddNote = async () => {
     if (!clinic || !newNote.trim()) return

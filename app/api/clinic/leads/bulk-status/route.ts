@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { BOOKING_FEE_AMOUNT, CURRENCY } from "@/lib/stripe"
+import { getDisputeWindowEnd } from "@/lib/billing"
 
 const VALID_STATUSES = [
   "NEW",
@@ -93,6 +96,70 @@ export async function POST(request: NextRequest) {
         })
 
         if (!error) updatedCount++
+      }
+    }
+
+    // Create booking charges for leads marked as ATTENDED
+    if (status === "ATTENDED" && updatedCount > 0) {
+      const adminClient = createAdminClient()
+      for (const leadId of leadIds) {
+        try {
+          // Check for existing charge to prevent duplicates
+          const { data: existingCharge } = await adminClient
+            .from("booking_charges")
+            .select("id")
+            .eq("lead_id", leadId)
+            .eq("clinic_id", clinicId)
+            .single()
+
+          if (existingCharge) continue
+
+          // Get lead info for description
+          const { data: lead } = await adminClient
+            .from("leads")
+            .select("first_name, last_name, raw_answers")
+            .eq("id", leadId)
+            .single()
+
+          const patientName = lead
+            ? `${lead.first_name || ""} ${lead.last_name || ""}`.trim()
+            : "Unknown Patient"
+          const rawAnswers = lead?.raw_answers as Record<string, unknown> | null
+          const treatment = (rawAnswers?.treatment as string) || null
+
+          // Get booking ID if exists
+          const { data: booking } = await adminClient
+            .from("bookings")
+            .select("id")
+            .eq("lead_id", leadId)
+            .eq("clinic_id", clinicId)
+            .single()
+
+          await adminClient.from("booking_charges").insert({
+            booking_id: booking?.id || null,
+            lead_id: leadId,
+            clinic_id: clinicId,
+            patient_name: patientName,
+            treatment: treatment?.replace(/_/g, " ") || null,
+            amount: BOOKING_FEE_AMOUNT,
+            currency: CURRENCY,
+            attendance_status: "auto_confirmed",
+            dispute_window_ends_at: getDisputeWindowEnd().toISOString(),
+          })
+
+          await adminClient.from("billing_events").insert({
+            event_type: "booking_charged",
+            clinic_id: clinicId,
+            metadata: {
+              lead_id: leadId,
+              amount: BOOKING_FEE_AMOUNT,
+              patient_name: patientName,
+              source: "bulk_status_update",
+            },
+          })
+        } catch (chargeErr) {
+          console.error(`[bulk-status] Failed to create booking charge for lead ${leadId}:`, chargeErr)
+        }
       }
     }
 
