@@ -100,12 +100,14 @@ export function MainNav() {
 
           {/* CTA Buttons - Right */}
           <div className="hidden md:flex items-center gap-3">
-            <Link
-              href={isAuthenticated ? (userRole === "clinic" ? "/clinic" : "/patient/dashboard") : "/patient/login"}
-              className="text-sm font-heading font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
-            >
-              My account
-            </Link>
+            {userRole !== "clinic" && (
+              <Link
+                href={isAuthenticated ? "/patient/dashboard" : "/patient/login"}
+                className="text-sm font-heading font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
+              >
+                My account
+              </Link>
+            )}
             <Button
               size="lg"
               className="text-sm px-6 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0"

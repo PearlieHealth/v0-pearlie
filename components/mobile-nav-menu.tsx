@@ -116,16 +116,18 @@ export function MobileNavMenu() {
                 Get my clinic matches
               </Link>
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full text-base h-12 rounded-full"
-              asChild
-            >
-              <Link href={isAuthenticated ? (userRole === "clinic" ? "/clinic" : "/patient/dashboard") : "/patient/login"} onClick={() => setOpen(false)}>
-                My account
-              </Link>
-            </Button>
+            {userRole !== "clinic" && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full text-base h-12 rounded-full"
+                asChild
+              >
+                <Link href={isAuthenticated ? "/patient/dashboard" : "/patient/login"} onClick={() => setOpen(false)}>
+                  My account
+                </Link>
+              </Button>
+            )}
           </div>
         </nav>
       </SheetContent>
