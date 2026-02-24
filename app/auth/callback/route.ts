@@ -46,7 +46,7 @@ export async function GET(request: Request) {
       const { data: { user } } = await supabase.auth.getUser()
       const userRole = user?.user_metadata?.role
       const defaultRedirect = userRole === "clinic"
-        ? (onPortal ? "/" : "/clinic")
+        ? "/"
         : "/patient/dashboard"
       return NextResponse.redirect(`${origin}${defaultRedirect}`)
     }

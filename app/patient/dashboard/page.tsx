@@ -259,7 +259,7 @@ export default function PatientDashboard() {
 
       // Prevent clinic users from accessing patient dashboard
       if (user.user_metadata?.role === "clinic") {
-        router.replace("/clinic")
+        router.replace("/")
         return
       }
 
