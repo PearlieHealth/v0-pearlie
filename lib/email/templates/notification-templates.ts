@@ -3,6 +3,7 @@
  * These are the most complex templates, containing the rich patient-lead data.
  */
 import { escapeHtml } from "@/lib/escape-html"
+import { portalUrl } from "@/lib/clinic-url"
 import {
   TIMING_LABELS,
   COST_APPROACH_LABELS,
@@ -69,10 +70,6 @@ export function renderLeadActionEmail(data: LeadActionPayload): string {
   const safePhone = escapeHtml(data.phone || "")
   const safeTreatment = escapeHtml(data.treatment || "")
   const safePostcode = escapeHtml(data.postcode || "")
-
-  const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
-  const confirmUrl = data.bookingToken ? `${appUrl}/booking/clinic-response?token=${data.bookingToken}&action=confirm` : null
-  const declineUrl = data.bookingToken ? `${appUrl}/booking/clinic-response?token=${data.bookingToken}&action=decline` : null
 
   return `<!DOCTYPE html>
 <html>
@@ -205,20 +202,12 @@ export function renderLeadActionEmail(data: LeadActionPayload): string {
           <div class="value">${date}</div>
         </div>
 
-        ${confirmUrl && declineUrl ? `
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-          <p style="margin-bottom: 15px; color: #374151; font-weight: 500;">Once you've contacted this patient, please update the booking status:</p>
-          <div style="display: inline-block;">
-            <a href="${confirmUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; margin-right: 12px;">
-              Confirm Booking
-            </a>
-            <a href="${declineUrl}" style="display: inline-block; background: #f3f4f6; color: #374151; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; border: 1px solid #d1d5db;">
-              Decline
-            </a>
-          </div>
-          <p style="margin-top: 15px; font-size: 13px; color: #6b7280;">This helps us track conversions and improve patient matching</p>
+          <a href="${portalUrl("/clinic/leads")}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            Manage Lead
+          </a>
+          <p style="margin-top: 15px; font-size: 13px; color: #6b7280;">Log in to your clinic dashboard to respond to this patient</p>
         </div>
-        ` : ""}
       </div>
 
       <div class="footer">
