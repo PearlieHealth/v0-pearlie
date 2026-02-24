@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import {
   CreditCard,
   Receipt,
@@ -45,6 +46,10 @@ import {
   XCircle,
   Loader2,
   Shield,
+  ChevronLeft,
+  ChevronRight,
+  FileDown,
+  Filter,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -169,6 +174,13 @@ export default function BillingPage() {
   const [exemptionReason, setExemptionReason] = useState<string>("")
   const [exemptionDetails, setExemptionDetails] = useState<string>("")
   const [isDisputing, setIsDisputing] = useState(false)
+
+  // Charges filter & pagination state
+  const [chargesDateFrom, setChargesDateFrom] = useState<string>("")
+  const [chargesDateTo, setChargesDateTo] = useState<string>("")
+  const [chargesStatusFilter, setChargesStatusFilter] = useState<string>("all")
+  const [chargesPage, setChargesPage] = useState(0)
+  const CHARGES_PER_PAGE = 10
 
   const fetchBilling = useCallback(async () => {
     const supabase = createBrowserClient()
@@ -302,6 +314,25 @@ export default function BillingPage() {
     }
     setIsDisputing(false)
   }
+
+  // Filtered charges for the booking charges tab
+  const getFilteredCharges = useCallback(() => {
+    if (!billing) return []
+    let filtered = billing.charges
+    if (chargesDateFrom) {
+      const from = new Date(chargesDateFrom)
+      filtered = filtered.filter(c => new Date(c.created_at) >= from)
+    }
+    if (chargesDateTo) {
+      const to = new Date(chargesDateTo)
+      to.setHours(23, 59, 59, 999)
+      filtered = filtered.filter(c => new Date(c.created_at) <= to)
+    }
+    if (chargesStatusFilter !== "all") {
+      filtered = filtered.filter(c => c.attendance_status === chargesStatusFilter)
+    }
+    return filtered
+  }, [billing, chargesDateFrom, chargesDateTo, chargesStatusFilter])
 
   if (isLoading) {
     return (
@@ -608,98 +639,227 @@ export default function BillingPage() {
         <TabsContent value="charges" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Banknote className="h-5 w-5" />
-                Booking Charges
-              </CardTitle>
-              <CardDescription>
-                Per-appointment charges for confirmed patient bookings. You have 7 days to dispute each charge.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {billing.charges.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Patient</TableHead>
-                      <TableHead>Treatment</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Dispute Window</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {billing.charges.map((charge) => {
-                      const daysLeft = getDaysRemaining(charge.dispute_window_ends_at)
-                      const canDispute = !charge.is_finalised &&
-                        daysLeft > 0 &&
-                        ["auto_confirmed"].includes(charge.attendance_status)
-
-                      return (
-                        <TableRow key={charge.id}>
-                          <TableCell className="font-medium">
-                            {charge.patient_name || "Unknown Patient"}
-                          </TableCell>
-                          <TableCell>{charge.treatment || "—"}</TableCell>
-                          <TableCell>{formatDate(charge.created_at)}</TableCell>
-                          <TableCell>
-                            {charge.refund_status === "refunded" ? (
-                              <span className="line-through text-muted-foreground">
-                                {formatAmount(charge.amount)}
-                              </span>
-                            ) : (
-                              formatAmount(charge.amount)
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <AttendanceBadge status={charge.attendance_status} isFinalised={charge.is_finalised} />
-                          </TableCell>
-                          <TableCell>
-                            {charge.is_finalised ? (
-                              <span className="text-sm text-muted-foreground">Closed</span>
-                            ) : daysLeft > 0 ? (
-                              <span className="text-sm text-orange-600 font-medium">
-                                {daysLeft} day{daysLeft !== 1 ? "s" : ""} left
-                              </span>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">Expired</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {canDispute && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setDisputeCharge(charge)
-                                  setDisputeStatus("not_attended")
-                                  setExemptionReason("")
-                                  setExemptionDetails("")
-                                }}
-                              >
-                                Dispute
-                              </Button>
-                            )}
-                            {charge.refund_status === "refunded" && (
-                              <Badge className="bg-green-100 text-green-700 border-green-200">
-                                Refunded
-                              </Badge>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Banknote className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                  <p>No booking charges this month</p>
-                  <p className="text-sm">Charges appear here when patients attend their appointments.</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Banknote className="h-5 w-5" />
+                    Booking Charges
+                  </CardTitle>
+                  <CardDescription>
+                    Per-appointment charges for confirmed patient bookings. You have 7 days to dispute each charge.
+                  </CardDescription>
                 </div>
-              )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // CSV export of filtered charges
+                    const filtered = getFilteredCharges()
+                    const csvRows = [
+                      ["Date", "Patient", "Treatment", "Amount", "Status", "Refund Status", "Dispute Window"].join(","),
+                      ...filtered.map(c =>
+                        [
+                          formatDate(c.created_at),
+                          `"${(c.patient_name || "Unknown").replace(/"/g, '""')}"`,
+                          `"${(c.treatment || "—").replace(/"/g, '""')}"`,
+                          formatAmount(c.amount),
+                          c.attendance_status,
+                          c.refund_status || "none",
+                          c.is_finalised ? "Closed" : `${getDaysRemaining(c.dispute_window_ends_at)} days left`,
+                        ].join(",")
+                      ),
+                    ]
+                    const blob = new Blob([csvRows.join("\n")], { type: "text/csv" })
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement("a")
+                    a.href = url
+                    a.download = `pearlie-charges-${new Date().toISOString().slice(0, 10)}.csv`
+                    a.click()
+                    URL.revokeObjectURL(url)
+                    toast.success("CSV exported")
+                  }}
+                >
+                  <FileDown className="h-4 w-4 mr-1.5" />
+                  Export CSV
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Filters */}
+              <div className="flex flex-wrap items-end gap-3 pb-2">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1"><Filter className="h-3 w-3" />From</Label>
+                  <Input
+                    type="date"
+                    value={chargesDateFrom}
+                    onChange={e => { setChargesDateFrom(e.target.value); setChargesPage(0) }}
+                    className="w-[150px] h-9 text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">To</Label>
+                  <Input
+                    type="date"
+                    value={chargesDateTo}
+                    onChange={e => { setChargesDateTo(e.target.value); setChargesPage(0) }}
+                    className="w-[150px] h-9 text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Status</Label>
+                  <Select value={chargesStatusFilter} onValueChange={v => { setChargesStatusFilter(v); setChargesPage(0) }}>
+                    <SelectTrigger className="w-[160px] h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="auto_confirmed">Pending</SelectItem>
+                      <SelectItem value="confirmed">Confirmed</SelectItem>
+                      <SelectItem value="not_attended">Not Attended</SelectItem>
+                      <SelectItem value="exempt">Exempt</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {(chargesDateFrom || chargesDateTo || chargesStatusFilter !== "all") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 text-xs"
+                    onClick={() => { setChargesDateFrom(""); setChargesDateTo(""); setChargesStatusFilter("all"); setChargesPage(0) }}
+                  >
+                    Clear filters
+                  </Button>
+                )}
+              </div>
+
+              {(() => {
+                const filtered = getFilteredCharges()
+                const totalPages = Math.ceil(filtered.length / CHARGES_PER_PAGE)
+                const paged = filtered.slice(chargesPage * CHARGES_PER_PAGE, (chargesPage + 1) * CHARGES_PER_PAGE)
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Banknote className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                      <p>No booking charges found</p>
+                      <p className="text-sm">
+                        {billing.charges.length > 0 ? "Try adjusting your filters." : "Charges appear here when patients attend their appointments."}
+                      </p>
+                    </div>
+                  )
+                }
+
+                return (
+                  <>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Patient</TableHead>
+                          <TableHead>Treatment</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Dispute Window</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paged.map((charge) => {
+                          const daysLeft = getDaysRemaining(charge.dispute_window_ends_at)
+                          const canDispute = !charge.is_finalised &&
+                            daysLeft > 0 &&
+                            charge.attendance_status === "auto_confirmed"
+
+                          return (
+                            <TableRow key={charge.id}>
+                              <TableCell className="font-medium">
+                                {charge.patient_name || "Unknown Patient"}
+                              </TableCell>
+                              <TableCell>{charge.treatment || "—"}</TableCell>
+                              <TableCell>{formatDate(charge.created_at)}</TableCell>
+                              <TableCell>
+                                {charge.refund_status === "refunded" ? (
+                                  <span className="line-through text-muted-foreground">
+                                    {formatAmount(charge.amount)}
+                                  </span>
+                                ) : (
+                                  formatAmount(charge.amount)
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <AttendanceBadge status={charge.attendance_status} isFinalised={charge.is_finalised} />
+                              </TableCell>
+                              <TableCell>
+                                {charge.is_finalised ? (
+                                  <span className="text-sm text-muted-foreground">Closed</span>
+                                ) : daysLeft > 0 && charge.attendance_status === "auto_confirmed" ? (
+                                  <span className={`text-sm font-medium ${daysLeft <= 2 ? "text-red-600" : "text-orange-600"}`}>
+                                    {daysLeft === 1 ? "Last day to dispute" : `${daysLeft} days remaining`}
+                                  </span>
+                                ) : charge.attendance_status === "auto_confirmed" ? (
+                                  <span className="text-sm text-muted-foreground">Expired</span>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">—</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {canDispute ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setDisputeCharge(charge)
+                                      setDisputeStatus("not_attended")
+                                      setExemptionReason("")
+                                      setExemptionDetails("")
+                                    }}
+                                  >
+                                    Dispute
+                                  </Button>
+                                ) : charge.refund_status === "refunded" ? (
+                                  <Badge className="bg-green-100 text-green-700 border-green-200">
+                                    Refunded
+                                  </Badge>
+                                ) : null}
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between pt-2">
+                        <p className="text-sm text-muted-foreground">
+                          Showing {chargesPage * CHARGES_PER_PAGE + 1}–{Math.min((chargesPage + 1) * CHARGES_PER_PAGE, filtered.length)} of {filtered.length}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={chargesPage === 0}
+                            onClick={() => setChargesPage(p => p - 1)}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <span className="text-sm text-muted-foreground">
+                            Page {chargesPage + 1} of {totalPages}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={chargesPage >= totalPages - 1}
+                            onClick={() => setChargesPage(p => p + 1)}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )
+              })()}
             </CardContent>
           </Card>
 

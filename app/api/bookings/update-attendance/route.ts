@@ -80,14 +80,22 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // If there's a Stripe payment, issue refund
+    // Prevent duplicate disputes — only auto_confirmed charges can be disputed
+    if (charge.attendance_status !== "auto_confirmed") {
+      return NextResponse.json(
+        { error: "This charge has already been disputed or updated. It cannot be changed again." },
+        { status: 400 }
+      )
+    }
+
+    // If there's a Stripe payment, issue refund FIRST — do NOT update DB if refund fails
     let stripeRefundId: string | null = null
     if (charge.stripe_payment_intent_id) {
       try {
         const stripe = getStripe()
         const refund = await stripe.refunds.create({
           payment_intent: charge.stripe_payment_intent_id,
-          reason: status === "not_attended" ? "requested_by_customer" : "requested_by_customer",
+          reason: "requested_by_customer",
           metadata: {
             clinic_id: charge.clinic_id,
             booking_charge_id: bookingChargeId,
@@ -98,11 +106,14 @@ export async function PATCH(request: NextRequest) {
         stripeRefundId = refund.id
       } catch (refundError) {
         console.error("[bookings/update-attendance] Refund failed:", refundError)
-        // Continue — update status even if refund fails (admin can handle manually)
+        return NextResponse.json(
+          { error: "Refund could not be processed. Please try again or contact support at billing@pearlie.org." },
+          { status: 500 }
+        )
       }
     }
 
-    // Update the booking charge
+    // Update the booking charge (only reached if refund succeeded or no payment existed)
     const updateData: Record<string, unknown> = {
       attendance_status: status,
       attendance_updated_at: new Date().toISOString(),
