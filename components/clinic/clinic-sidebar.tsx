@@ -77,7 +77,7 @@ const navItems = [
     href: "/clinic/billing",
     label: "Billing",
     icon: CreditCard,
-    roles: ["CLINIC_ADMIN", "CORPORATE_ADMIN"],
+    roles: ["CLINIC_USER", "CLINIC_ADMIN", "CORPORATE_ADMIN"],
   },
   {
     href: "/clinic/settings",
