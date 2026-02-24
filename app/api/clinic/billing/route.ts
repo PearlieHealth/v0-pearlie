@@ -37,11 +37,43 @@ export async function GET() {
     const clinicId = clinicUser.clinic_id
 
     // Get subscription
-    const { data: subscription } = await supabase
+    let { data: subscription } = await supabase
       .from("clinic_subscriptions")
       .select("*")
       .eq("clinic_id", clinicId)
       .single()
+
+    // Self-heal: if DB says incomplete but Stripe subscription is actually active,
+    // sync the status (handles case where webhook didn't fire, e.g. sandbox)
+    if (subscription && subscription.status === "incomplete" && subscription.stripe_customer_id) {
+      try {
+        const stripe = getStripe()
+        const subs = await stripe.subscriptions.list({
+          customer: subscription.stripe_customer_id,
+          status: "active",
+          limit: 1,
+        })
+        if (subs.data.length > 0) {
+          const stripeSub = subs.data[0]
+          const updated = {
+            stripe_subscription_id: stripeSub.id,
+            status: "active" as const,
+            plan_type: stripeSub.metadata?.plan_type || subscription.plan_type || "basic",
+            current_period_start: new Date(stripeSub.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(stripeSub.current_period_end * 1000).toISOString(),
+            cancel_at_period_end: stripeSub.cancel_at_period_end,
+            updated_at: new Date().toISOString(),
+          }
+          await supabase
+            .from("clinic_subscriptions")
+            .update(updated)
+            .eq("clinic_id", clinicId)
+          subscription = { ...subscription, ...updated }
+        }
+      } catch (syncErr) {
+        console.error("[clinic/billing] Stripe sync error (non-fatal):", syncErr)
+      }
+    }
 
     // Get booking charges for this month
     const now = new Date()

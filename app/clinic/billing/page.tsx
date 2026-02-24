@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, Suspense } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -167,10 +168,34 @@ function AttendanceBadge({ status, isFinalised }: { status: string; isFinalised:
 }
 
 export default function BillingPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    }>
+      <BillingPageContent />
+    </Suspense>
+  )
+}
+
+function BillingPageContent() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [billing, setBilling] = useState<BillingData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [clinicId, setClinicId] = useState<string | null>(null)
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [showSetupSuccess, setShowSetupSuccess] = useState(false)
+
+  // Detect ?setup=success from Stripe redirect
+  useEffect(() => {
+    if (searchParams.get("setup") === "success") {
+      setShowSetupSuccess(true)
+      // Clean up URL without reload
+      router.replace("/clinic/billing", { scroll: false })
+    }
+  }, [searchParams, router])
 
   // Dispute dialog state
   const [disputeCharge, setDisputeCharge] = useState<BookingCharge | null>(null)
@@ -365,6 +390,24 @@ export default function BillingPage() {
           Manage your subscription, payment method, and booking charges
         </p>
       </div>
+
+      {/* Setup success banner */}
+      {showSetupSuccess && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="flex items-center gap-4 pt-6">
+            <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-medium text-green-800">Welcome! Your subscription is all set up</p>
+              <p className="text-sm text-green-700">
+                You&apos;re ready to start receiving patient matches. We&apos;ll bill per confirmed booking — your first {billing?.subscription?.free_leads_limit || 3} leads are free.
+              </p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setShowSetupSuccess(false)} className="text-green-700 hover:text-green-800 hover:bg-green-100">
+              Dismiss
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
