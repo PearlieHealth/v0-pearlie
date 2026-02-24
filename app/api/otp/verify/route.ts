@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyOTPHash, isOTPExpired } from "@/lib/otp/generate"
 import { sendEmailWithRetry } from "@/lib/email-send"
 import { EMAIL_FROM } from "@/lib/email-config"
+import { portalUrl } from "@/lib/clinic-url"
 import { escapeHtml } from "@/lib/escape-html"
 
 export async function POST(request: NextRequest) {
@@ -187,7 +188,7 @@ async function sendDirectLeadClinicNotification(
             </p>
           </div>
           <div style="text-align: center;">
-            <a href="${appUrl}/clinic/inbox"
+            <a href="${portalUrl("/clinic/inbox")}"
                style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-size: 14px; font-weight: 600;">
               View in Inbox
             </a>

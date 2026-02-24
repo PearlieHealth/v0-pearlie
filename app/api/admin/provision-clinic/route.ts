@@ -135,9 +135,12 @@ export async function POST(request: Request) {
       invite_token: inviteToken,
     })
 
-    // 7. Send branded invite email
+    // 7. Send branded invite email (portal-aware)
+    const portalDomain = process.env.NEXT_PUBLIC_PORTAL_DOMAIN
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
-    const inviteUrl = `${baseUrl}/clinic/accept-invite?token=${inviteToken}`
+    const inviteUrl = portalDomain
+      ? `https://${portalDomain}/accept-invite?token=${inviteToken}`
+      : `${baseUrl}/clinic/accept-invite?token=${inviteToken}`
 
     let emailSent = false
     try {

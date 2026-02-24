@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { clinicHref } from "@/lib/clinic-url"
 import {
   Users,
   CalendarCheck,
@@ -146,12 +147,12 @@ export default function DemoDashboardPage() {
           </div>
           <nav className="space-y-1">
             {[
-              { name: "Dashboard", href: "/clinic/demo", active: true },
-              { name: "Leads", href: "/clinic/demo/leads", active: false },
-              { name: "Insights", href: "/clinic/demo/insights", active: false },
-              { name: "Profile", href: "/clinic/demo/profile", active: false },
-              { name: "Team", href: "/clinic/demo/team", active: false },
-              { name: "Settings", href: "/clinic/demo/settings", active: false },
+              { name: "Dashboard", href: clinicHref("/clinic/demo"), active: true },
+              { name: "Leads", href: clinicHref("/clinic/demo/leads"), active: false },
+              { name: "Insights", href: clinicHref("/clinic/demo/insights"), active: false },
+              { name: "Profile", href: clinicHref("/clinic/demo/profile"), active: false },
+              { name: "Team", href: clinicHref("/clinic/demo/team"), active: false },
+              { name: "Settings", href: clinicHref("/clinic/demo/settings"), active: false },
             ].map((item) => (
               <Link
                 key={item.name}

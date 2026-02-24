@@ -4,6 +4,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref, isPortalDomain } from "@/lib/clinic-url"
 import { ClinicSidebar } from "./clinic-sidebar"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
@@ -42,7 +43,11 @@ export function ClinicShell({ children }: ClinicShellProps) {
   const fetchData = async () => {
     // Auth pages (login, forgot-password, etc.) should render directly — no auth check needed
     const AUTH_SEGMENTS = ["login", "demo", "accept-invite", "forgot-password", "reset-password", "set-password"]
-    const pathSegment = pathname?.split("/")[2] // e.g. "/clinic/leads" -> "leads"
+    // On portal subdomain, pathname is /leads not /clinic/leads, so segment index differs
+    const onPortal = isPortalDomain()
+    const pathSegment = onPortal
+      ? pathname?.split("/")[1]  // e.g. "/leads" -> "leads"
+      : pathname?.split("/")[2] // e.g. "/clinic/leads" -> "leads"
     const isAuthPage = !!pathSegment && AUTH_SEGMENTS.includes(pathSegment)
 
     // Public clinic profile pages (UUID or slug under /clinic/[x])
@@ -52,7 +57,9 @@ export function ClinicShell({ children }: ClinicShellProps) {
       "insights", "settings", "team", "providers"
     ]
     const isDashboardPage = !pathSegment || DASHBOARD_SEGMENTS.includes(pathSegment)
-    const isPublicProfilePage = pathname?.startsWith("/clinic/") && !isDashboardPage
+    const isPublicProfilePage = onPortal
+      ? false // portal subdomain only serves clinic routes, no public profiles
+      : pathname?.startsWith("/clinic/") && !isDashboardPage
 
     if (isAuthPage || isPublicProfilePage) {
       setIsLoading(false)
@@ -135,9 +142,14 @@ export function ClinicShell({ children }: ClinicShellProps) {
     "profile", "leads", "inbox", "appointments", "bookings",
     "insights", "settings", "team", "providers"
   ]
-  const renderSegment = pathname?.split("/")[2]
+  const portalActive = isPortalDomain()
+  const renderSegment = portalActive
+    ? pathname?.split("/")[1]
+    : pathname?.split("/")[2]
   const isAuthPageRender = !!renderSegment && AUTH_SEGMENTS_RENDER.includes(renderSegment)
-  const isPublicPage = pathname?.startsWith("/clinic/") && !!renderSegment && !DASHBOARD_SEGMENTS_RENDER.includes(renderSegment)
+  const isPublicPage = portalActive
+    ? false
+    : pathname?.startsWith("/clinic/") && !!renderSegment && !DASHBOARD_SEGMENTS_RENDER.includes(renderSegment)
 
   if (isAuthPageRender || isPublicPage) {
     return <>{children}</>
@@ -163,7 +175,7 @@ export function ClinicShell({ children }: ClinicShellProps) {
           <Button onClick={async () => {
             const supabase = createBrowserClient()
             await supabase.auth.signOut()
-            window.location.href = "/clinic/login"
+            window.location.href = clinicHref("/clinic/login")
           }}>
             Return to Login
           </Button>

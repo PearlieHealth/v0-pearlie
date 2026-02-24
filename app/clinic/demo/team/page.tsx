@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ArrowLeft, UserPlus, Mail, MoreVertical, Shield, User, Building2 } from "lucide-react"
 import Link from "next/link"
+import { clinicHref } from "@/lib/clinic-url"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 const demoTeamMembers = [
@@ -57,7 +58,7 @@ export default function DemoTeamPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/clinic/demo">
+            <Link href={clinicHref("/clinic/demo")}>
               <ArrowLeft className="w-5 h-5" />
             </Link>
           </Button>

@@ -213,10 +213,11 @@ export async function POST(request: Request) {
 
     // Fire TikTok Schedule event when clinic confirms (non-blocking)
     if (action === "confirm") {
+      const portalDomain = process.env.NEXT_PUBLIC_PORTAL_DOMAIN
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
       trackTikTokServerEvent({
         event: "Schedule",
-        url: `${appUrl}/clinic/appointments`,
+        url: portalDomain ? `https://${portalDomain}/appointments` : `${appUrl}/clinic/appointments`,
         email: lead.email || null,
         phone: lead.phone || null,
         externalId: lead.id,

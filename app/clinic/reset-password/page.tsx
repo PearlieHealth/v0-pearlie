@@ -5,6 +5,7 @@ import React, { Suspense } from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -82,7 +83,7 @@ function ResetPasswordContent() {
       
       // Redirect to clinic portal after short delay
       setTimeout(() => {
-        router.push("/clinic")
+        router.push(clinicHref("/clinic"))
       }, 2000)
     } catch (err) {
       setError("An error occurred. Please try again.")

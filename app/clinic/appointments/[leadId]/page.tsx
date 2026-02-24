@@ -5,6 +5,7 @@ import React from "react"
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
@@ -354,7 +355,7 @@ export default function AppointmentDetailPage() {
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              onClick={() => router.push("/clinic/appointments")}
+              onClick={() => router.push(clinicHref("/clinic/appointments"))}
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>

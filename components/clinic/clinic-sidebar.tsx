@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -84,7 +85,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
   const handleLogout = async () => {
     const supabase = createBrowserClient()
     await supabase.auth.signOut()
-    window.location.href = "/clinic/login"
+    window.location.href = clinicHref("/clinic/login")
   }
 
   const filteredNavItems = navItems.filter((item) => item.roles.includes(userRole))
@@ -103,7 +104,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
           collapsed ? "justify-center" : "justify-between"
         )}>
           {!collapsed && (
-            <Link href="/clinic" className="flex items-center gap-2.5">
+            <Link href={clinicHref("/clinic")} className="flex items-center gap-2.5">
               <div className="rounded-full bg-[#faf3e6] p-1.5">
                 <Heart className="w-4 h-4 text-foreground fill-foreground" />
               </div>
@@ -111,7 +112,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
             </Link>
           )}
           {collapsed && (
-            <Link href="/clinic">
+            <Link href={clinicHref("/clinic")}>
               <div className="rounded-full bg-[#faf3e6] p-1.5">
                 <Heart className="w-4 h-4 text-foreground fill-foreground" />
               </div>
@@ -142,8 +143,9 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
         {/* Navigation */}
         <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
           {filteredNavItems.map((item) => {
-            const isActive = pathname === item.href || 
-              (item.href !== "/clinic" && pathname.startsWith(item.href))
+            const resolvedHref = clinicHref(item.href)
+            const isActive = pathname === item.href || pathname === resolvedHref ||
+              (item.href !== "/clinic" && (pathname.startsWith(item.href) || pathname.startsWith(resolvedHref)))
             const Icon = item.icon
 
             const combinedCount = unrepliedCount + unreadMessagesCount
@@ -151,7 +153,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
 
             const linkContent = (
               <Link
-                href={item.href}
+                href={resolvedHref}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
                   isActive

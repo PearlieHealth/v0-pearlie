@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, TrendingUp, TrendingDown, Clock, Users, Calendar, Target } from "lucide-react"
 import Link from "next/link"
+import { clinicHref } from "@/lib/clinic-url"
 import { Bar, BarChart, Line, LineChart, Pie, PieChart, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 const weeklyData = [
@@ -45,7 +46,7 @@ export default function DemoInsightsPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/clinic/demo">
+            <Link href={clinicHref("/clinic/demo")}>
               <ArrowLeft className="w-5 h-5" />
             </Link>
           </Button>

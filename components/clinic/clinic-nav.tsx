@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -24,14 +25,14 @@ export function ClinicNav({ clinicName }: ClinicNavProps) {
   const handleLogout = async () => {
     const supabase = createBrowserClient()
     await supabase.auth.signOut()
-    window.location.href = "/clinic/login"
+    window.location.href = clinicHref("/clinic/login")
   }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-4">
-          <Link href="/clinic" className="flex items-center gap-2">
+          <Link href={clinicHref("/clinic")} className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
               <Building2 className="w-4 h-4 text-primary" />
             </div>
@@ -45,10 +46,10 @@ export function ClinicNav({ clinicName }: ClinicNavProps) {
         <div className="flex items-center gap-4">
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="/clinic" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link href={clinicHref("/clinic")} className="text-sm font-medium hover:text-primary transition-colors">
               Leads
             </Link>
-            <Link href="/clinic/bookings" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link href={clinicHref("/clinic/bookings")} className="text-sm font-medium hover:text-primary transition-colors">
               Bookings
             </Link>
           </nav>
@@ -87,14 +88,14 @@ export function ClinicNav({ clinicName }: ClinicNavProps) {
 
                 <nav className="flex-1 py-4 space-y-1">
                   <Link
-                    href="/clinic"
+                    href={clinicHref("/clinic")}
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-muted transition-colors"
                   >
                     Leads
                   </Link>
                   <Link
-                    href="/clinic/bookings"
+                    href={clinicHref("/clinic/bookings")}
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-muted transition-colors"
                   >

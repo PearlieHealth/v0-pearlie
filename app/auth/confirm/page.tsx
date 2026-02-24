@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 import { Loader2 } from "lucide-react"
 
 export default function AuthConfirmPage() {
@@ -24,7 +25,7 @@ export default function AuthConfirmPage() {
       if (errorParam) {
         setError(errorDescription || errorParam)
         setTimeout(() => {
-          router.push(`/clinic/login?error=${encodeURIComponent(errorDescription || errorParam)}`)
+          router.push(`${clinicHref("/clinic/login")}?error=${encodeURIComponent(errorDescription || errorParam)}`)
         }, 2000)
         return
       }
@@ -39,18 +40,18 @@ export default function AuthConfirmPage() {
         if (sessionError) {
           setError(sessionError.message)
           setTimeout(() => {
-            router.push("/clinic/login?error=session_failed")
+            router.push(`${clinicHref("/clinic/login")}?error=session_failed`)
           }, 2000)
           return
         }
 
         // Redirect based on the type of auth action
         if (type === "recovery") {
-          router.push("/clinic/reset-password")
+          router.push(clinicHref("/clinic/reset-password"))
         } else if (type === "signup") {
-          router.push("/clinic")
+          router.push(clinicHref("/clinic"))
         } else {
-          router.push("/clinic")
+          router.push(clinicHref("/clinic"))
         }
       } else {
         // No tokens found, might be a code-based flow
@@ -61,7 +62,7 @@ export default function AuthConfirmPage() {
         } else {
           setError("Invalid authentication link")
           setTimeout(() => {
-            router.push("/clinic/login?error=invalid_link")
+            router.push(`${clinicHref("/clinic/login")}?error=invalid_link`)
           }, 2000)
         }
       }

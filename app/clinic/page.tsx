@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -604,7 +605,7 @@ export default function ClinicDashboardPage() {
               <CardTitle className="text-base">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Link href="/clinic/appointments">
+              <Link href={clinicHref("/clinic/appointments")}>
                 <div className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
                   <div className="h-9 w-9 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
                     <Users className="h-4 w-4 text-amber-600" />
@@ -618,7 +619,7 @@ export default function ClinicDashboardPage() {
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </div>
               </Link>
-              <Link href="/clinic/inbox">
+              <Link href={clinicHref("/clinic/inbox")}>
                 <div className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
                   <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                     <MessageCircle className="h-4 w-4 text-blue-600" />
@@ -630,7 +631,7 @@ export default function ClinicDashboardPage() {
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </div>
               </Link>
-              <Link href="/clinic/profile">
+              <Link href={clinicHref("/clinic/profile")}>
                 <div className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
                   <div className="h-9 w-9 rounded-lg bg-[#faf3e6] flex items-center justify-center flex-shrink-0">
                     <Building2 className="h-4 w-4 text-[#0fbcb0]" />
@@ -703,7 +704,7 @@ export default function ClinicDashboardPage() {
               variant="outline"
               size="sm"
               className="h-8 text-xs bg-transparent"
-              onClick={() => router.push("/clinic/appointments")}
+              onClick={() => router.push(clinicHref("/clinic/appointments"))}
             >
               View all
               <ChevronRight className="h-3.5 w-3.5 ml-1" />
@@ -729,10 +730,10 @@ export default function ClinicDashboardPage() {
                     <div
                       key={lead.id}
                       className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
-                      onClick={() => router.push(`/clinic/leads/${lead.id}`)}
+                      onClick={() => router.push(clinicHref(`/clinic/leads/${lead.id}`))}
                       onKeyDown={(e) => {
                         if (e.key === "Enter")
-                          router.push(`/clinic/leads/${lead.id}`)
+                          router.push(clinicHref(`/clinic/leads/${lead.id}`))
                       }}
                       role="button"
                       tabIndex={0}

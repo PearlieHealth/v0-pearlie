@@ -14,6 +14,7 @@ import { MessageCircle, Send, Loader2, ArrowLeft, User, Clock, Heart, Check, Che
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { clinicHref } from "@/lib/clinic-url"
 import { useChatChannel, useConversationUpdates, type RealtimeMessage } from "@/hooks/use-chat-channel"
 
 async function getAccessToken(): Promise<string | null> {
@@ -157,7 +158,7 @@ export default function ClinicInboxPage() {
 
         setConversations(convs)
       } else if (response.status === 401) {
-        router.push("/clinic/login")
+        router.push(clinicHref("/clinic/login"))
       }
     } catch {
       // Silently fail

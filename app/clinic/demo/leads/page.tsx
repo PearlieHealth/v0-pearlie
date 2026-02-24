@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowLeft, Search, Download, Phone, Mail, Calendar, Filter } from "lucide-react"
 import Link from "next/link"
+import { clinicHref } from "@/lib/clinic-url"
 import { useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 import Loading from "./loading"
@@ -68,7 +69,7 @@ export default function DemoLeadsPage() {
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" size="icon" asChild>
-              <Link href="/clinic/demo">
+              <Link href={clinicHref("/clinic/demo")}>
                 <ArrowLeft className="w-5 h-5" />
               </Link>
             </Button>
