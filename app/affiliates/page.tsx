@@ -291,29 +291,39 @@ export default function AffiliatesPage() {
       {/* Nav */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0F]/80 backdrop-blur-xl border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="rounded-full bg-[#0D9B8A] p-1.5">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div
+              className="rounded-full p-1.5"
+              style={{ background: "linear-gradient(135deg, #FE2C55 0%, #25F4EE 100%)" }}
+            >
               <Heart className="w-4 h-4 text-white fill-white" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-[#0D9B8A]">Pearlie</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xl font-bold tracking-tight text-white group-hover:text-white/80 transition-colors">
+                Pearlie
+              </span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8B8BA3]">
+                Affiliates
+              </span>
+            </div>
           </Link>
           <div className="flex items-center gap-3">
             <Link
               href="/affiliate/dashboard"
-              className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-[14px] text-sm font-semibold text-white bg-white/[0.05] border border-white/10 backdrop-blur-[10px] hover:bg-white/[0.1] hover:border-white/20 transition-all duration-300"
+              className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-[14px] text-sm font-semibold text-[#25F4EE] bg-[#25F4EE]/[0.08] border border-[#25F4EE]/20 hover:bg-[#25F4EE]/[0.15] hover:border-[#25F4EE]/30 transition-all duration-300"
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
               Demo Dashboard
             </Link>
             <a
               href="#apply"
-              className="px-5 py-2 rounded-[14px] text-sm font-bold text-white transition-all duration-300 hover:scale-[1.03]"
+              className="px-5 py-2 rounded-[14px] text-sm font-bold text-white transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_30px_rgba(254,44,85,0.5)]"
               style={{
                 background: "linear-gradient(135deg, #FE2C55 0%, #25F4EE 100%)",
                 boxShadow: "0 0 20px rgba(254,44,85,0.3)",
               }}
             >
-              Apply Now
+              Apply Now <ArrowRight className="inline w-3.5 h-3.5 ml-1" />
             </a>
           </div>
         </div>
@@ -377,7 +387,7 @@ export default function AffiliatesPage() {
             >
               <a
                 href="#apply"
-                className="px-8 py-4 rounded-[14px] font-bold text-white text-base transition-all duration-300 hover:scale-[1.03]"
+                className="px-8 py-4 rounded-[14px] font-bold text-white text-base transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_30px_rgba(254,44,85,0.5)]"
                 style={{
                   background: "linear-gradient(135deg, #FE2C55 0%, #25F4EE 100%)",
                   boxShadow: "0 0 20px rgba(254,44,85,0.3)",
@@ -385,19 +395,19 @@ export default function AffiliatesPage() {
               >
                 Get Started <ArrowRight className="inline w-4 h-4 ml-1" />
               </a>
+              <Link
+                href="/affiliate/dashboard"
+                className="flex items-center gap-2 px-8 py-4 rounded-[14px] font-semibold text-white text-base bg-white/[0.05] border border-white/10 backdrop-blur-[10px] hover:bg-white/[0.1] hover:border-white/20 transition-all duration-300"
+              >
+                <LayoutDashboard className="w-4 h-4 text-[#25F4EE]" />
+                Preview Dashboard
+              </Link>
               <a
                 href="#how-it-works"
-                className="px-8 py-4 rounded-[14px] font-semibold text-white text-base bg-white/[0.05] border border-white/10 backdrop-blur-[10px] hover:bg-white/[0.1] hover:border-white/20 transition-all duration-300"
+                className="px-6 py-4 rounded-[14px] font-medium text-[#8B8BA3] text-base hover:text-white transition-all duration-300"
               >
                 Learn More
               </a>
-              <Link
-                href="/affiliate/dashboard"
-                className="flex items-center gap-2 px-8 py-4 rounded-[14px] font-semibold text-[#25F4EE] text-base hover:text-white transition-all duration-300"
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                Preview Dashboard
-              </Link>
             </motion.div>
 
             {/* Feature pills */}
