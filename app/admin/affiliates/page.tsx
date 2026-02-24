@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { AdminNav } from "@/components/admin/admin-nav"
 import {
   Users,
@@ -37,6 +38,7 @@ const statusStyles: Record<string, { bg: string; text: string }> = {
 }
 
 export default function AdminAffiliatesPage() {
+  const router = useRouter()
   const [affiliates, setAffiliates] = useState<AffiliateRow[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
@@ -341,10 +343,16 @@ export default function AdminAffiliatesPage() {
                                 </button>
                               )}
                               <button
+                                onClick={() => router.push(`/admin/affiliates/${aff.id}`)}
+                                className="px-2.5 py-1 rounded-md text-xs font-medium bg-[#f8f7f1] text-muted-foreground hover:bg-border transition-colors"
+                              >
+                                Details
+                              </button>
+                              <button
                                 onClick={() => setSelectedAffiliate(aff)}
                                 className="px-2.5 py-1 rounded-md text-xs font-medium bg-[#f8f7f1] text-muted-foreground hover:bg-border transition-colors"
                               >
-                                View
+                                Quick View
                               </button>
                             </div>
                           </td>

@@ -19,6 +19,7 @@ import {
   MessageSquare,
   MoreHorizontal,
   Handshake,
+  Banknote,
 } from "lucide-react"
 import { AdminLogoutButton } from "./admin-auth-provider"
 import { cn } from "@/lib/utils"
@@ -69,6 +70,7 @@ const navGroups: NavGroup[] = [
     label: "Growth",
     items: [
       { href: "/admin/affiliates", label: "Affiliates", icon: Handshake },
+      { href: "/admin/payouts", label: "Payouts", icon: Banknote },
     ],
   },
   {

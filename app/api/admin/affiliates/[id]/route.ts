@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { verifyAdminAuth } from "@/lib/admin-auth"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { logAffiliateAudit } from "@/lib/affiliate-audit"
 
 export async function PATCH(
   request: Request,
@@ -37,6 +38,13 @@ export async function PATCH(
 
     const supabase = createAdminClient()
 
+    // Fetch current state for audit trail
+    const { data: before } = await supabase
+      .from("affiliates")
+      .select("status, commission_per_booking")
+      .eq("id", id)
+      .single()
+
     const { data, error } = await supabase
       .from("affiliates")
       .update(updates)
@@ -46,6 +54,34 @@ export async function PATCH(
 
     if (error) {
       return NextResponse.json({ error: "Failed to update affiliate" }, { status: 500 })
+    }
+
+    // Audit log each change
+    if (updates.status && before?.status !== updates.status) {
+      logAffiliateAudit(supabase, {
+        affiliate_id: id,
+        action: `status_changed_to_${updates.status}`,
+        entity_type: "referral_conversion", // reusing entity_type for affiliate-level events
+        entity_id: id,
+        details: {
+          old_status: before?.status,
+          new_status: updates.status,
+        },
+        performed_by: "admin",
+      })
+    }
+    if (updates.commission_per_booking !== undefined && before?.commission_per_booking !== updates.commission_per_booking) {
+      logAffiliateAudit(supabase, {
+        affiliate_id: id,
+        action: "commission_changed",
+        entity_type: "referral_conversion",
+        entity_id: id,
+        details: {
+          old_commission: before?.commission_per_booking,
+          new_commission: updates.commission_per_booking,
+        },
+        performed_by: "admin",
+      })
     }
 
     return NextResponse.json(data)
