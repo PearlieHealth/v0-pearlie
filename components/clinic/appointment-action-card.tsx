@@ -33,7 +33,7 @@ interface AppointmentActionCardProps {
   onUpdate: () => void
 }
 
-type ActiveAction = "reschedule" | "decline" | "cancel" | null
+type ActiveAction = "confirm" | "reschedule" | "decline" | "cancel" | null
 
 export function AppointmentActionCard({
   leadId,
@@ -93,6 +93,11 @@ export function AppointmentActionCard({
     setIsSubmitting(true)
 
     const body: Record<string, string> = { leadId, action }
+    if (action === "confirm" && newDate && newTime) {
+      // Clinic is confirming with a different date/time than originally requested
+      body.newDate = format(newDate, "yyyy-MM-dd")
+      body.newTime = newTime
+    }
     if (action === "reschedule") {
       if (!newDate || !newTime) {
         toast.error("Please select a date and time")
@@ -159,21 +164,12 @@ export function AppointmentActionCard({
           <div className="flex gap-2">
             <Button
               size="sm"
-              onClick={() => handleAction("confirm")}
+              onClick={() => setActiveAction("confirm")}
               disabled={isSubmitting}
               className="bg-green-600 hover:bg-green-700 text-white"
             >
               <Check className="h-3.5 w-3.5 mr-1" />
               Confirm
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setActiveAction("reschedule")}
-              disabled={isSubmitting}
-            >
-              <RefreshCw className="h-3.5 w-3.5 mr-1" />
-              Reschedule
             </Button>
             <Button
               size="sm"
@@ -188,17 +184,17 @@ export function AppointmentActionCard({
           </div>
         )}
 
-        {activeAction === "reschedule" && (
-          <RescheduleForm
+        {activeAction === "confirm" && (
+          <ConfirmForm
+            bookingDate={bookingDate}
+            bookingTime={bookingTime}
             newDate={newDate}
             setNewDate={setNewDate}
             newTime={newTime}
             setNewTime={setNewTime}
-            message={message}
-            setMessage={setMessage}
             isSubmitting={isSubmitting}
-            onSubmit={() => handleAction("reschedule")}
-            onCancel={() => { setActiveAction(null); setNewDate(undefined); setNewTime(""); setMessage("") }}
+            onConfirm={() => handleAction("confirm")}
+            onCancel={() => { setActiveAction(null); setNewDate(undefined); setNewTime("") }}
           />
         )}
 
@@ -340,6 +336,119 @@ export function AppointmentActionCard({
 }
 
 // ---- Sub-components ----
+
+function ConfirmForm({
+  bookingDate,
+  bookingTime,
+  newDate,
+  setNewDate,
+  newTime,
+  setNewTime,
+  isSubmitting,
+  onConfirm,
+  onCancel,
+}: {
+  bookingDate: string | null
+  bookingTime: string | null
+  newDate: Date | undefined
+  setNewDate: (d: Date | undefined) => void
+  newTime: string
+  setNewTime: (t: string) => void
+  isSubmitting: boolean
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  const [changingDate, setChangingDate] = useState(false)
+
+  const displayDate = newDate
+    ? format(newDate, "EEE, d MMM yyyy")
+    : bookingDate
+    ? formatBookingDate(bookingDate)
+    : null
+  const displayTime = newTime
+    ? (HOURLY_SLOTS.find((s) => s.key === newTime)?.label || newTime)
+    : bookingTime
+    ? formatBookingTime(bookingTime)
+    : null
+
+  return (
+    <div className="space-y-3 pt-1">
+      <div className="text-sm text-amber-800">
+        <span className="font-medium">Confirming for:</span> {displayDate} at {displayTime}
+      </div>
+
+      {!changingDate ? (
+        <button
+          type="button"
+          onClick={() => setChangingDate(true)}
+          className="text-xs text-primary hover:underline"
+        >
+          Agreed on a different date/time?
+        </button>
+      ) : (
+        <div className="space-y-3 rounded-md border border-amber-200 bg-white/60 p-3">
+          <p className="text-xs text-muted-foreground">Pick the date and time you agreed on:</p>
+          <div className="space-y-2">
+            <Label className="text-xs">Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal">
+                  <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                  {newDate ? format(newDate, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={newDate}
+                  onSelect={setNewDate}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs">Time</Label>
+            <Select value={newTime} onValueChange={setNewTime}>
+              <SelectTrigger className="h-8 text-sm">
+                <SelectValue placeholder="Select time" />
+              </SelectTrigger>
+              <SelectContent>
+                {HOURLY_SLOTS.map((slot) => (
+                  <SelectItem key={slot.key} value={slot.key}>
+                    {slot.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setChangingDate(false); setNewDate(undefined); setNewTime("") }}
+            className="text-xs text-muted-foreground hover:underline"
+          >
+            Use originally requested date instead
+          </button>
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          onClick={onConfirm}
+          disabled={isSubmitting || (changingDate && (!newDate || !newTime))}
+          className="bg-green-600 hover:bg-green-700 text-white"
+        >
+          {isSubmitting ? "Confirming..." : "Confirm Appointment"}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
+          Back
+        </Button>
+      </div>
+    </div>
+  )
+}
 
 function RescheduleForm({
   newDate,

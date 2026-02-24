@@ -19,23 +19,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing or invalid fields" }, { status: 400 })
     }
 
-    // Validate reschedule fields
-    if (action === "reschedule") {
-      if (!newDate || !newTime) {
+    // Validate date/time fields for reschedule (required) and confirm (optional override)
+    if (action === "reschedule" || (action === "confirm" && (newDate || newTime))) {
+      if (action === "reschedule" && (!newDate || !newTime)) {
         return NextResponse.json({ error: "Date and time required for reschedule" }, { status: 400 })
       }
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
-        return NextResponse.json({ error: "Invalid date format" }, { status: 400 })
+      if (action === "confirm" && ((newDate && !newTime) || (!newDate && newTime))) {
+        return NextResponse.json({ error: "Both date and time are required when overriding" }, { status: 400 })
       }
-      const validTime = HOURLY_SLOTS.some((s: { key: string }) => s.key === newTime)
-      if (!validTime) {
-        return NextResponse.json({ error: "Invalid time slot" }, { status: 400 })
+      if (newDate) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+          return NextResponse.json({ error: "Invalid date format" }, { status: 400 })
+        }
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        if (new Date(newDate + "T00:00:00") < today) {
+          return NextResponse.json({ error: "Cannot schedule to a past date" }, { status: 400 })
+        }
       }
-      // Prevent rescheduling to a past date
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      if (new Date(newDate + "T00:00:00") < today) {
-        return NextResponse.json({ error: "Cannot reschedule to a past date" }, { status: 400 })
+      if (newTime) {
+        const validTime = HOURLY_SLOTS.some((s: { key: string }) => s.key === newTime)
+        if (!validTime) {
+          return NextResponse.json({ error: "Invalid time slot" }, { status: 400 })
+        }
       }
     }
 
@@ -96,9 +102,20 @@ export async function POST(request: NextRequest) {
     let botMessageContent = ""
 
     if (action === "confirm") {
+      // Clinic can optionally override date/time (e.g. after chatting with patient)
+      const confirmedDate = newDate || lead.booking_date
+      const confirmedTime = newTime || lead.booking_time
+
+      const leadUpdate: Record<string, string | null> = {
+        booking_status: "confirmed",
+        booking_confirmed_at: now,
+      }
+      if (newDate) leadUpdate.booking_date = newDate
+      if (newTime) leadUpdate.booking_time = newTime
+
       await supabaseAdmin
         .from("leads")
-        .update({ booking_status: "confirmed", booking_confirmed_at: now })
+        .update(leadUpdate)
         .eq("id", leadId)
 
       await supabaseAdmin
@@ -108,12 +125,10 @@ export async function POST(request: NextRequest) {
         .eq("clinic_id", clinicUser.clinic_id)
 
       // Also upsert into bookings table so Scheduled tab picks it up
-      const bookingDate = lead.booking_date
-      const bookingTime = lead.booking_time
-      if (bookingDate) {
-        const apptDatetime = bookingTime
-          ? `${bookingDate}T${bookingTime}:00`
-          : `${bookingDate}T09:00:00`
+      if (confirmedDate) {
+        const apptDatetime = confirmedTime
+          ? `${confirmedDate}T${confirmedTime}:00`
+          : `${confirmedDate}T09:00:00`
         await supabaseAdmin.from("bookings").upsert(
           {
             lead_id: leadId,
@@ -124,7 +139,6 @@ export async function POST(request: NextRequest) {
           },
           { onConflict: "lead_id,clinic_id", ignoreDuplicates: false }
         ).then(() => {}).catch(() => {
-          // If upsert fails (no unique constraint), try insert
           supabaseAdmin.from("bookings").insert({
             lead_id: leadId,
             clinic_id: clinicUser.clinic_id,
@@ -135,8 +149,8 @@ export async function POST(request: NextRequest) {
         })
       }
 
-      const dateLabel = formatDateLabel(lead.booking_date)
-      const timeLabel = formatTimeLabel(lead.booking_time)
+      const dateLabel = formatDateLabel(confirmedDate)
+      const timeLabel = formatTimeLabel(confirmedTime)
       botMessageContent = `Your appointment has been confirmed for ${dateLabel} at ${timeLabel}.`
     }
 
@@ -400,8 +414,8 @@ async function sendPatientNotificationEmail({
     cancel: EMAIL_TYPE.APPOINTMENT_CANCELLED,
   }
 
-  const dateStr = action === "reschedule" ? newDate : lead.booking_date
-  const timeStr = action === "reschedule" ? newTime : lead.booking_time
+  const dateStr = newDate || lead.booking_date
+  const timeStr = newTime || lead.booking_time
 
   await sendRegisteredEmail({
     type: emailTypeMap[action],
