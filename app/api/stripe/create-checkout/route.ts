@@ -78,6 +78,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Cancel any existing incomplete Stripe subscriptions to prevent duplicates
+    if (stripeCustomerId) {
+      try {
+        const incompleteSubs = await stripe.subscriptions.list({
+          customer: stripeCustomerId,
+          status: "incomplete",
+        })
+        for (const sub of incompleteSubs.data) {
+          await stripe.subscriptions.cancel(sub.id)
+        }
+      } catch (cancelErr) {
+        console.error("[stripe/create-checkout] Error cancelling incomplete subs (non-fatal):", cancelErr)
+      }
+    }
+
     const priceId = process.env.STRIPE_MEMBERSHIP_PRICE_ID
     if (!priceId) {
       console.error("[stripe/create-checkout] Missing STRIPE_MEMBERSHIP_PRICE_ID")
