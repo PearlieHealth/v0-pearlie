@@ -16,9 +16,12 @@ export async function GET(request: Request) {
 
   // Determine error redirect based on the flow
   const isPatientFlow = sanitizedNext ? (sanitizedNext.startsWith("/intake") || sanitizedNext.startsWith("/patient") || sanitizedNext.startsWith("/match") || sanitizedNext.startsWith("/booking")) : true
+  const errorParam = encodeURIComponent(errorDescription || error || "auth_failed")
   const errorRedirect = isPatientFlow
-    ? `${origin}/intake?error=${encodeURIComponent(errorDescription || error || "auth_failed")}`
-    : `${origin}/clinic/login?error=${encodeURIComponent(errorDescription || error || "auth_failed")}`
+    ? sanitizedNext
+      ? `${origin}/patient/login?error=${errorParam}&next=${encodeURIComponent(sanitizedNext)}`
+      : `${origin}/patient/login?error=${errorParam}`
+    : `${origin}/clinic/login?error=${errorParam}`
 
   // Handle errors from Supabase
   if (error) {
