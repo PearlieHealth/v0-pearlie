@@ -88,7 +88,7 @@ interface BookingCardProps {
   clinic: Clinic
   isTopMatch: boolean
   onMessageClick: () => void
-  onRequestAppointment?: (message: string) => void | Promise<void>
+  onRequestAppointment?: (message: string, opts?: { date?: string; time?: string }) => void | Promise<void>
   appointmentRequested?: boolean
   appointmentRequestedAt?: string | null // ISO timestamp
   bookingDate?: string | null
@@ -146,6 +146,8 @@ export function BookingCard({
     message: string
     dateLabel?: string
     timeLabel?: string
+    isoDate?: string  // YYYY-MM-DD for structured booking
+    slotTime?: string // HH:MM key for structured booking
   } | null>(null)
   const [isRequesting, setIsRequesting] = useState(false)
 
@@ -366,8 +368,9 @@ export function BookingCard({
               acceptsSameDay={clinic.accepts_same_day || false}
               onSelectSlot={(date, time) => {
                 const dateLabel = date.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
+                const isoDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
                 const msg = `Hi! I'd like to request an appointment on ${dateLabel} at ${time}. Would this time be available?`
-                setPendingAppointment({ message: msg, dateLabel, timeLabel: time })
+                setPendingAppointment({ message: msg, dateLabel, timeLabel: time, isoDate, slotTime: time })
               }}
             />
           )}
@@ -404,7 +407,12 @@ export function BookingCard({
                   onClick={async () => {
                     if (onRequestAppointment) {
                       setIsRequesting(true)
-                      await onRequestAppointment(pendingAppointment.message)
+                      await onRequestAppointment(
+                        pendingAppointment.message,
+                        pendingAppointment.isoDate && pendingAppointment.slotTime
+                          ? { date: pendingAppointment.isoDate, time: pendingAppointment.slotTime }
+                          : undefined
+                      )
                       setIsRequesting(false)
                       setPendingAppointment(null)
                     }

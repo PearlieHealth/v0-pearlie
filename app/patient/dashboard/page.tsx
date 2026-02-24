@@ -723,7 +723,7 @@ export default function PatientDashboard() {
     if (selectedClinicId) openConversationForClinic(selectedClinicId)
   }
 
-  async function handleRequestAppointment(message: string) {
+  async function handleRequestAppointment(message: string, opts?: { date?: string; time?: string }) {
     if (!selectedClinicId || !activeLeadId) return
 
     // Block if already requested (server-side check is also in the API)
@@ -743,26 +743,47 @@ export default function PatientDashboard() {
     }
     setMessages((prev) => [...prev, optimisticMsg])
 
-    // Send appointment request via API with messageType for server-side tracking
+    // When we have structured date/time, use the full booking request API so the
+    // lead's booking_* fields are set and the clinic gets confirm/decline buttons.
+    // For generic "what times?" messages (no date/time), use chat/send.
+    const useBookingApi = !!(opts?.date && opts?.time)
+
     try {
-      const res = await fetch("/api/chat/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          leadId: activeLeadId,
-          clinicId: selectedClinicId,
-          content: message,
-          senderType: "patient",
-          messageType: "appointment_request",
-        }),
-      })
+      const res = useBookingApi
+        ? await fetch("/api/booking/request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              clinicId: selectedClinicId,
+              leadId: activeLeadId,
+              date: opts!.date,
+              time: opts!.time,
+            }),
+          })
+        : await fetch("/api/chat/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              leadId: activeLeadId,
+              clinicId: selectedClinicId,
+              content: message,
+              senderType: "patient",
+              messageType: "appointment_request",
+            }),
+          })
+
       if (res.ok) {
         const data = await res.json()
-        // Replace optimistic message with server version
-        setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
+
+        // Both APIs return the message (bookingMessage for booking/request, message for chat/send)
+        const serverMessage = useBookingApi ? data.bookingMessage : data.message
+        if (serverMessage) {
+          setMessages((prev) => prev.map((m) => m.id === tempId ? serverMessage : m))
+        } else {
+          setMessages((prev) => prev.filter((m) => m.id !== tempId))
+        }
 
         // Mark the conversation locally as having an appointment request
-        // so the UI updates immediately without waiting for a re-fetch.
         setInboxConversations((prev) =>
           prev.map((c) =>
             c.clinic_id === selectedClinicId
@@ -772,17 +793,31 @@ export default function PatientDashboard() {
         )
 
         // If new conversation was created, update state
-        if (data.conversationId && !inboxConversations.find((c) => c.clinic_id === selectedClinicId)) {
-          // Skip the auto-fetch — we already have the right messages in state
+        const convId = data.conversationId
+        if (convId && !inboxConversations.find((c) => c.clinic_id === selectedClinicId)) {
           skipNextConvFetch.current = true
-          setSelectedConvId(data.conversationId)
+          setSelectedConvId(convId)
           setPendingChatClinic(null)
-          fetchInbox() // re-fetch includes appointment_requested_at from server
+          fetchInbox()
+        }
+
+        // Update local lead data so booking status shows immediately
+        if (useBookingApi && data.success) {
+          setData((prev) => {
+            if (!prev) return prev
+            return {
+              ...prev,
+              leads: prev.leads.map((l) =>
+                l.id === activeLeadId
+                  ? { ...l, booking_status: "pending", booking_date: opts!.date!, booking_time: opts!.time!, booking_clinic_id: selectedClinicId }
+                  : l
+              ),
+            }
+          })
         }
 
         // Handle bot auto-replies with typing indicator
         if (data.botMessages?.length) {
-          // Register IDs so realtime handler ignores these (they'd bypass the delay)
           data.botMessages.forEach((botMsg: Message) => delayedBotMsgIds.current.add(botMsg.id))
 
           setBotTyping(true)
@@ -812,8 +847,14 @@ export default function PatientDashboard() {
         // Already requested (server-side duplicate check) — remove optimistic, refresh inbox
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
         fetchInbox()
+      } else if (res.status === 429) {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
+        const errData = await res.json().catch(() => ({}))
+        setChatError(errData.error || "Too many requests. Please wait a moment.")
       } else {
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
+        const errData = await res.json().catch(() => ({}))
+        setChatError(errData.error || "Failed to send appointment request.")
       }
     } catch (err) {
       console.error("Failed to send appointment request:", err)
