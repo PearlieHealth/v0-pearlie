@@ -36,7 +36,6 @@ import {
   CalendarCheck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { BookingDialog } from "@/components/clinic/booking-dialog"
 import { AppointmentActionCard } from "@/components/clinic/appointment-action-card"
 
 interface Lead {
@@ -127,7 +126,6 @@ export default function AppointmentDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const [showBookingDialog, setShowBookingDialog] = useState(false)
 
   const [newMessage, setNewMessage] = useState("")
   const [newNote, setNewNote] = useState("")
@@ -466,16 +464,6 @@ export default function AppointmentDetailPage() {
                   <Phone className="w-3.5 h-3.5" />
                   Call
                 </a>
-              </Button>
-            )}
-            {!booking && (
-              <Button
-                size="sm"
-                className="gap-1.5 bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => setShowBookingDialog(true)}
-              >
-                <CalendarCheck className="w-3.5 h-3.5" />
-                Appointment confirmed with patient
               </Button>
             )}
             {/* Confirm Attended button — shown when booking exists with past date and not yet marked attended */}
@@ -880,18 +868,6 @@ export default function AppointmentDetailPage() {
         </ScrollArea>
       </div>
 
-      {showBookingDialog && clinic && (
-        <BookingDialog
-          leadId={leadId}
-          clinicId={clinic.id}
-          patientName={`${lead.first_name} ${lead.last_name}`}
-          onClose={() => setShowBookingDialog(false)}
-          onSuccess={() => {
-            setShowBookingDialog(false)
-            fetchData()
-          }}
-        />
-      )}
     </div>
   )
 }
