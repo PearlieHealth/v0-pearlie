@@ -965,7 +965,20 @@ export default function PatientDashboard() {
 
           {/* ─── MOBILE: Persistent navigation buttons ──────────── */}
           {isMobile && selectedClinic && (
-            <div className="sticky top-0 z-20 -mx-3 -mt-4 px-3 pt-3 pb-2 bg-background/95 backdrop-blur-sm border-b border-border/30">
+            <div className="sticky top-0 z-20 -mx-3 -mt-4 px-3 pt-3 pb-4 bg-background/95 backdrop-blur-sm border-b border-border/30 space-y-2.5">
+              {/* Account info */}
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground truncate mr-2">
+                  Signed in as <span className="font-medium text-foreground/80">{data?.user?.email}</span>
+                </p>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Sign out
+                </button>
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setMobileInboxListOpen(true)}
