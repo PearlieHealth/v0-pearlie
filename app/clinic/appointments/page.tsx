@@ -46,6 +46,10 @@ interface Lead {
   created_at: string
   source?: string
   raw_answers: Record<string, unknown>
+  booking_status?: string | null
+  booking_date?: string | null
+  booking_time?: string | null
+  booking_clinic_id?: string | null
   status?: {
     id: string
     status: string
@@ -174,7 +178,7 @@ export default function AppointmentsPage() {
           `
           lead_id,
           created_at,
-          leads(id, first_name, last_name, email, phone, created_at, raw_answers, source)
+          leads(id, first_name, last_name, email, phone, created_at, raw_answers, source, booking_status, booking_date, booking_time, booking_clinic_id)
         `
         )
         .eq("clinic_id", cId)
@@ -200,7 +204,7 @@ export default function AppointmentsPage() {
     if (conversationOnlyLeadIds.length > 0) {
       const { data: extraLeads } = await supabase
         .from("leads")
-        .select("id, first_name, last_name, email, phone, created_at, raw_answers, source")
+        .select("id, first_name, last_name, email, phone, created_at, raw_answers, source, booking_status, booking_date, booking_time, booking_clinic_id")
         .in("id", conversationOnlyLeadIds)
       conversationOnlyLeads = extraLeads || []
     }
@@ -354,7 +358,29 @@ export default function AppointmentsPage() {
     return true
   })
 
-  // === CONVERSATIONS TAB: WhatsApp-style sorted by most recent activity ===
+  // Helper: check if a lead is a confirmed/scheduled appointment
+  const isScheduledLead = (l: Lead) => {
+    const s = (l.status?.status || "NEW").toUpperCase()
+    // Check bookings table: future booking with BOOKED_PENDING or BOOKED_CONFIRMED
+    if (l.booking && new Date(l.booking.appointment_datetime) > new Date() &&
+        (s === "BOOKED_PENDING" || s === "BOOKED_CONFIRMED")) return true
+    // Also check lead-level booking_status: when clinic confirms, booking_status = "confirmed"
+    // and it sends an automated message — this should count as scheduled
+    if (l.booking_status === "confirmed" && l.booking_clinic_id === clinicId) {
+      // Has a future booking date
+      if (l.booking_date) {
+        const bookingDateTime = l.booking_time
+          ? new Date(`${l.booking_date}T${l.booking_time}:00`)
+          : new Date(`${l.booking_date}T09:00:00`)
+        if (bookingDateTime > new Date()) return true
+      }
+      // Or has a future bookings-table entry
+      if (l.booking && new Date(l.booking.appointment_datetime) > new Date()) return true
+    }
+    return false
+  }
+
+  // === CONVERSATIONS TAB: Two-column sorted by most recent activity ===
   // Active conversations: not ATTENDED, CLOSED, NOT_SUITABLE, NO_RESPONSE
   // And doesn't have a future scheduled booking
   const conversationLeads = filteredLeads
@@ -362,9 +388,8 @@ export default function AppointmentsPage() {
       const s = (l.status?.status || "NEW").toUpperCase()
       // Exclude terminal statuses
       if (s === "ATTENDED" || s === "CLOSED" || s === "NOT_SUITABLE" || s === "NO_RESPONSE") return false
-      // Exclude future scheduled appointments (those appear in "scheduled" tab)
-      if (l.booking && new Date(l.booking.appointment_datetime) > new Date() &&
-          (s === "BOOKED_PENDING" || s === "BOOKED_CONFIRMED")) return false
+      // Exclude scheduled appointments (those appear in "scheduled" tab)
+      if (isScheduledLead(l)) return false
       return true
     })
     .sort((a, b) => getSortTimestamp(b) - getSortTimestamp(a)) // Most recent first
@@ -377,12 +402,20 @@ export default function AppointmentsPage() {
   // === SCHEDULED TAB ===
   const scheduled = filteredLeads
     .filter((l) => {
-      const s = l.status?.status?.toUpperCase()
-      if (!l.booking) return false
-      const isFuture = new Date(l.booking.appointment_datetime) > new Date()
-      return isFuture && (s === "BOOKED_PENDING" || s === "BOOKED_CONFIRMED")
+      const s = (l.status?.status || "NEW").toUpperCase()
+      // Exclude terminal statuses
+      if (s === "ATTENDED" || s === "CLOSED" || s === "NOT_SUITABLE" || s === "NO_RESPONSE") return false
+      return isScheduledLead(l)
     })
-    .sort((a, b) => new Date(a.booking!.appointment_datetime).getTime() - new Date(b.booking!.appointment_datetime).getTime())
+    .sort((a, b) => {
+      const dateA = a.booking ? new Date(a.booking.appointment_datetime).getTime()
+        : a.booking_date ? new Date(`${a.booking_date}T${a.booking_time || "09:00"}:00`).getTime()
+        : 0
+      const dateB = b.booking ? new Date(b.booking.appointment_datetime).getTime()
+        : b.booking_date ? new Date(`${b.booking_date}T${b.booking_time || "09:00"}:00`).getTime()
+        : 0
+      return dateA - dateB
+    })
 
   // === ATTENDANCE TAB ===
   const pendingAttendance = filteredLeads
@@ -610,7 +643,7 @@ export default function AppointmentsPage() {
         </div>
       )}
 
-      {/* ─── CONVERSATIONS TAB (WhatsApp-style) ─── */}
+      {/* ─── CONVERSATIONS TAB (Two-column layout) ─── */}
       {activeTab === "conversations" && (
         <div className="space-y-6">
           {conversationCount === 0 ? (
@@ -623,32 +656,9 @@ export default function AppointmentsPage() {
             </Card>
           ) : (
             <>
-              {/* Section: Needs your reply */}
-              {needsReplyLeads.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 rounded-full bg-red-500" />
-                    <h3 className="text-xs font-bold tracking-wider text-red-600 uppercase">
-                      Needs your reply ({needsReplyLeads.length})
-                    </h3>
-                  </div>
-                  <Card className="border-red-100">
-                    <CardContent className="p-0 divide-y">
-                      {needsReplyLeads.map((lead) => (
-                        <ConversationRow
-                          key={lead.id}
-                          lead={lead}
-                          category="needs_reply"
-                          onClick={() => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
-                        />
-                      ))}
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-
-              {/* Section: New leads */}
-              {newLeadsList.length > 0 && (
+              {/* Top row: New Leads (left) | Needs Reply (right) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left column: New leads */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <UserPlus className="w-4 h-4 text-blue-600" />
@@ -656,22 +666,62 @@ export default function AppointmentsPage() {
                       New leads ({newLeadsList.length})
                     </h3>
                   </div>
-                  <Card className="border-blue-100">
-                    <CardContent className="p-0 divide-y">
-                      {newLeadsList.map((lead) => (
-                        <ConversationRow
-                          key={lead.id}
-                          lead={lead}
-                          category="new_lead"
-                          onClick={() => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
-                        />
-                      ))}
-                    </CardContent>
-                  </Card>
+                  {newLeadsList.length === 0 ? (
+                    <Card className="border-blue-100">
+                      <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                        <UserPlus className="w-10 h-10 mb-2 text-muted-foreground/40" />
+                        <p className="text-sm">No new leads</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card className="border-blue-100">
+                      <CardContent className="p-0 divide-y">
+                        {newLeadsList.map((lead) => (
+                          <ConversationRow
+                            key={lead.id}
+                            lead={lead}
+                            category="new_lead"
+                            onClick={() => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
+                          />
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
-              )}
 
-              {/* Section: Waiting for patient */}
+                {/* Right column: Needs reply */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 rounded-full bg-red-500" />
+                    <h3 className="text-xs font-bold tracking-wider text-red-600 uppercase">
+                      Needs your reply ({needsReplyLeads.length})
+                    </h3>
+                  </div>
+                  {needsReplyLeads.length === 0 ? (
+                    <Card className="border-red-100">
+                      <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                        <Reply className="w-10 h-10 mb-2 text-muted-foreground/40" />
+                        <p className="text-sm">All caught up</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card className="border-red-100">
+                      <CardContent className="p-0 divide-y">
+                        {needsReplyLeads.map((lead) => (
+                          <ConversationRow
+                            key={lead.id}
+                            lead={lead}
+                            category="needs_reply"
+                            onClick={() => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
+                          />
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </div>
+
+              {/* Bottom row: Waiting for patient (full width) */}
               {waitingLeads.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
@@ -711,7 +761,15 @@ export default function AppointmentsPage() {
               </CardContent>
             </Card>
           ) : (
-            scheduled.map((lead) => (
+            scheduled.map((lead) => {
+              const isConfirmed = lead.status?.status?.toUpperCase() === "BOOKED_CONFIRMED" ||
+                lead.booking_status === "confirmed"
+              const appointmentDate = lead.booking
+                ? new Date(lead.booking.appointment_datetime)
+                : lead.booking_date
+                  ? new Date(`${lead.booking_date}T${lead.booking_time || "09:00"}:00`)
+                  : null
+              return (
               <Card
                 key={lead.id}
                 className="hover:bg-muted/30 transition-colors cursor-pointer"
@@ -742,22 +800,22 @@ export default function AppointmentsPage() {
                         variant="secondary"
                         className={cn(
                           "text-xs",
-                          lead.status?.status?.toUpperCase() === "BOOKED_CONFIRMED"
+                          isConfirmed
                             ? "bg-green-100 text-green-700"
                             : "bg-amber-100 text-amber-700"
                         )}
                       >
-                        {lead.status?.status?.toUpperCase() === "BOOKED_CONFIRMED" ? "Confirmed" : "Pending"}
+                        {isConfirmed ? "Confirmed" : "Pending"}
                       </Badge>
                       <div className="text-right">
                         <p className="text-sm font-medium">
-                          {lead.booking
-                            ? format(new Date(lead.booking.appointment_datetime), "EEE, d MMM yyyy")
+                          {appointmentDate
+                            ? format(appointmentDate, "EEE, d MMM yyyy")
                             : ""}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {lead.booking
-                            ? format(new Date(lead.booking.appointment_datetime), "h:mm a")
+                          {appointmentDate
+                            ? format(appointmentDate, "h:mm a")
                             : ""}
                         </p>
                       </div>
@@ -766,7 +824,8 @@ export default function AppointmentsPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))
+              )
+            })
           )}
         </div>
       )}
@@ -922,7 +981,7 @@ export default function AppointmentsPage() {
 
 // Helper
 function getTreatmentLabel(treatment: string | undefined) {
-  if (!treatment) return "Dental Treatment"
+  if (!treatment) return "General Enquiry"
   return TREATMENT_LABELS[treatment] || treatment.replace(/_/g, " ")
 }
 

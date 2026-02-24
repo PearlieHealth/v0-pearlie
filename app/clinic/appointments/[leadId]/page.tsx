@@ -394,8 +394,8 @@ export default function AppointmentDetailPage() {
 
   const treatment =
     TREATMENT_LABELS[lead.raw_answers?.treatment as string] ||
-    (lead.raw_answers?.treatment as string) ||
-    "Dental Treatment"
+    (lead.raw_answers?.treatment as string)?.replace(/_/g, " ") ||
+    "General Enquiry"
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
