@@ -414,6 +414,24 @@ export default function BillingPage() {
             </Card>
           )}
 
+          {sub?.status === "incomplete" && (
+            <Card className="border-yellow-200 bg-yellow-50">
+              <CardContent className="flex items-center gap-4 pt-6">
+                <AlertCircle className="h-6 w-6 text-yellow-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-yellow-800">Subscription setup incomplete</p>
+                  <p className="text-sm text-yellow-700">
+                    It looks like you didn&apos;t finish setting up your subscription. Click below to complete the process.
+                  </p>
+                </div>
+                <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-[#0fbcb0] hover:bg-[#0da399] text-white">
+                  {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Complete Setup
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           {sub?.status === "past_due" && (
             <Card className="border-red-200 bg-red-50">
               <CardContent className="flex items-center gap-4 pt-6">
@@ -531,10 +549,18 @@ export default function BillingPage() {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
-                <Button variant="outline" onClick={handleManagePayment} disabled={isRedirecting}>
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Manage Subscription
-                </Button>
+                {sub.status === "incomplete" ? (
+                  <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-[#0fbcb0] hover:bg-[#0da399] text-white">
+                    {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Set Up Subscription
+                  </Button>
+                ) : (
+                  <Button variant="outline" onClick={handleManagePayment} disabled={isRedirecting}>
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Manage Subscription
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}
