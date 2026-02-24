@@ -166,9 +166,9 @@ export async function POST(request: NextRequest) {
           data: {
             patientFirstName: escapeHtml(lead.first_name || ""),
             clinicName: escapeHtml(clinic.name),
-            appointmentDate: dateLabel,
-            appointmentTime: timeLabel,
-            dashboardUrl: `${appUrl}/patient/dashboard`,
+            bookingDate: dateLabel,
+            bookingTime: timeLabel,
+            viewUrl: `${appUrl}/patient/dashboard`,
             unsubscribeFooterHtml: unsubFooter,
           },
           headers: generateUnsubscribeHeaders(lead.email, "patient_notifications"),
