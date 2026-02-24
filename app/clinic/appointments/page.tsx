@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -24,16 +23,16 @@ import {
   Clock,
   MessageSquare,
   CalendarCheck,
-  Eye,
   ChevronRight,
   Inbox,
   History,
   CalendarDays,
   Filter,
   X,
-  Globe,
-  CheckSquare,
   Download,
+  UserPlus,
+  Reply,
+  CheckCircle2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { clinicHref } from "@/lib/clinic-url"
@@ -83,13 +82,8 @@ const TREATMENT_LABELS: Record<string, string> = {
   dentures: "Dentures",
 }
 
-function getElapsedLabel(dateStr: string) {
-  const mins = differenceInMinutes(new Date(), new Date(dateStr))
-  const hours = differenceInHours(new Date(), new Date(dateStr))
-  if (mins < 60) return `${mins}m`
-  if (hours < 24) return `${hours}h ${mins % 60}m`
-  const days = Math.floor(hours / 24)
-  return `${days}d ${hours % 24}h`
+function getTimeAgo(dateStr: string) {
+  return formatDistanceToNow(new Date(dateStr), { addSuffix: true })
 }
 
 function getElapsedColor(dateStr: string) {
@@ -100,32 +94,73 @@ function getElapsedColor(dateStr: string) {
   return "text-red-600"
 }
 
-type Tab = "new" | "awaiting" | "scheduled" | "attendance"
+function getUrgencyColor(dateStr: string) {
+  const hours = differenceInHours(new Date(), new Date(dateStr))
+  if (hours < 1) return "bg-green-500"
+  if (hours < 4) return "bg-yellow-500"
+  if (hours < 12) return "bg-orange-500"
+  return "bg-red-500"
+}
+
+type Tab = "conversations" | "scheduled" | "attendance"
+
+// Determine conversation priority category
+type ConversationCategory = "needs_reply" | "waiting_for_patient" | "new_lead"
+
+function getConversationCategory(lead: Lead): ConversationCategory {
+  const status = (lead.status?.status || "NEW").toUpperCase()
+  const hasConversation = !!lead.conversation
+  const hasClinicReplied = !!lead.conversation?.clinic_first_reply_at
+  const lastSender = lead.conversation?.latest_message_sender
+
+  // Brand new lead, no conversation or status is NEW and clinic hasn't replied
+  if (status === "NEW" && !hasClinicReplied) {
+    return "new_lead"
+  }
+
+  // Has a conversation where last message is from patient/bot — clinic needs to reply
+  if (hasConversation && (lastSender === "patient" || lastSender === "bot") && !hasClinicReplied) {
+    return "needs_reply"
+  }
+  if (hasConversation && lastSender === "patient") {
+    return "needs_reply"
+  }
+
+  // Clinic has replied, waiting for patient
+  return "waiting_for_patient"
+}
+
+// Get the most relevant timestamp for sorting (most recent activity first)
+function getSortTimestamp(lead: Lead): number {
+  const times: number[] = []
+  if (lead.conversation?.last_message_at) {
+    times.push(new Date(lead.conversation.last_message_at).getTime())
+  }
+  if (lead.status?.updated_at) {
+    times.push(new Date(lead.status.updated_at).getTime())
+  }
+  times.push(new Date(lead.created_at).getTime())
+  return Math.max(...times)
+}
 
 export default function AppointmentsPage() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeTab, setActiveTab] = useState<Tab>("new")
+  const [activeTab, setActiveTab] = useState<Tab>("conversations")
   const [isLoading, setIsLoading] = useState(true)
   const [clinicId, setClinicId] = useState<string | null>(null)
+  const [isUpdating, setIsUpdating] = useState<string | null>(null)
   const router = useRouter()
 
   // Advanced filters
   const [filterTreatment, setFilterTreatment] = useState<string>("all")
   const [filterDateRange, setFilterDateRange] = useState<string>("all")
-  const [filterStatus, setFilterStatus] = useState<string>("all")
   const [filterSource, setFilterSource] = useState<string>("all")
   const [showFilters, setShowFilters] = useState(false)
-
-  // Bulk selection
-  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set())
-  const [isBulkUpdating, setIsBulkUpdating] = useState(false)
-  const [bulkAction, setBulkAction] = useState<string>("")
 
   const fetchData = useCallback(async () => {
     const supabase = createBrowserClient()
 
-    // Use server-side API to get clinic ID (consistent with clinic-shell)
     const profileRes = await fetch("/api/clinic/profile")
     if (!profileRes.ok) {
       setIsLoading(false)
@@ -140,8 +175,6 @@ export default function AppointmentsPage() {
     }
     setClinicId(cId)
 
-    // Fetch match results - include source from leads
-    // Fetch match results and ALL conversations for this clinic in parallel
     const [{ data: matchResults }, { data: allConversations }] = await Promise.all([
       supabase
         .from("match_results")
@@ -165,15 +198,12 @@ export default function AppointmentsPage() {
       return
     }
 
-    // Build set of lead_ids from match_results
     const matchLeadIds = new Set((matchResults || []).map((mr) => mr.lead_id))
 
-    // Find conversation-only leads (have conversations but no match_results)
     const conversationOnlyLeadIds = (allConversations || [])
       .map((c) => c.lead_id)
       .filter((id) => !matchLeadIds.has(id))
 
-    // Fetch missing leads that only have conversations (no match_results)
     let conversationOnlyLeads: any[] = []
     if (conversationOnlyLeadIds.length > 0) {
       const { data: extraLeads } = await supabase
@@ -183,7 +213,6 @@ export default function AppointmentsPage() {
       conversationOnlyLeads = extraLeads || []
     }
 
-    // Combine all lead IDs for status/booking lookups
     const allLeadIds = [
       ...(matchResults || []).map((mr) => mr.lead_id),
       ...conversationOnlyLeadIds,
@@ -194,7 +223,6 @@ export default function AppointmentsPage() {
       return
     }
 
-    // Fetch statuses and bookings for all leads
     const [{ data: statuses }, { data: bookings }] = await Promise.all([
       supabase
         .from("lead_clinic_status")
@@ -242,7 +270,6 @@ export default function AppointmentsPage() {
       })
     )
 
-    // Build leads from match_results
     const matchLeads = (matchResults || [])
       .filter((mr) => mr.leads)
       .map((mr) => ({
@@ -252,7 +279,6 @@ export default function AppointmentsPage() {
         conversation: convMap.get(mr.lead_id),
       }))
 
-    // Add conversation-only leads (patients who messaged but have no match_results)
     const extraLeads = conversationOnlyLeads.map((lead) => ({
       ...lead,
       source: lead.source || "conversation",
@@ -271,35 +297,56 @@ export default function AppointmentsPage() {
     return () => clearInterval(interval)
   }, [fetchData])
 
+  // Mark attendance directly from the list
+  const handleMarkAttended = async (leadId: string) => {
+    if (!clinicId) return
+    setIsUpdating(leadId)
+    try {
+      const res = await fetch("/api/clinic/leads/bulk-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadIds: [leadId],
+          clinicId,
+          status: "ATTENDED",
+        }),
+      })
+      if (res.ok) {
+        await fetchData()
+      }
+    } catch (err) {
+      console.error("Failed to mark attended:", err)
+    } finally {
+      setIsUpdating(null)
+    }
+  }
+
   // Get unique treatments for filter dropdown
   const uniqueTreatments = Array.from(
     new Set(leads.map((l) => l.raw_answers?.treatment as string).filter(Boolean))
   )
 
-  // Check if any filters are active
-  const hasActiveFilters = filterTreatment !== "all" || filterDateRange !== "all" || filterStatus !== "all" || filterSource !== "all"
-  const activeFilterCount = [filterTreatment !== "all", filterDateRange !== "all", filterStatus !== "all", filterSource !== "all"].filter(Boolean).length
+  const hasActiveFilters = filterTreatment !== "all" || filterDateRange !== "all" || filterSource !== "all"
+  const activeFilterCount = [filterTreatment !== "all", filterDateRange !== "all", filterSource !== "all"].filter(Boolean).length
 
   // Filter leads
   const filteredLeads = leads.filter((l) => {
-    // Text search
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
       const matchesSearch =
         l.first_name?.toLowerCase().includes(q) ||
         l.last_name?.toLowerCase().includes(q) ||
         l.email?.toLowerCase().includes(q) ||
-        l.phone?.toLowerCase().includes(q)
+        l.phone?.toLowerCase().includes(q) ||
+        getTreatmentLabel(l.raw_answers?.treatment as string).toLowerCase().includes(q)
       if (!matchesSearch) return false
     }
 
-    // Treatment filter
     if (filterTreatment !== "all") {
       const treatment = l.raw_answers?.treatment as string
       if (treatment !== filterTreatment) return false
     }
 
-    // Date range filter
     if (filterDateRange !== "all") {
       const leadDate = new Date(l.created_at)
       const now = new Date()
@@ -308,13 +355,6 @@ export default function AppointmentsPage() {
       if (filterDateRange === "month" && !isAfter(leadDate, subDays(now, 30))) return false
     }
 
-    // Status filter
-    if (filterStatus !== "all") {
-      const status = (l.status?.status || "NEW").toUpperCase()
-      if (status !== filterStatus) return false
-    }
-
-    // Source filter
     if (filterSource !== "all") {
       if ((l.source || "match") !== filterSource) return false
     }
@@ -322,22 +362,27 @@ export default function AppointmentsPage() {
     return true
   })
 
-  // Categorize leads (normalize status to uppercase for consistent comparison)
-  // Sort each section by oldest first (most urgent at top)
-  const newRequests = filteredLeads
+  // === CONVERSATIONS TAB: WhatsApp-style sorted by most recent activity ===
+  // Active conversations: not ATTENDED, CLOSED, NOT_SUITABLE, NO_RESPONSE
+  // And doesn't have a future scheduled booking
+  const conversationLeads = filteredLeads
     .filter((l) => {
       const s = (l.status?.status || "NEW").toUpperCase()
-      return s === "NEW"
+      // Exclude terminal statuses
+      if (s === "ATTENDED" || s === "CLOSED" || s === "NOT_SUITABLE" || s === "NO_RESPONSE") return false
+      // Exclude future scheduled appointments (those appear in "scheduled" tab)
+      if (l.booking && new Date(l.booking.appointment_datetime) > new Date() &&
+          (s === "BOOKED_PENDING" || s === "BOOKED_CONFIRMED")) return false
+      return true
     })
-    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    .sort((a, b) => getSortTimestamp(b) - getSortTimestamp(a)) // Most recent first
 
-  const awaitingResponse = filteredLeads
-    .filter((l) => {
-      const s = l.status?.status?.toUpperCase()
-      return s === "CONTACTED" || s === "IN_PROGRESS"
-    })
-    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+  // Split conversation leads into categories for grouping
+  const needsReplyLeads = conversationLeads.filter((l) => getConversationCategory(l) === "needs_reply")
+  const newLeadsList = conversationLeads.filter((l) => getConversationCategory(l) === "new_lead")
+  const waitingLeads = conversationLeads.filter((l) => getConversationCategory(l) === "waiting_for_patient")
 
+  // === SCHEDULED TAB ===
   const scheduled = filteredLeads
     .filter((l) => {
       const s = l.status?.status?.toUpperCase()
@@ -347,15 +392,12 @@ export default function AppointmentsPage() {
     })
     .sort((a, b) => new Date(a.booking!.appointment_datetime).getTime() - new Date(b.booking!.appointment_datetime).getTime())
 
-  // Attendance confirmation: two groups
-  // Left — booked but not yet confirmed as attended (past appointments still pending)
+  // === ATTENDANCE TAB ===
   const pendingAttendance = filteredLeads
     .filter((l) => {
-      const s = l.status?.status?.toUpperCase()
+      const s = (l.status?.status || "NEW").toUpperCase()
       if (s === "ATTENDED" || s === "CLOSED" || s === "NOT_SUITABLE" || s === "NO_RESPONSE") return false
-      // Has a booking in the past but not yet marked attended
       if (l.booking && new Date(l.booking.appointment_datetime) <= new Date()) return true
-      // Booked pending with no date yet
       if (s === "BOOKED_PENDING" && !l.booking) return true
       return false
     })
@@ -365,7 +407,6 @@ export default function AppointmentsPage() {
       return dateA - dateB
     })
 
-  // Right — confirmed attendance / closed
   const confirmedAttendance = filteredLeads
     .filter((l) => {
       const s = l.status?.status?.toUpperCase()
@@ -374,70 +415,27 @@ export default function AppointmentsPage() {
     .sort((a, b) => {
       const dateA = a.status?.updated_at ? new Date(a.status.updated_at).getTime() : new Date(a.created_at).getTime()
       const dateB = b.status?.updated_at ? new Date(b.status.updated_at).getTime() : new Date(b.created_at).getTime()
-      return dateB - dateA // Most recent first
+      return dateB - dateA
     })
 
   const attendanceCount = pendingAttendance.length + confirmedAttendance.length
+  const conversationCount = needsReplyLeads.length + newLeadsList.length + waitingLeads.length
 
   const tabs = [
-    { key: "new" as Tab, label: "New Requests", count: newRequests.length, icon: Inbox },
-    { key: "awaiting" as Tab, label: "Awaiting Response", count: awaitingResponse.length, icon: MessageSquare },
-    { key: "scheduled" as Tab, label: "Scheduled", count: scheduled.length, icon: CalendarDays },
-    { key: "attendance" as Tab, label: "Attendance", count: attendanceCount, icon: CalendarCheck },
+    {
+      key: "conversations" as Tab,
+      label: "Conversations",
+      count: conversationCount,
+      icon: MessageSquare,
+      urgentCount: needsReplyLeads.length + newLeadsList.length,
+    },
+    { key: "scheduled" as Tab, label: "Scheduled", count: scheduled.length, icon: CalendarDays, urgentCount: 0 },
+    { key: "attendance" as Tab, label: "Attendance", count: attendanceCount, icon: CalendarCheck, urgentCount: pendingAttendance.length },
   ]
-
-  // Bulk actions
-  const toggleSelect = (leadId: string) => {
-    setSelectedLeads((prev) => {
-      const next = new Set(prev)
-      if (next.has(leadId)) next.delete(leadId)
-      else next.add(leadId)
-      return next
-    })
-  }
-
-  const selectAll = (leadIds: string[]) => {
-    setSelectedLeads((prev) => {
-      const next = new Set(prev)
-      const allSelected = leadIds.every((id) => next.has(id))
-      if (allSelected) {
-        leadIds.forEach((id) => next.delete(id))
-      } else {
-        leadIds.forEach((id) => next.add(id))
-      }
-      return next
-    })
-  }
-
-  const handleBulkStatusUpdate = async (newStatus: string) => {
-    if (!clinicId || selectedLeads.size === 0) return
-    setIsBulkUpdating(true)
-    try {
-      const res = await fetch("/api/clinic/leads/bulk-status", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          leadIds: Array.from(selectedLeads),
-          clinicId,
-          status: newStatus,
-        }),
-      })
-      if (res.ok) {
-        setSelectedLeads(new Set())
-        setBulkAction("")
-        await fetchData()
-      }
-    } catch (err) {
-      console.error("Bulk update failed:", err)
-    } finally {
-      setIsBulkUpdating(false)
-    }
-  }
 
   const clearFilters = () => {
     setFilterTreatment("all")
     setFilterDateRange("all")
-    setFilterStatus("all")
     setFilterSource("all")
   }
 
@@ -494,7 +492,7 @@ export default function AppointmentsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Appointments</h1>
           <p className="text-muted-foreground">
-            Patient requests, messages, scheduling, and progress — all in one place
+            Patient requests, messages, scheduling, and progress
           </p>
         </div>
         <Button
@@ -536,6 +534,9 @@ export default function AppointmentsPage() {
                 >
                   {tab.count}
                 </span>
+              )}
+              {tab.urgentCount > 0 && activeTab !== tab.key && (
+                <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
               )}
             </button>
           ))}
@@ -585,24 +586,6 @@ export default function AppointmentsPage() {
             </SelectContent>
           </Select>
 
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[160px] h-8 text-xs bg-background">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="NEW">New</SelectItem>
-              <SelectItem value="CONTACTED">Contacted</SelectItem>
-              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-              <SelectItem value="BOOKED_PENDING">Booked Pending</SelectItem>
-              <SelectItem value="BOOKED_CONFIRMED">Booked Confirmed</SelectItem>
-              <SelectItem value="ATTENDED">Attended</SelectItem>
-              <SelectItem value="NOT_SUITABLE">Not Suitable</SelectItem>
-              <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-              <SelectItem value="CLOSED">Closed</SelectItem>
-            </SelectContent>
-          </Select>
-
           <Select value={filterDateRange} onValueChange={setFilterDateRange}>
             <SelectTrigger className="w-[140px] h-8 text-xs bg-background">
               <SelectValue placeholder="Date range" />
@@ -635,112 +618,96 @@ export default function AppointmentsPage() {
         </div>
       )}
 
-      {/* Bulk Actions Bar */}
-      {selectedLeads.size > 0 && (
-        <div className="flex items-center justify-between bg-[#faf3e6] border border-[#0fbcb0]/20 rounded-lg px-4 py-3">
-          <div className="flex items-center gap-2">
-            <CheckSquare className="w-4 h-4 text-[#0fbcb0]" />
-            <span className="text-sm font-medium text-[#0fbcb0]">
-              {selectedLeads.size} selected
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-7"
-              onClick={() => setSelectedLeads(new Set())}
-            >
-              Clear
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select
-              value={bulkAction}
-              onValueChange={setBulkAction}
-            >
-              <SelectTrigger className="w-[180px] h-8 text-xs bg-white">
-                <SelectValue placeholder="Choose action..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="CONTACTED">Mark as Contacted</SelectItem>
-                <SelectItem value="NO_RESPONSE">Mark as No Response</SelectItem>
-                <SelectItem value="NOT_SUITABLE">Mark as Not Suitable</SelectItem>
-                <SelectItem value="BOOKED_CONFIRMED">Booking Confirmed</SelectItem>
-                <SelectItem value="ATTENDED">Mark as Attended</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              size="sm"
-              className="h-8 text-xs bg-[#0fbcb0] hover:bg-[#0da399] text-white"
-              disabled={isBulkUpdating || !bulkAction}
-              onClick={() => {
-                if (bulkAction) handleBulkStatusUpdate(bulkAction)
-              }}
-            >
-              {isBulkUpdating ? "Updating..." : "Apply"}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Tab Content */}
-      {activeTab === "new" && (
-        <div className="space-y-3">
-          {newRequests.length === 0 ? (
+      {/* ─── CONVERSATIONS TAB (WhatsApp-style) ─── */}
+      {activeTab === "conversations" && (
+        <div className="space-y-6">
+          {conversationCount === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                 <Inbox className="w-12 h-12 mb-3 text-muted-foreground/40" />
-                <p className="text-lg font-medium mb-1">No new requests</p>
-                <p className="text-sm">New patient leads will appear here</p>
+                <p className="text-lg font-medium mb-1">No active conversations</p>
+                <p className="text-sm">New patient leads and messages will appear here</p>
               </CardContent>
             </Card>
           ) : (
-            <LeadSection
-              title="NEW REQUESTS"
-              count={newRequests.length}
-              leads={newRequests}
-              actionLabel="Respond"
-              actionIcon={<MessageSquare className="w-4 h-4" />}
-              actionColor="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
-              onAction={(lead) => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
-              onView={(lead) => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
-              showElapsed
-              selectedLeads={selectedLeads}
-              onToggleSelect={toggleSelect}
-              onSelectAll={selectAll}
-            />
+            <>
+              {/* Section: Needs your reply */}
+              {needsReplyLeads.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 rounded-full bg-red-500" />
+                    <h3 className="text-xs font-bold tracking-wider text-red-600 uppercase">
+                      Needs your reply ({needsReplyLeads.length})
+                    </h3>
+                  </div>
+                  <Card className="border-red-100">
+                    <CardContent className="p-0 divide-y">
+                      {needsReplyLeads.map((lead) => (
+                        <ConversationRow
+                          key={lead.id}
+                          lead={lead}
+                          category="needs_reply"
+                          onClick={() => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
+                        />
+                      ))}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Section: New leads */}
+              {newLeadsList.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <UserPlus className="w-4 h-4 text-blue-600" />
+                    <h3 className="text-xs font-bold tracking-wider text-blue-600 uppercase">
+                      New leads ({newLeadsList.length})
+                    </h3>
+                  </div>
+                  <Card className="border-blue-100">
+                    <CardContent className="p-0 divide-y">
+                      {newLeadsList.map((lead) => (
+                        <ConversationRow
+                          key={lead.id}
+                          lead={lead}
+                          category="new_lead"
+                          onClick={() => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
+                        />
+                      ))}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Section: Waiting for patient */}
+              {waitingLeads.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <h3 className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                      Waiting for patient ({waitingLeads.length})
+                    </h3>
+                  </div>
+                  <Card>
+                    <CardContent className="p-0 divide-y">
+                      {waitingLeads.map((lead) => (
+                        <ConversationRow
+                          key={lead.id}
+                          lead={lead}
+                          category="waiting_for_patient"
+                          onClick={() => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
+                        />
+                      ))}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
 
-      {activeTab === "awaiting" && (
-        <div className="space-y-3">
-          {awaitingResponse.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                <MessageSquare className="w-12 h-12 mb-3 text-muted-foreground/40" />
-                <p className="text-lg font-medium mb-1">No leads awaiting response</p>
-                <p className="text-sm">Leads you have replied to will appear here while waiting for the patient</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <LeadSection
-              title="AWAITING RESPONSE"
-              count={awaitingResponse.length}
-              leads={awaitingResponse}
-              actionLabel="Follow up"
-              actionIcon={<MessageSquare className="w-4 h-4" />}
-              actionColor="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
-              onAction={(lead) => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
-              onView={(lead) => router.push(clinicHref(`/clinic/appointments/${lead.id}`))}
-              showElapsed
-              selectedLeads={selectedLeads}
-              onToggleSelect={toggleSelect}
-              onSelectAll={selectAll}
-            />
-          )}
-        </div>
-      )}
-
+      {/* ─── SCHEDULED TAB ─── */}
       {activeTab === "scheduled" && (
         <div className="space-y-3">
           {scheduled.length === 0 ? (
@@ -765,9 +732,14 @@ export default function AppointmentsPage() {
                         <CalendarCheck className="w-5 h-5 text-green-700" />
                       </div>
                       <div>
-                        <p className="font-semibold">
-                          {lead.first_name} {lead.last_name}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold">
+                            {lead.first_name} {lead.last_name}
+                          </p>
+                          {lead.conversation?.unread_by_clinic && (
+                            <span className="w-2 h-2 rounded-full bg-[#0fbcb0] flex-shrink-0" />
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           {getTreatmentLabel(lead.raw_answers?.treatment as string)}
                         </p>
@@ -807,6 +779,7 @@ export default function AppointmentsPage() {
         </div>
       )}
 
+      {/* ─── ATTENDANCE TAB ─── */}
       {activeTab === "attendance" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left column: Pending attendance confirmation */}
@@ -853,6 +826,18 @@ export default function AppointmentsPage() {
                               </p>
                             )}
                           </div>
+                          <Button
+                            size="sm"
+                            className="gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+                            disabled={isUpdating === lead.id}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleMarkAttended(lead.id)
+                            }}
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            {isUpdating === lead.id ? "Saving..." : "Confirm attended"}
+                          </Button>
                           <ChevronRight className="w-4 h-4 text-muted-foreground" />
                         </div>
                       </div>
@@ -949,159 +934,138 @@ function getTreatmentLabel(treatment: string | undefined) {
   return TREATMENT_LABELS[treatment] || treatment.replace(/_/g, " ")
 }
 
-// Reusable section component for To Do's tab
-function LeadSection({
-  title,
-  count,
-  leads,
-  actionLabel,
-  actionIcon,
-  actionColor,
-  onAction,
-  onView,
-  showElapsed = false,
-  showDate = false,
-  selectedLeads,
-  onToggleSelect,
-  onSelectAll,
+// ─── WhatsApp-style conversation row ───
+function ConversationRow({
+  lead,
+  category,
+  onClick,
 }: {
-  title: string
-  count: number
-  leads: Lead[]
-  actionLabel: string
-  actionIcon: React.ReactNode
-  actionColor: string
-  onAction: (lead: Lead) => void
-  onView: (lead: Lead) => void
-  showElapsed?: boolean
-  showDate?: boolean
-  selectedLeads: Set<string>
-  onToggleSelect: (id: string) => void
-  onSelectAll: (ids: string[]) => void
+  lead: Lead
+  category: ConversationCategory
+  onClick: () => void
 }) {
-  if (count === 0) return null
+  const treatment = getTreatmentLabel(lead.raw_answers?.treatment as string)
+  const hasUnread = lead.conversation?.unread_by_clinic
+  const unreadCount = lead.conversation?.unread_count_clinic || 0
+  const latestMessage = lead.conversation?.latest_message
+  const latestSender = lead.conversation?.latest_message_sender
+  const source = lead.source || "match"
 
-  const leadIds = leads.map((l) => l.id)
-  const allSelected = leadIds.length > 0 && leadIds.every((id) => selectedLeads.has(id))
+  // Determine the most relevant time to show
+  const displayTime = lead.conversation?.last_message_at
+    ? getTimeAgo(lead.conversation.last_message_at)
+    : getTimeAgo(lead.created_at)
+
+  // For the urgency indicator dot color
+  const urgencyDate = lead.conversation?.last_message_at || lead.created_at
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-3">
-        <Checkbox
-          checked={allSelected}
-          onCheckedChange={() => onSelectAll(leadIds)}
-          className="data-[state=checked]:bg-[#0fbcb0] data-[state=checked]:border-[#0fbcb0]"
-        />
-        <h3 className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
-          {title} ({count})
-        </h3>
+    <div
+      className={cn(
+        "flex items-center gap-4 p-4 hover:bg-muted/30 transition-colors cursor-pointer",
+        category === "needs_reply" && "bg-red-50/50",
+        category === "new_lead" && "bg-blue-50/30",
+      )}
+      onClick={onClick}
+    >
+      {/* Avatar / Status indicator */}
+      <div className="relative flex-shrink-0">
+        <div className={cn(
+          "w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold",
+          category === "needs_reply" && "bg-red-100 text-red-700",
+          category === "new_lead" && "bg-blue-100 text-blue-700",
+          category === "waiting_for_patient" && "bg-gray-100 text-gray-600",
+        )}>
+          {lead.first_name?.[0]?.toUpperCase() || "?"}{lead.last_name?.[0]?.toUpperCase() || ""}
+        </div>
+        {/* Urgency dot */}
+        {(category === "needs_reply" || category === "new_lead") && (
+          <div className={cn(
+            "absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white",
+            getUrgencyColor(urgencyDate)
+          )} />
+        )}
       </div>
-      <Card>
-        <CardContent className="p-0 divide-y">
-          {leads.map((lead) => {
-            const treatment = getTreatmentLabel(lead.raw_answers?.treatment as string)
-            const hasUnread = lead.conversation?.unread_by_clinic
-            const hasReplied = !!lead.conversation?.clinic_first_reply_at
-            const isSelected = selectedLeads.has(lead.id)
-            const source = lead.source || "match"
 
-            return (
-              <div
-                key={lead.id}
-                className={cn(
-                  "flex items-center justify-between p-4 hover:bg-muted/30 transition-colors",
-                  hasUnread && "bg-[#faf3e6]/50",
-                  isSelected && "bg-[#faf3e6]/80"
-                )}
-              >
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => onToggleSelect(lead.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="data-[state=checked]:bg-[#0fbcb0] data-[state=checked]:border-[#0fbcb0]"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold">
-                        {lead.first_name} {lead.last_name}
-                      </p>
-                      {hasUnread && (
-                        <span className="w-2 h-2 rounded-full bg-[#0fbcb0] flex-shrink-0" />
-                      )}
-                      {hasReplied && !hasUnread && (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-green-50 text-green-700 border-green-200">
-                          Replied
-                        </Badge>
-                      )}
-                      {source === "direct_profile" && (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                          Direct
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{treatment}</p>
-                  </div>
-                </div>
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-0.5">
+          <div className="flex items-center gap-2 min-w-0">
+            <p className={cn(
+              "font-semibold text-sm truncate",
+              hasUnread && "text-foreground",
+              !hasUnread && category === "waiting_for_patient" && "text-muted-foreground"
+            )}>
+              {lead.first_name} {lead.last_name}
+            </p>
+            {source === "direct_profile" && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 flex-shrink-0">
+                Direct
+              </Badge>
+            )}
+          </div>
+          <span className={cn(
+            "text-xs flex-shrink-0 ml-2",
+            category === "needs_reply" ? "text-red-600 font-medium" : "text-muted-foreground"
+          )}>
+            {displayTime}
+          </span>
+        </div>
 
-                <div className="flex items-center gap-3">
-                  {showElapsed && (
-                    <div className="flex items-center gap-1.5 min-w-[80px]">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <span
-                        className={cn(
-                          "text-sm font-medium",
-                          getElapsedColor(lead.created_at)
-                        )}
-                      >
-                        {getElapsedLabel(lead.created_at)}
-                      </span>
-                    </div>
-                  )}
+        {/* Treatment badge + message preview line */}
+        <div className="flex items-center gap-2 mb-1">
+          <Badge
+            variant="secondary"
+            className={cn(
+              "text-[10px] px-1.5 py-0 flex-shrink-0",
+              category === "new_lead" && "bg-blue-50 text-blue-700 border-blue-200"
+            )}
+          >
+            {treatment}
+          </Badge>
+          {category === "new_lead" && (
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-blue-100 text-blue-700 border-blue-200 flex-shrink-0">
+              New lead
+            </Badge>
+          )}
+        </div>
 
-                  {showDate && lead.booking && (
-                    <div className="text-right min-w-[140px]">
-                      <p className="text-sm text-muted-foreground">
-                        Scheduled for
-                      </p>
-                      <p className="text-sm font-medium">
-                        {format(
-                          new Date(lead.booking.appointment_datetime),
-                          "d MMM yyyy, h:mma"
-                        )}
-                      </p>
-                    </div>
-                  )}
+        {/* Message preview */}
+        <div className="flex items-center gap-1.5">
+          {latestSender === "clinic" && (
+            <Reply className="w-3 h-3 text-muted-foreground flex-shrink-0 rotate-180" />
+          )}
+          <p className={cn(
+            "text-xs truncate",
+            hasUnread ? "text-foreground font-medium" : "text-muted-foreground"
+          )}>
+            {latestMessage
+              ? latestMessage
+              : category === "new_lead"
+                ? "New patient enquiry - no messages yet"
+                : "No messages yet"
+            }
+          </p>
+        </div>
+      </div>
 
-                  <Button
-                    size="sm"
-                    className={cn("gap-1.5", actionColor)}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onAction(lead)
-                    }}
-                  >
-                    {actionIcon}
-                    {actionLabel}
-                  </Button>
-
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="w-8 h-8"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onView(lead)
-                    }}
-                  >
-                    <Eye className="w-4 h-4 text-muted-foreground" />
-                  </Button>
-                </div>
-              </div>
-            )
-          })}
-        </CardContent>
-      </Card>
+      {/* Right side: unread badge + action hint */}
+      <div className="flex items-center gap-3 flex-shrink-0">
+        {unreadCount > 0 && (
+          <span className="w-5 h-5 rounded-full bg-[#0fbcb0] text-white text-[10px] font-bold flex items-center justify-center">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+        {category === "needs_reply" && !unreadCount && (
+          <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-1.5">
+            Reply needed
+          </Badge>
+        )}
+        {category === "waiting_for_patient" && (
+          <span className="text-[10px] text-muted-foreground">Waiting</span>
+        )}
+        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+      </div>
     </div>
   )
 }

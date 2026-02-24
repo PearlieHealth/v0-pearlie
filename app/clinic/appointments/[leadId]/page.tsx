@@ -478,6 +478,26 @@ export default function AppointmentDetailPage() {
                 Appointment confirmed with patient
               </Button>
             )}
+            {/* Confirm Attended button — shown when booking exists with past date and not yet marked attended */}
+            {booking && new Date(booking.appointment_datetime) <= new Date() &&
+              status?.status?.toUpperCase() !== "ATTENDED" &&
+              status?.status?.toUpperCase() !== "CLOSED" && (
+              <Button
+                size="sm"
+                className="gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+                disabled={isSaving}
+                onClick={() => handleSaveStatus("ATTENDED")}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {isSaving ? "Saving..." : "Confirm attended"}
+              </Button>
+            )}
+            {status?.status?.toUpperCase() === "ATTENDED" && (
+              <Badge className="bg-green-100 text-green-700 border-green-200 text-xs gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                Attended
+              </Badge>
+            )}
           </div>
         </div>
       </div>
