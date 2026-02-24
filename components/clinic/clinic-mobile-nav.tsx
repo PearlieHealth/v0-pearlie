@@ -13,6 +13,7 @@ import {
   CalendarCheck,
   BarChart3,
   Building2,
+  CreditCard,
   Settings,
   LogOut,
 } from "lucide-react"
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/clinic/insights", label: "Insights", icon: BarChart3 },
   { href: "/clinic/profile", label: "Clinic Profile", icon: Building2 },
   { href: "/clinic/providers", label: "Providers", icon: Users },
+  { href: "/clinic/billing", label: "Billing", icon: CreditCard },
   { href: "/clinic/settings", label: "Settings", icon: Settings },
 ]
 
