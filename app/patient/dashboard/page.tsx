@@ -1303,6 +1303,15 @@ export default function PatientDashboard() {
         {/* ══════ RIGHT COLUMN: Clinic (Secondary) ══════ */}
         <div className={`flex-1 min-w-0 ${chatPanelCollapsed ? "lg:max-w-full" : "lg:max-w-[35%]"} overflow-y-auto px-3 py-3 sm:px-3 sm:py-3 lg:px-4 lg:py-4 space-y-3 transition-all duration-300`}>
 
+          {/* ─── MOBILE: Greeting ──── */}
+          {isMobile && data?.user && (
+            <div className="flex items-center justify-between">
+              <h1 className="text-lg font-bold text-[#004443]">
+                Hi{data.user.name ? `, ${data.user.name.split(" ")[0]}` : ""}
+              </h1>
+            </div>
+          )}
+
           {/* ─── MOBILE: Message-first inbox preview (above clinic card) ──── */}
           {isMobile && (inboxConversations.length > 0 || isInPendingChat) && (
             <Card className="overflow-hidden border border-border/60 shadow-sm rounded-lg">
@@ -1481,44 +1490,100 @@ export default function PatientDashboard() {
           {/* ─── OTHER CLINICS (click to swap) ─────────────────── */}
           {otherClinics.length > 0 && latestMatch && (
             <section>
-              <button
-                onClick={() => setShowOtherClinics(!showOtherClinics)}
-                className="flex items-center justify-between w-full text-left py-2 px-3 rounded-lg bg-[#faf3e6] hover:bg-[#faf3e6]/80 transition-colors"
-              >
-                <h2 className="text-[11px] font-semibold text-[#004443] uppercase tracking-wide">
-                  Other clinics ({otherClinics.length})
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-xs font-semibold text-[#004443]">
+                  Other clinics for you
                 </h2>
-                <ChevronDown className={`w-3.5 h-3.5 text-[#004443]/50 transition-transform duration-200 ${showOtherClinics ? "rotate-180" : ""}`} />
-              </button>
+                {!isMobile && (
+                  <button
+                    onClick={() => setShowOtherClinics(!showOtherClinics)}
+                    className="text-[11px] font-medium text-primary"
+                  >
+                    {showOtherClinics ? "Show less" : `View all ${otherClinics.length}`}
+                  </button>
+                )}
+              </div>
 
-              {!showOtherClinics ? (
-                <div className="mt-1.5 grid grid-cols-1 gap-1.5">
-                  {otherClinics.slice(0, 4).map((clinic) => (
-                    <OtherClinicCard
-                      key={clinic.id}
-                      clinic={clinic}
-                      isSelected={clinic.id === selectedClinicId}
-                      onClick={() => handleSelectClinic(clinic.id)}
-                    />
-                  ))}
+              {/* Mobile: horizontal scroll row */}
+              {isMobile ? (
+                <div className="-mx-3 px-3 overflow-x-auto scrollbar-hide">
+                  <div className="flex gap-2.5 pb-1" style={{ width: "max-content" }}>
+                    {otherClinics.map((clinic) => (
+                      <button
+                        key={clinic.id}
+                        onClick={() => handleSelectClinic(clinic.id)}
+                        className={`flex-shrink-0 w-[110px] text-left active:scale-[0.97] transition-transform`}
+                      >
+                        <div className={`relative w-[110px] h-[80px] rounded-lg overflow-hidden border-2 ${
+                          clinic.id === selectedClinicId ? "border-primary shadow-md" : "border-border/30"
+                        }`}>
+                          {clinic.images && clinic.images.length > 0 ? (
+                            <Image
+                              src={clinic.images[0] || "/placeholder.svg"}
+                              alt={clinic.name}
+                              fill
+                              className="object-cover"
+                              sizes="110px"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-[#004443]/10 flex items-center justify-center">
+                              <span className="text-[#004443] text-xl font-bold">{clinic.name.charAt(0)}</span>
+                            </div>
+                          )}
+                          {/* Match % badge */}
+                          {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
+                            <span className="absolute top-1 right-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                              {clinic.match_percentage}%
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-[11px] mt-1 leading-tight line-clamp-2 ${
+                          clinic.id === selectedClinicId ? "font-bold text-primary" : "font-medium text-foreground/80"
+                        }`}>
+                          {clinic.name}
+                        </p>
+                        {clinic.distance_miles !== undefined && (
+                          <p className="text-[9px] text-muted-foreground mt-0.5">
+                            ~{clinic.distance_miles.toFixed(1)} mi
+                          </p>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ) : (
-                <div className="mt-1.5 grid grid-cols-1 gap-1.5">
-                  {otherClinics.map((clinic) => (
-                    <OtherClinicCard
-                      key={clinic.id}
-                      clinic={clinic}
-                      isSelected={clinic.id === selectedClinicId}
-                      onClick={() => handleSelectClinic(clinic.id)}
-                    />
-                  ))}
-                </div>
-              )}
+                /* Desktop: vertical list */
+                <>
+                  {!showOtherClinics ? (
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {otherClinics.slice(0, 4).map((clinic) => (
+                        <OtherClinicCard
+                          key={clinic.id}
+                          clinic={clinic}
+                          isSelected={clinic.id === selectedClinicId}
+                          onClick={() => handleSelectClinic(clinic.id)}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {otherClinics.map((clinic) => (
+                        <OtherClinicCard
+                          key={clinic.id}
+                          clinic={clinic}
+                          isSelected={clinic.id === selectedClinicId}
+                          onClick={() => handleSelectClinic(clinic.id)}
+                        />
+                      ))}
+                    </div>
+                  )}
 
-              {otherClinics.length > 4 && !showOtherClinics && (
-                <button onClick={() => setShowOtherClinics(true)} className="mt-1 text-xs text-muted-foreground hover:underline font-medium">
-                  View all {otherClinics.length} clinics
-                </button>
+                  {otherClinics.length > 4 && !showOtherClinics && (
+                    <button onClick={() => setShowOtherClinics(true)} className="mt-1 text-xs text-muted-foreground hover:underline font-medium">
+                      View all {otherClinics.length} clinics
+                    </button>
+                  )}
+                </>
               )}
             </section>
           )}
