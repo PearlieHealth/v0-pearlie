@@ -192,6 +192,9 @@ export default function PatientDashboard() {
   // Dark mode toggle
   const [isDarkMode, setIsDarkMode] = useState(false)
 
+  // Sign out confirmation
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
+
   // Mobile: sticky bar visibility — tracks when CTAs scroll out of view
   const ctaRef = useRef<HTMLDivElement | null>(null)
   const [showStickyBar, setShowStickyBar] = useState(false)
@@ -966,13 +969,34 @@ export default function PatientDashboard() {
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
             {/* Sign out */}
-            <button
-              onClick={handleSignOut}
-              className="flex items-center justify-center w-9 h-9 rounded-full border border-border/60 text-muted-foreground hover:text-red-500 hover:border-red-500/40 hover:bg-red-500/5 transition-colors"
-              title="Sign out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowSignOutConfirm(!showSignOutConfirm)}
+                className="flex items-center justify-center w-9 h-9 rounded-full border border-border/60 text-muted-foreground hover:text-red-500 hover:border-red-500/40 hover:bg-red-500/5 transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+              {showSignOutConfirm && (
+                <div className="absolute right-0 top-11 z-50 w-56 rounded-lg border border-border bg-card shadow-lg p-3 space-y-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <p className="text-xs font-medium text-foreground">Sign out of Pearlie?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSignOut}
+                      className="flex-1 h-8 rounded-md text-xs font-semibold bg-red-500 hover:bg-red-600 text-white transition-colors"
+                    >
+                      Sign out
+                    </button>
+                    <button
+                      onClick={() => setShowSignOutConfirm(false)}
+                      className="flex-1 h-8 rounded-md text-xs font-medium border border-border text-foreground hover:bg-muted/60 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
