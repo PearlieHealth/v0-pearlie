@@ -183,8 +183,6 @@ export default function PatientDashboard() {
   const [mobileChatOpen, setMobileChatOpen] = useState(false)
   // Mobile: full-screen inbox list (conversations overview)
   const [mobileInboxListOpen, setMobileInboxListOpen] = useState(false)
-  // Track if we've auto-opened the inbox on first mobile load
-  const hasAutoOpenedInbox = useRef(false)
 
   // Desktop: collapsible right panel
   const [chatPanelCollapsed, setChatPanelCollapsed] = useState(false)
@@ -445,14 +443,6 @@ export default function PatientDashboard() {
     const timer = setTimeout(() => setStickyBarDeferred(true), 350)
     return () => clearTimeout(timer)
   }, [mobileChatOpen])
-
-  // Mobile: default to showing messages (inbox list) on dashboard load
-  useEffect(() => {
-    if (isMobile && !loading && data && !hasAutoOpenedInbox.current) {
-      hasAutoOpenedInbox.current = true
-      setMobileInboxListOpen(true)
-    }
-  }, [isMobile, loading, data])
 
   useEffect(() => {
     if (!isMobile) { setShowStickyBar(false); return }
