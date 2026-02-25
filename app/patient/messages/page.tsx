@@ -281,7 +281,7 @@ export default function PatientMessagesPage() {
   }
 
   // ── Conversation state actions ─────────────────────────────────
-  async function handleConversationAction(action: "booked" | "closed" | "mute" | "unmute") {
+  async function handleConversationAction(action: "closed" | "mute" | "unmute") {
     if (!selectedConversation || isUpdatingState) return
     setIsUpdatingState(true)
     setShowActionMenu(false)
@@ -296,17 +296,16 @@ export default function PatientMessagesPage() {
       if (response.ok) {
         const data = await response.json()
 
-        if (action === "booked" || action === "closed") {
+        if (action === "closed") {
           const newState = data.state as ConversationState
-          // Update the conversation in the list
           setConversations((prev) =>
             prev.map((c) =>
               c.id === selectedConversation.id
                 ? {
                     ...c,
                     conversation_state: newState,
-                    ...(action === "booked" ? { booked_at: new Date().toISOString() } : {}),
-                    ...(action === "closed" ? { closed_at: new Date().toISOString(), closed_reason: "patient_not_interested" } : {}),
+                    closed_at: new Date().toISOString(),
+                    closed_reason: "patient_not_interested",
                   }
                 : c
             )
@@ -314,9 +313,7 @@ export default function PatientMessagesPage() {
           setSelectedConversation((prev) =>
             prev ? { ...prev, conversation_state: newState } : prev
           )
-          // Switch to the appropriate tab
-          if (newState === "booked") setActiveTab("booked")
-          else if (newState === "closed") setActiveTab("closed")
+          setActiveTab("closed")
           // Re-fetch messages to get the system message
           await fetchMessagesForConversation(selectedConversation.id)
         }
@@ -518,7 +515,6 @@ export default function PatientMessagesPage() {
   const ActionMenu = ({ compact = false }: { compact?: boolean }) => {
     if (!selectedConversation || isClosed) return null
     const isMuted = selectedConversation.muted_by_patient
-    const isBooked = selectedConversation.conversation_state === "booked"
 
     return (
       <div className="relative" ref={actionMenuRef}>
@@ -536,15 +532,6 @@ export default function PatientMessagesPage() {
 
         {showActionMenu && (
           <div className={`absolute ${compact ? "right-0" : "right-0"} top-full mt-1 w-52 bg-white rounded-lg shadow-lg border border-[#e5e5e5] py-1 z-50`}>
-            {!isBooked && (
-              <button
-                onClick={() => handleConversationAction("booked")}
-                className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-[#f5f5f5] flex items-center gap-2.5 transition-colors"
-              >
-                <CalendarCheck className="h-4 w-4 text-emerald-600" />
-                Booked with this clinic
-              </button>
-            )}
             <button
               onClick={() => {
                 setShowActionMenu(false)
