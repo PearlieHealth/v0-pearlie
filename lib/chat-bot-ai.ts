@@ -380,7 +380,7 @@ function sendEscalationEmail(
   const intro = isEmergency
     ? `A patient has flagged a potential emergency in their conversation with <strong>${clinicName || "your clinic"}</strong>.`
     : `A patient has raised a complaint in their conversation with <strong>${clinicName || "your clinic"}</strong>.`
-  const inboxUrl = `${appUrl || "https://pearlie.org"}/clinic/inbox`
+  const inboxUrl = `${appUrl || "https://pearlie.org"}/clinic/appointments`
 
   sendEmailWithRetry({
     from: EMAIL_FROM.NOTIFICATIONS,

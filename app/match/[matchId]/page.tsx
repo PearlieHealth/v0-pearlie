@@ -551,7 +551,7 @@ export default function MatchPage() {
               <p className="text-sm text-muted-foreground hidden sm:block">
                 {displayedClinics.length} {displayedClinics.length === 1 ? "clinic" : "clinics"} matched
               </p>
-              <Link href="/patient/messages" className="relative p-2 rounded-full hover:bg-black/5 transition-colors">
+              <Link href="/patient/dashboard" className="relative p-2 rounded-full hover:bg-black/5 transition-colors">
                 <MessageCircle className="w-5 h-5 text-[#0fbcb0]" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">

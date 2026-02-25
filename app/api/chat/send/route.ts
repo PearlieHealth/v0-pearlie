@@ -377,7 +377,7 @@ export async function POST(request: NextRequest) {
           data: {
             patientName: safeName,
             messagePreview: safeContent,
-            inboxUrl: portalUrl("/clinic/inbox"),
+            inboxUrl: portalUrl("/clinic/appointments"),
             unsubscribeFooterHtml: unsubFooter,
             _conversationId: conversation.id,
           },

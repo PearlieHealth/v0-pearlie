@@ -245,7 +245,7 @@ export async function POST(request: NextRequest) {
               generateUnsubscribeHeaders(lead.email, "patient_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
             )
 
-            const messagesPath = `/patient/messages?conversationId=${conversationId}`
+            const messagesPath = `/patient/dashboard`
             const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(messagesPath)}`
             let viewReplyUrl = `${appUrl}${messagesPath}`
 

@@ -244,7 +244,7 @@ async function sendDirectLeadClinicNotification(
             </p>
           </div>
           <div style="text-align: center;">
-            <a href="${portalUrl("/clinic/inbox")}"
+            <a href="${portalUrl("/clinic/appointments")}"
                style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-size: 14px; font-weight: 600;">
               View in Inbox
             </a>
