@@ -34,6 +34,7 @@ import {
   ChevronDown,
   ChevronUp,
   CalendarCheck,
+  Lock,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AppointmentActionCard } from "@/components/clinic/appointment-action-card"
@@ -88,6 +89,7 @@ interface Conversation {
   lead_id: string
   last_message_at: string
   unread_by_clinic: boolean
+  conversation_state?: "open" | "booked" | "closed"
 }
 
 interface Message {
@@ -130,6 +132,14 @@ export default function AppointmentDetailPage() {
   const [newMessage, setNewMessage] = useState("")
   const [newNote, setNewNote] = useState("")
   const [showNoteInput, setShowNoteInput] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
+
+  // Dedup: track message IDs we just sent so polling doesn't double them
+  const recentSentIds = useRef<Set<string>>(new Set())
+  // Skip next poll cycle right after sending
+  const skipNextPoll = useRef(false)
+
+  const isClosed = conversation?.conversation_state === "closed"
 
   // Collapsible sidebar sections
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -226,7 +236,7 @@ export default function AppointmentDetailPage() {
     fetchData()
   }, [fetchData])
 
-  // Poll for new messages
+  // Poll for new messages (with dedup + skip-during-send)
   useEffect(() => {
     if (!conversation) return
     let isMounted = true
@@ -234,6 +244,11 @@ export default function AppointmentDetailPage() {
 
     const pollMessages = async () => {
       if (!isMounted) return
+      // Skip this poll cycle if we just sent a message
+      if (skipNextPoll.current) {
+        skipNextPoll.current = false
+        return
+      }
       try {
         const response = await fetch(
           `/api/clinic/conversations/${conversation.id}/messages`,
@@ -242,7 +257,22 @@ export default function AppointmentDetailPage() {
         if (!isMounted) return
         if (response.ok) {
           const data = await response.json()
-          setMessages(data.messages || [])
+          const incoming: Message[] = data.messages || []
+          setMessages((prev) => {
+            // If the polled data has the same length and no new IDs, skip update
+            const prevIds = new Set(prev.map((m) => m.id))
+            const hasNew = incoming.some((m) => !prevIds.has(m.id))
+            if (!hasNew && incoming.length === prev.length) return prev
+            // Merge: use incoming as base, it's the source of truth
+            return incoming
+          })
+          // Clean up recentSentIds — remove IDs now confirmed by server
+          if (recentSentIds.current.size > 0) {
+            const serverIds = new Set(incoming.map((m) => m.id))
+            for (const id of recentSentIds.current) {
+              if (serverIds.has(id)) recentSentIds.current.delete(id)
+            }
+          }
         }
       } catch (error) {
         if (error instanceof Error && error.name === "AbortError") return
@@ -359,9 +389,12 @@ export default function AppointmentDetailPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!conversation || !newMessage.trim() || isSending) return
+    if (!conversation || !newMessage.trim() || isSending || isClosed) return
 
+    setSendError(null)
     setIsSending(true)
+    // Skip the next poll to prevent overwriting the optimistic message
+    skipNextPoll.current = true
     try {
       const response = await fetch("/api/chat/clinic-reply", {
         method: "POST",
@@ -374,11 +407,28 @@ export default function AppointmentDetailPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setMessages((prev) => [...prev, data.message])
+        const msg: Message = data.message
+        // Track for dedup so polling doesn't double it
+        recentSentIds.current.add(msg.id)
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev
+          return [...prev, msg]
+        })
         setNewMessage("")
+      } else if (response.status === 403) {
+        const errData = await response.json().catch(() => ({}))
+        setSendError(errData.error || "This conversation is closed.")
+        // Auto-update UI to show closed state
+        setConversation((prev) =>
+          prev ? { ...prev, conversation_state: "closed" as const } : prev
+        )
+      } else {
+        const errData = await response.json().catch(() => ({}))
+        setSendError(errData.error || "Failed to send message.")
       }
     } catch (error) {
       console.error("Failed to send:", error)
+      setSendError("Failed to send. Please try again.")
     } finally {
       setIsSending(false)
     }
@@ -611,8 +661,25 @@ export default function AppointmentDetailPage() {
             </ScrollArea>
           </div>
 
-          {/* Quick actions + message input */}
-          {conversation && (
+          {/* Closed conversation banner */}
+          {conversation && isClosed && (
+            <div className="shrink-0 border-t bg-muted/50 px-6 py-3 flex items-center gap-2 justify-center">
+              <Lock className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+              <p className="text-xs text-muted-foreground text-center">
+                This conversation has been closed by the patient. No further messages can be sent.
+              </p>
+            </div>
+          )}
+
+          {/* Send error feedback */}
+          {sendError && (
+            <div className="shrink-0 px-6 py-2">
+              <p className="text-xs text-red-500">{sendError}</p>
+            </div>
+          )}
+
+          {/* Quick actions + message input — hidden when closed */}
+          {conversation && !isClosed && (
             <div className="shrink-0 border-t bg-white">
               {(() => {
                 const bs = (lead as any)?.booking_status
@@ -668,7 +735,7 @@ export default function AppointmentDetailPage() {
               <form onSubmit={handleSendMessage} className="flex gap-2 px-6 pb-4">
                 <Textarea
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e) => { setNewMessage(e.target.value); setSendError(null) }}
                   placeholder="Type a message..."
                   className="flex-1 min-h-[42px] max-h-[120px] resize-none"
                   disabled={isSending}
