@@ -960,26 +960,18 @@ export default function PatientDashboard() {
             {/* Dark mode toggle */}
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
-              className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              className="flex items-center justify-center w-9 h-9 rounded-full border border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
               title={isDarkMode ? "Light mode" : "Dark mode"}
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            {/* Mobile: red sign out button */}
+            {/* Sign out */}
             <button
               onClick={handleSignOut}
-              className="lg:hidden flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-600 transition-colors p-1.5"
+              className="flex items-center justify-center w-9 h-9 rounded-full border border-border/60 text-muted-foreground hover:text-red-500 hover:border-red-500/40 hover:bg-red-500/5 transition-colors"
+              title="Sign out"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              Sign out
-            </button>
-            {/* Desktop: sign out */}
-            <button
-              onClick={handleSignOut}
-              className="hidden lg:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign out</span>
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
