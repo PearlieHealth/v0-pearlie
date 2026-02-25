@@ -50,26 +50,14 @@ export async function POST(request: NextRequest) {
     clinicReplyLimiter.record(clinicUser.clinic_id)
 
     // Verify conversation belongs to this clinic
-    // Try with conversation_state columns; fall back without them if migration not yet applied
-    let convResult = await supabaseAdmin
+    const { data: conversation, error: convError } = await supabaseAdmin
       .from("conversations")
       .select("id, clinic_id, lead_id, clinic_first_reply_at, unread_count_patient, conversation_state, muted_by_patient, notification_cycles_used, current_notification_cycle_start")
       .eq("id", conversationId)
       .single()
 
-    if (convResult.error && convResult.error.message?.includes("column")) {
-      console.warn("[Chat] conversation_state/muted_by_patient columns not available, falling back:", convResult.error.message)
-      convResult = await supabaseAdmin
-        .from("conversations")
-        .select("id, clinic_id, lead_id, clinic_first_reply_at, unread_count_patient, notification_cycles_used, current_notification_cycle_start")
-        .eq("id", conversationId)
-        .single()
-    }
-
-    const conversation = convResult.data
-    const convError = convResult.error
-
     if (convError || !conversation) {
+      console.error("[Chat] Conversation lookup failed:", convError?.message)
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 })
     }
 
@@ -185,133 +173,134 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ── Notification grouping logic ────────────────────────────────────
+    // ── Return response immediately — message is delivered ──────────
+    // Notification logic runs after the response to avoid blocking the clinic.
+    const response = NextResponse.json({
+      success: true,
+      message,
+      botMessage,
+    })
+
+    // ── Notification grouping logic (non-blocking) ─────────────────
     // Messages always deliver. Only email notifications are controlled:
     // - If muted: no notification
     // - If 2 notification cycles already used (without patient reply): no notification
     // - If within a 15-minute grouping window: no notification (grouped)
     // - Otherwise: send notification, advance cycle tracking
-    const NOTIFICATION_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
-    const MAX_NOTIFICATION_CYCLES = 2
+    try {
+      const NOTIFICATION_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
+      const MAX_NOTIFICATION_CYCLES = 2
 
-    let shouldNotify = true
-    const now = new Date()
+      let shouldNotify = true
+      const now = new Date()
 
-    if (conversation.muted_by_patient) {
-      shouldNotify = false
-    } else if ((conversation.notification_cycles_used || 0) >= MAX_NOTIFICATION_CYCLES) {
-      // Patient hasn't replied and we've exhausted both notification cycles
-      shouldNotify = false
-    } else if (conversation.current_notification_cycle_start) {
-      // Check if we're still within the current 15-minute grouping window
-      const cycleStart = new Date(conversation.current_notification_cycle_start)
-      if (now.getTime() - cycleStart.getTime() < NOTIFICATION_WINDOW_MS) {
-        // Within window — group silently (no new notification)
+      if (conversation.muted_by_patient) {
         shouldNotify = false
-      }
-      // Window has expired — this will be a new cycle
-    }
-
-    if (shouldNotify) {
-      // Determine if this is a new cycle (first message or window expired)
-      const isNewCycle = !conversation.current_notification_cycle_start ||
-        (now.getTime() - new Date(conversation.current_notification_cycle_start).getTime() >= NOTIFICATION_WINDOW_MS)
-
-      // Update notification tracking
-      const notificationUpdate: Record<string, any> = {
-        current_notification_cycle_start: now.toISOString(),
-      }
-      if (isNewCycle) {
-        notificationUpdate.notification_cycles_used = (conversation.notification_cycles_used || 0) + 1
-      }
-
-      await supabaseAdmin
-        .from("conversations")
-        .update(notificationUpdate)
-        .eq("id", conversationId)
-
-      // Send email notification
-      try {
-        const { data: lead } = await supabaseAdmin
-          .from("leads")
-          .select("email, first_name")
-          .eq("id", conversation.lead_id)
-          .single()
-
-        const { data: clinic } = await supabaseAdmin
-          .from("clinics")
-          .select("name, id")
-          .eq("id", clinicUser.clinic_id)
-          .single()
-
-        if (lead?.email && clinic) {
-          const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
-          const trimmedContent = content.trim()
-          const safeFirstName = lead.first_name ? escapeHtml(lead.first_name) : ""
-          const safeClinicName = escapeHtml(clinic.name)
-          const safeContent = escapeHtml(trimmedContent.substring(0, 500)) + (trimmedContent.length > 500 ? "..." : "")
-          const unsubFooter = generateUnsubscribeFooterHtml(
-            generateUnsubscribeHeaders(lead.email, "patient_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
-          )
-
-          // Generate a magic link so the patient is auto-logged in when they click
-          const messagesPath = `/patient/messages?conversationId=${conversationId}`
-          const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(messagesPath)}`
-          let viewReplyUrl = `${appUrl}${messagesPath}` // fallback: plain link
-
-          try {
-            const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
-              type: "magiclink",
-              email: lead.email,
-              options: { redirectTo },
-            })
-            if (linkData?.properties?.action_link) {
-              viewReplyUrl = linkData.properties.action_link
-              try {
-                const linkUrl = new URL(viewReplyUrl)
-                const currentRedirect = linkUrl.searchParams.get("redirect_to")
-                if (currentRedirect) {
-                  const redirectHost = new URL(currentRedirect).hostname
-                  const appHost = new URL(appUrl).hostname
-                  if (redirectHost !== appHost) {
-                    linkUrl.searchParams.set("redirect_to", redirectTo)
-                    viewReplyUrl = linkUrl.toString()
-                  }
-                }
-              } catch {}
-            }
-          } catch (linkErr) {
-            console.warn("[Chat] Failed to generate magic link for patient notification:", linkErr)
-          }
-
-          await sendRegisteredEmail({
-            type: EMAIL_TYPE.CLINIC_REPLY_TO_PATIENT,
-            to: lead.email,
-            data: {
-              patientFirstName: safeFirstName,
-              clinicName: safeClinicName,
-              messagePreview: safeContent,
-              viewReplyUrl,
-              unsubscribeFooterHtml: unsubFooter,
-              _conversationId: conversationId,
-              _notificationCycle: notificationUpdate.notification_cycles_used || conversation.notification_cycles_used || 0,
-            },
-            headers: generateUnsubscribeHeaders(lead.email, "patient_notifications"),
-            clinicId: clinicUser.clinic_id,
-            leadId: conversation.lead_id,
-          })
+      } else if ((conversation.notification_cycles_used || 0) >= MAX_NOTIFICATION_CYCLES) {
+        shouldNotify = false
+      } else if (conversation.current_notification_cycle_start) {
+        const cycleStart = new Date(conversation.current_notification_cycle_start)
+        if (now.getTime() - cycleStart.getTime() < NOTIFICATION_WINDOW_MS) {
+          shouldNotify = false
         }
-      } catch (emailError) {
-        // Don't fail the reply if email notification fails
-        console.error("[Chat] Failed to send patient email notification:", emailError)
       }
+
+      if (shouldNotify) {
+        const isNewCycle = !conversation.current_notification_cycle_start ||
+          (now.getTime() - new Date(conversation.current_notification_cycle_start).getTime() >= NOTIFICATION_WINDOW_MS)
+
+        const notificationUpdate: Record<string, any> = {
+          current_notification_cycle_start: now.toISOString(),
+        }
+        if (isNewCycle) {
+          notificationUpdate.notification_cycles_used = (conversation.notification_cycles_used || 0) + 1
+        }
+
+        await supabaseAdmin
+          .from("conversations")
+          .update(notificationUpdate)
+          .eq("id", conversationId)
+
+        // Send email notification
+        try {
+          const { data: lead } = await supabaseAdmin
+            .from("leads")
+            .select("email, first_name")
+            .eq("id", conversation.lead_id)
+            .single()
+
+          const { data: clinic } = await supabaseAdmin
+            .from("clinics")
+            .select("name, id")
+            .eq("id", clinicUser.clinic_id)
+            .single()
+
+          if (lead?.email && clinic) {
+            const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+            const trimmedContent = content.trim()
+            const safeFirstName = lead.first_name ? escapeHtml(lead.first_name) : ""
+            const safeClinicName = escapeHtml(clinic.name)
+            const safeContent = escapeHtml(trimmedContent.substring(0, 500)) + (trimmedContent.length > 500 ? "..." : "")
+            const unsubFooter = generateUnsubscribeFooterHtml(
+              generateUnsubscribeHeaders(lead.email, "patient_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
+            )
+
+            const messagesPath = `/patient/messages?conversationId=${conversationId}`
+            const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(messagesPath)}`
+            let viewReplyUrl = `${appUrl}${messagesPath}`
+
+            try {
+              const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+                type: "magiclink",
+                email: lead.email,
+                options: { redirectTo },
+              })
+              if (linkData?.properties?.action_link) {
+                viewReplyUrl = linkData.properties.action_link
+                try {
+                  const linkUrl = new URL(viewReplyUrl)
+                  const currentRedirect = linkUrl.searchParams.get("redirect_to")
+                  if (currentRedirect) {
+                    const redirectHost = new URL(currentRedirect).hostname
+                    const appHost = new URL(appUrl).hostname
+                    if (redirectHost !== appHost) {
+                      linkUrl.searchParams.set("redirect_to", redirectTo)
+                      viewReplyUrl = linkUrl.toString()
+                    }
+                  }
+                } catch {}
+              }
+            } catch (linkErr) {
+              console.warn("[Chat] Failed to generate magic link for patient notification:", linkErr)
+            }
+
+            await sendRegisteredEmail({
+              type: EMAIL_TYPE.CLINIC_REPLY_TO_PATIENT,
+              to: lead.email,
+              data: {
+                patientFirstName: safeFirstName,
+                clinicName: safeClinicName,
+                messagePreview: safeContent,
+                viewReplyUrl,
+                unsubscribeFooterHtml: unsubFooter,
+                _conversationId: conversationId,
+                _notificationCycle: notificationUpdate.notification_cycles_used || conversation.notification_cycles_used || 0,
+              },
+              headers: generateUnsubscribeHeaders(lead.email, "patient_notifications"),
+              clinicId: clinicUser.clinic_id,
+              leadId: conversation.lead_id,
+            })
+          }
+        } catch (emailError) {
+          console.error("[Chat] Failed to send patient email notification:", emailError)
+        }
+      }
+    } catch (notifyError) {
+      // Never let notification logic break the reply
+      console.error("[Chat] Notification grouping error:", notifyError)
     }
 
-    return NextResponse.json({
-      success: true,
-      message,
-      botMessage,
-    })
+    return response
   } catch (error) {
     console.error("[Chat] Unexpected error:", error)
     return NextResponse.json(

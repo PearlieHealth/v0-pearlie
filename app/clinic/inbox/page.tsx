@@ -122,9 +122,13 @@ export default function ClinicInboxPage() {
   // ── Fallback polling (15s) for active conversation messages ────
   useEffect(() => {
     if (!selectedConversation) return
-    const interval = setInterval(() => fetchMessagesForConversation(selectedConversation.id), 15000)
+    const interval = setInterval(() => {
+      // Skip polling while a send is in-flight to prevent race condition
+      // where the poll response overwrites the just-sent message
+      if (!isSending) fetchMessagesForConversation(selectedConversation.id)
+    }, 15000)
     return () => clearInterval(interval)
-  }, [selectedConversation])
+  }, [selectedConversation, isSending])
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -256,10 +260,16 @@ export default function ClinicInboxPage() {
 
       if (response.ok) {
         const data = await response.json()
-        const newMsgs = data.botMessage
+        const newMsgs = (data.botMessage
           ? [data.botMessage, data.message]
           : [data.message]
-        setMessages((prev) => [...prev, ...newMsgs])
+        ).filter(Boolean)
+        setMessages((prev) => {
+          // Deduplicate: skip messages already in list (from realtime)
+          const existingIds = new Set(prev.map((m) => m.id))
+          const unique = newMsgs.filter((m: Message) => m.id && !existingIds.has(m.id))
+          return unique.length > 0 ? [...prev, ...unique] : prev
+        })
         setNewMessage("")
       } else {
         const errData = await response.json().catch(() => ({}))

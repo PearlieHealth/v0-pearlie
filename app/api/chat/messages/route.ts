@@ -74,25 +74,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Get conversation with bot tracking fields
-    // Try with conversation_state first; fall back without it if migration not yet applied
-    const fullConvResult = await supabase
+    const { data: conversations } = await supabase
       .from("conversations")
       .select("id, bot_greeted, clinic_first_reply_at, clinic_typing_at, appointment_requested_at, conversation_state")
       .eq("lead_id", leadId)
       .eq("clinic_id", clinicId)
       .limit(1)
-
-    let conversations: any[] | null = fullConvResult.data
-    if (fullConvResult.error) {
-      console.warn("[Chat] conversation_state column not available, falling back:", fullConvResult.error.message)
-      const baseConvResult = await supabase
-        .from("conversations")
-        .select("id, bot_greeted, clinic_first_reply_at, clinic_typing_at, appointment_requested_at")
-        .eq("lead_id", leadId)
-        .eq("clinic_id", clinicId)
-        .limit(1)
-      conversations = baseConvResult.data
-    }
 
     const conversation = conversations?.[0]
 
