@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
     // Block messages on closed conversations
     if (conversation?.conversation_state === "closed") {
       return NextResponse.json(
-        { error: "This conversation is closed. No further messages can be sent." },
+        { error: "This conversation has been closed. No further messages can be sent.", reason: "conversation_closed" },
         { status: 403 }
       )
     }

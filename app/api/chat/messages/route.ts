@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     // Get conversation with bot tracking fields
     const { data: conversations } = await supabase
       .from("conversations")
-      .select("id, bot_greeted, clinic_first_reply_at, clinic_typing_at, appointment_requested_at")
+      .select("id, bot_greeted, clinic_first_reply_at, clinic_typing_at, appointment_requested_at, conversation_state")
       .eq("lead_id", leadId)
       .eq("clinic_id", clinicId)
       .limit(1)
@@ -219,6 +219,7 @@ export async function GET(request: NextRequest) {
       bookingDate,
       bookingTime,
       bookingStatus,
+      conversationState: conversation.conversation_state || "open",
     })
   } catch (error) {
     console.error("[Chat] Unexpected error:", error)

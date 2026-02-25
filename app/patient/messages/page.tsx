@@ -389,7 +389,20 @@ export default function PatientMessagesPage() {
       } else if (response.status === 403) {
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
         const errData = await response.json().catch(() => ({}))
-        setError(errData.error || "Please verify your email before sending messages.")
+        if (errData.reason === "conversation_closed") {
+          // Update local state so banner shows and composer hides
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === selectedConversation?.id ? { ...c, conversation_state: "closed" as const } : c
+            )
+          )
+          setSelectedConversation((prev) =>
+            prev ? { ...prev, conversation_state: "closed" as const } : prev
+          )
+          setActiveTab("closed")
+        } else {
+          setError(errData.error || "Please verify your email before sending messages.")
+        }
       } else {
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
         const errData = await response.json().catch(() => ({}))

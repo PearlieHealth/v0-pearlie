@@ -48,6 +48,7 @@ export function ClinicChatWidget({
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const [showVerifyPrompt, setShowVerifyPrompt] = useState(false)
+  const [conversationClosed, setConversationClosed] = useState(false)
   const [leadInfo, setLeadInfo] = useState<{ name: string; email: string } | null>(null)
   const [bookingInfo, setBookingInfo] = useState<{ date: string | null; time: string | null; requestedAt: string | null }>({ date: null, time: null, requestedAt: null })
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -178,6 +179,10 @@ export function ClinicChatWidget({
             requestedAt: data.appointmentRequestedAt,
           })
         }
+        // Track closed state
+        if (data.conversationState === "closed") {
+          setConversationClosed(true)
+        }
       }
     } catch (error) {
       console.error("[Chat] Failed to fetch messages:", error)
@@ -188,7 +193,7 @@ export function ClinicChatWidget({
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || isSending) return
+    if (!newMessage.trim() || isSending || conversationClosed) return
 
     const messageText = newMessage.trim()
 
@@ -229,6 +234,12 @@ export function ClinicChatWidget({
       } else {
         // Remove optimistic message on error
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
+        if (response.status === 403) {
+          const errData = await response.json().catch(() => ({}))
+          if (errData.reason === "conversation_closed") {
+            setConversationClosed(true)
+          }
+        }
       }
     } catch (error) {
       console.error("[Chat] Failed to send message:", error)
@@ -470,7 +481,12 @@ export function ClinicChatWidget({
             </div>
           )}
 
-          {/* Input */}
+          {/* Closed banner or Input */}
+          {conversationClosed ? (
+            <div className="border-t border-neutral-200 px-4 py-3 bg-neutral-50">
+              <p className="text-xs text-neutral-500 text-center">This conversation has been closed. No further messages can be sent.</p>
+            </div>
+          ) : (
           <form onSubmit={sendMessage} className="border-t border-neutral-200 p-3">
             <div className="flex gap-2">
               <Input
@@ -497,6 +513,7 @@ export function ClinicChatWidget({
               </Button>
             </div>
           </form>
+          )}
         </div>
       )}
     </>
