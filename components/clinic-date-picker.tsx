@@ -198,13 +198,13 @@ export function ClinicDatePicker({
                   "flex-1 min-w-0 py-2 px-1 rounded-lg border text-center transition-all",
                   dateInfo.isAvailable
                     ? isSelected
-                      ? "border-[#004443] bg-[#004443]/10 text-[#004443]"
-                      : "border-border bg-white hover:border-[#004443]/40 cursor-pointer"
+                      ? "border-primary bg-primary/15 text-primary"
+                      : "border-border bg-card hover:border-primary/40 cursor-pointer"
                     : "border-muted bg-muted/30 text-muted-foreground cursor-not-allowed opacity-60"
                 )}
               >
                 <div className="text-[10px] text-muted-foreground leading-tight">{dayShort}</div>
-                <div className={cn("text-base font-semibold leading-tight", isSelected && "text-[#004443]")}>{dateNum}</div>
+                <div className={cn("text-base font-semibold leading-tight", isSelected ? "text-primary" : "text-foreground")}>{dateNum}</div>
                 <div className="text-[10px] text-muted-foreground leading-tight">{monthShort}</div>
               </button>
             )
@@ -236,7 +236,7 @@ export function ClinicDatePicker({
                   key={slot.key}
                   variant="outline"
                   size="sm"
-                  className="min-w-0 bg-transparent hover:bg-[#004443] hover:text-white hover:border-[#004443] transition-colors text-xs px-2"
+                  className="min-w-0 bg-transparent hover:bg-primary hover:text-white hover:border-primary transition-colors text-xs px-2"
                   onClick={() => handleTimeSelect(slot.key)}
                 >
                   {slot.label}
