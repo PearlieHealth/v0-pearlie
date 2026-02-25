@@ -134,9 +134,7 @@ export default function AppointmentDetailPage() {
   const [showNoteInput, setShowNoteInput] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
 
-  // Dedup: track message IDs we just sent so polling doesn't double them
-  const recentSentIds = useRef<Set<string>>(new Set())
-  // Skip next poll cycle right after sending
+  // Skip next poll cycle right after sending to prevent overwriting optimistic state
   const skipNextPoll = useRef(false)
 
   const isClosed = conversation?.conversation_state === "closed"
@@ -259,23 +257,16 @@ export default function AppointmentDetailPage() {
           const data = await response.json()
           const incoming: Message[] = data.messages || []
           setMessages((prev) => {
-            // If the polled data has the same length and no new IDs, skip update
+            // If the polled data has the same count and no new IDs, skip re-render
             const prevIds = new Set(prev.map((m) => m.id))
             const hasNew = incoming.some((m) => !prevIds.has(m.id))
             if (!hasNew && incoming.length === prev.length) return prev
-            // Merge: use incoming as base, it's the source of truth
             return incoming
           })
-          // Clean up recentSentIds — remove IDs now confirmed by server
-          if (recentSentIds.current.size > 0) {
-            const serverIds = new Set(incoming.map((m) => m.id))
-            for (const id of recentSentIds.current) {
-              if (serverIds.has(id)) recentSentIds.current.delete(id)
-            }
-          }
         }
       } catch (error) {
         if (error instanceof Error && error.name === "AbortError") return
+        console.warn("[Poll] Unexpected error:", error)
       }
     }
 
@@ -408,8 +399,6 @@ export default function AppointmentDetailPage() {
       if (response.ok) {
         const data = await response.json()
         const msg: Message = data.message
-        // Track for dedup so polling doesn't double it
-        recentSentIds.current.add(msg.id)
         setMessages((prev) => {
           if (prev.some((m) => m.id === msg.id)) return prev
           return [...prev, msg]
