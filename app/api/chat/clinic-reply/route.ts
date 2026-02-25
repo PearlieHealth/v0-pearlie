@@ -50,11 +50,24 @@ export async function POST(request: NextRequest) {
     clinicReplyLimiter.record(clinicUser.clinic_id)
 
     // Verify conversation belongs to this clinic
-    const { data: conversation, error: convError } = await supabaseAdmin
+    // Try with conversation_state columns; fall back without them if migration not yet applied
+    let convResult = await supabaseAdmin
       .from("conversations")
-      .select("id, clinic_id, lead_id, clinic_first_reply_at, unread_count_patient")
+      .select("id, clinic_id, lead_id, clinic_first_reply_at, unread_count_patient, conversation_state, muted_by_patient, notification_cycles_used, current_notification_cycle_start")
       .eq("id", conversationId)
       .single()
+
+    if (convResult.error && convResult.error.message?.includes("column")) {
+      console.warn("[Chat] conversation_state/muted_by_patient columns not available, falling back:", convResult.error.message)
+      convResult = await supabaseAdmin
+        .from("conversations")
+        .select("id, clinic_id, lead_id, clinic_first_reply_at, unread_count_patient, notification_cycles_used, current_notification_cycle_start")
+        .eq("id", conversationId)
+        .single()
+    }
+
+    const conversation = convResult.data
+    const convError = convResult.error
 
     if (convError || !conversation) {
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 })
@@ -62,6 +75,14 @@ export async function POST(request: NextRequest) {
 
     if (conversation.clinic_id !== clinicUser.clinic_id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    }
+
+    // Block messages on closed conversations
+    if (conversation.conversation_state === "closed") {
+      return NextResponse.json(
+        { error: "This conversation is closed. No further messages can be sent." },
+        { status: 403 }
+      )
     }
 
     // Create message with delivery status
@@ -164,8 +185,52 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send email notification to patient when clinic replies
-    {
+    // ── Notification grouping logic ────────────────────────────────────
+    // Messages always deliver. Only email notifications are controlled:
+    // - If muted: no notification
+    // - If 2 notification cycles already used (without patient reply): no notification
+    // - If within a 15-minute grouping window: no notification (grouped)
+    // - Otherwise: send notification, advance cycle tracking
+    const NOTIFICATION_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
+    const MAX_NOTIFICATION_CYCLES = 2
+
+    let shouldNotify = true
+    const now = new Date()
+
+    if (conversation.muted_by_patient) {
+      shouldNotify = false
+    } else if ((conversation.notification_cycles_used || 0) >= MAX_NOTIFICATION_CYCLES) {
+      // Patient hasn't replied and we've exhausted both notification cycles
+      shouldNotify = false
+    } else if (conversation.current_notification_cycle_start) {
+      // Check if we're still within the current 15-minute grouping window
+      const cycleStart = new Date(conversation.current_notification_cycle_start)
+      if (now.getTime() - cycleStart.getTime() < NOTIFICATION_WINDOW_MS) {
+        // Within window — group silently (no new notification)
+        shouldNotify = false
+      }
+      // Window has expired — this will be a new cycle
+    }
+
+    if (shouldNotify) {
+      // Determine if this is a new cycle (first message or window expired)
+      const isNewCycle = !conversation.current_notification_cycle_start ||
+        (now.getTime() - new Date(conversation.current_notification_cycle_start).getTime() >= NOTIFICATION_WINDOW_MS)
+
+      // Update notification tracking
+      const notificationUpdate: Record<string, any> = {
+        current_notification_cycle_start: now.toISOString(),
+      }
+      if (isNewCycle) {
+        notificationUpdate.notification_cycles_used = (conversation.notification_cycles_used || 0) + 1
+      }
+
+      await supabaseAdmin
+        .from("conversations")
+        .update(notificationUpdate)
+        .eq("id", conversationId)
+
+      // Send email notification
       try {
         const { data: lead } = await supabaseAdmin
           .from("leads")
@@ -202,7 +267,6 @@ export async function POST(request: NextRequest) {
             })
             if (linkData?.properties?.action_link) {
               viewReplyUrl = linkData.properties.action_link
-              // Ensure redirect_to points to our app URL (Supabase may use Site URL)
               try {
                 const linkUrl = new URL(viewReplyUrl)
                 const currentRedirect = linkUrl.searchParams.get("redirect_to")
@@ -217,7 +281,6 @@ export async function POST(request: NextRequest) {
               } catch {}
             }
           } catch (linkErr) {
-            // Non-critical: fall back to plain URL (patient will need to log in manually)
             console.warn("[Chat] Failed to generate magic link for patient notification:", linkErr)
           }
 
@@ -231,6 +294,7 @@ export async function POST(request: NextRequest) {
               viewReplyUrl,
               unsubscribeFooterHtml: unsubFooter,
               _conversationId: conversationId,
+              _notificationCycle: notificationUpdate.notification_cycles_used || conversation.notification_cycles_used || 0,
             },
             headers: generateUnsubscribeHeaders(lead.email, "patient_notifications"),
             clinicId: clinicUser.clinic_id,

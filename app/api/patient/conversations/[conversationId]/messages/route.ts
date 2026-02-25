@@ -25,11 +25,24 @@ export async function GET(
     const admin = createAdminClient()
 
     // Get conversation
-    const { data: conversation, error: convError } = await admin
+    // Try with conversation_state columns; fall back without them if migration not yet applied
+    let convResult = await admin
       .from("conversations")
-      .select("id, lead_id, clinic_id")
+      .select("id, lead_id, clinic_id, conversation_state, muted_by_patient")
       .eq("id", conversationId)
       .single()
+
+    if (convResult.error && convResult.error.message?.includes("column")) {
+      console.warn("[patient/conversations/messages] conversation_state columns not available, falling back:", convResult.error.message)
+      convResult = await admin
+        .from("conversations")
+        .select("id, lead_id, clinic_id")
+        .eq("id", conversationId)
+        .single()
+    }
+
+    const conversation = convResult.data
+    const convError = convResult.error
 
     if (convError || !conversation) {
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 })
@@ -86,6 +99,8 @@ export async function GET(
       conversationId: conversation.id,
       clinicId: conversation.clinic_id,
       leadId: conversation.lead_id,
+      conversationState: conversation.conversation_state || "open",
+      mutedByPatient: conversation.muted_by_patient || false,
     })
   } catch (error) {
     console.error("[patient/conversations/messages] Error:", error)

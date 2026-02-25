@@ -43,6 +43,7 @@ export function EmbeddedClinicChat({
   const [isLoading, setIsLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [conversationClosed, setConversationClosed] = useState(false)
   const [showOtpVerify, setShowOtpVerify] = useState(false)
   const [leadEmail, setLeadEmail] = useState<string | null>(leadEmailProp || null)
   const pendingMessageRef = useRef<string | null>(null)
@@ -139,6 +140,9 @@ export function EmbeddedClinicChat({
         const data = await response.json()
         setMessages(data.messages || [])
         setConversationId(data.conversationId || null)
+        if (data.conversationState === "closed") {
+          setConversationClosed(true)
+        }
       }
     } catch {
       // Silently fail on fetch
@@ -149,7 +153,7 @@ export function EmbeddedClinicChat({
 
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault()
-    if (!newMessage.trim() || isSending) return
+    if (!newMessage.trim() || isSending || conversationClosed) return
     setError(null)
 
     if (!leadId) {
@@ -195,15 +199,21 @@ export function EmbeddedClinicChat({
           queueBotMessages(data.botMessages)
         }
       } else if (response.status === 403) {
-        // Remove optimistic message and store for resend after OTP
+        const errData = await response.json().catch(() => ({}))
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
-        pendingMessageRef.current = messageText
-        if (leadEmailProp) {
-          setLeadEmail(leadEmailProp)
-          setShowOtpVerify(true)
+        if (errData.reason === "conversation_closed") {
+          setConversationClosed(true)
           setError(null)
         } else {
-          setError("Please verify your email before sending messages.")
+          // Unverified email — store for resend after OTP
+          pendingMessageRef.current = messageText
+          if (leadEmailProp) {
+            setLeadEmail(leadEmailProp)
+            setShowOtpVerify(true)
+            setError(null)
+          } else {
+            setError("Please verify your email before sending messages.")
+          }
         }
       } else {
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
@@ -423,7 +433,11 @@ export function EmbeddedClinicChat({
             </div>
           )}
 
-          {!showOtpVerify && (
+          {conversationClosed ? (
+            <div className="px-3 py-3 border-t border-[#e5e5e5] bg-[#f5f5f5]">
+              <p className="text-[11px] text-[#888] text-center">This conversation has been closed. Looking for a dentist? <a href="/intake" className="underline text-teal-600 hover:text-teal-700">Start a new search</a> to get matched with clinics.</p>
+            </div>
+          ) : !showOtpVerify && (
           <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white overflow-hidden">
             <div className="flex items-center gap-2">
               <input

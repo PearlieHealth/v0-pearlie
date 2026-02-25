@@ -138,14 +138,35 @@ export async function POST(request: NextRequest) {
     }
 
     // Get or create conversation using limit instead of single to avoid errors
-    const { data: conversations } = await supabase
+    // Try with conversation_state first; fall back without it if migration not yet applied
+    const fullConvQuery = await supabase
       .from("conversations")
-      .select("id, bot_greeted, unread_count_clinic, unread_count_patient")
+      .select("id, bot_greeted, unread_count_clinic, unread_count_patient, conversation_state")
       .eq("lead_id", leadId)
       .eq("clinic_id", clinicId)
       .limit(1)
 
-    let conversation = conversations?.[0] as { id: string; bot_greeted?: boolean; unread_count_clinic?: number; unread_count_patient?: number } | undefined
+    let convData: any[] | null = fullConvQuery.data
+    if (fullConvQuery.error) {
+      console.warn("[Chat] conversation_state column not available, falling back:", fullConvQuery.error.message)
+      const baseConvQuery = await supabase
+        .from("conversations")
+        .select("id, bot_greeted, unread_count_clinic, unread_count_patient")
+        .eq("lead_id", leadId)
+        .eq("clinic_id", clinicId)
+        .limit(1)
+      convData = baseConvQuery.data
+    }
+
+    let conversation = convData?.[0] as { id: string; bot_greeted?: boolean; unread_count_clinic?: number; unread_count_patient?: number; conversation_state?: string } | undefined
+
+    // Block messages on closed conversations
+    if (conversation?.conversation_state === "closed") {
+      return NextResponse.json(
+        { error: "This conversation has been closed. No further messages can be sent.", reason: "conversation_closed" },
+        { status: 403 }
+      )
+    }
 
     if (!conversation) {
       // Create new conversation with unread flags
@@ -324,6 +345,19 @@ export async function POST(request: NextRequest) {
       if (updateError) {
         console.error("[Chat] Failed to update conversation:", updateError)
       }
+    }
+
+    // Reset notification cycle tracking when patient replies,
+    // so the clinic's next message will trigger a fresh notification.
+    if (senderType === "patient") {
+      await supabase
+        .from("conversations")
+        .update({
+          notification_cycles_used: 0,
+          current_notification_cycle_start: null,
+          last_patient_reply_at: new Date().toISOString(),
+        })
+        .eq("id", conversation.id)
     }
 
     // Broadcast the new message for real-time delivery (bypasses RLS)

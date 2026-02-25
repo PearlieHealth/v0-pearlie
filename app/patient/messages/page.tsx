@@ -13,9 +13,27 @@ import {
   Check,
   CheckCheck,
   ChevronLeft,
+  MoreVertical,
+  CalendarCheck,
+  XCircle,
+  BellOff,
+  Bell,
+  Lock,
 } from "lucide-react"
 import Link from "next/link"
 import { AppointmentBanner } from "@/components/appointment-banner"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
+
+type ConversationState = "open" | "booked" | "closed"
 
 interface Conversation {
   id: string
@@ -29,6 +47,11 @@ interface Conversation {
   latest_message: string | null
   latest_message_sender: string | null
   appointment_requested_at?: string | null
+  conversation_state?: ConversationState
+  booked_at?: string | null
+  closed_at?: string | null
+  closed_reason?: string | null
+  muted_by_patient?: boolean
 }
 
 interface Message {
@@ -38,6 +61,8 @@ interface Message {
   status?: "sent" | "delivered" | "read"
   created_at: string
 }
+
+type TabFilter = "active" | "booked" | "closed"
 
 export default function PatientMessagesPage() {
   const router = useRouter()
@@ -56,11 +81,29 @@ export default function PatientMessagesPage() {
   const [error, setError] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const autoSelectedRef = useRef(false)
-  // Store clinicId and leadId from the messages API response
   const [activeClinicId, setActiveClinicId] = useState<string | null>(null)
   const [activeLeadId, setActiveLeadId] = useState<string | null>(null)
-  // Booking info for the selected conversation
   const [bookingInfo, setBookingInfo] = useState<{ date: string | null; time: string | null; requestedAt: string | null }>({ date: null, time: null, requestedAt: null })
+
+  // Messaging controls state
+  const [activeTab, setActiveTab] = useState<TabFilter>("active")
+  const [showActionMenu, setShowActionMenu] = useState(false)
+  const [isUpdatingState, setIsUpdatingState] = useState(false)
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
+  const actionMenuRef = useRef<HTMLDivElement>(null)
+
+  // Close action menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
+        setShowActionMenu(false)
+      }
+    }
+    if (showActionMenu) {
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [showActionMenu])
 
   // ── Match lg: breakpoint (1024px) for mobile/tablet layout ──────
   useEffect(() => {
@@ -76,8 +119,6 @@ export default function PatientMessagesPage() {
     async function checkAuth() {
       const supabase = createClient()
 
-      // Retry up to 3 times with 1-second delays to handle mobile browsers
-      // where auth cookies may not propagate immediately after OTP verification.
       let user = null
       for (let attempt = 0; attempt < 3; attempt++) {
         const { data: { user: u } } = await supabase.auth.getUser()
@@ -139,10 +180,31 @@ export default function PatientMessagesPage() {
       const conv = conversations.find((c) => c.id === conversationIdParam)
       if (conv) {
         autoSelectedRef.current = true
+        // Switch to the correct tab for this conversation
+        const state = conv.conversation_state || "open"
+        if (state === "booked") setActiveTab("booked")
+        else if (state === "closed") setActiveTab("closed")
+        else setActiveTab("active")
         selectConversation(conv)
       }
     }
   }, [conversations, conversationIdParam])
+
+  // ── Filter conversations by tab ────────────────────────────────
+  const filteredConversations = conversations.filter((conv) => {
+    const state = conv.conversation_state || "open"
+    if (activeTab === "active") return state === "open"
+    if (activeTab === "booked") return state === "booked"
+    return state === "closed"
+  })
+
+  const tabCounts = {
+    active: conversations.filter((c) => (c.conversation_state || "open") === "open").length,
+    booked: conversations.filter((c) => c.conversation_state === "booked").length,
+    closed: conversations.filter((c) => c.conversation_state === "closed").length,
+  }
+
+  const isClosed = selectedConversation?.conversation_state === "closed"
 
   // ── Data fetching ────────────────────────────────────────────────
   async function fetchConversations() {
@@ -174,7 +236,6 @@ export default function PatientMessagesPage() {
         setActiveLeadId(data.leadId || null)
       }
     } catch {
-      // Background polling — silent fail is acceptable here
       console.warn("[messages] Background poll failed for", conversationId)
     }
   }
@@ -184,6 +245,7 @@ export default function PatientMessagesPage() {
     setIsLoadingMessages(true)
     setError(null)
     setBookingInfo({ date: null, time: null, requestedAt: null })
+    setShowActionMenu(false)
 
     try {
       const response = await fetch(`/api/patient/conversations/${conv.id}/messages`)
@@ -192,14 +254,12 @@ export default function PatientMessagesPage() {
         setMessages(data.messages || [])
         setActiveClinicId(data.clinicId || null)
         setActiveLeadId(data.leadId || null)
-        // Mark as read locally
         setConversations((prev) =>
           prev.map((c) =>
             c.id === conv.id ? { ...c, unread_by_patient: false, unread_count_patient: 0 } : c
           )
         )
       }
-      // Fetch booking info if this conversation has an appointment request
       if (conv.appointment_requested_at) {
         const statusRes = await fetch(`/api/booking/status?leadId=${conv.lead_id}&clinicId=${conv.clinic_id}`)
         if (statusRes.ok) {
@@ -220,13 +280,72 @@ export default function PatientMessagesPage() {
     }
   }
 
+  // ── Conversation state actions ─────────────────────────────────
+  async function handleConversationAction(action: "closed" | "mute" | "unmute") {
+    if (!selectedConversation || isUpdatingState) return
+    setIsUpdatingState(true)
+    setShowActionMenu(false)
+
+    try {
+      const response = await fetch(`/api/patient/conversations/${selectedConversation.id}/state`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+
+        if (action === "closed") {
+          const newState = data.state as ConversationState
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === selectedConversation.id
+                ? {
+                    ...c,
+                    conversation_state: newState,
+                    closed_at: new Date().toISOString(),
+                    closed_reason: "patient_not_interested",
+                  }
+                : c
+            )
+          )
+          setSelectedConversation((prev) =>
+            prev ? { ...prev, conversation_state: newState } : prev
+          )
+          setActiveTab("closed")
+          // Re-fetch messages to get the system message
+          await fetchMessagesForConversation(selectedConversation.id)
+        }
+
+        if (action === "mute" || action === "unmute") {
+          const muted = data.muted
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === selectedConversation.id ? { ...c, muted_by_patient: muted } : c
+            )
+          )
+          setSelectedConversation((prev) =>
+            prev ? { ...prev, muted_by_patient: muted } : prev
+          )
+        }
+      } else {
+        const errData = await response.json().catch(() => ({}))
+        setError(errData.error || "Failed to update conversation.")
+      }
+    } catch {
+      setError("Something went wrong. Please try again.")
+    } finally {
+      setIsUpdatingState(false)
+    }
+  }
+
   async function handleSend(e: React.FormEvent) {
     e.preventDefault()
-    if (!selectedConversation || !newMessage.trim() || isSending) return
+    if (!selectedConversation || !newMessage.trim() || isSending || isClosed) return
 
     const messageText = newMessage.trim()
 
-    // Optimistic: show user message immediately before API call
     const tempId = `temp-${Date.now()}`
     const optimisticMsg: Message = {
       id: tempId,
@@ -254,9 +373,7 @@ export default function PatientMessagesPage() {
 
       if (response.ok) {
         const data = await response.json()
-        // Replace optimistic message with server version
         setMessages((prev) => prev.map((m) => m.id === tempId ? data.message : m))
-        // Queue bot messages with typing delay
         if (data.botMessages?.length) {
           data.botMessages.forEach((botMsg: Message, i: number) => {
             setTimeout(() => {
@@ -271,7 +388,21 @@ export default function PatientMessagesPage() {
         }
       } else if (response.status === 403) {
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
-        setError("Please verify your email before sending messages.")
+        const errData = await response.json().catch(() => ({}))
+        if (errData.reason === "conversation_closed") {
+          // Update local state so banner shows and composer hides
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === selectedConversation?.id ? { ...c, conversation_state: "closed" as const } : c
+            )
+          )
+          setSelectedConversation((prev) =>
+            prev ? { ...prev, conversation_state: "closed" as const } : prev
+          )
+          setActiveTab("closed")
+        } else {
+          setError(errData.error || "Please verify your email before sending messages.")
+        }
       } else {
         setMessages((prev) => prev.filter((m) => m.id !== tempId))
         const errData = await response.json().catch(() => ({}))
@@ -327,13 +458,124 @@ export default function PatientMessagesPage() {
 
   const totalUnread = conversations.reduce((sum, c) => sum + (c.unread_count_patient || 0), 0)
 
-  // Group messages by date
   const groupedMessages = messages.reduce<Record<string, Message[]>>((groups, message) => {
     const date = formatDate(message.created_at)
     if (!groups[date]) groups[date] = []
     groups[date].push(message)
     return groups
   }, {})
+
+  // ── State badge component ──────────────────────────────────────
+  const StateBadge = ({ state }: { state?: ConversationState }) => {
+    if (!state || state === "open") return null
+    if (state === "booked") {
+      return (
+        <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full">
+          <CalendarCheck className="h-2.5 w-2.5" />
+          Booked
+        </span>
+      )
+    }
+    return (
+      <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-[#999] bg-[#f0f0f0] border border-[#e0e0e0] px-1.5 py-0.5 rounded-full">
+        <Lock className="h-2.5 w-2.5" />
+        Closed
+      </span>
+    )
+  }
+
+  // ── Closed banner ──────────────────────────────────────────────
+  const ClosedBanner = () => (
+    <div className="px-4 py-2.5 bg-[#f5f5f5] border-b border-[#e5e5e5] flex items-center gap-2">
+      <Lock className="h-3.5 w-3.5 text-[#999] flex-shrink-0" />
+      <span className="text-xs text-[#666]">This conversation is closed. Looking for a dentist? <Link href="/intake" className="underline text-teal-600 hover:text-teal-700">Start a new search</Link> to get matched with clinics.</span>
+    </div>
+  )
+
+  // ── Tab bar component ──────────────────────────────────────────
+  const TabBar = ({ className = "" }: { className?: string }) => (
+    <div className={`flex border-b border-[#e5e5e5] ${className}`}>
+      {(["active", "booked", "closed"] as TabFilter[]).map((tab) => (
+        <button
+          key={tab}
+          onClick={() => {
+            setActiveTab(tab)
+            setSelectedConversation(null)
+          }}
+          className={`flex-1 px-3 py-2.5 text-xs font-medium transition-colors relative ${
+            activeTab === tab
+              ? "text-foreground"
+              : "text-[#999] hover:text-[#666]"
+          }`}
+        >
+          {tab === "active" ? "Active" : tab === "booked" ? "Booked" : "Closed"}
+          {tabCounts[tab] > 0 && (
+            <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full ${
+              activeTab === tab ? "bg-[#1a1a1a] text-white" : "bg-[#eee] text-[#666]"
+            }`}>
+              {tabCounts[tab]}
+            </span>
+          )}
+          {activeTab === tab && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1a1a1a]" />
+          )}
+        </button>
+      ))}
+    </div>
+  )
+
+  // ── Action menu component ──────────────────────────────────────
+  const ActionMenu = ({ compact = false }: { compact?: boolean }) => {
+    if (!selectedConversation || isClosed) return null
+    const isMuted = selectedConversation.muted_by_patient
+
+    return (
+      <div className="relative" ref={actionMenuRef}>
+        <button
+          onClick={() => setShowActionMenu(!showActionMenu)}
+          className="p-1.5 text-[#666] hover:text-foreground hover:bg-[#f5f5f5] rounded-full transition-colors"
+          disabled={isUpdatingState}
+        >
+          {isUpdatingState ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <MoreVertical className="h-4 w-4" />
+          )}
+        </button>
+
+        {showActionMenu && (
+          <div className={`absolute ${compact ? "right-0" : "right-0"} top-full mt-1 w-52 bg-white rounded-lg shadow-lg border border-[#e5e5e5] py-1 z-50`}>
+            <button
+              onClick={() => {
+                setShowActionMenu(false)
+                setShowCloseConfirm(true)
+              }}
+              className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-[#f5f5f5] flex items-center gap-2.5 transition-colors"
+            >
+              <XCircle className="h-4 w-4 text-red-500" />
+              Close conversation
+            </button>
+            <button
+              onClick={() => handleConversationAction(isMuted ? "unmute" : "mute")}
+              className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-[#f5f5f5] flex items-center gap-2.5 transition-colors"
+            >
+              {isMuted ? (
+                <>
+                  <Bell className="h-4 w-4 text-[#666]" />
+                  Unmute notifications
+                </>
+              ) : (
+                <>
+                  <BellOff className="h-4 w-4 text-[#666]" />
+                  Mute notifications
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   // ── Loading state ────────────────────────────────────────────────
   if (isLoading) {
@@ -356,19 +598,29 @@ export default function PatientMessagesPage() {
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="flex-shrink-0 h-9 w-9 rounded-full bg-primary flex items-center justify-center">
               <span className="text-white text-sm font-semibold">
                 {getClinicInitial(selectedConversation.clinics?.name)}
               </span>
             </div>
-            <div className="min-w-0">
-              <span className="font-semibold text-foreground text-sm truncate block">
-                {selectedConversation.clinics?.name || "Clinic"}
-              </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="font-semibold text-foreground text-sm truncate">
+                  {selectedConversation.clinics?.name || "Clinic"}
+                </span>
+                <StateBadge state={selectedConversation.conversation_state} />
+                {selectedConversation.muted_by_patient && (
+                  <BellOff className="h-3 w-3 text-[#999] flex-shrink-0" />
+                )}
+              </div>
             </div>
           </div>
+          <ActionMenu compact />
         </div>
+
+        {/* Closed banner */}
+        {isClosed && <ClosedBanner />}
 
         {/* Appointment banner */}
         {bookingInfo.date && (
@@ -394,7 +646,7 @@ export default function PatientMessagesPage() {
         </div>
 
         {/* Typing indicator */}
-        {clinicTyping && (
+        {clinicTyping && !isClosed && (
           <div className="px-3 py-1.5 bg-white">
             <div className="flex items-center gap-2 text-[11px] text-[#999]">
               <span className="flex gap-0.5">
@@ -414,40 +666,67 @@ export default function PatientMessagesPage() {
           </div>
         )}
 
-        {/* Input */}
-        <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white overflow-hidden">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => {
-                setNewMessage(e.target.value)
-                sendTyping()
-                if (error) setError(null)
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault()
-                  handleSend(e)
-                }
-              }}
-              placeholder="Type a message..."
-              className="flex-1 min-w-0 text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
-              disabled={isSending}
-            />
-            <button
-              type="submit"
-              disabled={!newMessage.trim() || isSending}
-              className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#333] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {isSending ? (
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-        </form>
+        {/* Input — hidden when closed */}
+        {!isClosed && (
+          <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white overflow-hidden">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => {
+                  setNewMessage(e.target.value)
+                  sendTyping()
+                  if (error) setError(null)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSend(e)
+                  }
+                }}
+                placeholder="Type a message..."
+                className="flex-1 min-w-0 text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
+                disabled={isSending}
+              />
+              <button
+                type="submit"
+                disabled={!newMessage.trim() || isSending}
+                className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#333] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isSending ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Close conversation confirmation dialog */}
+        <AlertDialog open={showCloseConfirm} onOpenChange={setShowCloseConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Close this conversation?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently close the conversation with{" "}
+                <span className="font-medium text-foreground">
+                  {selectedConversation?.clinics?.name || "this clinic"}
+                </span>
+                . You won&apos;t be able to send or receive new messages. This can&apos;t be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleConversationAction("closed")}
+                className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              >
+                Close conversation
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     )
   }
@@ -479,6 +758,9 @@ export default function PatientMessagesPage() {
           </button>
         </div>
 
+        {/* Tabs */}
+        <TabBar />
+
         {error && !isLoading && conversations.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
             <MessageCircle className="h-10 w-10 text-red-300 mb-2" />
@@ -490,21 +772,29 @@ export default function PatientMessagesPage() {
               Try again
             </button>
           </div>
-        ) : conversations.length === 0 ? (
+        ) : filteredConversations.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
             <MessageCircle className="h-10 w-10 text-[#ccc] mb-2" />
-            <p className="text-[#666] font-medium">No conversations yet</p>
-            <p className="text-sm text-[#999] mt-1">
-              Message a clinic from your match results to start chatting.
+            <p className="text-[#666] font-medium">
+              {activeTab === "active" && conversations.length === 0
+                ? "No conversations yet"
+                : `No ${activeTab} conversations`}
             </p>
-            <Link href="/patient/dashboard" className="mt-4 text-sm text-primary hover:underline">
-              Go to dashboard
-            </Link>
+            {activeTab === "active" && conversations.length === 0 && (
+              <>
+                <p className="text-sm text-[#999] mt-1">
+                  Message a clinic from your match results to start chatting.
+                </p>
+                <Link href="/patient/dashboard" className="mt-4 text-sm text-primary hover:underline">
+                  Go to dashboard
+                </Link>
+              </>
+            )}
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto">
             <div className="divide-y divide-[#f0f0f0]">
-              {conversations.map((conv) => (
+              {filteredConversations.map((conv) => (
                 <button
                   key={conv.id}
                   onClick={() => selectConversation(conv)}
@@ -520,9 +810,12 @@ export default function PatientMessagesPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className={`text-[15px] truncate ${conv.unread_by_patient ? "font-semibold text-foreground" : "font-medium text-foreground"}`}>
-                          {conv.clinics?.name || "Clinic"}
-                        </p>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <p className={`text-[15px] truncate ${conv.unread_by_patient ? "font-semibold text-foreground" : "font-medium text-foreground"}`}>
+                            {conv.clinics?.name || "Clinic"}
+                          </p>
+                          {conv.muted_by_patient && <BellOff className="h-3 w-3 text-[#ccc] flex-shrink-0" />}
+                        </div>
                         <span className="text-[11px] text-[#999] flex-shrink-0 ml-2">
                           {formatTime(conv.last_message_at)}
                         </span>
@@ -686,51 +979,64 @@ export default function PatientMessagesPage() {
           <div className="grid grid-cols-[380px_1fr] gap-6">
             {/* Conversation List */}
             <div className="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden">
+              {/* Tabs */}
+              <TabBar />
+
               <div className="divide-y divide-[#e5e5e5]">
-                {conversations.map((conv) => (
-                  <button
-                    key={conv.id}
-                    onClick={() => selectConversation(conv)}
-                    className={`w-full p-4 text-left hover:bg-[#fafafa] transition-colors ${
-                      selectedConversation?.id === conv.id ? "bg-[#f5f3ff]" : ""
-                    } ${conv.unread_by_patient ? "bg-[#f8f5ff]" : ""}`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary flex items-center justify-center">
-                        <span className="text-white text-sm font-semibold">
-                          {getClinicInitial(conv.clinics?.name)}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="font-semibold text-foreground text-sm truncate">
-                            {conv.clinics?.name || "Clinic"}
-                          </p>
-                          <span className="text-[10px] text-[#999] flex-shrink-0 ml-2">
-                            {formatTime(conv.last_message_at)}
+                {filteredConversations.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <MessageCircle className="h-8 w-8 text-[#ddd] mx-auto mb-2" />
+                    <p className="text-sm text-[#999]">No {activeTab} conversations</p>
+                  </div>
+                ) : (
+                  filteredConversations.map((conv) => (
+                    <button
+                      key={conv.id}
+                      onClick={() => selectConversation(conv)}
+                      className={`w-full p-4 text-left hover:bg-[#fafafa] transition-colors ${
+                        selectedConversation?.id === conv.id ? "bg-[#f5f3ff]" : ""
+                      } ${conv.unread_by_patient ? "bg-[#f8f5ff]" : ""}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary flex items-center justify-center">
+                          <span className="text-white text-sm font-semibold">
+                            {getClinicInitial(conv.clinics?.name)}
                           </span>
                         </div>
-                        {conv.latest_message && (
-                          <p className="text-xs text-[#666] truncate mt-1">
-                            {conv.latest_message_sender === "patient" ? "You: " : ""}
-                            {conv.latest_message}
-                          </p>
-                        )}
-                      </div>
-                      {conv.unread_by_patient && (
-                        <div className="flex-shrink-0 mt-1">
-                          {(conv.unread_count_patient || 0) > 0 ? (
-                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1.5">
-                              {conv.unread_count_patient}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <p className="font-semibold text-foreground text-sm truncate">
+                                {conv.clinics?.name || "Clinic"}
+                              </p>
+                              {conv.muted_by_patient && <BellOff className="h-3 w-3 text-[#ccc] flex-shrink-0" />}
+                            </div>
+                            <span className="text-[10px] text-[#999] flex-shrink-0 ml-2">
+                              {formatTime(conv.last_message_at)}
                             </span>
-                          ) : (
-                            <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                          </div>
+                          {conv.latest_message && (
+                            <p className="text-xs text-[#666] truncate mt-1">
+                              {conv.latest_message_sender === "patient" ? "You: " : ""}
+                              {conv.latest_message}
+                            </p>
                           )}
                         </div>
-                      )}
-                    </div>
-                  </button>
-                ))}
+                        {conv.unread_by_patient && (
+                          <div className="flex-shrink-0 mt-1">
+                            {(conv.unread_count_patient || 0) > 0 ? (
+                              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1.5">
+                                {conv.unread_count_patient}
+                              </span>
+                            ) : (
+                              <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
 
@@ -751,12 +1057,22 @@ export default function PatientMessagesPage() {
                         {getClinicInitial(selectedConversation.clinics?.name)}
                       </span>
                     </div>
-                    <div>
-                      <span className="font-semibold text-foreground">
-                        {selectedConversation.clinics?.name || "Clinic"}
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-foreground">
+                          {selectedConversation.clinics?.name || "Clinic"}
+                        </span>
+                        <StateBadge state={selectedConversation.conversation_state} />
+                        {selectedConversation.muted_by_patient && (
+                          <BellOff className="h-3.5 w-3.5 text-[#999]" />
+                        )}
+                      </div>
                     </div>
+                    <ActionMenu />
                   </div>
+
+                  {/* Closed banner */}
+                  {isClosed && <ClosedBanner />}
 
                   {/* Desktop appointment banner */}
                   {bookingInfo.date && (
@@ -782,7 +1098,7 @@ export default function PatientMessagesPage() {
                   </div>
 
                   {/* Typing indicator */}
-                  {clinicTyping && (
+                  {clinicTyping && !isClosed && (
                     <div className="px-4 py-1.5 bg-white">
                       <div className="flex items-center gap-2 text-[11px] text-[#999]">
                         <span className="flex gap-0.5">
@@ -802,46 +1118,73 @@ export default function PatientMessagesPage() {
                     </div>
                   )}
 
-                  {/* Input */}
-                  <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 bg-white overflow-hidden">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={newMessage}
-                        onChange={(e) => {
-                          setNewMessage(e.target.value)
-                          sendTyping()
-                          if (error) setError(null)
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault()
-                            handleSend(e)
-                          }
-                        }}
-                        placeholder="Type a message..."
-                        className="flex-1 min-w-0 text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
-                        disabled={isSending}
-                      />
-                      <button
-                        type="submit"
-                        disabled={!newMessage.trim() || isSending}
-                        className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#333] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        {isSending ? (
-                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                        ) : (
-                          <Send className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </form>
+                  {/* Input — hidden when closed */}
+                  {!isClosed ? (
+                    <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 bg-white overflow-hidden">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={newMessage}
+                          onChange={(e) => {
+                            setNewMessage(e.target.value)
+                            sendTyping()
+                            if (error) setError(null)
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault()
+                              handleSend(e)
+                            }
+                          }}
+                          placeholder="Type a message..."
+                          className="flex-1 min-w-0 text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/20 focus:border-[#1a1a1a] bg-white"
+                          disabled={isSending}
+                        />
+                        <button
+                          type="submit"
+                          disabled={!newMessage.trim() || isSending}
+                          className="flex-shrink-0 h-10 w-10 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#333] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {isSending ? (
+                            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                          ) : (
+                            <Send className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  ) : null}
                 </>
               )}
             </div>
           </div>
         )}
       </main>
+
+      {/* Close conversation confirmation dialog */}
+      <AlertDialog open={showCloseConfirm} onOpenChange={setShowCloseConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close this conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently close the conversation with{" "}
+              <span className="font-medium text-foreground">
+                {selectedConversation?.clinics?.name || "this clinic"}
+              </span>
+              . You won&apos;t be able to send or receive new messages. This can&apos;t be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleConversationAction("closed")}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Close conversation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { MessageCircle, Send, Loader2, ArrowLeft, User, Clock, Heart, Check, CheckCheck } from "lucide-react"
+import { MessageCircle, Send, Loader2, ArrowLeft, User, Clock, Heart, Check, CheckCheck, CalendarCheck, Lock, AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase/client"
@@ -27,6 +27,9 @@ function authHeaders(token: string | null): HeadersInit {
   return token ? { "Authorization": `Bearer ${token}` } : {}
 }
 
+type ConversationState = "open" | "booked" | "closed"
+type TabFilter = "active" | "booked" | "closed"
+
 interface Conversation {
   id: string
   lead_id: string
@@ -34,6 +37,10 @@ interface Conversation {
   last_message_at: string
   unread_by_clinic: boolean
   unread_count_clinic?: number
+  conversation_state?: ConversationState
+  booked_at?: string | null
+  closed_at?: string | null
+  closed_reason?: string | null
   lead?: {
     first_name: string
     last_name: string
@@ -67,6 +74,10 @@ export default function ClinicInboxPage() {
   const [clinicId, setClinicId] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const prevUnreadCountRef = useRef<number>(0)
+  const [replyError, setReplyError] = useState<string | null>(null)
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<TabFilter>("active")
 
   // ── Realtime: messages in the active conversation ──────────────
   const handleNewMessage = useCallback((msg: RealtimeMessage) => {
@@ -92,7 +103,6 @@ export default function ClinicInboxPage() {
 
   // ── Realtime: conversations list updates ───────────────────────
   const handleConversationUpdate = useCallback(() => {
-    // Re-fetch conversations list when any conversation changes
     fetchConversations()
   }, [])
 
@@ -123,6 +133,22 @@ export default function ClinicInboxPage() {
     }
   }, [messages])
 
+  // ── Filter conversations by tab ────────────────────────────────
+  const filteredConversations = conversations.filter((conv) => {
+    const state = conv.conversation_state || "open"
+    if (activeTab === "active") return state === "open"
+    if (activeTab === "booked") return state === "booked"
+    return state === "closed"
+  })
+
+  const tabCounts = {
+    active: conversations.filter((c) => (c.conversation_state || "open") === "open").length,
+    booked: conversations.filter((c) => c.conversation_state === "booked").length,
+    closed: conversations.filter((c) => c.conversation_state === "closed").length,
+  }
+
+  const isClosed = selectedConversation?.conversation_state === "closed"
+
   // ── Data fetching ──────────────────────────────────────────────
   const fetchConversations = async () => {
     try {
@@ -134,7 +160,6 @@ export default function ClinicInboxPage() {
         const data = await response.json()
         const convs = data.conversations || []
 
-        // Get clinicId for Realtime subscription
         if (convs.length > 0 && !clinicId) {
           const idRes = await fetch("/api/clinic/me", { headers: authHeaders(token) })
           if (idRes.ok) {
@@ -186,6 +211,7 @@ export default function ClinicInboxPage() {
   const selectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation)
     setIsLoadingMessages(true)
+    setReplyError(null)
 
     try {
       const token = await getAccessToken()
@@ -196,7 +222,6 @@ export default function ClinicInboxPage() {
       if (response.ok) {
         const data = await response.json()
         setMessages(data.messages || [])
-        // Mark as read locally
         setConversations((prev) =>
           prev.map((c) =>
             c.id === conversation.id
@@ -214,9 +239,10 @@ export default function ClinicInboxPage() {
 
   const sendReply = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedConversation || !newMessage.trim() || isSending) return
+    if (!selectedConversation || !newMessage.trim() || isSending || isClosed) return
 
     setIsSending(true)
+    setReplyError(null)
     try {
       const token = await getAccessToken()
       const response = await fetch("/api/chat/clinic-reply", {
@@ -235,9 +261,19 @@ export default function ClinicInboxPage() {
           : [data.message]
         setMessages((prev) => [...prev, ...newMsgs])
         setNewMessage("")
+      } else {
+        const errData = await response.json().catch(() => ({}))
+        if (response.status === 403) {
+          setReplyError(errData.error || "This conversation is closed.")
+        } else if (response.status === 429) {
+          setReplyError(errData.error || "Too many messages. Please slow down.")
+        } else {
+          setReplyError(errData.error || "Failed to send message.")
+        }
       }
     } catch (error) {
       console.error("[Inbox] Failed to send reply:", error)
+      setReplyError("Failed to send message. Please try again.")
     } finally {
       setIsSending(false)
     }
@@ -268,8 +304,26 @@ export default function ClinicInboxPage() {
     if (status === "delivered") {
       return <CheckCheck className="h-3 w-3 text-teal-200" />
     }
-    // read
     return <CheckCheck className="h-3 w-3 text-white" />
+  }
+
+  // ── State badge for conversation list ──────────────────────────
+  const ConvStateBadge = ({ state }: { state?: ConversationState }) => {
+    if (!state || state === "open") return null
+    if (state === "booked") {
+      return (
+        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-emerald-50 text-emerald-700 border-emerald-200">
+          <CalendarCheck className="h-2.5 w-2.5 mr-0.5" />
+          Booked
+        </Badge>
+      )
+    }
+    return (
+      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-neutral-100 text-neutral-500 border-neutral-200">
+        <Lock className="h-2.5 w-2.5 mr-0.5" />
+        Closed
+      </Badge>
+    )
   }
 
   if (isLoading) {
@@ -297,7 +351,7 @@ export default function ClinicInboxPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Conversations List */}
         <Card className="lg:col-span-1 h-[600px] flex flex-col">
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-0">
             <CardTitle className="text-lg flex items-center gap-2">
               <MessageCircle className="h-5 w-5" />
               Conversations
@@ -308,19 +362,56 @@ export default function ClinicInboxPage() {
               )}
             </CardTitle>
           </CardHeader>
+
+          {/* Tabs */}
+          <div className="flex border-b mx-6 mt-3">
+            {(["active", "booked", "closed"] as TabFilter[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => {
+                  setActiveTab(tab)
+                  setSelectedConversation(null)
+                }}
+                className={cn(
+                  "flex-1 px-2 py-2 text-xs font-medium transition-colors relative",
+                  activeTab === tab ? "text-foreground" : "text-neutral-400 hover:text-neutral-600"
+                )}
+              >
+                {tab === "active" ? "Active" : tab === "booked" ? "Booked" : "Closed"}
+                {tabCounts[tab] > 0 && (
+                  <span className={cn(
+                    "ml-1 text-[10px] px-1.5 py-0.5 rounded-full",
+                    activeTab === tab ? "bg-teal-600 text-white" : "bg-neutral-100 text-neutral-500"
+                  )}>
+                    {tabCounts[tab]}
+                  </span>
+                )}
+                {activeTab === tab && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-600" />
+                )}
+              </button>
+            ))}
+          </div>
+
           <CardContent className="flex-1 overflow-hidden p-0">
             <ScrollArea className="h-full">
-              {conversations.length === 0 ? (
+              {filteredConversations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-neutral-500 p-6">
                   <MessageCircle className="h-12 w-12 mb-3 text-neutral-300" />
-                  <p className="text-center">No conversations yet</p>
-                  <p className="text-sm text-center">
-                    Messages from patients will appear here
+                  <p className="text-center">
+                    {conversations.length === 0
+                      ? "No conversations yet"
+                      : `No ${activeTab} conversations`}
                   </p>
+                  {conversations.length === 0 && (
+                    <p className="text-sm text-center">
+                      Messages from patients will appear here
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className="divide-y">
-                  {conversations.map((conv) => (
+                  {filteredConversations.map((conv) => (
                     <button
                       key={conv.id}
                       onClick={() => selectConversation(conv)}
@@ -390,17 +481,30 @@ export default function ClinicInboxPage() {
                   <div className="h-10 w-10 rounded-full bg-neutral-200 flex items-center justify-center">
                     <User className="h-5 w-5 text-neutral-500" />
                   </div>
-                  <div>
-                    <p className="font-medium">
-                      {selectedConversation.lead?.first_name}{" "}
-                      {selectedConversation.lead?.last_name}
-                    </p>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">
+                        {selectedConversation.lead?.first_name}{" "}
+                        {selectedConversation.lead?.last_name}
+                      </p>
+                      <ConvStateBadge state={selectedConversation.conversation_state} />
+                    </div>
                     <p className="text-sm text-neutral-500">
                       {selectedConversation.lead?.email}
                     </p>
                   </div>
                 </div>
               </CardHeader>
+
+              {/* Closed banner */}
+              {isClosed && (
+                <div className="px-4 py-2.5 bg-neutral-50 border-b flex items-center gap-2">
+                  <Lock className="h-3.5 w-3.5 text-neutral-400" />
+                  <span className="text-xs text-neutral-500">
+                    This conversation is closed. No further messages can be sent.
+                  </span>
+                </div>
+              )}
 
               {/* Messages */}
               <CardContent className="flex-1 overflow-hidden p-0">
@@ -488,7 +592,7 @@ export default function ClinicInboxPage() {
               </CardContent>
 
               {/* Typing indicator */}
-              {patientTyping && (
+              {patientTyping && !isClosed && (
                 <div className="px-4 py-2 border-t">
                   <div className="flex items-center gap-2 text-xs text-neutral-400">
                     <span className="flex gap-0.5">
@@ -501,32 +605,43 @@ export default function ClinicInboxPage() {
                 </div>
               )}
 
-              {/* Reply Input */}
-              <div className="border-t p-4">
-                <form onSubmit={sendReply} className="flex gap-2">
-                  <Input
-                    value={newMessage}
-                    onChange={(e) => {
-                      setNewMessage(e.target.value)
-                      sendTyping()
-                    }}
-                    placeholder="Type your reply..."
-                    className="flex-1"
-                    disabled={isSending}
-                  />
-                  <Button
-                    type="submit"
-                    disabled={!newMessage.trim() || isSending}
-                    className="bg-teal-600 hover:bg-teal-700"
-                  >
-                    {isSending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4" />
-                    )}
-                  </Button>
-                </form>
-              </div>
+              {/* Reply error */}
+              {replyError && (
+                <div className="px-4 py-2 bg-amber-50 border-t border-amber-100 flex items-center gap-2">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+                  <p className="text-xs text-amber-700">{replyError}</p>
+                </div>
+              )}
+
+              {/* Reply Input — hidden when closed */}
+              {!isClosed && (
+                <div className="border-t p-4">
+                  <form onSubmit={sendReply} className="flex gap-2">
+                    <Input
+                      value={newMessage}
+                      onChange={(e) => {
+                        setNewMessage(e.target.value)
+                        sendTyping()
+                        if (replyError) setReplyError(null)
+                      }}
+                      placeholder="Type your reply..."
+                      className="flex-1"
+                      disabled={isSending}
+                    />
+                    <Button
+                      type="submit"
+                      disabled={!newMessage.trim() || isSending}
+                      className="bg-teal-600 hover:bg-teal-700"
+                    >
+                      {isSending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </form>
+                </div>
+              )}
             </>
           )}
         </Card>

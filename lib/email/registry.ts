@@ -435,7 +435,10 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     defaultSubject: (data) => `${data.clinicName} has replied to your message`,
     payloadSchema: clinicReplySchema,
     generateHtml: renderClinicReplyToPatientEmail,
-    idempotencyKey: (data) => `clinic_reply:${data._conversationId}:${hourBucket()}`,
+    // Keyed by conversation + notification cycle number so each cycle can send exactly one email.
+    // The grouping logic in clinic-reply decides *whether* to call sendRegisteredEmail at all;
+    // this key prevents true duplicates from retries within the same cycle.
+    idempotencyKey: (data) => `clinic_reply:${data._conversationId}:cycle_${data._notificationCycle ?? 0}`,
   },
 
   // --- Appointment Lifecycle (to patient) ---

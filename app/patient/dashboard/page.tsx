@@ -70,6 +70,7 @@ interface Conversation {
   latest_message?: string | null
   latest_message_sender?: string | null
   appointment_requested_at?: string | null
+  conversation_state?: "open" | "booked" | "closed"
 }
 
 interface DashboardData {
@@ -210,6 +211,7 @@ export default function PatientDashboard() {
   } | null>(null)
 
   const selectedConv = inboxConversations.find((c) => c.id === selectedConvId) || null
+  const isClosed = selectedConv?.conversation_state === "closed"
 
   // Derived: selected clinic and other clinics
   const selectedClinic = allClinics.find((c) => c.id === selectedClinicId) || null
@@ -310,7 +312,7 @@ export default function PatientDashboard() {
     }
   }
 
-  async function fetchInbox() {
+  async function fetchInbox(opts?: { skipAutoSelect?: boolean }) {
     try {
       const res = await fetch("/api/patient/conversations")
       if (res.ok) {
@@ -318,12 +320,21 @@ export default function PatientDashboard() {
         setInboxConversations(conversations || [])
 
         // Auto-select: most recent unread, or first conversation
-        if (!selectedConvId && conversations?.length > 0) {
+        // Skip when called after creating a new conversation (selectedConvId
+        // was just set synchronously but this closure still sees the old value).
+        if (!opts?.skipAutoSelect && !selectedConvId && conversations?.length > 0) {
           const firstUnread = conversations.find((c: Conversation) => c.unread_by_patient)
           setSelectedConvId(firstUnread?.id || conversations[0].id)
         }
+      } else if (res.status === 401) {
+        // Session expired — redirect to login
+        router.replace("/patient/login?next=/patient/dashboard")
+      } else {
+        console.warn("[Dashboard] fetchInbox failed:", res.status)
       }
-    } catch {}
+    } catch (err) {
+      console.warn("[Dashboard] fetchInbox error:", err)
+    }
   }
 
   // ── Conversation messages ────────────────────────────────────
@@ -518,11 +529,16 @@ export default function PatientDashboard() {
     return () => clearInterval(interval)
   }, [])
 
+  // Re-fetch inbox when mobile inbox list opens to ensure fresh data
+  useEffect(() => {
+    if (mobileInboxListOpen) fetchInbox()
+  }, [mobileInboxListOpen])
+
   // ── Send message ─────────────────────────────────────────────
 
   async function handleSend(e?: React.FormEvent) {
     e?.preventDefault()
-    if (!newMessage.trim() || isSending) return
+    if (!newMessage.trim() || isSending || isClosed) return
 
     // Determine clinicId and leadId for the send request.
     // Either from an existing conversation or from a pending chat.
@@ -579,8 +595,10 @@ export default function PatientDashboard() {
           skipNextConvFetch.current = true
           setSelectedConvId(newConvId)
 
-          // Re-fetch inbox to include the new conversation
-          fetchInbox()
+          // Re-fetch inbox to include the new conversation.
+          // skipAutoSelect: the closure still sees the old selectedConvId (null),
+          // so auto-select would override the newConvId we just set.
+          fetchInbox({ skipAutoSelect: true })
         }
 
         // Update inbox preview for existing conversations
@@ -628,6 +646,13 @@ export default function PatientDashboard() {
         const errData = await res.json().catch(() => ({}))
         if (res.status === 401) {
           setChatError("Your session has expired. Please log in again to continue chatting.")
+        } else if (res.status === 403 && errData.reason === "conversation_closed") {
+          // Update local state so banner shows and composer hides
+          setInboxConversations((prev) =>
+            prev.map((c) =>
+              c.id === selectedConv?.id ? { ...c, conversation_state: "closed" as const } : c
+            )
+          )
         } else if (res.status === 403) {
           setChatError("Please verify your email before sending messages.")
         } else if (res.status === 429) {
@@ -792,7 +817,7 @@ export default function PatientDashboard() {
           skipNextConvFetch.current = true
           setSelectedConvId(convId)
           setPendingChatClinic(null)
-          fetchInbox()
+          fetchInbox({ skipAutoSelect: true })
         }
 
         // Update local lead data so booking status shows immediately
@@ -1314,7 +1339,9 @@ export default function PatientDashboard() {
                     )}
                     <div className="min-w-0">
                       <p className="font-semibold text-foreground text-sm truncate leading-tight">{chatHeaderName || "Clinic"}</p>
-                      <p className="text-[10px] text-primary font-medium leading-tight">Chatting now</p>
+                      <p className={`text-[10px] font-medium leading-tight ${isClosed ? "text-muted-foreground" : "text-primary"}`}>
+                        {isClosed ? "Conversation closed" : "Chatting now"}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1404,8 +1431,15 @@ export default function PatientDashboard() {
                   )}
                 </div>
 
+                {/* Closed conversation banner */}
+                {isClosed && (
+                  <div className="px-4 py-3 border-t border-border/40 flex-shrink-0 bg-muted/50">
+                    <p className="text-xs text-muted-foreground text-center">This conversation has been closed. Looking for a dentist? <Link href="/intake" className="underline text-primary hover:text-primary/80">Start a new search</Link> to get matched with clinics.</p>
+                  </div>
+                )}
+
                 {/* Quick prompts — show until a couple of messages exchanged */}
-                {messages.length <= 2 && (
+                {!isClosed && messages.length <= 2 && (
                 <div className="flex gap-1.5 px-4 py-2 overflow-x-auto flex-shrink-0 border-t border-border/40">
                   {QUICK_PROMPTS.map((prompt) => (
                     <button
@@ -1435,7 +1469,8 @@ export default function PatientDashboard() {
                   </div>
                 )}
 
-                {/* Composer */}
+                {/* Composer — hidden when conversation is closed */}
+                {!isClosed && (
                 <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/40 flex-shrink-0">
                   <Input
                     value={newMessage}
@@ -1453,6 +1488,7 @@ export default function PatientDashboard() {
                     {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
                 </form>
+                )}
               </>
             )}
           </div>
@@ -1484,7 +1520,9 @@ export default function PatientDashboard() {
                 )}
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate text-left">{chatHeaderName || "Clinic"}</p>
-                  <p className="text-[11px] text-primary font-medium">Chatting now</p>
+                  <p className={`text-[11px] font-medium ${isClosed ? "text-muted-foreground" : "text-primary"}`}>
+                    {isClosed ? "Conversation closed" : "Chatting now"}
+                  </p>
                 </div>
               </div>
               <button
@@ -1589,8 +1627,15 @@ export default function PatientDashboard() {
             )}
           </div>
 
+          {/* Closed conversation banner (mobile) */}
+          {isClosed && (
+            <div className="px-3 py-3 border-t border-border/30 flex-shrink-0 bg-muted/50">
+              <p className="text-xs text-muted-foreground text-center">This conversation has been closed. Looking for a dentist? <Link href="/intake" className="underline text-primary hover:text-primary/80">Start a new search</Link> to get matched with clinics.</p>
+            </div>
+          )}
+
           {/* Quick prompts — show until a couple of messages exchanged */}
-          {messages.length <= 2 && (
+          {!isClosed && messages.length <= 2 && (
             <div className="flex gap-2 px-3 py-2.5 overflow-x-auto flex-shrink-0 border-t border-border/30 bg-card">
               {QUICK_PROMPTS.map((prompt) => (
                 <button
@@ -1620,7 +1665,8 @@ export default function PatientDashboard() {
             </div>
           )}
 
-          {/* Composer — flex-shrink-0 at bottom, safe area padding */}
+          {/* Composer — hidden when conversation is closed */}
+          {!isClosed && (
           <form
             onSubmit={handleSend}
             className="flex items-center gap-2 px-3 py-3 border-t border-border/30 flex-shrink-0 bg-card"
@@ -1642,6 +1688,7 @@ export default function PatientDashboard() {
               {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </Button>
           </form>
+          )}
         </div>
       )}
 

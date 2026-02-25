@@ -35,16 +35,44 @@ export async function GET() {
     const leadIds = leads.map((l) => l.id)
 
     // Get conversations with clinic details
-    const { data: conversations, error: convsError } = await admin
+    // Try with conversation_state columns first; fall back without them if migration not yet applied
+    let conversations: any[] | null = null
+    let convsError: any = null
+
+    const fullSelect = `
+      id, clinic_id, lead_id, status, last_message_at,
+      unread_by_patient, unread_count_patient,
+      appointment_requested_at,
+      conversation_state, booked_at, closed_at, closed_reason, muted_by_patient,
+      clinics:clinic_id (id, name, images)
+    `
+    const baseSelect = `
+      id, clinic_id, lead_id, status, last_message_at,
+      unread_by_patient, unread_count_patient,
+      appointment_requested_at,
+      clinics:clinic_id (id, name, images)
+    `
+
+    const fullResult = await admin
       .from("conversations")
-      .select(`
-        id, clinic_id, lead_id, status, last_message_at,
-        unread_by_patient, unread_count_patient,
-        appointment_requested_at,
-        clinics:clinic_id (id, name, images)
-      `)
+      .select(fullSelect)
       .in("lead_id", leadIds)
       .order("last_message_at", { ascending: false, nullsFirst: false })
+
+    if (fullResult.error) {
+      // Column likely doesn't exist yet — fall back to base query
+      console.warn("[patient/conversations] Full query failed, falling back:", fullResult.error.message)
+      const baseResult = await admin
+        .from("conversations")
+        .select(baseSelect)
+        .in("lead_id", leadIds)
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+
+      conversations = baseResult.data
+      convsError = baseResult.error
+    } else {
+      conversations = fullResult.data
+    }
 
     if (convsError) {
       console.error("[patient/conversations] Error fetching conversations:", convsError)

@@ -64,6 +64,7 @@ export default function BookingConfirmPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [botTyping, setBotTyping] = useState(false)
   const [loadingMessages, setLoadingMessages] = useState(false)
+  const [conversationClosed, setConversationClosed] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
   // Bot message IDs queued for delayed display
@@ -113,6 +114,10 @@ export default function BookingConfirmPage() {
         // Sync conversationId from API response
         if (data.conversationId && !conversationId) {
           setConversationId(data.conversationId)
+        }
+        // Track closed state
+        if (data.conversationState === "closed") {
+          setConversationClosed(true)
         }
       }
     } catch (err) {
@@ -326,7 +331,7 @@ export default function BookingConfirmPage() {
   // Send message handler
   async function handleSend(e?: React.FormEvent) {
     e?.preventDefault()
-    if (!newMessage.trim() || isSending || !clinicId || !leadId) return
+    if (!newMessage.trim() || isSending || !clinicId || !leadId || conversationClosed) return
 
     setIsSending(true)
     try {
@@ -376,6 +381,11 @@ export default function BookingConfirmPage() {
               }
             }, showAt)
           })
+        }
+      } else if (res.status === 403) {
+        const errData = await res.json().catch(() => ({}))
+        if (errData.reason === "conversation_closed") {
+          setConversationClosed(true)
         }
       }
     } catch (err) {
@@ -561,7 +571,12 @@ export default function BookingConfirmPage() {
                 )}
               </div>
 
-              {/* Composer — always shown; /api/chat/send supports OTP-verified leads */}
+              {/* Closed conversation banner */}
+              {conversationClosed ? (
+                <div className="px-4 py-3 border-t border-border/40 bg-muted/50">
+                  <p className="text-xs text-muted-foreground text-center">This conversation has been closed. Looking for a dentist? <a href="/intake" className="underline text-primary hover:text-primary/80">Start a new search</a> to get matched with clinics.</p>
+                </div>
+              ) : (
               <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/40">
                 <Input
                   value={newMessage}
@@ -579,6 +594,7 @@ export default function BookingConfirmPage() {
                   {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 </Button>
               </form>
+              )}
             </Card>
           )}
 
