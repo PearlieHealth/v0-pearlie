@@ -138,14 +138,27 @@ export async function POST(request: NextRequest) {
     }
 
     // Get or create conversation using limit instead of single to avoid errors
-    const { data: conversations } = await supabase
+    // Try with conversation_state first; fall back without it if migration not yet applied
+    const fullConvQuery = await supabase
       .from("conversations")
       .select("id, bot_greeted, unread_count_clinic, unread_count_patient, conversation_state")
       .eq("lead_id", leadId)
       .eq("clinic_id", clinicId)
       .limit(1)
 
-    let conversation = conversations?.[0] as { id: string; bot_greeted?: boolean; unread_count_clinic?: number; unread_count_patient?: number; conversation_state?: string } | undefined
+    let convData: any[] | null = fullConvQuery.data
+    if (fullConvQuery.error) {
+      console.warn("[Chat] conversation_state column not available, falling back:", fullConvQuery.error.message)
+      const baseConvQuery = await supabase
+        .from("conversations")
+        .select("id, bot_greeted, unread_count_clinic, unread_count_patient")
+        .eq("lead_id", leadId)
+        .eq("clinic_id", clinicId)
+        .limit(1)
+      convData = baseConvQuery.data
+    }
+
+    let conversation = convData?.[0] as { id: string; bot_greeted?: boolean; unread_count_clinic?: number; unread_count_patient?: number; conversation_state?: string } | undefined
 
     // Block messages on closed conversations
     if (conversation?.conversation_state === "closed") {

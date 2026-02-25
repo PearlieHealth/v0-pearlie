@@ -22,23 +22,34 @@ export async function GET(request: NextRequest) {
     }
 
     // Get conversations for this clinic
-    const { data: conversations, error } = await supabaseAdmin
+    // Try with conversation_state columns; fall back without them if migration not yet applied
+    const fullSelect = `
+      id, lead_id, status, last_message_at, unread_by_clinic, unread_count_clinic,
+      created_at, conversation_state, booked_at, closed_at, closed_reason
+    `
+    const baseSelect = `
+      id, lead_id, status, last_message_at, unread_by_clinic, unread_count_clinic, created_at
+    `
+
+    const fullResult = await supabaseAdmin
       .from("conversations")
-      .select(`
-        id,
-        lead_id,
-        status,
-        last_message_at,
-        unread_by_clinic,
-        unread_count_clinic,
-        created_at,
-        conversation_state,
-        booked_at,
-        closed_at,
-        closed_reason
-      `)
+      .select(fullSelect)
       .eq("clinic_id", clinicUser.clinic_id)
       .order("last_message_at", { ascending: false, nullsFirst: false })
+
+    let conversations: any[] | null = fullResult.data
+    let error = fullResult.error
+
+    if (error) {
+      console.warn("[Conversations] conversation_state columns not available, falling back:", error.message)
+      const baseResult = await supabaseAdmin
+        .from("conversations")
+        .select(baseSelect)
+        .eq("clinic_id", clinicUser.clinic_id)
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+      conversations = baseResult.data
+      error = baseResult.error
+    }
 
     if (error) {
       console.error("[Conversations] Failed to fetch:", error)

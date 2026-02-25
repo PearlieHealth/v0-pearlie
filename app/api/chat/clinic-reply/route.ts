@@ -50,11 +50,24 @@ export async function POST(request: NextRequest) {
     clinicReplyLimiter.record(clinicUser.clinic_id)
 
     // Verify conversation belongs to this clinic
-    const { data: conversation, error: convError } = await supabaseAdmin
+    // Try with conversation_state columns; fall back without them if migration not yet applied
+    let convResult = await supabaseAdmin
       .from("conversations")
       .select("id, clinic_id, lead_id, clinic_first_reply_at, unread_count_patient, conversation_state, muted_by_patient, notification_cycles_used, current_notification_cycle_start")
       .eq("id", conversationId)
       .single()
+
+    if (convResult.error && convResult.error.message?.includes("column")) {
+      console.warn("[Chat] conversation_state/muted_by_patient columns not available, falling back:", convResult.error.message)
+      convResult = await supabaseAdmin
+        .from("conversations")
+        .select("id, clinic_id, lead_id, clinic_first_reply_at, unread_count_patient, notification_cycles_used, current_notification_cycle_start")
+        .eq("id", conversationId)
+        .single()
+    }
+
+    const conversation = convResult.data
+    const convError = convResult.error
 
     if (convError || !conversation) {
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 })
