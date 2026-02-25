@@ -72,12 +72,12 @@ export function ClinicNetworkGrid() {
       {clinics.map((clinic) => (
         <div key={clinic.id} className="aspect-square rounded-2xl overflow-hidden bg-gray-200">
           <ClinicImage
-            src={clinic.image || "/placeholder.svg"}
+            src={clinic.image}
             alt={`${clinic.name} dental clinic`}
             width={300}
             height={300}
             className="w-full h-full object-cover"
-            fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
+            fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
           />
         </div>
       ))}

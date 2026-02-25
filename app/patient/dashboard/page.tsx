@@ -1158,7 +1158,7 @@ export default function PatientDashboard() {
                       <div className="flex-shrink-0">
                         {conv.clinics?.images?.[0] ? (
                           <div className="relative w-9 h-9 rounded overflow-hidden bg-muted">
-                            <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full bg-primary flex items-center justify-center" />
+                            <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" />
                           </div>
                         ) : (
                           <div className="w-9 h-9 rounded bg-primary flex items-center justify-center">
@@ -1217,7 +1217,7 @@ export default function PatientDashboard() {
                   <div className="flex items-center gap-2.5 min-w-0">
                     {chatHeaderImage ? (
                       <div className="relative w-8 h-8 rounded overflow-hidden flex-shrink-0 bg-muted ring-1 ring-border/40">
-                        <ClinicImage src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full bg-primary flex items-center justify-center" />
+                        <ClinicImage src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" />
                       </div>
                     ) : (
                       <div className="w-8 h-8 rounded bg-primary flex items-center justify-center flex-shrink-0">
@@ -1499,7 +1499,7 @@ export default function PatientDashboard() {
                       <div className="flex-shrink-0">
                         {conv.clinics?.images?.[0] ? (
                           <div className="relative w-8 h-8 rounded overflow-hidden bg-muted">
-                            <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full bg-primary flex items-center justify-center" />
+                            <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" />
                           </div>
                         ) : (
                           <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
@@ -1636,16 +1636,16 @@ export default function PatientDashboard() {
                       }`}>
                         {clinic.images && clinic.images.length > 0 ? (
                           <ClinicImage
-                            src={clinic.images[0] || "/placeholder.svg"}
+                            src={clinic.images[0]}
                             alt={clinic.name}
                             fill
                             className="object-cover w-full h-full"
-                            fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
+                            fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
                             sizes="(min-width: 1024px) 150px, 110px"
                           />
                         ) : (
-                          <div className="w-full h-full bg-muted flex items-center justify-center">
-                            <span className="text-foreground text-xl font-bold">{clinic.name.charAt(0)}</span>
+                          <div className="w-full h-full bg-[#004443] flex items-center justify-center">
+                            <span className="text-white text-xl font-bold">{clinic.name.charAt(0)}</span>
                           </div>
                         )}
                         {/* Match % badge */}
@@ -1760,7 +1760,7 @@ export default function PatientDashboard() {
               <div className="flex items-center gap-2.5 min-w-0">
                 {chatHeaderImage ? (
                   <div className="relative w-9 h-9 rounded overflow-hidden flex-shrink-0 bg-muted ring-1 ring-border/40">
-                    <ClinicImage src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full bg-primary flex items-center justify-center" />
+                    <ClinicImage src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" />
                   </div>
                 ) : (
                   <div className="w-9 h-9 rounded bg-primary flex items-center justify-center flex-shrink-0">
@@ -2054,7 +2054,7 @@ export default function PatientDashboard() {
                     <div className="flex-shrink-0">
                       {conv.clinics?.images?.[0] ? (
                         <div className="relative w-9 h-9 rounded overflow-hidden bg-muted">
-                          <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full bg-primary flex items-center justify-center" />
+                          <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" />
                         </div>
                       ) : (
                         <div className="w-9 h-9 rounded bg-primary flex items-center justify-center">

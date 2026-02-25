@@ -49,7 +49,7 @@ export function OtherClinicCard({ clinic, isSelected, onClick }: OtherClinicCard
               width={48}
               height={48}
               className="rounded object-cover w-[40px] h-[40px] sm:w-[48px] sm:h-[48px]"
-              fallbackClassName="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] bg-muted rounded flex items-center justify-center"
+              fallbackClassName="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] rounded flex items-center justify-center bg-[#004443]"
             />
           ) : (
             <div className="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] bg-muted rounded flex items-center justify-center">

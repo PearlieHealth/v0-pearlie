@@ -47,7 +47,7 @@ export function OfferCard({ offer, matchId, onClickOffer }: OfferCardProps) {
     <Card className="flex-shrink-0 w-[280px] overflow-hidden hover:shadow-lg transition-shadow">
       {clinicImage && (
         <div className="relative h-40 w-full bg-muted">
-          <ClinicImage src={clinicImage} alt={clinic.name} fill className="object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-muted" sizes="280px" />
+          <ClinicImage src={clinicImage} alt={clinic.name} fill className="object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" sizes="280px" />
         </div>
       )}
       <div className="p-4 space-y-3">

@@ -486,7 +486,7 @@ export default function BookingConfirmPage() {
               <div className="px-4 py-3 border-b border-border/40 bg-card flex items-center gap-3">
                 {clinic?.images?.[0] ? (
                   <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-muted ring-1 ring-border flex-shrink-0">
-                    <ClinicImage src={clinic.images[0]} alt={clinic.name} fill className="object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-primary" sizes="36px" />
+                    <ClinicImage src={clinic.images[0]} alt={clinic.name} fill className="object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" sizes="36px" />
                   </div>
                 ) : (
                   <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
@@ -665,7 +665,7 @@ export default function BookingConfirmPage() {
                   width={80}
                   height={80}
                   className="w-full h-full object-cover"
-                  fallbackClassName="w-full h-full flex items-center justify-center bg-muted"
+                  fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
                 />
               </div>
             ) : (
