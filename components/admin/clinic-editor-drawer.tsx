@@ -330,24 +330,51 @@ setOpeningHoursData(null)
       description: formData.description || `Dental practice located at ${googleClinic.address}`,
     })
 
-    if (googleClinic.photoUrl && !mainPhotoUrl) {
-      // Re-upload Google Places photos to Supabase so we store a permanent URL
-      // without an embedded API key
-      try {
-        const res = await fetch("/api/admin/reupload-google-photo", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ photoUrl: googleClinic.photoUrl }),
-        })
-        if (res.ok) {
-          const { url } = await res.json()
-          setMainPhotoUrl(url)
-        } else {
+    // Re-upload ALL Google Places photos to Supabase so we store permanent URLs
+    // without embedded API keys
+    const photosToUpload: string[] = googleClinic.photoUrls && googleClinic.photoUrls.length > 0
+      ? googleClinic.photoUrls
+      : googleClinic.photoUrl
+        ? [googleClinic.photoUrl]
+        : []
+
+    if (photosToUpload.length > 0 && !mainPhotoUrl) {
+      const uploadedUrls: string[] = []
+
+      // Re-upload all photos in parallel (limit to 10 to avoid overload)
+      const batch = photosToUpload.slice(0, 10)
+      const results = await Promise.allSettled(
+        batch.map(async (photoUrl: string) => {
+          try {
+            const res = await fetch("/api/admin/reupload-google-photo", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ photoUrl }),
+            })
+            if (res.ok) {
+              const { url } = await res.json()
+              return url
+            }
+          } catch {
+            // Fallback handled below
+          }
           // Fallback to original URL — image proxy will handle it at render time
-          setMainPhotoUrl(googleClinic.photoUrl)
+          return photoUrl
+        })
+      )
+
+      for (const result of results) {
+        if (result.status === "fulfilled" && result.value) {
+          uploadedUrls.push(result.value)
         }
-      } catch {
-        setMainPhotoUrl(googleClinic.photoUrl)
+      }
+
+      if (uploadedUrls.length > 0) {
+        setMainPhotoUrl(uploadedUrls[0])
+        setFormData((prev) => ({
+          ...prev,
+          images: uploadedUrls,
+        }))
       }
     }
 
@@ -363,11 +390,19 @@ setOpeningHoursData(null)
     const previousUrl = mainPhotoUrl
     setMainPhotoUrl(newUrl)
 
+    // Update the first image while keeping additional images intact
+    const existingImages = formData.images || []
+    const updatedImages = newUrl
+      ? [newUrl, ...existingImages.slice(1)]
+      : existingImages.slice(1)
+
+    setFormData((prev) => ({ ...prev, images: updatedImages }))
+
     if (clinic?.id) {
       onSave({
         ...clinic,
         ...formData,
-        images: newUrl ? [newUrl] : [],
+        images: updatedImages,
       } as Clinic)
 
       toast({
@@ -378,7 +413,7 @@ setOpeningHoursData(null)
       fetch(`/api/admin/clinics/${clinic.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images: newUrl ? [newUrl] : [] }),
+        body: JSON.stringify({ images: updatedImages }),
       }).catch((error) => {
         console.error("Failed to save photo:", error)
         setMainPhotoUrl(previousUrl)
@@ -388,8 +423,6 @@ setOpeningHoursData(null)
           description: "Failed to save photo. Please try again.",
         })
       })
-    } else {
-      setMainPhotoUrl(newUrl)
     }
   }
 
@@ -445,9 +478,15 @@ setOpeningHoursData(null)
       const { gallery, google_place_id, google_rating, google_review_count, google_maps_url, ...restFormData } =
         formData
 
+      // Use the full images array if available (e.g. from Google import),
+      // otherwise fall back to just the main photo URL
+      const allImages = formData.images && formData.images.length > 0
+        ? formData.images
+        : mainPhotoUrl ? [mainPhotoUrl] : []
+
       const payload = {
         ...restFormData,
-        images: mainPhotoUrl ? [mainPhotoUrl] : [],
+        images: allImages,
       }
 
       const url = clinic?.id ? `/api/admin/clinics/${clinic.id}` : "/api/admin/clinics"
