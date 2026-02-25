@@ -484,7 +484,7 @@ export function ClinicChatWidget({
           {/* Closed banner or Input */}
           {conversationClosed ? (
             <div className="border-t border-neutral-200 px-4 py-3 bg-neutral-50">
-              <p className="text-xs text-neutral-500 text-center">This conversation has been closed. No further messages can be sent.</p>
+              <p className="text-xs text-neutral-500 text-center">This conversation has been closed. Looking for a dentist? <a href="/intake" className="underline text-teal-600 hover:text-teal-700">Start a new search</a> to get matched with clinics.</p>
             </div>
           ) : (
           <form onSubmit={sendMessage} className="border-t border-neutral-200 p-3">

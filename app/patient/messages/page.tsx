@@ -487,8 +487,8 @@ export default function PatientMessagesPage() {
   // ── Closed banner ──────────────────────────────────────────────
   const ClosedBanner = () => (
     <div className="px-4 py-2.5 bg-[#f5f5f5] border-b border-[#e5e5e5] flex items-center gap-2">
-      <Lock className="h-3.5 w-3.5 text-[#999]" />
-      <span className="text-xs text-[#666]">This conversation is closed. No further messages can be sent.</span>
+      <Lock className="h-3.5 w-3.5 text-[#999] flex-shrink-0" />
+      <span className="text-xs text-[#666]">This conversation is closed. Looking for a dentist? <Link href="/intake" className="underline text-teal-600 hover:text-teal-700">Start a new search</Link> to get matched with clinics.</span>
     </div>
   )
 

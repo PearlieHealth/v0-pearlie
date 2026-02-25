@@ -435,7 +435,7 @@ export function EmbeddedClinicChat({
 
           {conversationClosed ? (
             <div className="px-3 py-3 border-t border-[#e5e5e5] bg-[#f5f5f5]">
-              <p className="text-[11px] text-[#888] text-center">This conversation has been closed. No further messages can be sent.</p>
+              <p className="text-[11px] text-[#888] text-center">This conversation has been closed. Looking for a dentist? <a href="/intake" className="underline text-teal-600 hover:text-teal-700">Start a new search</a> to get matched with clinics.</p>
             </div>
           ) : !showOtpVerify && (
           <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white overflow-hidden">

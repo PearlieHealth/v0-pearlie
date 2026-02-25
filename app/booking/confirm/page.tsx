@@ -574,7 +574,7 @@ export default function BookingConfirmPage() {
               {/* Closed conversation banner */}
               {conversationClosed ? (
                 <div className="px-4 py-3 border-t border-border/40 bg-muted/50">
-                  <p className="text-xs text-muted-foreground text-center">This conversation has been closed. No further messages can be sent.</p>
+                  <p className="text-xs text-muted-foreground text-center">This conversation has been closed. Looking for a dentist? <a href="/intake" className="underline text-primary hover:text-primary/80">Start a new search</a> to get matched with clinics.</p>
                 </div>
               ) : (
               <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/40">

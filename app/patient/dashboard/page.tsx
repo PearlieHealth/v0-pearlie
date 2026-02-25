@@ -1434,7 +1434,7 @@ export default function PatientDashboard() {
                 {/* Closed conversation banner */}
                 {isClosed && (
                   <div className="px-4 py-3 border-t border-border/40 flex-shrink-0 bg-muted/50">
-                    <p className="text-xs text-muted-foreground text-center">This conversation has been closed. No further messages can be sent.</p>
+                    <p className="text-xs text-muted-foreground text-center">This conversation has been closed. Looking for a dentist? <Link href="/intake" className="underline text-primary hover:text-primary/80">Start a new search</Link> to get matched with clinics.</p>
                   </div>
                 )}
 
@@ -1630,7 +1630,7 @@ export default function PatientDashboard() {
           {/* Closed conversation banner (mobile) */}
           {isClosed && (
             <div className="px-3 py-3 border-t border-border/30 flex-shrink-0 bg-muted/50">
-              <p className="text-xs text-muted-foreground text-center">This conversation has been closed. No further messages can be sent.</p>
+              <p className="text-xs text-muted-foreground text-center">This conversation has been closed. Looking for a dentist? <Link href="/intake" className="underline text-primary hover:text-primary/80">Start a new search</Link> to get matched with clinics.</p>
             </div>
           )}
 
