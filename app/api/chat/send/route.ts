@@ -334,6 +334,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Reset notification cycle tracking when patient replies,
+    // so the clinic's next message will trigger a fresh notification.
+    if (senderType === "patient") {
+      await supabase
+        .from("conversations")
+        .update({
+          notification_cycles_used: 0,
+          current_notification_cycle_start: null,
+          last_patient_reply_at: new Date().toISOString(),
+        })
+        .eq("id", conversation.id)
+    }
+
     // Broadcast the new message for real-time delivery (bypasses RLS)
     try {
       const broadcastChannel = supabase.channel(`chat:${conversation.id}`)

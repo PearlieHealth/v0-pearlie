@@ -263,10 +263,10 @@ export default function ClinicInboxPage() {
         setNewMessage("")
       } else {
         const errData = await response.json().catch(() => ({}))
-        if (response.status === 429 && errData.error?.includes("follow-up limit")) {
-          setReplyError(errData.error)
-        } else if (response.status === 403) {
+        if (response.status === 403) {
           setReplyError(errData.error || "This conversation is closed.")
+        } else if (response.status === 429) {
+          setReplyError(errData.error || "Too many messages. Please slow down.")
         } else {
           setReplyError(errData.error || "Failed to send message.")
         }

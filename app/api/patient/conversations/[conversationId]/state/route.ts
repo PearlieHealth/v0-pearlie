@@ -71,13 +71,23 @@ export async function PATCH(
         )
       }
 
-      await admin
+      // Atomic: only update if state hasn't been changed concurrently to 'closed'
+      const { data: updated, error: updateErr } = await admin
         .from("conversations")
         .update({
           conversation_state: "booked",
           booked_at: now,
         })
         .eq("id", conversationId)
+        .neq("conversation_state", "closed")
+        .select("id")
+
+      if (updateErr || !updated?.length) {
+        return NextResponse.json(
+          { error: "Cannot mark a closed conversation as booked" },
+          { status: 400 }
+        )
+      }
 
       // Insert a system bot message so both sides see the status change
       await admin
@@ -98,7 +108,8 @@ export async function PATCH(
         return NextResponse.json({ success: true, state: "closed" })
       }
 
-      await admin
+      // Atomic: only close if not already closed (prevents duplicate bot messages)
+      const { data: updated } = await admin
         .from("conversations")
         .update({
           conversation_state: "closed",
@@ -106,6 +117,13 @@ export async function PATCH(
           closed_reason: "patient_not_interested",
         })
         .eq("id", conversationId)
+        .neq("conversation_state", "closed")
+        .select("id")
+
+      if (!updated?.length) {
+        // Already closed by another concurrent request — idempotent success
+        return NextResponse.json({ success: true, state: "closed" })
+      }
 
       await admin
         .from("messages")
