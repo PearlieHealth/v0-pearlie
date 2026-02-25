@@ -5,9 +5,10 @@
  * 1. Zod payload validation (prevents broken templates)
  * 2. Idempotency check (prevents duplicate sends via email_logs unique index)
  * 3. Unsubscribe checks (respects email_preferences)
- * 4. Template rendering via the registry
- * 5. Automatic List-Unsubscribe headers
- * 6. Universal logging to email_logs (every email, with idempotency key)
+ * 4. Per-recipient daily notification cap (prevents spam)
+ * 5. Template rendering via the registry
+ * 6. Automatic List-Unsubscribe headers
+ * 7. Universal logging to email_logs (every email, with idempotency key)
  */
 import { EMAIL_REGISTRY, type EmailType } from "./registry"
 import { EMAIL_FROM } from "@/lib/email-config"
@@ -81,7 +82,29 @@ export async function sendRegisteredEmail(
     }
   }
 
-  // 3. Check unsubscribe
+  // 3. Daily notification cap — max 12 notification emails per recipient per day
+  if (entry.category === "notification") {
+    try {
+      const supabase = createAdminClient()
+      const dayStart = new Date()
+      dayStart.setUTCHours(0, 0, 0, 0)
+      const { count } = await supabase
+        .from("email_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("to_email", params.to)
+        .eq("status", "sent")
+        .gte("created_at", dayStart.toISOString())
+      if (count !== null && count >= 12) {
+        console.log(`[Email] Daily cap reached for ${params.to} (${count} sent today), skipping ${params.type}`)
+        return { success: true, skipped: true, reason: "daily_cap" }
+      }
+    } catch (err) {
+      console.error(`[Email] Daily cap check failed for ${params.type}:`, err)
+      // Continue sending if the check fails
+    }
+  }
+
+  // 4. Check unsubscribe
   if (entry.unsubscribeCategory) {
     try {
       const unsubscribed = await isUnsubscribed(params.to, entry.unsubscribeCategory)
@@ -95,22 +118,22 @@ export async function sendRegisteredEmail(
     }
   }
 
-  // 4. Render HTML
+  // 5. Render HTML
   const html = entry.generateHtml(parseResult.data)
 
-  // 5. Compute subject
+  // 6. Compute subject
   const subject =
     typeof entry.defaultSubject === "function"
       ? entry.defaultSubject(parseResult.data)
       : entry.defaultSubject
 
-  // 6. Build headers
+  // 7. Build headers
   const allHeaders: Record<string, string> = { ...params.headers }
   if (entry.unsubscribeCategory && !allHeaders["List-Unsubscribe"]) {
     Object.assign(allHeaders, generateUnsubscribeHeaders(params.to, entry.unsubscribeCategory))
   }
 
-  // 7. Send via Resend
+  // 8. Send via Resend
   const result = await sendEmailWithRetry({
     from: EMAIL_FROM[entry.fromAddress],
     to: params.to,
@@ -120,7 +143,7 @@ export async function sendRegisteredEmail(
     replyTo: params.replyTo,
   })
 
-  // 8. Log to email_logs (always, with idempotency key)
+  // 9. Log to email_logs (always, with idempotency key)
   try {
     const supabase = createAdminClient()
     await supabase.from("email_logs").insert({

@@ -43,6 +43,9 @@ export async function GET(request: Request) {
     }
 
     let nudged = 0
+    // Track emails we've already sent to in this batch to prevent spam
+    // when a patient has multiple leads
+    const emailsSentThisBatch = new Set<string>()
 
     for (const [leadId, leadMatches] of matchesByLead) {
       try {
@@ -87,6 +90,19 @@ export async function GET(request: Request) {
 
         if (!lead?.email) {
           // No email — mark all matches so we don't retry
+          await supabase
+            .from("matches")
+            .update({ nudge_email_sent_at: new Date().toISOString() })
+            .in("id", matchIds)
+          continue
+        }
+
+        const emailLower = lead.email.toLowerCase()
+
+        // Skip if we already sent a nudge to this email in this batch
+        // (handles patients with multiple leads)
+        if (emailsSentThisBatch.has(emailLower)) {
+          console.log(`[match-nudge] Skipping lead ${leadId}: already nudged ${emailLower} in this batch`)
           await supabase
             .from("matches")
             .update({ nudge_email_sent_at: new Date().toISOString() })
@@ -153,6 +169,7 @@ export async function GET(request: Request) {
             unsubscribeFooterHtml: unsubFooter,
             // Internal fields for idempotency key (prefixed with _)
             _leadId: leadId,
+            _email: emailLower,
           },
           leadId,
         })
@@ -160,6 +177,9 @@ export async function GET(request: Request) {
         if (result.skipped) {
           console.log(`[match-nudge] Skipped lead ${leadId}: ${result.reason}`)
         }
+
+        // Track this email so we don't send again in this batch
+        emailsSentThisBatch.add(emailLower)
 
         // Mark ALL matches for this lead as nudged (whether sent or skipped)
         await supabase

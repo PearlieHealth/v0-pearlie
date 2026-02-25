@@ -423,7 +423,7 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     defaultSubject: (data) => `New message from ${data.patientName}`,
     payloadSchema: chatToClinicSchema,
     generateHtml: renderChatToClinicEmail,
-    idempotencyKey: (data) => `chat_clinic:${data._conversationId}:${tenMinBucket()}`,
+    idempotencyKey: (data) => `chat_clinic:${data._conversationId}:${hourBucket()}`,
   },
 
   [EMAIL_TYPE.CLINIC_REPLY_TO_PATIENT]: {
@@ -435,7 +435,7 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     defaultSubject: (data) => `${data.clinicName} has replied to your message`,
     payloadSchema: clinicReplySchema,
     generateHtml: renderClinicReplyToPatientEmail,
-    idempotencyKey: (data) => `clinic_reply:${data._conversationId}:${tenMinBucket()}`,
+    idempotencyKey: (data) => `clinic_reply:${data._conversationId}:${hourBucket()}`,
   },
 
   // --- Appointment Lifecycle (to patient) ---
@@ -499,7 +499,7 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     defaultSubject: "Your clinic matches are waiting",
     payloadSchema: matchNudgeSchema,
     generateHtml: renderMatchNudgeEmail,
-    idempotencyKey: (data) => `match_nudge:${data._leadId}`,
+    idempotencyKey: (data) => `match_nudge:${data._email}`,
   },
 
   // --- Clinic Billing Notifications ---
