@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import { MapPin } from "lucide-react"
 
 interface ClinicImageBaseProps {
@@ -30,8 +29,8 @@ type ClinicImageProps = ClinicImageSizedProps | ClinicImageFillProps
  * Returns a proxied URL for Google Places photo URLs, or the original URL
  * for other image sources (Supabase, Unsplash, etc.)
  */
-export function getImageSrc(src: string): { url: string; unoptimized: boolean } {
-  if (!src) return { url: "", unoptimized: false }
+export function getImageSrc(src: string): { url: string } {
+  if (!src || !src.trim()) return { url: "" }
 
   try {
     const parsed = new URL(src)
@@ -39,13 +38,12 @@ export function getImageSrc(src: string): { url: string; unoptimized: boolean } 
       // Route through our server-side proxy to avoid API key / CORS issues
       return {
         url: `/api/image-proxy?url=${encodeURIComponent(src)}`,
-        unoptimized: true,
       }
     }
   } catch {
     // Not a valid URL, pass through
   }
-  return { url: src, unoptimized: false }
+  return { url: src }
 }
 
 export function ClinicImage(props: ClinicImageProps) {
@@ -57,7 +55,7 @@ export function ClinicImage(props: ClinicImageProps) {
     setHasError(false)
   }, [src])
 
-  if (hasError || !src) {
+  if (hasError || !src || !src.trim()) {
     return (
       <div className={fallbackClassName}>
         <MapPin className="w-10 h-10 text-[#004443]/20" />
@@ -65,32 +63,20 @@ export function ClinicImage(props: ClinicImageProps) {
     )
   }
 
-  const { url, unoptimized } = getImageSrc(src)
+  const { url } = getImageSrc(src)
 
-  if (props.fill) {
-    return (
-      <Image
-        src={url}
-        alt={alt}
-        fill
-        className={className}
-        sizes={sizes}
-        unoptimized={unoptimized}
-        onError={() => setHasError(true)}
-      />
-    )
-  }
-
+  // Use a plain <img> tag for reliable error handling.
+  // Next.js <Image> can fail silently through its optimizer layer.
   return (
-    <Image
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
       src={url}
       alt={alt}
-      width={props.width}
-      height={props.height}
       className={className}
       sizes={sizes}
-      unoptimized={unoptimized}
+      loading="lazy"
       onError={() => setHasError(true)}
+      style={props.fill ? { position: "absolute", width: "100%", height: "100%", inset: 0 } : undefined}
     />
   )
 }

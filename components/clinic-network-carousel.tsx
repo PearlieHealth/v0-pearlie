@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import { ClinicImage } from "@/components/match/clinic-image"
 import { Building2, Users } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 
@@ -137,12 +138,13 @@ export function ClinicNetworkCarousel() {
 function ClinicCard({ clinic }: { clinic: ClinicImageData }) {
   return (
     <div className="w-56 h-40 flex-shrink-0 rounded-2xl overflow-hidden bg-gray-200 relative group">
-      <Image
+      <ClinicImage
         src={clinic.image || "/placeholder.svg"}
         alt={`${clinic.name} dental clinic`}
         width={300}
         height={200}
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <div className="absolute bottom-0 left-0 right-0 p-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
