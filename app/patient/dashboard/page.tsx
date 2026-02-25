@@ -1001,7 +1001,7 @@ export default function PatientDashboard() {
 
         {/* ══════ RIGHT COLUMN: Messages / Chat ══════ */}
         <div className={`
-          lg:order-3 lg:flex-shrink-0 lg:border-l lg:border-border/60 lg:flex lg:flex-col lg:bg-background lg:overflow-hidden
+          lg:order-3 lg:flex-shrink-0 lg:border-l lg:border-border/60 lg:flex lg:flex-col lg:bg-card lg:overflow-hidden
           ${chatPanelCollapsed ? "hidden lg:hidden" : "hidden lg:flex"}
           ${chatPanelCollapsed ? "" : "lg:w-[40%]"}
         `}>
@@ -1167,7 +1167,7 @@ export default function PatientDashboard() {
                 )}
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto min-h-0 px-3 py-2.5 bg-background" ref={scrollAreaRef}>
+                <div className="flex-1 overflow-y-auto min-h-0 px-3 py-2.5 bg-card" ref={scrollAreaRef}>
                   {loadingMessages ? (
                     <div className="flex items-center justify-center py-6">
                       <Loader2 className="w-5 h-5 animate-spin text-primary" />
@@ -1690,7 +1690,7 @@ export default function PatientDashboard() {
           {/* Messages */}
           <div
             ref={mobileMessagesRef}
-            className="flex-1 overflow-y-auto overscroll-contain px-3 py-2 min-h-0 bg-background"
+            className="flex-1 overflow-y-auto overscroll-contain px-3 py-2 min-h-0 bg-card"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
             {loadingMessages ? (
@@ -1832,7 +1832,7 @@ export default function PatientDashboard() {
       {/* ══════ MOBILE: Full-Screen Inbox List ══════ */}
       {isMobile && mobileInboxListOpen && !mobileChatOpen && (
         <div
-          className="fixed inset-0 z-50 flex flex-col bg-background"
+          className="fixed inset-0 z-50 flex flex-col bg-card"
           style={{ height: "100dvh" }}
         >
           {/* Header */}
