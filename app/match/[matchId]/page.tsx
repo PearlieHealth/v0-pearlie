@@ -152,6 +152,13 @@ export default function MatchPage() {
       const data = await response.json()
       console.log("[v0] Initial matches response:", data)
 
+      // Debug: log image data for each clinic
+      if (data.clinics) {
+        data.clinics.forEach((c: any, i: number) => {
+          console.log(`[v0] Clinic ${i}: ${c.name} | images:`, c.images, `| count: ${c.images?.length || 0}`)
+        })
+      }
+
       if (!data.match || !data.clinics) {
         throw new Error("Invalid response structure")
       }

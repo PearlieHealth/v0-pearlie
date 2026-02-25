@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Tag } from "lucide-react"
 import Image from "next/image"
+import { ClinicImage } from "@/components/match/clinic-image"
 import Link from "next/link"
 
 interface OfferCardProps {
@@ -46,7 +47,7 @@ export function OfferCard({ offer, matchId, onClickOffer }: OfferCardProps) {
     <Card className="flex-shrink-0 w-[280px] overflow-hidden hover:shadow-lg transition-shadow">
       {clinicImage && (
         <div className="relative h-40 w-full bg-muted">
-          <Image src={clinicImage || "/placeholder.svg"} alt={clinic.name} fill className="object-cover" />
+          <ClinicImage src={clinicImage} alt={clinic.name} fill className="object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-muted" sizes="280px" />
         </div>
       )}
       <div className="p-4 space-y-3">

@@ -39,6 +39,7 @@ import { HIGHLIGHT_CATEGORIES } from "@/lib/clinic-highlights-config"
 import { DEFAULT_TREATMENT_CATEGORIES, type TreatmentCategory, type TreatmentItem } from "@/lib/treatment-pricing-config"
 import { InlineField } from "@/components/clinic/profile/inline-field"
 import { TagEditor } from "@/components/clinic/profile/tag-editor"
+import { getImageSrc } from "@/components/match/clinic-image"
 
 interface BeforeAfterImage {
   before_url: string
@@ -402,7 +403,7 @@ export default function ClinicProfilePage() {
           {/* Clinic thumbnail */}
           <div className="w-20 h-20 rounded-xl bg-muted overflow-hidden flex-shrink-0">
             {profile.images?.[0] ? (
-              <img src={profile.images[0] || "/placeholder.svg"} alt={profile.name} className="w-full h-full object-cover" />
+              <img src={getImageSrc(profile.images[0]).url || "/placeholder.svg"} alt={profile.name} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <Building2 className="w-8 h-8 text-muted-foreground" />
@@ -723,7 +724,7 @@ export default function ClinicProfilePage() {
                 <div className="grid grid-cols-4 gap-2">
                   {profile.images.map((img, i) => (
                     <div key={i} className="relative group aspect-square rounded-lg overflow-hidden bg-muted">
-                      <img src={img || "/placeholder.svg"} alt={`Practice photo ${i + 1}`} className="w-full h-full object-cover" />
+                      <img src={getImageSrc(img).url || "/placeholder.svg"} alt={`Practice photo ${i + 1}`} className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => removeGalleryImage(i)}

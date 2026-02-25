@@ -28,6 +28,7 @@ import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
+import { ClinicImage } from "@/components/match/clinic-image"
 import { HOURLY_SLOTS } from "@/lib/constants"
 
 import { HighlightBadgeStrip } from "./highlight-badge-strip"
@@ -400,35 +401,50 @@ export function ClinicProfileContent() {
         </div>
       </div>
 
-      {/* Map */}
-      <section id="location">
-        <div className="w-full h-[200px] lg:h-[250px] bg-[#e5e5e5]">
-          {clinic.latitude && clinic.longitude && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? (
-            <iframe
-              title={`${clinic.name} location`}
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}&zoom=14`}
+      {/* Hero: Photo banner if photos available, otherwise map */}
+      {clinic.images && clinic.images.length > 0 ? (
+        <section>
+          <div className="relative w-full h-[220px] sm:h-[280px] lg:h-[320px] bg-[#f5f5f5]">
+            <ClinicImage
+              src={clinic.images[0]}
+              alt={clinic.name}
+              fill
+              className="object-cover"
+              fallbackClassName="w-full h-full flex items-center justify-center bg-[#f5f5f5]"
+              sizes="100vw"
             />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-[#666] hover:text-[#1a1a1a]"
-              >
-                <MapPin className="h-5 w-5" />
-                <span>View on Google Maps</span>
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      ) : (
+        <section id="location">
+          <div className="w-full h-[200px] lg:h-[250px] bg-[#e5e5e5]">
+            {clinic.latitude && clinic.longitude && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? (
+              <iframe
+                title={`${clinic.name} location`}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}&zoom=14`}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-[#666] hover:text-[#1a1a1a]"
+                >
+                  <MapPin className="h-5 w-5" />
+                  <span>View on Google Maps</span>
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Main content grid */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-4 sm:pt-6">
