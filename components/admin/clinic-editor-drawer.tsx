@@ -337,7 +337,7 @@ setOpeningHoursData(null)
         ? [googleClinic.photoUrl]
         : []
 
-    if (photosToUpload.length > 0 && !mainPhotoUrl) {
+    if (photosToUpload.length > 0) {
       const uploadedUrls: string[] = []
 
       // Re-upload all photos in parallel (limit to 10 to avoid overload)
