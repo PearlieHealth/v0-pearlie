@@ -24,6 +24,10 @@ import {
   MapPin,
   Moon,
   Sun,
+  MoreVertical,
+  Lock,
+  BellOff,
+  Bell,
 } from "lucide-react"
 import Link from "next/link"
 import { useChatChannel, usePatientConversationUpdates, type RealtimeMessage } from "@/hooks/use-chat-channel"
@@ -31,6 +35,22 @@ import { BookingCard } from "@/components/match/booking-card"
 import { ClinicImage } from "@/components/match/clinic-image"
 import { useIsMobile } from "@/components/ui/use-mobile"
 import { AppointmentBanner } from "@/components/appointment-banner"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -72,6 +92,7 @@ interface Conversation {
   latest_message_sender?: string | null
   appointment_requested_at?: string | null
   conversation_state?: "open" | "booked" | "closed"
+  muted_by_patient?: boolean
 }
 
 interface DashboardData {
@@ -178,6 +199,11 @@ export default function PatientDashboard() {
   // Skip the next auto-fetch when we just created the conversation ourselves
   const skipNextConvFetch = useRef(false)
 
+  // Conversation actions: close + mute
+  const [showCloseDialog, setShowCloseDialog] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
+  const [isMuting, setIsMuting] = useState(false)
+
   // Mobile: chat drawer state
   const isMobile = useIsMobile()
   const [mobileChatOpen, setMobileChatOpen] = useState(false)
@@ -218,6 +244,7 @@ export default function PatientDashboard() {
 
   const selectedConv = inboxConversations.find((c) => c.id === selectedConvId) || null
   const isClosed = selectedConv?.conversation_state === "closed"
+  const isMuted = selectedConv?.muted_by_patient === true
 
   // Derived: selected clinic and other clinics
   const selectedClinic = allClinics.find((c) => c.id === selectedClinicId) || null
@@ -673,6 +700,60 @@ export default function PatientDashboard() {
       setChatError("Failed to send. Please try again.")
     } finally {
       setIsSending(false)
+    }
+  }
+
+  // ── Close conversation ──────────────────────────────────────
+
+  async function handleCloseConversation() {
+    if (!selectedConv) return
+    setIsClosing(true)
+    try {
+      const res = await fetch(`/api/patient/conversations/${selectedConv.id}/state`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "closed" }),
+      })
+      if (res.ok) {
+        setInboxConversations((prev) =>
+          prev.map((c) =>
+            c.id === selectedConv.id ? { ...c, conversation_state: "closed" as const } : c
+          )
+        )
+        // Refresh messages to show the bot "closed" message
+        fetchConvMessages(selectedConv.id)
+      }
+    } catch (err) {
+      console.error("Failed to close conversation:", err)
+    } finally {
+      setIsClosing(false)
+      setShowCloseDialog(false)
+    }
+  }
+
+  // ── Mute / Unmute notifications ────────────────────────────
+
+  async function handleToggleMute() {
+    if (!selectedConv) return
+    const action = isMuted ? "unmute" : "mute"
+    setIsMuting(true)
+    try {
+      const res = await fetch(`/api/patient/conversations/${selectedConv.id}/state`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      })
+      if (res.ok) {
+        setInboxConversations((prev) =>
+          prev.map((c) =>
+            c.id === selectedConv.id ? { ...c, muted_by_patient: action === "mute" } : c
+          )
+        )
+      }
+    } catch (err) {
+      console.error("Failed to toggle mute:", err)
+    } finally {
+      setIsMuting(false)
     }
   }
 
@@ -1148,10 +1229,41 @@ export default function PatientDashboard() {
                     <div className="min-w-0">
                       <p className="font-semibold text-foreground text-sm truncate leading-tight">{chatHeaderName || "Clinic"}</p>
                       <p className={`text-[10px] font-medium leading-tight ${isClosed ? "text-muted-foreground" : "text-primary"}`}>
-                        {isClosed ? "Conversation closed" : "Chatting now"}
+                        {isClosed ? "Conversation closed" : isMuted ? "Notifications muted" : "Chatting now"}
                       </p>
                     </div>
                   </div>
+                  {/* Three-dot menu */}
+                  {selectedConv && !isInPendingChat && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="p-1.5 rounded-full hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground">
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        {!isClosed && (
+                          <DropdownMenuItem onClick={() => setShowCloseDialog(true)} className="text-red-600 focus:text-red-600">
+                            <Lock className="w-4 h-4 mr-2" />
+                            Close conversation
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onClick={handleToggleMute} disabled={isMuting}>
+                          {isMuted ? (
+                            <>
+                              <Bell className="w-4 h-4 mr-2" />
+                              Unmute notifications
+                            </>
+                          ) : (
+                            <>
+                              <BellOff className="w-4 h-4 mr-2" />
+                              Mute notifications
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
 
                 {/* Appointment banner for this conversation */}
@@ -1659,20 +1771,53 @@ export default function PatientDashboard() {
                 )}
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate text-left">{chatHeaderName || "Clinic"}</p>
-                  <p className={`text-[10px] font-medium ${isClosed ? "text-muted-foreground" : "text-primary"}`}>
-                    {isClosed ? "Conversation closed" : "Chatting now"}
+                  <p className={`text-[10px] font-medium ${isClosed ? "text-muted-foreground" : isMuted ? "text-muted-foreground" : "text-primary"}`}>
+                    {isClosed ? "Conversation closed" : isMuted ? "Notifications muted" : "Chatting now"}
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  setMobileChatOpen(false)
-                  if (mobileInboxListOpen) return
-                }}
-                className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-muted/60 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-1">
+                {/* Three-dot menu (mobile) */}
+                {selectedConv && !isInPendingChat && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1.5 rounded-full hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground">
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      {!isClosed && (
+                        <DropdownMenuItem onClick={() => setShowCloseDialog(true)} className="text-red-600 focus:text-red-600">
+                          <Lock className="w-4 h-4 mr-2" />
+                          Close conversation
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onClick={handleToggleMute} disabled={isMuting}>
+                        {isMuted ? (
+                          <>
+                            <Bell className="w-4 h-4 mr-2" />
+                            Unmute notifications
+                          </>
+                        ) : (
+                          <>
+                            <BellOff className="w-4 h-4 mr-2" />
+                            Mute notifications
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+                <button
+                  onClick={() => {
+                    setMobileChatOpen(false)
+                    if (mobileInboxListOpen) return
+                  }}
+                  className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-muted/60 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1996,6 +2141,27 @@ export default function PatientDashboard() {
         </div>
       )}
 
+      {/* Close conversation confirmation dialog */}
+      <AlertDialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close this conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently close the conversation with {chatHeaderName || "this clinic"}. Neither you nor the clinic will be able to send further messages. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isClosing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCloseConversation}
+              disabled={isClosing}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isClosing ? "Closing…" : "Close conversation"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

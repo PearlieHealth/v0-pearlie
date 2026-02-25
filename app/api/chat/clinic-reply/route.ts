@@ -107,14 +107,25 @@ export async function POST(request: NextRequest) {
       console.error("[Chat] Broadcast error:", broadcastError)
     }
 
-    // Update conversation - mark first reply timestamp if this is the first
+    // Atomically increment unread count via Postgres function (avoids read-then-write race)
+    const { error: rpcError } = await supabaseAdmin.rpc('increment_unread', {
+      p_conversation_id: conversationId,
+      p_sender_type: 'clinic',
+    })
+
+    // Update conversation metadata (first reply, typing, read flags)
     const updateData: Record<string, any> = {
       last_message_at: new Date().toISOString(),
       unread_by_patient: true,
       unread_by_clinic: false,
-      unread_count_patient: (conversation.unread_count_patient || 0) + 1,
       unread_count_clinic: 0,
       clinic_typing_at: null, // Clear typing indicator on send
+    }
+
+    // Fallback: if RPC not available, do manual increment
+    if (rpcError) {
+      console.warn("[Chat] increment_unread RPC failed, falling back:", rpcError.message)
+      updateData.unread_count_patient = (conversation.unread_count_patient || 0) + 1
     }
 
     const isFirstClinicReply = !conversation.clinic_first_reply_at
