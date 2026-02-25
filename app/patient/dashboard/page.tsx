@@ -22,12 +22,13 @@ import {
   CalendarCheck,
   Inbox,
   MapPin,
+  Moon,
+  Sun,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useChatChannel, usePatientConversationUpdates, type RealtimeMessage } from "@/hooks/use-chat-channel"
 import { BookingCard } from "@/components/match/booking-card"
-import { OtherClinicCard } from "@/components/match/other-clinic-card"
 import { useIsMobile } from "@/components/ui/use-mobile"
 import { AppointmentBanner } from "@/components/appointment-banner"
 
@@ -153,7 +154,6 @@ export default function PatientDashboard() {
   // Clinic data for booking card
   const [allClinics, setAllClinics] = useState<ClinicInfo[]>([])
   const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null)
-  const [showOtherClinics, setShowOtherClinics] = useState(false)
   const [loadingClinics, setLoadingClinics] = useState(false)
   const [showMatchHistory, setShowMatchHistory] = useState(false)
   const [loadingMoreMatches, setLoadingMoreMatches] = useState(false)
@@ -186,6 +186,12 @@ export default function PatientDashboard() {
 
   // Desktop: collapsible right panel
   const [chatPanelCollapsed, setChatPanelCollapsed] = useState(false)
+
+  // Dark mode toggle
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  // Sign out confirmation
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
 
   // Mobile: sticky bar visibility — tracks when CTAs scroll out of view
   const ctaRef = useRef<HTMLDivElement | null>(null)
@@ -905,8 +911,8 @@ export default function PatientDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
-        <div className="rounded-full bg-primary p-2.5">
-          <Heart className="w-5 h-5 text-white fill-white" />
+        <div className="rounded bg-primary p-2">
+          <Heart className="w-4 h-4 text-white fill-white" />
         </div>
         <Loader2 className="w-5 h-5 animate-spin text-primary" />
       </div>
@@ -927,7 +933,7 @@ export default function PatientDashboard() {
   // ── Render ───────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-background flex flex-col">
+    <div className={`min-h-screen lg:h-screen lg:overflow-hidden bg-background flex flex-col ${isDarkMode ? "dashboard-dark" : ""}`}>
       {/* Session expiry banner */}
       {isSessionExpired && (
         <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-3 text-center text-sm">
@@ -939,283 +945,75 @@ export default function PatientDashboard() {
       )}
       {/* Header */}
       <header className="bg-card border-b sticky top-0 z-50">
-        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3 sm:gap-4">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="rounded-full bg-primary p-1.5 sm:p-2">
-                <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white fill-white" />
+            <Link href="/" className="flex items-center gap-2">
+              <div className="rounded bg-primary p-1.5">
+                <Heart className="w-3.5 h-3.5 text-white fill-white" />
               </div>
-              <span className="font-semibold text-lg sm:text-xl text-primary">Pearlie</span>
+              <span className="font-semibold text-base text-primary">Pearlie</span>
             </Link>
-            <div className="hidden sm:block text-sm text-muted-foreground">
-              Hi{data?.user?.name ? `, ${data.user.name.split(" ")[0]}` : ""} <span className="text-muted-foreground/50 mx-1">&middot;</span> {data?.user?.email}
-            </div>
           </div>
-          <div className="flex items-center gap-3 sm:gap-3">
-            {/* Mobile: red sign out button (replaces chat icon) */}
+          <div className="flex items-center gap-2">
+            {/* Dark mode toggle */}
             <button
-              onClick={handleSignOut}
-              className="lg:hidden flex items-center gap-1.5 text-xs font-medium text-red-500 hover:text-red-600 transition-colors p-2"
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors"
+              title={isDarkMode ? "Light mode" : "Dark mode"}
             >
-              <LogOut className="w-4 h-4" />
-              Sign out
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            {/* Desktop: sign out */}
-            <button
-              onClick={handleSignOut}
-              className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sign out</span>
-            </button>
+            {/* Sign out */}
+            <div className="relative">
+              <button
+                onClick={() => setShowSignOutConfirm(!showSignOutConfirm)}
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+              {showSignOutConfirm && (
+                <div className="absolute right-0 top-11 z-50 w-56 rounded-lg border border-border bg-card shadow-lg p-3 space-y-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <p className="text-xs font-medium text-foreground">Sign out of Pearlie?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSignOut}
+                      className="flex-1 h-8 rounded-md text-xs font-semibold bg-red-500 hover:bg-red-600 text-white transition-colors"
+                    >
+                      Sign out
+                    </button>
+                    <button
+                      onClick={() => setShowSignOutConfirm(false)}
+                      className="flex-1 h-8 rounded-md text-xs font-medium border border-border text-foreground hover:bg-muted/60 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Main content: split view */}
-      <div className="flex-1 max-w-[1400px] w-full mx-auto flex lg:min-h-0">
+      {/* Main content: split view — clinic LEFT, chat RIGHT */}
+      <div className="flex-1 max-w-[1400px] w-full mx-auto flex flex-col lg:flex-row lg:min-h-0">
 
-        {/* ══════ LEFT COLUMN: Your Match ══════ */}
-        <div className={`flex-1 min-w-0 ${chatPanelCollapsed ? "lg:max-w-full" : "lg:max-w-[58%]"} overflow-y-auto px-3 py-4 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 transition-all duration-300`}>
-
-          {/* ─── MOBILE: Persistent navigation buttons ──────────── */}
-          {isMobile && selectedClinic && (
-            <div className="sticky top-0 z-20 -mx-3 -mt-4 px-3 pt-3 pb-4 bg-background/95 backdrop-blur-sm border-b border-border/30 space-y-4">
-              {/* Account info */}
-              <p className="text-xs text-muted-foreground truncate">
-                Signed in as <span className="font-medium text-foreground/80">{data?.user?.email}</span>
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setMobileInboxListOpen(true)}
-                  className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-primary text-white text-sm font-semibold active:scale-[0.98] transition-transform relative"
-                >
-                  <Inbox className="w-4 h-4" />
-                  Check Inbox
-                  {totalUnread > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
-                      {totalUnread}
-                    </span>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ─── HERO: Booking Card for selected clinic ──────────── */}
-          {!latestMatch ? (
-            <Card className="p-8 text-center">
-              <Search className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-              <h2 className="font-semibold text-foreground text-lg mb-2">Find your perfect clinic</h2>
-              <p className="text-muted-foreground mb-5 text-sm">
-                Tell us what you need and we&apos;ll recommend the best clinic for you.
-              </p>
-              <Button asChild>
-                <Link href="/intake">Get matched</Link>
-              </Button>
-            </Card>
-          ) : loadingClinics && !selectedClinic ? (
-            <Card className="p-10 flex flex-col items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-primary mb-3" />
-              <p className="text-sm text-muted-foreground">Finding your best match...</p>
-            </Card>
-          ) : selectedClinic ? (
-            <div className="space-y-2 sm:space-y-3">
-              <BookingCard
-                clinic={selectedClinic}
-                isTopMatch={isTopMatch}
-                onMessageClick={handleMessageClick}
-                onRequestAppointment={handleRequestAppointment}
-                appointmentRequested={appointmentRequestedClinics.has(selectedClinic.id)}
-                appointmentRequestedAt={appointmentRequestedClinicsMap.get(selectedClinic.id) || null}
-                bookingDate={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_date : null}
-                bookingTime={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_time : null}
-                bookingStatus={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_status : null}
-                bookingDeclineReason={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_decline_reason : null}
-                bookingCancelReason={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_cancel_reason : null}
-                ctaRef={ctaRef}
-                providers={clinicProviders}
-                treatmentInterest={latestMatchLead?.treatment_interest}
-                postcode={latestMatchLead?.postcode}
-              />
-            </div>
-          ) : latestMatch ? (
-            <Link href={`/match/${latestMatch.id}`}>
-              <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer border-border bg-card">
-                <span className="text-xs font-medium text-muted-foreground bg-primary px-2 py-0.5 rounded-full">Your latest match</span>
-                <p className="font-semibold text-foreground text-lg mt-2">{latestMatchLead?.treatment_interest || "Dental enquiry"}</p>
-                <p className="text-sm text-muted-foreground font-medium mt-1">View your {latestMatch.clinic_ids?.length || 0} matched clinics &rarr;</p>
-              </Card>
-            </Link>
-          ) : null}
-
-          {/* ─── OTHER CLINICS (click to swap) ─────────────────── */}
-          {otherClinics.length > 0 && latestMatch && (
-            <section>
-              <button
-                onClick={() => setShowOtherClinics(!showOtherClinics)}
-                className="flex items-center justify-between w-full text-left py-2.5 px-4 rounded-xl bg-[#faf3e6] hover:bg-[#faf3e6]/80 transition-colors"
-              >
-                <h2 className="text-xs sm:text-sm font-semibold text-[#004443] uppercase tracking-wide">
-                  Other clinics ({otherClinics.length})
-                </h2>
-                <ChevronDown className={`w-4 h-4 text-[#004443]/50 transition-transform duration-200 ${showOtherClinics ? "rotate-180" : ""}`} />
-              </button>
-
-              {!showOtherClinics ? (
-                <div className="mt-2 sm:mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {otherClinics.slice(0, 4).map((clinic) => (
-                    <OtherClinicCard
-                      key={clinic.id}
-                      clinic={clinic}
-                      isSelected={clinic.id === selectedClinicId}
-                      onClick={() => handleSelectClinic(clinic.id)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-2 sm:mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {otherClinics.map((clinic) => (
-                    <OtherClinicCard
-                      key={clinic.id}
-                      clinic={clinic}
-                      isSelected={clinic.id === selectedClinicId}
-                      onClick={() => handleSelectClinic(clinic.id)}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {otherClinics.length > 4 && !showOtherClinics && (
-                <button onClick={() => setShowOtherClinics(true)} className="mt-2 text-xs sm:text-sm text-muted-foreground hover:underline font-medium">
-                  View all {otherClinics.length} clinics
-                </button>
-              )}
-            </section>
-          )}
-
-          {/* Start a new search — full-width rectangle with dark teal outline */}
-          {latestMatch && (
-            <Link href="/intake" className="block">
-              <div className="w-full bg-white rounded-2xl border border-border/30 px-5 py-4 hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all cursor-pointer flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-[#004443]">Looking for another treatment?</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Start a new search to find the best clinic</p>
-                </div>
-                <span className="text-sm font-semibold text-[#0fbcb0] flex-shrink-0">
-                  New search &rarr;
-                </span>
-              </div>
-            </Link>
-          )}
-
-          {/* ─── MATCH HISTORY — after new search ─────────────── */}
-          {data?.matches && data.matches.length > 0 && (
-            <section>
-              <button
-                onClick={() => setShowMatchHistory(!showMatchHistory)}
-                className="flex items-center justify-between w-full text-left px-5 py-3.5 rounded-2xl border border-border/30 bg-white hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all"
-              >
-                <div>
-                  <h2 className="text-sm font-semibold text-[#004443]">
-                    Match history
-                  </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {data.matchesTotal || data.matches.length} previous {(data.matchesTotal || data.matches.length) === 1 ? "search" : "searches"}
-                  </p>
-                </div>
-                <ChevronDown className={`w-4 h-4 text-[#004443]/50 transition-transform duration-200 ${showMatchHistory ? "rotate-180" : ""}`} />
-              </button>
-
-              {showMatchHistory && (
-                <div className="mt-2 space-y-1.5">
-                  {data.matches.map((match) => {
-                    const lead = data.leads.find((l) => l.id === match.lead_id)
-                    const isCurrent = match.id === activeMatchId
-                    return (
-                      <Card
-                        key={match.id}
-                        className={`px-3 py-2.5 hover:shadow-sm transition-all cursor-pointer active:scale-[0.99] ${isCurrent ? "border-primary bg-primary/5" : "border-border"}`}
-                        onClick={() => {
-                          if (!isCurrent) fetchClinicDetails(match.id)
-                        }}
-                      >
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                            <span className="text-muted-foreground text-[11px] sm:text-xs w-12 sm:w-14 flex-shrink-0">
-                              {new Date(match.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                            </span>
-                            <span className="text-foreground font-medium text-sm truncate">{lead?.treatment_interest || "Dental enquiry"}</span>
-                            <span className="text-[11px] sm:text-xs text-muted-foreground flex-shrink-0">{match.clinic_ids?.length || 0} matched</span>
-                            {isCurrent && <span className="text-[10px] text-[#0fbcb0] font-semibold flex-shrink-0">Current</span>}
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        </div>
-                      </Card>
-                    )
-                  })}
-                  {hasMoreMatches && (
-                    <button onClick={loadMoreMatches} disabled={loadingMoreMatches} className="text-xs text-muted-foreground hover:underline mt-1 font-medium">
-                      {loadingMoreMatches ? "Loading..." : "Load more"}
-                    </button>
-                  )}
-                </div>
-              )}
-            </section>
-          )}
-
-          {/* Bottom padding */}
-          <div className={`${isMobile && showStickyBar ? "pb-20" : "pb-4"}`} />
-        </div>
-
-        {/* ══════ Desktop collapse/expand toggle — sits between columns ══════ */}
-        <button
-          type="button"
-          onClick={() => setChatPanelCollapsed(!chatPanelCollapsed)}
-          className="hidden lg:flex items-center justify-center self-center h-8 w-5 flex-shrink-0 rounded-md bg-card border border-border shadow-sm hover:bg-muted transition-colors"
-          title={chatPanelCollapsed ? "Open messages" : "Close messages"}
-        >
-          {chatPanelCollapsed ? (
-            <ChevronLeft className="w-3.5 h-3.5 text-foreground/60" />
-          ) : (
-            <ChevronRight className="w-3.5 h-3.5 text-foreground/60" />
-          )}
-        </button>
-
-        {/* ══════ RIGHT COLUMN: Inbox — collapsible on desktop ══════ */}
+        {/* ══════ RIGHT COLUMN: Messages / Chat ══════ */}
         <div className={`
-          lg:w-[42%] lg:flex-shrink-0 lg:border-l lg:border-border/60 lg:flex lg:flex-col lg:bg-background lg:overflow-hidden
-          ${mobileInboxOpen
-            ? "fixed inset-0 z-40 bg-background flex flex-col"
-            : chatPanelCollapsed
-              ? "hidden"
-              : "hidden lg:flex"
-          }
-        `} style={mobileInboxOpen ? { height: "100dvh", paddingTop: "57px" } : undefined}>
-
-          {/* Mobile back button */}
-          {mobileInboxOpen && (
-            <div className="lg:hidden flex items-center gap-2 px-4 py-3 border-b">
-              <button onClick={() => setMobileInboxOpen(false)} className="text-muted-foreground hover:text-foreground">
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <span className="font-semibold text-foreground">Messages</span>
-              {totalUnread > 0 && (
-                <span className="bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
-                  {totalUnread}
-                </span>
-              )}
-            </div>
-          )}
+          lg:order-3 lg:flex-shrink-0 lg:border-l lg:border-border/60 lg:flex lg:flex-col lg:bg-card lg:overflow-hidden
+          ${chatPanelCollapsed ? "hidden lg:hidden" : "hidden lg:flex"}
+          ${chatPanelCollapsed ? "" : "lg:w-[40%]"}
+        `}>
 
           {/* Inbox list (top portion) */}
-          <div className="border-b border-border/60 flex-shrink-0 max-h-[35%] overflow-y-auto">
-            <div className="px-4 py-3 flex items-center justify-between sticky top-0 z-10 bg-card">
+          <div className="border-b border-border/40 flex-shrink-0 max-h-[35%] overflow-y-auto">
+            <div className="px-3 py-2 flex items-center justify-between sticky top-0 z-10 bg-card border-b border-border/20">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-primary" />
                 <h2 className="font-semibold text-foreground text-sm">Messages</h2>
                 {totalUnread > 0 && (
-                  <span className="bg-primary text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
+                  <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
                     {totalUnread}
                   </span>
                 )}
@@ -1223,27 +1021,27 @@ export default function PatientDashboard() {
             </div>
 
             {inboxConversations.length === 0 && !isInPendingChat ? (
-              <div className="px-4 pb-4 text-center">
-                <MessageCircle className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Questions before booking? Message the clinic here.</p>
+              <div className="px-3 pb-3 text-center py-4">
+                <MessageCircle className="w-6 h-6 text-muted-foreground mx-auto mb-1.5" />
+                <p className="text-xs text-muted-foreground">Questions before booking? Message the clinic here.</p>
               </div>
             ) : (
-              <div className="px-3 pb-3 space-y-1.5">
+              <div className="px-2 pb-2 pt-1">
                 {/* Show pending chat as a virtual conversation card */}
                 {isInPendingChat && pendingChatClinic && (
                   <div
-                    className="p-2.5 rounded-lg border-2 border-primary bg-primary/5 flex gap-2.5 cursor-default"
+                    className="px-3 py-2 rounded border-2 border-primary bg-primary/5 flex gap-2.5 cursor-default mb-1"
                   >
                     <div className="flex-shrink-0">
-                      <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                        <span className="text-white text-sm font-semibold">
+                      <div className="w-9 h-9 rounded bg-primary flex items-center justify-center">
+                        <span className="text-white text-xs font-semibold">
                           {pendingChatClinic.clinicName.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     </div>
-                    <div className="min-w-0 flex-1 space-y-0.5">
-                      <p className="text-sm font-semibold text-foreground truncate">{pendingChatClinic.clinicName}</p>
-                      <p className="text-xs text-primary font-medium">New conversation</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-foreground truncate">{pendingChatClinic.clinicName}</p>
+                      <p className="text-[11px] text-primary font-medium">New conversation</p>
                     </div>
                   </div>
                 )}
@@ -1252,6 +1050,16 @@ export default function PatientDashboard() {
                   const isActive = selectedConvId === conv.id && !isInPendingChat
                   const convLead = data?.leads?.find((l) => l.id === conv.lead_id)
                   const treatmentLabel = convLead?.treatment_interest
+
+                  // Determine conversation status
+                  const getConvStatus = () => {
+                    if (conv.unread_by_patient && conv.unread_count_patient > 0) return { label: "Replied", color: "text-primary" }
+                    if (conv.latest_message_sender === "patient") return { label: "Awaiting reply", color: "text-muted-foreground" }
+                    if (conv.latest_message) return { label: "Chatting now", color: "text-primary" }
+                    return null
+                  }
+                  const status = getConvStatus()
+
                   return (
                     <button
                       key={conv.id}
@@ -1259,50 +1067,50 @@ export default function PatientDashboard() {
                         setSelectedConvId(conv.id)
                         setPendingChatClinic(null)
                       }}
-                      className={`w-full text-left p-2.5 rounded-lg transition-all duration-200 flex gap-2.5 ${
+                      className={`w-full text-left px-3 py-2 rounded transition-all duration-150 flex gap-2.5 border-b border-border/20 last:border-b-0 hover:bg-muted/50 ${
                         isActive
-                          ? "border-2 border-primary bg-primary/5"
-                          : "border border-border/40 hover:border-primary/40 hover:shadow-sm"
+                          ? "bg-primary/5 border-l-2 border-l-primary"
+                          : ""
                       }`}
                     >
-                      {/* Clinic image thumbnail — matches OtherClinicCard style */}
+                      {/* Clinic image thumbnail */}
                       <div className="flex-shrink-0">
                         {conv.clinics?.images?.[0] ? (
-                          <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-muted">
+                          <div className="relative w-9 h-9 rounded overflow-hidden bg-muted">
                             <Image src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover" />
                           </div>
                         ) : (
-                          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                            <span className="text-white text-sm font-semibold">
+                          <div className="w-9 h-9 rounded bg-primary flex items-center justify-center">
+                            <span className="text-white text-xs font-semibold">
                               {(conv.clinics?.name || "C").charAt(0).toUpperCase()}
                             </span>
                           </div>
                         )}
                       </div>
                       {/* Content */}
-                      <div className="min-w-0 flex-1 space-y-0.5">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className={`text-[13px] truncate ${conv.unread_by_patient ? "font-bold text-foreground" : "font-semibold text-foreground/80"}`}>
-                              {conv.clinics?.name || "Clinic"}
-                            </p>
-                            {treatmentLabel && (
-                              <span className="text-[10px] text-muted-foreground/70 truncate block">{treatmentLabel}</span>
-                            )}
-                          </div>
+                          <p className={`text-[13px] truncate ${conv.unread_by_patient ? "font-bold text-foreground" : "font-semibold text-foreground/80"}`}>
+                            {conv.clinics?.name || "Clinic"}
+                          </p>
                           <span className="text-[10px] text-muted-foreground flex-shrink-0">
                             {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-muted-foreground truncate pr-2 leading-snug">
+                        <div className="flex items-center justify-between mt-0.5">
+                          <p className="text-xs text-muted-foreground/70 truncate pr-2 leading-snug">
                             {conv.latest_message || "No messages yet"}
                           </p>
-                          {conv.unread_by_patient && conv.unread_count_patient > 0 && (
-                            <span className="bg-primary text-white text-[9px] font-bold min-w-[14px] h-3.5 px-1 rounded-full inline-flex items-center justify-center flex-shrink-0">
-                              {conv.unread_count_patient}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {status && (
+                              <span className={`text-[9px] font-medium ${status.color}`}>{status.label}</span>
+                            )}
+                            {conv.unread_by_patient && conv.unread_count_patient > 0 && (
+                              <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
+                                {conv.unread_count_patient}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </button>
@@ -1316,23 +1124,23 @@ export default function PatientDashboard() {
           <div className="flex-1 flex flex-col min-h-0">
             {!selectedConv && !isInPendingChat ? (
               <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-2">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center">
                   <MessageCircle className="w-5 h-5 text-primary" />
                 </div>
                 <p className="text-sm font-medium">Select a conversation</p>
               </div>
             ) : (
               <>
-                {/* Chat header — shows which clinic is active */}
-                <div className="px-4 py-2.5 border-b border-border/40 flex items-center justify-between flex-shrink-0 bg-card">
-                  <div className="flex items-center gap-3 min-w-0">
+                {/* Chat header */}
+                <div className="px-3 py-2 border-b border-border/40 flex items-center justify-between flex-shrink-0 bg-card">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     {chatHeaderImage ? (
-                      <div className="relative w-9 h-9 rounded-lg overflow-hidden flex-shrink-0 bg-muted ring-1 ring-border">
+                      <div className="relative w-8 h-8 rounded overflow-hidden flex-shrink-0 bg-muted ring-1 ring-border/40">
                         <Image src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover" />
                       </div>
                     ) : (
-                      <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-sm font-semibold">
+                      <div className="w-8 h-8 rounded bg-primary flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-semibold">
                           {(chatHeaderName || "C").charAt(0).toUpperCase()}
                         </span>
                       </div>
@@ -1348,7 +1156,7 @@ export default function PatientDashboard() {
 
                 {/* Appointment banner for this conversation */}
                 {selectedConv?.appointment_requested_at && latestMatchLead?.booking_clinic_id === selectedConv.clinic_id && (
-                  <div className="px-4 pt-2.5 pb-0 flex-shrink-0">
+                  <div className="px-3 pt-2 pb-0 flex-shrink-0">
                     <AppointmentBanner
                       bookingDate={latestMatchLead.booking_date}
                       bookingTime={latestMatchLead.booking_time}
@@ -1358,18 +1166,16 @@ export default function PatientDashboard() {
                   </div>
                 )}
 
-                {/* Messages — plain scrollable div (not Radix ScrollArea,
-                    which wraps content in an internal Viewport that breaks
-                    ref-based scrollTo and flex height constraints) */}
-                <div className="flex-1 overflow-y-auto min-h-0 px-4 py-3 bg-background" ref={scrollAreaRef}>
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto min-h-0 px-3 py-2.5 bg-card" ref={scrollAreaRef}>
                   {loadingMessages ? (
-                    <div className="flex items-center justify-center py-8">
+                    <div className="flex items-center justify-center py-6">
                       <Loader2 className="w-5 h-5 animate-spin text-primary" />
                     </div>
                   ) : messages.length === 0 ? (
-                    <div className="text-center py-8 space-y-2">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mx-auto">
-                        <MessageCircle className="w-5 h-5 text-primary" />
+                    <div className="text-center py-6 space-y-1.5">
+                      <div className="w-9 h-9 rounded bg-primary/10 flex items-center justify-center mx-auto">
+                        <MessageCircle className="w-4 h-4 text-primary" />
                       </div>
                       <p className="text-sm font-medium text-foreground/70">
                         Chat with {chatHeaderName || "the clinic"}
@@ -1379,14 +1185,14 @@ export default function PatientDashboard() {
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-2.5">
+                    <div className="space-y-2">
                       {messages.map((msg) => (
                         <div
                           key={msg.id}
                           className={`flex ${msg.sender_type === "patient" ? "justify-end" : "justify-start"}`}
                         >
                           <div
-                            className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${
+                            className={`max-w-[85%] rounded-lg px-3 py-1.5 ${
                               msg.sender_type === "patient"
                                 ? "bg-primary text-white rounded-br-sm"
                                 : msg.sender_type === "bot"
@@ -1413,7 +1219,7 @@ export default function PatientDashboard() {
                       ))}
                       {(otherTyping || botTyping) && (
                         <div className="flex justify-start">
-                          <div className="bg-secondary border border-border rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm">
+                          <div className="bg-secondary border border-border rounded-lg rounded-bl-sm px-3.5 py-2">
                             <p className="text-[9px] text-muted-foreground/60 mb-1 flex items-center gap-1">
                               <Heart className="w-2.5 h-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
                               Pearlie AI
@@ -1433,19 +1239,19 @@ export default function PatientDashboard() {
 
                 {/* Closed conversation banner */}
                 {isClosed && (
-                  <div className="px-4 py-3 border-t border-border/40 flex-shrink-0 bg-muted/50">
+                  <div className="px-3 py-2 border-t border-border/40 flex-shrink-0 bg-muted/50">
                     <p className="text-xs text-muted-foreground text-center">This conversation has been closed. Looking for a dentist? <Link href="/intake" className="underline text-primary hover:text-primary/80">Start a new search</Link> to get matched with clinics.</p>
                   </div>
                 )}
 
-                {/* Quick prompts — show until a couple of messages exchanged */}
+                {/* Quick prompts */}
                 {!isClosed && messages.length <= 2 && (
-                <div className="flex gap-1.5 px-4 py-2 overflow-x-auto flex-shrink-0 border-t border-border/40">
+                <div className="flex gap-1.5 px-3 py-1.5 overflow-x-auto flex-shrink-0 border-t border-border/30">
                   {QUICK_PROMPTS.map((prompt) => (
                     <button
                       key={prompt}
                       onClick={() => setNewMessage(prompt)}
-                      className="text-[11px] text-muted-foreground border border-border/60 rounded-full px-2.5 py-1 hover:border-primary/40 hover:text-primary transition-colors whitespace-nowrap flex-shrink-0"
+                      className="text-[11px] text-muted-foreground border border-border/60 rounded-md px-2.5 py-1 hover:border-primary/40 hover:text-primary transition-colors whitespace-nowrap flex-shrink-0"
                     >
                       {prompt}
                     </button>
@@ -1455,7 +1261,7 @@ export default function PatientDashboard() {
 
                 {/* Error feedback */}
                 {chatError && (
-                  <div className="px-4 py-1.5 flex-shrink-0">
+                  <div className="px-3 py-1.5 flex-shrink-0">
                     {chatError.includes("session has expired") ? (
                       <p className="text-xs text-red-500">
                         {chatError}{" "}
@@ -1469,21 +1275,21 @@ export default function PatientDashboard() {
                   </div>
                 )}
 
-                {/* Composer — hidden when conversation is closed */}
+                {/* Composer */}
                 {!isClosed && (
-                <form onSubmit={handleSend} className="flex gap-2 px-4 py-3 border-t border-border/40 flex-shrink-0">
+                <form onSubmit={handleSend} className="flex gap-2 px-3 py-2.5 border-t border-border/40 flex-shrink-0 bg-card">
                   <Input
                     value={newMessage}
                     onChange={(e) => { setNewMessage(e.target.value); sendTyping(); setChatError(null) }}
                     placeholder="Type a message..."
-                    className="flex-1 text-sm rounded-lg border-border/60 focus-visible:ring-primary/30"
+                    className="flex-1 text-sm rounded-md border-border h-9 focus-visible:ring-primary/30"
                     disabled={isSending}
                   />
                   <Button
                     type="submit"
                     size="icon"
                     disabled={!newMessage.trim() || isSending}
-                    className="bg-primary hover:bg-primary/90 text-white h-9 w-9 rounded-lg"
+                    className="bg-primary hover:bg-primary/90 text-white h-9 w-9 rounded-md"
                   >
                     {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
@@ -1493,34 +1299,366 @@ export default function PatientDashboard() {
             )}
           </div>
         </div>
+
+        {/* ══════ Desktop collapse/expand toggle ══════ */}
+        <button
+          type="button"
+          onClick={() => setChatPanelCollapsed(!chatPanelCollapsed)}
+          className="hidden lg:flex lg:order-2 items-center justify-center self-center h-8 w-5 flex-shrink-0 rounded bg-card border border-border shadow-sm hover:bg-muted transition-colors"
+          title={chatPanelCollapsed ? "Open messages" : "Close messages"}
+        >
+          {chatPanelCollapsed ? (
+            <ChevronLeft className="w-3.5 h-3.5 text-foreground/60" />
+          ) : (
+            <ChevronRight className="w-3.5 h-3.5 text-foreground/60" />
+          )}
+        </button>
+
+        {/* ══════ LEFT COLUMN: Clinic (Primary) ══════ */}
+        <div className={`lg:order-1 flex-1 min-w-0 ${chatPanelCollapsed ? "lg:max-w-full" : "lg:max-w-[60%]"} overflow-y-auto px-3 py-3 sm:px-3 sm:py-3 lg:px-5 lg:py-4 space-y-3 transition-all duration-300`}>
+
+          {/* ─── Greeting ──── */}
+          {data?.user && (
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-lg font-bold text-foreground">
+                Hi{data.user.name ? `, ${data.user.name.split(" ")[0]}` : ""}
+              </h1>
+              {data.user.email && (
+                <span className="text-xs text-muted-foreground">{data.user.email}</span>
+              )}
+            </div>
+          )}
+
+          {/* ─── MOBILE: Message-first inbox preview (above clinic card) ──── */}
+          {isMobile && (inboxConversations.length > 0 || isInPendingChat) && (
+            <Card className="overflow-hidden border border-border/60 shadow-sm rounded-lg">
+              {/* Inbox header */}
+              <div className="px-3 py-2 bg-card flex items-center justify-between border-b border-border/30">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-primary" />
+                  <h2 className="font-semibold text-foreground text-sm">Messages</h2>
+                  {totalUnread > 0 && (
+                    <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
+                      {totalUnread}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Compact conversation cards — show top 2 */}
+              <div className="bg-card px-2 py-1.5 space-y-0.5">
+                {isInPendingChat && pendingChatClinic && (
+                  <button
+                    onClick={() => setMobileChatOpen(true)}
+                    className="w-full text-left px-2.5 py-2 rounded-md flex gap-2.5 bg-primary/5 border border-primary/30 active:scale-[0.99] transition-transform"
+                  >
+                    <div className="w-8 h-8 rounded bg-primary flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-[10px] font-semibold">
+                        {pendingChatClinic.clinicName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-bold text-foreground truncate">{pendingChatClinic.clinicName}</p>
+                      <p className="text-[10px] text-primary font-medium">New conversation — tap to chat</p>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 self-center flex-shrink-0" />
+                  </button>
+                )}
+
+                {inboxConversations.slice(0, 2).map((conv) => {
+                  const convStatus = (() => {
+                    if (conv.unread_by_patient && conv.unread_count_patient > 0) return { label: "Replied", color: "text-primary" }
+                    if (conv.latest_message_sender === "patient") return { label: "Awaiting reply", color: "text-muted-foreground" }
+                    return null
+                  })()
+
+                  return (
+                    <button
+                      key={conv.id}
+                      onClick={() => {
+                        setSelectedConvId(conv.id)
+                        setPendingChatClinic(null)
+                        setMobileChatOpen(true)
+                      }}
+                      className={`w-full text-left px-2.5 py-2 rounded-md flex gap-2.5 active:scale-[0.99] transition-all ${
+                        conv.unread_by_patient ? "bg-primary/5" : "hover:bg-muted/30"
+                      }`}
+                    >
+                      <div className="flex-shrink-0">
+                        {conv.clinics?.images?.[0] ? (
+                          <div className="relative w-8 h-8 rounded overflow-hidden bg-muted">
+                            <Image src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
+                            <span className="text-white text-[10px] font-semibold">
+                              {(conv.clinics?.name || "C").charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={`text-[13px] truncate ${conv.unread_by_patient ? "font-bold text-foreground" : "font-medium text-foreground/80"}`}>
+                            {conv.clinics?.name || "Clinic"}
+                          </p>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {convStatus && (
+                              <span className={`text-[9px] font-medium ${convStatus.color}`}>{convStatus.label}</span>
+                            )}
+                            <span className="text-[10px] text-muted-foreground">
+                              {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <p className="text-[11px] text-muted-foreground/70 truncate pr-2 leading-snug">
+                            {conv.latest_message || "No messages yet"}
+                          </p>
+                          {conv.unread_by_patient && conv.unread_count_patient > 0 && (
+                            <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center flex-shrink-0">
+                              {conv.unread_count_patient}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 self-center flex-shrink-0" />
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* View full inbox button */}
+              <button
+                onClick={() => setMobileInboxListOpen(true)}
+                className="w-full px-3 py-2.5 border-t border-border/30 bg-card flex items-center justify-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/5 active:bg-primary/10 transition-colors"
+              >
+                <Inbox className="w-3.5 h-3.5" />
+                View full inbox
+                {totalUnread > 0 && (
+                  <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center ml-0.5">
+                    {totalUnread}
+                  </span>
+                )}
+              </button>
+            </Card>
+          )}
+
+          {/* ─── MOBILE: Compact nav for when no conversations exist yet ──── */}
+          {isMobile && selectedClinic && inboxConversations.length === 0 && !isInPendingChat && (
+            <div className="-mx-3 -mt-3 mb-2 px-3 py-2 bg-card border-b border-border/30">
+              <button
+                onClick={handleMessageClick}
+                className="w-full flex items-center justify-center gap-2 h-9 rounded-md bg-primary text-white text-sm font-semibold active:scale-[0.98] transition-transform"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Message Clinic
+              </button>
+            </div>
+          )}
+
+          {/* ─── Booking Card for selected clinic ──────────── */}
+          {!latestMatch ? (
+            <Card className="p-5 text-center rounded-lg border">
+              <Search className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+              <h2 className="font-semibold text-foreground text-sm mb-1">Find your perfect clinic</h2>
+              <p className="text-muted-foreground mb-3 text-xs">
+                Tell us what you need and we&apos;ll recommend the best clinic for you.
+              </p>
+              <Button asChild size="sm">
+                <Link href="/intake">Get matched</Link>
+              </Button>
+            </Card>
+          ) : loadingClinics && !selectedClinic ? (
+            <Card className="p-6 flex flex-col items-center justify-center rounded-lg border">
+              <Loader2 className="w-5 h-5 animate-spin text-primary mb-2" />
+              <p className="text-xs text-muted-foreground">Finding your best match...</p>
+            </Card>
+          ) : selectedClinic ? (
+            <div className="space-y-2">
+              <BookingCard
+                clinic={selectedClinic}
+                isTopMatch={isTopMatch}
+                onMessageClick={handleMessageClick}
+                onRequestAppointment={handleRequestAppointment}
+                appointmentRequested={appointmentRequestedClinics.has(selectedClinic.id)}
+                appointmentRequestedAt={appointmentRequestedClinicsMap.get(selectedClinic.id) || null}
+                bookingDate={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_date : null}
+                bookingTime={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_time : null}
+                bookingStatus={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_status : null}
+                bookingDeclineReason={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_decline_reason : null}
+                bookingCancelReason={latestMatchLead?.booking_clinic_id === selectedClinic.id ? latestMatchLead?.booking_cancel_reason : null}
+                ctaRef={ctaRef}
+                providers={clinicProviders}
+                treatmentInterest={latestMatchLead?.treatment_interest}
+                postcode={latestMatchLead?.postcode}
+              />
+            </div>
+          ) : latestMatch ? (
+            <Link href={`/match/${latestMatch.id}`}>
+              <Card className="p-4 hover:shadow-sm transition-shadow cursor-pointer border-border bg-card rounded-lg">
+                <span className="text-[10px] font-medium text-white bg-primary px-2 py-0.5 rounded">Your latest match</span>
+                <p className="font-semibold text-foreground text-sm mt-1.5">{latestMatchLead?.treatment_interest || "Dental enquiry"}</p>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5">View your {latestMatch.clinic_ids?.length || 0} matched clinics &rarr;</p>
+              </Card>
+            </Link>
+          ) : null}
+
+          {/* ─── OTHER CLINICS — Netflix horizontal scroll ─────────────────── */}
+          {otherClinics.length > 0 && latestMatch && (
+            <section>
+              <h2 className="text-xs font-semibold text-foreground mb-2">
+                Other clinics for you
+              </h2>
+
+              <div className="-mx-3 px-3 lg:-mx-5 lg:px-5 overflow-x-auto scrollbar-hide">
+                <div className="flex gap-2.5 lg:gap-3 pb-1" style={{ width: "max-content" }}>
+                  {otherClinics.map((clinic) => (
+                    <button
+                      key={clinic.id}
+                      onClick={() => handleSelectClinic(clinic.id)}
+                      className="flex-shrink-0 w-[110px] lg:w-[150px] text-left active:scale-[0.97] transition-transform"
+                    >
+                      <div className={`relative w-[110px] h-[80px] lg:w-[150px] lg:h-[100px] rounded-lg overflow-hidden border-2 ${
+                        clinic.id === selectedClinicId ? "border-primary shadow-md" : "border-border/30"
+                      }`}>
+                        {clinic.images && clinic.images.length > 0 ? (
+                          <Image
+                            src={clinic.images[0] || "/placeholder.svg"}
+                            alt={clinic.name}
+                            fill
+                            className="object-cover"
+                            sizes="(min-width: 1024px) 150px, 110px"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-muted flex items-center justify-center">
+                            <span className="text-foreground text-xl font-bold">{clinic.name.charAt(0)}</span>
+                          </div>
+                        )}
+                        {/* Match % badge */}
+                        {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
+                          <span className="absolute top-1 right-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                            {clinic.match_percentage}%
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-[11px] lg:text-xs mt-1 leading-tight line-clamp-2 ${
+                        clinic.id === selectedClinicId ? "font-bold text-primary" : "font-medium text-foreground/80"
+                      }`}>
+                        {clinic.name}
+                      </p>
+                      {clinic.distance_miles !== undefined && (
+                        <p className="text-[9px] lg:text-[10px] text-muted-foreground mt-0.5">
+                          ~{clinic.distance_miles.toFixed(1)} mi
+                        </p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Start a new search */}
+          {latestMatch && (
+            <Link href="/intake" className="block">
+              <div className="w-full bg-card rounded-lg border border-border/30 px-3 py-2.5 hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all cursor-pointer flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-foreground">Looking for another treatment?</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Start a new search</p>
+                </div>
+                <span className="text-xs font-semibold text-[#0fbcb0] flex-shrink-0">
+                  New search &rarr;
+                </span>
+              </div>
+            </Link>
+          )}
+
+          {/* ─── MATCH HISTORY ─────────────── */}
+          {data?.matches && data.matches.length > 0 && (
+            <section>
+              <button
+                onClick={() => setShowMatchHistory(!showMatchHistory)}
+                className="flex items-center justify-between w-full text-left px-3 py-2.5 rounded-lg border border-border/30 bg-card hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all"
+              >
+                <div>
+                  <h2 className="text-xs font-semibold text-foreground">
+                    Match history
+                  </h2>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    {data.matchesTotal || data.matches.length} previous {(data.matchesTotal || data.matches.length) === 1 ? "search" : "searches"}
+                  </p>
+                </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-foreground/50 transition-transform duration-200 ${showMatchHistory ? "rotate-180" : ""}`} />
+              </button>
+
+              {showMatchHistory && (
+                <div className="mt-1.5 space-y-1">
+                  {data.matches.map((match) => {
+                    const lead = data.leads.find((l) => l.id === match.lead_id)
+                    const isCurrent = match.id === activeMatchId
+                    return (
+                      <Card
+                        key={match.id}
+                        className={`px-2.5 py-2 hover:shadow-sm transition-all cursor-pointer active:scale-[0.99] rounded-lg ${isCurrent ? "border-primary bg-primary/5" : "border-border"}`}
+                        onClick={() => {
+                          if (!isCurrent) fetchClinicDetails(match.id)
+                        }}
+                      >
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-muted-foreground text-[10px] w-11 flex-shrink-0">
+                              {new Date(match.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                            </span>
+                            <span className="text-foreground font-medium text-xs truncate">{lead?.treatment_interest || "Dental enquiry"}</span>
+                            {isCurrent && <span className="text-[9px] text-[#0fbcb0] font-semibold flex-shrink-0">Current</span>}
+                          </div>
+                          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                        </div>
+                      </Card>
+                    )
+                  })}
+                  {hasMoreMatches && (
+                    <button onClick={loadMoreMatches} disabled={loadingMoreMatches} className="text-[11px] text-muted-foreground hover:underline mt-1 font-medium">
+                      {loadingMoreMatches ? "Loading..." : "Load more"}
+                    </button>
+                  )}
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Bottom padding */}
+          <div className={`${isMobile && showStickyBar ? "pb-16" : "pb-2"}`} />
+        </div>
+
+        {/* Columns reordered via CSS order: clinic=1, toggle=2, chat=3 */}
       </div>
 
       {/* ══════ MOBILE: Chat Full-Screen Overlay ══════ */}
-      {/* Plain fixed overlay instead of Vaul Drawer — avoids CSS transform
-          context that breaks iOS Safari keyboard / fixed positioning */}
       {isMobile && mobileChatOpen && (
         <div
           className="fixed inset-0 z-50 flex flex-col bg-card"
           style={{ height: "100dvh" }}
         >
-          {/* Header — no transforms */}
-          <div className="flex-shrink-0 border-b border-border/30 bg-card px-4 py-3">
+          {/* Header */}
+          <div className="flex-shrink-0 border-b border-border/30 bg-card px-3 py-2">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0">
                 {chatHeaderImage ? (
-                  <div className="relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-muted ring-1 ring-border">
+                  <div className="relative w-9 h-9 rounded overflow-hidden flex-shrink-0 bg-muted ring-1 ring-border/40">
                     <Image src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover" />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-sm font-semibold">
+                  <div className="w-9 h-9 rounded bg-primary flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-xs font-semibold">
                       {(chatHeaderName || "C").charAt(0).toUpperCase()}
                     </span>
                   </div>
                 )}
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate text-left">{chatHeaderName || "Clinic"}</p>
-                  <p className={`text-[11px] font-medium ${isClosed ? "text-muted-foreground" : "text-primary"}`}>
+                  <p className={`text-[10px] font-medium ${isClosed ? "text-muted-foreground" : "text-primary"}`}>
                     {isClosed ? "Conversation closed" : "Chatting now"}
                   </p>
                 </div>
@@ -1528,10 +1666,9 @@ export default function PatientDashboard() {
               <button
                 onClick={() => {
                   setMobileChatOpen(false)
-                  // If opened from inbox list, go back to it
                   if (mobileInboxListOpen) return
                 }}
-                className="text-muted-foreground hover:text-foreground p-1.5 -mr-1 rounded-full hover:bg-muted/60 transition-colors"
+                className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-muted/60 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1540,7 +1677,7 @@ export default function PatientDashboard() {
 
           {/* Mobile appointment banner */}
           {selectedConv?.appointment_requested_at && latestMatchLead?.booking_clinic_id === selectedConv.clinic_id && (
-            <div className="px-3 pt-2.5 pb-0 flex-shrink-0">
+            <div className="px-3 pt-2 pb-0 flex-shrink-0">
               <AppointmentBanner
                 bookingDate={latestMatchLead.booking_date}
                 bookingTime={latestMatchLead.booking_time}
@@ -1550,26 +1687,26 @@ export default function PatientDashboard() {
             </div>
           )}
 
-          {/* Messages — flex-1 takes remaining space, scrollable */}
+          {/* Messages */}
           <div
             ref={mobileMessagesRef}
-            className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 min-h-0 bg-background"
+            className="flex-1 overflow-y-auto overscroll-contain px-3 py-2 min-h-0 bg-card"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
             {loadingMessages ? (
-              <div className="flex items-center justify-center py-8">
+              <div className="flex items-center justify-center py-6">
                 <Loader2 className="w-5 h-5 animate-spin text-primary" />
               </div>
             ) : messages.length === 0 ? (
-              <div className="text-center py-10 space-y-3">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                  <MessageCircle className="w-6 h-6 text-primary" />
+              <div className="text-center py-8 space-y-2">
+                <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center mx-auto">
+                  <MessageCircle className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground/80">
                     Chat with {chatHeaderName || "the clinic"}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     Ask any questions or request an appointment
                   </p>
                 </div>
@@ -1582,12 +1719,12 @@ export default function PatientDashboard() {
                     className={`flex ${msg.sender_type === "patient" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[82%] rounded-2xl px-3.5 py-2 ${
+                      className={`max-w-[82%] rounded-lg px-3 py-1.5 ${
                         msg.sender_type === "patient"
-                          ? "bg-primary text-white rounded-br-md"
+                          ? "bg-primary text-white rounded-br-sm"
                           : msg.sender_type === "bot"
-                          ? "bg-secondary border border-border rounded-bl-md shadow-sm"
-                          : "bg-muted rounded-bl-md shadow-sm"
+                          ? "bg-secondary border border-border rounded-bl-sm"
+                          : "bg-muted rounded-bl-sm"
                       }`}
                     >
                       {msg.sender_type === "bot" && (
@@ -1599,7 +1736,7 @@ export default function PatientDashboard() {
                       <p className={`text-[14px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
                         {msg.content}
                       </p>
-                      <p className={`text-[10px] mt-1 ${
+                      <p className={`text-[10px] mt-0.5 ${
                         msg.sender_type === "patient" ? "text-white/50 text-right" : "text-muted-foreground/60"
                       }`}>
                         {formatTime(msg.created_at)}
@@ -1609,15 +1746,15 @@ export default function PatientDashboard() {
                 ))}
                 {(otherTyping || botTyping) && (
                   <div className="flex justify-start">
-                    <div className="bg-secondary border border-border rounded-2xl rounded-bl-md px-4 py-2.5 shadow-sm">
+                    <div className="bg-secondary border border-border rounded-lg rounded-bl-sm px-3.5 py-2">
                       <p className="text-[9px] text-muted-foreground/60 mb-1 flex items-center gap-1">
                         <Heart className="w-2.5 h-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
                         Pearlie AI
                       </p>
                       <div className="flex gap-1">
-                        <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                        <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                        <span className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                        <span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                       </div>
                     </div>
                   </div>
@@ -1629,19 +1766,19 @@ export default function PatientDashboard() {
 
           {/* Closed conversation banner (mobile) */}
           {isClosed && (
-            <div className="px-3 py-3 border-t border-border/30 flex-shrink-0 bg-muted/50">
+            <div className="px-3 py-2 border-t border-border/30 flex-shrink-0 bg-muted/50">
               <p className="text-xs text-muted-foreground text-center">This conversation has been closed. Looking for a dentist? <Link href="/intake" className="underline text-primary hover:text-primary/80">Start a new search</Link> to get matched with clinics.</p>
             </div>
           )}
 
-          {/* Quick prompts — show until a couple of messages exchanged */}
+          {/* Quick prompts */}
           {!isClosed && messages.length <= 2 && (
-            <div className="flex gap-2 px-3 py-2.5 overflow-x-auto flex-shrink-0 border-t border-border/30 bg-card">
+            <div className="flex gap-1.5 px-3 py-2 overflow-x-auto flex-shrink-0 border-t border-border/30 bg-card">
               {QUICK_PROMPTS.map((prompt) => (
                 <button
                   key={prompt}
                   onClick={() => setNewMessage(prompt)}
-                  className="text-[12px] text-muted-foreground border border-border/60 rounded-full px-3 py-1.5 hover:border-primary/40 hover:text-primary active:bg-primary/10 transition-colors whitespace-nowrap flex-shrink-0"
+                  className="text-[11px] text-muted-foreground border border-border/60 rounded-md px-2.5 py-1 hover:border-primary/40 hover:text-primary active:bg-primary/10 transition-colors whitespace-nowrap flex-shrink-0"
                 >
                   {prompt}
                 </button>
@@ -1665,25 +1802,25 @@ export default function PatientDashboard() {
             </div>
           )}
 
-          {/* Composer — hidden when conversation is closed */}
+          {/* Composer */}
           {!isClosed && (
           <form
             onSubmit={handleSend}
-            className="flex items-center gap-2 px-3 py-3 border-t border-border/30 flex-shrink-0 bg-card"
+            className="flex items-center gap-2 px-3 py-2.5 border-t border-border/30 flex-shrink-0 bg-card"
             style={{ paddingBottom: "max(env(safe-area-inset-bottom, 12px), 12px)" }}
           >
             <Input
               value={newMessage}
               onChange={(e) => { setNewMessage(e.target.value); sendTyping(); setChatError(null) }}
               placeholder="Type a message..."
-              className="flex-1 text-base rounded-xl bg-muted/60 border-0 h-10 focus-visible:ring-ring/30"
+              className="flex-1 text-base rounded-md border border-border h-10 focus-visible:ring-ring/30"
               disabled={isSending}
             />
             <Button
               type="submit"
               size="icon"
               disabled={!newMessage.trim() || isSending}
-              className="bg-primary hover:bg-primary/90 text-white h-10 w-10 rounded-xl shrink-0 active:scale-95 transition-transform"
+              className="bg-primary hover:bg-primary/90 text-white h-10 w-10 rounded-md shrink-0 active:scale-95 transition-transform"
             >
               {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </Button>
@@ -1695,71 +1832,60 @@ export default function PatientDashboard() {
       {/* ══════ MOBILE: Full-Screen Inbox List ══════ */}
       {isMobile && mobileInboxListOpen && !mobileChatOpen && (
         <div
-          className="fixed inset-0 z-50 flex flex-col bg-background"
+          className="fixed inset-0 z-50 flex flex-col bg-card"
           style={{ height: "100dvh" }}
         >
           {/* Header */}
-          <div className="flex-shrink-0 border-b border-border/30 bg-card px-4 py-3">
+          <div className="flex-shrink-0 border-b border-border/30 bg-card px-3 py-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Inbox className="w-5 h-5 text-primary" />
-                <h2 className="font-semibold text-foreground text-base">Inbox</h2>
+                <Inbox className="w-4 h-4 text-primary" />
+                <h2 className="font-semibold text-foreground text-sm">Inbox</h2>
                 {totalUnread > 0 && (
-                  <span className="bg-primary text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full inline-flex items-center justify-center">
+                  <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
                     {totalUnread}
                   </span>
                 )}
               </div>
               <button
                 onClick={() => setMobileInboxListOpen(false)}
-                className="text-muted-foreground hover:text-foreground p-1.5 -mr-1 rounded-full hover:bg-muted/60 transition-colors"
+                className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-muted/60 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          {/* "Return to Clinic Profile" button */}
-          <div className="flex-shrink-0 px-4 py-3 border-b border-border/20 bg-card">
-            <button
-              onClick={() => setMobileInboxListOpen(false)}
-              className="w-full flex items-center justify-center gap-2 h-10 rounded-xl border border-border/60 text-sm font-medium text-foreground/80 hover:bg-muted/40 active:scale-[0.98] transition-all"
-            >
-              <MapPin className="w-4 h-4" />
-              Return to Clinic Profile
-            </button>
-          </div>
-
           {/* Conversation list */}
           <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
             {inboxConversations.length === 0 && !isInPendingChat ? (
-              <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <MessageCircle className="w-7 h-7 text-primary" />
+              <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center mb-3">
+                  <MessageCircle className="w-5 h-5 text-primary" />
                 </div>
                 <p className="text-sm font-medium text-foreground/70 mb-1">No conversations yet</p>
                 <p className="text-xs text-muted-foreground">Message a clinic to start a conversation</p>
               </div>
             ) : (
-              <div className="px-3 py-3 space-y-2">
+              <div className="px-3 py-2 space-y-1.5">
                 {/* Pending chat card */}
                 {isInPendingChat && pendingChatClinic && (
                   <button
                     onClick={() => {
                       setMobileChatOpen(true)
                     }}
-                    className="w-full text-left p-3.5 rounded-xl border-2 border-primary bg-primary/5 flex gap-3 active:scale-[0.99] transition-transform"
+                    className="w-full text-left p-2.5 rounded border-2 border-primary bg-primary/5 flex gap-2.5 active:scale-[0.99] transition-transform"
                   >
-                    <div className="w-11 h-11 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-sm font-semibold">
+                    <div className="w-9 h-9 rounded bg-primary flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-semibold">
                         {pendingChatClinic.clinicName.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-foreground truncate">{pendingChatClinic.clinicName}</p>
-                      <p className="text-xs text-primary font-medium mt-0.5">New conversation</p>
+                      <p className="text-sm font-bold text-foreground truncate">{pendingChatClinic.clinicName}</p>
+                      <p className="text-[11px] text-primary font-medium">New conversation</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground/50 self-center flex-shrink-0" />
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 self-center flex-shrink-0" />
                   </button>
                 )}
 
@@ -1772,21 +1898,21 @@ export default function PatientDashboard() {
                       setPendingChatClinic(null)
                       setMobileChatOpen(true)
                     }}
-                    className={`w-full text-left p-3.5 rounded-xl flex gap-3 active:scale-[0.99] transition-all ${
+                    className={`w-full text-left p-2.5 rounded flex gap-2.5 active:scale-[0.99] transition-all border-b border-border/20 last:border-b-0 ${
                       conv.unread_by_patient
-                        ? "border-2 border-primary/40 bg-primary/5"
-                        : "border border-border/40 hover:border-border"
+                        ? "bg-primary/5"
+                        : "hover:bg-muted/50"
                     }`}
                   >
                     {/* Clinic image */}
                     <div className="flex-shrink-0">
                       {conv.clinics?.images?.[0] ? (
-                        <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-muted">
+                        <div className="relative w-9 h-9 rounded overflow-hidden bg-muted">
                           <Image src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover" />
                         </div>
                       ) : (
-                        <div className="w-11 h-11 rounded-lg bg-primary flex items-center justify-center">
-                          <span className="text-white text-sm font-semibold">
+                        <div className="w-9 h-9 rounded bg-primary flex items-center justify-center">
+                          <span className="text-white text-xs font-semibold">
                             {(conv.clinics?.name || "C").charAt(0).toUpperCase()}
                           </span>
                         </div>
@@ -1795,7 +1921,7 @@ export default function PatientDashboard() {
                     {/* Content */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <p className={`text-sm truncate ${conv.unread_by_patient ? "font-bold text-foreground" : "font-semibold text-foreground/80"}`}>
+                        <p className={`text-[13px] truncate ${conv.unread_by_patient ? "font-bold text-foreground" : "font-semibold text-foreground/80"}`}>
                           {conv.clinics?.name || "Clinic"}
                         </p>
                         <span className="text-[10px] text-muted-foreground flex-shrink-0">
@@ -1803,21 +1929,35 @@ export default function PatientDashboard() {
                         </span>
                       </div>
                       <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-xs text-muted-foreground truncate pr-2 leading-snug">
+                        <p className="text-xs text-muted-foreground/70 truncate pr-2 leading-snug">
                           {conv.latest_message || "No messages yet"}
                         </p>
                         {conv.unread_by_patient && conv.unread_count_patient > 0 && (
-                          <span className="bg-primary text-white text-[9px] font-bold min-w-[14px] h-3.5 px-1 rounded-full inline-flex items-center justify-center flex-shrink-0">
+                          <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center flex-shrink-0">
                             {conv.unread_count_patient}
                           </span>
                         )}
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground/50 self-center flex-shrink-0" />
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 self-center flex-shrink-0" />
                   </button>
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Sticky "See Dashboard" button at bottom */}
+          <div
+            className="flex-shrink-0 border-t border-border/30 bg-card/95 backdrop-blur-md px-3 py-2.5 shadow-[0_-2px_10px_rgba(0,0,0,0.04)]"
+            style={{ paddingBottom: "max(env(safe-area-inset-bottom, 12px), 12px)" }}
+          >
+            <button
+              onClick={() => setMobileInboxListOpen(false)}
+              className="w-full flex items-center justify-center gap-2 h-10 rounded-lg bg-[#004443] text-white text-sm font-semibold active:scale-[0.98] transition-transform"
+            >
+              <Search className="w-4 h-4" />
+              See Dashboard
+            </button>
           </div>
         </div>
       )}
@@ -1825,21 +1965,26 @@ export default function PatientDashboard() {
       {/* ══════ MOBILE: Sticky Bottom Action Bar ══════ */}
       {isMobile && selectedClinic && !mobileChatOpen && !mobileInboxListOpen && stickyBarDeferred && (
         <div
-          className={`fixed bottom-0 inset-x-0 z-30 bg-card/95 backdrop-blur-md border-t border-border/40 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-4 py-3 pb-6 transition-all duration-300 ${
+          className={`fixed bottom-0 inset-x-0 z-30 bg-card/95 backdrop-blur-md border-t border-border/40 shadow-[0_-2px_10px_rgba(0,0,0,0.04)] px-3 py-2.5 pb-5 transition-all duration-300 ${
             showStickyBar ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
           }`}
         >
           <div className="flex gap-2">
             <Button
-              className="flex-1 h-11 bg-primary text-white border-0 font-semibold text-sm rounded-xl shadow-sm active:scale-[0.98] transition-transform"
+              className="flex-1 h-9 bg-primary text-white border-0 font-semibold text-sm rounded-md active:scale-[0.98] transition-transform"
               onClick={handleMessageClick}
             >
               <MessageCircle className="w-4 h-4 mr-1.5 flex-shrink-0" />
               Message
+              {totalUnread > 0 && (
+                <span className="ml-1.5 bg-white/20 text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
+                  {totalUnread}
+                </span>
+              )}
             </Button>
             {!appointmentRequestedClinics.has(selectedClinic.id) && (
               <Button
-                className="flex-1 h-11 rounded-xl text-sm font-semibold bg-[var(--dark-teal-bg)] hover:bg-[var(--dark-teal-bg)]/90 text-white border-0 active:scale-[0.98] transition-transform"
+                className="flex-1 h-9 rounded-md text-sm font-semibold bg-[var(--dark-teal-bg)] hover:bg-[var(--dark-teal-bg)]/90 text-white border-0 active:scale-[0.98] transition-transform"
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               >
                 <CalendarCheck className="w-4 h-4 mr-1.5 flex-shrink-0" />

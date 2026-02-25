@@ -43,46 +43,46 @@ export function AppointmentBanner({
 
   if (compact) {
     return (
-      <div className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs bg-blue-50 border-blue-200 border">
-        <CalendarCheck className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-        <span className="font-medium text-foreground truncate">
-          Appointment requested
-          {formattedDate && <> &middot; {formattedDate}</>}
-          {formattedTime && <> &middot; {formattedTime}</>}
+      <div className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs bg-blue-500/10 border-blue-500/20 border">
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-blue-500/30 bg-blue-500/15 text-[10px] font-semibold text-blue-600 flex-shrink-0">
+          <CalendarCheck className="w-3 h-3" />
+          Pending
+        </span>
+        <span className="text-xs text-blue-600 truncate">
+          {formattedDate && <>{formattedDate}</>}
+          {formattedTime && <> at {formattedTime}</>}
         </span>
       </div>
     )
   }
 
   return (
-    <div className="rounded-xl bg-blue-50 border-blue-200 border p-3.5">
-      <div className="flex items-start gap-2.5">
-        <CalendarCheck className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-blue-700">
-            Appointment requested
-          </p>
-          <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
-            {formattedDate && (
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5" />
-                {formattedDate}
-              </span>
-            )}
-            {formattedTime && (
-              <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
-                {formattedTime}
-              </span>
-            )}
-          </div>
-          {clinicName && (
-            <p className="text-xs text-muted-foreground mt-1">
-              at {clinicName}
-            </p>
+    <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-2.5">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-blue-500/30 bg-blue-500/15 text-[11px] font-semibold text-blue-600">
+          <CalendarCheck className="w-3 h-3" />
+          Pending confirmation
+        </span>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {formattedDate && (
+            <span className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              {formattedDate}
+            </span>
+          )}
+          {formattedTime && (
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {formattedTime}
+            </span>
           )}
         </div>
       </div>
+      {clinicName && (
+        <p className="text-[11px] text-muted-foreground mt-1">
+          at {clinicName}
+        </p>
+      )}
     </div>
   )
 }

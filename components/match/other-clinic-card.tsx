@@ -32,45 +32,45 @@ export function OtherClinicCard({ clinic, isSelected, onClick }: OtherClinicCard
   return (
     <Card
       className={cn(
-        "p-2.5 sm:p-3 cursor-pointer transition-all duration-200 hover:shadow-md active:scale-[0.98] bg-[#faf3e6]",
+        "p-2 cursor-pointer transition-all duration-150 hover:shadow-sm active:scale-[0.99] bg-card rounded-lg",
         isSelected
           ? "ring-2 ring-primary border-primary"
           : "border-border/40 hover:border-primary/40"
       )}
       onClick={onClick}
     >
-      <div className="flex gap-2.5 sm:gap-3">
+      <div className="flex gap-2">
         {/* Thumbnail */}
         <div className="flex-shrink-0">
           {clinic.images && clinic.images.length > 0 ? (
             <ClinicImage
               src={clinic.images[0]}
               alt={clinic.name}
-              width={64}
-              height={64}
-              className="rounded-lg object-cover w-[56px] h-[56px] sm:w-[72px] sm:h-[72px]"
-              fallbackClassName="w-[56px] h-[56px] sm:w-[72px] sm:h-[72px] bg-muted rounded-lg flex items-center justify-center"
+              width={48}
+              height={48}
+              className="rounded object-cover w-[40px] h-[40px] sm:w-[48px] sm:h-[48px]"
+              fallbackClassName="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] bg-muted rounded flex items-center justify-center"
             />
           ) : (
-            <div className="w-[56px] h-[56px] sm:w-[72px] sm:h-[72px] bg-muted rounded-lg flex items-center justify-center">
-              <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
+            <div className="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] bg-muted rounded flex items-center justify-center">
+              <MapPin className="w-4 h-4 text-muted-foreground" />
             </div>
           )}
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0 space-y-0.5 sm:space-y-1">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-[13px] sm:text-sm text-foreground truncate">{clinic.name}</h3>
+        <div className="flex-1 min-w-0 space-y-0.5">
+          <div className="flex items-start justify-between gap-1">
+            <h3 className="font-semibold text-xs text-foreground truncate">{clinic.name}</h3>
             {isSelected && (
-              <span className="text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex-shrink-0">
+              <span className="text-[9px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex-shrink-0">
                 Selected
               </span>
             )}
           </div>
 
           {/* Match % + meta inline */}
-          <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground flex-wrap">
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap">
             {showMatchPercent && (
               <span className="flex items-center gap-0.5 text-primary font-semibold">
                 <Sparkles className="w-3 h-3" />
@@ -99,13 +99,13 @@ export function OtherClinicCard({ clinic, isSelected, onClick }: OtherClinicCard
 
           {/* 1-2 chips max */}
           {clinic.highlight_chips && clinic.highlight_chips.length > 0 && (
-            <div className="flex gap-1 sm:gap-1.5 pt-0.5">
+            <div className="flex gap-1 pt-0.5">
               {clinic.highlight_chips.slice(0, 2).map((chip) => {
                 const chipData = getChipData(chip)
                 return (
                   <span
                     key={chip}
-                    className="inline-flex items-center gap-1 text-[10px] font-medium text-[#004443] bg-white/60 px-1.5 py-0.5 rounded"
+                    className="inline-flex items-center gap-0.5 text-[9px] font-medium text-foreground bg-muted/60 px-1 py-0.5 rounded"
                   >
                     {chipData.label}
                   </span>
