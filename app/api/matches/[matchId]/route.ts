@@ -95,6 +95,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
 
         const clinicMap = new Map((clinicsRaw || []).map(c => [c.id, c]))
 
+        // Debug: log images data from DB
+        ;(clinicsRaw || []).forEach((c: any) => {
+          console.log(`[match-api] Clinic ${c.name}: images=${JSON.stringify(c.images)}, count=${c.images?.length || 0}`)
+        })
+
         clinicsWithScores = cachedResults
           .map(cached => {
             const clinicRow = clinicMap.get(cached.clinic_id)
