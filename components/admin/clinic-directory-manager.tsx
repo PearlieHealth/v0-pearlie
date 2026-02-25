@@ -11,7 +11,6 @@ import { Search, Plus, Edit, Copy, Archive, ArchiveRestore, ImageIcon, ExternalL
 import { ClinicEditorDrawer } from "./clinic-editor-drawer"
 import { ClinicInviteButton } from "./clinic-invite-button"
 import { useToast } from "@/hooks/use-toast"
-import Image from "next/image"
 import { ClinicImage } from "@/components/match/clinic-image"
 import Link from "next/link"
 import {

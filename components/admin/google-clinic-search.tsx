@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Search, MapPin, Star, Phone, Globe, Loader2, CheckCircle2 } from "lucide-react"
-import Image from "next/image"
+import { ClinicImage } from "@/components/match/clinic-image"
 import { useToast } from "@/hooks/use-toast"
 
 interface GoogleClinicResult {
@@ -145,12 +145,12 @@ export function GoogleClinicSearch({ onSelect }: GoogleClinicSearchProps) {
               <div className="flex gap-4">
                 {clinic.photoUrl && (
                   <div className="relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden">
-                    <Image
-                      src={`/api/image-proxy?url=${encodeURIComponent(clinic.photoUrl)}`}
+                    <ClinicImage
+                      src={clinic.photoUrl}
                       alt={clinic.name}
                       fill
-                      unoptimized
-                      className="object-cover"
+                      className="object-cover w-full h-full"
+                      fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
                     />
                   </div>
                 )}

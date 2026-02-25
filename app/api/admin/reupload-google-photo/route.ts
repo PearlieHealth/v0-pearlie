@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyAdminAuth } from "@/lib/admin-auth"
 
@@ -35,11 +35,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Google Places API key not configured" }, { status: 500 })
     }
 
-    parsed.searchParams.set("key", apiKey)
-
-    // Fetch the image from Google
+    // Authenticate via header (matching how the search route talks to Google)
     const imageResponse = await fetch(parsed.toString(), {
-      headers: { Accept: "image/*" },
+      headers: {
+        Accept: "image/*",
+        "X-Goog-Api-Key": apiKey,
+      },
       redirect: "follow",
     })
 
@@ -63,8 +64,8 @@ export async function POST(request: NextRequest) {
     }
     const ext = extMap[contentType] || "jpg"
 
-    // Upload to Supabase storage
-    const supabase = await createClient()
+    // Upload to Supabase storage using admin client (bypasses RLS)
+    const supabase = createAdminClient()
     const timestamp = Date.now()
     const randomString = Math.random().toString(36).substring(7)
     const filename = `${timestamp}_${randomString}.${ext}`

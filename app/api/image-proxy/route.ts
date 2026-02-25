@@ -31,22 +31,27 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Only Google Places photo URLs are supported" }, { status: 403 })
   }
 
-  // Ensure it's a photo media endpoint
-  if (!parsed.pathname.includes("/photos/") || !parsed.pathname.endsWith("/media")) {
+  // Ensure it's a photo media endpoint (must end with /media)
+  if (!parsed.pathname.endsWith("/media")) {
     return NextResponse.json({ error: "URL does not look like a Google Places photo" }, { status: 403 })
   }
 
-  // Replace whatever key is in the stored URL with the current server-side key
+  // Use the current server-side API key
   const apiKey = process.env.GOOGLE_PLACES_API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: "Google Places API key not configured" }, { status: 500 })
   }
 
-  parsed.searchParams.set("key", apiKey)
+  // Remove any stale key from the URL — authenticate via header instead
+  // (matches how the search route authenticates with Google)
+  parsed.searchParams.delete("key")
 
   try {
     const response = await fetch(parsed.toString(), {
-      headers: { Accept: "image/*" },
+      headers: {
+        Accept: "image/*",
+        "X-Goog-Api-Key": apiKey,
+      },
       redirect: "follow",
     })
 

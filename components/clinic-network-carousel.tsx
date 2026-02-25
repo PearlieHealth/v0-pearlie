@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
 import { ClinicImage } from "@/components/match/clinic-image"
 import { Building2, Users } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
