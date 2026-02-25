@@ -359,17 +359,6 @@ export default function ClinicInboxPage() {
                             </p>
                           )}
                         </div>
-                        {conv.unread_by_clinic && (
-                          <div className="flex-shrink-0 flex items-center gap-1">
-                            {(conv.unread_count_clinic || 0) > 0 ? (
-                              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-teal-500 text-white text-xs px-1.5">
-                                {conv.unread_count_clinic}
-                              </span>
-                            ) : (
-                              <div className="h-2 w-2 rounded-full bg-teal-500" />
-                            )}
-                          </div>
-                        )}
                       </div>
                     </button>
                   ))}
