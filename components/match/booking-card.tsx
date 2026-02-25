@@ -164,25 +164,25 @@ export function BookingCard({
   const maxReasons = clinic.is_emergency ? 2 : 3
 
   return (
-    <Card className="overflow-hidden transition-all duration-200 ease-out hover:shadow-lg border border-[#004443] shadow-sm bg-white rounded-2xl">
+    <Card className="overflow-hidden transition-all duration-200 ease-out hover:shadow-md border border-[#004443] shadow-sm bg-white rounded">
       {/* Recommended for you banner */}
       {isTopMatch && treatmentInterest && (
-        <div className="bg-[#004443] px-5 py-3.5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <Sparkles className="w-4 h-4 text-[#0fbcb0] flex-shrink-0" />
+        <div className="bg-[#004443] px-3 py-2 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Sparkles className="w-3.5 h-3.5 text-[#0fbcb0] flex-shrink-0" />
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold text-[#0fbcb0] uppercase tracking-wide leading-tight">Recommended for you</p>
-              <p className="text-sm font-semibold text-white leading-snug mt-0.5 truncate">
+              <p className="text-[10px] font-semibold text-[#0fbcb0] uppercase tracking-wide leading-tight">Recommended for you</p>
+              <p className="text-xs font-semibold text-white leading-snug mt-0.5 truncate">
                 {treatmentInterest}{postcode ? ` near ${postcode}` : ""}
               </p>
             </div>
           </div>
-          <p className="text-[11px] text-white/50 flex-shrink-0 hidden sm:block">Based on your preferences</p>
+          <p className="text-[10px] text-white/50 flex-shrink-0 hidden sm:block">Based on your preferences</p>
         </div>
       )}
 
-      {/* Map header — pointer-events disabled so patients stay on page */}
-      <div className="relative w-full h-[140px] sm:h-[160px] bg-[#e5e5e5]">
+      {/* Map header — compact */}
+      <div className="relative w-full h-[100px] sm:h-[110px] bg-[#e5e5e5]">
         {clinic.latitude && clinic.longitude && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? (
           <>
             <iframe
@@ -212,14 +212,14 @@ export function BookingCard({
           </div>
         )}
         {/* Badge overlay — top left */}
-        <div className="absolute top-3 left-3">
-          <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${badgeStyle}`}>
+        <div className="absolute top-2 left-2">
+          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm ${badgeStyle}`}>
             {badge}
           </span>
         </div>
-        {/* Clinic photo circle — bottom left, overlapping into body */}
-        <div className="absolute -bottom-6 left-4 sm:left-5 z-10">
-          <div className="relative h-14 w-14 sm:h-16 sm:w-16 rounded-full overflow-hidden border-[3px] border-white shadow-md bg-white">
+        {/* Clinic photo — bottom left, overlapping into body */}
+        <div className="absolute -bottom-5 left-3 sm:left-4 z-10">
+          <div className="relative h-11 w-11 sm:h-12 sm:w-12 rounded overflow-hidden border-2 border-white shadow-md bg-white">
             {clinic.images && clinic.images.length > 0 ? (
               <Image
                 src={clinic.images[0] || "/placeholder.svg"}
@@ -239,11 +239,11 @@ export function BookingCard({
         </div>
       </div>
 
-      {/* Card body — extra top padding for circle overlap */}
-      <div className="p-5 pt-10 sm:p-6 sm:pt-11 space-y-3 sm:space-y-4">
+      {/* Card body */}
+      <div className="p-3 pt-8 sm:p-4 sm:pt-9 space-y-2.5">
         {/* Clinic name + match % inline */}
-        <div className="flex items-start justify-between gap-3">
-          <h2 className="text-lg sm:text-xl font-bold text-[#004443] leading-tight">
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-sm sm:text-base font-bold text-[#004443] leading-tight">
             {clinic.name}
           </h2>
           {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
@@ -251,7 +251,7 @@ export function BookingCard({
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className="flex-shrink-0 flex items-center gap-1 font-bold text-sm cursor-pointer px-2.5 py-1 rounded-full bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
+                  className="flex-shrink-0 flex items-center gap-1 font-bold text-xs cursor-pointer px-2 py-0.5 rounded bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Sparkles className="w-3.5 h-3.5 text-[#0fbcb0]" />
@@ -332,11 +332,11 @@ export function BookingCard({
 
         {/* Feature chips */}
         {clinic.highlight_chips && clinic.highlight_chips.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1">
             {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
               const chipData = getChipData(chip)
               return (
-                <span key={chip} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-[#004443]/15 text-[#004443] bg-[#004443]/5">
+                <span key={chip} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border border-[#004443]/15 text-[#004443] bg-[#004443]/5">
                   {chipData.icon}
                   {chipData.label}
                 </span>
@@ -345,18 +345,19 @@ export function BookingCard({
           </div>
         )}
 
-        {/* Why we matched you — teal border only, no fill */}
+        {/* Why we matched you — collapsible */}
         {reasons.length > 0 && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-          <div className="rounded-xl p-3.5 border border-[#0fbcb0]/30">
-            <h3 className="font-semibold text-sm text-[#0fbcb0] mb-1.5">
+          <details className="rounded border border-[#0fbcb0]/30 group">
+            <summary className="px-3 py-2 cursor-pointer text-xs font-semibold text-[#0fbcb0] flex items-center justify-between list-none">
               {clinic.card_title || "Why we matched you"}
-            </h3>
-            <div className="space-y-1.5 text-sm text-[#1a1a1a] leading-relaxed">
+              <ChevronDown className="w-3.5 h-3.5 text-[#0fbcb0]/50 group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-3 pb-2.5 space-y-1 text-xs text-[#1a1a1a] leading-relaxed">
               {reasons.slice(0, maxReasons).map((sentence, i) => (
                 <p key={i}>{sentence}</p>
               ))}
             </div>
-          </div>
+          </details>
         )}
 
         {/* Availability — ClinicDatePicker always visible */}
@@ -377,32 +378,32 @@ export function BookingCard({
 
           {/* Confirmation step */}
           {pendingAppointment && (!appointmentRequested || bookingStatus === "declined" || bookingStatus === "cancelled") && (
-            <div className="rounded-xl border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-4 animate-in fade-in duration-200">
-              <div className="flex items-start justify-between gap-2 mb-3">
+            <div className="rounded border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-3 animate-in fade-in duration-200">
+              <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
-                  <p className="text-xs font-semibold text-[#004443] uppercase tracking-wide">Confirm your request</p>
+                  <p className="text-[10px] font-semibold text-[#004443] uppercase tracking-wide">Confirm your request</p>
                   {pendingAppointment.dateLabel && pendingAppointment.timeLabel ? (
-                    <p className="text-sm text-[#1a1a1a] mt-1">
+                    <p className="text-xs text-[#1a1a1a] mt-0.5">
                       <span className="font-semibold">{pendingAppointment.dateLabel}</span> at <span className="font-semibold">{pendingAppointment.timeLabel}</span>
                     </p>
                   ) : (
-                    <p className="text-sm text-[#1a1a1a] mt-1">General appointment request</p>
+                    <p className="text-xs text-[#1a1a1a] mt-0.5">General appointment request</p>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={() => setPendingAppointment(null)}
-                  className="text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-black/5 transition-colors flex-shrink-0"
+                  className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-black/5 transition-colors flex-shrink-0"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground mb-3">
+              <p className="text-[11px] text-muted-foreground mb-2">
                 This will send a message to {clinic.name} requesting this appointment.
               </p>
               <div className="flex gap-2">
                 <Button
-                  className="flex-1 h-10 rounded-full text-sm font-semibold bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
+                  className="flex-1 h-8 rounded text-xs font-semibold bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
                   disabled={isRequesting}
                   onClick={async () => {
                     if (onRequestAppointment) {
@@ -419,15 +420,15 @@ export function BookingCard({
                   }}
                 >
                   {isRequesting ? (
-                    <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
                   ) : (
-                    <CalendarCheck className="w-4 h-4 mr-1.5" />
+                    <CalendarCheck className="w-3.5 h-3.5 mr-1" />
                   )}
                   {isRequesting ? "Sending..." : "Confirm request"}
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-10 rounded-full text-sm px-5"
+                  className="h-8 rounded text-xs px-3"
                   onClick={() => setPendingAppointment(null)}
                   disabled={isRequesting}
                 >
@@ -452,23 +453,23 @@ export function BookingCard({
             // Confirmed
             if (bookingStatus === "confirmed") {
               return (
-                <div className="rounded-xl bg-green-50 border border-green-200 p-4 space-y-3">
-                  <div className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-semibold text-green-700">
-                        Appointment confirmed
-                        {formattedBookingDate && (
-                          <> for {formattedBookingDate}{formattedBookingTime && <> at {formattedBookingTime}</>}</>
-                        )}
-                      </p>
-                    </div>
+                <div className="rounded border border-green-200 bg-green-50 p-2.5 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-green-300 bg-green-100 text-[11px] font-semibold text-green-700">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Confirmed
+                    </span>
+                    {formattedBookingDate && (
+                      <span className="text-xs text-green-700">
+                        {formattedBookingDate}{formattedBookingTime && <> at {formattedBookingTime}</>}
+                      </span>
+                    )}
                   </div>
                   <Button
-                    className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    className="w-full h-8 rounded text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
                     onClick={onMessageClick}
                   >
-                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    <MessageCircle className="w-3.5 h-3.5 mr-1" />
                     Message Clinic
                   </Button>
                 </div>
@@ -478,24 +479,22 @@ export function BookingCard({
             // Declined
             if (bookingStatus === "declined") {
               return (
-                <div className="rounded-xl bg-red-50 border border-red-200 p-4 space-y-3">
-                  <div className="flex items-start gap-2.5">
-                    <X className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-semibold text-red-700">Request declined</p>
-                      {bookingDeclineReason && (
-                        <p className="text-xs text-red-600/80 mt-0.5">{bookingDeclineReason}</p>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        You can request a new appointment time.
-                      </p>
-                    </div>
+                <div className="rounded border border-red-200 bg-red-50 p-2.5 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-red-300 bg-red-100 text-[11px] font-semibold text-red-700">
+                      <X className="w-3 h-3" />
+                      Declined
+                    </span>
                   </div>
+                  {bookingDeclineReason && (
+                    <p className="text-[11px] text-red-600/80">{bookingDeclineReason}</p>
+                  )}
+                  <p className="text-[11px] text-muted-foreground">You can request a new appointment time.</p>
                   <Button
-                    className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    className="w-full h-8 rounded text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
                     onClick={onMessageClick}
                   >
-                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    <MessageCircle className="w-3.5 h-3.5 mr-1" />
                     Message Clinic
                   </Button>
                 </div>
@@ -505,24 +504,22 @@ export function BookingCard({
             // Cancelled
             if (bookingStatus === "cancelled") {
               return (
-                <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 space-y-3">
-                  <div className="flex items-start gap-2.5">
-                    <X className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-700">Appointment cancelled</p>
-                      {bookingCancelReason && (
-                        <p className="text-xs text-gray-600/80 mt-0.5">{bookingCancelReason}</p>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        You can request a new appointment time.
-                      </p>
-                    </div>
+                <div className="rounded border border-gray-200 bg-gray-50 p-2.5 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray-300 bg-gray-100 text-[11px] font-semibold text-gray-700">
+                      <X className="w-3 h-3" />
+                      Cancelled
+                    </span>
                   </div>
+                  {bookingCancelReason && (
+                    <p className="text-[11px] text-gray-600/80">{bookingCancelReason}</p>
+                  )}
+                  <p className="text-[11px] text-muted-foreground">You can request a new appointment time.</p>
                   <Button
-                    className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    className="w-full h-8 rounded text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
                     onClick={onMessageClick}
                   >
-                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    <MessageCircle className="w-3.5 h-3.5 mr-1" />
                     Message Clinic
                   </Button>
                 </div>
@@ -532,56 +529,52 @@ export function BookingCard({
             // Completed
             if (bookingStatus === "completed") {
               return (
-                <div className="rounded-xl bg-green-50 border border-green-200 p-4 space-y-3">
-                  <div className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-semibold text-green-700">
-                        Appointment completed
-                        {formattedBookingDate && (
-                          <> on {formattedBookingDate}</>
-                        )}
-                      </p>
-                    </div>
+                <div className="rounded border border-green-200 bg-green-50 p-2.5 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-green-300 bg-green-100 text-[11px] font-semibold text-green-700">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Completed
+                    </span>
+                    {formattedBookingDate && (
+                      <span className="text-xs text-green-700">on {formattedBookingDate}</span>
+                    )}
                   </div>
                   <Button
-                    className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    className="w-full h-8 rounded text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
                     onClick={onMessageClick}
                   >
-                    <MessageCircle className="w-4 h-4 mr-1.5" />
+                    <MessageCircle className="w-3.5 h-3.5 mr-1" />
                     Message Clinic
                   </Button>
                 </div>
               )
             }
 
-            // Default: Pending/requested (original behavior)
+            // Default: Pending/requested
             return (
-              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 space-y-3">
-                <div className="flex items-start gap-2.5">
-                  <CalendarCheck className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-blue-700">
-                      Appointment requested
-                      {formattedBookingDate && (
-                        <> for {formattedBookingDate}{formattedBookingTime && <> at {formattedBookingTime}</>}</>
-                      )}
-                    </p>
-                    {formattedRequestedAt && (
-                      <p className="text-xs text-blue-600/70 mt-0.5">
-                        Requested {formattedRequestedAt}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-1">
-                      The clinic will get back to you shortly. For any changes, please message the clinic directly.
-                    </p>
-                  </div>
+              <div className="rounded border border-blue-200 bg-blue-50 p-2.5 space-y-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-blue-300 bg-blue-100 text-[11px] font-semibold text-blue-700">
+                    <CalendarCheck className="w-3 h-3" />
+                    Pending confirmation
+                  </span>
+                  {formattedBookingDate && (
+                    <span className="text-xs text-blue-700">
+                      {formattedBookingDate}{formattedBookingTime && <> at {formattedBookingTime}</>}
+                    </span>
+                  )}
                 </div>
+                {formattedRequestedAt && (
+                  <p className="text-[11px] text-blue-600/70">Requested {formattedRequestedAt}</p>
+                )}
+                <p className="text-[11px] text-muted-foreground">
+                  The clinic will get back to you shortly.
+                </p>
                 <Button
-                  className="w-full h-10 rounded-full text-sm font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                  className="w-full h-8 rounded text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
                   onClick={onMessageClick}
                 >
-                  <MessageCircle className="w-4 h-4 mr-1.5" />
+                  <MessageCircle className="w-3.5 h-3.5 mr-1" />
                   Message Clinic
                 </Button>
               </div>
@@ -594,7 +587,7 @@ export function BookingCard({
           <button
             type="button"
             onClick={() => setShowMoreDetails(!showMoreDetails)}
-            className="flex items-center justify-center gap-2 text-sm font-semibold text-[#004443] hover:text-[#004443]/80 transition-colors w-full py-3 rounded-xl bg-[#faf3e6] hover:bg-[#faf3e6]/80"
+            className="flex items-center justify-center gap-1.5 text-xs font-semibold text-[#004443] hover:text-[#004443]/80 transition-colors w-full py-2 rounded bg-[#faf3e6] hover:bg-[#faf3e6]/80"
           >
             {showMoreDetails ? (
               <ChevronUp className="w-4 h-4" />
@@ -605,10 +598,10 @@ export function BookingCard({
           </button>
 
           {showMoreDetails && (
-            <div className="grid grid-cols-2 gap-3 pt-4 animate-in slide-in-from-top-2 duration-200">
+            <div className="grid grid-cols-2 gap-2 pt-2.5 animate-in slide-in-from-top-2 duration-200">
 
               {/* Top-left: Opening Hours */}
-              <div className="rounded-xl border border-border/40 p-3.5 bg-white">
+              <div className="rounded border border-border/40 p-2.5 bg-white">
                 <h4 className="text-xs font-semibold text-[#004443] flex items-center gap-1.5 mb-2">
                   <Clock className="w-3.5 h-3.5" />
                   Opening Hours
@@ -659,8 +652,8 @@ export function BookingCard({
                 )}
               </div>
 
-              {/* Top-right: Providers — expandable with profile details */}
-              <div className="rounded-xl border border-border/40 p-3.5 bg-white">
+              {/* Top-right: Providers */}
+              <div className="rounded border border-border/40 p-2.5 bg-white">
                 <button
                   type="button"
                   onClick={() => providers.length > 0 && setShowAllProviders(!showAllProviders)}
@@ -762,7 +755,7 @@ export function BookingCard({
               </div>
 
               {/* Bottom-left: Treatments */}
-              <div className="rounded-xl border border-border/40 p-3.5 bg-white">
+              <div className="rounded border border-border/40 p-2.5 bg-white">
                 <h4 className="text-xs font-semibold text-[#004443] flex items-center gap-1.5 mb-2">
                   <Stethoscope className="w-3.5 h-3.5" />
                   Treatments
@@ -781,7 +774,7 @@ export function BookingCard({
               </div>
 
               {/* Bottom-right: Reviews */}
-              <div className="rounded-xl border border-border/40 p-3.5 bg-white">
+              <div className="rounded border border-border/40 p-2.5 bg-white">
                 <h4 className="text-xs font-semibold text-[#004443] flex items-center gap-1.5 mb-2">
                   <Star className="w-3.5 h-3.5" />
                   Reviews
@@ -844,26 +837,26 @@ export function BookingCard({
         </div>
 
         {/* CTA: Message + Request appointment */}
-        <div ref={ctaRef} className="space-y-2 pt-3 border-t border-border/40">
+        <div ref={ctaRef} className="pt-2 border-t border-border/40">
           {(!appointmentRequested || bookingStatus === "declined" || bookingStatus === "cancelled") && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Button
-                className="flex-1 h-11 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
+                className="flex-1 h-8 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded font-medium text-xs border-0"
                 onClick={onMessageClick}
               >
-                <MessageCircle className="w-4 h-4 mr-1.5" />
+                <MessageCircle className="w-3.5 h-3.5 mr-1" />
                 Message Clinic
               </Button>
               {onRequestAppointment && !pendingAppointment && (
                 <Button
-                  className="flex-1 h-11 rounded-full text-sm font-medium bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
+                  className="flex-1 h-8 rounded text-xs font-medium bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
                   onClick={() => {
                     setPendingAppointment({
                       message: "Hi! I'd like to request an appointment. What times do you have available?",
                     })
                   }}
                 >
-                  <CalendarCheck className="w-4 h-4 mr-1.5" />
+                  <CalendarCheck className="w-3.5 h-3.5 mr-1" />
                   Request Appointment
                 </Button>
               )}
