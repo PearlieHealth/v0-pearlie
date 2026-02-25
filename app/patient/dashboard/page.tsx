@@ -953,9 +953,6 @@ export default function PatientDashboard() {
               </div>
               <span className="font-semibold text-base text-primary">Pearlie</span>
             </Link>
-            <div className="hidden sm:block text-xs text-muted-foreground">
-              Hi{data?.user?.name ? `, ${data.user.name.split(" ")[0]}` : ""} <span className="text-muted-foreground/50 mx-1">&middot;</span> {data?.user?.email}
-            </div>
           </div>
           <div className="flex items-center gap-2">
             {/* Dark mode toggle */}
@@ -1322,10 +1319,13 @@ export default function PatientDashboard() {
 
           {/* ─── Greeting ──── */}
           {data?.user && (
-            <div className="flex items-center justify-between">
+            <div className="flex items-baseline gap-2">
               <h1 className="text-lg font-bold text-foreground">
                 Hi{data.user.name ? `, ${data.user.name.split(" ")[0]}` : ""}
               </h1>
+              {data.user.email && (
+                <span className="text-xs text-muted-foreground">{data.user.email}</span>
+              )}
             </div>
           )}
 
