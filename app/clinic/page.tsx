@@ -619,7 +619,7 @@ export default function ClinicDashboardPage() {
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </div>
               </Link>
-              <Link href={clinicHref("/clinic/inbox")}>
+              <Link href={clinicHref("/clinic/appointments")}>
                 <div className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
                   <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                     <MessageCircle className="h-4 w-4 text-blue-600" />
