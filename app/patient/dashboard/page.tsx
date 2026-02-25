@@ -1293,23 +1293,125 @@ export default function PatientDashboard() {
         {/* ══════ RIGHT COLUMN: Clinic (Secondary) ══════ */}
         <div className={`flex-1 min-w-0 ${chatPanelCollapsed ? "lg:max-w-full" : "lg:max-w-[35%]"} overflow-y-auto px-3 py-3 sm:px-3 sm:py-3 lg:px-4 lg:py-4 space-y-3 transition-all duration-300`}>
 
-          {/* ─── MOBILE: Persistent navigation buttons ──────────── */}
-          {isMobile && selectedClinic && (
-            <div className="sticky top-0 z-20 -mx-3 -mt-3 px-3 pt-2 pb-2 bg-background/95 backdrop-blur-sm border-b border-border/30">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setMobileInboxListOpen(true)}
-                  className="flex-1 flex items-center justify-center gap-2 h-9 rounded bg-primary text-white text-sm font-semibold active:scale-[0.98] transition-transform relative"
-                >
-                  <Inbox className="w-4 h-4" />
-                  Check Inbox
+          {/* ─── MOBILE: Message-first inbox preview (above clinic card) ──── */}
+          {isMobile && (inboxConversations.length > 0 || isInPendingChat) && (
+            <div className="-mx-3 -mt-3 mb-2">
+              {/* Inbox header */}
+              <div className="px-3 py-2 bg-card border-b border-border/30 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-primary" />
+                  <h2 className="font-semibold text-foreground text-sm">Messages</h2>
                   {totalUnread > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded inline-flex items-center justify-center">
+                    <span className="bg-primary text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded inline-flex items-center justify-center">
                       {totalUnread}
                     </span>
                   )}
-                </button>
+                </div>
+                {inboxConversations.length > 2 && (
+                  <button
+                    onClick={() => setMobileInboxListOpen(true)}
+                    className="text-[11px] font-medium text-primary"
+                  >
+                    See all &rarr;
+                  </button>
+                )}
               </div>
+
+              {/* Compact conversation cards — show top 2 */}
+              <div className="bg-card px-2 py-1.5 space-y-0.5 border-b border-border/30">
+                {isInPendingChat && pendingChatClinic && (
+                  <button
+                    onClick={() => setMobileChatOpen(true)}
+                    className="w-full text-left px-2.5 py-2 rounded flex gap-2.5 bg-primary/5 border border-primary/30 active:scale-[0.99] transition-transform"
+                  >
+                    <div className="w-8 h-8 rounded bg-primary flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-[10px] font-semibold">
+                        {pendingChatClinic.clinicName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-bold text-foreground truncate">{pendingChatClinic.clinicName}</p>
+                      <p className="text-[10px] text-primary font-medium">New conversation — tap to chat</p>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 self-center flex-shrink-0" />
+                  </button>
+                )}
+
+                {inboxConversations.slice(0, 2).map((conv) => {
+                  const convStatus = (() => {
+                    if (conv.unread_by_patient && conv.unread_count_patient > 0) return { label: "Replied", color: "text-primary" }
+                    if (conv.latest_message_sender === "patient") return { label: "Awaiting reply", color: "text-muted-foreground" }
+                    return null
+                  })()
+
+                  return (
+                    <button
+                      key={conv.id}
+                      onClick={() => {
+                        setSelectedConvId(conv.id)
+                        setPendingChatClinic(null)
+                        setMobileChatOpen(true)
+                      }}
+                      className={`w-full text-left px-2.5 py-2 rounded flex gap-2.5 active:scale-[0.99] transition-all ${
+                        conv.unread_by_patient ? "bg-primary/5" : "hover:bg-muted/30"
+                      }`}
+                    >
+                      <div className="flex-shrink-0">
+                        {conv.clinics?.images?.[0] ? (
+                          <div className="relative w-8 h-8 rounded overflow-hidden bg-muted">
+                            <Image src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
+                            <span className="text-white text-[10px] font-semibold">
+                              {(conv.clinics?.name || "C").charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={`text-[13px] truncate ${conv.unread_by_patient ? "font-bold text-foreground" : "font-medium text-foreground/80"}`}>
+                            {conv.clinics?.name || "Clinic"}
+                          </p>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {convStatus && (
+                              <span className={`text-[9px] font-medium ${convStatus.color}`}>{convStatus.label}</span>
+                            )}
+                            <span className="text-[10px] text-muted-foreground">
+                              {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <p className="text-[11px] text-muted-foreground/70 truncate pr-2 leading-snug">
+                            {conv.latest_message || "No messages yet"}
+                          </p>
+                          {conv.unread_by_patient && conv.unread_count_patient > 0 && (
+                            <span className="bg-primary text-white text-[9px] font-bold min-w-[14px] h-3.5 px-1 rounded inline-flex items-center justify-center flex-shrink-0">
+                              {conv.unread_count_patient}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 self-center flex-shrink-0" />
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ─── MOBILE: Compact nav for when no conversations exist yet ──── */}
+          {isMobile && selectedClinic && inboxConversations.length === 0 && !isInPendingChat && (
+            <div className="-mx-3 -mt-3 mb-2 px-3 py-2 bg-card border-b border-border/30">
+              <button
+                onClick={handleMessageClick}
+                className="w-full flex items-center justify-center gap-2 h-9 rounded bg-primary text-white text-sm font-semibold active:scale-[0.98] transition-transform"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Message Clinic
+              </button>
             </div>
           )}
 
@@ -1819,6 +1921,11 @@ export default function PatientDashboard() {
             >
               <MessageCircle className="w-4 h-4 mr-1.5 flex-shrink-0" />
               Message
+              {totalUnread > 0 && (
+                <span className="ml-1.5 bg-white/20 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded inline-flex items-center justify-center">
+                  {totalUnread}
+                </span>
+              )}
             </Button>
             {!appointmentRequestedClinics.has(selectedClinic.id) && (
               <Button
