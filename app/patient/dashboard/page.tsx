@@ -326,8 +326,15 @@ export default function PatientDashboard() {
           const firstUnread = conversations.find((c: Conversation) => c.unread_by_patient)
           setSelectedConvId(firstUnread?.id || conversations[0].id)
         }
+      } else if (res.status === 401) {
+        // Session expired — redirect to login
+        router.replace("/patient/login?next=/patient/dashboard")
+      } else {
+        console.warn("[Dashboard] fetchInbox failed:", res.status)
       }
-    } catch {}
+    } catch (err) {
+      console.warn("[Dashboard] fetchInbox error:", err)
+    }
   }
 
   // ── Conversation messages ────────────────────────────────────
@@ -521,6 +528,11 @@ export default function PatientDashboard() {
     }, 30000)
     return () => clearInterval(interval)
   }, [])
+
+  // Re-fetch inbox when mobile inbox list opens to ensure fresh data
+  useEffect(() => {
+    if (mobileInboxListOpen) fetchInbox()
+  }, [mobileInboxListOpen])
 
   // ── Send message ─────────────────────────────────────────────
 
