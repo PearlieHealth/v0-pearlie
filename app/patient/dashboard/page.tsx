@@ -29,7 +29,6 @@ import Link from "next/link"
 import Image from "next/image"
 import { useChatChannel, usePatientConversationUpdates, type RealtimeMessage } from "@/hooks/use-chat-channel"
 import { BookingCard } from "@/components/match/booking-card"
-import { OtherClinicCard } from "@/components/match/other-clinic-card"
 import { useIsMobile } from "@/components/ui/use-mobile"
 import { AppointmentBanner } from "@/components/appointment-banner"
 
@@ -155,7 +154,6 @@ export default function PatientDashboard() {
   // Clinic data for booking card
   const [allClinics, setAllClinics] = useState<ClinicInfo[]>([])
   const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null)
-  const [showOtherClinics, setShowOtherClinics] = useState(false)
   const [loadingClinics, setLoadingClinics] = useState(false)
   const [showMatchHistory, setShowMatchHistory] = useState(false)
   const [loadingMoreMatches, setLoadingMoreMatches] = useState(false)
@@ -1001,14 +999,14 @@ export default function PatientDashboard() {
         </div>
       </header>
 
-      {/* Main content: split view — messages LEFT (primary), clinic RIGHT (secondary) */}
-      <div className="flex-1 max-w-[1400px] w-full mx-auto flex flex-col-reverse lg:flex-row lg:min-h-0">
+      {/* Main content: split view — clinic LEFT, chat RIGHT */}
+      <div className="flex-1 max-w-[1400px] w-full mx-auto flex flex-col lg:flex-row lg:min-h-0">
 
-        {/* ══════ LEFT COLUMN: Messages (Primary) ══════ */}
+        {/* ══════ RIGHT COLUMN: Messages / Chat ══════ */}
         <div className={`
-          lg:flex-shrink-0 lg:border-r lg:border-border/60 lg:flex lg:flex-col lg:bg-background lg:overflow-hidden
+          lg:order-3 lg:flex-shrink-0 lg:border-l lg:border-border/60 lg:flex lg:flex-col lg:bg-background lg:overflow-hidden
           ${chatPanelCollapsed ? "hidden lg:hidden" : "hidden lg:flex"}
-          ${chatPanelCollapsed ? "" : "lg:w-[65%]"}
+          ${chatPanelCollapsed ? "" : "lg:w-[40%]"}
         `}>
 
           {/* Inbox list (top portion) */}
@@ -1309,21 +1307,21 @@ export default function PatientDashboard() {
         <button
           type="button"
           onClick={() => setChatPanelCollapsed(!chatPanelCollapsed)}
-          className="hidden lg:flex items-center justify-center self-center h-8 w-5 flex-shrink-0 rounded bg-card border border-border shadow-sm hover:bg-muted transition-colors"
+          className="hidden lg:flex lg:order-2 items-center justify-center self-center h-8 w-5 flex-shrink-0 rounded bg-card border border-border shadow-sm hover:bg-muted transition-colors"
           title={chatPanelCollapsed ? "Open messages" : "Close messages"}
         >
           {chatPanelCollapsed ? (
-            <ChevronRight className="w-3.5 h-3.5 text-foreground/60" />
-          ) : (
             <ChevronLeft className="w-3.5 h-3.5 text-foreground/60" />
+          ) : (
+            <ChevronRight className="w-3.5 h-3.5 text-foreground/60" />
           )}
         </button>
 
-        {/* ══════ RIGHT COLUMN: Clinic (Secondary) ══════ */}
-        <div className={`flex-1 min-w-0 ${chatPanelCollapsed ? "lg:max-w-full" : "lg:max-w-[35%]"} overflow-y-auto px-3 py-3 sm:px-3 sm:py-3 lg:px-4 lg:py-4 space-y-3 transition-all duration-300`}>
+        {/* ══════ LEFT COLUMN: Clinic (Primary) ══════ */}
+        <div className={`lg:order-1 flex-1 min-w-0 ${chatPanelCollapsed ? "lg:max-w-full" : "lg:max-w-[60%]"} overflow-y-auto px-3 py-3 sm:px-3 sm:py-3 lg:px-5 lg:py-4 space-y-3 transition-all duration-300`}>
 
-          {/* ─── MOBILE: Greeting ──── */}
-          {isMobile && data?.user && (
+          {/* ─── Greeting ──── */}
+          {data?.user && (
             <div className="flex items-center justify-between">
               <h1 className="text-lg font-bold text-foreground">
                 Hi{data.user.name ? `, ${data.user.name.split(" ")[0]}` : ""}
@@ -1506,104 +1504,58 @@ export default function PatientDashboard() {
             </Link>
           ) : null}
 
-          {/* ─── OTHER CLINICS (click to swap) ─────────────────── */}
+          {/* ─── OTHER CLINICS — Netflix horizontal scroll ─────────────────── */}
           {otherClinics.length > 0 && latestMatch && (
             <section>
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-xs font-semibold text-foreground">
-                  Other clinics for you
-                </h2>
-                {!isMobile && (
-                  <button
-                    onClick={() => setShowOtherClinics(!showOtherClinics)}
-                    className="text-[11px] font-medium text-primary"
-                  >
-                    {showOtherClinics ? "Show less" : `View all ${otherClinics.length}`}
-                  </button>
-                )}
-              </div>
+              <h2 className="text-xs font-semibold text-foreground mb-2">
+                Other clinics for you
+              </h2>
 
-              {/* Mobile: horizontal scroll row */}
-              {isMobile ? (
-                <div className="-mx-3 px-3 overflow-x-auto scrollbar-hide">
-                  <div className="flex gap-2.5 pb-1" style={{ width: "max-content" }}>
-                    {otherClinics.map((clinic) => (
-                      <button
-                        key={clinic.id}
-                        onClick={() => handleSelectClinic(clinic.id)}
-                        className={`flex-shrink-0 w-[110px] text-left active:scale-[0.97] transition-transform`}
-                      >
-                        <div className={`relative w-[110px] h-[80px] rounded-lg overflow-hidden border-2 ${
-                          clinic.id === selectedClinicId ? "border-primary shadow-md" : "border-border/30"
-                        }`}>
-                          {clinic.images && clinic.images.length > 0 ? (
-                            <Image
-                              src={clinic.images[0] || "/placeholder.svg"}
-                              alt={clinic.name}
-                              fill
-                              className="object-cover"
-                              sizes="110px"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-muted flex items-center justify-center">
-                              <span className="text-foreground text-xl font-bold">{clinic.name.charAt(0)}</span>
-                            </div>
-                          )}
-                          {/* Match % badge */}
-                          {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-                            <span className="absolute top-1 right-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                              {clinic.match_percentage}%
-                            </span>
-                          )}
-                        </div>
-                        <p className={`text-[11px] mt-1 leading-tight line-clamp-2 ${
-                          clinic.id === selectedClinicId ? "font-bold text-primary" : "font-medium text-foreground/80"
-                        }`}>
-                          {clinic.name}
-                        </p>
-                        {clinic.distance_miles !== undefined && (
-                          <p className="text-[9px] text-muted-foreground mt-0.5">
-                            ~{clinic.distance_miles.toFixed(1)} mi
-                          </p>
+              <div className="-mx-3 px-3 lg:-mx-5 lg:px-5 overflow-x-auto scrollbar-hide">
+                <div className="flex gap-2.5 lg:gap-3 pb-1" style={{ width: "max-content" }}>
+                  {otherClinics.map((clinic) => (
+                    <button
+                      key={clinic.id}
+                      onClick={() => handleSelectClinic(clinic.id)}
+                      className="flex-shrink-0 w-[110px] lg:w-[150px] text-left active:scale-[0.97] transition-transform"
+                    >
+                      <div className={`relative w-[110px] h-[80px] lg:w-[150px] lg:h-[100px] rounded-lg overflow-hidden border-2 ${
+                        clinic.id === selectedClinicId ? "border-primary shadow-md" : "border-border/30"
+                      }`}>
+                        {clinic.images && clinic.images.length > 0 ? (
+                          <Image
+                            src={clinic.images[0] || "/placeholder.svg"}
+                            alt={clinic.name}
+                            fill
+                            className="object-cover"
+                            sizes="(min-width: 1024px) 150px, 110px"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-muted flex items-center justify-center">
+                            <span className="text-foreground text-xl font-bold">{clinic.name.charAt(0)}</span>
+                          </div>
                         )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                /* Desktop: vertical list */
-                <>
-                  {!showOtherClinics ? (
-                    <div className="grid grid-cols-1 gap-1.5">
-                      {otherClinics.slice(0, 4).map((clinic) => (
-                        <OtherClinicCard
-                          key={clinic.id}
-                          clinic={clinic}
-                          isSelected={clinic.id === selectedClinicId}
-                          onClick={() => handleSelectClinic(clinic.id)}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-1.5">
-                      {otherClinics.map((clinic) => (
-                        <OtherClinicCard
-                          key={clinic.id}
-                          clinic={clinic}
-                          isSelected={clinic.id === selectedClinicId}
-                          onClick={() => handleSelectClinic(clinic.id)}
-                        />
-                      ))}
-                    </div>
-                  )}
-
-                  {otherClinics.length > 4 && !showOtherClinics && (
-                    <button onClick={() => setShowOtherClinics(true)} className="mt-1 text-xs text-muted-foreground hover:underline font-medium">
-                      View all {otherClinics.length} clinics
+                        {/* Match % badge */}
+                        {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
+                          <span className="absolute top-1 right-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                            {clinic.match_percentage}%
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-[11px] lg:text-xs mt-1 leading-tight line-clamp-2 ${
+                        clinic.id === selectedClinicId ? "font-bold text-primary" : "font-medium text-foreground/80"
+                      }`}>
+                        {clinic.name}
+                      </p>
+                      {clinic.distance_miles !== undefined && (
+                        <p className="text-[9px] lg:text-[10px] text-muted-foreground mt-0.5">
+                          ~{clinic.distance_miles.toFixed(1)} mi
+                        </p>
+                      )}
                     </button>
-                  )}
-                </>
-              )}
+                  ))}
+                </div>
+              </div>
             </section>
           )}
 
@@ -1680,7 +1632,7 @@ export default function PatientDashboard() {
           <div className={`${isMobile && showStickyBar ? "pb-16" : "pb-2"}`} />
         </div>
 
-        {/* Old right column removed — messages are now the left column */}
+        {/* Columns reordered via CSS order: clinic=1, toggle=2, chat=3 */}
       </div>
 
       {/* ══════ MOBILE: Chat Full-Screen Overlay ══════ */}
