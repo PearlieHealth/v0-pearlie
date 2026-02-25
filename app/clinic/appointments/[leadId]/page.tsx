@@ -37,6 +37,7 @@ import {
   Lock,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import { AppointmentActionCard } from "@/components/clinic/appointment-action-card"
 
 interface Lead {
@@ -406,20 +407,26 @@ export default function AppointmentDetailPage() {
         setNewMessage("")
       } else if (response.status === 403) {
         const errData = await response.json().catch(() => ({}))
-        setSendError(errData.error || "This conversation is closed.")
+        const msg = errData.error || "This conversation is closed."
+        setSendError(msg)
+        toast.error(msg)
         // Auto-update UI to show closed state
         setConversation((prev) =>
           prev ? { ...prev, conversation_state: "closed" as const } : prev
         )
       } else {
         const errData = await response.json().catch(() => ({}))
-        setSendError(errData.error || "Failed to send message.")
+        const msg = errData.error || "Failed to send message."
+        setSendError(msg)
+        toast.error(msg)
       }
     } catch (error) {
       console.error("Failed to send:", error)
       setSendError("Failed to send. Please try again.")
+      toast.error("Failed to send. Please try again.")
     } finally {
       setIsSending(false)
+      skipNextPoll.current = false
     }
   }
 
