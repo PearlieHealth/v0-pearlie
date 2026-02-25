@@ -22,6 +22,16 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { AppointmentBanner } from "@/components/appointment-banner"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
 
 type ConversationState = "open" | "booked" | "closed"
 
@@ -79,6 +89,7 @@ export default function PatientMessagesPage() {
   const [activeTab, setActiveTab] = useState<TabFilter>("active")
   const [showActionMenu, setShowActionMenu] = useState(false)
   const [isUpdatingState, setIsUpdatingState] = useState(false)
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
   const actionMenuRef = useRef<HTMLDivElement>(null)
 
   // Close action menu when clicking outside
@@ -535,7 +546,10 @@ export default function PatientMessagesPage() {
               </button>
             )}
             <button
-              onClick={() => handleConversationAction("closed")}
+              onClick={() => {
+                setShowActionMenu(false)
+                setShowCloseConfirm(true)
+              }}
               className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-[#f5f5f5] flex items-center gap-2.5 transition-colors"
             >
               <XCircle className="h-4 w-4 text-red-500" />
@@ -688,6 +702,31 @@ export default function PatientMessagesPage() {
             </div>
           </form>
         )}
+
+        {/* Close conversation confirmation dialog */}
+        <AlertDialog open={showCloseConfirm} onOpenChange={setShowCloseConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Close this conversation?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently close the conversation with{" "}
+                <span className="font-medium text-foreground">
+                  {selectedConversation?.clinics?.name || "this clinic"}
+                </span>
+                . You won&apos;t be able to send or receive new messages. This can&apos;t be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleConversationAction("closed")}
+                className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              >
+                Close conversation
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     )
   }
@@ -1121,6 +1160,31 @@ export default function PatientMessagesPage() {
           </div>
         )}
       </main>
+
+      {/* Close conversation confirmation dialog */}
+      <AlertDialog open={showCloseConfirm} onOpenChange={setShowCloseConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close this conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently close the conversation with{" "}
+              <span className="font-medium text-foreground">
+                {selectedConversation?.clinics?.name || "this clinic"}
+              </span>
+              . You won&apos;t be able to send or receive new messages. This can&apos;t be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleConversationAction("closed")}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Close conversation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
