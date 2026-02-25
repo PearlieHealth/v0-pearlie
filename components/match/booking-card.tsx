@@ -24,6 +24,7 @@ import {
   Loader2,
 } from "lucide-react"
 import Image from "next/image"
+import { ClinicImage } from "@/components/match/clinic-image"
 import { getChipData } from "@/lib/chipData"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { HOURLY_SLOTS } from "@/lib/constants"
@@ -172,11 +173,12 @@ export function BookingCard({
           {/* Clinic photo */}
           <div className="relative h-12 w-12 sm:h-14 sm:w-14 rounded overflow-hidden border border-border/40 bg-card flex-shrink-0">
             {clinic.images && clinic.images.length > 0 ? (
-              <Image
-                src={clinic.images[0] || "/placeholder.svg"}
+              <ClinicImage
+                src={clinic.images[0]}
                 alt={clinic.name}
                 fill
                 className="object-cover"
+                fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
                 sizes="64px"
               />
             ) : (

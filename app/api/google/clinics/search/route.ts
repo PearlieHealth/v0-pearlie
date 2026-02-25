@@ -62,13 +62,11 @@ export async function POST(request: NextRequest) {
       const postcodeMatch = address.match(/[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}/i)
       const postcode = postcodeMatch ? postcodeMatch[0] : ""
 
-      // Get photo URL using the new API format (without API key — the
+      // Build photo URLs for ALL available photos (without API key — the
       // re-upload endpoint or image proxy will add it server-side)
-      let photoUrl = null
-      if (place.photos && place.photos.length > 0) {
-        const photoName = place.photos[0].name
-        photoUrl = `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=800&maxWidthPx=1200`
-      }
+      const photoUrls: string[] = (place.photos || []).map((photo: any) => {
+        return `https://places.googleapis.com/v1/${photo.name}/media?maxHeightPx=800&maxWidthPx=1200`
+      })
 
       return {
         placeId: place.id,
@@ -83,7 +81,8 @@ export async function POST(request: NextRequest) {
         website: place.websiteUri || "",
         mapsUrl: `https://www.google.com/maps/place/?q=place_id:${place.id}`,
         openingHours: place.regularOpeningHours?.weekdayDescriptions || [],
-        photoUrl,
+        photoUrl: photoUrls[0] || null,
+        photoUrls,
       }
     })
 

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import {
   Phone,
   ExternalLink,
@@ -14,6 +13,7 @@ import {
   Award,
   UserRound,
 } from "lucide-react"
+import { ClinicImage, getImageSrc } from "@/components/match/clinic-image"
 import { OpeningHoursCard } from "./opening-hours-card"
 import type { Clinic, ProviderProfile } from "./types"
 
@@ -42,11 +42,12 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
           <div>
             <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Photos</h2>
             <div className="relative rounded-2xl overflow-hidden bg-[#e5e5e5] aspect-[16/9]">
-              <Image
+              <ClinicImage
                 src={clinic.images[lightboxIndex] || clinic.images[0]}
                 alt={`${clinic.name} - Photo ${lightboxIndex + 1}`}
                 fill
                 className="object-cover"
+                fallbackClassName="absolute inset-0 flex items-center justify-center bg-[#f5f5f5]"
                 sizes="(max-width: 1024px) 100vw, 30vw"
               />
               {clinic.images.length > 1 && (
@@ -78,7 +79,7 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
                     onClick={() => setLightboxIndex(idx)}
                     className={`flex-shrink-0 w-16 h-11 rounded-lg overflow-hidden border-2 transition-colors ${idx === lightboxIndex ? "border-[#1a1a1a]" : "border-transparent opacity-70 hover:opacity-100"}`}
                   >
-                    <img src={img || "/placeholder.svg"} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                    <img src={getImageSrc(img).url || "/placeholder.svg"} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -183,11 +184,12 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
                     {pair.before_url && (
                       <div className="relative bg-[#f5f5f5]">
                         <div className="relative aspect-[4/3]">
-                          <Image
+                          <ClinicImage
                             src={pair.before_url}
                             alt={`Before${pair.treatment ? ` - ${pair.treatment}` : ""}`}
                             fill
                             className="object-contain"
+                            fallbackClassName="absolute inset-0 flex items-center justify-center bg-[#f5f5f5]"
                             sizes="(max-width: 640px) 50vw, 30vw"
                           />
                         </div>
@@ -199,11 +201,12 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
                     {pair.after_url && (
                       <div className="relative bg-[#f5f5f5] border-l border-[#e5e5e5]">
                         <div className="relative aspect-[4/3]">
-                          <Image
+                          <ClinicImage
                             src={pair.after_url}
                             alt={`After${pair.treatment ? ` - ${pair.treatment}` : ""}`}
                             fill
                             className="object-contain"
+                            fallbackClassName="absolute inset-0 flex items-center justify-center bg-[#f5f5f5]"
                             sizes="(max-width: 640px) 50vw, 30vw"
                           />
                         </div>

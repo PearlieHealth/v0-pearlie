@@ -24,6 +24,7 @@ interface GoogleClinicResult {
   mapsUrl: string
   openingHours: string[]
   photoUrl: string | null
+  photoUrls: string[]
 }
 
 interface GoogleClinicSearchProps {

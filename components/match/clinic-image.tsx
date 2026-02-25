@@ -1,24 +1,38 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { MapPin } from "lucide-react"
 
-interface ClinicImageProps {
+interface ClinicImageBaseProps {
   src: string
   alt: string
-  width: number
-  height: number
   className?: string
   fallbackClassName?: string
   sizes?: string
 }
 
+interface ClinicImageSizedProps extends ClinicImageBaseProps {
+  width: number
+  height: number
+  fill?: never
+}
+
+interface ClinicImageFillProps extends ClinicImageBaseProps {
+  fill: true
+  width?: never
+  height?: never
+}
+
+type ClinicImageProps = ClinicImageSizedProps | ClinicImageFillProps
+
 /**
  * Returns a proxied URL for Google Places photo URLs, or the original URL
  * for other image sources (Supabase, Unsplash, etc.)
  */
-function getImageSrc(src: string): { url: string; unoptimized: boolean } {
+export function getImageSrc(src: string): { url: string; unoptimized: boolean } {
+  if (!src) return { url: "", unoptimized: false }
+
   try {
     const parsed = new URL(src)
     if (parsed.hostname === "places.googleapis.com") {
@@ -34,10 +48,16 @@ function getImageSrc(src: string): { url: string; unoptimized: boolean } {
   return { url: src, unoptimized: false }
 }
 
-export function ClinicImage({ src, alt, width, height, className, fallbackClassName, sizes }: ClinicImageProps) {
+export function ClinicImage(props: ClinicImageProps) {
+  const { src, alt, className, fallbackClassName, sizes } = props
   const [hasError, setHasError] = useState(false)
 
-  if (hasError) {
+  // Reset error state when src changes
+  useEffect(() => {
+    setHasError(false)
+  }, [src])
+
+  if (hasError || !src) {
     return (
       <div className={fallbackClassName}>
         <MapPin className="w-10 h-10 text-[#004443]/20" />
@@ -47,12 +67,26 @@ export function ClinicImage({ src, alt, width, height, className, fallbackClassN
 
   const { url, unoptimized } = getImageSrc(src)
 
+  if (props.fill) {
+    return (
+      <Image
+        src={url}
+        alt={alt}
+        fill
+        className={className}
+        sizes={sizes}
+        unoptimized={unoptimized}
+        onError={() => setHasError(true)}
+      />
+    )
+  }
+
   return (
     <Image
       src={url}
       alt={alt}
-      width={width}
-      height={height}
+      width={props.width}
+      height={props.height}
       className={className}
       sizes={sizes}
       unoptimized={unoptimized}
