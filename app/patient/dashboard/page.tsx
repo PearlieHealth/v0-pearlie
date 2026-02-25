@@ -1016,7 +1016,7 @@ export default function PatientDashboard() {
                 <MessageCircle className="w-4 h-4 text-primary" />
                 <h2 className="font-semibold text-foreground text-sm">Messages</h2>
                 {totalUnread > 0 && (
-                  <span className="bg-primary text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded inline-flex items-center justify-center">
+                  <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
                     {totalUnread}
                   </span>
                 )}
@@ -1109,7 +1109,7 @@ export default function PatientDashboard() {
                               <span className={`text-[9px] font-medium ${status.color}`}>{status.label}</span>
                             )}
                             {conv.unread_by_patient && conv.unread_count_patient > 0 && (
-                              <span className="bg-primary text-white text-[9px] font-bold min-w-[14px] h-3.5 px-1 rounded inline-flex items-center justify-center">
+                              <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
                                 {conv.unread_count_patient}
                               </span>
                             )}
@@ -1338,7 +1338,7 @@ export default function PatientDashboard() {
                   <MessageCircle className="w-4 h-4 text-primary" />
                   <h2 className="font-semibold text-foreground text-sm">Messages</h2>
                   {totalUnread > 0 && (
-                    <span className="bg-primary text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded inline-flex items-center justify-center">
+                    <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
                       {totalUnread}
                     </span>
                   )}
@@ -1416,7 +1416,7 @@ export default function PatientDashboard() {
                             {conv.latest_message || "No messages yet"}
                           </p>
                           {conv.unread_by_patient && conv.unread_count_patient > 0 && (
-                            <span className="bg-primary text-white text-[9px] font-bold min-w-[14px] h-3.5 px-1 rounded inline-flex items-center justify-center flex-shrink-0">
+                            <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center flex-shrink-0">
                               {conv.unread_count_patient}
                             </span>
                           )}
@@ -1436,7 +1436,7 @@ export default function PatientDashboard() {
                 <Inbox className="w-3.5 h-3.5" />
                 View full inbox
                 {totalUnread > 0 && (
-                  <span className="bg-primary text-white text-[9px] font-bold min-w-[14px] h-3.5 px-1 rounded inline-flex items-center justify-center ml-0.5">
+                  <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center ml-0.5">
                     {totalUnread}
                   </span>
                 )}
@@ -1842,7 +1842,7 @@ export default function PatientDashboard() {
                 <Inbox className="w-4 h-4 text-primary" />
                 <h2 className="font-semibold text-foreground text-sm">Inbox</h2>
                 {totalUnread > 0 && (
-                  <span className="bg-primary text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded inline-flex items-center justify-center">
+                  <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
                     {totalUnread}
                   </span>
                 )}
@@ -1933,7 +1933,7 @@ export default function PatientDashboard() {
                           {conv.latest_message || "No messages yet"}
                         </p>
                         {conv.unread_by_patient && conv.unread_count_patient > 0 && (
-                          <span className="bg-primary text-white text-[9px] font-bold min-w-[14px] h-3.5 px-1 rounded inline-flex items-center justify-center flex-shrink-0">
+                          <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center flex-shrink-0">
                             {conv.unread_count_patient}
                           </span>
                         )}
@@ -1977,7 +1977,7 @@ export default function PatientDashboard() {
               <MessageCircle className="w-4 h-4 mr-1.5 flex-shrink-0" />
               Message
               {totalUnread > 0 && (
-                <span className="ml-1.5 bg-white/20 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded inline-flex items-center justify-center">
+                <span className="ml-1.5 bg-white/20 text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
                   {totalUnread}
                 </span>
               )}
