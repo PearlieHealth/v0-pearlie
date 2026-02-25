@@ -5,6 +5,7 @@ import React from "react"
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase/client"
+import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
 import { clinicHref } from "@/lib/clinic-url"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -235,7 +236,28 @@ export default function AppointmentDetailPage() {
     fetchData()
   }, [fetchData])
 
-  // Poll for new messages (with dedup + skip-during-send)
+  // ── Realtime: instant message delivery via useChatChannel ──
+  const handleNewRealtimeMessage = useCallback(
+    (msg: RealtimeMessage) => {
+      if (!conversation || msg.conversation_id !== conversation.id) return
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id)) return prev
+        return [...prev, msg as Message].sort(
+          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )
+      })
+    },
+    [conversation]
+  )
+
+  const { otherTyping } = useChatChannel({
+    conversationId: conversation?.id ?? null,
+    userType: "clinic",
+    onNewMessage: handleNewRealtimeMessage,
+    enabled: !!conversation && !isClosed,
+  })
+
+  // Fallback poll for new messages (with dedup + skip-during-send)
   useEffect(() => {
     if (!conversation) return
     let isMounted = true
@@ -656,6 +678,13 @@ export default function AppointmentDetailPage() {
               </div>
             </ScrollArea>
           </div>
+
+          {/* Patient typing indicator */}
+          {otherTyping && !isClosed && (
+            <div className="shrink-0 px-6 py-1.5">
+              <p className="text-xs text-muted-foreground italic">Patient is typing…</p>
+            </div>
+          )}
 
           {/* Closed conversation banner */}
           {conversation && isClosed && (
