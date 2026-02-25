@@ -32,7 +32,7 @@ export function OtherClinicCard({ clinic, isSelected, onClick }: OtherClinicCard
   return (
     <Card
       className={cn(
-        "p-2 cursor-pointer transition-all duration-150 hover:shadow-sm active:scale-[0.99] bg-[#faf3e6] rounded-lg",
+        "p-2 cursor-pointer transition-all duration-150 hover:shadow-sm active:scale-[0.99] bg-card rounded-lg",
         isSelected
           ? "ring-2 ring-primary border-primary"
           : "border-border/40 hover:border-primary/40"
@@ -105,7 +105,7 @@ export function OtherClinicCard({ clinic, isSelected, onClick }: OtherClinicCard
                 return (
                   <span
                     key={chip}
-                    className="inline-flex items-center gap-0.5 text-[9px] font-medium text-[#004443] bg-white/60 px-1 py-0.5 rounded"
+                    className="inline-flex items-center gap-0.5 text-[9px] font-medium text-foreground bg-muted/60 px-1 py-0.5 rounded"
                   >
                     {chipData.label}
                   </span>

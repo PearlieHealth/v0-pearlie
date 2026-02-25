@@ -85,6 +85,29 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+/* Dashboard dark theme — Pearlie-branded, Netflix-inspired */
+.dashboard-dark {
+  --background: #0d1117;
+  --foreground: #e6edf3;
+  --card: #161b22;
+  --card-foreground: #e6edf3;
+  --popover: #1c2333;
+  --popover-foreground: #e6edf3;
+  --primary: #0fbcb0;
+  --primary-foreground: #ffffff;
+  --secondary: #1c2333;
+  --secondary-foreground: #c9d1d9;
+  --muted: #1c2333;
+  --muted-foreground: #8b949e;
+  --accent: #1c2333;
+  --accent-foreground: #c9d1d9;
+  --border: #2d3748;
+  --input: #2d3748;
+  --ring: #0fbcb0;
+  --cream: #1c2333;
+  --dark-teal-bg: #0fbcb0;
+}
+
 @theme inline {
   --font-sans: var(--font-inter-tight), "Inter Tight", sans-serif;
   --font-heading: var(--font-dm-sans), "DM Sans", sans-serif;

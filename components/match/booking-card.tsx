@@ -154,7 +154,7 @@ export function BookingCard({
   const badge = isTopMatch ? "Top match" : "Selected clinic"
   const badgeStyle = isTopMatch
     ? "bg-[#0fbcb0] text-white"
-    : "bg-white/90 text-muted-foreground"
+    : "bg-card/90 text-muted-foreground"
 
   const reasons = clinic.match_reasons_composed?.length
     ? clinic.match_reasons_composed
@@ -164,13 +164,13 @@ export function BookingCard({
   const maxReasons = clinic.is_emergency ? 2 : 3
 
   return (
-    <Card className="overflow-hidden transition-all duration-200 ease-out hover:shadow-md border border-[#004443] shadow-sm bg-white rounded-lg">
+    <Card className="overflow-hidden transition-all duration-200 ease-out hover:shadow-md border border-border shadow-sm bg-card rounded-lg">
       {/* Card body */}
       <div className="p-3 sm:p-4 space-y-2.5">
         {/* Clinic header — photo + name + address */}
         <div className="flex items-start gap-3">
           {/* Clinic photo */}
-          <div className="relative h-12 w-12 sm:h-14 sm:w-14 rounded overflow-hidden border border-border/40 bg-white flex-shrink-0">
+          <div className="relative h-12 w-12 sm:h-14 sm:w-14 rounded overflow-hidden border border-border/40 bg-card flex-shrink-0">
             {clinic.images && clinic.images.length > 0 ? (
               <Image
                 src={clinic.images[0] || "/placeholder.svg"}
@@ -199,18 +199,18 @@ export function BookingCard({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="flex-shrink-0 flex items-center gap-1 font-bold text-[10px] cursor-pointer px-1.5 py-0.5 rounded bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
+                      className="flex-shrink-0 flex items-center gap-1 font-bold text-[10px] cursor-pointer px-1.5 py-0.5 rounded bg-[#0fbcb0]/10 text-foreground hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Sparkles className="w-3 h-3 text-[#0fbcb0]" />
                       <span>{clinic.match_percentage}%</span>
-                      <Info className="w-2.5 h-2.5 text-[#004443]/40" />
+                      <Info className="w-2.5 h-2.5 text-foreground/40" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-72 p-4" align="end" side="bottom">
                     <div className="space-y-3">
                       <div>
-                        <h4 className="font-semibold text-sm text-[#004443]">How we calculated your match</h4>
+                        <h4 className="font-semibold text-sm text-foreground">How we calculated your match</h4>
                         <p className="text-xs text-muted-foreground mt-1">
                           This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.
                         </p>
@@ -254,7 +254,7 @@ export function BookingCard({
                 </Popover>
               )}
             </div>
-            <h2 className="text-sm sm:text-base font-bold text-[#004443] leading-tight truncate">
+            <h2 className="text-sm sm:text-base font-bold text-foreground leading-tight truncate">
               {clinic.name}
             </h2>
             <p className="text-[11px] text-muted-foreground mt-0.5 truncate flex items-center gap-1">
@@ -281,7 +281,7 @@ export function BookingCard({
           )}
           {clinic.distance_miles !== undefined && (
             <div className="flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-[#004443]" />
+              <MapPin className="w-3.5 h-3.5 text-foreground" />
               <span>~{clinic.distance_miles.toFixed(1)} mi</span>
             </div>
           )}
@@ -293,7 +293,7 @@ export function BookingCard({
             {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
               const chipData = getChipData(chip)
               return (
-                <span key={chip} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border border-[#004443]/15 text-[#004443] bg-[#004443]/5">
+                <span key={chip} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border border-primary/15 text-foreground bg-primary/5">
                   {chipData.icon}
                   {chipData.label}
                 </span>
@@ -309,7 +309,7 @@ export function BookingCard({
               {clinic.card_title || "Why we matched you"}
               <ChevronDown className="w-3.5 h-3.5 text-[#0fbcb0]/50 group-open:rotate-180 transition-transform" />
             </summary>
-            <div className="px-3 pb-2.5 space-y-1 text-xs text-[#1a1a1a] leading-relaxed">
+            <div className="px-3 pb-2.5 space-y-1 text-xs text-foreground leading-relaxed">
               {reasons.slice(0, maxReasons).map((sentence, i) => (
                 <p key={i}>{sentence}</p>
               ))}
@@ -338,19 +338,19 @@ export function BookingCard({
             <div className="rounded-lg border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-3 animate-in fade-in duration-200">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
-                  <p className="text-[10px] font-semibold text-[#004443] uppercase tracking-wide">Confirm your request</p>
+                  <p className="text-[10px] font-semibold text-foreground uppercase tracking-wide">Confirm your request</p>
                   {pendingAppointment.dateLabel && pendingAppointment.timeLabel ? (
-                    <p className="text-xs text-[#1a1a1a] mt-0.5">
+                    <p className="text-xs text-foreground mt-0.5">
                       <span className="font-semibold">{pendingAppointment.dateLabel}</span> at <span className="font-semibold">{pendingAppointment.timeLabel}</span>
                     </p>
                   ) : (
-                    <p className="text-xs text-[#1a1a1a] mt-0.5">General appointment request</p>
+                    <p className="text-xs text-foreground mt-0.5">General appointment request</p>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={() => setPendingAppointment(null)}
-                  className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-black/5 transition-colors flex-shrink-0"
+                  className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-foreground/5 transition-colors flex-shrink-0"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -410,14 +410,14 @@ export function BookingCard({
             // Confirmed
             if (bookingStatus === "confirmed") {
               return (
-                <div className="rounded-lg border border-green-200 bg-green-50 p-2.5 space-y-2">
+                <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-2.5 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-green-300 bg-green-100 text-[11px] font-semibold text-green-700">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-green-500/30 bg-green-500/15 text-[11px] font-semibold text-green-600">
                       <CheckCircle2 className="w-3 h-3" />
                       Confirmed
                     </span>
                     {formattedBookingDate && (
-                      <span className="text-xs text-green-700">
+                      <span className="text-xs text-green-600">
                         {formattedBookingDate}{formattedBookingTime && <> at {formattedBookingTime}</>}
                       </span>
                     )}
@@ -436,15 +436,15 @@ export function BookingCard({
             // Declined
             if (bookingStatus === "declined") {
               return (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-2.5 space-y-2">
+                <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-2.5 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-red-300 bg-red-100 text-[11px] font-semibold text-red-700">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-red-500/30 bg-red-500/15 text-[11px] font-semibold text-red-600">
                       <X className="w-3 h-3" />
                       Declined
                     </span>
                   </div>
                   {bookingDeclineReason && (
-                    <p className="text-[11px] text-red-600/80">{bookingDeclineReason}</p>
+                    <p className="text-[11px] text-red-500/80">{bookingDeclineReason}</p>
                   )}
                   <p className="text-[11px] text-muted-foreground">You can request a new appointment time.</p>
                   <Button
@@ -461,15 +461,15 @@ export function BookingCard({
             // Cancelled
             if (bookingStatus === "cancelled") {
               return (
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-2.5 space-y-2">
+                <div className="rounded-lg border border-border bg-muted p-2.5 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-gray-300 bg-gray-100 text-[11px] font-semibold text-gray-700">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-border bg-muted text-[11px] font-semibold text-muted-foreground">
                       <X className="w-3 h-3" />
                       Cancelled
                     </span>
                   </div>
                   {bookingCancelReason && (
-                    <p className="text-[11px] text-gray-600/80">{bookingCancelReason}</p>
+                    <p className="text-[11px] text-muted-foreground/80">{bookingCancelReason}</p>
                   )}
                   <p className="text-[11px] text-muted-foreground">You can request a new appointment time.</p>
                   <Button
@@ -486,14 +486,14 @@ export function BookingCard({
             // Completed
             if (bookingStatus === "completed") {
               return (
-                <div className="rounded-lg border border-green-200 bg-green-50 p-2.5 space-y-2">
+                <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-2.5 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-green-300 bg-green-100 text-[11px] font-semibold text-green-700">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-green-500/30 bg-green-500/15 text-[11px] font-semibold text-green-600">
                       <CheckCircle2 className="w-3 h-3" />
                       Completed
                     </span>
                     {formattedBookingDate && (
-                      <span className="text-xs text-green-700">on {formattedBookingDate}</span>
+                      <span className="text-xs text-green-600">on {formattedBookingDate}</span>
                     )}
                   </div>
                   <Button
@@ -509,20 +509,20 @@ export function BookingCard({
 
             // Default: Pending/requested
             return (
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-2.5 space-y-2">
+              <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-2.5 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-blue-300 bg-blue-100 text-[11px] font-semibold text-blue-700">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-blue-500/30 bg-blue-500/15 text-[11px] font-semibold text-blue-600">
                     <CalendarCheck className="w-3 h-3" />
                     Pending confirmation
                   </span>
                   {formattedBookingDate && (
-                    <span className="text-xs text-blue-700">
+                    <span className="text-xs text-blue-600">
                       {formattedBookingDate}{formattedBookingTime && <> at {formattedBookingTime}</>}
                     </span>
                   )}
                 </div>
                 {formattedRequestedAt && (
-                  <p className="text-[11px] text-blue-600/70">Requested {formattedRequestedAt}</p>
+                  <p className="text-[11px] text-blue-500/70">Requested {formattedRequestedAt}</p>
                 )}
                 <p className="text-[11px] text-muted-foreground">
                   The clinic will get back to you shortly.
@@ -544,7 +544,7 @@ export function BookingCard({
           <button
             type="button"
             onClick={() => setShowMoreDetails(!showMoreDetails)}
-            className="flex items-center justify-center gap-1.5 text-xs font-semibold text-[#004443] hover:text-[#004443]/80 transition-colors w-full py-2 rounded-md border border-border/40 hover:bg-muted/40"
+            className="flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground hover:text-foreground/80 transition-colors w-full py-2 rounded-md border border-border/40 hover:bg-muted/40"
           >
             {showMoreDetails ? (
               <ChevronUp className="w-4 h-4" />
@@ -558,8 +558,8 @@ export function BookingCard({
             <div className="grid grid-cols-2 gap-2 pt-2.5 animate-in slide-in-from-top-2 duration-200">
 
               {/* Top-left: Opening Hours */}
-              <div className="rounded border border-border/40 p-2.5 bg-white">
-                <h4 className="text-xs font-semibold text-[#004443] flex items-center gap-1.5 mb-2">
+              <div className="rounded border border-border/40 p-2.5 bg-card">
+                <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5 mb-2">
                   <Clock className="w-3.5 h-3.5" />
                   Opening Hours
                 </h4>
@@ -589,12 +589,12 @@ export function BookingCard({
                       return (
                         <div
                           key={label}
-                          className={`flex justify-between text-[11px] py-0.5 ${isToday ? "font-semibold text-[#004443]" : "text-muted-foreground"}`}
+                          className={`flex justify-between text-[11px] py-0.5 ${isToday ? "font-semibold text-foreground" : "text-muted-foreground"}`}
                         >
                           <span>
                             {label}
                             {isToday && (
-                              <span className="ml-1 text-[9px] font-medium text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded-full">
+                              <span className="ml-1 text-[9px] font-medium text-emerald-500 bg-emerald-500/10 px-1 py-0.5 rounded-full">
                                 Today
                               </span>
                             )}
@@ -610,18 +610,18 @@ export function BookingCard({
               </div>
 
               {/* Top-right: Providers */}
-              <div className="rounded border border-border/40 p-2.5 bg-white">
+              <div className="rounded border border-border/40 p-2.5 bg-card">
                 <button
                   type="button"
                   onClick={() => providers.length > 0 && setShowAllProviders(!showAllProviders)}
                   className="w-full text-left flex items-center justify-between mb-2"
                 >
-                  <h4 className="text-xs font-semibold text-[#004443] flex items-center gap-1.5">
+                  <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                     <UserRound className="w-3.5 h-3.5" />
                     Providers {providers.length > 0 && <span className="text-muted-foreground font-normal">({providers.length})</span>}
                   </h4>
                   {providers.length > 0 && (
-                    <ChevronDown className={`w-3.5 h-3.5 text-[#004443]/50 transition-transform duration-200 ${showAllProviders ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`w-3.5 h-3.5 text-foreground/50 transition-transform duration-200 ${showAllProviders ? "rotate-180" : ""}`} />
                   )}
                 </button>
                 {providers.length > 0 ? (
@@ -637,16 +637,16 @@ export function BookingCard({
                         <div key={provider.id} className="rounded-lg border border-border/30 overflow-hidden">
                           <div className="flex items-center justify-between px-2.5 py-2">
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="h-9 w-9 rounded-full overflow-hidden bg-[#f0f0f0] flex-shrink-0 ring-1 ring-border/30">
+                              <div className="h-9 w-9 rounded-full overflow-hidden bg-muted flex-shrink-0 ring-1 ring-border/30">
                                 {provider.photo_url ? (
                                   <img src={provider.photo_url} alt={provider.name} className="h-full w-full object-cover" />
                                 ) : (
-                                  <div className="h-full w-full flex items-center justify-center bg-[#004443]/10">
-                                    <UserRound className="h-4 w-4 text-[#004443]/50" />
+                                  <div className="h-full w-full flex items-center justify-center bg-primary/10">
+                                    <UserRound className="h-4 w-4 text-foreground/50" />
                                   </div>
                                 )}
                               </div>
-                              <span className="text-xs text-[#1a1a1a] font-medium truncate">{provider.name}</span>
+                              <span className="text-xs text-foreground font-medium truncate">{provider.name}</span>
                             </div>
                             {hasDetails && (
                               <button
@@ -663,28 +663,28 @@ export function BookingCard({
                           {isExpanded && (
                             <div className="px-2.5 pb-2.5 border-t border-border/20 pt-2 space-y-2 animate-in slide-in-from-top-1 duration-150">
                               {hasBio && (
-                                <p className="text-[11px] text-[#444] leading-relaxed line-clamp-3">{provider.bio}</p>
+                                <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-3">{provider.bio}</p>
                               )}
                               {(hasEducation || hasCerts) && (
                                 <div className="space-y-1.5">
                                   {(provider.education || []).map((edu, i) => (
                                     <div key={`edu-${i}`} className="flex items-start gap-1.5">
-                                      <div className="rounded bg-[#f0f5ff] p-1 flex-shrink-0 mt-0.5">
+                                      <div className="rounded bg-blue-500/10 p-1 flex-shrink-0 mt-0.5">
                                         <GraduationCap className="h-3 w-3 text-[#3b6fcf]" />
                                       </div>
                                       <div className="min-w-0">
-                                        <p className="text-[11px] font-medium text-[#1a1a1a]">{edu.degree}</p>
+                                        <p className="text-[11px] font-medium text-foreground">{edu.degree}</p>
                                         {edu.institution && <p className="text-[10px] text-muted-foreground">{edu.institution}</p>}
                                       </div>
                                     </div>
                                   ))}
                                   {(provider.certifications || []).map((cert, i) => (
                                     <div key={`cert-${i}`} className="flex items-start gap-1.5">
-                                      <div className="rounded bg-[#f0f5ff] p-1 flex-shrink-0 mt-0.5">
+                                      <div className="rounded bg-blue-500/10 p-1 flex-shrink-0 mt-0.5">
                                         <Award className="h-3 w-3 text-[#3b6fcf]" />
                                       </div>
                                       <div className="min-w-0">
-                                        <p className="text-[11px] font-medium text-[#1a1a1a]">{cert.name}</p>
+                                        <p className="text-[11px] font-medium text-foreground">{cert.name}</p>
                                         {cert.date && <p className="text-[10px] text-muted-foreground">{cert.date}</p>}
                                       </div>
                                     </div>
@@ -712,15 +712,15 @@ export function BookingCard({
               </div>
 
               {/* Bottom-left: Treatments */}
-              <div className="rounded border border-border/40 p-2.5 bg-white">
-                <h4 className="text-xs font-semibold text-[#004443] flex items-center gap-1.5 mb-2">
+              <div className="rounded border border-border/40 p-2.5 bg-card">
+                <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5 mb-2">
                   <Stethoscope className="w-3.5 h-3.5" />
                   Treatments
                 </h4>
                 {clinic.treatments && clinic.treatments.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
                     {clinic.treatments.map((t) => (
-                      <span key={t} className="text-[11px] bg-[#004443]/5 px-2 py-0.5 rounded-full text-[#004443] capitalize">
+                      <span key={t} className="text-[11px] bg-primary/5 px-2 py-0.5 rounded-full text-foreground capitalize">
                         {t.replace(/_/g, " ")}
                       </span>
                     ))}
@@ -731,15 +731,15 @@ export function BookingCard({
               </div>
 
               {/* Bottom-right: Reviews */}
-              <div className="rounded border border-border/40 p-2.5 bg-white">
-                <h4 className="text-xs font-semibold text-[#004443] flex items-center gap-1.5 mb-2">
+              <div className="rounded border border-border/40 p-2.5 bg-card">
+                <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5 mb-2">
                   <Star className="w-3.5 h-3.5" />
                   Reviews
                 </h4>
                 {/* Pearlie rating */}
                 {clinic.rating > 0 && (
                   <div className="flex items-center gap-1.5 mb-2">
-                    <span className="text-lg font-bold text-[#1a1a1a]">{clinic.rating}</span>
+                    <span className="text-lg font-bold text-foreground">{clinic.rating}</span>
                     <div className="flex items-center gap-0.5">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <Star
@@ -753,13 +753,13 @@ export function BookingCard({
                 )}
                 {/* Featured review */}
                 {clinic.featured_review && (
-                  <p className="text-[11px] text-[#444] italic leading-relaxed line-clamp-2 mb-2">
+                  <p className="text-[11px] text-muted-foreground italic leading-relaxed line-clamp-2 mb-2">
                     &ldquo;{clinic.featured_review}&rdquo;
                   </p>
                 )}
                 {/* Google rating bar */}
                 {(clinic.google_rating || clinic.google_review_count) && (
-                  <div className="flex items-center gap-2 bg-[#f8f8f8] rounded-md px-2 py-1.5">
+                  <div className="flex items-center gap-2 bg-muted rounded-md px-2 py-1.5">
                     <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true">
                       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
                       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -768,7 +768,7 @@ export function BookingCard({
                     </svg>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1">
-                        <span className="text-[11px] font-semibold text-[#1a1a1a]">{clinic.google_rating}</span>
+                        <span className="text-[11px] font-semibold text-foreground">{clinic.google_rating}</span>
                         <span className="text-[10px] text-muted-foreground">({clinic.google_review_count})</span>
                       </div>
                     </div>

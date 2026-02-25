@@ -22,6 +22,8 @@ import {
   CalendarCheck,
   Inbox,
   MapPin,
+  Moon,
+  Sun,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -186,6 +188,9 @@ export default function PatientDashboard() {
 
   // Desktop: collapsible right panel
   const [chatPanelCollapsed, setChatPanelCollapsed] = useState(false)
+
+  // Dark mode toggle
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
   // Mobile: sticky bar visibility — tracks when CTAs scroll out of view
   const ctaRef = useRef<HTMLDivElement | null>(null)
@@ -927,7 +932,7 @@ export default function PatientDashboard() {
   // ── Render ───────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-background flex flex-col">
+    <div className={`min-h-screen lg:h-screen lg:overflow-hidden bg-background flex flex-col ${isDarkMode ? "dashboard-dark" : ""}`}>
       {/* Session expiry banner */}
       {isSessionExpired && (
         <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-3 text-center text-sm">
@@ -951,7 +956,15 @@ export default function PatientDashboard() {
               Hi{data?.user?.name ? `, ${data.user.name.split(" ")[0]}` : ""} <span className="text-muted-foreground/50 mx-1">&middot;</span> {data?.user?.email}
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Dark mode toggle */}
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              title={isDarkMode ? "Light mode" : "Dark mode"}
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
             {/* Mobile: red sign out button */}
             <button
               onClick={handleSignOut}
@@ -1296,7 +1309,7 @@ export default function PatientDashboard() {
           {/* ─── MOBILE: Greeting ──── */}
           {isMobile && data?.user && (
             <div className="flex items-center justify-between">
-              <h1 className="text-lg font-bold text-[#004443]">
+              <h1 className="text-lg font-bold text-foreground">
                 Hi{data.user.name ? `, ${data.user.name.split(" ")[0]}` : ""}
               </h1>
             </div>
@@ -1481,7 +1494,7 @@ export default function PatientDashboard() {
           {otherClinics.length > 0 && latestMatch && (
             <section>
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-xs font-semibold text-[#004443]">
+                <h2 className="text-xs font-semibold text-foreground">
                   Other clinics for you
                 </h2>
                 {!isMobile && (
@@ -1516,8 +1529,8 @@ export default function PatientDashboard() {
                               sizes="110px"
                             />
                           ) : (
-                            <div className="w-full h-full bg-[#004443]/10 flex items-center justify-center">
-                              <span className="text-[#004443] text-xl font-bold">{clinic.name.charAt(0)}</span>
+                            <div className="w-full h-full bg-muted flex items-center justify-center">
+                              <span className="text-foreground text-xl font-bold">{clinic.name.charAt(0)}</span>
                             </div>
                           )}
                           {/* Match % badge */}
@@ -1581,9 +1594,9 @@ export default function PatientDashboard() {
           {/* Start a new search */}
           {latestMatch && (
             <Link href="/intake" className="block">
-              <div className="w-full bg-white rounded-lg border border-border/30 px-3 py-2.5 hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all cursor-pointer flex items-center justify-between gap-2">
+              <div className="w-full bg-card rounded-lg border border-border/30 px-3 py-2.5 hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all cursor-pointer flex items-center justify-between gap-2">
                 <div>
-                  <p className="text-xs font-semibold text-[#004443]">Looking for another treatment?</p>
+                  <p className="text-xs font-semibold text-foreground">Looking for another treatment?</p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">Start a new search</p>
                 </div>
                 <span className="text-xs font-semibold text-[#0fbcb0] flex-shrink-0">
@@ -1598,17 +1611,17 @@ export default function PatientDashboard() {
             <section>
               <button
                 onClick={() => setShowMatchHistory(!showMatchHistory)}
-                className="flex items-center justify-between w-full text-left px-3 py-2.5 rounded-lg border border-border/30 bg-white hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all"
+                className="flex items-center justify-between w-full text-left px-3 py-2.5 rounded-lg border border-border/30 bg-card hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all"
               >
                 <div>
-                  <h2 className="text-xs font-semibold text-[#004443]">
+                  <h2 className="text-xs font-semibold text-foreground">
                     Match history
                   </h2>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
                     {data.matchesTotal || data.matches.length} previous {(data.matchesTotal || data.matches.length) === 1 ? "search" : "searches"}
                   </p>
                 </div>
-                <ChevronDown className={`w-3.5 h-3.5 text-[#004443]/50 transition-transform duration-200 ${showMatchHistory ? "rotate-180" : ""}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-foreground/50 transition-transform duration-200 ${showMatchHistory ? "rotate-180" : ""}`} />
               </button>
 
               {showMatchHistory && (
