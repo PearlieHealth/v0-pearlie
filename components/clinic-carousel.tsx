@@ -118,11 +118,11 @@ export default function ClinicCarousel() {
               className="absolute inset-0"
             >
               <ClinicImage
-                src={clinicImages[currentIndex].src || "/placeholder.svg"}
+                src={clinicImages[currentIndex].src}
                 alt={clinicImages[currentIndex].alt}
                 fill
                 className="object-cover w-full h-full"
-                fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
+                fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
@@ -199,11 +199,11 @@ export default function ClinicCarousel() {
               style={{ height: "240px" }}
             >
               <ClinicImage
-                src={clinic.src || "/placeholder.svg"}
+                src={clinic.src}
                 alt={clinic.alt}
                 fill
                 className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
-                fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
+                fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4 text-white">

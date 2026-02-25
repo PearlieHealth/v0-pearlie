@@ -755,7 +755,7 @@ export default function MatchPage() {
                                   width={600}
                                   height={200}
                                   className="w-full h-[140px] sm:h-[180px] lg:h-[135px] object-cover lg:rounded-xl"
-                                  fallbackClassName="w-full h-[140px] sm:h-[180px] lg:h-[135px] bg-[#faf8f3] flex items-center justify-center lg:rounded-xl"
+                                  fallbackClassName="w-full h-[140px] sm:h-[180px] lg:h-[135px] flex items-center justify-center lg:rounded-xl bg-[#004443]"
                                   sizes="(max-width: 768px) 100vw, 600px"
                                 />
                               ) : (

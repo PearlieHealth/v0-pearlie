@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { MapPin } from "lucide-react"
 
 interface ClinicImageBaseProps {
   src: string
@@ -56,9 +55,11 @@ export function ClinicImage(props: ClinicImageProps) {
   }, [src])
 
   if (hasError || !src || !src.trim()) {
+    // Show clinic initial letter as a visible avatar fallback
+    const letter = alt?.charAt(0)?.toUpperCase() || "?"
     return (
-      <div className={fallbackClassName}>
-        <MapPin className="w-10 h-10 text-[#004443]/20" />
+      <div className={fallbackClassName || "w-full h-full flex items-center justify-center bg-[#004443]"}>
+        <span className="text-white font-bold text-lg drop-shadow-sm">{letter}</span>
       </div>
     )
   }
@@ -76,7 +77,11 @@ export function ClinicImage(props: ClinicImageProps) {
       sizes={sizes}
       loading="lazy"
       onError={() => setHasError(true)}
-      style={props.fill ? { position: "absolute", width: "100%", height: "100%", inset: 0 } : undefined}
+      style={
+        props.fill
+          ? { position: "absolute", width: "100%", height: "100%", inset: 0, objectFit: "cover" as const }
+          : undefined
+      }
     />
   )
 }
