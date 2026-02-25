@@ -181,45 +181,12 @@ export function BookingCard({
         </div>
       )}
 
-      {/* Map header — compact */}
-      <div className="relative w-full h-[100px] sm:h-[110px] bg-[#e5e5e5]">
-        {clinic.latitude && clinic.longitude && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? (
-          <>
-            <iframe
-              title={`${clinic.name} location`}
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}&zoom=15`}
-            />
-            {/* Block clicks on map iframe to prevent navigation to Google Maps */}
-            <div className="absolute inset-0" />
-          </>
-        ) : clinic.images && clinic.images.length > 0 ? (
-          <Image
-            src={clinic.images[0] || "/placeholder.svg"}
-            alt={clinic.name}
-            width={600}
-            height={200}
-            className="w-full h-full object-cover"
-            sizes="(max-width: 768px) 100vw, 600px"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-[#faf8f3]">
-            <MapPin className="w-10 h-10 text-[#004443]/20" />
-          </div>
-        )}
-        {/* Badge overlay — top left */}
-        <div className="absolute top-2 left-2">
-          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm ${badgeStyle}`}>
-            {badge}
-          </span>
-        </div>
-        {/* Clinic photo — bottom left, overlapping into body */}
-        <div className="absolute -bottom-5 left-3 sm:left-4 z-10">
-          <div className="relative h-11 w-11 sm:h-12 sm:w-12 rounded overflow-hidden border-2 border-white shadow-md bg-white">
+      {/* Card body */}
+      <div className="p-3 sm:p-4 space-y-2.5">
+        {/* Clinic header — photo + name + address */}
+        <div className="flex items-start gap-3">
+          {/* Clinic photo */}
+          <div className="relative h-12 w-12 sm:h-14 sm:w-14 rounded overflow-hidden border border-border/40 bg-white flex-shrink-0">
             {clinic.images && clinic.images.length > 0 ? (
               <Image
                 src={clinic.images[0] || "/placeholder.svg"}
@@ -236,75 +203,81 @@ export function BookingCard({
               </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* Card body */}
-      <div className="p-3 pt-8 sm:p-4 sm:pt-9 space-y-2.5">
-        {/* Clinic name + match % inline */}
-        <div className="flex items-start justify-between gap-2">
-          <h2 className="text-sm sm:text-base font-bold text-[#004443] leading-tight">
-            {clinic.name}
-          </h2>
-          {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className="flex-shrink-0 flex items-center gap-1 font-bold text-xs cursor-pointer px-2 py-0.5 rounded bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#0fbcb0]" />
-                  <span>{clinic.match_percentage}%</span>
-                  <Info className="w-3 h-3 text-[#004443]/40" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-72 p-4" align="end" side="bottom">
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-semibold text-sm text-[#004443]">How we calculated your match</h4>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.
-                    </p>
-                  </div>
-                  {clinic.match_breakdown && clinic.match_breakdown.length > 0 ? (
-                    <div className="space-y-2.5">
-                      {clinic.match_breakdown.map((item) => {
-                        const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
-                        const stars = Math.round(ratio * 5)
-                        return (
-                          <div key={item.category} className="flex items-center justify-between gap-2">
-                            <span className="text-xs text-muted-foreground">
-                              {categoryLabels[item.category] || item.category}
-                            </span>
-                            <div className="flex items-center gap-0.5">
-                              {[1, 2, 3, 4, 5].map((s) => (
-                                <Star
-                                  key={s}
-                                  className={`w-3 h-3 ${
-                                    s <= stars ? "fill-amber-400 text-amber-400" : "fill-muted text-muted"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        )
-                      })}
+          {/* Name + badge + address */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${badgeStyle}`}>
+                {badge}
+              </span>
+              {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex-shrink-0 flex items-center gap-1 font-bold text-[10px] cursor-pointer px-1.5 py-0.5 rounded bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Sparkles className="w-3 h-3 text-[#0fbcb0]" />
+                      <span>{clinic.match_percentage}%</span>
+                      <Info className="w-2.5 h-2.5 text-[#004443]/40" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-72 p-4" align="end" side="bottom">
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="font-semibold text-sm text-[#004443]">How we calculated your match</h4>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.
+                        </p>
+                      </div>
+                      {clinic.match_breakdown && clinic.match_breakdown.length > 0 ? (
+                        <div className="space-y-2.5">
+                          {clinic.match_breakdown.map((item) => {
+                            const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
+                            const stars = Math.round(ratio * 5)
+                            return (
+                              <div key={item.category} className="flex items-center justify-between gap-2">
+                                <span className="text-xs text-muted-foreground">
+                                  {categoryLabels[item.category] || item.category}
+                                </span>
+                                <div className="flex items-center gap-0.5">
+                                  {[1, 2, 3, 4, 5].map((s) => (
+                                    <Star
+                                      key={s}
+                                      className={`w-3 h-3 ${
+                                        s <= stars ? "fill-amber-400 text-amber-400" : "fill-muted text-muted"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          Based on your answers about treatment, priorities, and preferences.
+                        </p>
+                      )}
+                      <div className="pt-2 border-t border-border">
+                        <p className="text-[10px] text-muted-foreground">
+                          More stars = stronger match to what you told us matters.
+                        </p>
+                      </div>
                     </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">
-                      Based on your answers about treatment, priorities, and preferences.
-                    </p>
-                  )}
-                  <div className="pt-2 border-t border-border">
-                    <p className="text-[10px] text-muted-foreground">
-                      More stars = stronger match to what you told us matters.
-                    </p>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
+            <h2 className="text-sm sm:text-base font-bold text-[#004443] leading-tight truncate">
+              {clinic.name}
+            </h2>
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate flex items-center gap-1">
+              <MapPin className="w-3 h-3 flex-shrink-0" />
+              {clinic.address}{clinic.postcode ? `, ${clinic.postcode}` : ""}
+            </p>
+          </div>
         </div>
 
         {/* Rating, verified, distance */}
