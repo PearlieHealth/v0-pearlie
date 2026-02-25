@@ -25,24 +25,11 @@ export async function PATCH(
     const admin = createAdminClient()
 
     // Get conversation
-    // Try with conversation_state; fall back without it if migration not yet applied
-    let convResult = await admin
+    const { data: conversation, error: convError } = await admin
       .from("conversations")
       .select("id, lead_id, clinic_id, conversation_state")
       .eq("id", conversationId)
       .single()
-
-    if (convResult.error && convResult.error.message?.includes("column")) {
-      console.warn("[patient/conversations/state] conversation_state column not available, falling back:", convResult.error.message)
-      convResult = await admin
-        .from("conversations")
-        .select("id, lead_id, clinic_id")
-        .eq("id", conversationId)
-        .single()
-    }
-
-    const conversation = convResult.data
-    const convError = convResult.error
 
     if (convError || !conversation) {
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 })

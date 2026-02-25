@@ -247,41 +247,38 @@ export async function POST(request: NextRequest) {
 
     // Post bot message in chat
     if (conversationId && botMessageContent) {
-      await supabaseAdmin.from("messages").insert({
+      const { data: botMsg } = await supabaseAdmin.from("messages").insert({
         conversation_id: conversationId,
         sender_type: "bot",
         content: botMessageContent,
         message_type: "appointment_update",
         status: "sent",
-      })
+      }).select("*").single()
 
       await supabaseAdmin
         .from("conversations")
         .update({
           last_message_at: now,
           unread_by_patient: true,
-          unread_count_patient: 1, // Reset to 1 for this notification
+          unread_by_clinic: true,
+          unread_count_patient: 1,
+          unread_count_clinic: 1,
         })
         .eq("id", conversationId)
 
-      // Broadcast bot message for real-time delivery
-      try {
-        const channel = supabaseAdmin.channel(`chat:${conversationId}`)
-        await channel.send({
-          type: "broadcast",
-          event: "new_message",
-          payload: {
-            message: {
-              conversation_id: conversationId,
-              sender_type: "bot",
-              content: botMessageContent,
-              message_type: "appointment_update",
-            },
-          },
-        })
-        await supabaseAdmin.removeChannel(channel)
-      } catch (broadcastErr) {
-        console.error("[clinic-action] Broadcast error:", broadcastErr)
+      // Broadcast bot message for real-time delivery (with full message including id)
+      if (botMsg) {
+        try {
+          const channel = supabaseAdmin.channel(`chat:${conversationId}`)
+          await channel.send({
+            type: "broadcast",
+            event: "new_message",
+            payload: { message: botMsg },
+          })
+          await supabaseAdmin.removeChannel(channel)
+        } catch (broadcastErr) {
+          console.error("[clinic-action] Broadcast error:", broadcastErr)
+        }
       }
 
       // If reschedule has a clinic message, post it as a separate clinic message
