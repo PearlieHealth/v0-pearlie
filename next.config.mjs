@@ -18,6 +18,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'places.googleapis.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.imgur.com',
+      },
     ],
   },
   async headers() {

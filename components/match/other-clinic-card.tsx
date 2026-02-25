@@ -2,9 +2,9 @@
 
 import { Card } from "@/components/ui/card"
 import { MapPin, Star, Sparkles, CheckCircle2 } from "lucide-react"
-import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { getChipData } from "@/lib/chipData"
+import { ClinicImage } from "@/components/match/clinic-image"
 
 interface OtherClinicCardProps {
   clinic: {
@@ -43,12 +43,13 @@ export function OtherClinicCard({ clinic, isSelected, onClick }: OtherClinicCard
         {/* Thumbnail */}
         <div className="flex-shrink-0">
           {clinic.images && clinic.images.length > 0 ? (
-            <Image
-              src={clinic.images[0] || "/placeholder.svg"}
+            <ClinicImage
+              src={clinic.images[0]}
               alt={clinic.name}
               width={64}
               height={64}
               className="rounded-lg object-cover w-[56px] h-[56px] sm:w-[72px] sm:h-[72px]"
+              fallbackClassName="w-[56px] h-[56px] sm:w-[72px] sm:h-[72px] bg-muted rounded-lg flex items-center justify-center"
             />
           ) : (
             <div className="w-[56px] h-[56px] sm:w-[72px] sm:h-[72px] bg-muted rounded-lg flex items-center justify-center">

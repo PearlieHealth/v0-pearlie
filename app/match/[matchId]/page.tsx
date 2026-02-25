@@ -26,6 +26,7 @@ import {
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import Image from "next/image"
+import { ClinicImage } from "@/components/match/clinic-image"
 import { ClinicCardSkeleton } from "@/components/clinic-card-skeleton"
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -742,12 +743,13 @@ export default function MatchPage() {
                             <div className="lg:px-4 lg:pt-4">
                               <div className="relative">
                               {clinic.images && clinic.images.length > 0 ? (
-                                <Image
-                                  src={clinic.images[0] || "/placeholder.svg"}
+                                <ClinicImage
+                                  src={clinic.images[0]}
                                   alt={clinic.name}
                                   width={600}
                                   height={200}
                                   className="w-full h-[140px] sm:h-[180px] lg:h-[135px] object-cover lg:rounded-xl"
+                                  fallbackClassName="w-full h-[140px] sm:h-[180px] lg:h-[135px] bg-[#faf8f3] flex items-center justify-center lg:rounded-xl"
                                   sizes="(max-width: 768px) 100vw, 600px"
                                 />
                               ) : (
