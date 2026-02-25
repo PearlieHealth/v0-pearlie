@@ -10,8 +10,10 @@ export async function POST(request: NextRequest) {
   const auth = await verifyAdminAuth()
   if (!auth.authenticated) return auth.response
 
+  let photoUrl: string | undefined
   try {
-    const { photoUrl } = await request.json()
+    const body = await request.json()
+    photoUrl = body.photoUrl
 
     if (!photoUrl || typeof photoUrl !== "string") {
       return NextResponse.json({ error: "Missing photoUrl" }, { status: 400 })
@@ -46,12 +48,13 @@ export async function POST(request: NextRequest) {
 
     if (!imageResponse.ok) {
       console.error("[reupload-google-photo] Google fetch failed:", imageResponse.status)
-      return NextResponse.json({ error: "Failed to fetch image from Google" }, { status: 502 })
+      // Return the Google URL anyway — the image proxy can retry at render time
+      return NextResponse.json({ url: photoUrl, proxied: true })
     }
 
     const contentType = imageResponse.headers.get("content-type") || "image/jpeg"
     if (!contentType.startsWith("image/")) {
-      return NextResponse.json({ error: "Response is not an image" }, { status: 502 })
+      return NextResponse.json({ url: photoUrl, proxied: true })
     }
 
     const imageBuffer = new Uint8Array(await imageResponse.arrayBuffer())
@@ -79,24 +82,36 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("[reupload-google-photo] Supabase upload error:", error)
-
-      if (error.message?.includes("Bucket not found")) {
-        // Bucket not configured - return the original URL as fallback
-        // The image proxy will handle serving it
-        return NextResponse.json({ url: photoUrl, proxied: true })
-      }
-
-      throw error
+      // Any storage error — return the original Google URL as fallback.
+      // The image proxy will serve it using the server-side API key.
+      return NextResponse.json({ url: photoUrl, proxied: true })
     }
 
     const { data: urlData } = supabase.storage.from("clinic-assets").getPublicUrl(path)
+    const publicUrl = urlData.publicUrl
+
+    // Verify the Supabase URL actually works (bucket might be private)
+    try {
+      const check = await fetch(publicUrl, { method: "HEAD" })
+      if (!check.ok) {
+        console.error("[reupload-google-photo] Supabase URL not accessible:", check.status)
+        return NextResponse.json({ url: photoUrl, proxied: true })
+      }
+    } catch {
+      console.error("[reupload-google-photo] Supabase URL verification failed")
+      return NextResponse.json({ url: photoUrl, proxied: true })
+    }
 
     return NextResponse.json({
-      url: urlData.publicUrl,
+      url: publicUrl,
       path: data.path,
     })
   } catch (error) {
     console.error("[reupload-google-photo] Error:", error)
+    // Always return the Google URL as fallback — never fail completely
+    if (photoUrl) {
+      return NextResponse.json({ url: photoUrl, proxied: true })
+    }
     return NextResponse.json({ error: "Failed to re-upload photo" }, { status: 500 })
   }
 }
