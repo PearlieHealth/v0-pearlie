@@ -1305,9 +1305,9 @@ export default function PatientDashboard() {
 
           {/* ─── MOBILE: Message-first inbox preview (above clinic card) ──── */}
           {isMobile && (inboxConversations.length > 0 || isInPendingChat) && (
-            <div className="-mx-3 -mt-3 mb-2">
+            <Card className="overflow-hidden border border-border/60 shadow-sm rounded-lg">
               {/* Inbox header */}
-              <div className="px-3 py-2 bg-card border-b border-border/30 flex items-center justify-between">
+              <div className="px-3 py-2 bg-card flex items-center justify-between border-b border-border/30">
                 <div className="flex items-center gap-2">
                   <MessageCircle className="w-4 h-4 text-primary" />
                   <h2 className="font-semibold text-foreground text-sm">Messages</h2>
@@ -1317,22 +1317,14 @@ export default function PatientDashboard() {
                     </span>
                   )}
                 </div>
-                {inboxConversations.length > 2 && (
-                  <button
-                    onClick={() => setMobileInboxListOpen(true)}
-                    className="text-[11px] font-medium text-primary"
-                  >
-                    See all &rarr;
-                  </button>
-                )}
               </div>
 
               {/* Compact conversation cards — show top 2 */}
-              <div className="bg-card px-2 py-1.5 space-y-0.5 border-b border-border/30">
+              <div className="bg-card px-2 py-1.5 space-y-0.5">
                 {isInPendingChat && pendingChatClinic && (
                   <button
                     onClick={() => setMobileChatOpen(true)}
-                    className="w-full text-left px-2.5 py-2 rounded flex gap-2.5 bg-primary/5 border border-primary/30 active:scale-[0.99] transition-transform"
+                    className="w-full text-left px-2.5 py-2 rounded-md flex gap-2.5 bg-primary/5 border border-primary/30 active:scale-[0.99] transition-transform"
                   >
                     <div className="w-8 h-8 rounded bg-primary flex items-center justify-center flex-shrink-0">
                       <span className="text-white text-[10px] font-semibold">
@@ -1362,7 +1354,7 @@ export default function PatientDashboard() {
                         setPendingChatClinic(null)
                         setMobileChatOpen(true)
                       }}
-                      className={`w-full text-left px-2.5 py-2 rounded flex gap-2.5 active:scale-[0.99] transition-all ${
+                      className={`w-full text-left px-2.5 py-2 rounded-md flex gap-2.5 active:scale-[0.99] transition-all ${
                         conv.unread_by_patient ? "bg-primary/5" : "hover:bg-muted/30"
                       }`}
                     >
@@ -1409,7 +1401,21 @@ export default function PatientDashboard() {
                   )
                 })}
               </div>
-            </div>
+
+              {/* View full inbox button */}
+              <button
+                onClick={() => setMobileInboxListOpen(true)}
+                className="w-full px-3 py-2.5 border-t border-border/30 bg-card flex items-center justify-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/5 active:bg-primary/10 transition-colors"
+              >
+                <Inbox className="w-3.5 h-3.5" />
+                View full inbox
+                {totalUnread > 0 && (
+                  <span className="bg-primary text-white text-[9px] font-bold min-w-[14px] h-3.5 px-1 rounded inline-flex items-center justify-center ml-0.5">
+                    {totalUnread}
+                  </span>
+                )}
+              </button>
+            </Card>
           )}
 
           {/* ─── MOBILE: Compact nav for when no conversations exist yet ──── */}
