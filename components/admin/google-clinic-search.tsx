@@ -145,9 +145,10 @@ export function GoogleClinicSearch({ onSelect }: GoogleClinicSearchProps) {
                 {clinic.photoUrl && (
                   <div className="relative w-20 h-20 flex-shrink-0 rounded-md overflow-hidden">
                     <Image
-                      src={clinic.photoUrl || "/placeholder.svg"}
+                      src={`/api/image-proxy?url=${encodeURIComponent(clinic.photoUrl)}`}
                       alt={clinic.name}
                       fill
+                      unoptimized
                       className="object-cover"
                     />
                   </div>

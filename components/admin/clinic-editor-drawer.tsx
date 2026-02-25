@@ -314,7 +314,7 @@ setOpeningHoursData(null)
     }
   }
 
-  const handleGoogleClinicSelect = (googleClinic: any) => {
+  const handleGoogleClinicSelect = async (googleClinic: any) => {
     setFormData({
       ...formData,
       name: googleClinic.name,
@@ -331,7 +331,24 @@ setOpeningHoursData(null)
     })
 
     if (googleClinic.photoUrl && !mainPhotoUrl) {
-      setMainPhotoUrl(googleClinic.photoUrl)
+      // Re-upload Google Places photos to Supabase so we store a permanent URL
+      // without an embedded API key
+      try {
+        const res = await fetch("/api/admin/reupload-google-photo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photoUrl: googleClinic.photoUrl }),
+        })
+        if (res.ok) {
+          const { url } = await res.json()
+          setMainPhotoUrl(url)
+        } else {
+          // Fallback to original URL — image proxy will handle it at render time
+          setMainPhotoUrl(googleClinic.photoUrl)
+        }
+      } catch {
+        setMainPhotoUrl(googleClinic.photoUrl)
+      }
     }
 
     setGooglePlaceId(googleClinic.placeId)

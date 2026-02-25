@@ -14,6 +14,26 @@ interface ClinicImageProps {
   sizes?: string
 }
 
+/**
+ * Returns a proxied URL for Google Places photo URLs, or the original URL
+ * for other image sources (Supabase, Unsplash, etc.)
+ */
+function getImageSrc(src: string): { url: string; unoptimized: boolean } {
+  try {
+    const parsed = new URL(src)
+    if (parsed.hostname === "places.googleapis.com") {
+      // Route through our server-side proxy to avoid API key / CORS issues
+      return {
+        url: `/api/image-proxy?url=${encodeURIComponent(src)}`,
+        unoptimized: true,
+      }
+    }
+  } catch {
+    // Not a valid URL, pass through
+  }
+  return { url: src, unoptimized: false }
+}
+
 export function ClinicImage({ src, alt, width, height, className, fallbackClassName, sizes }: ClinicImageProps) {
   const [hasError, setHasError] = useState(false)
 
@@ -25,14 +45,17 @@ export function ClinicImage({ src, alt, width, height, className, fallbackClassN
     )
   }
 
+  const { url, unoptimized } = getImageSrc(src)
+
   return (
     <Image
-      src={src}
+      src={url}
       alt={alt}
       width={width}
       height={height}
       className={className}
       sizes={sizes}
+      unoptimized={unoptimized}
       onError={() => setHasError(true)}
     />
   )
