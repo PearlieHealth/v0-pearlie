@@ -312,7 +312,7 @@ export default function PatientDashboard() {
     }
   }
 
-  async function fetchInbox() {
+  async function fetchInbox(opts?: { skipAutoSelect?: boolean }) {
     try {
       const res = await fetch("/api/patient/conversations")
       if (res.ok) {
@@ -320,7 +320,9 @@ export default function PatientDashboard() {
         setInboxConversations(conversations || [])
 
         // Auto-select: most recent unread, or first conversation
-        if (!selectedConvId && conversations?.length > 0) {
+        // Skip when called after creating a new conversation (selectedConvId
+        // was just set synchronously but this closure still sees the old value).
+        if (!opts?.skipAutoSelect && !selectedConvId && conversations?.length > 0) {
           const firstUnread = conversations.find((c: Conversation) => c.unread_by_patient)
           setSelectedConvId(firstUnread?.id || conversations[0].id)
         }
@@ -581,8 +583,10 @@ export default function PatientDashboard() {
           skipNextConvFetch.current = true
           setSelectedConvId(newConvId)
 
-          // Re-fetch inbox to include the new conversation
-          fetchInbox()
+          // Re-fetch inbox to include the new conversation.
+          // skipAutoSelect: the closure still sees the old selectedConvId (null),
+          // so auto-select would override the newConvId we just set.
+          fetchInbox({ skipAutoSelect: true })
         }
 
         // Update inbox preview for existing conversations
@@ -801,7 +805,7 @@ export default function PatientDashboard() {
           skipNextConvFetch.current = true
           setSelectedConvId(convId)
           setPendingChatClinic(null)
-          fetchInbox()
+          fetchInbox({ skipAutoSelect: true })
         }
 
         // Update local lead data so booking status shows immediately
