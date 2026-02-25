@@ -43,7 +43,7 @@ export function AppointmentBanner({
 
   if (compact) {
     return (
-      <div className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs bg-blue-50 border-blue-200 border">
+      <div className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs bg-blue-50 border-blue-200 border">
         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-blue-300 bg-blue-100 text-[10px] font-semibold text-blue-700 flex-shrink-0">
           <CalendarCheck className="w-3 h-3" />
           Pending
@@ -57,7 +57,7 @@ export function AppointmentBanner({
   }
 
   return (
-    <div className="rounded border border-blue-200 bg-blue-50 p-2.5">
+    <div className="rounded-lg border border-blue-200 bg-blue-50 p-2.5">
       <div className="flex items-center gap-2 flex-wrap">
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-blue-300 bg-blue-100 text-[11px] font-semibold text-blue-700">
           <CalendarCheck className="w-3 h-3" />

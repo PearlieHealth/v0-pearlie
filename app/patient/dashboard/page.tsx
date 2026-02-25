@@ -183,6 +183,8 @@ export default function PatientDashboard() {
   const [mobileChatOpen, setMobileChatOpen] = useState(false)
   // Mobile: full-screen inbox list (conversations overview)
   const [mobileInboxListOpen, setMobileInboxListOpen] = useState(false)
+  // Track if we've auto-opened the inbox on first mobile load
+  const hasAutoOpenedInbox = useRef(false)
 
   // Desktop: collapsible right panel
   const [chatPanelCollapsed, setChatPanelCollapsed] = useState(false)
@@ -443,6 +445,14 @@ export default function PatientDashboard() {
     const timer = setTimeout(() => setStickyBarDeferred(true), 350)
     return () => clearTimeout(timer)
   }, [mobileChatOpen])
+
+  // Mobile: default to showing messages (inbox list) on dashboard load
+  useEffect(() => {
+    if (isMobile && !loading && data && !hasAutoOpenedInbox.current) {
+      hasAutoOpenedInbox.current = true
+      setMobileInboxListOpen(true)
+    }
+  }, [isMobile, loading, data])
 
   useEffect(() => {
     if (!isMobile) { setShowStickyBar(false); return }
@@ -1168,12 +1178,12 @@ export default function PatientDashboard() {
                           className={`flex ${msg.sender_type === "patient" ? "justify-end" : "justify-start"}`}
                         >
                           <div
-                            className={`max-w-[85%] rounded px-3 py-1.5 ${
+                            className={`max-w-[85%] rounded-lg px-3 py-1.5 ${
                               msg.sender_type === "patient"
-                                ? "bg-primary text-white rounded-br-none"
+                                ? "bg-primary text-white rounded-br-sm"
                                 : msg.sender_type === "bot"
-                                ? "bg-secondary border border-border rounded-bl-none"
-                                : "bg-muted rounded-bl-none"
+                                ? "bg-secondary border border-border rounded-bl-sm"
+                                : "bg-muted rounded-bl-sm"
                             }`}
                           >
                             {msg.sender_type === "bot" && (
@@ -1195,7 +1205,7 @@ export default function PatientDashboard() {
                       ))}
                       {(otherTyping || botTyping) && (
                         <div className="flex justify-start">
-                          <div className="bg-secondary border border-border rounded rounded-bl-none px-3.5 py-2">
+                          <div className="bg-secondary border border-border rounded-lg rounded-bl-sm px-3.5 py-2">
                             <p className="text-[9px] text-muted-foreground/60 mb-1 flex items-center gap-1">
                               <Heart className="w-2.5 h-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
                               Pearlie AI
@@ -1227,7 +1237,7 @@ export default function PatientDashboard() {
                     <button
                       key={prompt}
                       onClick={() => setNewMessage(prompt)}
-                      className="text-[11px] text-muted-foreground border border-border/60 rounded px-2.5 py-1 hover:border-primary/40 hover:text-primary transition-colors whitespace-nowrap flex-shrink-0"
+                      className="text-[11px] text-muted-foreground border border-border/60 rounded-md px-2.5 py-1 hover:border-primary/40 hover:text-primary transition-colors whitespace-nowrap flex-shrink-0"
                     >
                       {prompt}
                     </button>
@@ -1258,14 +1268,14 @@ export default function PatientDashboard() {
                     value={newMessage}
                     onChange={(e) => { setNewMessage(e.target.value); sendTyping(); setChatError(null) }}
                     placeholder="Type a message..."
-                    className="flex-1 text-sm rounded border-border h-9 focus-visible:ring-primary/30"
+                    className="flex-1 text-sm rounded-md border-border h-9 focus-visible:ring-primary/30"
                     disabled={isSending}
                   />
                   <Button
                     type="submit"
                     size="icon"
                     disabled={!newMessage.trim() || isSending}
-                    className="bg-primary hover:bg-primary/90 text-white h-9 w-9 rounded"
+                    className="bg-primary hover:bg-primary/90 text-white h-9 w-9 rounded-md"
                   >
                     {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
@@ -1407,7 +1417,7 @@ export default function PatientDashboard() {
             <div className="-mx-3 -mt-3 mb-2 px-3 py-2 bg-card border-b border-border/30">
               <button
                 onClick={handleMessageClick}
-                className="w-full flex items-center justify-center gap-2 h-9 rounded bg-primary text-white text-sm font-semibold active:scale-[0.98] transition-transform"
+                className="w-full flex items-center justify-center gap-2 h-9 rounded-md bg-primary text-white text-sm font-semibold active:scale-[0.98] transition-transform"
               >
                 <MessageCircle className="w-4 h-4" />
                 Message Clinic
@@ -1417,7 +1427,7 @@ export default function PatientDashboard() {
 
           {/* ─── Booking Card for selected clinic ──────────── */}
           {!latestMatch ? (
-            <Card className="p-5 text-center rounded border">
+            <Card className="p-5 text-center rounded-lg border">
               <Search className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
               <h2 className="font-semibold text-foreground text-sm mb-1">Find your perfect clinic</h2>
               <p className="text-muted-foreground mb-3 text-xs">
@@ -1428,7 +1438,7 @@ export default function PatientDashboard() {
               </Button>
             </Card>
           ) : loadingClinics && !selectedClinic ? (
-            <Card className="p-6 flex flex-col items-center justify-center rounded border">
+            <Card className="p-6 flex flex-col items-center justify-center rounded-lg border">
               <Loader2 className="w-5 h-5 animate-spin text-primary mb-2" />
               <p className="text-xs text-muted-foreground">Finding your best match...</p>
             </Card>
@@ -1454,7 +1464,7 @@ export default function PatientDashboard() {
             </div>
           ) : latestMatch ? (
             <Link href={`/match/${latestMatch.id}`}>
-              <Card className="p-4 hover:shadow-sm transition-shadow cursor-pointer border-border bg-card rounded">
+              <Card className="p-4 hover:shadow-sm transition-shadow cursor-pointer border-border bg-card rounded-lg">
                 <span className="text-[10px] font-medium text-white bg-primary px-2 py-0.5 rounded">Your latest match</span>
                 <p className="font-semibold text-foreground text-sm mt-1.5">{latestMatchLead?.treatment_interest || "Dental enquiry"}</p>
                 <p className="text-xs text-muted-foreground font-medium mt-0.5">View your {latestMatch.clinic_ids?.length || 0} matched clinics &rarr;</p>
@@ -1467,7 +1477,7 @@ export default function PatientDashboard() {
             <section>
               <button
                 onClick={() => setShowOtherClinics(!showOtherClinics)}
-                className="flex items-center justify-between w-full text-left py-2 px-3 rounded bg-[#faf3e6] hover:bg-[#faf3e6]/80 transition-colors"
+                className="flex items-center justify-between w-full text-left py-2 px-3 rounded-lg bg-[#faf3e6] hover:bg-[#faf3e6]/80 transition-colors"
               >
                 <h2 className="text-[11px] font-semibold text-[#004443] uppercase tracking-wide">
                   Other clinics ({otherClinics.length})
@@ -1510,7 +1520,7 @@ export default function PatientDashboard() {
           {/* Start a new search */}
           {latestMatch && (
             <Link href="/intake" className="block">
-              <div className="w-full bg-white rounded border border-border/30 px-3 py-2.5 hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all cursor-pointer flex items-center justify-between gap-2">
+              <div className="w-full bg-white rounded-lg border border-border/30 px-3 py-2.5 hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all cursor-pointer flex items-center justify-between gap-2">
                 <div>
                   <p className="text-xs font-semibold text-[#004443]">Looking for another treatment?</p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">Start a new search</p>
@@ -1527,7 +1537,7 @@ export default function PatientDashboard() {
             <section>
               <button
                 onClick={() => setShowMatchHistory(!showMatchHistory)}
-                className="flex items-center justify-between w-full text-left px-3 py-2.5 rounded border border-border/30 bg-white hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all"
+                className="flex items-center justify-between w-full text-left px-3 py-2.5 rounded-lg border border-border/30 bg-white hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all"
               >
                 <div>
                   <h2 className="text-xs font-semibold text-[#004443]">
@@ -1548,7 +1558,7 @@ export default function PatientDashboard() {
                     return (
                       <Card
                         key={match.id}
-                        className={`px-2.5 py-2 hover:shadow-sm transition-all cursor-pointer active:scale-[0.99] rounded ${isCurrent ? "border-primary bg-primary/5" : "border-border"}`}
+                        className={`px-2.5 py-2 hover:shadow-sm transition-all cursor-pointer active:scale-[0.99] rounded-lg ${isCurrent ? "border-primary bg-primary/5" : "border-border"}`}
                         onClick={() => {
                           if (!isCurrent) fetchClinicDetails(match.id)
                         }}
@@ -1667,12 +1677,12 @@ export default function PatientDashboard() {
                     className={`flex ${msg.sender_type === "patient" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[82%] rounded px-3 py-1.5 ${
+                      className={`max-w-[82%] rounded-lg px-3 py-1.5 ${
                         msg.sender_type === "patient"
-                          ? "bg-primary text-white rounded-br-none"
+                          ? "bg-primary text-white rounded-br-sm"
                           : msg.sender_type === "bot"
-                          ? "bg-secondary border border-border rounded-bl-none"
-                          : "bg-muted rounded-bl-none"
+                          ? "bg-secondary border border-border rounded-bl-sm"
+                          : "bg-muted rounded-bl-sm"
                       }`}
                     >
                       {msg.sender_type === "bot" && (
@@ -1694,7 +1704,7 @@ export default function PatientDashboard() {
                 ))}
                 {(otherTyping || botTyping) && (
                   <div className="flex justify-start">
-                    <div className="bg-secondary border border-border rounded rounded-bl-none px-3.5 py-2">
+                    <div className="bg-secondary border border-border rounded-lg rounded-bl-sm px-3.5 py-2">
                       <p className="text-[9px] text-muted-foreground/60 mb-1 flex items-center gap-1">
                         <Heart className="w-2.5 h-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
                         Pearlie AI
@@ -1726,7 +1736,7 @@ export default function PatientDashboard() {
                 <button
                   key={prompt}
                   onClick={() => setNewMessage(prompt)}
-                  className="text-[11px] text-muted-foreground border border-border/60 rounded px-2.5 py-1 hover:border-primary/40 hover:text-primary active:bg-primary/10 transition-colors whitespace-nowrap flex-shrink-0"
+                  className="text-[11px] text-muted-foreground border border-border/60 rounded-md px-2.5 py-1 hover:border-primary/40 hover:text-primary active:bg-primary/10 transition-colors whitespace-nowrap flex-shrink-0"
                 >
                   {prompt}
                 </button>
@@ -1761,14 +1771,14 @@ export default function PatientDashboard() {
               value={newMessage}
               onChange={(e) => { setNewMessage(e.target.value); sendTyping(); setChatError(null) }}
               placeholder="Type a message..."
-              className="flex-1 text-base rounded border border-border h-10 focus-visible:ring-ring/30"
+              className="flex-1 text-base rounded-md border border-border h-10 focus-visible:ring-ring/30"
               disabled={isSending}
             />
             <Button
               type="submit"
               size="icon"
               disabled={!newMessage.trim() || isSending}
-              className="bg-primary hover:bg-primary/90 text-white h-10 w-10 rounded shrink-0 active:scale-95 transition-transform"
+              className="bg-primary hover:bg-primary/90 text-white h-10 w-10 rounded-md shrink-0 active:scale-95 transition-transform"
             >
               {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </Button>
@@ -1802,17 +1812,6 @@ export default function PatientDashboard() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-          </div>
-
-          {/* "Return to Clinic Profile" button */}
-          <div className="flex-shrink-0 px-3 py-2 border-b border-border/20 bg-card">
-            <button
-              onClick={() => setMobileInboxListOpen(false)}
-              className="w-full flex items-center justify-center gap-2 h-9 rounded border border-border/60 text-xs font-medium text-foreground/80 hover:bg-muted/40 active:scale-[0.98] transition-all"
-            >
-              <MapPin className="w-3.5 h-3.5" />
-              Return to Clinic Profile
-            </button>
           </div>
 
           {/* Conversation list */}
@@ -1904,6 +1903,20 @@ export default function PatientDashboard() {
               </div>
             )}
           </div>
+
+          {/* Sticky "See Dashboard" button at bottom */}
+          <div
+            className="flex-shrink-0 border-t border-border/30 bg-card/95 backdrop-blur-md px-3 py-2.5 shadow-[0_-2px_10px_rgba(0,0,0,0.04)]"
+            style={{ paddingBottom: "max(env(safe-area-inset-bottom, 12px), 12px)" }}
+          >
+            <button
+              onClick={() => setMobileInboxListOpen(false)}
+              className="w-full flex items-center justify-center gap-2 h-10 rounded-lg bg-[#004443] text-white text-sm font-semibold active:scale-[0.98] transition-transform"
+            >
+              <Search className="w-4 h-4" />
+              See Dashboard
+            </button>
+          </div>
         </div>
       )}
 
@@ -1916,7 +1929,7 @@ export default function PatientDashboard() {
         >
           <div className="flex gap-2">
             <Button
-              className="flex-1 h-9 bg-primary text-white border-0 font-semibold text-sm rounded active:scale-[0.98] transition-transform"
+              className="flex-1 h-9 bg-primary text-white border-0 font-semibold text-sm rounded-md active:scale-[0.98] transition-transform"
               onClick={handleMessageClick}
             >
               <MessageCircle className="w-4 h-4 mr-1.5 flex-shrink-0" />
@@ -1929,7 +1942,7 @@ export default function PatientDashboard() {
             </Button>
             {!appointmentRequestedClinics.has(selectedClinic.id) && (
               <Button
-                className="flex-1 h-9 rounded text-sm font-semibold bg-[var(--dark-teal-bg)] hover:bg-[var(--dark-teal-bg)]/90 text-white border-0 active:scale-[0.98] transition-transform"
+                className="flex-1 h-9 rounded-md text-sm font-semibold bg-[var(--dark-teal-bg)] hover:bg-[var(--dark-teal-bg)]/90 text-white border-0 active:scale-[0.98] transition-transform"
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               >
                 <CalendarCheck className="w-4 h-4 mr-1.5 flex-shrink-0" />
