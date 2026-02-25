@@ -25,7 +25,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import Image from "next/image"
 import { ClinicImage } from "@/components/match/clinic-image"
 import { ClinicCardSkeleton } from "@/components/clinic-card-skeleton"
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty"

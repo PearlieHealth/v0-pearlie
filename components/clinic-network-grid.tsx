@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
+import { ClinicImage } from "@/components/match/clinic-image"
 import { Building2, Users } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 
@@ -71,12 +71,13 @@ export function ClinicNetworkGrid() {
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12">
       {clinics.map((clinic) => (
         <div key={clinic.id} className="aspect-square rounded-2xl overflow-hidden bg-gray-200">
-          <Image
+          <ClinicImage
             src={clinic.image || "/placeholder.svg"}
             alt={`${clinic.name} dental clinic`}
             width={300}
             height={300}
             className="w-full h-full object-cover"
+            fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
           />
         </div>
       ))}

@@ -26,9 +26,9 @@ import {
   Sun,
 } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
 import { useChatChannel, usePatientConversationUpdates, type RealtimeMessage } from "@/hooks/use-chat-channel"
 import { BookingCard } from "@/components/match/booking-card"
+import { ClinicImage } from "@/components/match/clinic-image"
 import { useIsMobile } from "@/components/ui/use-mobile"
 import { AppointmentBanner } from "@/components/appointment-banner"
 
@@ -1077,7 +1077,7 @@ export default function PatientDashboard() {
                       <div className="flex-shrink-0">
                         {conv.clinics?.images?.[0] ? (
                           <div className="relative w-9 h-9 rounded overflow-hidden bg-muted">
-                            <Image src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover" />
+                            <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full bg-primary flex items-center justify-center" />
                           </div>
                         ) : (
                           <div className="w-9 h-9 rounded bg-primary flex items-center justify-center">
@@ -1136,7 +1136,7 @@ export default function PatientDashboard() {
                   <div className="flex items-center gap-2.5 min-w-0">
                     {chatHeaderImage ? (
                       <div className="relative w-8 h-8 rounded overflow-hidden flex-shrink-0 bg-muted ring-1 ring-border/40">
-                        <Image src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover" />
+                        <ClinicImage src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full bg-primary flex items-center justify-center" />
                       </div>
                     ) : (
                       <div className="w-8 h-8 rounded bg-primary flex items-center justify-center flex-shrink-0">
@@ -1387,7 +1387,7 @@ export default function PatientDashboard() {
                       <div className="flex-shrink-0">
                         {conv.clinics?.images?.[0] ? (
                           <div className="relative w-8 h-8 rounded overflow-hidden bg-muted">
-                            <Image src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover" />
+                            <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full bg-primary flex items-center justify-center" />
                           </div>
                         ) : (
                           <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
@@ -1523,11 +1523,12 @@ export default function PatientDashboard() {
                         clinic.id === selectedClinicId ? "border-primary shadow-md" : "border-border/30"
                       }`}>
                         {clinic.images && clinic.images.length > 0 ? (
-                          <Image
+                          <ClinicImage
                             src={clinic.images[0] || "/placeholder.svg"}
                             alt={clinic.name}
                             fill
-                            className="object-cover"
+                            className="object-cover w-full h-full"
+                            fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
                             sizes="(min-width: 1024px) 150px, 110px"
                           />
                         ) : (
@@ -1647,7 +1648,7 @@ export default function PatientDashboard() {
               <div className="flex items-center gap-2.5 min-w-0">
                 {chatHeaderImage ? (
                   <div className="relative w-9 h-9 rounded overflow-hidden flex-shrink-0 bg-muted ring-1 ring-border/40">
-                    <Image src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover" />
+                    <ClinicImage src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full bg-primary flex items-center justify-center" />
                   </div>
                 ) : (
                   <div className="w-9 h-9 rounded bg-primary flex items-center justify-center flex-shrink-0">
@@ -1908,7 +1909,7 @@ export default function PatientDashboard() {
                     <div className="flex-shrink-0">
                       {conv.clinics?.images?.[0] ? (
                         <div className="relative w-9 h-9 rounded overflow-hidden bg-muted">
-                          <Image src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover" />
+                          <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full bg-primary flex items-center justify-center" />
                         </div>
                       ) : (
                         <div className="w-9 h-9 rounded bg-primary flex items-center justify-center">

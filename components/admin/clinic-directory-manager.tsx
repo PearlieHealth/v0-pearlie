@@ -11,7 +11,7 @@ import { Search, Plus, Edit, Copy, Archive, ArchiveRestore, ImageIcon, ExternalL
 import { ClinicEditorDrawer } from "./clinic-editor-drawer"
 import { ClinicInviteButton } from "./clinic-invite-button"
 import { useToast } from "@/hooks/use-toast"
-import Image from "next/image"
+import { ClinicImage } from "@/components/match/clinic-image"
 import Link from "next/link"
 import {
   AlertDialog,
@@ -273,13 +273,13 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
                 <TableCell>
                   {clinic.images?.[0] ? (
                     <div className="relative w-16 h-10 rounded overflow-hidden bg-muted">
-                      <Image
-                        src={clinic.images[0] || "/placeholder.svg"}
+                      <ClinicImage
+                        src={clinic.images[0]}
                         alt={clinic.name}
                         fill
                         className="object-cover"
+                        fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
                         sizes="64px"
-                        loading="lazy"
                       />
                     </div>
                   ) : (

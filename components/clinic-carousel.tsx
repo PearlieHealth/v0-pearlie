@@ -3,9 +3,9 @@
 import { useEffect, useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react"
-import Image from "next/image"
+import { ClinicImage } from "@/components/match/clinic-image"
 
-interface ClinicImage {
+interface ClinicImageData {
   src: string
   alt: string
   name: string
@@ -13,7 +13,7 @@ interface ClinicImage {
   rating: number
 }
 
-const fallbackImages: ClinicImage[] = [
+const fallbackImages: ClinicImageData[] = [
   {
     src: "/clinic-reception-modern-dental.jpg",
     alt: "Modern dental clinic reception",
@@ -34,7 +34,7 @@ export default function ClinicCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [direction, setDirection] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
-  const [clinicImages, setClinicImages] = useState<ClinicImage[]>(fallbackImages)
+  const [clinicImages, setClinicImages] = useState<ClinicImageData[]>(fallbackImages)
   const [isPaused, setIsPaused] = useState(false)
 
   useEffect(() => {
@@ -117,12 +117,12 @@ export default function ClinicCarousel() {
               }}
               className="absolute inset-0"
             >
-              <Image
+              <ClinicImage
                 src={clinicImages[currentIndex].src || "/placeholder.svg"}
                 alt={clinicImages[currentIndex].alt}
                 fill
-                className="object-cover"
-                priority={currentIndex === 0}
+                className="object-cover w-full h-full"
+                fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
@@ -198,12 +198,12 @@ export default function ClinicCarousel() {
               className="relative flex-shrink-0 w-full rounded-2xl overflow-hidden shadow-md group"
               style={{ height: "240px" }}
             >
-              <Image
+              <ClinicImage
                 src={clinic.src || "/placeholder.svg"}
                 alt={clinic.alt}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="360px"
+                className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4 text-white">

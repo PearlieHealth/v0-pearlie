@@ -10,7 +10,6 @@ import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Trash2, BadgeCheck, Info, X } from "lucide-react"
-import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
 import { TREATMENT_OPTIONS, DAYS_OF_WEEK, HOURLY_SLOTS, TIME_SLOT_OPTIONS } from "@/lib/constants"
 import { PhotoUploader } from "@/components/admin/clinic-photo-uploader"
@@ -937,11 +936,11 @@ setOpeningHoursData(null)
                       {(formData.gallery || []).map((item, index) => (
                         <Card key={index} className="overflow-hidden">
                           <div className="relative aspect-video">
-                            <Image
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
                               src={item.url || "/placeholder.svg"}
                               alt={`Gallery ${index + 1}`}
-                              fill
-                              className="object-cover"
+                              className="object-cover w-full h-full absolute inset-0"
                             />
                           </div>
                           <div className="p-3 space-y-2">
