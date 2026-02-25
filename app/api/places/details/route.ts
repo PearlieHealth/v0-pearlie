@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       .map((p: any) => {
         const name = p?.name
         const photoUrl = name
-          ? `https://places.googleapis.com/v1/${name}/media?maxHeightPx=800&maxWidthPx=1200&key=${process.env.GOOGLE_PLACES_API_KEY}`
+          ? `https://places.googleapis.com/v1/${name}/media?maxHeightPx=800&maxWidthPx=1200`
           : null
         return photoUrl ? { url: photoUrl, author: p?.authorAttributions?.[0]?.displayName || null } : null
       })
