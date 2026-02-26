@@ -30,6 +30,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
     )
 
     headings.forEach(({ id }) => {
+      if (!id) return
       const element = document.getElementById(id)
       if (element) observer.observe(element)
     })
@@ -37,7 +38,10 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
     return () => observer.disconnect()
   }, [headings])
 
-  if (headings.length < 2) return null
+  // Filter out any headings with empty IDs
+  const validHeadings = headings.filter((h) => h.id)
+
+  if (validHeadings.length < 2) return null
 
   return (
     <nav className="rounded-2xl border border-border/50 bg-white p-5 sm:p-6">
@@ -48,7 +52,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
         </h2>
       </div>
       <ul className="space-y-1.5">
-        {headings.map((heading) => (
+        {validHeadings.map((heading) => (
           <li key={heading.id}>
             <a
               href={`#${heading.id}`}

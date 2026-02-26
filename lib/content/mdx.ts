@@ -70,6 +70,20 @@ export function getAllContent<T extends ContentMeta>(type: string): T[] {
   return items
 }
 
+/**
+ * Strip markdown inline formatting to get plain text.
+ * Handles: **bold**, *italic*, [links](url), `code`
+ */
+function stripMarkdownInline(text: string): string {
+  return text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // [text](url) → text
+    .replace(/`([^`]+)`/g, "$1") // `code` → code
+    .replace(/\*\*([^*]+)\*\*/g, "$1") // **bold** → bold
+    .replace(/\*([^*]+)\*/g, "$1") // *italic* → italic
+    .replace(/__([^_]+)__/g, "$1") // __bold__ → bold
+    .replace(/_([^_]+)_/g, "$1") // _italic_ → italic
+}
+
 export function extractHeadings(
   content: string
 ): { id: string; text: string; level: number }[] {
@@ -79,13 +93,16 @@ export function extractHeadings(
 
   while ((match = headingRegex.exec(content)) !== null) {
     const level = match[1].length
-    const text = match[2].trim()
+    const rawText = match[2].trim()
+    const text = stripMarkdownInline(rawText)
     const id = text
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "")
 
-    headings.push({ id, text, level })
+    if (id) {
+      headings.push({ id, text, level })
+    }
   }
 
   return headings

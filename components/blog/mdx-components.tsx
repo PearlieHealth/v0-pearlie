@@ -1,9 +1,41 @@
 import type { MDXComponents } from "mdx/types"
+import type { ReactNode } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
-function InlineCallout({ children }: { children: React.ReactNode }) {
+/**
+ * Recursively extract plain text from React children.
+ * Handles strings, numbers, arrays, and React elements with nested children.
+ * This fixes the heading ID bug where bold/links/code in headings produced empty IDs.
+ */
+function extractTextFromChildren(children: ReactNode): string {
+  if (typeof children === "string") return children
+  if (typeof children === "number") return String(children)
+  if (children == null || typeof children === "boolean") return ""
+
+  if (Array.isArray(children)) {
+    return children.map(extractTextFromChildren).join("")
+  }
+
+  // React element — recurse into its children prop
+  if (typeof children === "object" && "props" in children) {
+    return extractTextFromChildren(
+      (children as { props: { children?: ReactNode } }).props.children
+    )
+  }
+
+  return ""
+}
+
+function textToId(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+}
+
+function InlineCallout({ children }: { children: ReactNode }) {
   return (
     <div className="my-8 rounded-2xl bg-[var(--cream)] border border-border/50 p-6 md:p-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -61,11 +93,8 @@ function CostTable({
 export function useMDXComponents(): MDXComponents {
   return {
     h2: ({ children, ...props }) => {
-      const text = typeof children === "string" ? children : ""
-      const id = text
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "")
+      const text = extractTextFromChildren(children)
+      const id = textToId(text)
       return (
         <h2
           id={id}
@@ -77,11 +106,8 @@ export function useMDXComponents(): MDXComponents {
       )
     },
     h3: ({ children, ...props }) => {
-      const text = typeof children === "string" ? children : ""
-      const id = text
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "")
+      const text = extractTextFromChildren(children)
+      const id = textToId(text)
       return (
         <h3
           id={id}

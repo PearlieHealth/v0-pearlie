@@ -1,13 +1,19 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { BookOpen } from "lucide-react"
+import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
 import { BlogCard } from "@/components/blog/blog-card"
-import { getAllBlogPosts, BLOG_CATEGORIES, type BlogCategory } from "@/lib/content/blog"
+import {
+  getAllBlogPosts,
+  getPaginatedBlogPosts,
+  BLOG_CATEGORIES,
+  POSTS_PER_PAGE,
+  type BlogCategory,
+} from "@/lib/content/blog"
 
 export const metadata: Metadata = {
   title: "Dental Blog - Expert Guides, Tips & Advice",
@@ -26,23 +32,39 @@ export const metadata: Metadata = {
 }
 
 interface BlogPageProps {
-  searchParams: Promise<{ category?: string }>
+  searchParams: Promise<{ category?: string; page?: string }>
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
-  const { category: activeCategory } = await searchParams
-  const allPosts = getAllBlogPosts()
+  const { category: activeCategory, page: pageParam } = await searchParams
+  const currentPage = Math.max(1, parseInt(pageParam || "1", 10) || 1)
 
-  const filteredPosts = activeCategory
-    ? allPosts.filter((post) => post.category === activeCategory)
-    : allPosts
-
-  const featuredPost = allPosts.find((post) => post.featured) || allPosts[0]
-  const remainingPosts = filteredPosts.filter(
-    (post) => !activeCategory && post.slug === featuredPost?.slug ? false : true
+  const { posts: paginatedPosts, totalPages, totalPosts } = getPaginatedBlogPosts(
+    currentPage,
+    activeCategory
   )
 
-  const categories = Object.entries(BLOG_CATEGORIES) as [BlogCategory, { label: string; description: string }][]
+  const allPosts = getAllBlogPosts()
+  const featuredPost = allPosts.find((post) => post.featured) || allPosts[0]
+
+  // On the first page with no category filter, show featured separately
+  const showFeatured = !activeCategory && currentPage === 1 && featuredPost
+  const displayPosts = showFeatured
+    ? paginatedPosts.filter((p) => p.slug !== featuredPost.slug)
+    : paginatedPosts
+
+  const categories = Object.entries(BLOG_CATEGORIES) as [
+    BlogCategory,
+    { label: string; description: string },
+  ][]
+
+  function buildPageUrl(page: number) {
+    const params = new URLSearchParams()
+    if (activeCategory) params.set("category", activeCategory)
+    if (page > 1) params.set("page", String(page))
+    const qs = params.toString()
+    return `/blog${qs ? `?${qs}` : ""}`
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -117,10 +139,13 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                 items={[
                   { label: "Home", href: "/" },
                   { label: "Blog", href: "/blog" },
-                  ...(activeCategory && BLOG_CATEGORIES[activeCategory as BlogCategory]
+                  ...(activeCategory &&
+                  BLOG_CATEGORIES[activeCategory as BlogCategory]
                     ? [
                         {
-                          label: BLOG_CATEGORIES[activeCategory as BlogCategory].label,
+                          label:
+                            BLOG_CATEGORIES[activeCategory as BlogCategory]
+                              .label,
                           href: `/blog?category=${activeCategory}`,
                         },
                       ]
@@ -135,7 +160,8 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                     Articles coming soon
                   </h2>
                   <p className="text-muted-foreground mb-6">
-                    We&apos;re working on expert dental guides and advice. Check back soon.
+                    We&apos;re working on expert dental guides and advice. Check
+                    back soon.
                   </p>
                   <Button
                     size="lg"
@@ -147,31 +173,91 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                 </div>
               ) : (
                 <>
-                  {/* Featured post (only show on "All" view) */}
-                  {!activeCategory && featuredPost && (
+                  {/* Featured post (first page, no category filter) */}
+                  {showFeatured && (
                     <div className="mb-10">
                       <BlogCard post={featuredPost} featured />
                     </div>
                   )}
 
                   {/* Post grid */}
-                  {remainingPosts.length > 0 && (
+                  {displayPosts.length > 0 && (
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {remainingPosts.map((post) => (
+                      {displayPosts.map((post) => (
                         <BlogCard key={post.slug} post={post} />
                       ))}
                     </div>
                   )}
 
-                  {filteredPosts.length === 0 && activeCategory && (
+                  {paginatedPosts.length === 0 && activeCategory && (
                     <div className="text-center py-16">
                       <p className="text-muted-foreground mb-4">
                         No articles in this category yet.
                       </p>
-                      <Button variant="outline" className="rounded-full" asChild>
+                      <Button
+                        variant="outline"
+                        className="rounded-full"
+                        asChild
+                      >
                         <Link href="/blog">View all articles</Link>
                       </Button>
                     </div>
+                  )}
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <nav
+                      aria-label="Blog pagination"
+                      className="mt-12 flex items-center justify-center gap-2"
+                    >
+                      {currentPage > 1 ? (
+                        <Link
+                          href={buildPageUrl(currentPage - 1)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-full border border-border/50 hover:border-border transition-colors"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          Previous
+                        </Link>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-muted-foreground/40 rounded-full border border-border/30 cursor-not-allowed">
+                          <ChevronLeft className="w-4 h-4" />
+                          Previous
+                        </span>
+                      )}
+
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                          (page) => (
+                            <Link
+                              key={page}
+                              href={buildPageUrl(page)}
+                              className={`w-10 h-10 inline-flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
+                                page === currentPage
+                                  ? "bg-[#0fbcb0] text-white"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                              }`}
+                            >
+                              {page}
+                            </Link>
+                          )
+                        )}
+                      </div>
+
+                      {currentPage < totalPages ? (
+                        <Link
+                          href={buildPageUrl(currentPage + 1)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-full border border-border/50 hover:border-border transition-colors"
+                        >
+                          Next
+                          <ChevronRight className="w-4 h-4" />
+                        </Link>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-muted-foreground/40 rounded-full border border-border/30 cursor-not-allowed">
+                          Next
+                          <ChevronRight className="w-4 h-4" />
+                        </span>
+                      )}
+                    </nav>
                   )}
                 </>
               )}

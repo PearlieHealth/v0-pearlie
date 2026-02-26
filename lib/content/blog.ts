@@ -45,6 +45,8 @@ export const BLOG_CATEGORIES = {
 
 export type BlogCategory = keyof typeof BLOG_CATEGORIES
 
+export const POSTS_PER_PAGE = 9
+
 export function getAllBlogPosts(): BlogPost[] {
   const contentDir = path.join(process.cwd(), "content", "blog")
 
@@ -74,6 +76,24 @@ export function getAllBlogPosts(): BlogPost[] {
     )
 
   return posts
+}
+
+export function getPaginatedBlogPosts(
+  page: number,
+  category?: string
+): { posts: BlogPost[]; totalPages: number; totalPosts: number } {
+  let allPosts = getAllBlogPosts()
+
+  if (category) {
+    allPosts = allPosts.filter((post) => post.category === category)
+  }
+
+  const totalPosts = allPosts.length
+  const totalPages = Math.max(1, Math.ceil(totalPosts / POSTS_PER_PAGE))
+  const start = (page - 1) * POSTS_PER_PAGE
+  const posts = allPosts.slice(start, start + POSTS_PER_PAGE)
+
+  return { posts, totalPages, totalPosts }
 }
 
 export function getBlogPostBySlug(

@@ -9,6 +9,7 @@ const platformLinks = [
   { label: "How It Works", href: "/#how-it-works" },
   { label: "For Clinics", href: "/for-clinics" },
   { label: "Our Mission", href: "/our-mission" },
+  { label: "Blog", href: "/blog" },
   { label: "FAQ", href: "/faq" },
 ]
 
