@@ -10,11 +10,13 @@ import { validateUKPostcode } from "@/lib/postcodes-io"
 interface HeroPostcodeSearchProps {
   /** Show as compact bar (for sticky) vs. large hero style */
   variant?: "hero" | "sticky"
+  /** Hide the "skip" link below the form (for high-intent pages like dentist-near-me) */
+  hideSkip?: boolean
   /** Ref callback to measure this element for intersection observer */
   heroRef?: React.RefObject<HTMLDivElement | null>
 }
 
-export function HeroPostcodeSearch({ variant = "hero", heroRef }: HeroPostcodeSearchProps) {
+export function HeroPostcodeSearch({ variant = "hero", hideSkip = false, heroRef }: HeroPostcodeSearchProps) {
   const router = useRouter()
   const [postcode, setPostcode] = useState("")
   const [isValidating, setIsValidating] = useState(false)
@@ -25,8 +27,9 @@ export function HeroPostcodeSearch({ variant = "hero", heroRef }: HeroPostcodeSe
     e?.preventDefault()
 
     if (!postcode.trim()) {
-      // No postcode — go straight to intake
-      router.push("/intake")
+      if (!hideSkip) {
+        router.push("/intake")
+      }
       return
     }
 
@@ -60,11 +63,19 @@ export function HeroPostcodeSearch({ variant = "hero", heroRef }: HeroPostcodeSe
         return
       }
 
+      // Persist postcode in localStorage for session continuity
+      try {
+        localStorage.setItem("pearlie_postcode", sanitized)
+      } catch {}
+
       // Valid London postcode — navigate to intake with pre-filled postcode
       router.push(`/intake?postcode=${encodeURIComponent(sanitized)}`)
     } catch {
       // On network error, still allow navigation
       const sanitized = postcode.replace(/\s/g, "").toUpperCase()
+      try {
+        localStorage.setItem("pearlie_postcode", sanitized)
+      } catch {}
       router.push(`/intake?postcode=${encodeURIComponent(sanitized)}`)
     } finally {
       setIsValidating(false)
@@ -134,9 +145,15 @@ export function HeroPostcodeSearch({ variant = "hero", heroRef }: HeroPostcodeSe
       {error && (
         <p className="text-sm text-red-300 mt-3 text-center">{error}</p>
       )}
-      <p className="text-sm text-white/50 mt-3 text-center">
-        Or <button type="button" onClick={() => router.push("/intake")} className="underline hover:text-white/70 transition-colors">skip and get matched</button> without a postcode
-      </p>
+      {hideSkip ? (
+        <p className="text-sm text-white/50 mt-3 text-center">
+          Takes 60 seconds &middot; Free &middot; No obligation
+        </p>
+      ) : (
+        <p className="text-sm text-white/50 mt-3 text-center">
+          Or <button type="button" onClick={() => router.push("/intake")} className="underline hover:text-white/70 transition-colors">skip and get matched</button> without a postcode
+        </p>
+      )}
     </div>
   )
 }

@@ -135,6 +135,12 @@ export default function IntakePage() {
       if (postcodeParam) {
         const sanitized = postcodeParam.replace(/\s/g, "").toUpperCase()
         setFormData(prev => ({ ...prev, postcode: sanitized, postcodeValid: true }))
+        return
+      }
+      // Fallback: check localStorage for postcode saved from landing pages
+      const stored = localStorage.getItem("pearlie_postcode")
+      if (stored) {
+        setFormData(prev => ({ ...prev, postcode: stored, postcodeValid: true }))
       }
     } catch {}
   }, [])
