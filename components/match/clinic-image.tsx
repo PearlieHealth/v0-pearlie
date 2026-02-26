@@ -25,33 +25,26 @@ interface ClinicImageFillProps extends ClinicImageBaseProps {
 type ClinicImageProps = ClinicImageSizedProps | ClinicImageFillProps
 
 /**
- * Routes external image URLs through our server-side proxy at /api/image-proxy.
- * This ensures images load reliably regardless of CORS, auth requirements, or
- * bucket privacy settings. The proxy handles Google API key injection for
- * Places photos and caches responses.
+ * If a URL is a Google Places photo that wasn't re-uploaded to Supabase,
+ * route it through our server-side proxy which adds the API key.
+ * All other URLs are used directly.
  */
 export function getImageSrc(src: string): string {
   if (!src || !src.trim()) return ""
 
   try {
     const parsed = new URL(src)
-    if (
-      parsed.hostname === "places.googleapis.com" ||
-      parsed.hostname.endsWith(".supabase.co") ||
-      parsed.hostname === "lh3.googleusercontent.com" ||
-      parsed.hostname === "images.unsplash.com" ||
-      parsed.hostname === "i.imgur.com"
-    ) {
+    if (parsed.hostname === "places.googleapis.com") {
       return `/api/image-proxy?url=${encodeURIComponent(src)}`
     }
   } catch {
-    // Not a valid absolute URL — pass through as-is (e.g. /placeholder.svg)
+    // relative URL — pass through
   }
   return src
 }
 
 export function ClinicImage(props: ClinicImageProps) {
-  const { src, alt, className, fallbackClassName, sizes } = props
+  const { src, alt, className, fallbackClassName } = props
   const [hasError, setHasError] = useState(false)
 
   useEffect(() => {
@@ -75,7 +68,6 @@ export function ClinicImage(props: ClinicImageProps) {
       src={url}
       alt={alt}
       className={className}
-      sizes={sizes}
       loading="lazy"
       onError={() => setHasError(true)}
       style={
