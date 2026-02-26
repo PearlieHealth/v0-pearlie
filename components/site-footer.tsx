@@ -17,13 +17,22 @@ const legalLinks = [
   { label: "Terms of Use", href: "/terms" },
 ]
 
+const findDentistLinks = [
+  { label: "Harley Street", href: "/find/harley-street" },
+  { label: "Kensington & Chelsea", href: "/find/kensington-chelsea" },
+  { label: "Mayfair", href: "/find/mayfair" },
+  { label: "Soho", href: "/find/soho" },
+  { label: "Canary Wharf", href: "/find/canary-wharf" },
+  { label: "All London areas", href: "/find" },
+]
+
 export function SiteFooter() {
   return (
     <footer className="bg-[#004443] text-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="max-w-7xl mx-auto">
           {/* Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:gap-12">
             {/* Brand */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
@@ -40,6 +49,23 @@ export function SiteFooter() {
               <h4 className="text-sm font-semibold text-white mb-4">Platform</h4>
               <ul className="space-y-2.5">
                 {platformLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-white/60 hover:text-white transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Find a Dentist */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-4">Find a Dentist</h4>
+              <ul className="space-y-2.5">
+                {findDentistLinks.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
