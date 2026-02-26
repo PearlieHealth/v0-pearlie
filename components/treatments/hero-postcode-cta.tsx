@@ -42,7 +42,7 @@ export function HeroPostcodeCta({ treatmentName, intakeTreatment }: HeroPostcode
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="max-w-lg">
+      <form id="hero-postcode-cta" onSubmit={handleSubmit} className="max-w-lg">
         <p className="text-sm text-muted-foreground mb-3">
           Enter your postcode to get started
         </p>

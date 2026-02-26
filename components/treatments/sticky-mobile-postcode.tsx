@@ -32,18 +32,23 @@ export function StickyMobilePostcode({ treatmentName, intakeTreatment }: StickyM
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false)
   const [waitlistDone, setWaitlistDone] = useState(false)
 
-  // Show/hide based on scroll position + hide MainNav on mobile
+  // Show when hero postcode CTA scrolls out of view, hide when it's visible
   useEffect(() => {
-    const threshold = 350 // roughly past the hero section
-    const onScroll = () => {
-      const show = window.scrollY > threshold
-      setVisible(show)
-      document.documentElement.classList.toggle("treatment-sticky-visible", show)
-    }
-    window.addEventListener("scroll", onScroll, { passive: true })
-    onScroll()
+    const target = document.getElementById("hero-postcode-cta")
+    if (!target) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const show = !entry.isIntersecting
+        setVisible(show)
+        document.documentElement.classList.toggle("treatment-sticky-visible", show)
+      },
+      { threshold: 0 }
+    )
+
+    observer.observe(target)
     return () => {
-      window.removeEventListener("scroll", onScroll)
+      observer.disconnect()
       document.documentElement.classList.remove("treatment-sticky-visible")
     }
   }, [])
@@ -105,15 +110,15 @@ export function StickyMobilePostcode({ treatmentName, intakeTreatment }: StickyM
 
   return (
     <>
-      {/* Sticky bar — mobile only, shown when scrolled past hero */}
+      {/* Sticky bar — mobile only, matches MainNav positioning and style */}
       <div
-        className={`fixed top-0 left-0 right-0 z-[60] md:hidden transition-all duration-300 ${
+        className={`fixed top-3 left-3 right-3 z-[60] md:hidden transition-all duration-300 ${
           visible
             ? "translate-y-0 opacity-100"
             : "-translate-y-full opacity-0 pointer-events-none"
         }`}
       >
-        <div className="bg-white backdrop-blur-md border-b border-border/30 shadow-md px-4 py-3 safe-top">
+        <div className="rounded-[6vw] bg-white/70 backdrop-blur-[40px] backdrop-saturate-[1.4] border border-white/30 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] px-4 py-3">
           <form onSubmit={handleSubmit} className="flex gap-2.5 items-center">
             <div className="relative flex-1">
               <input
@@ -121,7 +126,7 @@ export function StickyMobilePostcode({ treatmentName, intakeTreatment }: StickyM
                 placeholder="Enter postcode"
                 value={postcode}
                 onChange={(e) => setPostcode(e.target.value.toUpperCase())}
-                className="w-full h-11 px-4 text-base rounded-full border border-border/60 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0fbcb0] focus:border-[#0fbcb0] placeholder:text-muted-foreground/60"
+                className="w-full h-10 px-4 text-sm rounded-full border border-border/40 bg-white/80 focus:outline-none focus:ring-2 focus:ring-[#0fbcb0] focus:border-[#0fbcb0] placeholder:text-muted-foreground/60"
               />
               {isValidating && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -132,7 +137,7 @@ export function StickyMobilePostcode({ treatmentName, intakeTreatment }: StickyM
             <Button
               type="submit"
               disabled={!postcodeValid}
-              className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-5 h-11 text-sm font-medium shrink-0 disabled:opacity-50 border-0"
+              className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-5 h-10 text-sm font-medium shrink-0 disabled:opacity-50 border-0"
             >
               Find my clinic
             </Button>
