@@ -193,7 +193,7 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
         }
       : null
 
-  // MedicalWebPage schema
+  // MedicalWebPage schema with Speakable
   const medicalPageSchema = {
     "@context": "https://schema.org",
     "@type": "MedicalWebPage",
@@ -217,6 +217,13 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
       "@type": "Organization",
       name: "Pearlie",
       url: "https://pearlie.org",
+    },
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: [
+        "[data-speakable='description']",
+        "[data-speakable='faq']",
+      ],
     },
   }
 

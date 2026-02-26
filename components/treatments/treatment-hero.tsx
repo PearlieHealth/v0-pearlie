@@ -42,7 +42,7 @@ export function TreatmentHero({ treatment }: TreatmentHeroProps) {
             {treatment.title}
           </h1>
 
-          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-4">
+          <p data-speakable="description" className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-4">
             {treatment.description}
           </p>
 
