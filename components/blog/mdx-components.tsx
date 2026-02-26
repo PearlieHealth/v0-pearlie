@@ -60,14 +60,14 @@ function CostTable({
   rows: string[][]
 }) {
   return (
-    <div className="my-8 overflow-x-auto rounded-xl border border-border">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-[var(--cream)]">
+    <div className="my-8 overflow-x-auto rounded-xl border border-border shadow-sm">
+      <table className="w-full text-sm border-collapse">
+        <thead className="bg-[#004443] text-white">
+          <tr>
             {headers.map((h, i) => (
               <th
                 key={i}
-                className="px-4 py-3 text-left font-semibold text-foreground"
+                className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap"
               >
                 {h}
               </th>
@@ -76,9 +76,21 @@ function CostTable({
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} className="border-t border-border/50">
+            <tr
+              key={i}
+              className={`border-t border-border/30 hover:bg-[#0fbcb014] transition-colors ${
+                i % 2 === 1 ? "bg-secondary/50" : ""
+              }`}
+            >
               {row.map((cell, j) => (
-                <td key={j} className="px-4 py-3 text-muted-foreground">
+                <td
+                  key={j}
+                  className={
+                    j === 0
+                      ? "px-4 py-3.5 font-medium text-foreground"
+                      : "px-4 py-3.5 text-muted-foreground"
+                  }
+                >
                   {cell}
                 </td>
               ))}
@@ -195,24 +207,29 @@ export function useMDXComponents(): MDXComponents {
       </figure>
     ),
     table: ({ children, ...props }) => (
-      <div className="my-8 overflow-x-auto rounded-xl border border-border">
-        <table className="w-full text-sm" {...props}>
+      <div className="my-8 overflow-x-auto rounded-xl border border-border shadow-sm">
+        <table className="w-full text-sm border-collapse" {...props}>
           {children}
         </table>
       </div>
     ),
     thead: ({ children, ...props }) => (
-      <thead className="bg-[var(--cream)]" {...props}>
+      <thead className="bg-[#004443] text-white" {...props}>
         {children}
       </thead>
     ),
     th: ({ children, ...props }) => (
-      <th className="px-4 py-3 text-left font-semibold text-foreground" {...props}>
+      <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" {...props}>
         {children}
       </th>
     ),
+    tr: ({ children, ...props }) => (
+      <tr className="border-t border-border/50 even:bg-secondary/50 hover:bg-[#0fbcb014] transition-colors" {...props}>
+        {children}
+      </tr>
+    ),
     td: ({ children, ...props }) => (
-      <td className="px-4 py-3 text-muted-foreground border-t border-border/50" {...props}>
+      <td className="px-4 py-3.5 text-muted-foreground border-t border-border/30 first:font-medium first:text-foreground [&>strong]:text-[#004443] [&>strong]:font-bold" {...props}>
         {children}
       </td>
     ),
