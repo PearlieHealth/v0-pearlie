@@ -284,7 +284,6 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
         <TreatmentClinicGrid
           clinics={clinics}
           treatmentName={meta.treatmentName}
-          intakeTreatment={meta.intakeTreatment}
         />
 
         {/* 4. MDX Editorial Content */}

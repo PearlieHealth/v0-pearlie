@@ -3,7 +3,6 @@ import { TreatmentClinicCard, type ClinicData } from "./treatment-clinic-card"
 interface TreatmentClinicGridProps {
   clinics: ClinicData[]
   treatmentName: string
-  intakeTreatment: string
 }
 
 export function TreatmentClinicGrid({ clinics, treatmentName }: TreatmentClinicGridProps) {
