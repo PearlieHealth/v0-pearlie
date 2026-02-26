@@ -7,8 +7,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { HeroPostcodeSearch } from "@/components/find/hero-postcode-search"
 import { StickyPostcodeBar } from "@/components/find/sticky-postcode-bar"
-import { LONDON_AREAS, LONDON_REGIONS } from "@/lib/locations/london"
-import { getClinicsNearArea } from "@/lib/locations/queries"
+import { LONDON_REGIONS } from "@/lib/locations/london"
 
 export const revalidate = 3600
 
@@ -25,16 +24,6 @@ export const metadata: Metadata = {
       "Find your perfect dentist in London. Compare verified dental clinics by area — free on Pearlie.",
     url: "https://pearlie.org/find",
   },
-}
-
-async function getAreasWithClinics() {
-  const results = await Promise.all(
-    LONDON_AREAS.map(async (area) => {
-      const clinics = await getClinicsNearArea(area)
-      return { area, clinicCount: clinics.length }
-    })
-  )
-  return results.filter((r) => r.clinicCount > 0)
 }
 
 const VALUE_PROPS = [
@@ -60,9 +49,7 @@ const VALUE_PROPS = [
   },
 ]
 
-export default async function FindPage() {
-  const areasWithClinics = await getAreasWithClinics()
-
+export default function FindPage() {
   return (
     <div className="min-h-screen bg-background">
       <BreadcrumbSchema
@@ -171,47 +158,6 @@ export default async function FindPage() {
                   <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-[#0fbcb0] transition-colors" />
                 </Link>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Browse by Neighbourhood */}
-        <section className="py-16 sm:py-20 bg-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-5xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-3">
-                  Browse by neighbourhood
-                </h2>
-                <p className="text-muted-foreground text-lg">Find clinics in your local area</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {areasWithClinics.map(({ area, clinicCount }) => (
-                  <Link
-                    key={area.slug}
-                    href={`/find/${area.slug}`}
-                    className="group flex items-start gap-4 p-5 rounded-xl border border-border/50 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#0fbcb0]/20 transition-colors">
-                      <MapPin className="w-5 h-5 text-[#0fbcb0]" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground group-hover:text-[#004443] transition-colors">
-                        Dentists in {area.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {clinicCount} verified {clinicCount === 1 ? "clinic" : "clinics"}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-
-              {areasWithClinics.length === 0 && (
-                <p className="text-center text-muted-foreground py-12">
-                  No areas with clinics found. Check back soon as we expand our network.
-                </p>
-              )}
             </div>
           </div>
         </section>
