@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { MDXRemote } from "next-mdx-remote/rsc"
+import remarkGfm from "remark-gfm"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
@@ -179,7 +180,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <div className="grid lg:grid-cols-[1fr_280px] gap-10">
                 {/* Main content */}
                 <article className="min-w-0">
-                  <MDXRemote source={content} components={components} />
+                  <MDXRemote
+                    source={content}
+                    components={components}
+                    options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+                  />
 
                   {/* Inline CTA at end of article */}
                   <div className="mt-12 rounded-2xl bg-[var(--cream)] border border-border/50 p-6 md:p-8 text-center">
