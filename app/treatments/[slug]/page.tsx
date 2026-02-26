@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { TreatmentHero } from "@/components/treatments/treatment-hero"
 import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
+import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-postcode"
 import { KeyFactsBar } from "@/components/treatments/key-facts-bar"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
 import { TreatmentFAQ } from "@/components/treatments/treatment-faq"
@@ -249,6 +250,10 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
       />
 
       <MainNav />
+      <StickyMobilePostcode
+        treatmentName={meta.treatmentName}
+        intakeTreatment={meta.intakeTreatment}
+      />
 
       <main>
         {/* 1. Treatment Hero */}
