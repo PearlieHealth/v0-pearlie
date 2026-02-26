@@ -27,6 +27,7 @@ export function MainNav() {
   const isForPatients = pathname === "/" || pathname === "/intake"
 
   const navLinks = [
+    { href: "/treatments", label: "Treatments" },
     { href: "/blog", label: "Blog" },
     { href: "/our-mission", label: "Our Mission" },
     { href: "/about", label: "About" },
