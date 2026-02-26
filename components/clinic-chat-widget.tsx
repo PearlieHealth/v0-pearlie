@@ -402,9 +402,9 @@ export function ClinicChatWidget({
               </div>
             ) : messages.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center text-center text-neutral-500">
-                <MessageCircle className="h-12 w-12 mb-3 text-neutral-300" />
-                <p className="font-medium">Start a conversation</p>
-                <p className="text-sm">Ask {clinicName} any questions about your treatment</p>
+                <Heart className="h-10 w-10 mb-3 text-[#0fbcb0]/60" />
+                <p className="font-medium">You're chatting with Pearlie</p>
+                <p className="text-sm">Ask a question or say hello — the clinic will join shortly.</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -431,7 +431,7 @@ export function ClinicChatWidget({
                           {message.sender_type === "bot" ? (
                             <div className="max-w-[90%] flex items-start gap-2 bg-[#faf3e6] border border-[#faf3e6] rounded-xl px-3 py-2">
                               <Heart className="w-3.5 h-3.5 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
-                              <p className="text-xs text-neutral-600 whitespace-pre-wrap">{message.content}</p>
+                              <p className="text-[15px] leading-relaxed text-neutral-600 whitespace-pre-wrap">{message.content}</p>
                             </div>
                           ) : (
                             <div
@@ -442,7 +442,7 @@ export function ClinicChatWidget({
                                   : "bg-neutral-100 text-neutral-900 rounded-bl-md"
                               )}
                             >
-                              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                              <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{message.content}</p>
                               <div
                                 className={cn(
                                   "flex items-center gap-1 mt-1",
@@ -495,7 +495,7 @@ export function ClinicChatWidget({
                   setNewMessage(e.target.value)
                   sendTyping()
                 }}
-                placeholder="Type a message..."
+                placeholder="Ask a question or say hello..."
                 className="flex-1 rounded-full border-neutral-200"
                 disabled={isSending}
               />

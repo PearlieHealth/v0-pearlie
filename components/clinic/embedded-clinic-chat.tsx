@@ -315,10 +315,10 @@ export function EmbeddedClinicChat({
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <MessageCircle className="h-8 w-8 text-[#ccc] mb-2" />
-            <p className="text-sm font-medium text-[#666]">Start a conversation</p>
+            <Heart className="h-8 w-8 text-[#0fbcb0]/60 mb-2" />
+            <p className="text-sm font-medium text-[#666]">You're chatting with Pearlie</p>
             <p className="text-xs text-[#999] mt-1">
-              Ask {clinicName} about your treatment
+              Ask a question or say hello — the clinic will join shortly.
             </p>
           </div>
         ) : (
@@ -344,11 +344,11 @@ export function EmbeddedClinicChat({
                     {msg.sender_type === "bot" ? (
                       <div className="max-w-[90%] flex items-start gap-2 bg-[#faf3e6] border border-[#faf3e6] rounded-xl px-3 py-2">
                         <Heart className="w-3 h-3 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
-                        <p className="text-[11px] text-[#555] whitespace-pre-wrap">{msg.content}</p>
+                        <p className="text-[15px] leading-relaxed text-[#555] whitespace-pre-wrap">{msg.content}</p>
                       </div>
                     ) : (
                       <div
-                        className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
+                        className={`max-w-[85%] rounded-2xl px-3 py-2 text-[15px] leading-relaxed ${
                           msg.sender_type === "patient"
                             ? "bg-[#004443] text-white rounded-br-md"
                             : "bg-[#0fbcb0] text-white rounded-bl-md"
@@ -454,7 +454,7 @@ export function EmbeddedClinicChat({
                     handleSend()
                   }
                 }}
-                placeholder="Type a message..."
+                placeholder="Ask a question or say hello..."
                 className="flex-1 min-w-0 text-[16px] sm:text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#004443]/20 focus:border-[#004443] bg-white"
                 disabled={isSending}
               />

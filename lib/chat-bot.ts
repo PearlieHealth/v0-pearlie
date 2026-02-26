@@ -9,7 +9,7 @@ export function getBotGreeting(patientFirstName: string, clinicName: string): st
 }
 
 export function getBotClinicReplied(clinicName: string): string {
-  return `${clinicName} has replied! You're now chatting directly with the clinic team.`
+  return `${clinicName} has joined the chat — you're now speaking directly with the clinic.`
 }
 
 export function getBotFollowUp(clinicName: string): string {

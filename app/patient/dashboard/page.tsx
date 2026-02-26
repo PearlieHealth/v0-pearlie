@@ -1175,13 +1175,13 @@ export default function PatientDashboard() {
                   ) : messages.length === 0 ? (
                     <div className="text-center py-6 space-y-1.5">
                       <div className="w-9 h-9 rounded bg-primary/10 flex items-center justify-center mx-auto">
-                        <MessageCircle className="w-4 h-4 text-primary" />
+                        <Heart className="w-4 h-4 text-primary" />
                       </div>
                       <p className="text-sm font-medium text-foreground/70">
-                        Chat with {chatHeaderName || "the clinic"}
+                        You're chatting with Pearlie
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Ask any questions or request an appointment.
+                        Ask a question or say hello — the clinic will join shortly.
                       </p>
                     </div>
                   ) : (
@@ -1206,7 +1206,7 @@ export default function PatientDashboard() {
                                 Pearlie AI
                               </p>
                             )}
-                            <p className={`text-sm whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
+                            <p className={`text-[15px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
                               {msg.content}
                             </p>
                             <p className={`text-[10px] mt-0.5 ${
@@ -1281,7 +1281,7 @@ export default function PatientDashboard() {
                   <Input
                     value={newMessage}
                     onChange={(e) => { setNewMessage(e.target.value); sendTyping(); setChatError(null) }}
-                    placeholder="Type a message..."
+                    placeholder="Ask a question or say hello..."
                     className="flex-1 text-sm rounded-md border-border h-9 focus-visible:ring-primary/30"
                     disabled={isSending}
                   />
@@ -1701,14 +1701,14 @@ export default function PatientDashboard() {
             ) : messages.length === 0 ? (
               <div className="text-center py-8 space-y-2">
                 <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center mx-auto">
-                  <MessageCircle className="w-5 h-5 text-primary" />
+                  <Heart className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground/80">
-                    Chat with {chatHeaderName || "the clinic"}
+                    You're chatting with Pearlie
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Ask any questions or request an appointment
+                    Ask a question or say hello — the clinic will join shortly.
                   </p>
                 </div>
               </div>
@@ -1734,7 +1734,7 @@ export default function PatientDashboard() {
                           Pearlie AI
                         </p>
                       )}
-                      <p className={`text-[14px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
+                      <p className={`text-[15px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
                         {msg.content}
                       </p>
                       <p className={`text-[10px] mt-0.5 ${
@@ -1813,7 +1813,7 @@ export default function PatientDashboard() {
             <Input
               value={newMessage}
               onChange={(e) => { setNewMessage(e.target.value); sendTyping(); setChatError(null) }}
-              placeholder="Type a message..."
+              placeholder="Ask a question or say hello..."
               className="flex-1 text-base rounded-md border border-border h-10 focus-visible:ring-ring/30"
               disabled={isSending}
             />
