@@ -108,9 +108,41 @@ export default function IntakePage() {
     consentMarketing: false,
   })
 
-  // Restore form data from localStorage on mount
+  // Pre-select treatment from URL param (?treatment=) and skip step 1
   useEffect(() => {
     try {
+      const params = new URLSearchParams(window.location.search)
+      const treatmentParam = params.get("treatment")
+      if (!treatmentParam) return
+
+      // Match the param against valid treatment options
+      const matched = TREATMENT_OPTIONS.find(
+        (t) => t.toLowerCase() === treatmentParam.toLowerCase()
+      )
+      if (!matched) return
+
+      // Check if there's also a pre-filled postcode
+      const postcodeParam = params.get("postcode")
+
+      setFormData((prev) => ({
+        ...prev,
+        treatments: matched === EMERGENCY_TREATMENT ? [EMERGENCY_TREATMENT] : [matched],
+        ...(postcodeParam ? { postcode: postcodeParam.toUpperCase() } : {}),
+      }))
+
+      // Skip step 1 since treatment is already selected
+      // If postcode is provided, it will be validated by PostcodeInput and
+      // the user can continue from step 2 with it pre-filled
+      setStep(2)
+    } catch {}
+  }, [])
+
+  // Restore form data from localStorage on mount (only if no URL treatment param)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get("treatment")) return // URL param takes priority
+
       const saved = localStorage.getItem("pearlie_intake_progress")
       if (saved) {
         const parsed = JSON.parse(saved)

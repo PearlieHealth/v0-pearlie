@@ -1,13 +1,12 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import Link from "next/link"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import remarkGfm from "remark-gfm"
-import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { TreatmentHero } from "@/components/treatments/treatment-hero"
+import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
 import { KeyFactsBar } from "@/components/treatments/key-facts-bar"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
 import { TreatmentFAQ } from "@/components/treatments/treatment-faq"
@@ -309,28 +308,21 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
         {/* 7. Related Treatments */}
         <RelatedTreatments treatments={relatedTreatments} />
 
-        {/* 8. Bottom CTA */}
+        {/* 8. Bottom CTA with postcode input */}
         <section className="py-12 sm:py-16 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
-                Ready to find a {meta.treatmentName.toLowerCase()} clinic?
+                Find my {meta.treatmentName.toLowerCase()} clinic
               </h2>
-              <p className="text-white/70 mb-6 leading-relaxed">
-                Answer a few questions and get matched with verified,
-                GDC registered clinics tailored to your needs.
+              <p className="text-white/70 mb-8 leading-relaxed">
+                Enter your postcode and we'll match you with verified,
+                GDC registered clinics near you.
               </p>
-              <Button
-                size="lg"
-                className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 h-12 text-base"
-                asChild
-              >
-                <Link
-                  href={`/intake?treatment=${encodeURIComponent(meta.intakeTreatment)}`}
-                >
-                  Find my {meta.treatmentName.toLowerCase()} clinic
-                </Link>
-              </Button>
+              <TreatmentPostcodeCta
+                treatmentName={meta.treatmentName}
+                intakeTreatment={meta.intakeTreatment}
+              />
             </div>
           </div>
         </section>
