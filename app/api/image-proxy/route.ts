@@ -1,17 +1,27 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 /**
- * Server-side image proxy for Google Places photos.
+ * Server-side image proxy for clinic photos.
  *
- * Google Places photo URLs require an API key and often have referrer/IP
- * restrictions that prevent the Next.js image optimizer (or the browser)
- * from fetching them directly. This route fetches the image server-side
- * and streams it back so the frontend can display it.
+ * Proxies images from allowed external hosts so the browser can display
+ * them without CORS issues or missing authentication.
  *
- * Usage: /api/image-proxy?url=<encoded-places-url>
+ * - Google Places URLs: adds the server-side API key
+ * - Supabase storage URLs: fetches directly (handles public/private buckets)
+ * - Other allowed image hosts: fetches directly
  *
- * Only proxies requests to places.googleapis.com for safety.
+ * Usage: /api/image-proxy?url=<encoded-url>
  */
+
+function isAllowedHost(hostname: string): boolean {
+  if (hostname === "places.googleapis.com") return true
+  if (hostname.endsWith(".supabase.co")) return true
+  if (hostname === "lh3.googleusercontent.com") return true
+  if (hostname === "images.unsplash.com") return true
+  if (hostname === "i.imgur.com") return true
+  return false
+}
+
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url")
 
@@ -26,45 +36,41 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid URL" }, { status: 400 })
   }
 
-  // Only proxy Google Places photo URLs
-  if (parsed.hostname !== "places.googleapis.com") {
-    return NextResponse.json({ error: "Only Google Places photo URLs are supported" }, { status: 403 })
+  if (!isAllowedHost(parsed.hostname)) {
+    return NextResponse.json({ error: "Host not allowed" }, { status: 403 })
   }
 
-  // Ensure it's a photo media endpoint (must end with /media)
-  if (!parsed.pathname.endsWith("/media")) {
-    return NextResponse.json({ error: "URL does not look like a Google Places photo" }, { status: 403 })
+  // Build request headers
+  const headers: Record<string, string> = {
+    Accept: "image/*",
   }
 
-  // Use the current server-side API key
-  const apiKey = process.env.GOOGLE_PLACES_API_KEY
-  if (!apiKey) {
-    return NextResponse.json({ error: "Google Places API key not configured" }, { status: 500 })
+  // Google Places photos need API key authentication
+  if (parsed.hostname === "places.googleapis.com") {
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY
+    if (!apiKey) {
+      return NextResponse.json({ error: "Google Places API key not configured" }, { status: 500 })
+    }
+    parsed.searchParams.delete("key")
+    headers["X-Goog-Api-Key"] = apiKey
   }
-
-  // Remove any stale key from the URL — authenticate via header instead
-  // (matches how the search route authenticates with Google)
-  parsed.searchParams.delete("key")
 
   try {
     const response = await fetch(parsed.toString(), {
-      headers: {
-        Accept: "image/*",
-        "X-Goog-Api-Key": apiKey,
-      },
+      headers,
       redirect: "follow",
     })
 
     if (!response.ok) {
+      console.error(`[image-proxy] Upstream ${response.status} for ${parsed.hostname}${parsed.pathname}`)
       return NextResponse.json(
-        { error: "Failed to fetch image from Google Places" },
+        { error: "Failed to fetch image" },
         { status: response.status },
       )
     }
 
     const contentType = response.headers.get("content-type") || "image/jpeg"
 
-    // Only allow image content types
     if (!contentType.startsWith("image/")) {
       return NextResponse.json({ error: "Response is not an image" }, { status: 502 })
     }

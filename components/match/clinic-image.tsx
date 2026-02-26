@@ -25,37 +25,33 @@ interface ClinicImageFillProps extends ClinicImageBaseProps {
 type ClinicImageProps = ClinicImageSizedProps | ClinicImageFillProps
 
 /**
- * Returns a proxied URL for Google Places photo URLs, or the original URL
- * for other image sources (Supabase, Unsplash, etc.)
+ * If a URL is a Google Places photo that wasn't re-uploaded to Supabase,
+ * route it through our server-side proxy which adds the API key.
+ * All other URLs are used directly.
  */
-export function getImageSrc(src: string): { url: string } {
-  if (!src || !src.trim()) return { url: "" }
+export function getImageSrc(src: string): string {
+  if (!src || !src.trim()) return ""
 
   try {
     const parsed = new URL(src)
     if (parsed.hostname === "places.googleapis.com") {
-      // Route through our server-side proxy to avoid API key / CORS issues
-      return {
-        url: `/api/image-proxy?url=${encodeURIComponent(src)}`,
-      }
+      return `/api/image-proxy?url=${encodeURIComponent(src)}`
     }
   } catch {
-    // Not a valid URL, pass through
+    // relative URL — pass through
   }
-  return { url: src }
+  return src
 }
 
 export function ClinicImage(props: ClinicImageProps) {
-  const { src, alt, className, fallbackClassName, sizes } = props
+  const { src, alt, className, fallbackClassName } = props
   const [hasError, setHasError] = useState(false)
 
-  // Reset error state when src changes
   useEffect(() => {
     setHasError(false)
   }, [src])
 
   if (hasError || !src || !src.trim()) {
-    // Show clinic initial letter as a visible avatar fallback
     const letter = alt?.charAt(0)?.toUpperCase() || "?"
     return (
       <div className={fallbackClassName || "w-full h-full flex items-center justify-center bg-[#004443]"}>
@@ -64,17 +60,14 @@ export function ClinicImage(props: ClinicImageProps) {
     )
   }
 
-  const { url } = getImageSrc(src)
+  const url = getImageSrc(src)
 
-  // Use a plain <img> tag for reliable error handling.
-  // Next.js <Image> can fail silently through its optimizer layer.
+  /* eslint-disable @next/next/no-img-element */
   return (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={url}
       alt={alt}
       className={className}
-      sizes={sizes}
       loading="lazy"
       onError={() => setHasError(true)}
       style={

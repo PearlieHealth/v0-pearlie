@@ -211,7 +211,7 @@ export function PhotoUploader({ value, onChange, label, maxSizeMB = 5, type = "m
       {previewUrl ? (
         <div className="relative group">
           <img
-            src={getImageSrc(previewUrl || "").url || "/placeholder.svg"}
+            src={getImageSrc(previewUrl || "") || "/placeholder.svg"}
             alt="Preview"
             className="w-full h-48 object-cover rounded-lg border border-gray-200"
           />
