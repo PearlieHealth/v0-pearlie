@@ -29,6 +29,7 @@ export function MainNav() {
   const navLinks = [
     { href: "/our-mission", label: "Our Mission" },
     { href: "/about", label: "About" },
+    { href: "/blog", label: "Blog" },
     { href: "/faq", label: "FAQ" },
   ]
 
