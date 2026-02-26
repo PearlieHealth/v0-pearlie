@@ -8,6 +8,20 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://pearlie.org/for-clinics",
   },
+  openGraph: {
+    title: "For Dental Clinics - Join Pearlie's Network",
+    description:
+      "Receive matched patients in London and the UK looking for your dental services. Quality leads and zero upfront cost.",
+    url: "https://pearlie.org/for-clinics",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Pearlie - For Dental Clinics" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "For Dental Clinics - Join Pearlie's Network",
+    description:
+      "Receive matched patients in London and the UK looking for your dental services. Quality leads and zero upfront cost.",
+    images: ["/og-image.jpg"],
+  },
 }
 import { Card } from "@/components/ui/card"
 import { ArrowRight, CheckCircle2, X, Star, TrendingUp, Users, Eye } from "lucide-react"
@@ -24,6 +38,31 @@ export default function ForClinicsPage() {
         { name: "Home", url: "https://pearlie.org" },
         { name: "For Clinics", url: "https://pearlie.org/for-clinics" },
       ]} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Service",
+            name: "Pearlie Clinic Partner Programme",
+            description:
+              "Receive matched patients in London and the UK looking for your dental services. Quality leads based on clinical fit, not just location.",
+            provider: { "@id": "https://pearlie.org/#organization" },
+            serviceType: "Patient Matching",
+            areaServed: {
+              "@type": "Country",
+              name: "United Kingdom",
+            },
+            url: "https://pearlie.org/for-clinics",
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "GBP",
+              description: "Free for founding partner clinics",
+            },
+          }),
+        }}
+      />
       <MainNav />
 
       {/* HERO SECTION */}
