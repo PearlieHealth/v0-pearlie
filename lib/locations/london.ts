@@ -55,6 +55,21 @@ export const LONDON_AREAS: LondonArea[] = [
         answer:
           "Several Harley Street clinics offer same-day or next-day emergency appointments. Use Pearlie to check availability and message clinics directly to arrange urgent care.",
       },
+      {
+        question: "What cosmetic dental treatments are available on Harley Street?",
+        answer:
+          "Harley Street clinics offer the full range of cosmetic dentistry including porcelain veneers, composite bonding, professional teeth whitening, Invisalign, smile makeovers, and dental implants. Many practitioners are recognised specialists in their field.",
+      },
+      {
+        question: "Do Harley Street dentists offer payment plans or finance?",
+        answer:
+          "Many Harley Street practices offer interest-free finance or monthly payment plans for treatments like Invisalign, implants, and veneers. Ask clinics directly through Pearlie about their finance options before committing.",
+      },
+      {
+        question: "Is Harley Street convenient by public transport?",
+        answer:
+          "Yes — Harley Street is a short walk from Oxford Circus, Regent's Park, Great Portland Street, and Bond Street stations. It's one of the best-connected dental districts in London.",
+      },
     ],
     nearbyAreas: ["soho", "mayfair", "camden"],
   },
@@ -88,6 +103,21 @@ export const LONDON_AREAS: LondonArea[] = [
         answer:
           "Pearlie focuses on private dental clinics. For NHS dental services, visit the NHS Find a Dentist tool. However, some Pearlie-listed clinics may accept NHS patients for certain treatments.",
       },
+      {
+        question: "What treatments can I get near Canary Wharf?",
+        answer:
+          "Dental clinics near Canary Wharf offer a full range of treatments including check-ups, hygiene appointments, teeth whitening, Invisalign, composite bonding, veneers, and emergency dental care. Use Pearlie to compare clinics by treatment speciality.",
+      },
+      {
+        question: "Are there weekend dentists near Canary Wharf?",
+        answer:
+          "Some clinics in the Canary Wharf area offer Saturday appointments, and a few open on Sundays. Pearlie lets you check availability and message clinics directly to find a time that suits you.",
+      },
+      {
+        question: "Is there a dentist inside Canary Wharf shopping centre?",
+        answer:
+          "There are dental practices within walking distance of Canary Wharf's main shopping and business areas, including inside nearby malls and office buildings. Our search covers all verified clinics in the immediate area.",
+      },
     ],
     nearbyAreas: ["shoreditch", "stratford"],
   },
@@ -115,6 +145,21 @@ export const LONDON_AREAS: LondonArea[] = [
         question: "How do I choose between dentists in Kensington and Chelsea?",
         answer:
           "Look for GDC registration, patient reviews, and experience with your specific treatment. Pearlie lets you compare all of this side-by-side, plus message clinics directly with questions before booking.",
+      },
+      {
+        question: "How much does a private dentist cost in Kensington?",
+        answer:
+          "A private check-up in Kensington typically costs £80–£200. Cosmetic treatments like veneers start from around £500 per tooth. Pearlie shows indicative pricing for each clinic so you can compare before committing.",
+      },
+      {
+        question: "Are there emergency dentists in Kensington and Chelsea?",
+        answer:
+          "Yes — several Kensington and Chelsea clinics offer same-day or urgent appointments for dental emergencies. Use Pearlie to find clinics with availability and message them directly.",
+      },
+      {
+        question: "Can I get Invisalign in Kensington?",
+        answer:
+          "Many Kensington dental practices are certified Invisalign providers, including Diamond and Platinum-tier practices. Pearlie helps you compare clinics by experience level and indicative pricing for clear aligner treatment.",
       },
     ],
     nearbyAreas: ["harley-street", "notting-hill", "mayfair"],
@@ -144,6 +189,21 @@ export const LONDON_AREAS: LondonArea[] = [
         answer:
           "Our Shoreditch search includes clinics in Shoreditch, Hoxton, Hackney, Bethnal Green, and the surrounding East London area — all within easy reach.",
       },
+      {
+        question: "Can I find a cosmetic dentist in Shoreditch?",
+        answer:
+          "Yes — Shoreditch has a growing number of modern dental practices offering cosmetic treatments including teeth whitening, composite bonding, veneers, and Invisalign. Pearlie helps you compare clinics by treatment speciality.",
+      },
+      {
+        question: "Are there weekend dentists near Shoreditch?",
+        answer:
+          "Some East London clinics offer Saturday appointments. Use Pearlie to check weekend availability and book directly with the clinic that suits your schedule.",
+      },
+      {
+        question: "How do I find a good dentist near Liverpool Street?",
+        answer:
+          "Our Shoreditch search covers the Liverpool Street and City fringe area. All clinics on Pearlie are GDC-registered and independently verified — compare ratings, treatments, and pricing to find the right fit.",
+      },
     ],
     nearbyAreas: ["canary-wharf", "camden", "stratford"],
   },
@@ -171,6 +231,21 @@ export const LONDON_AREAS: LondonArea[] = [
         question: "Do Soho dentists offer lunchtime appointments?",
         answer:
           "Many dental clinics in central London offer flexible scheduling including lunchtime slots. Check availability on Pearlie and book directly.",
+      },
+      {
+        question: "How much does a dentist in Soho cost?",
+        answer:
+          "Private check-ups in Soho and the West End typically cost £80–£200. Cosmetic treatments vary by clinic — Pearlie shows indicative pricing so you can compare before booking.",
+      },
+      {
+        question: "Can I get emergency dental treatment in Soho?",
+        answer:
+          "Several central London clinics near Soho offer same-day emergency appointments for issues like toothache, broken teeth, or swelling. Use Pearlie to find clinics with urgent availability.",
+      },
+      {
+        question: "What cosmetic treatments are available in Soho?",
+        answer:
+          "Soho clinics offer a wide range of cosmetic dentistry including teeth whitening, Invisalign, porcelain veneers, composite bonding, and smile makeovers. Many are conveniently located near West End tube stations.",
       },
     ],
     nearbyAreas: ["harley-street", "mayfair", "camden"],
@@ -200,6 +275,21 @@ export const LONDON_AREAS: LondonArea[] = [
         answer:
           "Mayfair has a high concentration of experienced specialists, particularly for cosmetic and restorative work. If you're considering a complex treatment, seeing a specialist in the area can be worthwhile. Pearlie helps you decide by comparing verified clinics side-by-side.",
       },
+      {
+        question: "What specialist treatments can I find in Mayfair?",
+        answer:
+          "Mayfair clinics offer advanced treatments including full-mouth rehabilitation, dental implants, porcelain veneers, smile makeovers, Invisalign, and sedation dentistry. Many practitioners are recognised specialists in prosthodontics or cosmetic dentistry.",
+      },
+      {
+        question: "Do Mayfair dental clinics offer finance options?",
+        answer:
+          "Many Mayfair practices offer interest-free finance or monthly payment plans, especially for higher-value treatments like implants and veneers. Ask clinics directly through Pearlie about their finance options.",
+      },
+      {
+        question: "Can I get a second opinion from a Mayfair dentist?",
+        answer:
+          "Yes — many patients visit Mayfair specialists for second opinions on complex treatment plans. Use Pearlie to find clinics with the right expertise and book a consultation.",
+      },
     ],
     nearbyAreas: ["harley-street", "soho", "kensington-chelsea"],
   },
@@ -227,6 +317,21 @@ export const LONDON_AREAS: LondonArea[] = [
         question: "How do I register with a dentist in Camden?",
         answer:
           "Private dentists don't require formal registration like NHS practices. You can simply browse clinics on Pearlie, compare options, and book your first appointment directly.",
+      },
+      {
+        question: "How much does a dentist in Camden cost?",
+        answer:
+          "A private dental check-up in Camden typically costs £60–£150. Treatment costs vary — Invisalign starts from around £2,500, and teeth whitening from £250. Pearlie shows indicative pricing for each clinic.",
+      },
+      {
+        question: "Can I find an emergency dentist in Camden?",
+        answer:
+          "Several Camden clinics offer same-day or urgent appointments for dental emergencies. Use Pearlie to check availability and message clinics directly to arrange urgent care.",
+      },
+      {
+        question: "Are there dentists near Camden Town tube station?",
+        answer:
+          "Yes — there are several verified dental practices within walking distance of Camden Town station, as well as nearby Mornington Crescent and Chalk Farm. All are listed on Pearlie with ratings and pricing.",
       },
     ],
     nearbyAreas: ["islington", "harley-street", "hampstead"],
@@ -256,6 +361,21 @@ export const LONDON_AREAS: LondonArea[] = [
         answer:
           "Yes — many practices in the area welcome patients of all ages. Use Pearlie to filter by treatment type and find clinics that offer family-friendly care.",
       },
+      {
+        question: "How much does a private dentist cost in Notting Hill?",
+        answer:
+          "A private check-up in Notting Hill typically costs £70–£180. Treatment costs vary by procedure — Pearlie shows indicative pricing for each clinic so you can compare before booking.",
+      },
+      {
+        question: "Are there cosmetic dentists near Notting Hill?",
+        answer:
+          "Yes — Notting Hill and the surrounding West London area has several clinics specialising in cosmetic dentistry including veneers, Invisalign, teeth whitening, and composite bonding.",
+      },
+      {
+        question: "Can I get an emergency dental appointment in Notting Hill?",
+        answer:
+          "Several practices near Notting Hill offer same-day or next-day emergency slots. Use Pearlie to check availability and message clinics directly for urgent care.",
+      },
     ],
     nearbyAreas: ["kensington-chelsea", "mayfair", "harley-street"],
   },
@@ -283,6 +403,21 @@ export const LONDON_AREAS: LondonArea[] = [
         question: "What areas does the Brixton dental search cover?",
         answer:
           "Our Brixton search includes Clapham, Herne Hill, Camberwell, Peckham, and the surrounding South London area — all within easy reach by public transport.",
+      },
+      {
+        question: "Can I find an emergency dentist near Brixton?",
+        answer:
+          "Several South London clinics offer same-day or urgent emergency appointments. Use Pearlie to check availability near Brixton and message clinics directly for urgent dental care.",
+      },
+      {
+        question: "What treatments can I get at Brixton dental clinics?",
+        answer:
+          "Brixton clinics offer a full range of treatments including check-ups, hygiene appointments, teeth whitening, Invisalign, composite bonding, fillings, root canals, and emergency care. Compare options on Pearlie.",
+      },
+      {
+        question: "Are there weekend dentists near Brixton?",
+        answer:
+          "Some practices in South London offer Saturday appointments. Pearlie lets you check weekend availability and book directly with clinics that suit your schedule.",
       },
     ],
     nearbyAreas: ["clapham", "peckham"],
@@ -312,6 +447,21 @@ export const LONDON_AREAS: LondonArea[] = [
         answer:
           "A private dental check-up in Clapham typically costs £60–£130. Pearlie shows indicative pricing for each clinic so you can compare before committing.",
       },
+      {
+        question: "Can I get teeth whitening in Clapham?",
+        answer:
+          "Yes — several Clapham dental practices offer professional teeth whitening, both in-clinic and take-home options. Costs typically start from £250. Pearlie helps you compare whitening providers nearby.",
+      },
+      {
+        question: "Are there evening or weekend dentists in Clapham?",
+        answer:
+          "Some Clapham practices offer evening appointments and Saturday clinics. Use Pearlie to check availability and find a time that suits your schedule.",
+      },
+      {
+        question: "Is it better to go private or NHS for a dentist in Clapham?",
+        answer:
+          "Private dental care in Clapham offers shorter wait times, longer appointments, and a wider choice of cosmetic treatments. Pearlie focuses on verified private clinics — for NHS dental services, try the NHS Find a Dentist tool.",
+      },
     ],
     nearbyAreas: ["brixton", "peckham", "kensington-chelsea"],
   },
@@ -339,6 +489,21 @@ export const LONDON_AREAS: LondonArea[] = [
         question: "Are there affordable dentists near Peckham?",
         answer:
           "Yes — South East London offers a range of private dental practices at competitive price points. Pearlie shows indicative pricing for each clinic.",
+      },
+      {
+        question: "Can I find an emergency dentist near Peckham?",
+        answer:
+          "Several practices in South East London offer same-day or next-day emergency appointments. Use Pearlie to find clinics with urgent availability near Peckham, Camberwell, and Dulwich.",
+      },
+      {
+        question: "What cosmetic treatments are available near Peckham?",
+        answer:
+          "Clinics near Peckham offer cosmetic treatments including teeth whitening, composite bonding, Invisalign, and veneers. Use Pearlie to compare clinics by treatment speciality and pricing.",
+      },
+      {
+        question: "How do I choose a dentist in Peckham?",
+        answer:
+          "Look for GDC registration, patient reviews, and experience with your specific treatment. Pearlie lets you compare all of this side-by-side — plus message clinics directly with questions before you book.",
       },
     ],
     nearbyAreas: ["brixton", "clapham", "canary-wharf"],
@@ -368,6 +533,21 @@ export const LONDON_AREAS: LondonArea[] = [
         answer:
           "Islington clinics offer a full range of treatments including check-ups, teeth whitening, Invisalign, veneers, composite bonding, implants, and more. Use Pearlie to compare options.",
       },
+      {
+        question: "How much does a private dentist cost in Islington?",
+        answer:
+          "A private dental check-up in Islington typically costs £60–£150. Treatment costs vary — Invisalign starts from around £2,500, and composite bonding from £150 per tooth. Pearlie shows indicative pricing for each clinic.",
+      },
+      {
+        question: "Can I find an emergency dentist in Islington?",
+        answer:
+          "Several Islington practices offer same-day emergency appointments for toothache, broken teeth, or swelling. Use Pearlie to find clinics with urgent availability and message them directly.",
+      },
+      {
+        question: "Are there evening dentists near Angel or Highbury?",
+        answer:
+          "Some Islington clinics offer early morning or evening appointments to suit working schedules. Check availability on Pearlie and book directly with a clinic that fits your timetable.",
+      },
     ],
     nearbyAreas: ["camden", "shoreditch", "hampstead"],
   },
@@ -395,6 +575,21 @@ export const LONDON_AREAS: LondonArea[] = [
         question: "What areas does the Hampstead search cover?",
         answer:
           "Our Hampstead search includes Hampstead Village, Swiss Cottage, Belsize Park, Finchley Road, and the wider North West London area.",
+      },
+      {
+        question: "Can I get Invisalign in Hampstead?",
+        answer:
+          "Yes — several Hampstead dental practices are certified Invisalign providers. Use Pearlie to compare clinics by experience, reviews, and indicative pricing for clear aligner treatment.",
+      },
+      {
+        question: "Are there family dentists in Hampstead?",
+        answer:
+          "Many Hampstead practices welcome patients of all ages, from children's check-ups to adult cosmetic treatments. Pearlie helps you find family-friendly clinics with the right services.",
+      },
+      {
+        question: "Can I find a weekend dentist near Hampstead?",
+        answer:
+          "Some clinics near Hampstead and Swiss Cottage offer Saturday appointments. Use Pearlie to check weekend availability and book directly.",
       },
     ],
     nearbyAreas: ["camden", "islington"],
@@ -424,6 +619,21 @@ export const LONDON_AREAS: LondonArea[] = [
         answer:
           "Many dental clinics near Hammersmith offer extended hours including evening appointments. Check availability on Pearlie and book directly.",
       },
+      {
+        question: "How much does a dentist cost near Hammersmith?",
+        answer:
+          "A private dental check-up near Hammersmith typically costs £60–£150. Treatment costs vary — Pearlie shows indicative pricing for each clinic so you can compare options.",
+      },
+      {
+        question: "Can I find an emergency dentist in Hammersmith?",
+        answer:
+          "Several West London clinics offer same-day emergency appointments. Use Pearlie to check urgent availability near Hammersmith and Shepherd's Bush.",
+      },
+      {
+        question: "What treatments are available near Hammersmith?",
+        answer:
+          "Hammersmith clinics offer general dentistry, hygiene appointments, teeth whitening, Invisalign, composite bonding, veneers, implants, and emergency care. Compare clinics and treatments on Pearlie.",
+      },
     ],
     nearbyAreas: ["kensington-chelsea", "notting-hill"],
   },
@@ -451,6 +661,21 @@ export const LONDON_AREAS: LondonArea[] = [
         question: "Is private dental care affordable in East London?",
         answer:
           "East London generally offers competitive private dental pricing compared to central London. Pearlie shows indicative costs for each clinic so you can compare options easily.",
+      },
+      {
+        question: "Can I find an emergency dentist near Stratford?",
+        answer:
+          "Several clinics in the Stratford and wider East London area offer same-day or urgent emergency appointments. Use Pearlie to find clinics with availability and message them directly.",
+      },
+      {
+        question: "What dental treatments are available in Stratford?",
+        answer:
+          "Stratford clinics offer a full range of treatments including check-ups, teeth whitening, Invisalign, composite bonding, veneers, implants, and root canals. Compare options on Pearlie.",
+      },
+      {
+        question: "Are there weekend or evening dentists near Stratford?",
+        answer:
+          "Some East London practices offer Saturday clinics and extended weekday hours. Pearlie lets you check availability and book directly with clinics near Stratford that suit your schedule.",
       },
     ],
     nearbyAreas: ["shoreditch", "canary-wharf"],
@@ -520,6 +745,26 @@ export const LONDON_REGIONS: LondonRegion[] = [
         answer:
           "Look for GDC registration, verified reviews, and experience with your specific treatment. Pearlie lets you compare all of this side-by-side, plus message clinics directly before booking.",
       },
+      {
+        question: "Can I get emergency dental treatment in Central London?",
+        answer:
+          "Yes — many Central London clinics offer same-day or next-day emergency appointments for toothache, broken teeth, or swelling. Use Pearlie to find clinics with urgent availability near you.",
+      },
+      {
+        question: "What cosmetic dental treatments are popular in Central London?",
+        answer:
+          "Central London is a hub for cosmetic dentistry. Popular treatments include Invisalign, porcelain veneers, composite bonding, professional teeth whitening, and smile makeovers. Harley Street and Mayfair are particularly well-known for specialist cosmetic work.",
+      },
+      {
+        question: "Do Central London dental clinics accept insurance?",
+        answer:
+          "Many private clinics in Central London accept dental insurance plans from providers like Bupa, AXA, and Vitality. Check with individual clinics through Pearlie to confirm which plans they accept.",
+      },
+      {
+        question: "Is it worth paying more for a Central London dentist?",
+        answer:
+          "Central London offers access to some of the UK's most experienced specialists and advanced technology. However, quality care exists at all price points. Pearlie helps you compare based on your specific needs — not just price or location.",
+      },
     ],
   },
   {
@@ -546,6 +791,31 @@ export const LONDON_REGIONS: LondonRegion[] = [
         question: "What areas does the South London search cover?",
         answer:
           "Our South London search covers Brixton, Clapham, Peckham, Camberwell, Dulwich, Greenwich, Lewisham, and the wider South London area.",
+      },
+      {
+        question: "Can I find an emergency dentist in South London?",
+        answer:
+          "Yes — several South London practices offer same-day or next-day emergency appointments. Use Pearlie to check availability in Clapham, Brixton, Peckham, and surrounding areas.",
+      },
+      {
+        question: "How much does a dental check-up cost in South London?",
+        answer:
+          "A private dental check-up in South London typically costs £50–£130, depending on the clinic and area. Pearlie shows indicative pricing for each clinic so you can compare before booking.",
+      },
+      {
+        question: "Are there cosmetic dentists in South London?",
+        answer:
+          "Yes — South London has a growing number of clinics offering cosmetic treatments including teeth whitening, Invisalign, composite bonding, and veneers. Pearlie helps you find and compare cosmetic dentists nearby.",
+      },
+      {
+        question: "Is private dental care in South London cheaper than Central London?",
+        answer:
+          "Generally, yes — South London clinics tend to be more competitively priced than Central London while still offering high-quality care. Use Pearlie to compare pricing across different areas and find the best value.",
+      },
+      {
+        question: "Can I find a weekend dentist in South London?",
+        answer:
+          "Some South London practices offer Saturday appointments. Pearlie lets you check weekend availability and book directly with clinics that suit your schedule.",
       },
     ],
   },
@@ -574,6 +844,31 @@ export const LONDON_REGIONS: LondonRegion[] = [
         answer:
           "A private check-up in North London typically costs £60–£150. Pearlie shows indicative pricing for each clinic so you can compare before committing.",
       },
+      {
+        question: "Can I find an emergency dentist in North London?",
+        answer:
+          "Yes — several North London clinics offer same-day or urgent emergency appointments. Use Pearlie to find clinics with availability in Islington, Camden, Hampstead, and surrounding areas.",
+      },
+      {
+        question: "What cosmetic treatments are available in North London?",
+        answer:
+          "North London clinics offer a full range of cosmetic treatments including Invisalign, teeth whitening, composite bonding, veneers, and smile makeovers. Camden, Islington, and Hampstead all have well-regarded cosmetic practices.",
+      },
+      {
+        question: "Are there family dentists in North London?",
+        answer:
+          "Yes — many North London practices welcome patients of all ages, from children's check-ups to adult cosmetic treatments. Use Pearlie to find family-friendly clinics near you.",
+      },
+      {
+        question: "Do North London dentists offer evening or Saturday appointments?",
+        answer:
+          "Many North London practices offer extended hours including early morning, evening, and Saturday appointments. Pearlie lets you check availability and book directly.",
+      },
+      {
+        question: "How do I find a specialist dentist in North London?",
+        answer:
+          "Pearlie lists verified clinics with details on their treatment specialities, from orthodontics and implants to endodontics and periodontics. Compare clinics based on expertise, reviews, and pricing.",
+      },
     ],
   },
   {
@@ -601,6 +896,31 @@ export const LONDON_REGIONS: LondonRegion[] = [
         answer:
           "Yes — many West London practices welcome patients of all ages. Use Pearlie to find clinics that offer family-friendly care near you.",
       },
+      {
+        question: "How much does a private dentist cost in West London?",
+        answer:
+          "Private dental check-ups in West London range from £70–£200, depending on the area and clinic. Kensington tends to be at the higher end, while Hammersmith and Shepherd's Bush offer more competitive pricing. Pearlie shows indicative costs for each clinic.",
+      },
+      {
+        question: "Can I get an emergency dental appointment in West London?",
+        answer:
+          "Yes — several West London practices offer same-day or urgent emergency slots. Use Pearlie to check availability across Kensington, Notting Hill, Hammersmith, and surrounding areas.",
+      },
+      {
+        question: "Are there cosmetic dentists in West London?",
+        answer:
+          "West London has many well-established cosmetic dental practices, particularly in Kensington and Notting Hill. Treatments include veneers, Invisalign, teeth whitening, and composite bonding. Compare options on Pearlie.",
+      },
+      {
+        question: "Do West London dentists offer payment plans?",
+        answer:
+          "Many West London dental practices offer interest-free finance or monthly payment plans for treatments like Invisalign, implants, and veneers. Ask clinics directly through Pearlie about their finance options.",
+      },
+      {
+        question: "Are there weekend dentists in West London?",
+        answer:
+          "Some West London clinics offer Saturday appointments, particularly in Hammersmith and Kensington. Use Pearlie to check weekend availability and book directly.",
+      },
     ],
   },
   {
@@ -627,6 +947,31 @@ export const LONDON_REGIONS: LondonRegion[] = [
         question: "What areas does the East London search cover?",
         answer:
           "Our East London search covers Shoreditch, Hackney, Bethnal Green, Canary Wharf, Stratford, Leyton, and the wider East London area.",
+      },
+      {
+        question: "Can I find an emergency dentist in East London?",
+        answer:
+          "Yes — several East London clinics offer same-day or urgent emergency appointments across Shoreditch, Canary Wharf, and Stratford. Use Pearlie to find clinics with availability.",
+      },
+      {
+        question: "How much does a dental check-up cost in East London?",
+        answer:
+          "A private dental check-up in East London typically costs £50–£130. Prices tend to be more competitive than Central London. Pearlie shows indicative pricing for each clinic.",
+      },
+      {
+        question: "Are there cosmetic dentists in East London?",
+        answer:
+          "Yes — East London has a growing number of modern practices offering cosmetic treatments including teeth whitening, Invisalign, composite bonding, and veneers. Shoreditch and Canary Wharf are particularly well-served.",
+      },
+      {
+        question: "Do East London dentists offer evening appointments?",
+        answer:
+          "Many East London clinics, particularly those in Canary Wharf and Stratford, offer early morning and evening appointments for working professionals. Check availability on Pearlie.",
+      },
+      {
+        question: "Is private dental care in East London good value?",
+        answer:
+          "East London generally offers strong value for private dental care, combining modern facilities with competitive pricing. Use Pearlie to compare quality, treatments, and costs across different areas.",
       },
     ],
   },
