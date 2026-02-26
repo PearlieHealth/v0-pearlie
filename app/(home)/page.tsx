@@ -246,6 +246,7 @@ export default function Home() {
                         autoPlay
                         muted
                         playsInline
+                        aria-label="Short video clip showcasing Pearlie dental clinic matching"
                         className="w-full h-auto rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] scale-x-[-1]"
                       >
                         <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />

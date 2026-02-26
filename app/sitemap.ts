@@ -4,6 +4,7 @@ import { getAllBlogPosts } from "@/lib/content/blog"
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://pearlie.org"
 
+  // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: "2026-02-23", changeFrequency: "weekly", priority: 1 },
     { url: `${baseUrl}/intake`, lastModified: "2026-02-23", changeFrequency: "monthly", priority: 0.9 },
@@ -17,10 +18,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/cookies`, lastModified: "2025-01-15", changeFrequency: "yearly", priority: 0.2 },
   ]
 
+  // Blog posts
   const blogPosts: MetadataRoute.Sitemap = getAllBlogPosts().map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
     lastModified: post.updatedAt || post.publishedAt,
-    changeFrequency: "monthly",
+    changeFrequency: "monthly" as const,
     priority: 0.7,
   }))
 
