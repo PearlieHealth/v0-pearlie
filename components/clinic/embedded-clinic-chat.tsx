@@ -342,8 +342,11 @@ export function EmbeddedClinicChat({
                     }`}
                   >
                     {msg.sender_type === "bot" ? (
-                      <div className="max-w-[90%] flex items-start gap-2 bg-[#faf3e6] border border-[#faf3e6] rounded-xl px-3 py-2">
-                        <Heart className="w-3 h-3 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
+                      <div className="max-w-[90%] bg-[#faf3e6] border border-[#faf3e6] rounded-xl px-3 py-2">
+                        <p className="text-[9px] text-[#0fbcb0] font-medium mb-0.5 flex items-center gap-1">
+                          <Heart className="w-2.5 h-2.5 fill-[#0fbcb0] text-[#0fbcb0]" />
+                          Pearlie AI
+                        </p>
                         <p className="text-[15px] leading-relaxed text-[#555] whitespace-pre-wrap">{msg.content}</p>
                       </div>
                     ) : (
