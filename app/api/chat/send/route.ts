@@ -5,7 +5,7 @@ import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 import { escapeHtml } from "@/lib/escape-html"
 import { portalUrl } from "@/lib/clinic-url"
 import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
-import { getBotGreeting, getBotSuggestions, getBotFollowUp } from "@/lib/chat-bot"
+import { getBotGreeting, getBotFollowUp } from "@/lib/chat-bot"
 import { generateIntelligentBotResponse } from "@/lib/chat-bot-ai"
 import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
@@ -446,25 +446,6 @@ export async function POST(request: NextRequest) {
           .select("*")
           .single()
         if (greetingMsg) botMessages.push(greetingMsg)
-
-        // Try AI suggestions (if enabled), fall back to template
-        const aiSuggestions = useAI
-          ? await generateIntelligentBotResponse("suggestions", clinicCtx, leadCtx, recentMsgs, escalationCtx)
-          : null
-        const suggestionsContent = aiSuggestions || getBotSuggestions(clinic.name)
-
-        const { data: suggestionsMsg } = await supabase
-          .from("messages")
-          .insert({
-            conversation_id: conversation.id,
-            sender_type: "bot",
-            content: suggestionsContent,
-            sent_via: "chat",
-            message_type: "bot-suggestions",
-          })
-          .select("*")
-          .single()
-        if (suggestionsMsg) botMessages.push(suggestionsMsg)
 
         // Mark conversation as bot-greeted
         await supabase

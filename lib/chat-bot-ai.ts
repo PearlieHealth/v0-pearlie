@@ -43,7 +43,7 @@ interface ConversationMessage {
   content: string
 }
 
-type BotTrigger = "greeting" | "suggestions" | "no_reply" | "follow_up"
+type BotTrigger = "greeting" | "no_reply" | "follow_up"
 
 interface EscalationContext {
   clinicEmail?: string
@@ -138,10 +138,7 @@ function buildUserPrompt(
 
   switch (trigger) {
     case "greeting":
-      return `${clinicInfo}\n${leadInfo}\n\nThe patient just sent their first message. Write a warm greeting that:\n- Welcomes them by first name if available\n- Acknowledges what they're interested in (if treatment_interest is known)\n- Mentions one relevant clinic fact (e.g., opening hours, NHS acceptance, parking) if available\n- Lets them know the clinic team will respond\n- Keeps it to 2-3 sentences\n\nPatient's message:\n${history}`
-
-    case "suggestions":
-      return `${clinicInfo}\n${leadInfo}\n\nGenerate 4 short suggested questions the patient might want to ask the clinic. Make them relevant to their treatment interest if known. Format as a bullet list with "•" prefix. Keep each under 12 words. Do NOT include questions about diagnosis or medical advice.`
+      return `${clinicInfo}\n${leadInfo}\n\nThe patient just sent their first message. Write a warm, natural greeting that:\n- Welcomes them by first name if available\n- Acknowledges what they're interested in (if treatment_interest is known)\n- Mentions one relevant clinic fact (e.g., opening hours, NHS acceptance, parking) if available\n- Lets them know the clinic team will respond\n- Naturally ends with one helpful follow-up question relevant to their situation (e.g., timing preference, weekday vs weekend, any particular concerns) — weave it into the message, don't make it feel like a survey\n- Keeps it to 2-3 sentences, warm and conversational\n\nPatient's message:\n${history}`
 
     case "no_reply":
       return `${clinicInfo}\n${leadInfo}\n\nThe clinic hasn't replied in 30+ minutes. Write a short reassurance message that:\n- Manages expectations (clinics typically respond within a few hours)\n- Mentions they'll be notified by email when the clinic replies\n- If opening hours are available, mention whether the clinic is currently open\n- Keeps it to 2 sentences\n- Does NOT apologise or make excuses for the clinic`
