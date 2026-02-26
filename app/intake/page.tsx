@@ -343,6 +343,10 @@ export default function IntakePage() {
   // I1: Restore form data from localStorage on mount (if draft < 2 hours old)
   useEffect(() => {
     try {
+      // URL treatment param takes priority over draft restoration
+      const params = new URLSearchParams(window.location.search)
+      if (params.get("treatment")) return
+
       const draft = localStorage.getItem("pearlie_form_draft")
       if (draft) {
         const parsed = JSON.parse(draft)
