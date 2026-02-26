@@ -23,6 +23,12 @@ export const metadata: Metadata = {
     url: "https://pearlie.org/treatments",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dental Treatments — Compare Clinics & Prices | Pearlie",
+    description:
+      "Compare verified UK dental clinics for Invisalign, dental implants, teeth whitening, and more.",
+  },
 }
 
 export default function TreatmentsPage() {

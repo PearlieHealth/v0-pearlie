@@ -42,8 +42,20 @@ export function TreatmentHero({ treatment }: TreatmentHeroProps) {
             {treatment.title}
           </h1>
 
-          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-8">
+          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-4">
             {treatment.description}
+          </p>
+
+          <p className="text-sm text-muted-foreground/70 mb-8">
+            Last reviewed:{" "}
+            <time dateTime={treatment.updatedAt || treatment.publishedAt}>
+              {new Date(treatment.updatedAt || treatment.publishedAt).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </time>
+            {" · "}By {treatment.author}
           </p>
 
           <Button

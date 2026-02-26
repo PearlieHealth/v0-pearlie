@@ -59,6 +59,9 @@ export async function generateMetadata({
       description: meta.description,
       url: `https://pearlie.org/treatments/${meta.slug}`,
       type: "article",
+      publishedTime: meta.publishedAt,
+      modifiedTime: meta.updatedAt || meta.publishedAt,
+      authors: [meta.author],
       images: meta.heroImage
         ? [
             {
@@ -140,6 +143,16 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
       name: "United Kingdom",
     },
     url: `https://pearlie.org/treatments/${meta.slug}`,
+    ...(meta.heroImage && {
+      image: `https://pearlie.org${meta.heroImage}`,
+    }),
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "GBP",
+      availability: "https://schema.org/InStock",
+      offerCount: clinics.length > 0 ? clinics.length : undefined,
+      description: meta.priceRange,
+    },
   }
 
   // FAQPage schema
@@ -166,7 +179,13 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
     name: meta.title,
     description: meta.description,
     url: `https://pearlie.org/treatments/${meta.slug}`,
+    datePublished: meta.publishedAt,
+    dateModified: meta.updatedAt || meta.publishedAt,
     lastReviewed: meta.updatedAt || meta.publishedAt,
+    about: {
+      "@type": "MedicalCondition",
+      name: meta.treatmentName,
+    },
     ...(meta.medicalSpecialty && {
       specialty: {
         "@type": "MedicalSpecialty",
@@ -301,6 +320,21 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
             </div>
           </div>
         </section>
+        {/* Medical disclaimer */}
+        <div className="border-t border-border/50 bg-[var(--cream)]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="max-w-3xl mx-auto">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                <strong>Medical disclaimer:</strong> This content is for
+                informational purposes only and does not constitute medical or
+                dental advice. Always consult a GDC-registered dental
+                professional for diagnosis and treatment recommendations. Prices
+                shown are estimates and may vary by clinic and individual case.
+                Last reviewed: {meta.updatedAt || meta.publishedAt}.
+              </p>
+            </div>
+          </div>
+        </div>
       </main>
 
       <SiteFooter />
