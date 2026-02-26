@@ -83,6 +83,13 @@ export function MobileNavMenu() {
 
           <div className="space-y-1">
             <Link
+              href="/treatments"
+              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              Treatments
+            </Link>
+            <Link
               href="/blog"
               className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
               onClick={() => setOpen(false)}

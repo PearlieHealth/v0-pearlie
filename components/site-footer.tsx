@@ -13,6 +13,16 @@ const platformLinks = [
   { label: "FAQ", href: "/faq" },
 ]
 
+const treatmentLinks = [
+  { label: "All Treatments", href: "/treatments" },
+  { label: "Invisalign", href: "/treatments/invisalign" },
+  { label: "Dental Implants", href: "/treatments/dental-implants" },
+  { label: "Teeth Whitening", href: "/treatments/teeth-whitening" },
+  { label: "Composite Bonding", href: "/treatments/composite-bonding" },
+  { label: "Veneers", href: "/treatments/veneers" },
+  { label: "Emergency Dentist", href: "/treatments/emergency-dental" },
+]
+
 const resourceLinks = [
   { label: "Blog", href: "/blog" },
   { label: "Treatment Guides", href: "/blog?category=treatment-guides" },
@@ -31,7 +41,7 @@ export function SiteFooter() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="max-w-7xl mx-auto">
           {/* Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:gap-12">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-10">
             {/* Brand */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
@@ -48,6 +58,23 @@ export function SiteFooter() {
               <h4 className="text-sm font-semibold text-white mb-4">Platform</h4>
               <ul className="space-y-2.5">
                 {platformLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-white/60 hover:text-white transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Treatments */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-4">Treatments</h4>
+              <ul className="space-y-2.5">
+                {treatmentLinks.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
