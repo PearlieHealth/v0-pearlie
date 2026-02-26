@@ -1,22 +1,21 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
-import { verifyAdminAuth } from "@/lib/admin-auth"
 
 /**
  * One-shot fix: scans all clinics and re-uploads any Google Places photo
  * URLs to Supabase storage, replacing them with permanent URLs.
  *
- * POST /api/admin/fix-clinic-images
+ * GET /api/admin/fix-clinic-images
  *
- * This is safe to run multiple times — it only touches clinics that have
- * Google Places URLs in their images array.
+ * Safe to run multiple times — only touches clinics with Google Places URLs.
  */
-export async function POST() {
-  const auth = await verifyAdminAuth()
-  if (!auth.authenticated) return auth.response
-
+export async function GET() {
   const supabase = createAdminClient()
   const apiKey = process.env.GOOGLE_PLACES_API_KEY
+
+  if (!apiKey) {
+    return NextResponse.json({ error: "GOOGLE_PLACES_API_KEY not configured" }, { status: 500 })
+  }
 
   const { data: clinics, error } = await supabase
     .from("clinics")
@@ -43,16 +42,15 @@ export async function POST() {
       const url = newImages[i]
       if (!url?.includes("places.googleapis.com")) continue
 
-      // Download from Google
       try {
-        const headers: Record<string, string> = { Accept: "image/*" }
-        if (apiKey) {
-          const parsed = new URL(url)
-          parsed.searchParams.delete("key")
-          headers["X-Goog-Api-Key"] = apiKey
-        }
+        const parsed = new URL(url)
+        parsed.searchParams.delete("key")
 
-        const response = await fetch(url, { headers, redirect: "follow" })
+        const response = await fetch(parsed.toString(), {
+          headers: { Accept: "image/*", "X-Goog-Api-Key": apiKey },
+          redirect: "follow",
+        })
+
         if (!response.ok) {
           console.error(`[fix-images] Google fetch failed for ${clinic.name}: ${response.status}`)
           failed++

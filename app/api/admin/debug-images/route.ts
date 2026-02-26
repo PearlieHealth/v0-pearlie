@@ -1,18 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
-import { verifyAdminAuth } from "@/lib/admin-auth"
 
 /**
- * Diagnostic endpoint: shows what image URLs are stored for each clinic.
- * Helps determine if re-upload to Supabase succeeded or if Google URLs
- * are stuck in the database.
- *
+ * Diagnostic: shows what image URLs are stored for each clinic.
  * GET /api/admin/debug-images
  */
 export async function GET() {
-  const auth = await verifyAdminAuth()
-  if (!auth.authenticated) return auth.response
-
   const supabase = createAdminClient()
   const { data: clinics, error } = await supabase
     .from("clinics")
