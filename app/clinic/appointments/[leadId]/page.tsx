@@ -584,7 +584,7 @@ export default function AppointmentDetailPage() {
                               <p
                                 className={cn(
                                   "whitespace-pre-wrap leading-relaxed",
-                                  msg.sender_type === "bot" ? "text-xs text-neutral-600" : "text-sm"
+                                  msg.sender_type === "bot" ? "text-[15px] text-neutral-600" : "text-[15px]"
                                 )}
                               >
                                 {msg.content}
