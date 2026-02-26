@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
+import { HeroPostcodeCta } from "@/components/treatments/hero-postcode-cta"
 import type { TreatmentMeta } from "@/lib/content/treatments"
 
 interface TreatmentHeroProps {
@@ -58,15 +58,10 @@ export function TreatmentHero({ treatment }: TreatmentHeroProps) {
             {" · "}By {treatment.author}
           </p>
 
-          <Button
-            size="lg"
-            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 text-base"
-            asChild
-          >
-            <Link href={`/intake?treatment=${encodeURIComponent(treatment.intakeTreatment)}`}>
-              Find a {treatment.treatmentName.toLowerCase()} clinic
-            </Link>
-          </Button>
+          <HeroPostcodeCta
+            treatmentName={treatment.treatmentName}
+            intakeTreatment={treatment.intakeTreatment}
+          />
         </div>
       </div>
     </div>
