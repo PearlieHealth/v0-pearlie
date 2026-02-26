@@ -5,7 +5,7 @@ import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 import { escapeHtml } from "@/lib/escape-html"
 import { portalUrl } from "@/lib/clinic-url"
 import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
-import { getBotGreeting, getBotSuggestions, getBotFollowUp } from "@/lib/chat-bot"
+import { getBotGreeting, getBotFollowUp } from "@/lib/chat-bot"
 import { generateIntelligentBotResponse } from "@/lib/chat-bot-ai"
 import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     // Get lead details (extended for AI bot context)
     const { data: lead, error: leadError } = await supabase
       .from("leads")
-      .select("id, user_id, is_verified, first_name, last_name, email, treatment_interest, budget_range, pain_score, has_swelling, has_bleeding, additional_info")
+      .select("id, user_id, is_verified, first_name, last_name, email, treatment_interest, budget_range, pain_score, has_swelling, has_bleeding, additional_info, anxiety_level, preferred_times, timing_preference, cost_approach, decision_values, location_preference")
       .eq("id", leadId)
       .single()
 
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
     // Get clinic details (extended for AI bot context + email notifications)
     const { data: clinic, error: clinicError } = await supabase
       .from("clinics")
-      .select("id, name, email, notification_email, phone, treatments, price_range, description, facilities, opening_hours, accepts_nhs, parking_available, wheelchair_accessible, bot_intelligence")
+      .select("id, name, email, notification_email, phone, treatments, price_range, description, facilities, opening_hours, accepts_nhs, parking_available, wheelchair_accessible, bot_intelligence, treatment_prices, show_treatment_prices, offers_free_consultation, available_days, available_hours, before_after_images")
       .eq("id", clinicId)
       .single()
 
@@ -416,6 +416,12 @@ export async function POST(request: NextRequest) {
           accepts_nhs: clinic.accepts_nhs,
           parking_available: clinic.parking_available,
           wheelchair_accessible: clinic.wheelchair_accessible,
+          treatment_prices: clinic.treatment_prices,
+          show_treatment_prices: clinic.show_treatment_prices,
+          offers_free_consultation: clinic.offers_free_consultation,
+          available_days: clinic.available_days,
+          available_hours: clinic.available_hours,
+          has_before_after_images: Array.isArray(clinic.before_after_images) && clinic.before_after_images.length > 0,
         }
         const leadCtx = {
           first_name: lead.first_name,
@@ -425,6 +431,12 @@ export async function POST(request: NextRequest) {
           has_swelling: lead.has_swelling,
           has_bleeding: lead.has_bleeding,
           additional_info: lead.additional_info,
+          anxiety_level: lead.anxiety_level,
+          preferred_times: lead.preferred_times,
+          timing_preference: lead.timing_preference,
+          cost_approach: lead.cost_approach,
+          decision_values: lead.decision_values,
+          location_preference: lead.location_preference,
         }
         const recentMsgs = [{ sender_type: "patient" as const, content: trimmedContent }]
 
@@ -446,25 +458,6 @@ export async function POST(request: NextRequest) {
           .select("*")
           .single()
         if (greetingMsg) botMessages.push(greetingMsg)
-
-        // Try AI suggestions (if enabled), fall back to template
-        const aiSuggestions = useAI
-          ? await generateIntelligentBotResponse("suggestions", clinicCtx, leadCtx, recentMsgs, escalationCtx)
-          : null
-        const suggestionsContent = aiSuggestions || getBotSuggestions(clinic.name)
-
-        const { data: suggestionsMsg } = await supabase
-          .from("messages")
-          .insert({
-            conversation_id: conversation.id,
-            sender_type: "bot",
-            content: suggestionsContent,
-            sent_via: "chat",
-            message_type: "bot-suggestions",
-          })
-          .select("*")
-          .single()
-        if (suggestionsMsg) botMessages.push(suggestionsMsg)
 
         // Mark conversation as bot-greeted
         await supabase
@@ -512,10 +505,17 @@ export async function POST(request: NextRequest) {
                 treatments: clinic.treatments,
                 price_range: clinic.price_range,
                 description: clinic.description,
+                facilities: clinic.facilities,
                 opening_hours: clinic.opening_hours,
                 accepts_nhs: clinic.accepts_nhs,
                 parking_available: clinic.parking_available,
                 wheelchair_accessible: clinic.wheelchair_accessible,
+                treatment_prices: clinic.treatment_prices,
+                show_treatment_prices: clinic.show_treatment_prices,
+                offers_free_consultation: clinic.offers_free_consultation,
+                available_days: clinic.available_days,
+                available_hours: clinic.available_hours,
+                has_before_after_images: Array.isArray(clinic.before_after_images) && clinic.before_after_images.length > 0,
               },
               {
                 first_name: lead.first_name,
@@ -525,6 +525,12 @@ export async function POST(request: NextRequest) {
                 has_swelling: lead.has_swelling,
                 has_bleeding: lead.has_bleeding,
                 additional_info: lead.additional_info,
+                anxiety_level: lead.anxiety_level,
+                preferred_times: lead.preferred_times,
+                timing_preference: lead.timing_preference,
+                cost_approach: lead.cost_approach,
+                decision_values: lead.decision_values,
+                location_preference: lead.location_preference,
               },
               recentMsgs,
               escalationCtx

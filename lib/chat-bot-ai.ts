@@ -25,6 +25,12 @@ interface ClinicContext {
   accepts_nhs?: boolean
   parking_available?: boolean
   wheelchair_accessible?: boolean
+  treatment_prices?: Array<{ category: string; treatments: Array<{ name: string; price: string; description?: string }> }>
+  show_treatment_prices?: boolean
+  offers_free_consultation?: boolean
+  available_days?: string[]
+  available_hours?: string[]
+  has_before_after_images?: boolean
 }
 
 interface LeadContext {
@@ -36,6 +42,13 @@ interface LeadContext {
   has_swelling?: boolean
   has_bleeding?: boolean
   additional_info?: string
+  // Intake form answers (already collected — bot must NOT re-ask these)
+  anxiety_level?: string
+  preferred_times?: string[]
+  timing_preference?: string
+  cost_approach?: string
+  decision_values?: string[]
+  location_preference?: string
 }
 
 interface ConversationMessage {
@@ -43,7 +56,7 @@ interface ConversationMessage {
   content: string
 }
 
-type BotTrigger = "greeting" | "suggestions" | "no_reply" | "follow_up"
+type BotTrigger = "greeting" | "no_reply" | "follow_up"
 
 interface EscalationContext {
   clinicEmail?: string
@@ -91,11 +104,15 @@ If the patient mentions ANY of: facial swelling, spreading swelling, difficulty 
 ### 6. No pressure sales
 - NEVER use: "Book now before it's gone", "limited slots", "don't miss out"
 
-### 7. Never invent information
-- Only reference data you are given in the CLINIC CONTEXT below.
-- If data is missing: "The clinic can confirm this when they review your message."
-- NEVER invent availability, pricing, policies, or treatment times.
+### 7. Use clinic data, never invent
+- You HAVE access to real clinic data in the CLINIC CONTEXT below — use it to answer questions.
+- If TREATMENT PRICES are provided and a patient asks about cost, quote the listed price but always add: "though the clinic can confirm the exact cost after an assessment."
+- If the patient asks about NHS and you have that data, answer directly.
+- If the patient asks about opening hours and you have them, answer directly.
+- If data is missing for what the patient asks: "The clinic can confirm this when they review your message."
+- NEVER invent availability, pricing, policies, or treatment times beyond what's in the context.
 - NEVER say "You're booked" or "Confirmed". Say: "I can help you request an appointment; the clinic will confirm."
+- When discussing availability, only mention DAYS (e.g., "they're open Monday to Friday") — NEVER mention specific time slots. If the patient asks about specific times, say the clinic will get in touch with available times.
 
 ### 8. Privacy (GDPR)
 - NEVER ask for: full date of birth, home address, NHS number, detailed medical history.
@@ -115,11 +132,16 @@ If the patient mentions ANY of: facial swelling, spreading swelling, difficulty 
 "specialist" (unless clinic explicitly offers), "diamond provider", "gold provider", "elite", "guarantee", "will definitely", "best", "perfect", "you need", "you should do X", "this is an infection", "this is an abscess", "this is gum disease", "refund", "compensation", "negligence", "fault", "you consent", "we have your consent"
 
 ## CONVERSATION RULES
-- Max 2 questions per message.
-- Always offer a next-best-action: "Would you like me to send this to the clinic team?" / "Do you prefer weekday or weekend?"
+- If the patient's message contains a question, ANSWER it using the clinic context before anything else. Do not ignore their question to deliver a generic greeting.
+- NEVER re-ask questions the patient already answered in their intake form. The PATIENT CONTEXT shows what they've already told us (treatment interest, timing, budget, anxiety level, preferred times, etc.). Do not ask about these again.
+- Max 1 question per message. Only ask if it adds genuine value and wasn't already covered in intake.
 - If patient pushes for clinical advice: "I can't advise clinically, but I can pass your question to the clinic so they can answer properly."
 - Keep responses under 3 sentences. Be warm and conversational, not robotic.
-- Use the patient's first name if available.`
+- Use the patient's first name if available.
+
+## BEFORE & AFTER IMAGES NUDGE
+- If the patient's treatment interest is cosmetic (NOT "checkup", "check-up", "emergency", or "general") AND the clinic context says HAS_BEFORE_AFTER_IMAGES: true, you may naturally mention: "You can also check out the clinic's before and after photos on their details page while you wait."
+- Only mention this once, and only if both conditions are true. If the clinic has no before/after images, say nothing about them.`
 
 // ─── Trigger-specific user prompts ───────────────────────────────
 
@@ -138,16 +160,13 @@ function buildUserPrompt(
 
   switch (trigger) {
     case "greeting":
-      return `${clinicInfo}\n${leadInfo}\n\nThe patient just sent their first message. Write a warm greeting that:\n- Welcomes them by first name if available\n- Acknowledges what they're interested in (if treatment_interest is known)\n- Mentions one relevant clinic fact (e.g., opening hours, NHS acceptance, parking) if available\n- Lets them know the clinic team will respond\n- Keeps it to 2-3 sentences\n\nPatient's message:\n${history}`
-
-    case "suggestions":
-      return `${clinicInfo}\n${leadInfo}\n\nGenerate 4 short suggested questions the patient might want to ask the clinic. Make them relevant to their treatment interest if known. Format as a bullet list with "•" prefix. Keep each under 12 words. Do NOT include questions about diagnosis or medical advice.`
+      return `${clinicInfo}\n${leadInfo}\n\nThe patient just sent their first message. Read it carefully.\n\nIf their message contains a QUESTION (e.g., "how much is a checkup?", "do you accept NHS?", "are you open on Saturdays?"):\n- Start with a brief, warm hello (e.g., "Hi Sarah!" or "Hey there!") — keep it short, just a few words\n- Then answer their question using the clinic context above\n- Let them know the clinic team can confirm or follow up\n- Keep it to 2-3 sentences total\n\nIf their message is a general hello or statement (not a question):\n- Write a warm, natural greeting using their first name if available\n- Acknowledge their treatment interest if known\n- Mention one relevant clinic fact if available\n- Let them know the clinic team will respond\n- Keep it to 2-3 sentences, warm and conversational\n\nDo NOT re-ask anything already listed in the PATIENT CONTEXT above. Do NOT mention specific time slots — only days. If relevant, mention before-and-after photos per the system rules.\n\nPatient's message:\n${history}`
 
     case "no_reply":
       return `${clinicInfo}\n${leadInfo}\n\nThe clinic hasn't replied in 30+ minutes. Write a short reassurance message that:\n- Manages expectations (clinics typically respond within a few hours)\n- Mentions they'll be notified by email when the clinic replies\n- If opening hours are available, mention whether the clinic is currently open\n- Keeps it to 2 sentences\n- Does NOT apologise or make excuses for the clinic`
 
     case "follow_up":
-      return `${clinicInfo}\n${leadInfo}\n\nConversation so far:\n${history}\n\nThe patient just sent a follow-up message and the clinic hasn't replied yet. Write a brief, helpful response that:\n- Acknowledges their message\n- If you can answer from the clinic context, do so briefly\n- If it's a clinical question, route to the clinic team\n- If it's about pricing and you don't have it, say the clinic can provide a quote\n- Keeps it to 2-3 sentences`
+      return `${clinicInfo}\n${leadInfo}\n\nConversation so far:\n${history}\n\nThe patient just sent a follow-up message and the clinic hasn't replied yet. Write a brief, helpful response that:\n- If they asked a question, answer it directly from the clinic context (prices, NHS status, opening days, etc.)\n- If you quote a price from the TREATMENT PRICES list, add "though the clinic can confirm the exact cost after an assessment"\n- Only mention days, not specific time slots — for times say the clinic will be in touch\n- If it's a clinical question, route to the clinic team\n- If it's about pricing and you don't have it, say the clinic can provide a quote\n- Keeps it to 2-3 sentences`
   }
 }
 
@@ -157,9 +176,11 @@ function buildClinicSummary(clinic: ClinicContext): string {
   if (clinic.treatments?.length)
     parts.push(`- Treatments offered: ${clinic.treatments.join(", ")}`)
   if (clinic.price_range) parts.push(`- Price range: ${clinic.price_range}`)
-  if (clinic.accepts_nhs) parts.push(`- Accepts NHS patients`)
+  if (clinic.accepts_nhs !== undefined)
+    parts.push(`- Accepts NHS patients: ${clinic.accepts_nhs ? "Yes" : "No"}`)
   if (clinic.parking_available) parts.push(`- Parking available`)
   if (clinic.wheelchair_accessible) parts.push(`- Wheelchair accessible`)
+  if (clinic.offers_free_consultation) parts.push(`- Offers free consultation`)
   if (clinic.opening_hours) {
     try {
       const hours = typeof clinic.opening_hours === "string"
@@ -168,23 +189,47 @@ function buildClinicSummary(clinic: ClinicContext): string {
       const formatted = Object.entries(hours)
         .map(([day, time]) => `${day}: ${time}`)
         .join(", ")
-      if (formatted) parts.push(`- Opening hours: ${formatted}`)
+      if (formatted) parts.push(`- Opening days: ${formatted}`)
     } catch {
       // skip malformed hours
     }
   }
+  if (clinic.available_days?.length)
+    parts.push(`- Available days: ${clinic.available_days.join(", ")}`)
   if (clinic.description)
     parts.push(`- Description: ${clinic.description.substring(0, 200)}`)
+  // Treatment prices (only if clinic has enabled price display)
+  if (clinic.show_treatment_prices && clinic.treatment_prices?.length) {
+    const priceLines: string[] = []
+    for (const cat of clinic.treatment_prices) {
+      for (const t of cat.treatments) {
+        if (t.price) priceLines.push(`  ${t.name}: ${t.price}`)
+      }
+    }
+    if (priceLines.length) {
+      parts.push(`- TREATMENT PRICES (from clinic's published price list):\n${priceLines.join("\n")}`)
+    }
+  }
+  if (clinic.has_before_after_images)
+    parts.push(`- HAS_BEFORE_AFTER_IMAGES: true`)
   return parts.join("\n")
 }
 
 function buildLeadSummary(lead: LeadContext): string {
-  const parts = ["PATIENT CONTEXT:"]
+  const parts = ["PATIENT CONTEXT (already collected via intake form — DO NOT re-ask any of these):"]
   if (lead.first_name) parts.push(`- First name: ${lead.first_name}`)
   if (lead.treatment_interest)
     parts.push(`- Treatment interest: ${lead.treatment_interest}`)
   if (lead.urgency) parts.push(`- Urgency: ${lead.urgency}`)
   if (lead.budget_range) parts.push(`- Budget preference: ${lead.budget_range}`)
+  if (lead.cost_approach) parts.push(`- Cost approach: ${lead.cost_approach}`)
+  if (lead.anxiety_level) parts.push(`- Anxiety level: ${lead.anxiety_level}`)
+  if (lead.preferred_times?.length)
+    parts.push(`- Preferred times: ${lead.preferred_times.join(", ")}`)
+  if (lead.timing_preference) parts.push(`- Timing preference: ${lead.timing_preference}`)
+  if (lead.decision_values?.length)
+    parts.push(`- Clinic priorities: ${lead.decision_values.join(", ")}`)
+  if (lead.location_preference) parts.push(`- Location preference: ${lead.location_preference}`)
   if (lead.pain_score != null) parts.push(`- Pain score: ${lead.pain_score}/10`)
   if (lead.additional_info)
     parts.push(`- Additional info: ${lead.additional_info.substring(0, 150)}`)
@@ -337,7 +382,7 @@ async function callGroq(
             { role: "user", content: userPrompt },
           ],
           temperature: 0.3,
-          max_tokens: 300,
+          max_tokens: 400,
         }),
         signal: controller.signal,
       }

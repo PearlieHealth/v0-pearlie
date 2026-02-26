@@ -509,10 +509,13 @@ export default function BookingConfirmPage() {
                 ) : messages.length === 0 ? (
                   <div className="text-center py-6 space-y-2">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mx-auto">
-                      <MessageCircle className="w-5 h-5 text-primary" />
+                      <Heart className="w-5 h-5 text-primary" />
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Send a message to {clinic?.name || "the clinic"}
+                    <p className="text-sm font-medium text-foreground/70">
+                      You're chatting with Pearlie
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Ask a question or say hello — the clinic will join shortly.
                     </p>
                   </div>
                 ) : (
@@ -537,7 +540,7 @@ export default function BookingConfirmPage() {
                               Pearlie AI
                             </p>
                           )}
-                          <p className={`text-sm whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
+                          <p className={`text-[15px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
                             {msg.content}
                           </p>
                           <p className={`text-[10px] mt-0.5 ${
@@ -578,7 +581,7 @@ export default function BookingConfirmPage() {
                 <Input
                   value={newMessage}
                   onChange={(e) => { setNewMessage(e.target.value); sendTyping() }}
-                  placeholder="Type a message..."
+                  placeholder="Ask a question or say hello..."
                   className="flex-1 text-sm rounded-lg border-border/60 focus-visible:ring-primary/30"
                   disabled={isSending}
                 />

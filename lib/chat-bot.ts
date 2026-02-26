@@ -8,12 +8,8 @@ export function getBotGreeting(patientFirstName: string, clinicName: string): st
   return `Hi${patientFirstName ? ` ${patientFirstName}` : ""}! Thanks for reaching out to ${clinicName}. Your message has been received and the clinic team will get back to you shortly.\n\nWhile you wait, feel free to share any details about your needs — it helps the clinic prepare for your enquiry.`
 }
 
-export function getBotSuggestions(clinicName: string): string {
-  return `Here are some things you might want to ask ${clinicName}:\n\n• What appointment times are available?\n• Do you offer payment plans or finance options?\n• What should I expect at my first visit?\n• How long does the treatment typically take?`
-}
-
 export function getBotClinicReplied(clinicName: string): string {
-  return `${clinicName} has replied! You're now chatting directly with the clinic team.`
+  return `${clinicName} has joined the chat — you're now speaking directly with the clinic.`
 }
 
 export function getBotFollowUp(clinicName: string): string {

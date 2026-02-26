@@ -628,7 +628,7 @@ export default function AppointmentDetailPage() {
                             {showBotLabel && (
                               <span className="text-[10px] font-medium mb-0.5 px-1 text-[#0fbcb0] flex items-center gap-1">
                                 <Heart className="w-2.5 h-2.5 fill-[#0fbcb0] text-[#0fbcb0]" />
-                                Pearlie
+                                Pearlie AI
                               </span>
                             )}
                             {msg.sender_type === "patient" && (!prevMsg || prevMsg.sender_type !== "patient") && (
@@ -652,7 +652,7 @@ export default function AppointmentDetailPage() {
                               <p
                                 className={cn(
                                   "whitespace-pre-wrap leading-relaxed",
-                                  msg.sender_type === "bot" ? "text-xs text-neutral-600" : "text-sm"
+                                  msg.sender_type === "bot" ? "text-[15px] text-neutral-600" : "text-[15px]"
                                 )}
                               >
                                 {msg.content}
