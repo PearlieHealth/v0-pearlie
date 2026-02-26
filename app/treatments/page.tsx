@@ -34,6 +34,22 @@ export const metadata: Metadata = {
 export default function TreatmentsPage() {
   const treatments = getAllTreatments()
 
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Dental Treatments Available on Pearlie",
+    description:
+      "Compare verified dental clinics in London for Invisalign, dental implants, teeth whitening, composite bonding, veneers, and emergency dental care.",
+    numberOfItems: treatments.length,
+    itemListElement: treatments.map((t, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: t.treatmentName,
+      url: `https://pearlie.org/treatments/${t.slug}`,
+      description: t.description,
+    })),
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <BreadcrumbSchema
@@ -41,6 +57,10 @@ export default function TreatmentsPage() {
           { name: "Home", url: "https://pearlie.org" },
           { name: "Treatments", url: "https://pearlie.org/treatments" },
         ]}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
       />
       <MainNav />
 

@@ -123,7 +123,11 @@ export default function RootLayout({
                       name: "United Kingdom",
                     },
                   ],
-                  sameAs: [],
+                  sameAs: [
+                    "https://www.instagram.com/pearlie.uk",
+                    "https://www.linkedin.com/company/pearlie-uk",
+                    "https://x.com/pearlie_uk",
+                  ],
                 },
                 {
                   "@type": "WebSite",

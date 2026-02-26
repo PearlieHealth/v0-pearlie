@@ -153,8 +153,12 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
       url: "https://pearlie.org",
     },
     areaServed: {
-      "@type": "Country",
-      name: "United Kingdom",
+      "@type": "City",
+      name: "London",
+      containedInPlace: {
+        "@type": "Country",
+        name: "United Kingdom",
+      },
     },
     url: `https://pearlie.org/treatments/${meta.slug}`,
     ...(meta.heroImage && {
