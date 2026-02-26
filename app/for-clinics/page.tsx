@@ -278,6 +278,62 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
+      {/* Resources for Clinics */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-4 text-center">
+              Resources for clinic owners
+            </h2>
+            <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
+              Expert guides on patient acquisition, marketing and growing your dental practice
+            </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                {
+                  title: "How to Attract New Patients",
+                  description: "Proven strategies for dental practices to attract higher-quality new patients.",
+                  href: "/blog/patient-acquisition-guide",
+                },
+                {
+                  title: "SEO for Dental Practices",
+                  description: "A complete UK guide to local SEO, Google Business Profile and ranking higher.",
+                  href: "/blog/dental-practice-seo-guide",
+                },
+                {
+                  title: "15 Marketing Strategies",
+                  description: "Practical marketing strategies that UK dental practices are using right now.",
+                  href: "/blog/dental-marketing-strategies",
+                },
+                {
+                  title: "Get More Online Reviews",
+                  description: "Build a repeatable system to collect reviews and manage your reputation.",
+                  href: "/blog/online-reviews-dental",
+                },
+                {
+                  title: "Convert Enquiries to Bookings",
+                  description: "Improve your enquiry-to-booking rate with better systems and follow-ups.",
+                  href: "/blog/converting-enquiries-patients",
+                },
+              ].map((resource) => (
+                <Link
+                  key={resource.href}
+                  href={resource.href}
+                  className="group block rounded-xl border border-border bg-secondary/30 p-6 hover:border-primary/30 hover:shadow-md transition-all duration-300"
+                >
+                  <h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                    {resource.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {resource.description}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FINAL CTA - Updated */}
       <section className="py-24 bg-secondary/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">

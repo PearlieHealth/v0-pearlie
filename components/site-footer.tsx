@@ -15,9 +15,10 @@ const platformLinks = [
 
 const resourceLinks = [
   { label: "Blog", href: "/blog" },
+  { label: "Guides", href: "/guides" },
   { label: "Treatment Guides", href: "/blog?category=treatment-guides" },
   { label: "Cost & Finance", href: "/blog?category=cost-finance" },
-  { label: "NHS & Private Care", href: "/blog?category=nhs-private" },
+  { label: "For Clinics", href: "/blog?category=for-clinics" },
 ]
 
 const legalLinks = [

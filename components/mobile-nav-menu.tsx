@@ -90,6 +90,13 @@ export function MobileNavMenu() {
               Blog
             </Link>
             <Link
+              href="/guides"
+              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              Guides
+            </Link>
+            <Link
               href="/our-mission"
               className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
               onClick={() => setOpen(false)}

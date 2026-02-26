@@ -28,6 +28,7 @@ export function MainNav() {
 
   const navLinks = [
     { href: "/blog", label: "Blog" },
+    { href: "/guides", label: "Guides" },
     { href: "/our-mission", label: "Our Mission" },
     { href: "/about", label: "About" },
     { href: "/faq", label: "FAQ" },
