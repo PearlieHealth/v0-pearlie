@@ -4,13 +4,12 @@ import { useState, useMemo, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { HOURLY_SLOTS } from "@/lib/constants"
 
 interface ClinicDatePickerProps {
   availableDays: string[] // ["mon", "tue", "wed", "thu", "fri"]
-  availableHours: string[] // ["09:00", "10:00", ...]
+  availableHours?: string[] // kept for backward compat, no longer displayed
   acceptsSameDay: boolean
-  onSelectSlot: (date: Date, time: string) => void
+  onSelectDate: (date: Date) => void
   className?: string
   maxVisible?: number // Override max visible dates (useful for narrow containers like sidebars)
 }
@@ -48,9 +47,8 @@ function formatDate(date: Date): { dayShort: string; dateNum: number; monthShort
 
 export function ClinicDatePicker({
   availableDays = ["mon", "tue", "wed", "thu", "fri"],
-  availableHours = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"],
   acceptsSameDay = false,
-  onSelectSlot,
+  onSelectDate,
   className,
   maxVisible,
 }: ClinicDatePickerProps) {
@@ -104,42 +102,6 @@ export function ClinicDatePicker({
     }
   }, [dates, hasAutoSelected])
   
-  // Get available time slots for selected date
-  const availableSlots = useMemo(() => {
-    if (selectedDateIndex === null) return []
-    
-    const selectedDate = dates[selectedDateIndex]
-    if (!selectedDate?.isAvailable) return []
-    
-    const ukNow = getUKTime()
-    const isToday = selectedDate.isToday
-    const currentHour = ukNow.getHours()
-    
-    // Filter slots based on clinic's available hours
-    // For today, also filter out past times
-    return HOURLY_SLOTS.filter((slot) => {
-      if (!availableHours.includes(slot.key)) return false
-      if (isToday && slot.hour <= currentHour) return false
-      return true
-    })
-  }, [selectedDateIndex, dates, availableHours])
-  
-  // Count available slots for each date (for display)
-  const getSlotCount = (dateIndex: number): number => {
-    const date = dates[dateIndex]
-    if (!date?.isAvailable) return 0
-    
-    const ukNow = getUKTime()
-    const isToday = date.isToday
-    const currentHour = ukNow.getHours()
-    
-    return availableHours.filter((hourKey) => {
-      const hour = parseInt(hourKey.split(":")[0], 10)
-      if (isToday && hour <= currentHour) return false
-      return true
-    }).length
-  }
-  
   // Visible dates (responsive: 5 on mobile, 7 on desktop)
   const visibleDates = dates.slice(startIndex, startIndex + visibleCount)
   
@@ -155,18 +117,9 @@ export function ClinicDatePicker({
     const actualIndex = startIndex + index
     if (dates[actualIndex]?.isAvailable) {
       setSelectedDateIndex(actualIndex)
+      onSelectDate(dates[actualIndex].date)
     }
   }
-  
-  const handleTimeSelect = (time: string) => {
-    if (selectedDateIndex === null) return
-    const selectedDate = dates[selectedDateIndex].date
-    onSelectSlot(selectedDate, time)
-  }
-  
-  const selectedDateFormatted = selectedDateIndex !== null 
-    ? formatDate(dates[selectedDateIndex].date)
-    : null
   
   return (
     <div className={cn("space-y-4", className)}>
@@ -187,7 +140,6 @@ export function ClinicDatePicker({
             const { dayShort, dateNum, monthShort } = formatDate(dateInfo.date)
             const actualIndex = startIndex + idx
             const isSelected = selectedDateIndex === actualIndex
-            const slotCount = getSlotCount(actualIndex)
             
             return (
               <button
@@ -222,32 +174,6 @@ export function ClinicDatePicker({
         </Button>
       </div>
       
-      {/* Time Slots */}
-      {selectedDateIndex !== null && selectedDateFormatted && (
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Request a time on {selectedDateFormatted.dayShort}, {selectedDateFormatted.monthShort} {selectedDateFormatted.dateNum}
-          </p>
-          
-          {availableSlots.length > 0 ? (
-            <div className="grid grid-cols-3 gap-2">
-              {availableSlots.map((slot) => (
-                <Button
-                  key={slot.key}
-                  variant="outline"
-                  size="sm"
-                  className="min-w-0 bg-transparent hover:bg-primary hover:text-white hover:border-primary transition-colors text-xs px-2"
-                  onClick={() => handleTimeSelect(slot.key)}
-                >
-                  {slot.label}
-                </Button>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground italic">No available slots for this date</p>
-          )}
-        </div>
-      )}
     </div>
   )
 }

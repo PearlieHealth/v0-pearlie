@@ -79,7 +79,7 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
                     onClick={() => setLightboxIndex(idx)}
                     className={`flex-shrink-0 w-16 h-11 rounded-lg overflow-hidden border-2 transition-colors ${idx === lightboxIndex ? "border-[#1a1a1a]" : "border-transparent opacity-70 hover:opacity-100"}`}
                   >
-                    <img src={getImageSrc(img).url || "/placeholder.svg"} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                    <img src={getImageSrc(img) || "/placeholder.svg"} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

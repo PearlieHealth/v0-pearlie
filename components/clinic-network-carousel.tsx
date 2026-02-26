@@ -138,12 +138,12 @@ function ClinicCard({ clinic }: { clinic: ClinicImageData }) {
   return (
     <div className="w-56 h-40 flex-shrink-0 rounded-2xl overflow-hidden bg-gray-200 relative group">
       <ClinicImage
-        src={clinic.image || "/placeholder.svg"}
+        src={clinic.image}
         alt={`${clinic.name} dental clinic`}
         width={300}
         height={200}
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
+        fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <div className="absolute bottom-0 left-0 right-0 p-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">

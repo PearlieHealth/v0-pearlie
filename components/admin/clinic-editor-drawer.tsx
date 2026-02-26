@@ -329,16 +329,17 @@ setOpeningHoursData(null)
       description: formData.description || `Dental practice located at ${googleClinic.address}`,
     })
 
-    // Re-upload ALL Google Places photos to Supabase so we store permanent URLs
-    // without embedded API keys
+    // Re-upload ALL Google Places photos to Supabase so we store permanent URLs.
+    // Google Places URLs expire — we NEVER store them in the database.
     const photosToUpload: string[] = googleClinic.photoUrls && googleClinic.photoUrls.length > 0
       ? googleClinic.photoUrls
       : googleClinic.photoUrl
         ? [googleClinic.photoUrl]
         : []
 
-    if (photosToUpload.length > 0 && !mainPhotoUrl) {
+    if (photosToUpload.length > 0) {
       const uploadedUrls: string[] = []
+      let failedCount = 0
 
       // Re-upload all photos in parallel (limit to 10 to avoid overload)
       const batch = photosToUpload.slice(0, 10)
@@ -351,21 +352,33 @@ setOpeningHoursData(null)
               body: JSON.stringify({ photoUrl }),
             })
             if (res.ok) {
-              const { url } = await res.json()
-              return url
+              const data = await res.json()
+              // Only accept successfully uploaded Supabase URLs
+              if (!data.failed) {
+                return data.url
+              }
             }
           } catch {
-            // Fallback handled below
+            // Upload failed
           }
-          // Fallback to original URL — image proxy will handle it at render time
-          return photoUrl
+          return null // Don't fall back to Google URL
         })
       )
 
       for (const result of results) {
         if (result.status === "fulfilled" && result.value) {
           uploadedUrls.push(result.value)
+        } else {
+          failedCount++
         }
+      }
+
+      if (failedCount > 0) {
+        toast({
+          title: "Some photos failed to upload",
+          description: `${failedCount} of ${batch.length} photos could not be saved. You can upload them manually.`,
+          variant: "destructive",
+        })
       }
 
       if (uploadedUrls.length > 0) {
@@ -478,10 +491,19 @@ setOpeningHoursData(null)
         formData
 
       // Use the full images array if available (e.g. from Google import),
-      // otherwise fall back to just the main photo URL
-      const allImages = formData.images && formData.images.length > 0
+      // otherwise fall back to just the main photo URL.
+      // Filter out any Google Places URLs — they expire and must not be stored.
+      const rawImages = formData.images && formData.images.length > 0
         ? formData.images
         : mainPhotoUrl ? [mainPhotoUrl] : []
+
+      const allImages = rawImages.filter((url) => {
+        try {
+          return new URL(url).hostname !== "places.googleapis.com"
+        } catch {
+          return true
+        }
+      })
 
       const payload = {
         ...restFormData,

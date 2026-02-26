@@ -118,7 +118,9 @@ export async function POST(request: NextRequest) {
     const timeLabel = timeSlot?.label || bookingTime
 
     if (conversation) {
-      const botContent = `${clinic?.name || "The clinic"} has confirmed your appointment for ${dateLabel} at ${timeLabel}.`
+      const botContent = timeLabel
+        ? `${clinic?.name || "The clinic"} has confirmed your appointment for ${dateLabel} at ${timeLabel}.`
+        : `${clinic?.name || "The clinic"} has confirmed your appointment for ${dateLabel}.`
 
       const { data: botMsg } = await supabase
         .from("messages")

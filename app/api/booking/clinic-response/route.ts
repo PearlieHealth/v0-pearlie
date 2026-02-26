@@ -112,15 +112,19 @@ export async function POST(request: Request) {
           const dateLabel = lead.booking_date
             ? new Date(lead.booking_date + "T00:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
             : "the scheduled date"
-          const timeLabel = HOURLY_SLOTS.find((s: { key: string }) => s.key === lead.booking_time)?.label || lead.booking_time || "the scheduled time"
+          const timeLabel = lead.booking_time
+            ? (HOURLY_SLOTS.find((s: { key: string }) => s.key === lead.booking_time)?.label || lead.booking_time)
+            : null
 
           let botContent = ""
           if (action === "confirm") {
-            botContent = `Your appointment has been confirmed for ${dateLabel} at ${timeLabel}.`
+            botContent = timeLabel
+              ? `Your appointment has been confirmed for ${dateLabel} at ${timeLabel}.`
+              : `Your appointment has been confirmed for ${dateLabel}.`
           } else {
-            botContent = `${clinicName} was unable to accommodate your requested time.`
+            botContent = `${clinicName} was unable to accommodate your requested date.`
             if (declineReason) botContent += ` Reason: ${declineReason}`
-            botContent += "\nYou can request a new appointment time."
+            botContent += "\nYou can request a new appointment date."
           }
 
           await supabase.from("messages").insert({
@@ -180,10 +184,12 @@ export async function POST(request: Request) {
             unsubHeaders["List-Unsubscribe"].replace(/[<>]/g, "")
           )
 
-          const dateLabel = lead.booking_date
+          const emailDateLabel = lead.booking_date
             ? new Date(lead.booking_date + "T00:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
             : "TBD"
-          const timeLabel = HOURLY_SLOTS.find((s: { key: string }) => s.key === lead.booking_time)?.label || lead.booking_time || "TBD"
+          const emailTimeLabel = lead.booking_time
+            ? (HOURLY_SLOTS.find((s: { key: string }) => s.key === lead.booking_time)?.label || lead.booking_time)
+            : null
 
           const emailType = action === "confirm" ? EMAIL_TYPE.APPOINTMENT_CONFIRMED : EMAIL_TYPE.APPOINTMENT_DECLINED
 
@@ -193,8 +199,8 @@ export async function POST(request: Request) {
             data: {
               patientFirstName: escapeHtml(lead.first_name || ""),
               clinicName: escapeHtml(clinicName),
-              bookingDate: dateLabel,
-              bookingTime: timeLabel,
+              bookingDate: emailDateLabel,
+              bookingTime: emailTimeLabel,
               reason: declineReason ? escapeHtml(declineReason) : null,
               viewUrl,
               unsubscribeFooterHtml: unsubFooter,

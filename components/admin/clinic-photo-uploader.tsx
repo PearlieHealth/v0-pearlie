@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { X, Loader2, ImageIcon, LinkIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { getImageSrc } from "@/components/match/clinic-image"
 
 interface PhotoUploaderProps {
   value?: string
@@ -59,6 +60,16 @@ export function PhotoUploader({ value, onChange, label, maxSizeMB = 5, type = "m
   const [urlPreview, setUrlPreview] = useState<string | null>(null)
   const [urlValidationError, setUrlValidationError] = useState<string | null>(null)
   const [isValidatingImage, setIsValidatingImage] = useState(false)
+
+  // Sync previewUrl when the value prop changes externally (e.g. Google import)
+  useEffect(() => {
+    if (value && value !== previewUrl) {
+      setPreviewUrl(value)
+    } else if (!value && previewUrl && !isUploading) {
+      setPreviewUrl(null)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
 
   useEffect(() => {
     if (!urlInput.trim()) {
@@ -200,7 +211,7 @@ export function PhotoUploader({ value, onChange, label, maxSizeMB = 5, type = "m
       {previewUrl ? (
         <div className="relative group">
           <img
-            src={previewUrl || "/placeholder.svg"}
+            src={getImageSrc(previewUrl || "") || "/placeholder.svg"}
             alt="Preview"
             className="w-full h-48 object-cover rounded-lg border border-gray-200"
           />

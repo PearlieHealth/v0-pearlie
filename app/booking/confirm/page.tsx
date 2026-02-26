@@ -9,7 +9,6 @@ import { MapPin, Calendar, Clock, CheckCircle2, Loader2, ArrowLeft, MessageCircl
 import Image from "next/image"
 import { ClinicImage } from "@/components/match/clinic-image"
 import Link from "next/link"
-import { HOURLY_SLOTS } from "@/lib/constants"
 import { trackTikTokEvent } from "@/lib/tiktok-pixel"
 import { createClient } from "@/lib/supabase/client"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
@@ -48,7 +47,7 @@ export default function BookingConfirmPage() {
   const leadId = searchParams.get("leadId")
   const matchId = searchParams.get("matchId")
   const dateStr = searchParams.get("date")
-  const time = searchParams.get("time")
+  const time = searchParams.get("time") // legacy: may be present in old URLs but no longer required
 
   const [clinic, setClinic] = useState<Clinic | null>(null)
   const [lead, setLead] = useState<Lead | null>(null)
@@ -73,7 +72,6 @@ export default function BookingConfirmPage() {
 
   // Parse the date
   const appointmentDate = dateStr ? new Date(dateStr) : null
-  const timeLabel = HOURLY_SLOTS.find((s) => s.key === time)?.label || time
 
   // Auto-login and fetch messages after booking is confirmed
   const performAutoLogin = useCallback(async (tokenHash: string) => {
@@ -130,8 +128,8 @@ export default function BookingConfirmPage() {
 
   useEffect(() => {
     async function fetchData() {
-      if (!clinicId || !leadId || !dateStr || !time) {
-        setError("Missing booking information. Please go back to your matches and select a time slot.")
+      if (!clinicId || !leadId || !dateStr) {
+        setError("Missing booking information. Please go back to your matches and select a date.")
         setLoading(false)
         return
       }
@@ -191,11 +189,11 @@ export default function BookingConfirmPage() {
     }
 
     fetchData()
-  }, [clinicId, leadId, dateStr, time, fetchMessages])
+  }, [clinicId, leadId, dateStr, fetchMessages])
 
   const handleConfirmBooking = async () => {
-    if (!clinic?.id || !leadId || !dateStr || !time) {
-      setError("Missing booking information. Please go back and select a time slot.")
+    if (!clinic?.id || !leadId || !dateStr) {
+      setError("Missing booking information. Please go back and select a date.")
       return
     }
 
@@ -208,7 +206,6 @@ export default function BookingConfirmPage() {
           clinicId: clinic.id,
           leadId: leadId,
           date: dateStr,
-          time: time,
         }),
       })
 
@@ -474,7 +471,6 @@ export default function BookingConfirmPage() {
           {/* Appointment Banner */}
           <AppointmentBanner
             bookingDate={dateStr}
-            bookingTime={time}
             requestedAt={new Date().toISOString()}
             clinicName={clinic?.name}
           />
@@ -486,7 +482,7 @@ export default function BookingConfirmPage() {
               <div className="px-4 py-3 border-b border-border/40 bg-card flex items-center gap-3">
                 {clinic?.images?.[0] ? (
                   <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-muted ring-1 ring-border flex-shrink-0">
-                    <ClinicImage src={clinic.images[0]} alt={clinic.name} fill className="object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-primary" sizes="36px" />
+                    <ClinicImage src={clinic.images[0]} alt={clinic.name} fill className="object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" sizes="36px" />
                   </div>
                 ) : (
                   <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
@@ -668,7 +664,7 @@ export default function BookingConfirmPage() {
                   width={80}
                   height={80}
                   className="w-full h-full object-cover"
-                  fallbackClassName="w-full h-full flex items-center justify-center bg-muted"
+                  fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
                 />
               </div>
             ) : (
@@ -682,7 +678,7 @@ export default function BookingConfirmPage() {
                 {clinic?.address}, {clinic?.city} {clinic?.postcode}
               </p>
               <p className="text-primary font-medium mt-1">
-                {formattedDate} - {timeLabel}
+                {formattedDate}
               </p>
             </div>
           </div>
