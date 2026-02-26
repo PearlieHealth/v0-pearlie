@@ -25,37 +25,40 @@ interface ClinicImageFillProps extends ClinicImageBaseProps {
 type ClinicImageProps = ClinicImageSizedProps | ClinicImageFillProps
 
 /**
- * Returns a proxied URL for Google Places photo URLs, or the original URL
- * for other image sources (Supabase, Unsplash, etc.)
+ * Routes external image URLs through our server-side proxy at /api/image-proxy.
+ * This ensures images load reliably regardless of CORS, auth requirements, or
+ * bucket privacy settings. The proxy handles Google API key injection for
+ * Places photos and caches responses.
  */
-export function getImageSrc(src: string): { url: string } {
-  if (!src || !src.trim()) return { url: "" }
+export function getImageSrc(src: string): string {
+  if (!src || !src.trim()) return ""
 
   try {
     const parsed = new URL(src)
-    if (parsed.hostname === "places.googleapis.com") {
-      // Route through our server-side proxy to avoid API key / CORS issues
-      return {
-        url: `/api/image-proxy?url=${encodeURIComponent(src)}`,
-      }
+    if (
+      parsed.hostname === "places.googleapis.com" ||
+      parsed.hostname.endsWith(".supabase.co") ||
+      parsed.hostname === "lh3.googleusercontent.com" ||
+      parsed.hostname === "images.unsplash.com" ||
+      parsed.hostname === "i.imgur.com"
+    ) {
+      return `/api/image-proxy?url=${encodeURIComponent(src)}`
     }
   } catch {
-    // Not a valid URL, pass through
+    // Not a valid absolute URL — pass through as-is (e.g. /placeholder.svg)
   }
-  return { url: src }
+  return src
 }
 
 export function ClinicImage(props: ClinicImageProps) {
   const { src, alt, className, fallbackClassName, sizes } = props
   const [hasError, setHasError] = useState(false)
 
-  // Reset error state when src changes
   useEffect(() => {
     setHasError(false)
   }, [src])
 
   if (hasError || !src || !src.trim()) {
-    // Show clinic initial letter as a visible avatar fallback
     const letter = alt?.charAt(0)?.toUpperCase() || "?"
     return (
       <div className={fallbackClassName || "w-full h-full flex items-center justify-center bg-[#004443]"}>
@@ -64,12 +67,10 @@ export function ClinicImage(props: ClinicImageProps) {
     )
   }
 
-  const { url } = getImageSrc(src)
+  const url = getImageSrc(src)
 
-  // Use a plain <img> tag for reliable error handling.
-  // Next.js <Image> can fail silently through its optimizer layer.
+  /* eslint-disable @next/next/no-img-element */
   return (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={url}
       alt={alt}
