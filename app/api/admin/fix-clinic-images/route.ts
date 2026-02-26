@@ -40,10 +40,21 @@ export async function GET() {
       if (!url?.includes("places.googleapis.com")) continue
 
       try {
-        // Try 1: fetch with the URL as-is (it has the API key embedded)
+        // Extract place_id from URL path: /v1/places/{placeId}/photos/...
+        const placeIdFromUrl = extractPlaceId(url)
+        const placeId = clinic.google_place_id || placeIdFromUrl
+        const keyToUse = envApiKey || extractKeyFromUrl(url)
+
+        if (!keyToUse) {
+          errors.push("No API key available")
+          failed++
+          continue
+        }
+
+        // Try 1: fetch the URL directly (uses embedded key)
         let response = await fetch(url, { redirect: "follow" })
 
-        // Try 2: if that fails, strip key and use env var via header
+        // Try 2: use env var key via header
         if (!response.ok && envApiKey) {
           const parsed = new URL(url)
           parsed.searchParams.delete("key")
@@ -53,16 +64,18 @@ export async function GET() {
           })
         }
 
-        // Try 3: if still failing and we have a place_id, fetch fresh photos
-        if (!response.ok && clinic.google_place_id && envApiKey) {
-          const freshUrl = await getFreshPhotoUrl(clinic.google_place_id, envApiKey)
+        // Try 3: expired photo reference — fetch fresh photos from Google
+        if (!response.ok && placeId) {
+          const freshUrl = await getFreshPhotoUrl(placeId, keyToUse)
           if (freshUrl) {
             response = await fetch(freshUrl, { redirect: "follow" })
+          } else {
+            errors.push(`No fresh photo found for place ${placeId}`)
           }
         }
 
         if (!response.ok) {
-          errors.push(`HTTP ${response.status}`)
+          errors.push(`All attempts failed (last: HTTP ${response.status})`)
           failed++
           continue
         }
@@ -119,6 +132,22 @@ export async function GET() {
       : `Processed ${results.length} clinics`,
     results,
   })
+}
+
+/** Extract place_id from a Google Places photo URL path */
+function extractPlaceId(url: string): string | null {
+  // URL format: https://places.googleapis.com/v1/places/{placeId}/photos/{photoRef}/media?...
+  const match = url.match(/\/places\/([^/]+)\/photos\//)
+  return match?.[1] || null
+}
+
+/** Extract the API key from a URL's query params */
+function extractKeyFromUrl(url: string): string | null {
+  try {
+    return new URL(url).searchParams.get("key")
+  } catch {
+    return null
+  }
 }
 
 /** Fetch a fresh photo URL from Google Places for a given place_id */
