@@ -22,10 +22,13 @@ interface ClinicData {
 
 interface TreatmentClinicCardProps {
   clinic: ClinicData
+  intakeTreatment?: string
 }
 
-export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
-  const clinicUrl = clinic.slug ? `/clinic/${clinic.slug}` : `/clinic/${clinic.id}`
+export function TreatmentClinicCard({ clinic, intakeTreatment }: TreatmentClinicCardProps) {
+  const intakeUrl = intakeTreatment
+    ? `/intake?treatment=${encodeURIComponent(intakeTreatment)}`
+    : "/intake"
   const heroImage = clinic.images?.[0]
 
   return (
@@ -90,12 +93,11 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
         )}
 
         <Button
-          variant="outline"
           size="sm"
-          className="w-full rounded-full border-[#0fbcb0] text-[#0fbcb0] hover:bg-[#0fbcb0] hover:text-white transition-colors"
+          className="w-full rounded-full bg-[#0fbcb0] text-white hover:bg-[#0da399] transition-colors"
           asChild
         >
-          <Link href={clinicUrl}>View profile</Link>
+          <Link href={intakeUrl}>Get matched</Link>
         </Button>
       </div>
     </div>

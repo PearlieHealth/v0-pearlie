@@ -18,6 +18,8 @@ const treatmentLinks = [
   { label: "Invisalign", href: "/treatments/invisalign" },
   { label: "Dental Implants", href: "/treatments/dental-implants" },
   { label: "Teeth Whitening", href: "/treatments/teeth-whitening" },
+  { label: "Composite Bonding", href: "/treatments/composite-bonding" },
+  { label: "Veneers", href: "/treatments/veneers" },
   { label: "Emergency Dentist", href: "/treatments/emergency-dental" },
 ]
 

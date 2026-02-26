@@ -22,9 +22,11 @@ export function TreatmentClinicGrid({ clinics, treatmentName, intakeTreatment }:
 
           {clinics.length > 0 ? (
             <>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 sm:overflow-visible sm:pb-0">
                 {clinics.map((clinic) => (
-                  <TreatmentClinicCard key={clinic.id} clinic={clinic} />
+                  <div key={clinic.id} className="min-w-[280px] snap-start sm:min-w-0">
+                    <TreatmentClinicCard clinic={clinic} intakeTreatment={intakeTreatment} />
+                  </div>
                 ))}
               </div>
 
@@ -42,12 +44,8 @@ export function TreatmentClinicGrid({ clinics, treatmentName, intakeTreatment }:
             </>
           ) : (
             <div className="rounded-2xl border border-border/50 bg-[var(--cream)] p-8 sm:p-12 text-center">
-              <h3 className="text-xl font-heading font-bold text-[#004443] mb-2">
-                We&apos;re adding clinics for {treatmentName}
-              </h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Our network is growing. Get matched now and we&apos;ll connect you
-                with verified {treatmentName.toLowerCase()} providers in your area.
+                Enter your postcode to see the closest available {treatmentName.toLowerCase()} clinics near you.
               </p>
               <Button
                 size="lg"
@@ -55,7 +53,7 @@ export function TreatmentClinicGrid({ clinics, treatmentName, intakeTreatment }:
                 asChild
               >
                 <Link href={`/intake?treatment=${encodeURIComponent(intakeTreatment)}`}>
-                  Find my clinic
+                  Get matched now
                 </Link>
               </Button>
             </div>
