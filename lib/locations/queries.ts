@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { calculateHaversineDistance } from "@/lib/utils/geo"
-import type { LondonArea } from "./london"
+import type { LondonArea, LondonRegion } from "./london"
 
 /** Fields matching the public clinic API — safe for patient-facing views */
 const LOCATION_CLINIC_FIELDS = `
@@ -95,6 +95,51 @@ export async function getClinicsNearArea(area: LondonArea): Promise<LocationClin
       // Then rating desc
       if (b.rating !== a.rating) return b.rating - a.rating
       // Then distance asc
+      return a.distance_miles - b.distance_miles
+    })
+
+  return clinics
+}
+
+export async function getClinicsNearRegion(region: LondonRegion): Promise<LocationClinic[]> {
+  const supabase = await createClient()
+  const box = boundingBox(region.center, region.radiusMiles)
+
+  const { data, error } = await supabase
+    .from("clinics")
+    .select(LOCATION_CLINIC_FIELDS)
+    .eq("is_archived", false)
+    .eq("is_live", true)
+    .not("latitude", "is", null)
+    .not("longitude", "is", null)
+    .gte("latitude", box.minLat)
+    .lte("latitude", box.maxLat)
+    .gte("longitude", box.minLng)
+    .lte("longitude", box.maxLng)
+
+  if (error) {
+    console.error(`Error fetching clinics for region ${region.slug}:`, error)
+    return []
+  }
+
+  if (!data || data.length === 0) return []
+
+  const rows = data as unknown as Array<Omit<LocationClinic, "distance_miles"> & { latitude: number; longitude: number }>
+
+  const clinics: LocationClinic[] = rows
+    .map((clinic) => ({
+      ...clinic,
+      distance_miles: calculateHaversineDistance(
+        region.center.lat,
+        region.center.lng,
+        clinic.latitude,
+        clinic.longitude,
+      ),
+    }))
+    .filter((c) => c.distance_miles <= region.radiusMiles)
+    .sort((a, b) => {
+      if (a.featured !== b.featured) return a.featured ? -1 : 1
+      if (b.rating !== a.rating) return b.rating - a.rating
       return a.distance_miles - b.distance_miles
     })
 

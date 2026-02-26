@@ -127,6 +127,18 @@ export default function IntakePage() {
     } catch {}
   }, [])
 
+  // Pre-fill postcode from URL query param (e.g. from /find landing pages)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const postcodeParam = params.get("postcode")
+      if (postcodeParam) {
+        const sanitized = postcodeParam.replace(/\s/g, "").toUpperCase()
+        setFormData(prev => ({ ...prev, postcode: sanitized, postcodeValid: true }))
+      }
+    } catch {}
+  }, [])
+
   // Persist form data to localStorage on change (debounced)
   useEffect(() => {
     const timeout = setTimeout(() => {

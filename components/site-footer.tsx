@@ -18,11 +18,12 @@ const legalLinks = [
 ]
 
 const findDentistLinks = [
-  { label: "Harley Street", href: "/find/harley-street" },
-  { label: "Kensington & Chelsea", href: "/find/kensington-chelsea" },
-  { label: "Mayfair", href: "/find/mayfair" },
-  { label: "Soho", href: "/find/soho" },
-  { label: "Canary Wharf", href: "/find/canary-wharf" },
+  { label: "Dentist Near Me", href: "/find/dentist-near-me" },
+  { label: "Central London", href: "/find/central-london" },
+  { label: "South London", href: "/find/south-london" },
+  { label: "North London", href: "/find/north-london" },
+  { label: "West London", href: "/find/west-london" },
+  { label: "East London", href: "/find/east-london" },
   { label: "All London areas", href: "/find" },
 ]
 

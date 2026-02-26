@@ -324,3 +324,185 @@ export function getAreaBySlug(slug: string): LondonArea | undefined {
 export function getAllAreaSlugs(): string[] {
   return LONDON_AREAS.map((a) => a.slug)
 }
+
+// ─── London Regions ────────────────────────────────────────────────
+
+export type LondonRegionSlug =
+  | "central-london"
+  | "south-london"
+  | "north-london"
+  | "west-london"
+  | "east-london"
+
+export interface LondonRegion {
+  slug: LondonRegionSlug
+  name: string
+  center: { lat: number; lng: number }
+  radiusMiles: number
+  mapZoom: number
+  metaTitle: string
+  metaDescription: string
+  intro: string
+  description: string
+  /** Area slugs that belong to this region */
+  areaSlugs: string[]
+  faq: AreaFaqItem[]
+}
+
+export const LONDON_REGIONS: LondonRegion[] = [
+  {
+    slug: "central-london",
+    name: "Central London",
+    center: { lat: 51.5145, lng: -0.1400 },
+    radiusMiles: 3.0,
+    mapZoom: 13,
+    metaTitle: "Find a Dentist in Central London",
+    metaDescription:
+      "Compare trusted, GDC-registered dental clinics across Central London. See ratings, treatments, and pricing — book free through Pearlie.",
+    intro:
+      "Central London is home to some of the UK's most prestigious dental practices, from Harley Street specialists to modern clinics in Soho and Mayfair.",
+    description:
+      "Whether you work in the City or live nearby, Central London offers an unmatched concentration of dental expertise. From routine check-ups to complex cosmetic procedures, Pearlie helps you compare verified clinics and find the right fit — without the endless searching.",
+    areaSlugs: ["harley-street", "soho", "mayfair"],
+    faq: [
+      {
+        question: "How much does a dentist in Central London cost?",
+        answer:
+          "Private dental check-ups in Central London typically range from £80–£250 depending on the clinic and area. Specialist treatments like Invisalign start from around £2,500. Pearlie shows indicative pricing for each clinic so you can compare.",
+      },
+      {
+        question: "Are Central London dentists open on weekends?",
+        answer:
+          "Many Central London practices offer Saturday appointments, and some open on Sundays. Check availability on Pearlie and book directly with the clinic.",
+      },
+      {
+        question: "How do I choose between Central London dental clinics?",
+        answer:
+          "Look for GDC registration, verified reviews, and experience with your specific treatment. Pearlie lets you compare all of this side-by-side, plus message clinics directly before booking.",
+      },
+    ],
+  },
+  {
+    slug: "south-london",
+    name: "South London",
+    center: { lat: 51.4500, lng: -0.1000 },
+    radiusMiles: 5.0,
+    mapZoom: 12,
+    metaTitle: "Find a Dentist in South London",
+    metaDescription:
+      "Compare verified dental clinics across South London. GDC-registered, transparent pricing — book free through Pearlie.",
+    intro:
+      "South London has a growing network of quality private dental practices, from Brixton and Clapham to Dulwich and Greenwich — offering modern care at a range of price points.",
+    description:
+      "Finding a good dentist in South London doesn't have to be difficult. Whether you're in Brixton, Peckham, Camberwell, or further south, Pearlie helps you compare GDC-registered clinics based on ratings, treatments, and pricing — all in one place.",
+    areaSlugs: ["brixton"],
+    faq: [
+      {
+        question: "Are there affordable private dentists in South London?",
+        answer:
+          "Yes — South London offers a wide range of private dental practices at different price points. Pearlie shows indicative pricing so you can find care that fits your budget.",
+      },
+      {
+        question: "What areas does the South London search cover?",
+        answer:
+          "Our South London search covers Brixton, Clapham, Peckham, Camberwell, Dulwich, Greenwich, Lewisham, and the wider South London area.",
+      },
+    ],
+  },
+  {
+    slug: "north-london",
+    name: "North London",
+    center: { lat: 51.5600, lng: -0.1200 },
+    radiusMiles: 5.0,
+    mapZoom: 12,
+    metaTitle: "Find a Dentist in North London",
+    metaDescription:
+      "Compare GDC-registered dentists across North London. See ratings, treatments, and pricing — book free through Pearlie.",
+    intro:
+      "North London offers a wide range of dental practices, from boutique clinics in Camden and Islington to larger centres serving Finsbury Park, Highgate, and beyond.",
+    description:
+      "Whether you're in Islington, Hampstead, Finchley, or Enfield, North London has excellent dental options. Pearlie helps you compare verified clinics based on your needs — not just what's closest.",
+    areaSlugs: ["camden"],
+    faq: [
+      {
+        question: "Are there good dentists near Islington or Highbury?",
+        answer:
+          "Yes — our North London search covers Islington, Highbury, Camden, Finsbury Park, and surrounding areas. All clinics on Pearlie are GDC-registered and independently verified.",
+      },
+      {
+        question: "How much does a dental check-up cost in North London?",
+        answer:
+          "A private check-up in North London typically costs £60–£150. Pearlie shows indicative pricing for each clinic so you can compare before committing.",
+      },
+    ],
+  },
+  {
+    slug: "west-london",
+    name: "West London",
+    center: { lat: 51.5000, lng: -0.2200 },
+    radiusMiles: 5.0,
+    mapZoom: 12,
+    metaTitle: "Find a Dentist in West London",
+    metaDescription:
+      "Compare trusted dentists across West London. Kensington, Notting Hill, Hammersmith, and more — book free on Pearlie.",
+    intro:
+      "West London is served by well-established dental practices across Kensington, Notting Hill, Hammersmith, Chiswick, and Ealing — offering everything from routine care to specialist treatments.",
+    description:
+      "From the premium practices of Kensington to family-friendly clinics in Ealing, West London has dental options for every need and budget. Pearlie helps you compare verified, GDC-registered clinics and book with confidence.",
+    areaSlugs: ["kensington-chelsea", "notting-hill"],
+    faq: [
+      {
+        question: "What areas does the West London dental search cover?",
+        answer:
+          "Our West London search includes Kensington, Chelsea, Notting Hill, Hammersmith, Shepherd's Bush, Chiswick, and the wider West London area.",
+      },
+      {
+        question: "Can I find a family dentist in West London?",
+        answer:
+          "Yes — many West London practices welcome patients of all ages. Use Pearlie to find clinics that offer family-friendly care near you.",
+      },
+    ],
+  },
+  {
+    slug: "east-london",
+    name: "East London",
+    center: { lat: 51.5300, lng: -0.0300 },
+    radiusMiles: 5.0,
+    mapZoom: 12,
+    metaTitle: "Find a Dentist in East London",
+    metaDescription:
+      "Compare verified dentists across East London. Shoreditch, Stratford, Canary Wharf — book free through Pearlie.",
+    intro:
+      "East London has a vibrant and growing dental scene, from modern practices in Shoreditch and Canary Wharf to community-focused clinics in Stratford and beyond.",
+    description:
+      "Whether you live or work in East London, there are quality dental options nearby. Pearlie helps you compare GDC-registered clinics across Shoreditch, Canary Wharf, Stratford, and more — see ratings, treatments, and indicative pricing all in one place.",
+    areaSlugs: ["shoreditch", "canary-wharf", "stratford"],
+    faq: [
+      {
+        question: "Are there affordable dentists in East London?",
+        answer:
+          "Yes — East London offers competitive private dental pricing compared to central London. Pearlie shows indicative costs for each clinic so you can compare options easily.",
+      },
+      {
+        question: "What areas does the East London search cover?",
+        answer:
+          "Our East London search covers Shoreditch, Hackney, Bethnal Green, Canary Wharf, Stratford, Leyton, and the wider East London area.",
+      },
+    ],
+  },
+]
+
+export function getRegionBySlug(slug: string): LondonRegion | undefined {
+  return LONDON_REGIONS.find((r) => r.slug === slug)
+}
+
+export function getAllRegionSlugs(): LondonRegionSlug[] {
+  return LONDON_REGIONS.map((r) => r.slug)
+}
+
+/** Get all areas that belong to a region */
+export function getAreasForRegion(region: LondonRegion): LondonArea[] {
+  return region.areaSlugs
+    .map((slug) => getAreaBySlug(slug))
+    .filter((a): a is LondonArea => a !== undefined)
+}
