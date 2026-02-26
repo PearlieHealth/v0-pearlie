@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     // Get lead details (extended for AI bot context)
     const { data: lead, error: leadError } = await supabase
       .from("leads")
-      .select("id, user_id, is_verified, first_name, last_name, email, treatment_interest, budget_range, pain_score, has_swelling, has_bleeding, additional_info")
+      .select("id, user_id, is_verified, first_name, last_name, email, treatment_interest, budget_range, pain_score, has_swelling, has_bleeding, additional_info, anxiety_level, preferred_times, timing_preference, cost_approach, decision_values, location_preference")
       .eq("id", leadId)
       .single()
 
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
     // Get clinic details (extended for AI bot context + email notifications)
     const { data: clinic, error: clinicError } = await supabase
       .from("clinics")
-      .select("id, name, email, notification_email, phone, treatments, price_range, description, facilities, opening_hours, accepts_nhs, parking_available, wheelchair_accessible, bot_intelligence")
+      .select("id, name, email, notification_email, phone, treatments, price_range, description, facilities, opening_hours, accepts_nhs, parking_available, wheelchair_accessible, bot_intelligence, treatment_prices, show_treatment_prices, offers_free_consultation, available_days, available_hours, before_after_images")
       .eq("id", clinicId)
       .single()
 
@@ -416,6 +416,12 @@ export async function POST(request: NextRequest) {
           accepts_nhs: clinic.accepts_nhs,
           parking_available: clinic.parking_available,
           wheelchair_accessible: clinic.wheelchair_accessible,
+          treatment_prices: clinic.treatment_prices,
+          show_treatment_prices: clinic.show_treatment_prices,
+          offers_free_consultation: clinic.offers_free_consultation,
+          available_days: clinic.available_days,
+          available_hours: clinic.available_hours,
+          has_before_after_images: Array.isArray(clinic.before_after_images) && clinic.before_after_images.length > 0,
         }
         const leadCtx = {
           first_name: lead.first_name,
@@ -425,6 +431,12 @@ export async function POST(request: NextRequest) {
           has_swelling: lead.has_swelling,
           has_bleeding: lead.has_bleeding,
           additional_info: lead.additional_info,
+          anxiety_level: lead.anxiety_level,
+          preferred_times: lead.preferred_times,
+          timing_preference: lead.timing_preference,
+          cost_approach: lead.cost_approach,
+          decision_values: lead.decision_values,
+          location_preference: lead.location_preference,
         }
         const recentMsgs = [{ sender_type: "patient" as const, content: trimmedContent }]
 
@@ -493,10 +505,17 @@ export async function POST(request: NextRequest) {
                 treatments: clinic.treatments,
                 price_range: clinic.price_range,
                 description: clinic.description,
+                facilities: clinic.facilities,
                 opening_hours: clinic.opening_hours,
                 accepts_nhs: clinic.accepts_nhs,
                 parking_available: clinic.parking_available,
                 wheelchair_accessible: clinic.wheelchair_accessible,
+                treatment_prices: clinic.treatment_prices,
+                show_treatment_prices: clinic.show_treatment_prices,
+                offers_free_consultation: clinic.offers_free_consultation,
+                available_days: clinic.available_days,
+                available_hours: clinic.available_hours,
+                has_before_after_images: Array.isArray(clinic.before_after_images) && clinic.before_after_images.length > 0,
               },
               {
                 first_name: lead.first_name,
@@ -506,6 +525,12 @@ export async function POST(request: NextRequest) {
                 has_swelling: lead.has_swelling,
                 has_bleeding: lead.has_bleeding,
                 additional_info: lead.additional_info,
+                anxiety_level: lead.anxiety_level,
+                preferred_times: lead.preferred_times,
+                timing_preference: lead.timing_preference,
+                cost_approach: lead.cost_approach,
+                decision_values: lead.decision_values,
+                location_preference: lead.location_preference,
               },
               recentMsgs,
               escalationCtx
