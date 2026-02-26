@@ -11,22 +11,18 @@ import { NextResponse } from "next/server"
  */
 export async function GET() {
   const supabase = createAdminClient()
-  const apiKey = process.env.GOOGLE_PLACES_API_KEY
-
-  if (!apiKey) {
-    return NextResponse.json({ error: "GOOGLE_PLACES_API_KEY not configured" }, { status: 500 })
-  }
+  const envApiKey = process.env.GOOGLE_PLACES_API_KEY
 
   const { data: clinics, error } = await supabase
     .from("clinics")
-    .select("id, name, images")
+    .select("id, name, images, google_place_id")
     .eq("is_archived", false)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  const results: { name: string; before: number; fixed: number; failed: number }[] = []
+  const results: { name: string; before: number; fixed: number; failed: number; errors?: string[] }[] = []
 
   for (const clinic of clinics || []) {
     const images: string[] = clinic.images || []
@@ -37,28 +33,43 @@ export async function GET() {
     const newImages = [...images]
     let fixed = 0
     let failed = 0
+    const errors: string[] = []
 
     for (let i = 0; i < newImages.length; i++) {
       const url = newImages[i]
       if (!url?.includes("places.googleapis.com")) continue
 
       try {
-        const parsed = new URL(url)
-        parsed.searchParams.delete("key")
+        // Try 1: fetch with the URL as-is (it has the API key embedded)
+        let response = await fetch(url, { redirect: "follow" })
 
-        const response = await fetch(parsed.toString(), {
-          headers: { Accept: "image/*", "X-Goog-Api-Key": apiKey },
-          redirect: "follow",
-        })
+        // Try 2: if that fails, strip key and use env var via header
+        if (!response.ok && envApiKey) {
+          const parsed = new URL(url)
+          parsed.searchParams.delete("key")
+          response = await fetch(parsed.toString(), {
+            headers: { Accept: "image/*", "X-Goog-Api-Key": envApiKey },
+            redirect: "follow",
+          })
+        }
+
+        // Try 3: if still failing and we have a place_id, fetch fresh photos
+        if (!response.ok && clinic.google_place_id && envApiKey) {
+          const freshUrl = await getFreshPhotoUrl(clinic.google_place_id, envApiKey)
+          if (freshUrl) {
+            response = await fetch(freshUrl, { redirect: "follow" })
+          }
+        }
 
         if (!response.ok) {
-          console.error(`[fix-images] Google fetch failed for ${clinic.name}: ${response.status}`)
+          errors.push(`HTTP ${response.status}`)
           failed++
           continue
         }
 
         const contentType = response.headers.get("content-type") || "image/jpeg"
         if (!contentType.startsWith("image/")) {
+          errors.push(`Not an image: ${contentType}`)
           failed++
           continue
         }
@@ -74,7 +85,7 @@ export async function GET() {
           .upload(path, imageBuffer, { contentType, cacheControl: "3600", upsert: false })
 
         if (uploadError) {
-          console.error(`[fix-images] Upload failed for ${clinic.name}:`, uploadError)
+          errors.push(`Upload: ${uploadError.message}`)
           failed++
           continue
         }
@@ -83,7 +94,7 @@ export async function GET() {
         newImages[i] = urlData.publicUrl
         fixed++
       } catch (err) {
-        console.error(`[fix-images] Error for ${clinic.name}:`, err)
+        errors.push(`${err}`)
         failed++
       }
     }
@@ -95,11 +106,11 @@ export async function GET() {
         .eq("id", clinic.id)
 
       if (updateError) {
-        console.error(`[fix-images] DB update failed for ${clinic.name}:`, updateError)
+        errors.push(`DB update: ${updateError.message}`)
       }
     }
 
-    results.push({ name: clinic.name, before: googleImages.length, fixed, failed })
+    results.push({ name: clinic.name, before: googleImages.length, fixed, failed, ...(errors.length > 0 ? { errors } : {}) })
   }
 
   return NextResponse.json({
@@ -108,4 +119,24 @@ export async function GET() {
       : `Processed ${results.length} clinics`,
     results,
   })
+}
+
+/** Fetch a fresh photo URL from Google Places for a given place_id */
+async function getFreshPhotoUrl(placeId: string, apiKey: string): Promise<string | null> {
+  try {
+    const url = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`
+    const res = await fetch(url, {
+      headers: {
+        "X-Goog-Api-Key": apiKey,
+        "X-Goog-FieldMask": "photos",
+      },
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    const photoName = data?.photos?.[0]?.name
+    if (!photoName) return null
+    return `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=800&maxWidthPx=1200&key=${apiKey}`
+  } catch {
+    return null
+  }
 }
