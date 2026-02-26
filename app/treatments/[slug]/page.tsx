@@ -126,7 +126,10 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
 
   const { meta, content } = treatment
   const headings = extractHeadings(content)
-  const components = useMDXComponents()
+  const components = useMDXComponents({
+    treatmentName: meta.treatmentName,
+    intakeTreatment: meta.intakeTreatment,
+  })
   const relatedTreatments = getRelatedTreatments(slug, 3)
 
   // Fetch clinics offering this treatment

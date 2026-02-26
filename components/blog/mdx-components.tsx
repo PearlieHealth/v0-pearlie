@@ -35,21 +35,23 @@ function textToId(text: string): string {
     .replace(/(^-|-$)/g, "")
 }
 
-function InlineCallout({ children }: { children: ReactNode }) {
-  return (
-    <div className="my-8 rounded-2xl bg-[var(--cream)] border border-border/50 p-6 md:p-8">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="flex-1 text-base leading-relaxed">{children}</div>
-        <Button
-          size="lg"
-          className="shrink-0 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full"
-          asChild
-        >
-          <Link href="/intake">Find my clinic</Link>
-        </Button>
+function createInlineCallout(ctaLabel: string, ctaHref: string) {
+  return function InlineCallout({ children }: { children: ReactNode }) {
+    return (
+      <div className="my-8 rounded-2xl bg-[var(--cream)] border border-border/50 p-6 md:p-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex-1 text-base leading-relaxed">{children}</div>
+          <Button
+            size="lg"
+            className="shrink-0 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full"
+            asChild
+          >
+            <Link href={ctaHref}>{ctaLabel}</Link>
+          </Button>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 }
 
 function CostTable({
@@ -109,7 +111,19 @@ function CostTable({
   )
 }
 
-export function useMDXComponents(): MDXComponents {
+interface MDXComponentsConfig {
+  treatmentName?: string
+  intakeTreatment?: string
+}
+
+export function useMDXComponents(config?: MDXComponentsConfig): MDXComponents {
+  const ctaLabel = config?.treatmentName
+    ? `Find my ${config.treatmentName.toLowerCase()} clinic`
+    : "Find my clinic"
+  const ctaHref = config?.intakeTreatment
+    ? `/intake?treatment=${encodeURIComponent(config.intakeTreatment)}`
+    : "/intake"
+
   return {
     h2: ({ children, ...props }) => {
       const text = extractTextFromChildren(children)
@@ -261,7 +275,7 @@ export function useMDXComponents(): MDXComponents {
       </pre>
     ),
     // Custom components available in MDX
-    InlineCallout,
+    InlineCallout: createInlineCallout(ctaLabel, ctaHref),
     CostTable,
   }
 }

@@ -124,9 +124,9 @@ export default function RootLayout({
                     },
                   ],
                   sameAs: [
-                    "https://www.instagram.com/pearlie.uk",
-                    "https://www.linkedin.com/company/pearlie-uk",
-                    "https://x.com/pearlie_uk",
+                    "https://www.instagram.com/pearlie.org",
+                    "https://www.linkedin.com/company/pearlie-org",
+                    "https://x.com/Pearlie_org",
                   ],
                 },
                 {
