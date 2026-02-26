@@ -165,11 +165,11 @@ export function renderLeadActionEmail(data: LeadActionPayload): string {
 
         <div class="section-title">Timing &amp; Budget</div>
 
-        ${data.bookingDate && data.bookingTime ? `
+        ${data.bookingDate ? `
         <div class="highlight-box" style="background: #dbeafe; border-color: #93c5fd; margin-bottom: 15px;">
-          <strong style="color: #1e40af;">Requested Appointment</strong>
+          <strong style="color: #1e40af;">Requested Appointment Date</strong>
           <p style="margin: 8px 0 0; font-size: 18px; color: #1e3a8a; font-weight: 600;">
-            ${new Date(data.bookingDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} at ${data.bookingTime}
+            ${new Date(data.bookingDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
         ` : ""}
@@ -457,7 +457,7 @@ export interface AppointmentNotificationPayload {
   patientFirstName: string
   clinicName: string
   bookingDate: string
-  bookingTime: string
+  bookingTime?: string | null // set by clinic on confirm/reschedule, null for pending requests
   reason?: string | null
   viewUrl: string
   unsubscribeFooterHtml: string
@@ -476,8 +476,8 @@ export function renderAppointmentConfirmedEmail(data: AppointmentNotificationPay
     Great news! <strong>${data.clinicName}</strong> has confirmed your appointment.
   </p>
   <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-    <p style="margin: 0 0 8px 0; font-size: 14px; color: #166534;">Date &amp; time</p>
-    <p style="margin: 0; font-size: 18px; font-weight: 600; color: #14532d;">${data.bookingDate} &middot; ${data.bookingTime}</p>
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: #166534;">Date${data.bookingTime ? " & time" : ""}</p>
+    <p style="margin: 0; font-size: 18px; font-weight: 600; color: #14532d;">${data.bookingDate}${data.bookingTime ? ` &middot; ${data.bookingTime}` : ""}</p>
   </div>
   <div style="text-align: center; margin-bottom: 24px;">
     <a href="${data.viewUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
@@ -499,14 +499,14 @@ export function renderAppointmentDeclinedEmail(data: AppointmentNotificationPayl
     Hi${safeFirstName},
   </p>
   <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
-    Unfortunately, <strong>${data.clinicName}</strong> was unable to accommodate your requested appointment time.
+    Unfortunately, <strong>${data.clinicName}</strong> was unable to accommodate your requested appointment date.
   </p>
   ${data.reason ? `
   <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
     <p style="margin: 0; font-size: 14px; color: #991b1b; line-height: 1.5;">${data.reason}</p>
   </div>` : ""}
   <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
-    You can request a new appointment time or message the clinic directly.
+    You can request a new appointment date or message the clinic directly.
   </p>
   <div style="text-align: center; margin-bottom: 24px;">
     <a href="${data.viewUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
@@ -531,8 +531,8 @@ export function renderAppointmentRescheduledEmail(data: AppointmentNotificationP
     <strong>${data.clinicName}</strong> has rescheduled your appointment to a new time.
   </p>
   <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-    <p style="margin: 0 0 8px 0; font-size: 14px; color: #1e40af;">New date &amp; time</p>
-    <p style="margin: 0; font-size: 18px; font-weight: 600; color: #1e3a8a;">${data.bookingDate} &middot; ${data.bookingTime}</p>
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: #1e40af;">New date${data.bookingTime ? " & time" : ""}</p>
+    <p style="margin: 0; font-size: 18px; font-weight: 600; color: #1e3a8a;">${data.bookingDate}${data.bookingTime ? ` &middot; ${data.bookingTime}` : ""}</p>
   </div>
   <div style="text-align: center; margin-bottom: 24px;">
     <a href="${data.viewUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
@@ -562,7 +562,7 @@ export function renderAppointmentCancelledEmail(data: AppointmentNotificationPay
     <p style="margin: 0; font-size: 14px; color: #333; line-height: 1.5;">${data.reason}</p>
   </div>` : ""}
   <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
-    You can request a new appointment time or explore other clinics.
+    You can request a new appointment date or explore other clinics.
   </p>
   <div style="text-align: center; margin-bottom: 24px;">
     <a href="${data.viewUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 14px;">
@@ -740,7 +740,7 @@ export interface BookingRequestSentPayload {
   firstName: string
   clinicName: string
   formattedDate: string
-  timeLabel: string
+  timeLabel?: string // no longer sent by patient, kept for backward compat
   dashboardUrl: string
   unsubscribeFooterHtml: string
 }
@@ -759,8 +759,8 @@ export function renderBookingRequestSentEmail(data: BookingRequestSentPayload): 
   <div style="background: #f5f5f5; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
     <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;">Clinic</p>
     <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">${data.clinicName}</p>
-    <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;">Date &amp; time</p>
-    <p style="margin: 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">${data.formattedDate} &middot; ${data.timeLabel}</p>
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;">Requested date</p>
+    <p style="margin: 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">${data.formattedDate}</p>
   </div>
   <div style="background: #FFF8E1; border: 1px solid #FFE082; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
     <p style="margin: 0; font-size: 14px; color: #6D4C00; line-height: 1.5;">

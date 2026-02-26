@@ -18,7 +18,7 @@ export function AppointmentBanner({
   clinicName,
   compact = false,
 }: AppointmentBannerProps) {
-  if (!bookingDate && !bookingTime && !requestedAt) return null
+  if (!bookingDate && !requestedAt) return null
 
   const formattedDate = bookingDate
     ? new Date(bookingDate).toLocaleDateString("en-GB", {

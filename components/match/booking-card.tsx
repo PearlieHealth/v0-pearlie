@@ -89,11 +89,11 @@ interface BookingCardProps {
   clinic: Clinic
   isTopMatch: boolean
   onMessageClick: () => void
-  onRequestAppointment?: (message: string, opts?: { date?: string; time?: string }) => void | Promise<void>
+  onRequestAppointment?: (message: string, opts?: { date?: string }) => void | Promise<void>
   appointmentRequested?: boolean
   appointmentRequestedAt?: string | null // ISO timestamp
   bookingDate?: string | null
-  bookingTime?: string | null
+  bookingTime?: string | null // kept for display on confirmed/rescheduled appointments
   bookingStatus?: string | null
   bookingDeclineReason?: string | null
   bookingCancelReason?: string | null
@@ -146,9 +146,7 @@ export function BookingCard({
   const [pendingAppointment, setPendingAppointment] = useState<{
     message: string
     dateLabel?: string
-    timeLabel?: string
     isoDate?: string  // YYYY-MM-DD for structured booking
-    slotTime?: string // HH:MM key for structured booking
   } | null>(null)
   const [isRequesting, setIsRequesting] = useState(false)
 
@@ -324,13 +322,12 @@ export function BookingCard({
           {(!appointmentRequested || bookingStatus === "declined" || bookingStatus === "cancelled") && (
             <ClinicDatePicker
               availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
-              availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
               acceptsSameDay={clinic.accepts_same_day || false}
-              onSelectSlot={(date, time) => {
+              onSelectDate={(date) => {
                 const dateLabel = date.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
                 const isoDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
-                const msg = `Hi! I'd like to request an appointment on ${dateLabel} at ${time}. Would this time be available?`
-                setPendingAppointment({ message: msg, dateLabel, timeLabel: time, isoDate, slotTime: time })
+                const msg = `Hi! I'd like to request an appointment on ${dateLabel}. Would this date work?`
+                setPendingAppointment({ message: msg, dateLabel, isoDate })
               }}
             />
           )}
@@ -341,9 +338,9 @@ export function BookingCard({
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
                   <p className="text-[10px] font-semibold text-foreground uppercase tracking-wide">Confirm your request</p>
-                  {pendingAppointment.dateLabel && pendingAppointment.timeLabel ? (
+                  {pendingAppointment.dateLabel ? (
                     <p className="text-xs text-foreground mt-0.5">
-                      <span className="font-semibold">{pendingAppointment.dateLabel}</span> at <span className="font-semibold">{pendingAppointment.timeLabel}</span>
+                      <span className="font-semibold">{pendingAppointment.dateLabel}</span>
                     </p>
                   ) : (
                     <p className="text-xs text-foreground mt-0.5">General appointment request</p>
@@ -369,8 +366,8 @@ export function BookingCard({
                       setIsRequesting(true)
                       await onRequestAppointment(
                         pendingAppointment.message,
-                        pendingAppointment.isoDate && pendingAppointment.slotTime
-                          ? { date: pendingAppointment.isoDate, time: pendingAppointment.slotTime }
+                        pendingAppointment.isoDate
+                          ? { date: pendingAppointment.isoDate }
                           : undefined
                       )
                       setIsRequesting(false)
@@ -402,7 +399,8 @@ export function BookingCard({
             const formattedBookingDate = bookingDate
               ? new Date(bookingDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
               : null
-            const formattedBookingTime = bookingTime
+            // Time is only set by the clinic when they confirm/reschedule
+            const formattedBookingTime = (bookingStatus === "confirmed" || bookingStatus === "completed") && bookingTime
               ? (HOURLY_SLOTS.find((s) => s.key === bookingTime)?.label || bookingTime)
               : null
             const formattedRequestedAt = appointmentRequestedAt
@@ -448,7 +446,7 @@ export function BookingCard({
                   {bookingDeclineReason && (
                     <p className="text-[11px] text-red-500/80">{bookingDeclineReason}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground">You can request a new appointment time.</p>
+                  <p className="text-[11px] text-muted-foreground">You can request a new appointment date.</p>
                   <Button
                     className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
                     onClick={onMessageClick}
@@ -473,7 +471,7 @@ export function BookingCard({
                   {bookingCancelReason && (
                     <p className="text-[11px] text-muted-foreground/80">{bookingCancelReason}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground">You can request a new appointment time.</p>
+                  <p className="text-[11px] text-muted-foreground">You can request a new appointment date.</p>
                   <Button
                     className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
                     onClick={onMessageClick}
@@ -811,7 +809,7 @@ export function BookingCard({
                   className="flex-1 h-8 rounded-md text-xs font-medium bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
                   onClick={() => {
                     setPendingAppointment({
-                      message: "Hi! I'd like to request an appointment. What times do you have available?",
+                      message: "Hi! I'd like to request an appointment. What dates do you have available?",
                     })
                   }}
                 >

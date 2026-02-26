@@ -9,7 +9,6 @@ import { MapPin, Calendar, Clock, CheckCircle2, Loader2, ArrowLeft, MessageCircl
 import Image from "next/image"
 import { ClinicImage } from "@/components/match/clinic-image"
 import Link from "next/link"
-import { HOURLY_SLOTS } from "@/lib/constants"
 import { trackTikTokEvent } from "@/lib/tiktok-pixel"
 import { createClient } from "@/lib/supabase/client"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
@@ -48,7 +47,7 @@ export default function BookingConfirmPage() {
   const leadId = searchParams.get("leadId")
   const matchId = searchParams.get("matchId")
   const dateStr = searchParams.get("date")
-  const time = searchParams.get("time")
+  const time = searchParams.get("time") // legacy: may be present in old URLs but no longer required
 
   const [clinic, setClinic] = useState<Clinic | null>(null)
   const [lead, setLead] = useState<Lead | null>(null)
@@ -73,7 +72,6 @@ export default function BookingConfirmPage() {
 
   // Parse the date
   const appointmentDate = dateStr ? new Date(dateStr) : null
-  const timeLabel = HOURLY_SLOTS.find((s) => s.key === time)?.label || time
 
   // Auto-login and fetch messages after booking is confirmed
   const performAutoLogin = useCallback(async (tokenHash: string) => {
@@ -130,8 +128,8 @@ export default function BookingConfirmPage() {
 
   useEffect(() => {
     async function fetchData() {
-      if (!clinicId || !leadId || !dateStr || !time) {
-        setError("Missing booking information. Please go back to your matches and select a time slot.")
+      if (!clinicId || !leadId || !dateStr) {
+        setError("Missing booking information. Please go back to your matches and select a date.")
         setLoading(false)
         return
       }
@@ -191,11 +189,11 @@ export default function BookingConfirmPage() {
     }
 
     fetchData()
-  }, [clinicId, leadId, dateStr, time, fetchMessages])
+  }, [clinicId, leadId, dateStr, fetchMessages])
 
   const handleConfirmBooking = async () => {
-    if (!clinic?.id || !leadId || !dateStr || !time) {
-      setError("Missing booking information. Please go back and select a time slot.")
+    if (!clinic?.id || !leadId || !dateStr) {
+      setError("Missing booking information. Please go back and select a date.")
       return
     }
 
@@ -208,7 +206,6 @@ export default function BookingConfirmPage() {
           clinicId: clinic.id,
           leadId: leadId,
           date: dateStr,
-          time: time,
         }),
       })
 
@@ -474,7 +471,6 @@ export default function BookingConfirmPage() {
           {/* Appointment Banner */}
           <AppointmentBanner
             bookingDate={dateStr}
-            bookingTime={time}
             requestedAt={new Date().toISOString()}
             clinicName={clinic?.name}
           />
@@ -679,7 +675,7 @@ export default function BookingConfirmPage() {
                 {clinic?.address}, {clinic?.city} {clinic?.postcode}
               </p>
               <p className="text-primary font-medium mt-1">
-                {formattedDate} - {timeLabel}
+                {formattedDate}
               </p>
             </div>
           </div>
