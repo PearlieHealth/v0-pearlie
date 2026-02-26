@@ -318,7 +318,7 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
               </h2>
               <p className="text-white/70 mb-6 leading-relaxed">
                 Answer a few questions and get matched with verified,
-                GDC-registered clinics tailored to your needs.
+                GDC registered clinics tailored to your needs.
               </p>
               <Button
                 size="lg"
