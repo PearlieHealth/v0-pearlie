@@ -170,6 +170,15 @@
   display: none;
 }
 
+/* Hide main nav on mobile when treatment sticky postcode bar is visible */
+@media (max-width: 767px) {
+  html.treatment-sticky-visible header.fixed {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+}
+
 /* Subtle floating animation for decorative elements */
 @keyframes float {
   0%,

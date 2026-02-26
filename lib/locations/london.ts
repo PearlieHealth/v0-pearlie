@@ -229,7 +229,7 @@ export const LONDON_AREAS: LondonArea[] = [
           "Private dentists don't require formal registration like NHS practices. You can simply browse clinics on Pearlie, compare options, and book your first appointment directly.",
       },
     ],
-    nearbyAreas: ["harley-street", "shoreditch", "soho"],
+    nearbyAreas: ["islington", "harley-street", "hampstead"],
   },
   {
     slug: "notting-hill",
@@ -285,7 +285,147 @@ export const LONDON_AREAS: LondonArea[] = [
           "Our Brixton search includes Clapham, Herne Hill, Camberwell, Peckham, and the surrounding South London area — all within easy reach by public transport.",
       },
     ],
-    nearbyAreas: ["kensington-chelsea", "canary-wharf"],
+    nearbyAreas: ["clapham", "peckham"],
+  },
+  {
+    slug: "clapham",
+    name: "Clapham",
+    shortName: "Clapham",
+    center: { lat: 51.4620, lng: -0.1380 },
+    radiusMiles: 1.5,
+    mapZoom: 14,
+    metaTitle: "Find a Dentist in Clapham, London",
+    metaDescription:
+      "Compare trusted, GDC-registered dentists in Clapham and South London. See ratings, treatments, and pricing — book free through Pearlie.",
+    intro:
+      "Clapham is one of South London's most popular residential areas, with a strong selection of modern private dental practices.",
+    description:
+      "From Clapham Common to Clapham Junction, residents have access to quality dental care without heading into Central London. Pearlie helps you compare verified clinics nearby — see ratings, treatments, and pricing before you book.",
+    faq: [
+      {
+        question: "Are there private dentists near Clapham Common?",
+        answer:
+          "Yes — our Clapham search covers Clapham Common, Clapham Junction, Battersea, and Balham. All clinics on Pearlie are GDC-registered and independently verified.",
+      },
+      {
+        question: "How much does a dental check-up cost in Clapham?",
+        answer:
+          "A private dental check-up in Clapham typically costs £60–£130. Pearlie shows indicative pricing for each clinic so you can compare before committing.",
+      },
+    ],
+    nearbyAreas: ["brixton", "peckham", "kensington-chelsea"],
+  },
+  {
+    slug: "peckham",
+    name: "Peckham",
+    shortName: "Peckham",
+    center: { lat: 51.4737, lng: -0.0693 },
+    radiusMiles: 1.5,
+    mapZoom: 14,
+    metaTitle: "Find a Dentist in Peckham, London",
+    metaDescription:
+      "Compare verified dentists near Peckham and South East London. GDC-registered, transparent pricing — book free through Pearlie.",
+    intro:
+      "Peckham and the surrounding South East London area has a growing number of quality private dental practices serving the local community.",
+    description:
+      "Whether you live or work in Peckham, Camberwell, or Dulwich, finding a good dentist is straightforward with Pearlie. Compare GDC-registered clinics, see real reviews, and book with confidence.",
+    faq: [
+      {
+        question: "What areas does the Peckham dental search cover?",
+        answer:
+          "Our Peckham search covers Peckham, Camberwell, Dulwich, East Dulwich, and the surrounding South East London area. All clinics are verified by Pearlie.",
+      },
+      {
+        question: "Are there affordable dentists near Peckham?",
+        answer:
+          "Yes — South East London offers a range of private dental practices at competitive price points. Pearlie shows indicative pricing for each clinic.",
+      },
+    ],
+    nearbyAreas: ["brixton", "clapham", "canary-wharf"],
+  },
+  {
+    slug: "islington",
+    name: "Islington",
+    shortName: "Islington",
+    center: { lat: 51.5362, lng: -0.1033 },
+    radiusMiles: 1.5,
+    mapZoom: 14,
+    metaTitle: "Find a Dentist in Islington, London",
+    metaDescription:
+      "Compare GDC-registered dentists in Islington and North London. See ratings, treatments, and pricing — book free through Pearlie.",
+    intro:
+      "Islington is one of North London's most vibrant boroughs, with a wide range of well-regarded private dental practices.",
+    description:
+      "From Angel to Highbury, Islington offers excellent dental care across general, cosmetic, and specialist treatments. Pearlie helps you compare verified clinics side-by-side — so you find the right dentist for your needs.",
+    faq: [
+      {
+        question: "Are there dentists near Angel station?",
+        answer:
+          "Yes — our Islington search covers Angel, Highbury, Holloway, and the wider Islington area. All clinics on Pearlie are GDC-registered and independently verified.",
+      },
+      {
+        question: "What dental treatments are available in Islington?",
+        answer:
+          "Islington clinics offer a full range of treatments including check-ups, teeth whitening, Invisalign, veneers, composite bonding, implants, and more. Use Pearlie to compare options.",
+      },
+    ],
+    nearbyAreas: ["camden", "shoreditch", "hampstead"],
+  },
+  {
+    slug: "hampstead",
+    name: "Hampstead",
+    shortName: "Hampstead",
+    center: { lat: 51.5557, lng: -0.1780 },
+    radiusMiles: 1.5,
+    mapZoom: 14,
+    metaTitle: "Find a Dentist in Hampstead, London",
+    metaDescription:
+      "Compare premium dentists in Hampstead and North London. GDC-registered, verified reviews — book free on Pearlie.",
+    intro:
+      "Hampstead is home to some of North London's finest private dental practices, offering premium care in a leafy, residential setting.",
+    description:
+      "From Hampstead Village to Swiss Cottage and Belsize Park, the area has a concentration of experienced dental practitioners. Pearlie helps you compare verified clinics based on quality, treatments, and patient reviews.",
+    faq: [
+      {
+        question: "Are Hampstead dentists more expensive?",
+        answer:
+          "Hampstead dental practices range in price. While some offer premium services, there are also competitively priced options. Pearlie shows indicative pricing so you can compare and choose.",
+      },
+      {
+        question: "What areas does the Hampstead search cover?",
+        answer:
+          "Our Hampstead search includes Hampstead Village, Swiss Cottage, Belsize Park, Finchley Road, and the wider North West London area.",
+      },
+    ],
+    nearbyAreas: ["camden", "islington"],
+  },
+  {
+    slug: "hammersmith",
+    name: "Hammersmith",
+    shortName: "Hammersmith",
+    center: { lat: 51.4927, lng: -0.2228 },
+    radiusMiles: 1.5,
+    mapZoom: 14,
+    metaTitle: "Find a Dentist in Hammersmith, London",
+    metaDescription:
+      "Compare verified dentists in Hammersmith and West London. GDC-registered, transparent pricing — book free through Pearlie.",
+    intro:
+      "Hammersmith is a busy West London hub with a strong selection of private dental practices offering general, cosmetic, and specialist care.",
+    description:
+      "Whether you work near Hammersmith Broadway or live in nearby Shepherd's Bush or Chiswick, there are quality dental options within easy reach. Pearlie helps you compare verified clinics and book with confidence.",
+    faq: [
+      {
+        question: "Are there dentists near Hammersmith station?",
+        answer:
+          "Yes — our Hammersmith search covers Hammersmith, Shepherd's Bush, Chiswick, Fulham, and the surrounding West London area. All clinics are GDC-registered and verified.",
+      },
+      {
+        question: "Can I find an evening dentist in Hammersmith?",
+        answer:
+          "Many dental clinics near Hammersmith offer extended hours including evening appointments. Check availability on Pearlie and book directly.",
+      },
+    ],
+    nearbyAreas: ["kensington-chelsea", "notting-hill"],
   },
   {
     slug: "stratford",
@@ -395,7 +535,7 @@ export const LONDON_REGIONS: LondonRegion[] = [
       "South London has a growing network of quality private dental practices, from Brixton and Clapham to Dulwich and Greenwich — offering modern care at a range of price points.",
     description:
       "Finding a good dentist in South London doesn't have to be difficult. Whether you're in Brixton, Peckham, Camberwell, or further south, Pearlie helps you compare GDC-registered clinics based on ratings, treatments, and pricing — all in one place.",
-    areaSlugs: ["brixton"],
+    areaSlugs: ["clapham", "brixton", "peckham"],
     faq: [
       {
         question: "Are there affordable private dentists in South London?",
@@ -422,7 +562,7 @@ export const LONDON_REGIONS: LondonRegion[] = [
       "North London offers a wide range of dental practices, from boutique clinics in Camden and Islington to larger centres serving Finsbury Park, Highgate, and beyond.",
     description:
       "Whether you're in Islington, Hampstead, Finchley, or Enfield, North London has excellent dental options. Pearlie helps you compare verified clinics based on your needs — not just what's closest.",
-    areaSlugs: ["camden"],
+    areaSlugs: ["islington", "camden", "hampstead"],
     faq: [
       {
         question: "Are there good dentists near Islington or Highbury?",
@@ -449,7 +589,7 @@ export const LONDON_REGIONS: LondonRegion[] = [
       "West London is served by well-established dental practices across Kensington, Notting Hill, Hammersmith, Chiswick, and Ealing — offering everything from routine care to specialist treatments.",
     description:
       "From the premium practices of Kensington to family-friendly clinics in Ealing, West London has dental options for every need and budget. Pearlie helps you compare verified, GDC-registered clinics and book with confidence.",
-    areaSlugs: ["kensington-chelsea", "notting-hill"],
+    areaSlugs: ["kensington-chelsea", "notting-hill", "hammersmith"],
     faq: [
       {
         question: "What areas does the West London dental search cover?",

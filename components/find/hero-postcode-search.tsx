@@ -10,26 +10,32 @@ import { validateUKPostcode } from "@/lib/postcodes-io"
 interface HeroPostcodeSearchProps {
   /** Show as compact bar (for sticky) vs. large hero style */
   variant?: "hero" | "sticky"
-  /** Hide the "skip" link below the form (for high-intent pages like dentist-near-me) */
-  hideSkip?: boolean
   /** Ref callback to measure this element for intersection observer */
   heroRef?: React.RefObject<HTMLDivElement | null>
 }
 
-export function HeroPostcodeSearch({ variant = "hero", hideSkip = false, heroRef }: HeroPostcodeSearchProps) {
+export function HeroPostcodeSearch({ variant = "hero", heroRef }: HeroPostcodeSearchProps) {
   const router = useRouter()
   const [postcode, setPostcode] = useState("")
   const [isValidating, setIsValidating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Pre-fill from localStorage if available
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("pearlie_postcode")
+      if (stored && !postcode) {
+        setPostcode(stored)
+      }
+    } catch {}
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault()
 
     if (!postcode.trim()) {
-      if (!hideSkip) {
-        router.push("/intake")
-      }
+      setError("Enter your postcode to find nearby clinics")
       return
     }
 
@@ -145,15 +151,9 @@ export function HeroPostcodeSearch({ variant = "hero", hideSkip = false, heroRef
       {error && (
         <p className="text-sm text-red-300 mt-3 text-center">{error}</p>
       )}
-      {hideSkip ? (
-        <p className="text-sm text-white/50 mt-3 text-center">
-          Takes 60 seconds &middot; Free &middot; No obligation
-        </p>
-      ) : (
-        <p className="text-sm text-white/50 mt-3 text-center">
-          Or <button type="button" onClick={() => router.push("/intake")} className="underline hover:text-white/70 transition-colors">skip and get matched</button> without a postcode
-        </p>
-      )}
+      <p className="text-sm text-white/50 mt-3 text-center">
+        Takes 60 seconds &middot; Free &middot; No obligation
+      </p>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { MapPin, Search, Shield, CheckCircle2, Lock, MessageSquare } from "lucide-react"
+import { MapPin, Search, Shield, CheckCircle2, Lock, MessageSquare, Sparkles, Star, CalendarCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { MainNav } from "@/components/main-nav"
@@ -9,7 +9,6 @@ import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { LocationClinicCard } from "@/components/find/location-clinic-card"
 import { LocationJsonLd } from "@/components/find/location-jsonld"
-import { LocationMap } from "@/components/find/location-map"
 import { HeroPostcodeSearch } from "@/components/find/hero-postcode-search"
 import { StickyPostcodeBar } from "@/components/find/sticky-postcode-bar"
 import {
@@ -169,53 +168,132 @@ function DentistNearMePage() {
                 Enter your postcode and we&apos;ll match you with verified dental clinics based on your treatment needs and availability.
               </p>
               <div id="hero-postcode-search">
-                <HeroPostcodeSearch variant="hero" hideSkip />
+                <HeroPostcodeSearch variant="hero" />
               </div>
             </div>
           </div>
         </section>
 
-        {/* How it works — horizontal layout */}
+        {/* How it works — horizontal with illustrations */}
         <section className="py-16 sm:py-20 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-12 text-[#004443] text-center">
                 How it works
               </h2>
-              <div className="grid gap-10 sm:grid-cols-3">
-                {[
-                  {
-                    step: "1",
-                    icon: MapPin,
-                    title: "Enter your postcode",
-                    desc: "We find nearby trusted clinics.",
-                  },
-                  {
-                    step: "2",
-                    icon: MessageSquare,
-                    title: "Tell us what you need",
-                    desc: "Share your treatment goals and availability.",
-                  },
-                  {
-                    step: "3",
-                    icon: CheckCircle2,
-                    title: "Get matched & message clinics",
-                    desc: "Compare, chat and book confidently.",
-                  },
-                ].map((item) => (
-                  <div key={item.step} className="text-center">
-                    <div className="relative mx-auto mb-5">
-                      <div className="w-16 h-16 rounded-2xl bg-[#0fbcb0]/10 flex items-center justify-center mx-auto">
-                        <item.icon className="w-7 h-7 text-[#0fbcb0]" />
+              <div className="grid gap-8 sm:grid-cols-3">
+                {/* Step 1 — Tell us what you need */}
+                <div className="text-center">
+                  <div className="relative mx-auto mb-6 max-w-[180px]">
+                    <span className="absolute -top-4 -left-2 text-6xl font-bold text-[#004443]/10 select-none leading-none z-0">01</span>
+                    <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[24px] p-3 shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-border">
+                      <div className="bg-white rounded-xl p-3 shadow-sm">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center">
+                            <Sparkles className="w-3.5 h-3.5 text-primary" />
+                          </div>
+                          <div className="h-2.5 w-20 bg-border/50 rounded-full" />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 border border-border/60">
+                            <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-primary" />
+                            </div>
+                            <span className="text-[10px] text-primary font-medium">Dental Implants</span>
+                          </div>
+                          <div className="flex items-center gap-2 p-2 rounded-lg bg-white border border-border/60">
+                            <div className="w-4 h-4 rounded-full border-2 border-muted-foreground/30" />
+                            <span className="text-[10px] text-muted-foreground">Cosmetic Dentistry</span>
+                          </div>
+                        </div>
                       </div>
-                      <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-[#004443] text-white text-xs font-bold flex items-center justify-center">
-                        {item.step}
-                      </span>
                     </div>
-                    <h3 className="font-semibold text-foreground text-lg mb-2">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
                   </div>
-                ))}
+                  <h3 className="font-semibold text-foreground text-lg mb-2">Tell us what you need</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">Answer a few simple questions about your treatment, budget, and preferences.</p>
+                </div>
+
+                {/* Step 2 — We match you */}
+                <div className="text-center">
+                  <div className="relative mx-auto mb-6 max-w-[180px]">
+                    <span className="absolute -top-4 -left-2 text-6xl font-bold text-[#004443]/10 select-none leading-none z-0">02</span>
+                    <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[24px] p-3 shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-border">
+                      <div className="space-y-2">
+                        <div className="bg-white rounded-xl p-3 shadow-sm border border-border/60">
+                          <div className="flex items-start gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center flex-shrink-0">
+                              <MapPin className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="h-2.5 w-16 bg-foreground rounded-full mb-1.5" />
+                              <div className="flex items-center gap-0.5 mb-1">
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                  <Star key={i} className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                                ))}
+                              </div>
+                              <div className="h-2 w-12 bg-muted rounded-full" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-xl p-3 shadow-sm border border-border/60">
+                          <div className="flex items-start gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center flex-shrink-0">
+                              <MapPin className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="h-2.5 w-14 bg-foreground rounded-full mb-1.5" />
+                              <div className="flex items-center gap-0.5 mb-1">
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                  <Star key={i} className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                                ))}
+                              </div>
+                              <div className="h-2 w-10 bg-muted rounded-full" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-foreground text-lg mb-2">We match you with the right clinics</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">Verified, GDC-registered clinics selected based on your needs — not just the nearest.</p>
+                </div>
+
+                {/* Step 3 — Compare, chat, book */}
+                <div className="text-center">
+                  <div className="relative mx-auto mb-6 max-w-[180px]">
+                    <span className="absolute -top-4 -left-2 text-6xl font-bold text-[#004443]/10 select-none leading-none z-0">03</span>
+                    <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[24px] p-3 shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-border">
+                      <div className="bg-white rounded-xl p-3 shadow-sm">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-1.5">
+                            <CalendarCheck className="w-3.5 h-3.5 text-primary" />
+                            <span className="text-[10px] font-semibold text-foreground">Choose your time</span>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-7 gap-0.5 mb-3">
+                          {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+                            <div key={i} className="text-center text-[8px] text-muted-foreground py-0.5">{d}</div>
+                          ))}
+                          {[...Array(7)].map((_, i) => (
+                            <div
+                              key={i}
+                              className={`aspect-square rounded flex items-center justify-center text-[8px] ${
+                                i === 3 ? "bg-primary text-white font-semibold" : "bg-secondary text-primary"
+                              }`}
+                            >
+                              {i + 10}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="w-full bg-primary text-white text-[10px] font-medium py-1.5 rounded-lg text-center">
+                          Request appointment
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-foreground text-lg mb-2">Compare. Chat. Book.</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">Compare clinics side-by-side, chat directly, and book when you&apos;re ready.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -395,38 +473,20 @@ async function RegionPage({ slug }: { slug: string }) {
           </section>
         )}
 
-        {/* Clinic Cards */}
+        {/* Clinic Cards — horizontal scroll */}
         {clinics.length > 0 && (
-          <section className="py-10 sm:py-14 bg-white">
+          <section className="py-10 sm:py-14 bg-white overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-5xl mx-auto">
                 <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-8 text-[#004443]">
                   Dental clinics in {region.name}
                 </h2>
-                <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-                  {clinics.map((clinic) => (
-                    <LocationClinicCard key={clinic.id} clinic={clinic} />
-                  ))}
-                </div>
               </div>
             </div>
-          </section>
-        )}
-
-        {/* Map */}
-        {clinics.length > 0 && (
-          <section className="py-10 sm:py-14 bg-[#faf9f6]">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="max-w-5xl mx-auto">
-                <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-6 text-[#004443]">
-                  Clinics on the map
-                </h2>
-                <LocationMap
-                  clinics={clinics}
-                  center={region.center}
-                  zoom={region.mapZoom}
-                />
-              </div>
+            <div className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide px-4 sm:px-6 lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] pb-4 -mb-4">
+              {clinics.map((clinic) => (
+                <LocationClinicCard key={clinic.id} clinic={clinic} />
+              ))}
             </div>
           </section>
         )}
@@ -578,35 +638,19 @@ async function AreaPage({ slug }: { slug: string }) {
           </div>
         </section>
 
-        {/* Clinic Cards */}
-        <section className="py-10 sm:py-14 bg-[#faf9f6]">
+        {/* Clinic Cards — horizontal scroll */}
+        <section className="py-10 sm:py-14 bg-[#faf9f6] overflow-hidden">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-8 text-[#004443]">
                 Dental clinics near {area.name}
               </h2>
-              <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-                {clinics.map((clinic) => (
-                  <LocationClinicCard key={clinic.id} clinic={clinic} />
-                ))}
-              </div>
             </div>
           </div>
-        </section>
-
-        {/* Map */}
-        <section className="py-10 sm:py-14 bg-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-5xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-6 text-[#004443]">
-                Clinics on the map
-              </h2>
-              <LocationMap
-                clinics={clinics}
-                center={area.center}
-                zoom={area.mapZoom}
-              />
-            </div>
+          <div className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide px-4 sm:px-6 lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] pb-4 -mb-4">
+            {clinics.map((clinic) => (
+              <LocationClinicCard key={clinic.id} clinic={clinic} />
+            ))}
           </div>
         </section>
 
