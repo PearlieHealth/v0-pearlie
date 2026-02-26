@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Plus, Edit, Copy, Archive, ArchiveRestore, ImageIcon, ExternalLink, RefreshCw } from "lucide-react"
+import { Search, Plus, Edit, Copy, Archive, ArchiveRestore, ImageIcon, ExternalLink, RefreshCw, AlertTriangle, Wrench } from "lucide-react"
 import { ClinicEditorDrawer } from "./clinic-editor-drawer"
 import { ClinicInviteButton } from "./clinic-invite-button"
 import { useToast } from "@/hooks/use-toast"
@@ -79,6 +79,8 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
   const [isCreating, setIsCreating] = useState(false)
   const [clinicToArchive, setClinicToArchive] = useState<{ id: string; name: string; archive: boolean } | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [googlePhotoIssue, setGooglePhotoIssue] = useState<{ affectedClinics: number; clinics: Array<{ id: string; name: string; googleUrlCount: number }> } | null>(null)
+  const [isFixingPhotos, setIsFixingPhotos] = useState(false)
   const { toast } = useToast()
 
   const handleRefresh = async () => {
@@ -102,6 +104,54 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       })
     } finally {
       setIsRefreshing(false)
+    }
+  }
+
+  // Check for clinics with Google Places URLs on mount
+  const checkGooglePhotos = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/fix-google-photos")
+      if (res.ok) {
+        const data = await res.json()
+        if (data.affectedClinics > 0) {
+          setGooglePhotoIssue({ affectedClinics: data.affectedClinics, clinics: data.clinics })
+        } else {
+          setGooglePhotoIssue(null)
+        }
+      }
+    } catch {
+      // Silent — this is a background check
+    }
+  }, [])
+
+  useEffect(() => {
+    checkGooglePhotos()
+  }, [checkGooglePhotos])
+
+  const handleFixGooglePhotos = async () => {
+    setIsFixingPhotos(true)
+    try {
+      const res = await fetch("/api/admin/fix-google-photos", { method: "POST" })
+      if (!res.ok) throw new Error("Failed to fix photos")
+      const data = await res.json()
+
+      toast({
+        title: "Photos fixed",
+        description: `${data.totalFixed} photos re-uploaded to permanent storage. ${data.totalFailed > 0 ? `${data.totalFailed} could not be recovered.` : ""}`,
+      })
+
+      setGooglePhotoIssue(null)
+      // Refresh clinic list to show updated photos
+      handleRefresh()
+    } catch (error) {
+      console.error("Error fixing photos:", error)
+      toast({
+        variant: "destructive",
+        title: "Fix failed",
+        description: "Could not fix Google Photos. Please try again.",
+      })
+    } finally {
+      setIsFixingPhotos(false)
     }
   }
 
@@ -387,6 +437,39 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
           </Button>
         </div>
       </Card>
+
+      {googlePhotoIssue && googlePhotoIssue.affectedClinics > 0 && (
+        <Card className="p-4 border-orange-300 bg-orange-50">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-orange-800">
+                {googlePhotoIssue.affectedClinics} clinic{googlePhotoIssue.affectedClinics > 1 ? "s have" : " has"} photos stored as temporary Google URLs
+              </p>
+              <p className="text-sm text-orange-700 mt-1">
+                These photos will eventually stop loading. Click below to re-upload them to permanent storage.
+              </p>
+              <ul className="text-xs text-orange-600 mt-2 space-y-0.5">
+                {googlePhotoIssue.clinics.slice(0, 5).map((c) => (
+                  <li key={c.id}>{c.name} ({c.googleUrlCount} photo{c.googleUrlCount > 1 ? "s" : ""})</li>
+                ))}
+                {googlePhotoIssue.clinics.length > 5 && (
+                  <li>...and {googlePhotoIssue.clinics.length - 5} more</li>
+                )}
+              </ul>
+            </div>
+            <Button
+              size="sm"
+              onClick={handleFixGooglePhotos}
+              disabled={isFixingPhotos}
+              className="gap-2 bg-orange-600 hover:bg-orange-700 shrink-0"
+            >
+              <Wrench className={`h-4 w-4 ${isFixingPhotos ? "animate-spin" : ""}`} />
+              {isFixingPhotos ? "Fixing..." : "Fix Photos"}
+            </Button>
+          </div>
+        </Card>
+      )}
 
       <Tabs defaultValue="active" className="w-full">
         <TabsList className="grid w-full max-w-lg grid-cols-3">
