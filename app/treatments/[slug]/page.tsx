@@ -82,21 +82,35 @@ export async function generateMetadata({
   }
 }
 
+const CLINIC_SELECT =
+  "id, name, slug, city, address, postcode, rating, review_count, images, treatments, price_range, highlight_chips, verified, description"
+
 async function getClinicsForTreatment(filterTags: string[]) {
   try {
     const supabase = await createClient()
+
+    // Try treatment-specific clinics first
     const { data } = await supabase
       .from("clinics")
-      .select(
-        "id, name, slug, city, address, postcode, rating, review_count, images, treatments, price_range, highlight_chips, verified, description"
-      )
+      .select(CLINIC_SELECT)
       .eq("is_archived", false)
       .eq("is_live", true)
       .overlaps("treatments", filterTags)
       .order("rating", { ascending: false })
       .limit(12)
 
-    return data || []
+    if (data && data.length > 0) return data
+
+    // Fallback: show top-rated verified clinics if no treatment match
+    const { data: fallback } = await supabase
+      .from("clinics")
+      .select(CLINIC_SELECT)
+      .eq("is_archived", false)
+      .eq("is_live", true)
+      .order("rating", { ascending: false })
+      .limit(6)
+
+    return fallback || []
   } catch {
     return []
   }
