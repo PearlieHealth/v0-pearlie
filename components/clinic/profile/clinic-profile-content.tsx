@@ -29,7 +29,6 @@ import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
 import { ClinicImage } from "@/components/match/clinic-image"
-import { HOURLY_SLOTS } from "@/lib/constants"
 
 import { HighlightBadgeStrip } from "./highlight-badge-strip"
 import { PatientContextBanner } from "./patient-context-banner"
@@ -61,9 +60,7 @@ export function ClinicProfileContent() {
   const [activeTab, setActiveTab] = useState("overview")
   const [pendingAppointment, setPendingAppointment] = useState<{
     date: Date
-    time: string
     dateLabel: string
-    timeLabel: string
   } | null>(null)
   const [isBookingRequesting, setIsBookingRequesting] = useState(false)
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
@@ -216,28 +213,26 @@ export function ClinicProfileContent() {
     checkAppointmentStatus()
   }, [lead?.id, leadIdParam, directLeadId, clinic?.id])
 
-  const handleBookAppointment = (date?: Date, time?: string) => {
+  const handleBookAppointment = (date?: Date) => {
     trackEvent("book_clicked", {
       leadId: lead?.id || null,
       clinicId: clinic?.id,
       meta: {
         match_id: matchId || undefined,
         source: "clinic_page",
-        has_slot: !!(date && time),
+        has_date: !!date,
       },
     })
     trackTikTokEvent("PlaceAnOrder", { content_name: "confirm_request" })
 
-    if (date && time && (lead?.id || leadIdParam || directLeadId)) {
+    if (date && (lead?.id || leadIdParam || directLeadId)) {
       const dateLabel = date.toLocaleDateString("en-GB", {
         weekday: "long",
         day: "numeric",
         month: "long",
       })
-      const timeLabel =
-        HOURLY_SLOTS.find((s: { key: string; label: string }) => s.key === time)?.label || time
       setBookingError(null)
-      setPendingAppointment({ date, time, dateLabel, timeLabel })
+      setPendingAppointment({ date, dateLabel })
     } else if (lead?.id || leadIdParam || directLeadId) {
       const picker = document.getElementById("clinic-date-picker")
       if (picker) {
@@ -271,7 +266,6 @@ export function ClinicProfileContent() {
           leadId: bookingLeadId,
           clinicId: clinic.id,
           date: dateStr,
-          time: pendingAppointment.time,
         }),
       })
 
@@ -576,9 +570,8 @@ export function ClinicProfileContent() {
                     {!bookingConfirmed && !pendingAppointment && (
                       <ClinicDatePicker
                         availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
-                        availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
                         acceptsSameDay={clinic.accepts_same_day || false}
-                        onSelectSlot={(date, time) => handleBookAppointment(date, time)}
+                        onSelectDate={(date) => handleBookAppointment(date)}
                         maxVisible={5}
                       />
                     )}
@@ -592,8 +585,7 @@ export function ClinicProfileContent() {
                               Confirm your request
                             </p>
                             <p className="text-sm text-[#1a1a1a] mt-1">
-                              <span className="font-semibold">{pendingAppointment.dateLabel}</span>{" "}
-                              at <span className="font-semibold">{pendingAppointment.timeLabel}</span>
+                              <span className="font-semibold">{pendingAppointment.dateLabel}</span>
                             </p>
                           </div>
                           <button
@@ -764,11 +756,10 @@ export function ClinicProfileContent() {
             <div className="p-4">
               <ClinicDatePicker
                 availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
-                availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
                 acceptsSameDay={clinic.accepts_same_day || false}
-                onSelectSlot={(date, time) => {
+                onSelectDate={(date) => {
                   setShowMobilePicker(false)
-                  handleBookAppointment(date, time)
+                  handleBookAppointment(date)
                 }}
               />
             </div>
@@ -802,8 +793,7 @@ export function ClinicProfileContent() {
                   Appointment details
                 </p>
                 <p className="text-sm text-[#1a1a1a] mt-1">
-                  <span className="font-semibold">{pendingAppointment.dateLabel}</span>{" "}
-                  at <span className="font-semibold">{pendingAppointment.timeLabel}</span>
+                  <span className="font-semibold">{pendingAppointment.dateLabel}</span>
                 </p>
                 <p className="text-xs text-muted-foreground mt-2">
                   at {clinic.name}

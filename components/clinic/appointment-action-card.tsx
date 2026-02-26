@@ -67,7 +67,7 @@ export function AppointmentActionCard({
           </div>
           {bookingDate && (
             <p className="text-sm text-muted-foreground">
-              {formatBookingDate(bookingDate)} at {formatBookingTime(bookingTime)}
+              {formatBookingDate(bookingDate)}{bookingTime && <> at {formatBookingTime(bookingTime)}</>}
             </p>
           )}
         </div>
@@ -93,9 +93,9 @@ export function AppointmentActionCard({
     setIsSubmitting(true)
 
     const body: Record<string, string> = { leadId, action }
-    if (action === "confirm" && newDate && newTime) {
-      // Clinic is confirming with a different date/time than originally requested
-      body.newDate = format(newDate, "yyyy-MM-dd")
+    if (action === "confirm") {
+      // Clinic always provides time; optionally overrides date
+      if (newDate) body.newDate = format(newDate, "yyyy-MM-dd")
       body.newTime = newTime
     }
     if (action === "reschedule") {
@@ -155,8 +155,8 @@ export function AppointmentActionCard({
 
         {bookingDate && (
           <div className="text-sm text-amber-800">
-            <span className="font-medium">Requested:</span>{" "}
-            {formatBookingDate(bookingDate)} at {formatBookingTime(bookingTime)}
+            <span className="font-medium">Requested date:</span>{" "}
+            {formatBookingDate(bookingDate)}
           </div>
         )}
 
@@ -187,7 +187,6 @@ export function AppointmentActionCard({
         {activeAction === "confirm" && (
           <ConfirmForm
             bookingDate={bookingDate}
-            bookingTime={bookingTime}
             newDate={newDate}
             setNewDate={setNewDate}
             newTime={newTime}
@@ -226,7 +225,7 @@ export function AppointmentActionCard({
         {bookingDate && (
           <div className="text-sm text-green-800">
             <span className="font-medium">Date:</span>{" "}
-            {formatBookingDate(bookingDate)} at {formatBookingTime(bookingTime)}
+            {formatBookingDate(bookingDate)}{bookingTime && <> at {formatBookingTime(bookingTime)}</>}
           </div>
         )}
 
@@ -455,7 +454,6 @@ export function AppointmentActionCard({
 
 function ConfirmForm({
   bookingDate,
-  bookingTime,
   newDate,
   setNewDate,
   newTime,
@@ -465,7 +463,6 @@ function ConfirmForm({
   onCancel,
 }: {
   bookingDate: string | null
-  bookingTime: string | null
   newDate: Date | undefined
   setNewDate: (d: Date | undefined) => void
   newTime: string
@@ -483,77 +480,80 @@ function ConfirmForm({
     : null
   const displayTime = newTime
     ? (HOURLY_SLOTS.find((s) => s.key === newTime)?.label || newTime)
-    : bookingTime
-    ? formatBookingTime(bookingTime)
     : null
 
   return (
     <div className="space-y-3 pt-1">
       <div className="text-sm text-amber-800">
-        <span className="font-medium">Confirming for:</span> {displayDate} at {displayTime}
+        <span className="font-medium">Confirming for:</span> {displayDate}{displayTime && <> at {displayTime}</>}
       </div>
 
-      {!changingDate ? (
-        <button
-          type="button"
-          onClick={() => setChangingDate(true)}
-          className="text-xs text-primary hover:underline"
-        >
-          Agreed on a different date/time?
-        </button>
-      ) : (
-        <div className="space-y-3 rounded-md border border-amber-200 bg-white/60 p-3">
-          <p className="text-xs text-muted-foreground">Pick the date and time you agreed on:</p>
-          <div className="space-y-2">
-            <Label className="text-xs">Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal">
-                  <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-                  {newDate ? format(newDate, "PPP") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={newDate}
-                  onSelect={setNewDate}
-                  disabled={(date) => date < new Date()}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs">Time</Label>
-            <Select value={newTime} onValueChange={setNewTime}>
-              <SelectTrigger className="h-8 text-sm">
-                <SelectValue placeholder="Select time" />
-              </SelectTrigger>
-              <SelectContent>
-                {HOURLY_SLOTS.map((slot) => (
-                  <SelectItem key={slot.key} value={slot.key}>
-                    {slot.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Time selection — clinic must set time */}
+      <div className="space-y-3 rounded-md border border-amber-200 bg-white/60 p-3">
+        <p className="text-xs text-muted-foreground">Select the appointment time agreed with the patient:</p>
+        <div className="space-y-2">
+          <Label className="text-xs">Time</Label>
+          <Select value={newTime} onValueChange={setNewTime}>
+            <SelectTrigger className="h-8 text-sm">
+              <SelectValue placeholder="Select time" />
+            </SelectTrigger>
+            <SelectContent>
+              {HOURLY_SLOTS.map((slot) => (
+                <SelectItem key={slot.key} value={slot.key}>
+                  {slot.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Optional date override */}
+        {!changingDate ? (
           <button
             type="button"
-            onClick={() => { setChangingDate(false); setNewDate(undefined); setNewTime("") }}
-            className="text-xs text-muted-foreground hover:underline"
+            onClick={() => setChangingDate(true)}
+            className="text-xs text-primary hover:underline"
           >
-            Use originally requested date instead
+            Need to change the date too?
           </button>
-        </div>
-      )}
+        ) : (
+          <>
+            <div className="space-y-2">
+              <Label className="text-xs">New date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal">
+                    <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                    {newDate ? format(newDate, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={newDate}
+                    onSelect={setNewDate}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setChangingDate(false); setNewDate(undefined) }}
+              className="text-xs text-muted-foreground hover:underline"
+            >
+              Use originally requested date instead
+            </button>
+          </>
+        )}
+      </div>
 
       <div className="flex gap-2">
         <Button
           size="sm"
           onClick={onConfirm}
-          disabled={isSubmitting || (changingDate && (!newDate || !newTime))}
+          disabled={isSubmitting || !newTime || (changingDate && !newDate)}
           className="bg-green-600 hover:bg-green-700 text-white"
         >
           {isSubmitting ? "Confirming..." : "Confirm Appointment"}

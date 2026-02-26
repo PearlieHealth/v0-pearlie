@@ -19,13 +19,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing or invalid fields" }, { status: 400 })
     }
 
-    // Validate date/time fields for reschedule (required) and confirm (optional override)
-    if (action === "reschedule" || (action === "confirm" && (newDate || newTime))) {
-      if (action === "reschedule" && (!newDate || !newTime)) {
-        return NextResponse.json({ error: "Date and time required for reschedule" }, { status: 400 })
-      }
-      if (action === "confirm" && ((newDate && !newTime) || (!newDate && newTime))) {
-        return NextResponse.json({ error: "Both date and time are required when overriding" }, { status: 400 })
+    // Validate date/time fields:
+    // - confirm: time is REQUIRED (clinic sets time after speaking to patient), date override is optional
+    // - reschedule: both date and time are required
+    if (action === "confirm") {
+      if (!newTime) {
+        return NextResponse.json({ error: "Time is required when confirming" }, { status: 400 })
       }
       if (newDate) {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
@@ -37,11 +36,26 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "Cannot schedule to a past date" }, { status: 400 })
         }
       }
-      if (newTime) {
-        const validTime = HOURLY_SLOTS.some((s: { key: string }) => s.key === newTime)
-        if (!validTime) {
-          return NextResponse.json({ error: "Invalid time slot" }, { status: 400 })
-        }
+      const validTime = HOURLY_SLOTS.some((s: { key: string }) => s.key === newTime)
+      if (!validTime) {
+        return NextResponse.json({ error: "Invalid time slot" }, { status: 400 })
+      }
+    }
+    if (action === "reschedule") {
+      if (!newDate || !newTime) {
+        return NextResponse.json({ error: "Date and time required for reschedule" }, { status: 400 })
+      }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+        return NextResponse.json({ error: "Invalid date format" }, { status: 400 })
+      }
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      if (new Date(newDate + "T00:00:00") < today) {
+        return NextResponse.json({ error: "Cannot schedule to a past date" }, { status: 400 })
+      }
+      const validTime = HOURLY_SLOTS.some((s: { key: string }) => s.key === newTime)
+      if (!validTime) {
+        return NextResponse.json({ error: "Invalid time slot" }, { status: 400 })
       }
     }
 
@@ -102,16 +116,16 @@ export async function POST(request: NextRequest) {
     let botMessageContent = ""
 
     if (action === "confirm") {
-      // Clinic can optionally override date/time (e.g. after chatting with patient)
+      // Clinic always provides time; can optionally override date
       const confirmedDate = newDate || lead.booking_date
-      const confirmedTime = newTime || lead.booking_time
+      const confirmedTime = newTime // always provided by clinic
 
       const leadUpdate: Record<string, string | null> = {
         booking_status: "confirmed",
         booking_confirmed_at: now,
+        booking_time: newTime,
       }
       if (newDate) leadUpdate.booking_date = newDate
-      if (newTime) leadUpdate.booking_time = newTime
 
       await supabaseAdmin
         .from("leads")
@@ -211,9 +225,9 @@ export async function POST(request: NextRequest) {
         .eq("lead_id", leadId)
         .eq("clinic_id", clinicUser.clinic_id)
 
-      botMessageContent = `${clinicName} was unable to accommodate your requested time.`
+      botMessageContent = `${clinicName} was unable to accommodate your requested date.`
       if (reason) botMessageContent += ` Reason: ${reason}`
-      botMessageContent += "\nYou can request a new appointment time."
+      botMessageContent += "\nYou can request a new appointment date."
     }
 
     if (action === "cancel") {
@@ -414,7 +428,7 @@ async function sendPatientNotificationEmail({
       patientFirstName: escapeHtml(lead.first_name || ""),
       clinicName: escapeHtml(clinicName),
       bookingDate: formatDateLabel(dateStr || null),
-      bookingTime: formatTimeLabel(timeStr || null),
+      bookingTime: timeStr ? formatTimeLabel(timeStr) : null,
       reason: reason ? escapeHtml(reason) : null,
       viewUrl,
       unsubscribeFooterHtml: unsubFooter,

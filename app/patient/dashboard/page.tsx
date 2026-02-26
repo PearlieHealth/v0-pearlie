@@ -829,7 +829,7 @@ export default function PatientDashboard() {
     if (selectedClinicId) openConversationForClinic(selectedClinicId)
   }
 
-  async function handleRequestAppointment(message: string, opts?: { date?: string; time?: string }) {
+  async function handleRequestAppointment(message: string, opts?: { date?: string }) {
     if (!selectedClinicId || !activeLeadId) return
 
     // Block if already requested (server-side check is also in the API)
@@ -849,10 +849,10 @@ export default function PatientDashboard() {
     }
     setMessages((prev) => [...prev, optimisticMsg])
 
-    // When we have structured date/time, use the full booking request API so the
+    // When we have a structured date, use the full booking request API so the
     // lead's booking_* fields are set and the clinic gets confirm/decline buttons.
-    // For generic "what times?" messages (no date/time), use chat/send.
-    const useBookingApi = !!(opts?.date && opts?.time)
+    // For generic messages (no date), use chat/send.
+    const useBookingApi = !!opts?.date
 
     try {
       const res = useBookingApi
@@ -863,7 +863,6 @@ export default function PatientDashboard() {
               clinicId: selectedClinicId,
               leadId: activeLeadId,
               date: opts!.date,
-              time: opts!.time,
             }),
           })
         : await fetch("/api/chat/send", {
@@ -915,7 +914,7 @@ export default function PatientDashboard() {
               ...prev,
               leads: prev.leads.map((l) =>
                 l.id === activeLeadId
-                  ? { ...l, booking_status: "pending", booking_date: opts!.date!, booking_time: opts!.time!, booking_clinic_id: selectedClinicId }
+                  ? { ...l, booking_status: "pending", booking_date: opts!.date!, booking_time: null, booking_clinic_id: selectedClinicId }
                   : l
               ),
             }

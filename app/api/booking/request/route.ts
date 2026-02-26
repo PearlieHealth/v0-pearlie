@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { randomBytes } from "crypto"
 import { createRateLimiter } from "@/lib/rate-limit"
-import { HOURLY_SLOTS } from "@/lib/constants"
 import { generateUnsubscribeFooterHtml, generateUnsubscribeUrl } from "@/lib/unsubscribe"
 import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
@@ -24,21 +23,15 @@ export async function POST(request: Request) {
     }
     bookingIpLimiter.record(ip)
 
-    const { clinicId, leadId, date, time } = await request.json()
+    const { clinicId, leadId, date } = await request.json()
 
-    if (!clinicId || !leadId || !date || !time) {
+    if (!clinicId || !leadId || !date) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
     // Validate date format
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(new Date(date + "T00:00:00Z").getTime())) {
       return NextResponse.json({ error: "Invalid date format" }, { status: 400 })
-    }
-
-    // Validate time slot
-    const validTime = HOURLY_SLOTS.some((s: { key: string }) => s.key === time)
-    if (!validTime) {
-      return NextResponse.json({ error: "Invalid time slot" }, { status: 400 })
     }
 
     const supabase = createAdminClient()
@@ -118,7 +111,7 @@ export async function POST(request: Request) {
       .update({
         booking_status: "pending",
         booking_date: date,
-        booking_time: time,
+        booking_time: null,
         booking_clinic_id: clinicId,
         booking_token: bookingToken,
       })
@@ -176,19 +169,18 @@ export async function POST(request: Request) {
       lead_id: leadId,
       clinic_id: clinicId,
       session_id: lead.session_id || "00000000-0000-0000-0000-000000000000",
-      metadata: { date, time, source: "booking_confirmation" },
+      metadata: { date, source: "booking_confirmation" },
     })
 
     // Auto-create a chat conversation with the booking request so both patient
     // (in their dashboard) and clinic (in their inbox) can see and continue it.
-    const timeLabel = HOURLY_SLOTS.find((s: { key: string; label: string }) => s.key === time)?.label || time
     const formattedDate = new Date(date + "T00:00:00").toLocaleDateString("en-GB", {
       weekday: "long",
       day: "numeric",
       month: "long",
       year: "numeric",
     })
-    const bookingMessageContent = `Hi! I'd like to request an appointment on ${formattedDate} at ${timeLabel}. Would this time be available?`
+    const bookingMessageContent = `Hi! I'd like to request an appointment on ${formattedDate}. Would this date work?`
 
     // Hoist conversationId, tokenHash, and bookingMessage so they're accessible in the final response
     let conversationId: string | null = null
@@ -315,7 +307,7 @@ export async function POST(request: Request) {
         }
 
         // Insert bot acknowledgement so the patient knows why there's no immediate reply
-        const botAckContent = `Thanks for your appointment request! 🗓️\n\n${clinic.name} will review your request for ${formattedDate} at ${timeLabel} and get back to you shortly.\n\nIn the meantime, feel free to send any questions or additional details here.`
+        const botAckContent = `Thanks for your appointment request! 🗓️\n\n${clinic.name} will review your request for ${formattedDate} and get back to you shortly.\n\nIn the meantime, feel free to send any questions or additional details here.`
         const { data: botMsg, error: botMsgError } = await supabase.from("messages").insert({
           conversation_id: conversationId,
           sender_type: "bot",
@@ -350,8 +342,7 @@ export async function POST(request: Request) {
     // Send confirmation email to patient
     if (lead.email) {
       const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
-      const timeLabel = HOURLY_SLOTS?.find((s: { key: string; label: string }) => s.key === time)?.label || time
-      const formattedDate = new Date(date).toLocaleDateString("en-GB", {
+      const formattedDateForEmail = new Date(date).toLocaleDateString("en-GB", {
         weekday: "long",
         day: "numeric",
         month: "long",
@@ -403,8 +394,7 @@ export async function POST(request: Request) {
           data: {
             firstName: lead.first_name || "there",
             clinicName: clinic.name,
-            formattedDate,
-            timeLabel,
+            formattedDate: formattedDateForEmail,
             dashboardUrl: viewDashboardUrl,
             unsubscribeFooterHtml: unsubFooter,
             _leadId: leadId,

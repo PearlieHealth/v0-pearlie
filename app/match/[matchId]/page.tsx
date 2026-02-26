@@ -956,12 +956,11 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                 ) : (
                                   <ClinicDatePicker
                                     availableDays={clinic.available_days || ["mon", "tue", "wed", "thu", "fri"]}
-                                    availableHours={clinic.available_hours || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]}
                                     acceptsSameDay={clinic.accepts_same_day || false}
-                                    onSelectSlot={(date, time) => {
-                                      trackTikTokEvent("InitiateCheckout", { content_name: "select_time_slot" })
+                                    onSelectDate={(date) => {
+                                      trackTikTokEvent("InitiateCheckout", { content_name: "select_date" })
                                       const dateStr = date.toISOString().split("T")[0]
-                                      window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&time=${time}&matchId=${matchId}`
+                                      window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&matchId=${matchId}`
                                     }}
                                   />
                                 )}
