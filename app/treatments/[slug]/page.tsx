@@ -9,6 +9,7 @@ import { TreatmentHero } from "@/components/treatments/treatment-hero"
 import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
 import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-postcode"
 import { KeyFactsBar } from "@/components/treatments/key-facts-bar"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
 import { TreatmentFAQ } from "@/components/treatments/treatment-faq"
 import { RelatedTreatments } from "@/components/treatments/related-treatments"
@@ -279,6 +280,9 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           treatmentDuration={meta.treatmentDuration}
           clinicCount={clinics.length}
         />
+
+        {/* Trust badges */}
+        <TrustBadgeStrip />
 
         {/* 3. Clinic Listings */}
         <TreatmentClinicGrid

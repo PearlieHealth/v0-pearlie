@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { BlogHeader } from "@/components/blog/blog-header"
 import { TableOfContents } from "@/components/blog/table-of-contents"
@@ -172,6 +173,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
       <main>
         <BlogHeader post={meta} />
+
+        <TrustBadgeStrip />
 
         {/* Article body */}
         <section className="py-8 sm:py-12">

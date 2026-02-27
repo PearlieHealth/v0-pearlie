@@ -19,6 +19,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config"
 import { HomeHeroSearch } from "@/components/home-hero-search"
 import { StickyMobileHomeCta } from "@/components/sticky-mobile-home-cta"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 
 // Homepage treatment list derived from the canonical config (not hardcoded)
 const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT)
@@ -352,6 +353,9 @@ export default function Home() {
 
           {/* Scrolling Marquee - right below hero */}
           <ScrollingMarquee items={marqueeItems} speed={35} />
+
+          {/* Trust badge strip */}
+          <TrustBadgeStrip />
 
           {/* How it works section */}
           <section id="how-it-works" className="py-16 md:pt-8 md:pb-11 lg:pt-10 lg:pb-13 bg-white relative overflow-hidden">

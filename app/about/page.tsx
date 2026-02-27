@@ -8,6 +8,7 @@ import { MainNav } from "@/components/main-nav"
 import { ClinicNetworkCarousel } from "@/components/clinic-network-carousel"
 import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 
 export const metadata: Metadata = {
   title: "About Pearlie - Independent Dental Clinic Matching",
@@ -46,6 +47,8 @@ export default function AboutPage() {
             </div>
           </div>
         </section>
+
+        <TrustBadgeStrip />
 
         {/* Our Clinic Network — two-row carousel */}
         <section className="py-12 sm:py-20 md:py-24 bg-white">

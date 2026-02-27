@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
 import { TreatmentCard } from "@/components/treatments/treatment-card"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { getAllTreatments } from "@/lib/content/treatments"
 
 export const metadata: Metadata = {
@@ -85,6 +86,8 @@ export default function TreatmentsPage() {
             </div>
           </div>
         </section>
+
+        <TrustBadgeStrip />
 
         {/* Treatment grid */}
         <section className="py-10 sm:py-14">

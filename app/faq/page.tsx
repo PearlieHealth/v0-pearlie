@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export const metadata: Metadata = {
@@ -67,8 +68,16 @@ export default function FAQPage() {
                 <HelpCircle className="w-8 h-8 text-primary" />
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em]">Frequently asked questions</h1>
               </div>
-              <p className="text-lg text-muted-foreground mb-12">Everything you need to know about using Pearlie</p>
+              <p className="text-lg text-muted-foreground mb-8">Everything you need to know about using Pearlie</p>
+            </div>
+          </div>
+        </section>
 
+        <TrustBadgeStrip />
+
+        <section className="pt-8 pb-12 sm:pb-20 bg-background">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto">
               <Accordion type="single" collapsible className="space-y-4">
                 <AccordionItem value="item-1" className="border-none rounded-lg px-4 sm:px-6 bg-[var(--cream)]">
                   <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
