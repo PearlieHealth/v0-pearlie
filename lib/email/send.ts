@@ -15,6 +15,7 @@ import { EMAIL_FROM } from "@/lib/email-config"
 import { sendEmailWithRetry } from "@/lib/email-send"
 import { isUnsubscribed, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { generateEmailThreadHeaders } from "@/lib/email-reply-token"
 
 export interface SendRegisteredEmailParams {
   type: EmailType
@@ -131,6 +132,12 @@ export async function sendRegisteredEmail(
   const allHeaders: Record<string, string> = { ...params.headers }
   if (entry.unsubscribeCategory && !allHeaders["List-Unsubscribe"]) {
     Object.assign(allHeaders, generateUnsubscribeHeaders(params.to, entry.unsubscribeCategory))
+  }
+
+  // 7b. Add email threading headers for conversation-scoped emails
+  // Note: _conversationId is a metadata field not in Zod schemas, so use params.data
+  if (params.data._conversationId) {
+    Object.assign(allHeaders, generateEmailThreadHeaders(params.data._conversationId))
   }
 
   // 8. Send via Resend
