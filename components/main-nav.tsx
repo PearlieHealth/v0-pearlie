@@ -23,6 +23,7 @@ export function MainNav({ hideCta }: MainNavProps) {
   const pathname = usePathname()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
+  const [hasScrolled, setHasScrolled] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -30,6 +31,15 @@ export function MainNav({ hideCta }: MainNavProps) {
       setIsAuthenticated(!!session)
       setUserRole(session?.user?.user_metadata?.role || null)
     })
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setHasScrolled(window.scrollY > window.innerHeight * 0.85)
+    }
+    handleScroll()
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   const resourcesLinks = [
@@ -149,27 +159,34 @@ export function MainNav({ hideCta }: MainNavProps) {
           </nav>
 
           {/* CTA Buttons - Right */}
-          <div className="hidden md:flex items-center gap-3">
-            <Link
-              href={isAuthenticated ? "/patient/dashboard" : "/patient/login"}
-              className="text-sm font-heading font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
-            >
-              My account
-            </Link>
-            <Button
-              variant="outline"
-              size="lg"
-              className="text-sm px-6 rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-[#0fbcb0] text-[#0fbcb0] hover:bg-[#0fbcb0]/10"
-              asChild
-            >
-              <a href="https://portal.pearlie.org" target="_blank" rel="noopener noreferrer">
-                Clinic Portal
-              </a>
-            </Button>
+          <div className="hidden md:flex items-center gap-3 transition-all duration-500">
+            {!hasScrolled && (
+              <>
+                <Link
+                  href={isAuthenticated ? "/patient/dashboard" : "/patient/login"}
+                  className="text-sm font-heading font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
+                >
+                  My account
+                </Link>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-sm px-6 rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-[#0fbcb0] text-[#0fbcb0] hover:bg-[#0fbcb0]/10"
+                  asChild
+                >
+                  <a href="https://portal.pearlie.org" target="_blank" rel="noopener noreferrer">
+                    Clinic Portal
+                  </a>
+                </Button>
+              </>
+            )}
             {!hideCta && (
               <Button
                 size="lg"
-                className="text-sm px-6 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0"
+                className={cn(
+                  "text-sm bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0",
+                  hasScrolled ? "px-12" : "px-6",
+                )}
                 asChild
               >
                 <Link href="/intake">Find my clinic</Link>
