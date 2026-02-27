@@ -10,10 +10,19 @@ export const revalidate = 3600
 
 interface ClinicPageProps {
   params: Promise<{ clinicId: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export async function generateMetadata({ params }: ClinicPageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: ClinicPageProps): Promise<Metadata> {
   const { clinicId } = await params
+  const resolvedSearchParams = await searchParams
+  const isPreview = resolvedSearchParams?.preview === "true"
+
+  // Preview mode targets non-live clinics — skip metadata generation
+  if (isPreview) {
+    return { title: "Clinic Preview | Pearlie" }
+  }
+
   const clinic = await getClinicByIdOrSlug(clinicId)
 
   if (!clinic) {
@@ -49,8 +58,22 @@ export async function generateMetadata({ params }: ClinicPageProps): Promise<Met
   }
 }
 
-export default async function ClinicDetailPage({ params }: ClinicPageProps) {
+export default async function ClinicDetailPage({ params, searchParams }: ClinicPageProps) {
   const { clinicId } = await params
+  const resolvedSearchParams = await searchParams
+  const isPreview = resolvedSearchParams?.preview === "true"
+
+  // For preview mode, let the client component handle fetching entirely.
+  // The API route (/api/clinics/[clinicId]?preview=true) verifies clinic
+  // ownership via cookie auth, which we cannot replicate server-side here.
+  if (isPreview) {
+    return (
+      <Suspense fallback={<ClinicProfileSkeleton />}>
+        <ClinicProfileContent />
+      </Suspense>
+    )
+  }
+
   const clinic = await getClinicByIdOrSlug(clinicId)
 
   if (!clinic) {
