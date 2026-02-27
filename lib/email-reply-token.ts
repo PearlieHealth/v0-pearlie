@@ -4,8 +4,16 @@
  * Each outgoing chat notification email includes a Reply-To header like:
  *   reply+{token}@reply.pearlie.org
  *
- * The token encodes: conversationId, senderType (who will REPLY), participantEmail, timestamp.
- * Signed with HMAC-SHA256 so tokens can't be forged.
+ * Token format (compact binary, 31 bytes → 42 chars base64url):
+ *   Bytes 0-15:  conversation UUID (16 bytes, raw binary)
+ *   Byte 16:     sender type (0x00 = patient, 0x01 = clinic)
+ *   Bytes 17-20: issued-at timestamp (4 bytes, uint32 big-endian, unix seconds)
+ *   Bytes 21-30: HMAC-SHA256 truncated to 10 bytes (80-bit security)
+ *
+ * Local part: "reply+" (6) + 42 chars = 48 chars (under RFC 5321's 64-char limit).
+ *
+ * Sender email verification is done by looking up the conversation participant
+ * in the database rather than encoding the email in the token.
  */
 import { createHmac, timingSafeEqual } from "crypto"
 
@@ -18,8 +26,6 @@ export interface ReplyTokenPayload {
   conversationId: string
   /** Who is replying: 'patient' or 'clinic' */
   senderType: "patient" | "clinic"
-  /** The expected email address of the replier */
-  participantEmail: string
   /** Unix timestamp (seconds) when the token was created */
   issuedAt: number
 }
@@ -30,6 +36,11 @@ export interface ReplyTokenPayload {
 
 /** Tokens older than this are rejected */
 const TOKEN_MAX_AGE_SECONDS = 30 * 24 * 60 * 60 // 30 days
+
+/** Total binary token length: 16 (UUID) + 1 (sender) + 4 (timestamp) + 10 (HMAC) */
+const TOKEN_BYTE_LENGTH = 31
+const PAYLOAD_BYTE_LENGTH = 21
+const HMAC_BYTE_LENGTH = 10
 
 function getSecret(): string {
   const secret = process.env.EMAIL_REPLY_SECRET
@@ -44,38 +55,20 @@ function getReplyDomain(): string {
 }
 
 // ---------------------------------------------------------------------------
-// Encoding helpers (base64url — URL-safe, no padding)
+// UUID ↔ bytes helpers
 // ---------------------------------------------------------------------------
 
-function toBase64Url(str: string): string {
-  return Buffer.from(str, "utf-8")
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "")
-}
-
-function fromBase64Url(b64: string): string {
-  const padded = b64.replace(/-/g, "+").replace(/_/g, "/")
-  return Buffer.from(padded, "base64").toString("utf-8")
-}
-
-// ---------------------------------------------------------------------------
-// HMAC
-// ---------------------------------------------------------------------------
-
-function sign(payload: string, secret: string): string {
-  return createHmac("sha256", secret).update(payload).digest("base64url")
-}
-
-function verifySignature(payload: string, signature: string, secret: string): boolean {
-  const expected = createHmac("sha256", secret).update(payload).digest("base64url")
-  try {
-    return timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
-  } catch {
-    // Lengths differ
-    return false
+function uuidToBytes(uuid: string): Buffer {
+  const hex = uuid.replace(/-/g, "")
+  if (hex.length !== 32) {
+    throw new Error("Invalid UUID format")
   }
+  return Buffer.from(hex, "hex")
+}
+
+function bytesToUuid(bytes: Buffer): string {
+  const hex = bytes.toString("hex")
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
 
 // ---------------------------------------------------------------------------
@@ -85,6 +78,9 @@ function verifySignature(payload: string, signature: string, secret: string): bo
 /**
  * Generate a reply-to token for a conversation participant.
  * Returns the full Reply-To email address.
+ *
+ * The participantEmail parameter is accepted for API compatibility but is NOT
+ * encoded in the token (verified from DB on inbound instead).
  */
 export function generateReplyToAddress(
   conversationId: string,
@@ -94,71 +90,73 @@ export function generateReplyToAddress(
   const secret = getSecret()
   const issuedAt = Math.floor(Date.now() / 1000)
 
-  // Payload format: conversationId:senderType:email:timestamp
-  const payload = `${conversationId}:${senderType}:${participantEmail}:${issuedAt}`
-  const encoded = toBase64Url(payload)
-  const signature = sign(payload, secret)
+  // Build binary payload: UUID (16) + senderType (1) + timestamp (4) = 21 bytes
+  const payload = Buffer.alloc(PAYLOAD_BYTE_LENGTH)
+  uuidToBytes(conversationId).copy(payload, 0)
+  payload[16] = senderType === "patient" ? 0x00 : 0x01
+  payload.writeUInt32BE(issuedAt >>> 0, 17)
 
-  const token = `${encoded}.${signature}`
+  // HMAC-SHA256 over payload, truncated to 10 bytes
+  const hmac = createHmac("sha256", secret).update(payload).digest()
+  const hmacTruncated = hmac.subarray(0, HMAC_BYTE_LENGTH)
+
+  // Combine: 21 + 10 = 31 bytes → base64url = 42 chars
+  const token = Buffer.concat([payload, hmacTruncated])
+  const tokenStr = token.toString("base64url")
+
   const domain = getReplyDomain()
-
-  return `reply+${token}@${domain}`
+  return `reply+${tokenStr}@${domain}`
 }
 
 /**
  * Verify and decode a reply-to token from an inbound email address.
  * Returns the decoded payload or an error reason.
+ *
+ * Note: participantEmail is no longer in the token. The caller must verify
+ * the sender email by looking up the conversation participant in the database.
  */
 export function verifyReplyToken(
   replyToAddress: string
 ): { ok: true; payload: ReplyTokenPayload } | { ok: false; reason: string } {
   try {
     // Extract token from "reply+{token}@domain" or just the token itself
-    let token = replyToAddress
-    if (token.includes("@")) {
-      const localPart = token.split("@")[0]
+    let tokenStr = replyToAddress
+    if (tokenStr.includes("@")) {
+      const localPart = tokenStr.split("@")[0]
       if (!localPart.startsWith("reply+")) {
         return { ok: false, reason: "invalid_format" }
       }
-      token = localPart.slice("reply+".length)
+      tokenStr = localPart.slice("reply+".length)
     }
 
-    // Split into encoded payload and signature
-    const dotIndex = token.lastIndexOf(".")
-    if (dotIndex === -1) {
-      return { ok: false, reason: "invalid_format" }
+    // Decode base64url → 31 bytes
+    const token = Buffer.from(tokenStr, "base64url")
+    if (token.length !== TOKEN_BYTE_LENGTH) {
+      return { ok: false, reason: "invalid_length" }
     }
 
-    const encoded = token.slice(0, dotIndex)
-    const signature = token.slice(dotIndex + 1)
-
-    // Decode payload
-    const payload = fromBase64Url(encoded)
+    const payload = token.subarray(0, PAYLOAD_BYTE_LENGTH)
+    const hmacReceived = token.subarray(PAYLOAD_BYTE_LENGTH, TOKEN_BYTE_LENGTH)
 
     // Verify HMAC
     const secret = getSecret()
-    if (!verifySignature(payload, signature, secret)) {
+    const hmacExpected = createHmac("sha256", secret)
+      .update(payload)
+      .digest()
+      .subarray(0, HMAC_BYTE_LENGTH)
+
+    if (!timingSafeEqual(hmacReceived, hmacExpected)) {
       return { ok: false, reason: "invalid_signature" }
     }
 
-    // Parse payload: conversationId:senderType:email:timestamp
-    const parts = payload.split(":")
-    if (parts.length < 4) {
-      return { ok: false, reason: "invalid_payload" }
-    }
+    // Decode payload fields
+    const conversationId = bytesToUuid(payload.subarray(0, 16))
+    const senderByte = payload[16]
+    const senderType = senderByte === 0x00 ? "patient" : "clinic"
+    const issuedAt = payload.readUInt32BE(17)
 
-    // Email may contain colons (rare but possible), so rejoin everything between index 2 and last
-    const conversationId = parts[0]
-    const senderType = parts[1]
-    const issuedAt = parseInt(parts[parts.length - 1], 10)
-    const participantEmail = parts.slice(2, parts.length - 1).join(":")
-
-    if (senderType !== "patient" && senderType !== "clinic") {
+    if (senderByte !== 0x00 && senderByte !== 0x01) {
       return { ok: false, reason: "invalid_sender_type" }
-    }
-
-    if (isNaN(issuedAt)) {
-      return { ok: false, reason: "invalid_timestamp" }
     }
 
     // Check expiry
@@ -172,7 +170,6 @@ export function verifyReplyToken(
       payload: {
         conversationId,
         senderType: senderType as "patient" | "clinic",
-        participantEmail,
         issuedAt,
       },
     }

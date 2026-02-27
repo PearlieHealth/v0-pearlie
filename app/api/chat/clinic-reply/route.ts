@@ -287,14 +287,10 @@ export async function POST(request: NextRequest) {
             }
 
             // Generate reply-to token so the patient can reply directly from email
-            let replyTo: string | undefined
-            let threadMarker: string | undefined
-            try {
-              replyTo = generateReplyToAddress(conversationId, "patient", lead.email)
-              threadMarker = generateThreadMarker(conversationId)
-            } catch (tokenErr) {
-              console.warn("[Chat] Failed to generate reply-to token:", tokenErr)
-            }
+            // This is REQUIRED — if EMAIL_REPLY_SECRET is not set, the email will
+            // fail and the error will be logged. Set the env var to fix.
+            const replyTo = generateReplyToAddress(conversationId, "patient", lead.email)
+            const threadMarker = generateThreadMarker(conversationId)
 
             // Fetch recent messages for thread context (last 3, excluding current)
             let recentMessages: Array<{ sender: string; content: string; timestamp?: string }> | undefined
