@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
 import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
+import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-postcode"
 import { AreaHero } from "@/components/areas/area-hero"
 import { AreaStatsBar } from "@/components/areas/area-stats-bar"
 import { AreaNhsInfo } from "@/components/areas/area-nhs-info"
@@ -188,6 +189,10 @@ export default async function BoroughPage({ params }: BoroughPageProps) {
       />
 
       <MainNav />
+      <StickyMobilePostcode
+        treatmentName="dentist"
+        intakeTreatment="general"
+      />
 
       <main>
         {/* 1. Hero */}

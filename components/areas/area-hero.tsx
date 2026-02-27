@@ -1,6 +1,6 @@
-import Link from "next/link"
 import { MapPin, Train } from "lucide-react"
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
+import { HeroPostcodeCta } from "@/components/treatments/hero-postcode-cta"
 import type { LondonBorough } from "@/lib/data/london-boroughs"
 
 interface AreaHeroProps {
@@ -9,6 +9,8 @@ interface AreaHeroProps {
   /** Optional treatment name when rendering a borough+treatment page */
   treatmentName?: string
   treatmentSlug?: string
+  /** Intake treatment key for postcode CTA */
+  intakeTreatment?: string
 }
 
 export function AreaHero({
@@ -16,6 +18,7 @@ export function AreaHero({
   clinicCount,
   treatmentName,
   treatmentSlug,
+  intakeTreatment = "general",
 }: AreaHeroProps) {
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -62,7 +65,7 @@ export function AreaHero({
           </p>
 
           {/* Local signals */}
-          <div className="flex flex-wrap gap-4 text-sm text-white/60">
+          <div className="flex flex-wrap gap-4 text-sm text-white/60 mb-8">
             <span className="flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-[#0fbcb0]" />
               {borough.postcodes.slice(0, 4).join(", ")}
@@ -72,6 +75,14 @@ export function AreaHero({
               <Train className="w-4 h-4 text-[#0fbcb0]" />
               {borough.transport.slice(0, 3).join(", ")}
             </span>
+          </div>
+
+          {/* Postcode CTA */}
+          <div className="[&_p]:text-white/60 [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-[#0fbcb0] [&_input]:focus-visible:border-[#0fbcb0] [&_.text-destructive]:text-red-300">
+            <HeroPostcodeCta
+              treatmentName={treatmentName || "dentist"}
+              intakeTreatment={intakeTreatment}
+            />
           </div>
         </div>
       </div>

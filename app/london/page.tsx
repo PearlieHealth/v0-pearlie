@@ -6,7 +6,9 @@ import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
+import { HeroPostcodeCta } from "@/components/treatments/hero-postcode-cta"
 import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
+import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-postcode"
 import { PatientTestimonials } from "@/components/find/patient-testimonials"
 import {
   LONDON_BOROUGHS,
@@ -80,6 +82,10 @@ export default async function LondonPage() {
       />
 
       <MainNav />
+      <StickyMobilePostcode
+        treatmentName="dentist"
+        intakeTreatment="general"
+      />
 
       <main>
         {/* Hero */}
@@ -95,11 +101,17 @@ export default async function LondonPage() {
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] text-white mb-4 text-balance">
                 Find a dentist in London
               </h1>
-              <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed mb-8">
                 Compare verified, GDC registered dental clinics across{" "}
                 {LONDON_BOROUGHS.length} London boroughs. See pricing, read
                 reviews, and get matched — free.
               </p>
+              <div className="max-w-lg mx-auto [&_p]:text-white/60 [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-[#0fbcb0] [&_input]:focus-visible:border-[#0fbcb0] [&_.text-destructive]:text-red-300 [&_form]:mx-auto">
+                <HeroPostcodeCta
+                  treatmentName="dentist"
+                  intakeTreatment="general"
+                />
+              </div>
             </div>
           </div>
         </section>

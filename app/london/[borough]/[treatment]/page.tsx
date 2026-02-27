@@ -8,6 +8,7 @@ import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
 import { TreatmentFAQ } from "@/components/treatments/treatment-faq"
 import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
+import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-postcode"
 import { AreaHero } from "@/components/areas/area-hero"
 import { AreaStatsBar } from "@/components/areas/area-stats-bar"
 import { AreaNhsInfo } from "@/components/areas/area-nhs-info"
@@ -239,6 +240,10 @@ export default async function AreaTreatmentPage({
       )}
 
       <MainNav />
+      <StickyMobilePostcode
+        treatmentName={meta.treatmentName}
+        intakeTreatment={meta.intakeTreatment}
+      />
 
       <main>
         {/* 1. Hero */}
@@ -247,6 +252,7 @@ export default async function AreaTreatmentPage({
           clinicCount={clinics.length}
           treatmentName={meta.treatmentName}
           treatmentSlug={treatmentSlug}
+          intakeTreatment={meta.intakeTreatment}
         />
 
         {/* 2. Stats bar */}
