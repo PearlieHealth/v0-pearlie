@@ -123,7 +123,7 @@ const DENTIST_NEAR_ME_FAQ = [
   },
   {
     q: "What's the difference between an NHS dentist and a private dentist?",
-    a: "NHS dentistry covers essential treatments at fixed Band 1–3 prices (£26.80–£306.10 in England), but availability is severely limited — 5.6 million people in England tried and failed to get an NHS appointment in 2024. Private dentists offer faster access, more treatment options (especially cosmetic), longer appointments, and continuity of care, but at higher prices. Some clinics offer both NHS and private services.",
+    a: "NHS dentistry covers essential treatments at fixed Band 1–3 prices (£26.80–£306.10 in England), but availability is severely limited — millions of people in England struggle to get an NHS appointment, with the majority turning to private care. Private dentists offer faster access, more treatment options (especially cosmetic), longer appointments, and continuity of care, but at higher prices. Some clinics offer both NHS and private services.",
   },
   {
     q: "How do I find an emergency dentist near me?",
@@ -392,8 +392,7 @@ function DentistNearMePage() {
         {/* Quick Facts */}
         <QuickFacts
           areaName="London"
-          clinicCount={20}
-          content="London has over 4,500 registered dental practices — more than any other city in the UK — yet finding the right one remains a challenge for most patients. According to the British Dental Association, 5.6 million people in England tried but failed to get an NHS dental appointment in 2024, and 69% of those turned to private care. The average private check-up in London costs £60–£150, with costs varying significantly by area: Central London practices charge 30–50% more than outer boroughs. Cosmetic treatments are a major driver of private dental growth, with Invisalign, teeth whitening, and composite bonding accounting for the fastest-rising categories of dental spend across the capital."
+          content="London has more dental practices than any other city in the UK — yet finding the right one remains a challenge for most patients. According to the British Dental Association, millions of people in England have been unable to get an NHS dental appointment in recent years, with the majority turning to private care instead. The average private check-up in London costs £60–£150, with costs varying significantly by area: Central London practices charge 30–50% more than outer boroughs. Cosmetic treatments are a major driver of private dental growth, with Invisalign, teeth whitening, and composite bonding accounting for the fastest-rising categories of dental spend across the capital."
         />
 
         {/* Bottom CTA */}
@@ -590,7 +589,7 @@ async function RegionPage({ slug }: { slug: string }) {
         </section>
 
         {/* Quick Facts */}
-        <QuickFacts areaName={region.name} clinicCount={clinics.length} content={region.quickFacts} />
+        <QuickFacts areaName={region.name} content={region.quickFacts} />
 
         {/* Bottom CTA */}
         <section className="py-12 sm:py-20 bg-[#004443]">
@@ -758,7 +757,7 @@ async function AreaPage({ slug }: { slug: string }) {
         )}
 
         {/* Quick Facts */}
-        <QuickFacts areaName={area.name} clinicCount={clinics.length} content={area.quickFacts} />
+        <QuickFacts areaName={area.name} content={area.quickFacts} />
 
         {/* Bottom CTA */}
         <section className="py-12 sm:py-20 bg-[#004443]">
