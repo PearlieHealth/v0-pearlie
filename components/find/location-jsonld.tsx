@@ -1,8 +1,8 @@
-import type { LondonArea } from "@/lib/locations/london"
+import type { LondonArea, LondonRegion, AreaFaqItem } from "@/lib/locations/london"
 import type { LocationClinic } from "@/lib/locations/queries"
 
 interface LocationJsonLdProps {
-  area: LondonArea
+  area: LondonArea | LondonRegion
   clinics: LocationClinic[]
 }
 
@@ -17,13 +17,20 @@ export function LocationJsonLd({ area, clinics }: LocationJsonLdProps) {
       position: index + 1,
       item: {
         "@type": "Dentist",
+        "@id": `https://pearlie.org/clinic/${clinic.slug || clinic.id}`,
         name: clinic.name,
         address: {
           "@type": "PostalAddress",
           streetAddress: clinic.address,
           postalCode: clinic.postcode,
           addressLocality: "London",
+          addressRegion: "Greater London",
           addressCountry: "GB",
+        },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: clinic.latitude,
+          longitude: clinic.longitude,
         },
         ...(clinic.rating > 0 && {
           aggregateRating: {
@@ -35,16 +42,21 @@ export function LocationJsonLd({ area, clinics }: LocationJsonLdProps) {
         }),
         ...(clinic.phone && { telephone: clinic.phone }),
         ...(clinic.website && { url: clinic.website }),
+        ...(clinic.images && clinic.images.length > 0 && { image: clinic.images[0] }),
+        priceRange: clinic.price_range || "$$",
+        medicalSpecialty: "Dentistry",
+        isAcceptingNewPatients: true,
       },
     })),
   }
 
+  const faqItems: AreaFaqItem[] = area.faq
   const faqSchema =
-    area.faq.length > 0
+    faqItems.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: area.faq.map((item) => ({
+          mainEntity: faqItems.map((item) => ({
             "@type": "Question",
             name: item.question,
             acceptedAnswer: {

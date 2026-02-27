@@ -11,6 +11,7 @@ import { LocationClinicCard } from "@/components/find/location-clinic-card"
 import { LocationJsonLd } from "@/components/find/location-jsonld"
 import { HeroPostcodeSearch } from "@/components/find/hero-postcode-search"
 import { StickyPostcodeBar } from "@/components/find/sticky-postcode-bar"
+import { QuickFacts } from "@/components/find/quick-facts"
 import {
   LONDON_AREAS,
   LONDON_REGIONS,
@@ -110,31 +111,51 @@ const TRUST_ITEMS = [
 const DENTIST_NEAR_ME_FAQ = [
   {
     q: "How does Pearlie choose which clinics to show me?",
-    a: "We match you based on your postcode, treatment needs, preferences, and schedule — not just distance. Every clinic is independently verified and GDC-registered before appearing on Pearlie.",
+    a: "Pearlie matches you based on your postcode, treatment needs, preferences, and schedule — not just distance. Every clinic is independently verified against the General Dental Council (GDC) register before appearing on the platform. Matching is based on relevance and fit, not paid ranking.",
   },
   {
     q: "Are all dentists on Pearlie GDC registered?",
-    a: "Yes. Every dental clinic listed on Pearlie is verified against the General Dental Council register. We check credentials, patient reviews, and clinical standards before listing any practice.",
+    a: "Yes. Every dental clinic listed on Pearlie is verified against the General Dental Council register. The GDC is the regulatory body for all dental professionals in the UK — there are currently over 43,000 registered dentists in the UK, with approximately 4,500 practices in London alone.",
   },
   {
     q: "Is Pearlie free to use?",
-    a: "Completely free. Pearlie is a free service for patients — there are no hidden fees, no subscription, and no obligation. You can compare private dentists, message clinics, and book appointments at no cost.",
+    a: "Completely free. Pearlie is a free service for patients — there are no hidden fees, no subscription, and no obligation to book. You can compare private dentists, message clinics, and book appointments at no cost. Pearlie is funded by participating clinics, not by patients.",
   },
   {
-    q: "Do I pay Pearlie anything?",
-    a: "No. Pearlie is free for patients. We are funded by dental clinics who pay a small fee to be listed. This means you get unbiased comparisons and access to verified practices without paying a penny.",
+    q: "How much does a private dentist cost in London?",
+    a: "A standard private dental check-up in London typically costs between £60 and £150. Common treatments range widely: teeth whitening from £250–£1,000, Invisalign from £2,500–£5,500, composite bonding from £150–£400 per tooth, veneers from £400–£1,200 per tooth, and dental implants from £2,000–£6,000 per implant. Pearlie shows indicative pricing for each clinic so you can compare before booking.",
   },
   {
     q: "Can I find NHS dentists on Pearlie?",
-    a: "Pearlie focuses on private dental clinics in London. For NHS dental services, we recommend using the NHS Find a Dentist tool. However, some clinics listed on Pearlie may also accept NHS patients for certain treatments.",
-  },
-  {
-    q: "How quickly will clinics respond to my enquiry?",
-    a: "Most clinics on Pearlie respond within a few hours during working days. You'll receive a notification when a clinic messages you back, and you can reply directly through our secure messaging system.",
+    a: "Pearlie focuses on private dental clinics in London. According to the British Dental Association, 5.6 million people in England tried but failed to get an NHS dental appointment in 2024, with 69% of those turning to private care. For NHS dental services, we recommend using the NHS Find a Dentist tool. Some clinics listed on Pearlie may also accept NHS patients for certain treatments.",
   },
   {
     q: "What treatments can I search for on Pearlie?",
-    a: "You can search for a wide range of dental treatments including check-ups, teeth whitening, Invisalign, veneers, dental implants, composite bonding, root canals, emergency dental care, and more. Tell us what you need and we'll find clinics that specialise in it.",
+    a: "You can search for a wide range of dental treatments including check-ups, teeth whitening, Invisalign, veneers, dental implants, composite bonding, root canals, emergency dental care, crowns, bridges, and more. Pearlie covers 10+ treatment categories across 20+ London boroughs. Tell us what you need and we'll find clinics that specialise in it.",
+  },
+  {
+    q: "How quickly will clinics respond to my enquiry?",
+    a: "Most clinics on Pearlie respond within a few hours during working days. You'll receive a notification when a clinic messages you back, and you can reply directly through our secure messaging system. There's no obligation to proceed — you can take your time to compare options.",
+  },
+  {
+    q: "Can I find a dentist open on weekends or evenings?",
+    a: "Yes. Many clinics on Pearlie offer Saturday appointments, and some offer evening hours during the week. When you complete the intake form, you can specify your preferred days and times, and Pearlie will prioritise clinics that match your availability.",
+  },
+  {
+    q: "How do I find an emergency dentist near me?",
+    a: "If you need urgent dental care, Pearlie lists clinics that offer same-day or next-day emergency appointments. Emergency dental consultations in London typically cost £50–£150, with treatment costs varying depending on the issue. For life-threatening emergencies, call 999 or go to A&E. For urgent but non-life-threatening issues, call NHS 111 or use Pearlie to find a clinic with emergency availability.",
+  },
+  {
+    q: "Do clinics on Pearlie offer payment plans?",
+    a: "Many dental clinics listed on Pearlie offer interest-free finance or monthly payment plans, particularly for higher-value treatments like Invisalign, dental implants, and veneers. Payment options vary by clinic — you can message clinics directly through Pearlie to ask about their finance options before committing.",
+  },
+  {
+    q: "What should I look for when choosing a dentist?",
+    a: "When choosing a dentist, check that they are GDC-registered, read patient reviews, compare pricing transparency, and look at the range of treatments offered. Consider location and opening hours that fit your schedule. Pearlie helps you compare all of these factors in one place — every clinic is verified, and you can see ratings, pricing, and patient feedback before making contact.",
+  },
+  {
+    q: "What happens to my data when I use Pearlie?",
+    a: "Patient data is handled under UK GDPR and used only for the matching service. Clinics only see your details when you choose to contact them — we never share your information without your consent. No cold calls, no marketing lists. You can request data deletion at any time by contacting hello@pearlie.org.",
   },
 ]
 
@@ -147,6 +168,23 @@ function DentistNearMePage() {
           { name: "Find a Dentist", url: "https://pearlie.org/find" },
           { name: "Dentist Near Me", url: "https://pearlie.org/find/dentist-near-me" },
         ]}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: DENTIST_NEAR_ME_FAQ.map((item) => ({
+              "@type": "Question",
+              name: item.q,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: item.a,
+              },
+            })),
+          }),
+        }}
       />
       <MainNav />
       <StickyPostcodeBar />
@@ -351,6 +389,9 @@ function DentistNearMePage() {
           </div>
         </section>
 
+        {/* Quick Facts */}
+        <QuickFacts areaName="London" clinicCount={20} />
+
         {/* Bottom CTA */}
         <section className="py-16 sm:py-24 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -396,6 +437,7 @@ async function RegionPage({ slug }: { slug: string }) {
           { name: region.name, url: `https://pearlie.org/find/${region.slug}` },
         ]}
       />
+      <LocationJsonLd area={region} clinics={clinics} />
       <MainNav />
       <StickyPostcodeBar />
 
@@ -542,6 +584,9 @@ async function RegionPage({ slug }: { slug: string }) {
             </div>
           </div>
         </section>
+
+        {/* Quick Facts */}
+        <QuickFacts areaName={region.name} clinicCount={clinics.length} />
 
         {/* Bottom CTA */}
         <section className="py-12 sm:py-20 bg-[#004443]">
@@ -707,6 +752,9 @@ async function AreaPage({ slug }: { slug: string }) {
             </div>
           </section>
         )}
+
+        {/* Quick Facts */}
+        <QuickFacts areaName={area.name} clinicCount={clinics.length} />
 
         {/* Bottom CTA */}
         <section className="py-12 sm:py-20 bg-[#004443]">

@@ -124,6 +124,51 @@ Pearlie publishes detailed, clinically reviewed treatment guides to help patient
 - Covers: What counts as a dental emergency, first aid guidance, types (toothache, broken tooth, abscess, knocked-out tooth), cost breakdown, NHS 111 guidance, what to expect, follow-up care, prevention
 - Includes verified London clinics offering same-day emergency appointments
 
+## Find a Dentist in London
+
+Pearlie helps patients find dentists across all areas of London. Each location page lists verified, GDC-registered clinics with ratings, pricing, and direct messaging.
+
+### Location Directory
+- URL: https://pearlie.org/find
+- Browse dentists by London region: Central, South, North, West, and East London
+
+### Dentist Near Me
+- URL: https://pearlie.org/find/dentist-near-me
+- Enter your postcode to find nearby verified dental clinics
+- Matches based on treatment needs, not just distance
+
+### Central London
+- Harley Street: https://pearlie.org/find/harley-street — London's premier medical district with specialist and cosmetic dentists
+- Soho: https://pearlie.org/find/soho — Central London clinics near Oxford Street and Piccadilly Circus
+- Mayfair: https://pearlie.org/find/mayfair — Premium dental care in London's most exclusive neighbourhood
+
+### South London
+- Clapham: https://pearlie.org/find/clapham — Popular clinics serving Clapham, Battersea, and Brixton
+- Brixton: https://pearlie.org/find/brixton — Affordable and accessible dental care in South London
+- Peckham: https://pearlie.org/find/peckham — Growing dental scene in the heart of Southwark
+
+### North London
+- Islington: https://pearlie.org/find/islington — Quality dental practices near Angel and Highbury
+- Camden: https://pearlie.org/find/camden — Dental clinics in Camden Town and Kentish Town
+- Hampstead: https://pearlie.org/find/hampstead — Premium dental care in leafy North London
+
+### West London
+- Kensington & Chelsea: https://pearlie.org/find/kensington-chelsea — High-end dental clinics in West London
+- Notting Hill: https://pearlie.org/find/notting-hill — Boutique dental practices near Portobello Road
+- Hammersmith: https://pearlie.org/find/hammersmith — Convenient dental care in West London
+
+### East London
+- Canary Wharf: https://pearlie.org/find/canary-wharf — Modern dental clinics for city professionals
+- Shoreditch: https://pearlie.org/find/shoreditch — Contemporary dental practices in East London's creative hub
+- Stratford: https://pearlie.org/find/stratford — Accessible dental care near Queen Elizabeth Olympic Park
+
+### Quick Facts: Dentists in London
+- London has over 4,500 registered dental practices (Source: GDC Register)
+- The average private dental check-up in London costs £60–£150
+- Over 70% of London dental patients choose private care due to NHS waiting times
+- Pearlie lists 20+ verified private clinics across 15 London neighbourhoods
+- All clinics on Pearlie are independently verified against the GDC register
+
 ## Pages
 
 - Homepage: https://pearlie.org/
@@ -131,6 +176,7 @@ Pearlie publishes detailed, clinically reviewed treatment guides to help patient
 - FAQ: https://pearlie.org/faq
 - Our Mission: https://pearlie.org/our-mission
 - All Treatments: https://pearlie.org/treatments
+- Find a Dentist: https://pearlie.org/find
 - Find Your Match: https://pearlie.org/intake
 - For Clinics: https://pearlie.org/for-clinics
 - Privacy Policy: https://pearlie.org/privacy

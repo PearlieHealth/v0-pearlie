@@ -9,7 +9,7 @@ const LOCATION_CLINIC_FIELDS = `
   facilities, opening_hours, images, verified, accepts_nhs,
   parking_available, wheelchair_accessible, tags, available_days,
   available_hours, accepts_same_day, highlight_chips, price_range,
-  featured
+  featured, google_rating, google_review_count, google_maps_url
 `.replace(/\s+/g, " ").trim()
 
 export interface LocationClinic {
@@ -34,6 +34,9 @@ export interface LocationClinic {
   price_range: string | null
   featured: boolean
   distance_miles: number
+  google_rating: number | null
+  google_review_count: number | null
+  google_maps_url: string | null
 }
 
 /**
