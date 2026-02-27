@@ -23,6 +23,12 @@ export const metadata: Metadata = {
     url: "https://pearlie.org/guides",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dental Guides | Pearlie",
+    description:
+      "Comprehensive guides to dental treatments, costs and finding the right dentist in the UK.",
+  },
 }
 
 export default function GuidesPage() {

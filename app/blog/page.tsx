@@ -29,6 +29,12 @@ export const metadata: Metadata = {
     url: "https://pearlie.org/blog",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dental Blog | Pearlie",
+    description:
+      "Expert dental guides, treatment cost breakdowns, and tips for finding the right dentist in the UK.",
+  },
 }
 
 interface BlogPageProps {

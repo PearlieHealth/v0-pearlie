@@ -20,6 +20,11 @@ export const metadata: Metadata = {
     description: "Pearlie is an independent dental matching platform helping patients find trusted, GDC-registered clinics across the UK.",
     url: "https://pearlie.org/about",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Pearlie - Independent Dental Clinic Matching",
+    description: "Pearlie is an independent dental matching platform helping patients find trusted, GDC-registered clinics across the UK.",
+  },
 }
 
 export default function AboutPage() {

@@ -13,14 +13,12 @@ export const metadata: Metadata = {
     description:
       "Receive matched patients in London and the UK looking for your dental services. Quality leads and zero upfront cost.",
     url: "https://pearlie.org/for-clinics",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Pearlie - For Dental Clinics" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "For Dental Clinics - Join Pearlie's Network",
     description:
       "Receive matched patients in London and the UK looking for your dental services. Quality leads and zero upfront cost.",
-    images: ["/og-image.jpg"],
   },
 }
 import { Card } from "@/components/ui/card"
