@@ -124,6 +124,36 @@ Pearlie publishes detailed, clinically reviewed treatment guides to help patient
 - Covers: What counts as a dental emergency, first aid guidance, types (toothache, broken tooth, abscess, knocked-out tooth), cost breakdown, NHS 111 guidance, what to expect, follow-up care, prevention
 - Includes verified London clinics offering same-day emergency appointments
 
+## London Area Pages
+
+Pearlie publishes area-specific pages to help patients find dental clinics in their London borough. Each page includes verified clinic listings, local NHS dental access information, transport links, and area-specific pricing context.
+
+### London Hub
+- URL: https://pearlie.org/london
+- Covers: All 15 London boroughs with verified dental clinics
+- Organised by region: Central, North, South, East, West
+
+### Borough Pages
+Each borough page includes real clinic data, NHS information, and links to treatment-specific sub-pages.
+
+- Westminster: https://pearlie.org/london/westminster — Harley Street area, premium dental provision
+- City of London: https://pearlie.org/london/city-of-london — Financial district, daytime professional clinics
+- Camden: https://pearlie.org/london/camden — Includes Eastman Dental Hospital area
+- Islington: https://pearlie.org/london/islington — Angel and Upper Street cosmetic dentistry cluster
+- Hackney: https://pearlie.org/london/hackney — Dalston and Shoreditch area
+- Haringey: https://pearlie.org/london/haringey — Muswell Hill to Tottenham
+- Southwark: https://pearlie.org/london/southwark — Near Guy's Hospital and King's College
+- Lambeth: https://pearlie.org/london/lambeth — Brixton and Clapham clinics
+- Lewisham: https://pearlie.org/london/lewisham — Affordable south-east London dental care
+- Tower Hamlets: https://pearlie.org/london/tower-hamlets — Canary Wharf and Whitechapel
+- Greenwich: https://pearlie.org/london/greenwich — Growing dental provision in south-east
+- Kensington and Chelsea: https://pearlie.org/london/kensington-and-chelsea — Premier cosmetic and specialist dentistry
+- Hammersmith and Fulham: https://pearlie.org/london/hammersmith-and-fulham — Fulham and Shepherd's Bush clinics
+- Wandsworth: https://pearlie.org/london/wandsworth — Battersea and Clapham Junction, young professional demographic
+
+### Borough + Treatment Pages
+Each borough also has treatment-specific sub-pages (e.g., /london/westminster/invisalign) combining area-specific pricing, local clinic data, and NHS information with treatment guidance. Available treatments: Invisalign, Dental Implants, Teeth Whitening, Composite Bonding, Veneers, Emergency Dental Care.
+
 ## Pages
 
 - Homepage: https://pearlie.org/
@@ -131,6 +161,7 @@ Pearlie publishes detailed, clinically reviewed treatment guides to help patient
 - FAQ: https://pearlie.org/faq
 - Our Mission: https://pearlie.org/our-mission
 - All Treatments: https://pearlie.org/treatments
+- London Dentists: https://pearlie.org/london
 - Find Your Match: https://pearlie.org/intake
 - For Clinics: https://pearlie.org/for-clinics
 - Privacy Policy: https://pearlie.org/privacy

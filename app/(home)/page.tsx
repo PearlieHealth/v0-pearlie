@@ -17,6 +17,13 @@ import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { SiteFooter } from "@/components/site-footer"
 import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config"
+import {
+  LONDON_BOROUGHS,
+  getBoroughsByRegion,
+  type LondonBorough,
+} from "@/lib/data/london-boroughs"
+
+const REGIONS: LondonBorough["region"][] = ["Central", "North", "South", "East", "West"]
 
 // Homepage treatment list derived from the canonical config (not hardcoded)
 const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT)
@@ -600,6 +607,63 @@ export default function Home() {
 
           {/* Patient Experiences section */}
           <PatientExperiences />
+
+          {/* Find dentists by area */}
+          <section className="py-16 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32 bg-white">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="max-w-7xl mx-auto">
+                <div className="text-center mb-12 md:mb-16">
+                  <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443] mb-4">
+                    Browse by Area
+                  </span>
+                  <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443] leading-[1.05]">
+                    Find dentists across<br /><span className="text-[#0fbcb0]">London</span>
+                  </h2>
+                  <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+                    Compare verified dental clinics in {LONDON_BOROUGHS.length} London boroughs.
+                    See pricing, read reviews, and get matched by area.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-8 mb-10">
+                  {REGIONS.map((region) => {
+                    const boroughs = getBoroughsByRegion(region)
+                    if (boroughs.length === 0) return null
+                    return (
+                      <div key={region}>
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                          {region} London
+                        </h3>
+                        <ul className="space-y-2">
+                          {boroughs.map((borough) => (
+                            <li key={borough.slug}>
+                              <Link
+                                href={`/london/${borough.slug}`}
+                                className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors flex items-center gap-1.5"
+                              >
+                                <MapPin className="w-3 h-3 text-[#0fbcb0]" />
+                                {borough.name}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div className="text-center">
+                  <Link
+                    href="/london"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-[#0fbcb0] hover:underline"
+                  >
+                    View all London areas
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
 
           {/* CTA section - dark teal background */}
           <section className="py-24 md:pt-24 md:pb-32 lg:pt-28 lg:pb-36 bg-[#004443] text-white relative overflow-hidden">

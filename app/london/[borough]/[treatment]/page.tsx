@@ -188,12 +188,18 @@ export default async function AreaTreatmentPage({
     },
   }
 
+  // Merge area-specific FAQs (first) with generic treatment FAQs
+  const allFaqs = [
+    ...(areaTreatmentData?.areaFaqs || []),
+    ...(meta.faqs || []),
+  ]
+
   const faqSchema =
-    meta.faqs && meta.faqs.length > 0
+    allFaqs.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: meta.faqs.map((faq) => ({
+          mainEntity: allFaqs.map((faq) => ({
             "@type": "Question",
             name: faq.question,
             acceptedAnswer: {
@@ -305,10 +311,10 @@ export default async function AreaTreatmentPage({
         {/* 5. NHS info */}
         <AreaNhsInfo borough={borough} />
 
-        {/* 6. FAQs (reuse from treatment) */}
-        {meta.faqs && meta.faqs.length > 0 && (
+        {/* 6. FAQs — area-specific first, then generic treatment FAQs */}
+        {allFaqs.length > 0 && (
           <TreatmentFAQ
-            faqs={meta.faqs}
+            faqs={allFaqs}
             treatmentName={`${meta.treatmentName.toLowerCase()} in ${borough.name}`}
           />
         )}
