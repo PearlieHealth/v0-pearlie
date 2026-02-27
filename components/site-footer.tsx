@@ -27,8 +27,19 @@ const findDentistLinks = [
   { label: "Central London", href: "/find/central-london" },
   { label: "South London", href: "/find/south-london" },
   { label: "North London", href: "/find/north-london" },
+  { label: "West London", href: "/find/west-london" },
   { label: "East London", href: "/find/east-london" },
-  { label: "All London Areas", href: "/london" },
+  { label: "All Areas", href: "/find" },
+]
+
+const londonAreaLinks = [
+  { label: "Westminster", href: "/london/westminster" },
+  { label: "Camden", href: "/london/camden" },
+  { label: "Islington", href: "/london/islington" },
+  { label: "Southwark", href: "/london/southwark" },
+  { label: "Kensington & Chelsea", href: "/london/kensington-and-chelsea" },
+  { label: "Tower Hamlets", href: "/london/tower-hamlets" },
+  { label: "All London Boroughs", href: "/london" },
 ]
 
 const resourceLinks = [
@@ -50,9 +61,9 @@ export function SiteFooter() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="max-w-7xl mx-auto">
           {/* Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-7 gap-8 md:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-8 gap-8 md:gap-6">
             {/* Brand */}
-            <div className="col-span-2 md:col-span-1">
+            <div className="col-span-2 md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
                 <Heart className="w-5 h-5 text-[#0fbcb0] fill-[#0fbcb0]" />
                 <span className="text-lg font-heading font-bold text-white">Pearlie</span>
@@ -101,6 +112,23 @@ export function SiteFooter() {
               <h4 className="text-sm font-semibold text-white mb-4">Find a Dentist</h4>
               <ul className="space-y-2.5">
                 {findDentistLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-white/60 hover:text-white transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* London Areas */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-4">London Areas</h4>
+              <ul className="space-y-2.5">
+                {londonAreaLinks.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}

@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { MapPin } from "lucide-react"
 import {
-  LONDON_BOROUGHS,
   getBoroughsByRegion,
   type LondonBorough,
 } from "@/lib/data/london-boroughs"
