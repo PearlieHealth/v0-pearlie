@@ -175,10 +175,11 @@ export async function POST(request: NextRequest) {
   }
 
   // 3. Find the reply token from To addresses
+  // IMPORTANT: preserve original case — base64url tokens are case-sensitive
   let tokenAddress: string | null = null
   for (const addr of toAddresses) {
-    const cleaned = extractEmailAddress(addr)
-    if (cleaned.startsWith("reply+")) {
+    const cleaned = extractEmailAddressPreserveCase(addr)
+    if (cleaned.toLowerCase().startsWith("reply+")) {
       tokenAddress = cleaned
       break
     }
@@ -407,11 +408,22 @@ export async function POST(request: NextRequest) {
 
 /**
  * Extract bare email address from "Name <email>" or just "email" format.
+ * Lowercases for safe comparison (use for From addresses).
  */
 function extractEmailAddress(raw: string): string {
   if (!raw) return ""
   const match = raw.match(/<([^>]+)>/)
   return (match ? match[1] : raw).trim().toLowerCase()
+}
+
+/**
+ * Extract bare email address preserving original case.
+ * Required for reply-to tokens which contain case-sensitive base64url data.
+ */
+function extractEmailAddressPreserveCase(raw: string): string {
+  if (!raw) return ""
+  const match = raw.match(/<([^>]+)>/)
+  return (match ? match[1] : raw).trim()
 }
 
 /**
