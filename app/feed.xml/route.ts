@@ -1,10 +1,12 @@
 import { getAllBlogPosts } from "@/lib/content/blog"
+import { getAllGuides } from "@/lib/content/guides"
 
 export async function GET() {
   const posts = getAllBlogPosts()
+  const guides = getAllGuides()
   const siteUrl = "https://pearlie.org"
 
-  const items = posts
+  const blogItems = posts
     .map(
       (post) => `    <item>
       <title><![CDATA[${post.title}]]></title>
@@ -18,10 +20,24 @@ export async function GET() {
     )
     .join("\n")
 
+  const guideItems = guides
+    .map(
+      (guide) => `    <item>
+      <title><![CDATA[${guide.title}]]></title>
+      <link>${siteUrl}/guides/${guide.slug}</link>
+      <guid isPermaLink="true">${siteUrl}/guides/${guide.slug}</guid>
+      <description><![CDATA[${guide.description}]]></description>
+      <pubDate>${new Date(guide.publishedAt).toUTCString()}</pubDate>
+      <category>guide</category>
+      <author>editorial@pearlie.org (${guide.author})</author>
+    </item>`
+    )
+    .join("\n")
+
   const feed = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Pearlie Blog - Dental Guides, Costs &amp; Expert Advice</title>
+    <title>Pearlie - Dental Guides, Costs &amp; Expert Advice</title>
     <link>${siteUrl}/blog</link>
     <description>Expert dental guides, treatment cost breakdowns, and tips for finding the right dentist in the UK.</description>
     <language>en-gb</language>
@@ -29,10 +45,11 @@ export async function GET() {
     <atom:link href="${siteUrl}/feed.xml" rel="self" type="application/rss+xml"/>
     <image>
       <url>${siteUrl}/apple-icon.jpg</url>
-      <title>Pearlie Blog</title>
-      <link>${siteUrl}/blog</link>
+      <title>Pearlie</title>
+      <link>${siteUrl}</link>
     </image>
-${items}
+${blogItems}
+${guideItems}
   </channel>
 </rss>`
 

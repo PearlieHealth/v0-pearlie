@@ -29,6 +29,7 @@ export function MainNav() {
   const navLinks = [
     { href: "/treatments", label: "Treatments" },
     { href: "/blog", label: "Blog" },
+    { href: "/guides", label: "Guides" },
     { href: "/our-mission", label: "Our Mission" },
     { href: "/about", label: "About" },
     { href: "/faq", label: "FAQ" },
