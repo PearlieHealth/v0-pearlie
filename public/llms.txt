@@ -84,12 +84,53 @@ Pearlie was founded by Dr Grei Muskaj, BDS, PGCert — a dentist who recognised 
 
 Pearlie was created in response to this growing access gap — helping patients navigate private dental care with transparency, clarity, and confidence.
 
+## Treatment Pages
+
+Pearlie publishes detailed, clinically reviewed treatment guides to help patients compare options, understand costs, and find verified providers in London.
+
+### Invisalign
+- URL: https://pearlie.org/treatments/invisalign
+- Typical cost in London: £2,500 to £5,500
+- Covers: How Invisalign works, Lite vs Comprehensive, cost breakdown, finance options, suitability, Invisalign vs braces, choosing a provider, treatment timeline, aftercare
+- Includes verified London clinics offering Invisalign with pricing and reviews
+
+### Dental Implants
+- URL: https://pearlie.org/treatments/dental-implants
+- Typical cost in London: £2,000 to £6,000 per implant
+- Covers: Types of implants (single, bridge, All-on-4), procedure steps, cost breakdown, NHS availability, recovery timeline, success rates, candidacy, risks, alternatives
+- Includes verified London clinics offering dental implants with pricing and reviews
+
+### Teeth Whitening
+- URL: https://pearlie.org/treatments/teeth-whitening
+- Typical cost in London: £250 to £1,000
+- Covers: Professional whitening types (in-office, home kits, Boutique, Enlighten), cost comparison, how it works, expected results, sensitivity, professional vs over-the-counter
+- Includes verified London clinics offering teeth whitening with pricing and reviews
+
+### Composite Bonding
+- URL: https://pearlie.org/treatments/composite-bonding
+- Typical cost in London: £150 to £400 per tooth
+- Covers: What composite bonding is, procedure, cost breakdown, longevity, composite bonding vs veneers, suitability, choosing a provider, aftercare
+- Includes verified London clinics offering composite bonding with pricing and reviews
+
+### Veneers
+- URL: https://pearlie.org/treatments/veneers
+- Typical cost in London: £400 to £1,200 per tooth
+- Covers: Porcelain vs composite veneers, procedure steps, cost breakdown, longevity, suitability, choosing a provider, aftercare, veneers vs bonding
+- Includes verified London clinics offering veneers with pricing and reviews
+
+### Emergency Dental Care
+- URL: https://pearlie.org/treatments/emergency-dental
+- Typical cost in London: £50 to £700
+- Covers: What counts as a dental emergency, first aid guidance, types (toothache, broken tooth, abscess, knocked-out tooth), cost breakdown, NHS 111 guidance, what to expect, follow-up care, prevention
+- Includes verified London clinics offering same-day emergency appointments
+
 ## Pages
 
 - Homepage: https://pearlie.org/
 - About: https://pearlie.org/about
 - FAQ: https://pearlie.org/faq
 - Our Mission: https://pearlie.org/our-mission
+- All Treatments: https://pearlie.org/treatments
 - Find Your Match: https://pearlie.org/intake
 - For Clinics: https://pearlie.org/for-clinics
 - Privacy Policy: https://pearlie.org/privacy
