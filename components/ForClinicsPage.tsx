@@ -520,6 +520,84 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
+      {/* ═══════════ TRADITIONAL VS PEARLIE ═══════════ */}
+      <section style={sectionPad}>
+        <div style={{ ...maxW, maxWidth: 800 }}>
+          <div style={{ textAlign: "center", marginBottom: 12 }}>
+            <span
+              style={{
+                display: "inline-block",
+                background: "rgba(239,68,68,.12)",
+                color: "#f87171",
+                fontWeight: 700,
+                fontSize: 13,
+                padding: "6px 16px",
+                borderRadius: 20,
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
+              }}
+            >
+              The old way vs. the new way
+            </span>
+          </div>
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 48 }}>
+            Traditional marketing is{" "}
+            <span style={{ color: "#f87171" }}>costing you thousands</span>
+          </h2>
+          <div
+            style={{
+              background: "rgba(255,255,255,.03)",
+              border: "1px solid rgba(255,255,255,.06)",
+              borderRadius: 18,
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", minWidth: 500, borderCollapse: "collapse", fontSize: 15 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left", padding: "18px 20px", color: "#64748b", fontWeight: 600, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
+                      &nbsp;
+                    </th>
+                    <th style={{ textAlign: "center", padding: "18px 20px", color: "#f87171", fontWeight: 700, fontSize: 14, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
+                      Traditional / Agency
+                    </th>
+                    <th style={{ textAlign: "center", padding: "18px 20px", color: "#10b981", fontWeight: 700, fontSize: 14, borderBottom: "2px solid #10b981", background: "rgba(16,185,129,.04)" }}>
+                      Pearlie
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { feature: "Monthly cost to clinic", old: "£2,300 – £7,000+", pearlie: "£287 – £670" },
+                    { feature: "Ad spend required from clinic", old: "£800 – £5,000 on top", pearlie: "£0 — we handle it all" },
+                    { feature: "Setup / onboarding fee", old: "£1,000 – £5,000", pearlie: "£0 — free" },
+                    { feature: "Contract", old: "12 – 36 months locked in", pearlie: "Cancel anytime" },
+                    { feature: "Time to first patient", old: "3 – 6 months (SEO ramp)", pearlie: "Within 48 hours" },
+                    { feature: "Lead quality", old: "Cold ad clicks", pearlie: "Pre-qualified & matched" },
+                    { feature: "Patient no-show?", old: "You still pay", pearlie: "No charge" },
+                    { feature: "No leads delivered?", old: "You still pay retainer", pearlie: "No extra charge" },
+                    { feature: "Work required from clinic", old: "Approve ads, manage pages", pearlie: "None — fully hands-off" },
+                  ].map((row) => (
+                    <tr key={row.feature}>
+                      <td style={{ padding: "16px 20px", color: "#cbd5e1", fontWeight: 500, borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                        {row.feature}
+                      </td>
+                      <td style={{ textAlign: "center", padding: "16px 20px", color: "#f87171", fontWeight: 600, fontSize: 14, borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                        {row.old}
+                      </td>
+                      <td style={{ textAlign: "center", padding: "16px 20px", color: "#10b981", fontWeight: 600, fontSize: 14, borderBottom: "1px solid rgba(255,255,255,.04)", background: "rgba(16,185,129,.03)" }}>
+                        {row.pearlie}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══════════ HOW IT WORKS ═══════════ */}
       <section id="how" style={{ ...sectionPad, background: "rgba(255,255,255,.015)" }}>
         <div style={maxW}>
@@ -833,78 +911,6 @@ export default function ForClinicsPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════ ZERO RISK ═══════════ */}
-      <section style={sectionPad}>
-        <div style={{ ...maxW, maxWidth: 800 }}>
-          <div style={{ textAlign: "center", marginBottom: 12 }}>
-            <span
-              style={{
-                display: "inline-block",
-                background: "rgba(16,185,129,.12)",
-                color: "#10b981",
-                fontWeight: 700,
-                fontSize: 13,
-                padding: "6px 16px",
-                borderRadius: 20,
-                textTransform: "uppercase",
-                letterSpacing: "0.04em",
-              }}
-            >
-              Zero risk
-            </span>
-          </div>
-          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 16 }}>
-            You only pay for patients
-            <br />
-            who actually show up
-          </h2>
-          <p
-            style={{
-              color: "#94a3b8",
-              fontSize: 16,
-              textAlign: "center",
-              maxWidth: 600,
-              margin: "0 auto 40px",
-              lineHeight: 1.65,
-            }}
-          >
-            If a patient doesn&rsquo;t attend their appointment, you are not charged.
-            If we don&rsquo;t send you any leads in a month, you don&rsquo;t pay the per-lead fee.
-            Your subscription covers platform access and your guaranteed leads &mdash; but
-            no-shows are always on us.
-          </p>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 14,
-            }}
-          >
-            {[
-              { q: "Patient no-show?", a: "No charge. Ever." },
-              { q: "No leads this month?", a: "You don't pay extra." },
-              { q: "Want to cancel?", a: "Anytime. No penalties." },
-              { q: "Unhappy with quality?", a: "We'll make it right." },
-            ].map((card) => (
-              <div
-                key={card.q}
-                style={{
-                  background: "rgba(255,255,255,.03)",
-                  border: "1px solid rgba(255,255,255,.06)",
-                  borderRadius: 14,
-                  padding: "24px 22px",
-                }}
-              >
-                <p style={{ color: "#94a3b8", fontSize: 14, marginBottom: 8 }}>{card.q}</p>
-                <p style={{ color: "#10b981", fontWeight: 700, fontSize: 18, lineHeight: 1.3 }}>
-                  {card.a}
-                </p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -1240,6 +1246,161 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
+      {/* ═══════════ ZERO RISK ═══════════ */}
+      <section style={sectionPad}>
+        <div style={{ ...maxW, maxWidth: 800 }}>
+          <div style={{ textAlign: "center", marginBottom: 12 }}>
+            <span
+              style={{
+                display: "inline-block",
+                background: "rgba(16,185,129,.12)",
+                color: "#10b981",
+                fontWeight: 700,
+                fontSize: 13,
+                padding: "6px 16px",
+                borderRadius: 20,
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
+              }}
+            >
+              Zero risk
+            </span>
+          </div>
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 16 }}>
+            You only pay for patients
+            <br />
+            who actually show up
+          </h2>
+          <p
+            style={{
+              color: "#94a3b8",
+              fontSize: 16,
+              textAlign: "center",
+              maxWidth: 600,
+              margin: "0 auto 40px",
+              lineHeight: 1.65,
+            }}
+          >
+            If a patient doesn&rsquo;t attend their appointment, you are not charged.
+            If we don&rsquo;t send you any leads in a month, you don&rsquo;t pay the per-lead fee.
+            Your subscription covers platform access and your guaranteed leads &mdash; but
+            no-shows are always on us.
+          </p>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 14,
+            }}
+          >
+            {[
+              { q: "Patient no-show?", a: "No charge. Ever." },
+              { q: "No leads this month?", a: "You don't pay extra." },
+              { q: "Want to cancel?", a: "Anytime. No penalties." },
+              { q: "Unhappy with quality?", a: "We'll make it right." },
+            ].map((card) => (
+              <div
+                key={card.q}
+                style={{
+                  background: "rgba(255,255,255,.03)",
+                  border: "1px solid rgba(255,255,255,.06)",
+                  borderRadius: 14,
+                  padding: "24px 22px",
+                }}
+              >
+                <p style={{ color: "#94a3b8", fontSize: 14, marginBottom: 8 }}>{card.q}</p>
+                <p style={{ color: "#10b981", fontWeight: 700, fontSize: 18, lineHeight: 1.3 }}>
+                  {card.a}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ ROI CALCULATOR ═══════════ */}
+      <section style={sectionPad}>
+        <div style={{ ...maxW, maxWidth: 840 }}>
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 12 }}>
+            Your return, calculated
+          </h2>
+          <p
+            style={{
+              color: "#94a3b8",
+              fontSize: 17,
+              textAlign: "center",
+              marginBottom: 48,
+              lineHeight: 1.6,
+            }}
+          >
+            Adjust the sliders to match your practice.
+          </p>
+
+          <div
+            style={{
+              background: "rgba(255,255,255,.03)",
+              border: "1px solid rgba(255,255,255,.06)",
+              borderRadius: 20,
+              padding: "36px 32px",
+            }}
+          >
+            {/* Extra leads slider */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Extra leads / month</span>
+                <span style={{ color: "#10b981", fontWeight: 700, fontSize: 16 }}>{extra}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={20}
+                value={extra}
+                onChange={(e) => setExtra(Number(e.target.value))}
+                style={{ width: "100%" }}
+              />
+            </div>
+
+            {/* LTV slider */}
+            <div style={{ marginBottom: 40 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Avg patient lifetime value</span>
+                <span style={{ color: "#10b981", fontWeight: 700, fontSize: 16 }}>
+                  &pound;{ltv.toLocaleString()}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={200}
+                max={5000}
+                step={100}
+                value={ltv}
+                onChange={(e) => setLtv(Number(e.target.value))}
+                style={{ width: "100%" }}
+              />
+            </div>
+
+            {/* Results — two plans side by side */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <RoiCard
+                label="Standard Plan"
+                labelColor="#94a3b8"
+                c={stdCalc}
+                baseCost={stdBase}
+                extraPrice={STD_EXTRA_PRICE}
+              />
+              <RoiCard
+                label="Premium Plan"
+                labelColor="#10b981"
+                c={premCalc}
+                baseCost={premBase}
+                extraPrice={PREM_EXTRA_PRICE}
+                highlight
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══════════ FREE VISIBILITY ═══════════ */}
       <section style={{ ...sectionPad, background: "rgba(255,255,255,.015)" }}>
         <div style={maxW}>
@@ -1531,167 +1692,6 @@ export default function ForClinicsPage() {
               <p style={{ color: "#475569", fontSize: 11, lineHeight: 1.4 }}>
                 Even patients who don&rsquo;t book through Pearlie now know you exist
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════ TRADITIONAL VS PEARLIE ═══════════ */}
-      <section style={sectionPad}>
-        <div style={{ ...maxW, maxWidth: 800 }}>
-          <div style={{ textAlign: "center", marginBottom: 12 }}>
-            <span
-              style={{
-                display: "inline-block",
-                background: "rgba(239,68,68,.12)",
-                color: "#f87171",
-                fontWeight: 700,
-                fontSize: 13,
-                padding: "6px 16px",
-                borderRadius: 20,
-                textTransform: "uppercase",
-                letterSpacing: "0.04em",
-              }}
-            >
-              The old way vs. the new way
-            </span>
-          </div>
-          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 48 }}>
-            Traditional marketing is{" "}
-            <span style={{ color: "#f87171" }}>costing you thousands</span>
-          </h2>
-          <div
-            style={{
-              background: "rgba(255,255,255,.03)",
-              border: "1px solid rgba(255,255,255,.06)",
-              borderRadius: 18,
-              overflow: "hidden",
-            }}
-          >
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", minWidth: 500, borderCollapse: "collapse", fontSize: 15 }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "left", padding: "18px 20px", color: "#64748b", fontWeight: 600, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-                      &nbsp;
-                    </th>
-                    <th style={{ textAlign: "center", padding: "18px 20px", color: "#f87171", fontWeight: 700, fontSize: 14, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-                      Traditional / Agency
-                    </th>
-                    <th style={{ textAlign: "center", padding: "18px 20px", color: "#10b981", fontWeight: 700, fontSize: 14, borderBottom: "2px solid #10b981", background: "rgba(16,185,129,.04)" }}>
-                      Pearlie
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { feature: "Monthly cost to clinic", old: "£2,300 – £7,000+", pearlie: "£287 – £670" },
-                    { feature: "Ad spend required from clinic", old: "£800 – £5,000 on top", pearlie: "£0 — we handle it all" },
-                    { feature: "Setup / onboarding fee", old: "£1,000 – £5,000", pearlie: "£0 — free" },
-                    { feature: "Contract", old: "12 – 36 months locked in", pearlie: "Cancel anytime" },
-                    { feature: "Time to first patient", old: "3 – 6 months (SEO ramp)", pearlie: "Within 48 hours" },
-                    { feature: "Lead quality", old: "Cold ad clicks", pearlie: "Pre-qualified & matched" },
-                    { feature: "Patient no-show?", old: "You still pay", pearlie: "No charge" },
-                    { feature: "No leads delivered?", old: "You still pay retainer", pearlie: "No extra charge" },
-                    { feature: "Work required from clinic", old: "Approve ads, manage pages", pearlie: "None — fully hands-off" },
-                  ].map((row) => (
-                    <tr key={row.feature}>
-                      <td style={{ padding: "16px 20px", color: "#cbd5e1", fontWeight: 500, borderBottom: "1px solid rgba(255,255,255,.04)" }}>
-                        {row.feature}
-                      </td>
-                      <td style={{ textAlign: "center", padding: "16px 20px", color: "#f87171", fontWeight: 600, fontSize: 14, borderBottom: "1px solid rgba(255,255,255,.04)" }}>
-                        {row.old}
-                      </td>
-                      <td style={{ textAlign: "center", padding: "16px 20px", color: "#10b981", fontWeight: 600, fontSize: 14, borderBottom: "1px solid rgba(255,255,255,.04)", background: "rgba(16,185,129,.03)" }}>
-                        {row.pearlie}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════ ROI CALCULATOR ═══════════ */}
-      <section style={sectionPad}>
-        <div style={{ ...maxW, maxWidth: 840 }}>
-          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 12 }}>
-            Your return, calculated
-          </h2>
-          <p
-            style={{
-              color: "#94a3b8",
-              fontSize: 17,
-              textAlign: "center",
-              marginBottom: 48,
-              lineHeight: 1.6,
-            }}
-          >
-            Adjust the sliders to match your practice.
-          </p>
-
-          <div
-            style={{
-              background: "rgba(255,255,255,.03)",
-              border: "1px solid rgba(255,255,255,.06)",
-              borderRadius: 20,
-              padding: "36px 32px",
-            }}
-          >
-            {/* Extra leads slider */}
-            <div style={{ marginBottom: 32 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Extra leads / month</span>
-                <span style={{ color: "#10b981", fontWeight: 700, fontSize: 16 }}>{extra}</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={20}
-                value={extra}
-                onChange={(e) => setExtra(Number(e.target.value))}
-                style={{ width: "100%" }}
-              />
-            </div>
-
-            {/* LTV slider */}
-            <div style={{ marginBottom: 40 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Avg patient lifetime value</span>
-                <span style={{ color: "#10b981", fontWeight: 700, fontSize: 16 }}>
-                  &pound;{ltv.toLocaleString()}
-                </span>
-              </div>
-              <input
-                type="range"
-                min={200}
-                max={5000}
-                step={100}
-                value={ltv}
-                onChange={(e) => setLtv(Number(e.target.value))}
-                style={{ width: "100%" }}
-              />
-            </div>
-
-            {/* Results — two plans side by side */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <RoiCard
-                label="Standard Plan"
-                labelColor="#94a3b8"
-                c={stdCalc}
-                baseCost={stdBase}
-                extraPrice={STD_EXTRA_PRICE}
-              />
-              <RoiCard
-                label="Premium Plan"
-                labelColor="#10b981"
-                c={premCalc}
-                baseCost={premBase}
-                extraPrice={PREM_EXTRA_PRICE}
-                highlight
-              />
             </div>
           </div>
         </div>
