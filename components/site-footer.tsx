@@ -32,6 +32,15 @@ const findDentistLinks = [
   { label: "All London areas", href: "/find" },
 ]
 
+const resourceLinks = [
+  { label: "Blog", href: "/blog" },
+  { label: "NHS vs Private Dentist", href: "/blog/nhs-vs-private-dentist" },
+  { label: "Invisalign vs Braces", href: "/blog/invisalign-vs-braces" },
+  { label: "Dental Implants Cost", href: "/blog/dental-implants-cost-uk" },
+  { label: "Composite Bonding Cost", href: "/blog/composite-bonding-cost-uk" },
+  { label: "Emergency Dentist Guide", href: "/blog/emergency-dentist-near-you" },
+]
+
 const legalLinks = [
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Terms of Use", href: "/terms" },
@@ -106,7 +115,24 @@ export function SiteFooter() {
               </ul>
             </div>
 
-            {/* Legal */}
+            {/* Resources */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-4">Resources</h4>
+              <ul className="space-y-2.5">
+                {resourceLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-white/60 hover:text-white transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Legal & Contact */}
             <div>
               <h4 className="text-sm font-semibold text-white mb-4">Legal</h4>
               <ul className="space-y-2.5">
@@ -123,13 +149,6 @@ export function SiteFooter() {
                 <li>
                   <CookieSettingsButton variant="footer" />
                 </li>
-              </ul>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-4">Contact</h4>
-              <ul className="space-y-2.5">
                 <li>
                   <a
                     href="mailto:hello@pearlie.org"

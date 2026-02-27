@@ -456,7 +456,7 @@ async function RegionPage({ slug }: { slug: string }) {
                 {region.intro}
               </p>
               <p className="text-sm text-white/50 mb-8">
-                {clinics.length} verified {clinics.length === 1 ? "clinic" : "clinics"} in {region.name}
+                Verified clinics in {region.name}
               </p>
               <div id="hero-postcode-search">
                 <HeroPostcodeSearch variant="hero" />
@@ -656,7 +656,7 @@ async function AreaPage({ slug }: { slug: string }) {
                 {area.intro}
               </p>
               <p className="text-sm text-white/50 mb-8">
-                {clinics.length} verified {clinics.length === 1 ? "clinic" : "clinics"} near {area.name}
+                Verified clinics near {area.name}
               </p>
               <div id="hero-postcode-search">
                 <HeroPostcodeSearch variant="hero" />
