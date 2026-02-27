@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Heart, Search, ChevronDown, RotateCcw } from "lucide-react"
+import { Heart, Search, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNavMenu } from "@/components/mobile-nav-menu"
 import { cn } from "@/lib/utils"
@@ -24,7 +24,6 @@ export function MainNav({ hideCta }: MainNavProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [hasScrolled, setHasScrolled] = useState(false)
-  const [lastMatchId, setLastMatchId] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -32,20 +31,6 @@ export function MainNav({ hideCta }: MainNavProps) {
       setIsAuthenticated(!!session)
       setUserRole(session?.user?.user_metadata?.role || null)
     })
-  }, [])
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("pearlie_last_match")
-      if (stored) {
-        const data = JSON.parse(stored)
-        const MAX_MATCH_AGE_MS = 30 * 24 * 60 * 60 * 1000
-        const age = Date.now() - new Date(data.createdAt).getTime()
-        if (age < MAX_MATCH_AGE_MS && data.matchId) {
-          setLastMatchId(data.matchId)
-        }
-      }
-    } catch {}
   }, [])
 
   useEffect(() => {
@@ -172,50 +157,23 @@ export function MainNav({ hideCta }: MainNavProps) {
                 </Button>
               </>
             )}
-            {lastMatchId && !hideCta ? (
+            {!hideCta && (
               <Button
                 size="lg"
-                className="text-sm px-6 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0"
-                asChild
-              >
-                <Link href={`/match/${lastMatchId}`}>
-                  <RotateCcw className="w-4 h-4 mr-1.5" />
-                  Your matches
-                </Link>
-              </Button>
-            ) : !hideCta ? (
-              <Button
-                size="lg"
-                className="text-sm px-6 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0"
+                className={cn(
+                  "text-sm bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0",
+                  hasScrolled ? "px-12" : "px-6",
+                )}
                 asChild
               >
                 <Link href="/intake">Find my dentist</Link>
               </Button>
-            ) : lastMatchId && hasScrolled ? (
-              <Button
-                size="lg"
-                className="text-sm px-6 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0"
-                asChild
-              >
-                <Link href={`/match/${lastMatchId}`}>
-                  <RotateCcw className="w-4 h-4 mr-1.5" />
-                  Your matches
-                </Link>
-              </Button>
-            ) : null}
+            )}
           </div>
 
           {/* Mobile Navigation */}
           <div className="flex md:hidden items-center gap-1">
-            {lastMatchId && !hideCta ? (
-              <Link
-                href={`/match/${lastMatchId}`}
-                className="flex items-center justify-center h-10 w-10 rounded-full bg-[#0fbcb0] text-white hover:bg-[#0da399] transition-colors"
-              >
-                <RotateCcw className="h-4 w-4" />
-                <span className="sr-only">Your matches</span>
-              </Link>
-            ) : !hideCta ? (
+            {!hideCta && (
               <Link
                 href="/intake"
                 className="flex items-center justify-center h-10 w-10 rounded-full bg-[#0fbcb0] text-white hover:bg-[#0da399] transition-colors"
@@ -223,7 +181,7 @@ export function MainNav({ hideCta }: MainNavProps) {
                 <Search className="h-4 w-4" />
                 <span className="sr-only">Find my clinic</span>
               </Link>
-            ) : null}
+            )}
             <MobileNavMenu />
           </div>
         </div>
