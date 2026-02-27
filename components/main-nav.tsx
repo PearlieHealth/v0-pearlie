@@ -2,12 +2,18 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { Heart, Search } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { Heart, Search, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MobileNavMenu } from "@/components/mobile-nav-menu"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
 
 interface MainNavProps {
   hideCta?: boolean
@@ -15,7 +21,6 @@ interface MainNavProps {
 
 export function MainNav({ hideCta }: MainNavProps) {
   const pathname = usePathname()
-  const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
 
@@ -27,25 +32,16 @@ export function MainNav({ hideCta }: MainNavProps) {
     })
   }, [])
 
-  const isForClinics = pathname === "/for-clinics"
-  const isForPatients = pathname === "/" || pathname === "/intake"
-
-  const navLinks = [
-    { href: "/treatments", label: "Treatments" },
+  const resourcesLinks = [
     { href: "/blog", label: "Blog" },
     { href: "/guides", label: "Guides" },
-    { href: "/our-mission", label: "Our Mission" },
+    { href: "/for-clinics", label: "For Clinics" },
+  ]
+
+  const aboutLinks = [
     { href: "/about", label: "About" },
     { href: "/faq", label: "FAQ" },
   ]
-
-  const handleToggle = (target: "patients" | "clinics") => {
-    if (target === "patients") {
-      router.push("/")
-    } else {
-      router.push("/for-clinics")
-    }
-  }
 
   return (
     <header className="fixed top-3 left-3 right-3 md:top-5 md:left-8 md:right-8 z-50">
@@ -59,50 +55,97 @@ export function MainNav({ hideCta }: MainNavProps) {
             <span className="text-2xl font-heading font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
           </Link>
 
-          {/* Toggle - For Patients / For Clinics */}
-          <div className="hidden md:flex items-center">
-            <div className="flex items-center bg-black/[0.04] rounded-full p-1 font-heading">
-              <button
-                onClick={() => handleToggle("patients")}
-                className={cn(
-                  "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.66,0,0.1,1)]",
-                  isForPatients
-                    ? "bg-white/90 text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                For Patients
-              </button>
-              <button
-                onClick={() => handleToggle("clinics")}
-                className={cn(
-                  "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.66,0,0.1,1)]",
-                  isForClinics
-                    ? "bg-white/90 text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                For Clinics
-              </button>
-            </div>
-          </div>
-
           {/* Desktop Navigation - Center */}
           <nav className="hidden md:flex items-center gap-1 font-heading">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "px-4 py-2 text-sm font-medium transition-all duration-200",
-                  pathname === link.href
-                    ? "text-[#0fbcb0]"
-                    : "text-[#333] hover:text-[#0fbcb0]",
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {/* Treatments - direct link */}
+            <Link
+              href="/treatments"
+              className={cn(
+                "px-4 py-2 text-sm font-medium transition-all duration-200",
+                pathname === "/treatments"
+                  ? "text-[#0fbcb0]"
+                  : "text-[#333] hover:text-[#0fbcb0]",
+              )}
+            >
+              Treatments
+            </Link>
+
+            {/* Resources dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={cn(
+                    "flex items-center gap-1 px-4 py-2 text-sm font-medium transition-all duration-200",
+                    resourcesLinks.some((link) => pathname === link.href)
+                      ? "text-[#0fbcb0]"
+                      : "text-[#333] hover:text-[#0fbcb0]",
+                  )}
+                >
+                  Resources
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-44">
+                {resourcesLinks.map((link) => (
+                  <DropdownMenuItem key={link.href} asChild>
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        "w-full cursor-pointer",
+                        pathname === link.href && "text-[#0fbcb0]",
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Our Mission - direct link */}
+            <Link
+              href="/our-mission"
+              className={cn(
+                "px-4 py-2 text-sm font-medium transition-all duration-200",
+                pathname === "/our-mission"
+                  ? "text-[#0fbcb0]"
+                  : "text-[#333] hover:text-[#0fbcb0]",
+              )}
+            >
+              Our Mission
+            </Link>
+
+            {/* About dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={cn(
+                    "flex items-center gap-1 px-4 py-2 text-sm font-medium transition-all duration-200",
+                    aboutLinks.some((link) => pathname === link.href)
+                      ? "text-[#0fbcb0]"
+                      : "text-[#333] hover:text-[#0fbcb0]",
+                  )}
+                >
+                  About
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-36">
+                {aboutLinks.map((link) => (
+                  <DropdownMenuItem key={link.href} asChild>
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        "w-full cursor-pointer",
+                        pathname === link.href && "text-[#0fbcb0]",
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
 
           {/* CTA Buttons - Right */}
@@ -113,6 +156,16 @@ export function MainNav({ hideCta }: MainNavProps) {
             >
               My account
             </Link>
+            <Button
+              variant="outline"
+              size="lg"
+              className="text-sm px-6 rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-[#0fbcb0] text-[#0fbcb0] hover:bg-[#0fbcb0]/10"
+              asChild
+            >
+              <a href="https://portal.pearlie.org" target="_blank" rel="noopener noreferrer">
+                Clinic Portal
+              </a>
+            </Button>
             {!hideCta && (
               <Button
                 size="lg"
