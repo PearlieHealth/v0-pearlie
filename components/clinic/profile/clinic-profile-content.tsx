@@ -41,7 +41,7 @@ import { ReviewsTab } from "./reviews-tab"
 import { DetailsTab } from "./details-tab"
 import type { Clinic, Lead, ProviderProfile } from "./types"
 
-export function ClinicProfileContent() {
+export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic }) {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -50,11 +50,11 @@ export function ClinicProfileContent() {
   const isPreview = searchParams?.get("preview") === "true"
   const isReply = searchParams?.get("reply") === "1"
 
-  const [clinic, setClinic] = useState<Clinic | null>(null)
+  const [clinic, setClinic] = useState<Clinic | null>(initialClinic ?? null)
   const [lead, setLead] = useState<Lead | null>(null)
   const [matchReasons, setMatchReasons] = useState<string[]>([])
   const [distanceMiles, setDistanceMiles] = useState<number | undefined>()
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!initialClinic)
   const [providers, setProviders] = useState<ProviderProfile[]>([])
   const [showChat, setShowChat] = useState(false)
   const [showMobileChat, setShowMobileChat] = useState(false)
@@ -145,24 +145,29 @@ export function ClinicProfileContent() {
       }
 
       try {
-        const clinicResponse = await fetch(`/api/clinics/${clinicId}${isPreview ? "?preview=true" : ""}`)
+        // Use server-provided clinic data, or fetch client-side for preview mode
+        let resolvedClinic: Clinic | null = initialClinic ?? null
+        if (!resolvedClinic) {
+          const clinicResponse = await fetch(`/api/clinics/${clinicId}${isPreview ? "?preview=true" : ""}`)
 
-        if (!clinicResponse.ok) {
-          setLoading(false)
-          return
+          if (!clinicResponse.ok) {
+            setLoading(false)
+            return
+          }
+
+          const clinicData = await clinicResponse.json()
+          resolvedClinic = clinicData.clinic
+          setClinic(resolvedClinic!)
         }
 
-        const clinicData = await clinicResponse.json()
-        const resolvedClinic = clinicData.clinic
-        const resolvedId = resolvedClinic.id
-        setClinic(resolvedClinic)
+        const resolvedId = resolvedClinic!.id
 
         // Canonical redirect: if visited via UUID but clinic has a slug, replace URL for SEO
-        if (resolvedClinic.slug && clinicId !== resolvedClinic.slug) {
+        if (resolvedClinic!.slug && clinicId !== resolvedClinic!.slug) {
           const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clinicId)
           if (isUUID) {
             const queryString = searchParams?.toString()
-            router.replace(`/clinic/${resolvedClinic.slug}${queryString ? `?${queryString}` : ""}`, { scroll: false })
+            router.replace(`/clinic/${resolvedClinic!.slug}${queryString ? `?${queryString}` : ""}`, { scroll: false })
           }
         }
 
@@ -191,14 +196,14 @@ export function ClinicProfileContent() {
               if (
                 matchData.lead.latitude &&
                 matchData.lead.longitude &&
-                clinicData.clinic.latitude &&
-                clinicData.clinic.longitude
+                resolvedClinic!.latitude &&
+                resolvedClinic!.longitude
               ) {
                 const distance = calculateDistance(
                   matchData.lead.latitude,
                   matchData.lead.longitude,
-                  clinicData.clinic.latitude,
-                  clinicData.clinic.longitude,
+                  resolvedClinic!.latitude,
+                  resolvedClinic!.longitude,
                 )
                 setDistanceMiles(distance)
               }
