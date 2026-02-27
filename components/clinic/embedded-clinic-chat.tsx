@@ -14,6 +14,7 @@ interface Message {
   content: string
   sender_type: "patient" | "clinic" | "bot"
   status?: "sent" | "delivered" | "read"
+  sent_via?: "chat" | "email" | string
   created_at: string
 }
 
@@ -368,6 +369,12 @@ export function EmbeddedClinicChat({
                             msg.sender_type === "patient" ? "text-white/60 justify-end" : "text-white/60"
                           }`}
                         >
+                          {msg.sent_via === "email" && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] opacity-70">
+                              <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                              via email ·
+                            </span>
+                          )}
                           <span className="text-[10px]">{formatTime(msg.created_at)}</span>
                           {msg.sender_type === "patient" && (
                             <StatusIcon status={msg.status} />

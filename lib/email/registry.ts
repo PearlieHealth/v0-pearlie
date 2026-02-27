@@ -197,6 +197,14 @@ const chatToClinicSchema = z.object({
   messagePreview: z.string(),
   inboxUrl: z.string(),
   unsubscribeFooterHtml: z.string(),
+  // Email-reply-chat-sync fields (optional — backwards compatible)
+  replyToAddress: z.string().optional(),
+  threadMarker: z.string().optional(),
+  recentMessages: z.array(z.object({
+    sender: z.string(),
+    content: z.string(),
+    timestamp: z.string().optional(),
+  })).optional(),
 })
 
 const clinicReplySchema = z.object({
@@ -205,6 +213,14 @@ const clinicReplySchema = z.object({
   messagePreview: z.string(),
   viewReplyUrl: z.string(),
   unsubscribeFooterHtml: z.string(),
+  // Email-reply-chat-sync fields (optional — backwards compatible)
+  replyToAddress: z.string().optional(),
+  threadMarker: z.string().optional(),
+  recentMessages: z.array(z.object({
+    sender: z.string(),
+    content: z.string(),
+    timestamp: z.string().optional(),
+  })).optional(),
 })
 
 const matchNudgeSchema = z.object({
@@ -423,7 +439,7 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     defaultSubject: (data) => `New message from ${data.patientName}`,
     payloadSchema: chatToClinicSchema,
     generateHtml: renderChatToClinicEmail,
-    idempotencyKey: (data) => `chat_clinic:${data._conversationId}:${hourBucket()}`,
+    idempotencyKey: (data) => `chat_clinic:${data._conversationId}:${tenMinBucket()}`,
   },
 
   [EMAIL_TYPE.CLINIC_REPLY_TO_PATIENT]: {

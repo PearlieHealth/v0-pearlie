@@ -7,6 +7,7 @@ import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
 import { generateUnsubscribeFooterHtml, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
 import { createRateLimiter } from "@/lib/rate-limit"
+import { generateReplyToAddress, generateThreadMarker } from "@/lib/email-reply-token"
 
 // 20 messages per clinic per minute
 const clinicReplyLimiter = createRateLimiter({ windowMs: 60 * 1000, maxAttempts: 20 })
@@ -285,6 +286,39 @@ export async function POST(request: NextRequest) {
               console.warn("[Chat] Failed to generate magic link for patient notification:", linkErr)
             }
 
+            // Generate reply-to token so the patient can reply directly from email
+            let replyTo: string | undefined
+            let threadMarker: string | undefined
+            try {
+              replyTo = generateReplyToAddress(conversationId, "patient", lead.email)
+              threadMarker = generateThreadMarker(conversationId)
+            } catch (tokenErr) {
+              console.warn("[Chat] Failed to generate reply-to token:", tokenErr)
+            }
+
+            // Fetch recent messages for thread context (last 3, excluding current)
+            let recentMessages: Array<{ sender: string; content: string; timestamp?: string }> | undefined
+            try {
+              const { data: recent } = await supabaseAdmin
+                .from("messages")
+                .select("sender_type, content, created_at")
+                .eq("conversation_id", conversationId)
+                .neq("id", message.id)
+                .not("message_type", "in", '("bot-greeting","bot-follow-up","bot-clinic-replied")')
+                .order("created_at", { ascending: false })
+                .limit(3)
+
+              if (recent && recent.length > 0) {
+                recentMessages = recent.reverse().map((m: any) => ({
+                  sender: m.sender_type === "clinic" ? safeClinicName : (lead.first_name ? escapeHtml(lead.first_name) : "Patient"),
+                  content: escapeHtml(m.content.substring(0, 200)) + (m.content.length > 200 ? "..." : ""),
+                  timestamp: new Date(m.created_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
+                }))
+              }
+            } catch (recentErr) {
+              console.warn("[Chat] Failed to fetch recent messages:", recentErr)
+            }
+
             await sendRegisteredEmail({
               type: EMAIL_TYPE.CLINIC_REPLY_TO_PATIENT,
               to: lead.email,
@@ -296,8 +330,12 @@ export async function POST(request: NextRequest) {
                 unsubscribeFooterHtml: unsubFooter,
                 _conversationId: conversationId,
                 _notificationCycle: notificationUpdate.notification_cycles_used || conversation.notification_cycles_used || 0,
+                replyToAddress: replyTo,
+                threadMarker,
+                recentMessages,
               },
               headers: generateUnsubscribeHeaders(lead.email, "patient_notifications"),
+              replyTo,
               clinicId: clinicUser.clinic_id,
               leadId: conversation.lead_id,
             })

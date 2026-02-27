@@ -404,14 +404,45 @@ export function renderBookingConfirmationEmail(data: BookingConfirmationPayload)
 // 12. Chat Notification (patient message → clinic)
 // ---------------------------------------------------------------------------
 
+export interface RecentMessage {
+  sender: string
+  content: string
+  timestamp?: string
+}
+
 export interface ChatToClinicPayload {
   patientName: string
   messagePreview: string
   inboxUrl: string
   unsubscribeFooterHtml: string
+  replyToAddress?: string
+  threadMarker?: string
+  recentMessages?: RecentMessage[]
+}
+
+function renderRecentMessagesHtml(messages: RecentMessage[]): string {
+  if (!messages || messages.length === 0) return ""
+  return `<div style="margin: 16px 0; padding: 16px; background-color: #f3f4f6; border-radius: 8px;">
+    <p style="margin: 0 0 12px 0; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Recent messages</p>
+    ${messages.map(m => `<div style="margin-bottom: 8px; padding: 8px 12px; background-color: white; border-radius: 6px;">
+      <span style="font-size: 12px; font-weight: 600; color: #374151;">${m.sender}</span>
+      ${m.timestamp ? `<span style="font-size: 11px; color: #9ca3af; margin-left: 8px;">${m.timestamp}</span>` : ""}
+      <p style="margin: 4px 0 0 0; font-size: 14px; color: #4b5563; white-space: pre-wrap;">${m.content}</p>
+    </div>`).join("")}
+  </div>`
 }
 
 export function renderChatToClinicEmail(data: ChatToClinicPayload): string {
+  const replyInstructions = data.replyToAddress
+    ? `<div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
+        <p style="margin: 0; color: #065f46; font-size: 14px; font-weight: 600;">Reply to this email to respond directly</p>
+        <p style="margin: 4px 0 0 0; color: #047857; font-size: 12px;">Your reply will appear in the Pearlie chat thread</p>
+      </div>`
+    : ""
+
+  const recentHtml = data.recentMessages ? renderRecentMessagesHtml(data.recentMessages) : ""
+  const threadMarker = data.threadMarker || ""
+
   return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
   <div style="background-color: #0fbcb0; color: white; padding: 20px; text-align: center;">
     <h1 style="margin: 0;">New Patient Message</h1>
@@ -423,10 +454,12 @@ export function renderChatToClinicEmail(data: ChatToClinicPayload): string {
     <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0fbcb0;">
       <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${data.messagePreview}</p>
     </div>
+    ${recentHtml}
+    ${replyInstructions}
     <div style="text-align: center; margin-top: 30px;">
       <a href="${data.inboxUrl}"
          style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
-        View in Inbox
+        Open Chat in Pearlie
       </a>
     </div>
   </div>
@@ -434,6 +467,7 @@ export function renderChatToClinicEmail(data: ChatToClinicPayload): string {
     <p>This is an automated message from Pearlie</p>
     ${data.unsubscribeFooterHtml}
   </div>
+  ${threadMarker}
 </div>`
 }
 
@@ -447,6 +481,9 @@ export interface ClinicReplyToPatientPayload {
   messagePreview: string
   viewReplyUrl: string
   unsubscribeFooterHtml: string
+  replyToAddress?: string
+  threadMarker?: string
+  recentMessages?: RecentMessage[]
 }
 
 // ---------------------------------------------------------------------------
@@ -782,6 +819,16 @@ export function renderBookingRequestSentEmail(data: BookingRequestSentPayload): 
 export function renderClinicReplyToPatientEmail(data: ClinicReplyToPatientPayload): string {
   const safeFirstName = data.patientFirstName ? ` ${data.patientFirstName}` : ""
 
+  const replyInstructions = data.replyToAddress
+    ? `<div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
+        <p style="margin: 0; color: #065f46; font-size: 14px; font-weight: 600;">Reply to this email to respond directly</p>
+        <p style="margin: 4px 0 0 0; color: #047857; font-size: 12px;">Your reply will appear in the Pearlie chat thread</p>
+      </div>`
+    : ""
+
+  const recentHtml = data.recentMessages ? renderRecentMessagesHtml(data.recentMessages) : ""
+  const threadMarker = data.threadMarker || ""
+
   return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
   <div style="background-color: #0fbcb0; color: white; padding: 20px; text-align: center;">
     <h1 style="margin: 0;">You've Got a Reply!</h1>
@@ -793,10 +840,12 @@ export function renderClinicReplyToPatientEmail(data: ClinicReplyToPatientPayloa
     <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0fbcb0;">
       <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${data.messagePreview}</p>
     </div>
+    ${recentHtml}
+    ${replyInstructions}
     <div style="text-align: center; margin-top: 30px;">
       <a href="${data.viewReplyUrl}"
          style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
-        View &amp; Reply
+        Open Chat in Pearlie
       </a>
     </div>
   </div>
@@ -804,5 +853,6 @@ export function renderClinicReplyToPatientEmail(data: ClinicReplyToPatientPayloa
     <p>This is an automated message from Pearlie</p>
     ${data.unsubscribeFooterHtml}
   </div>
+  ${threadMarker}
 </div>`
 }

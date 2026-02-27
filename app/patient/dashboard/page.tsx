@@ -151,6 +151,7 @@ interface Message {
   content: string
   sender_type: "patient" | "clinic" | "bot"
   status?: "sent" | "delivered" | "read"
+  sent_via?: "chat" | "email" | string
   created_at: string
 }
 
@@ -1320,9 +1321,15 @@ export default function PatientDashboard() {
                             <p className={`text-[15px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
                               {msg.content}
                             </p>
-                            <p className={`text-[10px] mt-0.5 ${
+                            <p className={`text-[10px] mt-0.5 flex items-center gap-1 ${
                               msg.sender_type === "patient" ? "text-white/60" : "text-muted-foreground"
                             }`}>
+                              {msg.sent_via === "email" && (
+                                <span className="inline-flex items-center gap-0.5 opacity-80">
+                                  <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                  via email ·
+                                </span>
+                              )}
                               {formatTime(msg.created_at)}
                             </p>
                           </div>
@@ -1881,9 +1888,15 @@ export default function PatientDashboard() {
                       <p className={`text-[15px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
                         {msg.content}
                       </p>
-                      <p className={`text-[10px] mt-0.5 ${
-                        msg.sender_type === "patient" ? "text-white/50 text-right" : "text-muted-foreground/60"
+                      <p className={`text-[10px] mt-0.5 flex items-center gap-1 ${
+                        msg.sender_type === "patient" ? "text-white/50 justify-end" : "text-muted-foreground/60"
                       }`}>
+                        {msg.sent_via === "email" && (
+                          <span className="inline-flex items-center gap-0.5 opacity-80">
+                            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            via email ·
+                          </span>
+                        )}
                         {formatTime(msg.created_at)}
                       </p>
                     </div>

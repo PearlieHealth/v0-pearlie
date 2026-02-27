@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { MessageCircle, X, Send, Loader2, Heart, Check, CheckCheck } from "lucide-react"
+import { MessageCircle, X, Send, Loader2, Heart, Check, CheckCheck, Mail } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { OTPVerification } from "@/components/otp-verification"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
@@ -17,6 +17,7 @@ interface Message {
   content: string
   sender_type: "patient" | "clinic" | "bot"
   status?: "sent" | "delivered" | "read"
+  sent_via?: "chat" | "email" | string
   created_at: string
   read_at?: string
 }
@@ -454,6 +455,12 @@ export function ClinicChatWidget({
                                     : "text-neutral-400"
                                 )}
                               >
+                                {message.sent_via === "email" && (
+                                  <span className="inline-flex items-center gap-0.5 text-[10px] opacity-70">
+                                    <Mail className="w-2.5 h-2.5" />
+                                    via email
+                                  </span>
+                                )}
                                 <span className="text-xs">{formatTime(message.created_at)}</span>
                                 {message.sender_type === "patient" && (
                                   <StatusIcon status={message.status} />
