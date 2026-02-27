@@ -223,6 +223,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <aside className="hidden lg:block">
                   <div className="sticky top-24">
                     <TableOfContents headings={headings} />
+                    <div className="mt-6 rounded-xl bg-[var(--cream)] border border-border/50 p-4 text-center">
+                      <p className="text-sm font-semibold text-[#004443] mb-2">Find your clinic</p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Matched to your needs. Free, takes 2 min.
+                      </p>
+                      <Button
+                        size="sm"
+                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full text-xs px-4 w-full border-0"
+                        asChild
+                      >
+                        <Link href="/intake">Get matched</Link>
+                      </Button>
+                    </div>
                   </div>
                 </aside>
               </div>

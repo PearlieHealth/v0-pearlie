@@ -255,6 +255,28 @@ export default function FAQPage() {
           </div>
         </section>
 
+        {/* Conversion CTA */}
+        <section className="py-16 sm:py-20 bg-[#004443]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl mx-auto text-center">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
+                Ready to find the right clinic?
+              </h2>
+              <p className="text-white/70 mb-6 leading-relaxed">
+                Answer a few quick questions and get matched with verified,
+                GDC-registered clinics near you. Free, independent, and takes under 2 minutes.
+              </p>
+              <Button
+                size="lg"
+                className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 h-12 text-base border-0"
+                asChild
+              >
+                <Link href="/intake">Get my clinic matches</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
         <section className="py-20 bg-muted/30">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">

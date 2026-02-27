@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, RotateCcw, Search, MessageCircle } from "lucide-react"
+import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, RotateCcw, Search, MessageCircle, Clock } from "lucide-react"
 import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import Image from "next/image"
@@ -17,6 +17,8 @@ import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { SiteFooter } from "@/components/site-footer"
 import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config"
+import { HomeHeroSearch } from "@/components/home-hero-search"
+import { StickyMobileHomeCta } from "@/components/sticky-mobile-home-cta"
 
 // Homepage treatment list derived from the canonical config (not hardcoded)
 const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT)
@@ -223,6 +225,7 @@ export default function Home() {
       {/* Content is always rendered underneath - loading screen slides up like a curtain to reveal it */}
       <div className={`min-h-screen ${showLoading ? 'invisible' : 'visible'}`}>
           <MainNav />
+          <StickyMobileHomeCta />
 
           {/* Hero section — calm, split layout */}
           <section className="relative md:min-h-[70vh] lg:min-h-[100vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:flex lg:flex-col lg:pt-20 lg:pb-0 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
@@ -318,18 +321,12 @@ export default function Home() {
                           </Link>
                         </div>
                       ) : (
-                        <div className="flex flex-row items-center justify-center lg:justify-start gap-4">
-                          <Button
-                            size="default"
-                            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-5 md:px-7 py-2 md:py-3 h-auto rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] text-sm md:text-[15px] border-0"
-                            asChild
-                          >
-                            <Link href="/intake" onClick={handleFindClinicClick}>
-                              Find my clinic
-                              <ArrowRight className="ml-1.5 md:ml-2 w-4 h-4 md:w-5 md:h-5" />
-                            </Link>
-                          </Button>
-
+                        <div className="flex flex-col items-center lg:items-start gap-3">
+                          <HomeHeroSearch />
+                          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            Get matched in under 2 minutes — free, no obligation
+                          </p>
                           <button
                             onClick={() => {
                               document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
@@ -585,10 +582,11 @@ export default function Home() {
                       asChild
                     >
                       <Link href="/intake" onClick={handleFindClinicClick}>
-                        Find my clinic
+                        See clinics near you
                         <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </Link>
                     </Button>
+                    <p className="text-xs text-muted-foreground mt-2">Free, takes under 2 minutes</p>
                   </div>
                 </div>
               </div>
@@ -613,7 +611,7 @@ export default function Home() {
                   Ready to find the right dental clinic for you?
                 </h2>
                 <p className="text-lg md:text-xl mb-10 opacity-90 leading-snug">
-                  Answer a few quick questions and we&apos;ll match you with trusted clinics near you.
+                  Answer a few quick questions and we&apos;ll match you with trusted clinics near you. Takes under 2 minutes.
                 </p>
                 <Button
                   size="lg"
@@ -621,7 +619,7 @@ export default function Home() {
                   asChild
                 >
                   <Link href="/intake" onClick={handleFindClinicClick}>
-                    Find my clinic
+                    Get my matches
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
                 </Button>
