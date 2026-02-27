@@ -1,6 +1,3 @@
-"use client"
-
-import { motion } from "framer-motion"
 import { MainNav } from "@/components/main-nav"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -13,29 +10,7 @@ import {
   ArrowRight,
 } from "lucide-react"
 import { SiteFooter } from "@/components/site-footer"
-
-// Fade-in animation wrapper
-function FadeIn({
-  children,
-  className = "",
-  delay = 0,
-}: {
-  children: React.ReactNode
-  className?: string
-  delay?: number
-}) {
-  return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay, ease: "easeOut" }}
-      viewport={{ once: true, margin: "-60px" }}
-    >
-      {children}
-    </motion.div>
-  )
-}
+import { FadeIn, AnimatedBar } from "@/components/animate-in-view"
 
 // Stat card — dark variant for hero
 function StatCard({
@@ -243,13 +218,7 @@ export default function OurMissionPage() {
                           <span className="font-semibold text-[#004443]">69%</span>
                         </div>
                         <div className="h-8 bg-[#004443]/[0.06] rounded-full overflow-hidden">
-                          <motion.div
-                            className="h-full bg-[#0fbcb0] rounded-full"
-                            initial={{ width: 0 }}
-                            whileInView={{ width: "69%" }}
-                            transition={{ duration: 1, ease: "easeOut" }}
-                            viewport={{ once: true }}
-                          />
+                          <AnimatedBar width="69%" color="#0fbcb0" />
                         </div>
                       </div>
                       <div>
@@ -258,13 +227,7 @@ export default function OurMissionPage() {
                           <span className="font-semibold text-[#004443]">26%</span>
                         </div>
                         <div className="h-8 bg-[#004443]/[0.06] rounded-full overflow-hidden">
-                          <motion.div
-                            className="h-full bg-[#dbc03a] rounded-full"
-                            initial={{ width: 0 }}
-                            whileInView={{ width: "26%" }}
-                            transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-                            viewport={{ once: true }}
-                          />
+                          <AnimatedBar width="26%" color="#dbc03a" delay={0.2} />
                         </div>
                       </div>
                     </div>
@@ -286,13 +249,7 @@ export default function OurMissionPage() {
                           <span className="font-semibold text-[#004443]">13m (28%)</span>
                         </div>
                         <div className="h-8 bg-[#004443]/[0.06] rounded-full overflow-hidden">
-                          <motion.div
-                            className="h-full bg-[#0fbcb0] rounded-full"
-                            initial={{ width: 0 }}
-                            whileInView={{ width: "100%" }}
-                            transition={{ duration: 1, ease: "easeOut" }}
-                            viewport={{ once: true }}
-                          />
+                          <AnimatedBar width="100%" color="#0fbcb0" />
                         </div>
                       </div>
                       <div>
@@ -301,13 +258,7 @@ export default function OurMissionPage() {
                           <span className="font-semibold text-[#004443]">5.6m</span>
                         </div>
                         <div className="h-8 bg-[#004443]/[0.06] rounded-full overflow-hidden">
-                          <motion.div
-                            className="h-full bg-[#3c8481] rounded-full"
-                            initial={{ width: 0 }}
-                            whileInView={{ width: "43%" }}
-                            transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-                            viewport={{ once: true }}
-                          />
+                          <AnimatedBar width="43%" color="#3c8481" delay={0.2} />
                         </div>
                       </div>
                       <div>
@@ -316,13 +267,7 @@ export default function OurMissionPage() {
                           <span className="font-semibold text-[#004443]">5.4m</span>
                         </div>
                         <div className="h-8 bg-[#004443]/[0.06] rounded-full overflow-hidden">
-                          <motion.div
-                            className="h-full bg-[#dbc03a] rounded-full"
-                            initial={{ width: 0 }}
-                            whileInView={{ width: "41%" }}
-                            transition={{ duration: 1, ease: "easeOut", delay: 0.4 }}
-                            viewport={{ once: true }}
-                          />
+                          <AnimatedBar width="41%" color="#dbc03a" delay={0.4} />
                         </div>
                       </div>
                     </div>
