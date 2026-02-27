@@ -1,6 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { sendEmailWithRetry } from "@/lib/email-send"
+import { EMAIL_FROM } from "@/lib/email-config"
+import { portalUrl } from "@/lib/clinic-url"
+import { escapeHtml } from "@/lib/escape-html"
 
 /**
  * POST /api/leads/direct-auto
@@ -66,7 +70,7 @@ export async function POST(request: NextRequest) {
     // Get patient details from their most recent lead
     const { data: recentLead } = await supabase
       .from("leads")
-      .select("first_name, last_name, email, phone, treatment_interest")
+      .select("first_name, last_name, email, phone, treatment_interest, preferred_timing")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -78,6 +82,7 @@ export async function POST(request: NextRequest) {
     const email = recentLead?.email || user.email
     const phone = recentLead?.phone || ""
     const treatmentInterest = recentLead?.treatment_interest || "Not specified"
+    const preferredTiming = recentLead?.preferred_timing || "flexible"
 
     if (!firstName || !lastName) {
       return NextResponse.json({ error: "Patient details incomplete" }, { status: 400 })
@@ -92,7 +97,7 @@ export async function POST(request: NextRequest) {
         email: email.toLowerCase(),
         phone: phone,
         treatment_interest: treatmentInterest,
-        preferred_timing: "flexible",
+        preferred_timing: preferredTiming,
         postcode: "DIRECT",
         source: "direct_profile",
         consent_contact: true,
@@ -150,6 +155,19 @@ export async function POST(request: NextRequest) {
         }),
     ])
 
+    // Send clinic notification email (non-blocking)
+    sendDirectLeadClinicNotification(supabase, clinicId, {
+      id: lead.id,
+      first_name: firstName,
+      last_name: lastName,
+      email: email.toLowerCase(),
+      phone,
+      treatment_interest: treatmentInterest,
+      preferred_timing: preferredTiming,
+    }).catch((err) => {
+      console.error("[leads/direct-auto] Failed to send clinic notification:", err)
+    })
+
     return NextResponse.json({
       leadId: lead.id,
       clinicId: clinic.id,
@@ -159,4 +177,74 @@ export async function POST(request: NextRequest) {
     console.error("[leads/direct-auto] Unexpected error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
+}
+
+/**
+ * Send a notification email to the clinic when an auto-created lead is generated.
+ * Mirrors the notification in /api/otp/verify for manually-created direct leads.
+ */
+async function sendDirectLeadClinicNotification(
+  supabase: ReturnType<typeof createAdminClient>,
+  clinicId: string,
+  lead: { id: string; first_name: string; last_name: string; email: string; phone: string; treatment_interest: string; preferred_timing: string }
+) {
+  const { data: clinic } = await supabase
+    .from("clinics")
+    .select("name, notification_email, email, notification_preferences")
+    .eq("id", clinicId)
+    .single()
+
+  if (!clinic) return
+
+  const prefs = (clinic.notification_preferences as Record<string, boolean> | null) || {}
+  if (prefs.new_leads === false) return
+
+  const recipientEmail = clinic.notification_email || clinic.email
+  if (!recipientEmail) return
+
+  const safeName = escapeHtml(`${lead.first_name} ${lead.last_name}`.trim() || "A patient")
+  const safeTreatment = escapeHtml(lead.treatment_interest || "Not specified")
+  const safeEmail = escapeHtml(lead.email)
+  const safePhone = escapeHtml(lead.phone || "")
+  const safeTiming = escapeHtml(lead.preferred_timing || "Flexible")
+
+  await sendEmailWithRetry({
+    from: EMAIL_FROM.NOTIFICATIONS,
+    to: recipientEmail,
+    subject: `New enquiry from ${lead.first_name} ${lead.last_name} via your profile`,
+    html: `
+      <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 20px;">New Direct Enquiry</h1>
+          <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">A verified patient enquired from your profile</p>
+        </div>
+        <div style="padding: 30px; background-color: #f9fafb;">
+          <div style="background: white; border-radius: 8px; padding: 20px; border-left: 4px solid #0fbcb0; margin-bottom: 20px;">
+            <h2 style="margin: 0 0 12px; font-size: 16px; color: #1a1a1a;">Patient Details</h2>
+            <table style="width: 100%; font-size: 14px; color: #4b5563;">
+              <tr><td style="padding: 4px 0; font-weight: 600; width: 120px;">Name</td><td>${safeName}</td></tr>
+              <tr><td style="padding: 4px 0; font-weight: 600;">Email</td><td><a href="mailto:${safeEmail}" style="color: #0fbcb0;">${safeEmail}</a></td></tr>
+              <tr><td style="padding: 4px 0; font-weight: 600;">Phone</td><td><a href="tel:${safePhone}" style="color: #0fbcb0;">${safePhone}</a></td></tr>
+              <tr><td style="padding: 4px 0; font-weight: 600;">Treatment</td><td>${safeTreatment}</td></tr>
+              <tr><td style="padding: 4px 0; font-weight: 600;">Timing</td><td>${safeTiming}</td></tr>
+            </table>
+          </div>
+          <div style="background: #fffbeb; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+            <p style="margin: 0; font-size: 13px; color: #92400e;">
+              <strong>Tip:</strong> Patients who enquire directly from your profile are highly interested. Respond quickly to maximise your chance of booking.
+            </p>
+          </div>
+          <div style="text-align: center;">
+            <a href="${portalUrl("/clinic/appointments")}"
+               style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-size: 14px; font-weight: 600;">
+              View in Inbox
+            </a>
+          </div>
+        </div>
+        <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
+          <p>This patient found your clinic on Pearlie and submitted an enquiry directly.</p>
+        </div>
+      </div>
+    `,
+  })
 }

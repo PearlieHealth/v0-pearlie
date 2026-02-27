@@ -291,7 +291,10 @@ export function EmbeddedClinicChat({
             <DirectEnquiryForm
               clinicId={clinicId}
               clinicName={clinicName}
-              onLeadCreated={(newLeadId) => onLeadCreated?.(newLeadId)}
+              onLeadCreated={(newLeadId) => {
+                setShowQuickForm(false)
+                onLeadCreated?.(newLeadId)
+              }}
             />
           ) : (
             <DirectLeadPreQualifier

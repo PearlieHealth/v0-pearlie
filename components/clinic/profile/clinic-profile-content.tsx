@@ -380,6 +380,7 @@ export function ClinicProfileContent() {
     setDirectLeadId(newLeadId)
     setShowDirectForm(false)
     setShowQuickFormAppointment(false)
+    setShowMobilePicker(false)
 
     // Persist to localStorage so returning visitors skip the form
     if (clinic?.id) {
