@@ -51,11 +51,6 @@ export function AreaHero({
             <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0fbcb0] bg-[#0fbcb0]/10 rounded-full">
               {borough.region} London
             </span>
-            {clinicCount > 0 && (
-              <span className="inline-block px-3 py-1 text-xs font-semibold text-white bg-white/10 rounded-full">
-                {clinicCount} verified clinic{clinicCount !== 1 ? "s" : ""}
-              </span>
-            )}
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] text-white mb-6 text-balance">

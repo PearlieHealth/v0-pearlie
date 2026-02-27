@@ -3,23 +3,19 @@ import type { LondonBorough } from "@/lib/data/london-boroughs"
 
 interface AreaStatsBarProps {
   borough: LondonBorough
-  clinicCount: number
+  clinicCount?: number
   treatmentName?: string
 }
 
 export function AreaStatsBar({
   borough,
-  clinicCount,
   treatmentName,
 }: AreaStatsBarProps) {
   const facts = [
     {
       icon: Building2,
       label: treatmentName ? `${treatmentName} clinics` : "Clinics",
-      value:
-        clinicCount > 0
-          ? `${clinicCount} verified`
-          : "Clinics available",
+      value: "Verified",
     },
     {
       icon: Users,
