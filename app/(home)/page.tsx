@@ -354,9 +354,6 @@ export default function Home() {
           {/* Scrolling Marquee - right below hero */}
           <ScrollingMarquee items={marqueeItems} speed={35} />
 
-          {/* Trust badge strip */}
-          <TrustBadgeStrip />
-
           {/* How it works section */}
           <section id="how-it-works" className="py-16 md:pt-8 md:pb-11 lg:pt-10 lg:pb-13 bg-white relative overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -542,6 +539,9 @@ export default function Home() {
               </div>
             </div>
           </section>
+
+          {/* Trust badge strip — below how it works */}
+          <TrustBadgeStrip />
 
           {/* Trusted clinics section */}
           <section className="py-16 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32">

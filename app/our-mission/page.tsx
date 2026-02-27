@@ -13,7 +13,6 @@ import {
   ArrowRight,
 } from "lucide-react"
 import { SiteFooter } from "@/components/site-footer"
-import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
@@ -211,8 +210,6 @@ export default function OurMissionPage() {
           </div>
         </div>
       </section>
-
-      <TrustBadgeStrip />
 
       {/* ───────────────────────────────────────────────────────────────
           Section 2 — What Happens When Access Fails (graph cards)
