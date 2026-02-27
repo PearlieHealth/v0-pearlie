@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export const metadata: Metadata = {
@@ -39,7 +40,7 @@ export default function FAQPage() {
     { question: "What happens to my data?", answer: "Your data is used only to provide the matching service and is handled in line with our Privacy Policy and UK GDPR. Clinics only see your details when you choose to contact them. You can request data deletion at any time by emailing privacy@pearlie.org." },
     { question: "Is Pearlie part of the NHS?", answer: "Pearlie is an independent, private service and is not affiliated with, endorsed by, or connected to the National Health Service (NHS). Clinics listed on Pearlie are private dental practices. If you are looking for NHS dental services, visit the NHS Find a Dentist tool." },
     { question: "Can I compare clinics side by side?", answer: "Pearlie lets you compare clinics side by side — including services offered, pricing indications, patient reviews, clinic photos, and availability. This helps you make an informed decision without needing to call each clinic individually." },
-    { question: "What if I don't find the right clinic?", answer: "You can adjust your preferences or submit another match request at any time. Pearlie's network includes 20+ verified private clinics across 20+ London boroughs, representing 50+ dental professionals. We are expanding toward 500+ clinics across the UK over the coming years." },
+    { question: "What if I don't find the right clinic?", answer: "You can adjust your preferences or submit another match request at any time. Pearlie's network includes 500+ practices across London. We focus on quality over quantity, with every clinic verified as GDC-registered." },
     { question: "Do clinics pay to appear higher?", answer: "Clinic visibility on Pearlie is based on match relevance and profile completeness — not paid ranking. Clinics cannot pay to appear higher in your results. This ensures recommendations are based on fit, not advertising spend." },
     { question: "How much does Invisalign cost in London?", answer: "Invisalign in London starts from around £2,500 depending on the complexity of your case and the clinic you choose. Pearlie helps you compare Invisalign providers across London so you can see indicative pricing, read reviews, and message clinics directly before committing. All clinics on Pearlie are GDC-registered and verified for quality care." },
     { question: "How do I find a good dentist for dental implants?", answer: "Finding the right dentist for dental implants means looking for a GDC-registered clinician with implant-specific experience, transparent pricing, and strong patient reviews. Pearlie matches you with verified implant providers in London based on your needs, budget, and location — so you can compare options without endless searching." },
@@ -79,8 +80,16 @@ export default function FAQPage() {
                 <HelpCircle className="w-8 h-8 text-primary" />
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em]">Frequently asked questions</h1>
               </div>
-              <p className="text-lg text-muted-foreground mb-12">Everything you need to know about using Pearlie</p>
+              <p className="text-lg text-muted-foreground mb-8">Everything you need to know about using Pearlie</p>
+            </div>
+          </div>
+        </section>
 
+        <TrustBadgeStrip />
+
+        <section className="pt-8 pb-12 sm:pb-20 bg-background">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto">
               <Accordion type="single" collapsible className="space-y-4">
                 <AccordionItem value="item-1" className="border-none rounded-lg px-4 sm:px-6 bg-[var(--cream)]">
                   <AccordionTrigger className="text-left text-lg font-semibold hover:no-underline">
@@ -207,8 +216,7 @@ export default function FAQPage() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     You can adjust your preferences or submit another match request at any time. Pearlie&apos;s network
-                    includes 20+ verified private clinics across 20+ London boroughs, representing 50+ dental professionals.
-                    We are expanding toward 500+ clinics across the UK over the coming years.
+                    includes 500+ practices across London. We focus on quality over quantity, with every clinic verified as GDC-registered.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -263,6 +271,28 @@ export default function FAQPage() {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
+            </div>
+          </div>
+        </section>
+
+        {/* Conversion CTA */}
+        <section className="py-16 sm:py-20 bg-[#004443]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl mx-auto text-center">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
+                Ready to find the right clinic?
+              </h2>
+              <p className="text-white/70 mb-6 leading-relaxed">
+                Answer a few quick questions and get matched with verified,
+                GDC-registered clinics near you. Free, independent, and takes under 60 seconds.
+              </p>
+              <Button
+                size="lg"
+                className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 h-12 text-base border-0"
+                asChild
+              >
+                <Link href="/intake">Get my clinic matches</Link>
+              </Button>
             </div>
           </div>
         </section>

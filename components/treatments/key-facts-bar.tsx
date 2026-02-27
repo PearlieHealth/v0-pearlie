@@ -3,14 +3,13 @@ import { PoundSterling, Clock, Building2, ShieldCheck } from "lucide-react"
 interface KeyFactsBarProps {
   priceRange: string
   treatmentDuration: string
-  clinicCount: number
 }
 
-export function KeyFactsBar({ priceRange, treatmentDuration, clinicCount }: KeyFactsBarProps) {
+export function KeyFactsBar({ priceRange, treatmentDuration }: KeyFactsBarProps) {
   const facts = [
     { icon: PoundSterling, label: "Price range", value: priceRange },
     { icon: Clock, label: "Duration", value: treatmentDuration },
-    { icon: Building2, label: "Clinics", value: clinicCount > 0 ? `${clinicCount} verified` : "Clinics available" },
+    { icon: Building2, label: "Clinics", value: "Verified clinics" },
     { icon: ShieldCheck, label: "Standard", value: "GDC registered" },
   ]
 

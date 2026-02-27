@@ -10,6 +10,8 @@ import {
   ArrowRight,
 } from "lucide-react"
 import { SiteFooter } from "@/components/site-footer"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 import { FadeIn, AnimatedBar } from "@/components/animate-in-view"
 
 // Stat card — dark variant for hero
@@ -429,6 +431,33 @@ export default function OurMissionPage() {
               </div>
             </div>
           </FadeIn>
+        </div>
+      </section>
+
+      {/* ───────────────────────────────────────────────────────────────
+          Patient CTA
+      ─────────────────────────────────────────────────────────────── */}
+      <section className="py-16 md:py-20 bg-[#faf3e6]">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.03em] text-[#004443] mb-4">
+              Looking for a trusted dental clinic?
+            </h2>
+            <p className="text-muted-foreground mb-6 leading-relaxed">
+              While we work on expanding access, Pearlie is already matching patients
+              with verified, GDC-registered clinics across London.
+            </p>
+            <Button
+              size="lg"
+              className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 h-12 text-base border-0"
+              asChild
+            >
+              <Link href="/intake">Find my clinic</Link>
+            </Button>
+            <p className="text-xs text-muted-foreground mt-3">
+              Free, independent, takes under 60 seconds
+            </p>
+          </div>
         </div>
       </section>
 

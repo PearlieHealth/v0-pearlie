@@ -9,6 +9,7 @@ import { TreatmentHero } from "@/components/treatments/treatment-hero"
 import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
 import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-postcode"
 import { KeyFactsBar } from "@/components/treatments/key-facts-bar"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
 import { TreatmentFAQ } from "@/components/treatments/treatment-faq"
 import { RelatedTreatments } from "@/components/treatments/related-treatments"
@@ -277,7 +278,6 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
         <KeyFactsBar
           priceRange={meta.priceRange}
           treatmentDuration={meta.treatmentDuration}
-          clinicCount={clinics.length}
         />
 
         {/* 3. Clinic Listings */}
@@ -285,6 +285,9 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           clinics={clinics}
           treatmentName={meta.treatmentName}
         />
+
+        {/* Trust badges */}
+        <TrustBadgeStrip />
 
         {/* 4. MDX Editorial Content */}
         <section className="py-8 sm:py-12">
