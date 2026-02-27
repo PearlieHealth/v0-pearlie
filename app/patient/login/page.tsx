@@ -224,7 +224,7 @@ export default function PatientLoginPage() {
             <span className="font-semibold text-xl text-[#0fbcb0]">Pearlie</span>
           </Link>
           <h1 className="text-2xl font-semibold text-[#3d3838] mb-2">Welcome back</h1>
-          <p className="text-[#3d3838]/70">Sign in to view your matches and conversations.</p>
+          <p className="text-[#3d3838]/70">Sign in to view your clinic matches and conversations. No password needed.</p>
         </div>
 
         {success ? (
