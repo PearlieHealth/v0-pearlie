@@ -41,7 +41,10 @@ export async function sendEmailWithRetry(
   let lastError: unknown
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const { data, error } = await getResend().emails.send(params)
+      // Omit replyTo if falsy so Resend doesn't reject with "Invalid 'reply_to' field"
+      const { replyTo: rt, ...rest } = params
+      const sendPayload = rt ? { ...rest, replyTo: rt } : rest
+      const { data, error } = await getResend().emails.send(sendPayload)
       if (error) {
         lastError = error
         // Don't retry validation errors
