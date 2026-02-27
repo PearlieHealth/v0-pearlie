@@ -574,9 +574,12 @@ export default function ForClinicsPage() {
                 </div>
                 <span style={{ color: "#10b981", fontWeight: 800, fontSize: 14 }}>STEP 01</span>
               </div>
-              <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 16 }}>
+              <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 8 }}>
                 Patient completes intake
               </h3>
+              <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.55, marginBottom: 16 }}>
+                Our questionnaire captures treatment needs, anxiety level, cost approach, concerns, values, and preferred timing — before any clinic contact.
+              </p>
 
               {/* Mini questionnaire mockup */}
               <div
@@ -669,9 +672,12 @@ export default function ForClinicsPage() {
                 </div>
                 <span style={{ color: "#10b981", fontWeight: 800, fontSize: 14 }}>STEP 02</span>
               </div>
-              <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 16 }}>
+              <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 8 }}>
                 Pearlie matches to your clinic
               </h3>
+              <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.55, marginBottom: 16 }}>
+                Our algorithm matches patients based on clinical fit, treatment availability, cost alignment, and what the patient said they value most.
+              </p>
 
               {/* Matching score visualisation */}
               <div
@@ -744,9 +750,12 @@ export default function ForClinicsPage() {
                 </div>
                 <span style={{ color: "#10b981", fontWeight: 800, fontSize: 14 }}>STEP 03</span>
               </div>
-              <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 16 }}>
+              <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 8 }}>
                 You receive a qualified lead
               </h3>
+              <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.55, marginBottom: 16 }}>
+                You get the patient&rsquo;s profile with all 8 data points — anxiety level, blockers, budget mindset, preferred times, and more. Ready for a productive consultation.
+              </p>
 
               {/* Mini patient profile card */}
               <div
@@ -777,7 +786,7 @@ export default function ForClinicsPage() {
                   </div>
                   <div>
                     <p style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600 }}>Sarah M.</p>
-                    <p style={{ color: "#64748b", fontSize: 10 }}>Submitted 12 min ago</p>
+                    <p style={{ color: "#64748b", fontSize: 10 }}>Requested appointment</p>
                   </div>
                   <span
                     style={{
@@ -797,28 +806,28 @@ export default function ForClinicsPage() {
                 {/* Data point tags */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {[
-                    { label: "Invisalign", color: "#60a5fa" },
-                    { label: "Quite anxious", color: "#f59e0b" },
-                    { label: "Flexible range", color: "#10b981" },
-                    { label: "Within a week", color: "#34d399" },
-                    { label: "Clear pricing", color: "#a78bfa" },
-                    { label: "Afternoons", color: "#64748b" },
-                    { label: "Up to 5 mi", color: "#64748b" },
-                    { label: "Cost concern", color: "#f87171" },
-                  ].map((tag) => (
+                    "Invisalign",
+                    "Quite anxious",
+                    "Flexible range",
+                    "Within a week",
+                    "Clear pricing",
+                    "Afternoons",
+                    "Up to 5 mi",
+                    "Cost concern",
+                  ].map((label) => (
                     <span
-                      key={tag.label}
+                      key={label}
                       style={{
                         fontSize: 10,
                         fontWeight: 500,
                         padding: "3px 8px",
                         borderRadius: 6,
-                        background: `${tag.color}15`,
-                        color: tag.color,
-                        border: `1px solid ${tag.color}25`,
+                        background: "rgba(16,185,129,.1)",
+                        color: "#34d399",
+                        border: "1px solid rgba(16,185,129,.2)",
                       }}
                     >
-                      {tag.label}
+                      {label}
                     </span>
                   ))}
                 </div>
