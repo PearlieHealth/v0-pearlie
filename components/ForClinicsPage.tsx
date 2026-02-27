@@ -542,64 +542,288 @@ export default function ForClinicsPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
               gap: 24,
             }}
           >
-            {[
-              {
-                step: "01",
-                icon: <FileText size={22} />,
-                title: "Patient completes intake",
-                desc: "Our questionnaire captures treatment needs, anxiety level, cost approach, concerns, values, and preferred timing — before any clinic contact.",
-              },
-              {
-                step: "02",
-                icon: <Brain size={22} />,
-                title: "Pearlie matches to your clinic",
-                desc: "Our algorithm matches patients based on clinical fit, treatment availability, cost alignment, and what the patient said they value most in a clinic.",
-              },
-              {
-                step: "03",
-                icon: <Zap size={22} />,
-                title: "You receive a qualified lead",
-                desc: "You get the patient's profile with all 8 data points — their anxiety level, blockers, budget mindset, preferred times, and more. Ready for a productive consultation.",
-              },
-            ].map((item) => (
+            {/* Step 01 — Intake questionnaire mockup */}
+            <div
+              style={{
+                background: "rgba(255,255,255,.03)",
+                border: "1px solid rgba(255,255,255,.06)",
+                borderRadius: 16,
+                padding: "28px 24px",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+                <div
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 12,
+                    background: "rgba(16,185,129,.12)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#10b981",
+                  }}
+                >
+                  <FileText size={22} />
+                </div>
+                <span style={{ color: "#10b981", fontWeight: 800, fontSize: 14 }}>STEP 01</span>
+              </div>
+              <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 16 }}>
+                Patient completes intake
+              </h3>
+
+              {/* Mini questionnaire mockup */}
               <div
-                key={item.step}
                 style={{
-                  background: "rgba(255,255,255,.03)",
-                  border: "1px solid rgba(255,255,255,.06)",
-                  borderRadius: 16,
-                  padding: "32px 28px",
+                  background: "rgba(255,255,255,.04)",
+                  borderRadius: 12,
+                  padding: "16px 18px",
+                  flex: 1,
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+                {/* Progress bar */}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                  <div style={{ flex: 1, height: 4, borderRadius: 2, background: "rgba(255,255,255,.06)", overflow: "hidden" }}>
+                    <div style={{ width: "75%", height: "100%", borderRadius: 2, background: "linear-gradient(90deg, #10b981, #34d399)" }} />
+                  </div>
+                  <span style={{ color: "#10b981", fontSize: 11, fontWeight: 600 }}>6/8</span>
+                </div>
+
+                {/* Question mockup */}
+                <p style={{ color: "#94a3b8", fontSize: 11, marginBottom: 8, fontWeight: 500 }}>
+                  What matters most when choosing a clinic?
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {[
+                    { label: "Clear pricing before treatment", selected: true },
+                    { label: "A calm, reassuring environment", selected: true },
+                    { label: "Strong reputation and reviews", selected: false },
+                  ].map((opt) => (
+                    <div
+                      key={opt.label}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "7px 10px",
+                        borderRadius: 8,
+                        background: opt.selected ? "rgba(16,185,129,.1)" : "rgba(255,255,255,.03)",
+                        border: `1px solid ${opt.selected ? "rgba(16,185,129,.25)" : "rgba(255,255,255,.06)"}`,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: 4,
+                          border: `2px solid ${opt.selected ? "#10b981" : "#475569"}`,
+                          background: opt.selected ? "#10b981" : "transparent",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {opt.selected && <Check size={9} style={{ color: "#030712" }} />}
+                      </div>
+                      <span style={{ fontSize: 11, color: opt.selected ? "#f1f5f9" : "#64748b" }}>
+                        {opt.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Step 02 — Matching visualisation */}
+            <div
+              style={{
+                background: "rgba(255,255,255,.03)",
+                border: "1px solid rgba(255,255,255,.06)",
+                borderRadius: 16,
+                padding: "28px 24px",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+                <div
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 12,
+                    background: "rgba(16,185,129,.12)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#10b981",
+                  }}
+                >
+                  <Brain size={22} />
+                </div>
+                <span style={{ color: "#10b981", fontWeight: 800, fontSize: 14 }}>STEP 02</span>
+              </div>
+              <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 16 }}>
+                Pearlie matches to your clinic
+              </h3>
+
+              {/* Matching score visualisation */}
+              <div
+                style={{
+                  background: "rgba(255,255,255,.04)",
+                  borderRadius: 12,
+                  padding: "16px 18px",
+                  flex: 1,
+                }}
+              >
+                <p style={{ color: "#64748b", fontSize: 11, marginBottom: 12, fontWeight: 500 }}>Match score breakdown</p>
+                {[
+                  { label: "Treatment fit", score: 95, color: "#10b981" },
+                  { label: "Cost alignment", score: 88, color: "#34d399" },
+                  { label: "Location", score: 82, color: "#6ee7b7" },
+                  { label: "Clinic values match", score: 90, color: "#10b981" },
+                ].map((m) => (
+                  <div key={m.label} style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                      <span style={{ color: "#94a3b8", fontSize: 11 }}>{m.label}</span>
+                      <span style={{ color: m.color, fontSize: 11, fontWeight: 700 }}>{m.score}%</span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,.06)", overflow: "hidden" }}>
+                      <div style={{ width: `${m.score}%`, height: "100%", borderRadius: 3, background: m.color }} />
+                    </div>
+                  </div>
+                ))}
+                {/* Overall score */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginTop: 14,
+                    paddingTop: 12,
+                    borderTop: "1px solid rgba(255,255,255,.06)",
+                  }}
+                >
+                  <span style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600 }}>Overall match</span>
+                  <span style={{ ...heading, fontSize: 22, color: "#10b981" }}>92%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 03 — Lead profile card */}
+            <div
+              style={{
+                background: "rgba(255,255,255,.03)",
+                border: "1px solid rgba(255,255,255,.06)",
+                borderRadius: 16,
+                padding: "28px 24px",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+                <div
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 12,
+                    background: "rgba(16,185,129,.12)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#10b981",
+                  }}
+                >
+                  <Zap size={22} />
+                </div>
+                <span style={{ color: "#10b981", fontWeight: 800, fontSize: 14 }}>STEP 03</span>
+              </div>
+              <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 16 }}>
+                You receive a qualified lead
+              </h3>
+
+              {/* Mini patient profile card */}
+              <div
+                style={{
+                  background: "rgba(255,255,255,.04)",
+                  borderRadius: 12,
+                  padding: "16px 18px",
+                  flex: 1,
+                }}
+              >
+                {/* Patient header */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                   <div
                     style={{
-                      width: 42,
-                      height: 42,
-                      borderRadius: 12,
-                      background: "rgba(16,185,129,.12)",
+                      width: 32,
+                      height: 32,
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #10b981, #34d399)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "#10b981",
+                      color: "#030712",
+                      fontWeight: 800,
+                      fontSize: 13,
                     }}
                   >
-                    {item.icon}
+                    S
                   </div>
-                  <span style={{ color: "#10b981", fontWeight: 800, fontSize: 14 }}>
-                    STEP {item.step}
+                  <div>
+                    <p style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600 }}>Sarah M.</p>
+                    <p style={{ color: "#64748b", fontSize: 10 }}>Submitted 12 min ago</p>
+                  </div>
+                  <span
+                    style={{
+                      marginLeft: "auto",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "#10b981",
+                      background: "rgba(16,185,129,.12)",
+                      padding: "3px 8px",
+                      borderRadius: 6,
+                    }}
+                  >
+                    92% match
                   </span>
                 </div>
-                <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 10 }}>
-                  {item.title}
-                </h3>
-                <p style={{ color: "#94a3b8", fontSize: 15, lineHeight: 1.65 }}>{item.desc}</p>
+
+                {/* Data point tags */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {[
+                    { label: "Invisalign", color: "#60a5fa" },
+                    { label: "Quite anxious", color: "#f59e0b" },
+                    { label: "Flexible range", color: "#10b981" },
+                    { label: "Within a week", color: "#34d399" },
+                    { label: "Clear pricing", color: "#a78bfa" },
+                    { label: "Afternoons", color: "#64748b" },
+                    { label: "Up to 5 mi", color: "#64748b" },
+                    { label: "Cost concern", color: "#f87171" },
+                  ].map((tag) => (
+                    <span
+                      key={tag.label}
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 500,
+                        padding: "3px 8px",
+                        borderRadius: 6,
+                        background: `${tag.color}15`,
+                        color: tag.color,
+                        border: `1px solid ${tag.color}25`,
+                      }}
+                    >
+                      {tag.label}
+                    </span>
+                  ))}
+                </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
