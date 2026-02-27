@@ -60,15 +60,16 @@ export function HomeHeroSearch() {
       <form
         id="home-hero-search"
         onSubmit={handleSubmit}
-        className="max-w-xl lg:max-w-2xl"
+        className="w-full max-w-xl lg:max-w-2xl bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.04)] p-4 sm:p-5 border border-border/30"
       >
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-start">
           {/* Treatment selector */}
           <div className="flex-1 min-w-0">
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 pl-1">Treatment</label>
             <select
               value={treatment}
               onChange={(e) => setTreatment(e.target.value)}
-              className="w-full h-12 px-4 text-sm rounded-full border border-border/40 bg-white/80 focus:outline-none focus:ring-2 focus:ring-[#0fbcb0] focus:border-[#0fbcb0] text-foreground appearance-none cursor-pointer"
+              className="w-full h-12 px-4 text-sm rounded-xl border border-border/60 bg-[#f8f7f1] focus:outline-none focus:ring-2 focus:ring-[#0fbcb0] focus:border-[#0fbcb0] text-foreground appearance-none cursor-pointer"
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
                 backgroundRepeat: "no-repeat",
@@ -86,24 +87,30 @@ export function HomeHeroSearch() {
           </div>
 
           {/* Postcode input */}
-          <div className="flex-1 min-w-0 [&_input]:h-12 [&_input]:rounded-full [&_input]:text-sm">
-            <PostcodeInput
-              value={postcode}
-              onChange={setPostcode}
-              onValidChange={setPostcodeValid}
-              onOutsideLondon={(area) => setOutsideArea(area)}
-            />
+          <div className="flex-1 min-w-0">
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 pl-1">Postcode</label>
+            <div className="[&_input]:h-12 [&_input]:rounded-xl [&_input]:text-sm [&_input]:bg-[#f8f7f1] [&_input]:border-border/60">
+              <PostcodeInput
+                value={postcode}
+                onChange={setPostcode}
+                onValidChange={setPostcodeValid}
+                onOutsideLondon={(area) => setOutsideArea(area)}
+              />
+            </div>
           </div>
 
           {/* Submit button */}
-          <Button
-            type="submit"
-            disabled={!postcodeValid}
-            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-6 h-12 text-sm font-medium shrink-0 disabled:opacity-50 border-0 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
-          >
-            Find my clinic
-            <ArrowRight className="ml-1.5 w-4 h-4" />
-          </Button>
+          <div className="flex flex-col justify-end">
+            <label className="hidden sm:block text-[11px] font-semibold uppercase tracking-wider text-transparent mb-1.5 select-none">&nbsp;</label>
+            <Button
+              type="submit"
+              disabled={!postcodeValid}
+              className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-xl px-6 h-12 text-sm font-semibold shrink-0 disabled:opacity-50 border-0 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] shadow-sm"
+            >
+              Find my clinic
+              <ArrowRight className="ml-1.5 w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </form>
 

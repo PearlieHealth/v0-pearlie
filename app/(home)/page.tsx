@@ -46,31 +46,43 @@ const testimonials = [
     label: "New to London",
     text: "I\u2019d just moved to London and didn\u2019t know where to begin. Instead of scrolling endlessly, I answered a few questions and had solid options straight away.",
     name: "Sophie M.",
+    rating: 5,
+    verified: true,
   },
   {
     label: "Emergency",
     text: "I needed to be seen quickly, but I didn\u2019t want to rush into the wrong place. Pearlie helped me compare properly before booking.",
     name: "James R.",
+    rating: 5,
+    verified: true,
   },
   {
     label: "Second Opinion",
     text: "I wasn\u2019t sure what treatment I actually needed. Pearlie matched me with clinics that explained my options clearly, without pushing anything.",
     name: "Priya K.",
+    rating: 5,
+    verified: true,
   },
   {
     label: "Invisalign",
     text: "I wanted Invisalign but didn\u2019t know where to start. The clinics Pearlie suggested had experience with adult cases like mine. I finally felt confident choosing.",
     name: "Tom H.",
+    rating: 4,
+    verified: true,
   },
   {
     label: "Cosmetic",
     text: "I was overwhelmed researching cosmetic dentists. Pearlie matched me with a clinic that specialised in natural-looking results. The consultation felt thoughtful \u2014 not salesy.",
     name: "Amara L.",
+    rating: 5,
+    verified: true,
   },
   {
     label: "Nervous Patient",
     text: "I\u2019m a nervous patient and usually avoid dentists. The clinic I found through Pearlie really understood that. It made the whole process feel manageable.",
     name: "Hannah W.",
+    rating: 5,
+    verified: true,
   },
 ]
 
@@ -101,9 +113,18 @@ function PatientExperiences() {
             <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443] leading-[1.05]">
               Real stories.<br />Thoughtful decisions.<br /><span className="text-[#0fbcb0]">Confident choices.</span>
             </h2>
-            <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-4">
               Real experiences from people who used Pearlie to choose with confidence.
             </p>
+            <div className="inline-flex items-center gap-2 bg-white rounded-full px-4 py-2 border border-border/40 shadow-sm">
+              <div className="flex gap-0.5">
+                {[...Array(5)].map((_, j) => (
+                  <Star key={j} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                ))}
+              </div>
+              <span className="text-sm font-semibold text-foreground">4.8</span>
+              <span className="text-xs text-muted-foreground">from 10,000+ patients</span>
+            </div>
           </div>
         </div>
       </div>
@@ -122,20 +143,33 @@ function PatientExperiences() {
             transition={{ duration: 0.5, delay: i * 0.08, ease: [0.25, 0.1, 0.25, 1] }}
           >
             <Card className="p-5 border border-[#e8e4dc] shadow-none rounded-2xl bg-white h-full flex flex-col hover:shadow-md hover:border-[#d5cfc8] hover:-translate-y-0.5 focus-within:shadow-md focus-within:border-[#d5cfc8] focus-within:-translate-y-0.5 transition-all duration-300 ease-out">
-              <span className="text-[9px] font-extrabold tracking-[0.1em] uppercase text-[#0fbcb0] mb-2.5">
-                {testimonial.label}
-              </span>
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-[9px] font-extrabold tracking-[0.1em] uppercase text-[#0fbcb0]">
+                  {testimonial.label}
+                </span>
+                {testimonial.verified && (
+                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <CheckCircle2 className="w-3 h-3 text-[#0fbcb0]" />
+                    Verified
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-0.5 mb-3">
+                {[...Array(5)].map((_, j) => (
+                  <Star
+                    key={j}
+                    className={`w-3.5 h-3.5 ${
+                      j < testimonial.rating
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "fill-gray-200 text-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
               <p className="text-[14px] text-muted-foreground leading-snug mb-4 flex-1">
                 &ldquo;{testimonial.text}&rdquo;
               </p>
-              <div className="flex items-center justify-between">
-                <p className="text-[13px] font-semibold text-foreground">{testimonial.name}</p>
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-3 h-3 fill-[#0fbcb0]/50 text-[#0fbcb0]/50" />
-                  ))}
-                </div>
-              </div>
+              <p className="text-[13px] font-semibold text-foreground">{testimonial.name}</p>
             </Card>
           </motion.div>
         ))}
@@ -326,19 +360,19 @@ export default function Home() {
                           <HomeHeroSearch />
                           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
                             <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <Users className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                              <span className="font-semibold text-foreground">10,000+</span>
+                              <span className="text-muted-foreground">patients matched</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
                               <Building2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
                               <span className="font-semibold text-foreground">500+</span>
                               <span className="text-muted-foreground">practices</span>
                             </span>
                             <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
                               <Star className="w-3.5 h-3.5 text-[#0fbcb0]" />
-                              <span className="font-semibold text-foreground">98%</span>
-                              <span className="text-muted-foreground">satisfaction</span>
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <CalendarCheck className="w-3.5 h-3.5 text-[#0fbcb0]" />
-                              <span className="font-semibold text-foreground">60 sec</span>
-                              <span className="text-muted-foreground">avg booking</span>
+                              <span className="font-semibold text-foreground">4.8★</span>
+                              <span className="text-muted-foreground">avg rating</span>
                             </span>
                           </div>
                         </div>
@@ -562,25 +596,38 @@ export default function Home() {
                       We shortlist.<br />You decide.<br /><span className="text-[#0fbcb0]">With confidence.</span>
                     </h2>
 
-                    <p className="text-lg text-muted-foreground leading-snug mb-4">
-                      Whether you're considering Invisalign, dental implants, composite bonding, veneers, teeth whitening, or
-                      emergency dental care — Pearlie matches you with verified private dental clinics across London.
-                    </p>
                     <p className="text-lg text-muted-foreground leading-snug mb-8">
-                      Every clinic is carefully reviewed for clinical standards, transparency, and patient experience. All clinics are verified as{" "}
-                      <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#004443]">GDC-registered</a>.
-                      Our network includes 500+ practices across London — and we focus on quality over quantity.
+                      500+ practices across London, each one verified by our team. We focus on quality over quantity — so you can choose with confidence.
                     </p>
 
-                    <div className="space-y-3 mb-10">
+                    {/* How we verify */}
+                    <div className="space-y-4 mb-10">
+                      <p className="text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443]/60">How we verify clinics</p>
                       {[
-                        "Personally reviewed by Pearlie",
-                        "Transparent pricing & clear communication",
-                        "Highly rated for patient care and results",
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-center gap-3">
-                          <CheckCircle2 className="w-5 h-5 text-[#0fbcb0] flex-shrink-0" />
-                          <span className="text-foreground font-medium">{item}</span>
+                        {
+                          step: "1",
+                          title: "GDC & CQC registration",
+                          desc: "Every practitioner verified on the GDC register. Clinic regulatory status confirmed.",
+                        },
+                        {
+                          step: "2",
+                          title: "Quality & transparency review",
+                          desc: "We assess patient reviews, pricing clarity, and clinical standards before listing.",
+                        },
+                        {
+                          step: "3",
+                          title: "Ongoing monitoring",
+                          desc: "Clinics are re-reviewed regularly. Those that don\u2019t maintain standards are removed.",
+                        },
+                      ].map((item) => (
+                        <div key={item.step} className="flex gap-3.5">
+                          <div className="w-7 h-7 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="text-xs font-bold text-[#0fbcb0]">{item.step}</span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                            <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -604,6 +651,57 @@ export default function Home() {
 
           {/* Comparison table */}
           <ComparisonTable />
+
+          {/* Pearlie Guarantee callout */}
+          <section className="py-14 md:py-20 bg-[#004443] relative overflow-hidden">
+            <div className="absolute top-0 left-1/4 w-72 h-72 rounded-full bg-[#0fbcb0]/[0.04] blur-[80px] pointer-events-none" />
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+              <div className="max-w-4xl mx-auto">
+                <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                  {/* Icon */}
+                  <div className="shrink-0">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-[#0fbcb0]/15 flex items-center justify-center">
+                      <Shield className="w-8 h-8 md:w-10 md:h-10 text-[#0fbcb0]" />
+                    </div>
+                  </div>
+                  {/* Content */}
+                  <div className="flex-1 text-center md:text-left">
+                    <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-3">
+                      The Pearlie Guarantee
+                    </h2>
+                    <p className="text-white/70 leading-relaxed mb-4 max-w-2xl">
+                      Every clinic is verified for quality care, transparent pricing, and GDC registration.
+                      If your experience doesn&apos;t meet expectations, we&apos;ll cover your next consultation — free.
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                      <div className="flex items-center gap-2 text-sm text-white/60">
+                        <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                        <span>Verified clinics only</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-white/60">
+                        <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                        <span>Satisfaction promise</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-white/60">
+                        <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                        <span>No hidden costs</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* CTA */}
+                  <div className="shrink-0">
+                    <Link
+                      href="/about#pearlie-guarantee"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-[#0fbcb0] hover:text-white transition-colors whitespace-nowrap"
+                    >
+                      Learn more
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
           {/* Patient Experiences section */}
           <PatientExperiences />
