@@ -9,7 +9,6 @@ const platformLinks = [
   { label: "How It Works", href: "/#how-it-works" },
   { label: "For Clinics", href: "/for-clinics" },
   { label: "Our Mission", href: "/our-mission" },
-  { label: "Blog", href: "/blog" },
   { label: "FAQ", href: "/faq" },
 ]
 
@@ -21,6 +20,16 @@ const treatmentLinks = [
   { label: "Composite Bonding", href: "/treatments/composite-bonding" },
   { label: "Veneers", href: "/treatments/veneers" },
   { label: "Emergency Dentist", href: "/treatments/emergency-dental" },
+]
+
+const findDentistLinks = [
+  { label: "Dentist Near Me", href: "/find/dentist-near-me" },
+  { label: "Central London", href: "/find/central-london" },
+  { label: "South London", href: "/find/south-london" },
+  { label: "North London", href: "/find/north-london" },
+  { label: "West London", href: "/find/west-london" },
+  { label: "East London", href: "/find/east-london" },
+  { label: "All London areas", href: "/find" },
 ]
 
 const resourceLinks = [
@@ -88,6 +97,23 @@ export function SiteFooter() {
               </ul>
             </div>
 
+            {/* Find a Dentist */}
+            <div>
+              <h4 className="text-sm font-semibold text-white mb-4">Find a Dentist</h4>
+              <ul className="space-y-2.5">
+                {findDentistLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-white/60 hover:text-white transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             {/* Resources */}
             <div>
               <h4 className="text-sm font-semibold text-white mb-4">Resources</h4>
@@ -105,7 +131,7 @@ export function SiteFooter() {
               </ul>
             </div>
 
-            {/* Legal */}
+            {/* Legal & Contact */}
             <div>
               <h4 className="text-sm font-semibold text-white mb-4">Legal</h4>
               <ul className="space-y-2.5">
@@ -122,13 +148,6 @@ export function SiteFooter() {
                 <li>
                   <CookieSettingsButton variant="footer" />
                 </li>
-              </ul>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-4">Contact</h4>
-              <ul className="space-y-2.5">
                 <li>
                   <a
                     href="mailto:hello@pearlie.org"

@@ -170,7 +170,7 @@
   display: none;
 }
 
-/* Hide main nav on mobile when treatment sticky postcode bar is visible */
+/* Hide main nav on mobile when sticky postcode bar is visible (treatment + find pages) */
 @media (max-width: 767px) {
   html.treatment-sticky-visible header.fixed {
     opacity: 0;
