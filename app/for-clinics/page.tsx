@@ -1,396 +1,88 @@
 import type { Metadata } from "next"
-import { portalUrl } from "@/lib/clinic-url"
-import { Button } from "@/components/ui/button"
+import { Plus_Jakarta_Sans, Bricolage_Grotesque } from "next/font/google"
+import ForClinicsPage from "@/components/ForClinicsPage"
+import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-jakarta",
+  display: "swap",
+})
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  weight: ["700", "800"],
+  variable: "--font-bricolage",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
-  title: "For Dental Clinics - Join Pearlie's Network",
-  description: "Join Pearlie to receive matched patients in London and the UK looking for your dental services. Quality leads and zero upfront cost.",
+  title: "Pearly — Get Pre-Qualified Dental Patients | For Clinics",
+  description:
+    "Receive high-need, pre-qualified patients for £287/month. 3 patients included. No contracts, no ad spend, no agency needed. Cancel anytime.",
   alternates: {
     canonical: "https://pearlie.org/for-clinics",
   },
   openGraph: {
-    title: "For Dental Clinics - Join Pearlie's Network",
+    title: "Pearly — Get Pre-Qualified Dental Patients",
     description:
-      "Receive matched patients in London and the UK looking for your dental services. Quality leads and zero upfront cost.",
+      "Receive high-need patients who are ready to book — for less than the cost of a Google ad.",
     url: "https://pearlie.org/for-clinics",
+    siteName: "Pearly",
+    type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "For Dental Clinics - Join Pearlie's Network",
+    title: "Pearly — Get Pre-Qualified Dental Patients",
     description:
-      "Receive matched patients in London and the UK looking for your dental services. Quality leads and zero upfront cost.",
+      "Receive high-need patients who are ready to book — for less than the cost of a Google ad.",
   },
 }
-import { Card } from "@/components/ui/card"
-import { ArrowRight, CheckCircle2, X, Star, TrendingUp, Users, Eye } from "lucide-react"
-import Link from "next/link"
-import { MainNav } from "@/components/main-nav"
-import { ClinicWaitlistForm } from "@/components/clinic-waitlist-form"
-import { SiteFooter } from "@/components/site-footer"
-import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
-export default function ForClinicsPage() {
+export default function ForClinicsRoute() {
   return (
-    <div className="min-h-screen bg-background">
-      <BreadcrumbSchema items={[
-        { name: "Home", url: "https://pearlie.org" },
-        { name: "For Clinics", url: "https://pearlie.org/for-clinics" },
-      ]} />
+    <>
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://pearlie.org" },
+          { name: "For Clinics", url: "https://pearlie.org/for-clinics" },
+        ]}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "Service",
-            name: "Pearlie Clinic Partner Programme",
+            "@type": "Product",
+            name: "Pearly Standard Plan",
             description:
-              "Receive matched patients in London and the UK looking for your dental services. Quality leads based on clinical fit, not just location.",
+              "Monthly dental clinic subscription — 3 matched patient leads included with full patient intent data.",
             provider: { "@id": "https://pearlie.org/#organization" },
-            serviceType: "Patient Matching",
-            areaServed: {
-              "@type": "Country",
-              name: "United Kingdom",
-            },
-            url: "https://pearlie.org/for-clinics",
-            offers: {
-              "@type": "Offer",
-              price: "0",
-              priceCurrency: "GBP",
-              description: "Free for founding partner clinics",
-            },
+            offers: [
+              {
+                "@type": "Offer",
+                name: "Standard",
+                price: "287",
+                priceCurrency: "GBP",
+                availability: "https://schema.org/InStock",
+                description: "3 pre-qualified patient leads per month",
+              },
+              {
+                "@type": "Offer",
+                name: "Premium",
+                price: "450",
+                priceCurrency: "GBP",
+                availability: "https://schema.org/InStock",
+                description: "5 pre-qualified patient leads per month with priority matching",
+              },
+            ],
           }),
         }}
       />
-      <MainNav />
-
-      {/* HERO SECTION */}
-      <section className="pt-32 pb-24 lg:pt-32 lg:pb-32">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            {/* Trust microline */}
-            <p className="text-sm font-medium text-muted-foreground mb-8">
-              Built with dentists. Designed for real consultations.
-            </p>
-
-            {/* Headline - max 10 words, strong, decisive */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold tracking-[-0.03em] text-foreground mb-6 leading-[1.1]">
-              <span className="block">Better-fit patients.</span>
-              <span className="block">Higher conversion.</span>
-            </h1>
-
-            {/* Subheadline */}
-            <p className="text-lg sm:text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-              Pearlie matches patients by intent, expectations, and readiness — not just location.
-            </p>
-
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="text-base px-8 h-13 bg-primary hover:bg-[var(--primary-hover)]" asChild>
-                <a href="#early-access">
-                  Apply for early clinic access
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </a>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-base px-8 h-13 border-border text-foreground hover:bg-secondary bg-transparent"
-                asChild
-              >
-                <Link href={portalUrl("/clinic/login")}>
-                  Log in to Clinic Portal
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-              </Button>
-            </div>
-
-            <p className="mt-6 text-sm text-muted-foreground">Limited to the first 20–30 clinics</p>
-          </div>
-        </div>
-      </section>
-
-      {/* WHAT PEARLIE DOES - CLARITY BLOCK */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-10 text-center">
-              What Pearlie actually does
-            </h2>
-            <div className="grid sm:grid-cols-2 gap-6">
-              <div className="flex items-start gap-4 p-5 rounded-lg bg-secondary/50">
-                <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-foreground">
-                  Collects patient priorities, concerns, budget signals, and readiness before booking
-                </span>
-              </div>
-              <div className="flex items-start gap-4 p-5 rounded-lg bg-secondary/50">
-                <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-foreground">Matches patients to clinics based on clinical fit and expectations</span>
-              </div>
-              <div className="flex items-start gap-4 p-5 rounded-lg bg-secondary/50">
-                <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-foreground">Shows clinics why a patient is a match — before they arrive</span>
-              </div>
-              <div className="flex items-start gap-4 p-5 rounded-lg bg-secondary/50">
-                <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-foreground">Reduces dead-end consultations and price-shopping behaviour</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 bg-secondary/30">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-4 text-center">
-              Why the first clinics win
-            </h2>
-            <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
-              Early adopters gain advantages that won't be available later
-            </p>
-            <div className="grid sm:grid-cols-2 gap-6">
-              <Card className="p-6 border-border bg-white">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Star className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-2">Founding clinic status</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Early clinics are recognised internally as founding partners, influencing platform direction and
-                      long-term positioning.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="p-6 border-border bg-white">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-2">Data advantage before competitors</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Access patient intent, objections, and demand trends before these insights are widely available.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="p-6 border-border bg-white">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Users className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-2">Higher-quality enquiries from day one</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Patients arrive with clarified priorities, budgets, and expectations — not just price shoppers.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="p-6 border-border bg-white">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Eye className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-2">Shape how patients are matched to you</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Your feedback directly impacts how matching logic evolves and how your clinic is represented.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* COMPARISON TABLE - Most important section */}
-      <section id="how-it-works" className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-12 text-center">
-              With Pearlie vs Without Pearlie
-            </h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Without Pearlie */}
-              <Card className="p-8 border-border bg-white">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
-                    <X className="w-5 h-5 text-red-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-muted-foreground">Without Pearlie</h3>
-                </div>
-                <ul className="space-y-4">
-                  <li className="flex items-start gap-3 text-muted-foreground">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-300 mt-2 flex-shrink-0"></span>
-                    <span>Unclear motivations, cost-focused questions</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-muted-foreground">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-300 mt-2 flex-shrink-0"></span>
-                    <span>Consultation spent managing anxiety, uncertainty, and price</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-muted-foreground">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-300 mt-2 flex-shrink-0"></span>
-                    <span>High drop-off after consultation</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-muted-foreground">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-300 mt-2 flex-shrink-0"></span>
-                    <span>Paid ads, directories, race-to-the-bottom pricing</span>
-                  </li>
-                </ul>
-              </Card>
-
-              {/* With Pearlie */}
-              <Card className="p-8 border-2 border-primary bg-white">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground">With Pearlie</h3>
-                </div>
-                <ul className="space-y-4">
-                  <li className="flex items-start gap-3 text-foreground">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 flex-shrink-0"></span>
-                    <span>Clear treatment goals and expectations upfront</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-foreground">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 flex-shrink-0"></span>
-                    <span>Consultation focused on clinical discussion and planning</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-foreground">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 flex-shrink-0"></span>
-                    <span>Higher likelihood of treatment acceptance</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-foreground">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 flex-shrink-0"></span>
-                    <span>Patient-led matching based on values and fit</span>
-                  </li>
-                </ul>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* EARLY ACCESS OFFER - Enhanced with Form */}
-      <section id="early-access" className="py-20 bg-primary text-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-4 text-center">Early clinic access</h2>
-            <p className="text-white/70 text-center mb-12 max-w-2xl mx-auto">
-              Be part of the first clinics shaping the future of patient-led dentistry
-            </p>
-            <div className="grid sm:grid-cols-2 gap-6 mb-12">
-              <div className="flex items-start gap-4 p-5 rounded-lg bg-white/10">
-                <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
-                <span className="text-white/90">Free for early partner clinics (founding cohort)</span>
-              </div>
-              <div className="flex items-start gap-4 p-5 rounded-lg bg-white/10">
-                <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
-                <span className="text-white/90">Limited onboarding cohort (first 20–30 clinics only)</span>
-              </div>
-              <div className="flex items-start gap-4 p-5 rounded-lg bg-white/10">
-                <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
-                <span className="text-white/90">Direct influence on feature development and roadmap</span>
-              </div>
-              <div className="flex items-start gap-4 p-5 rounded-lg bg-white/10">
-                <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
-                <span className="text-white/90">Priority positioning in patient matches as the platform grows</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Clinic Waitlist Form Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto">
-            <ClinicWaitlistForm />
-          </div>
-        </div>
-      </section>
-
-      {/* Resources for Clinics */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-4 text-center">
-              Resources for clinic owners
-            </h2>
-            <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
-              Expert guides on patient acquisition, marketing and growing your dental practice
-            </p>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  title: "How to Attract New Patients",
-                  description: "Proven strategies for dental practices to attract higher-quality new patients.",
-                  href: "/blog/patient-acquisition-guide",
-                },
-                {
-                  title: "SEO for Dental Practices",
-                  description: "A complete UK guide to local SEO, Google Business Profile and ranking higher.",
-                  href: "/blog/dental-practice-seo-guide",
-                },
-                {
-                  title: "15 Marketing Strategies",
-                  description: "Practical marketing strategies that UK dental practices are using right now.",
-                  href: "/blog/dental-marketing-strategies",
-                },
-                {
-                  title: "Get More Online Reviews",
-                  description: "Build a repeatable system to collect reviews and manage your reputation.",
-                  href: "/blog/online-reviews-dental",
-                },
-                {
-                  title: "Convert Enquiries to Bookings",
-                  description: "Improve your enquiry-to-booking rate with better systems and follow-ups.",
-                  href: "/blog/converting-enquiries-patients",
-                },
-              ].map((resource) => (
-                <Link
-                  key={resource.href}
-                  href={resource.href}
-                  className="group block rounded-xl border border-border bg-secondary/30 p-6 hover:border-primary/30 hover:shadow-md transition-all duration-300"
-                >
-                  <h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                    {resource.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {resource.description}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FINAL CTA - Updated */}
-      <section className="py-24 bg-secondary/30">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl sm:text-4xl font-heading font-bold tracking-[-0.03em] text-foreground mb-4">
-              This is how modern clinics grow.
-            </h2>
-            <p className="text-lg text-muted-foreground mb-10">Not more leads. Better decisions.</p>
-            <Button size="lg" className="text-base px-10 h-14 bg-primary hover:bg-[var(--primary-hover)]" asChild>
-              <a href="mailto:hello@pearlie.org">
-                Apply for early clinic access
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </a>
-            </Button>
-            <p className="mt-4 text-sm text-muted-foreground">Limited to the first 20–30 clinics</p>
-          </div>
-        </div>
-      </section>
-
-      <SiteFooter />
-    </div>
+      <div className={`${jakarta.variable} ${bricolage.variable}`}>
+        <ForClinicsPage />
+      </div>
+    </>
   )
 }
