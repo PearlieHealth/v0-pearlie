@@ -20,6 +20,7 @@ import {
   CheckCheck,
   Search,
   X,
+  Mail,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -586,6 +587,12 @@ export function ChatHistoryPanel() {
                                       minute: "2-digit",
                                     })}
                                   </span>
+                                  {message.sent_via === "email" && (
+                                    <span className="inline-flex items-center gap-0.5 text-[10px] opacity-70">
+                                      <Mail className="w-2.5 h-2.5" />
+                                      email
+                                    </span>
+                                  )}
                                   {message.sender_type === "clinic" && (
                                     <StatusIcon status={message.status} />
                                   )}
