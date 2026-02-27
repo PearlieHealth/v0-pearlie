@@ -5,7 +5,6 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
-import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 
 export const metadata: Metadata = {
@@ -84,8 +83,6 @@ export default function FAQPage() {
             </div>
           </div>
         </section>
-
-        <TrustBadgeStrip />
 
         <section className="pt-8 pb-12 sm:pb-20 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
