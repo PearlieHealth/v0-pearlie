@@ -16,6 +16,7 @@
  */
 import { type NextRequest, NextResponse } from "next/server"
 import { createHmac, timingSafeEqual } from "crypto"
+import { Resend } from "resend"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyReplyToken } from "@/lib/email-reply-token"
 import { parseEmailReply, sanitizeReplyContent } from "@/lib/email-reply-parser"
@@ -156,8 +157,27 @@ export async function POST(request: NextRequest) {
   const toAddresses: string[] = Array.isArray(emailData.to) ? emailData.to : [emailData.to]
   const resendMessageId = emailData.message_id || payload.id || null
   const subject = emailData.subject || ""
-  const textBody = emailData.text || null
-  const htmlBody = emailData.html || null
+  const emailId = emailData.email_id || emailData.id || null
+
+  // Resend webhook payloads do NOT include text/html body — only metadata.
+  // We must fetch the full email content via the Receiving API.
+  let textBody: string | null = emailData.text || null
+  let htmlBody: string | null = emailData.html || null
+
+  if (!textBody && !htmlBody && emailId) {
+    try {
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      const { data: fullEmail, error: fetchError } = await resend.emails.receiving.get(emailId)
+      if (fetchError) {
+        console.error("[InboundEmail] Failed to fetch email content:", fetchError)
+      } else if (fullEmail) {
+        textBody = fullEmail.text || null
+        htmlBody = fullEmail.html || null
+      }
+    } catch (fetchErr) {
+      console.error("[InboundEmail] Error fetching email content from Resend:", fetchErr)
+    }
+  }
 
   // 2. Check idempotency
   if (resendMessageId) {
