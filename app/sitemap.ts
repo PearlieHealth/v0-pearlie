@@ -5,8 +5,9 @@ import { getAllGuides } from "@/lib/content/guides"
 import { getAllTreatments } from "@/lib/content/treatments"
 import { LONDON_BOROUGHS } from "@/lib/data/london-boroughs"
 import { getAreaTreatmentData } from "@/lib/data/area-treatments"
+import { getAllPublicClinicIds } from "@/lib/clinics/queries"
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://pearlie.org"
 
   const locationPages: MetadataRoute.Sitemap = [
@@ -91,6 +92,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }))
 
+  // Clinic profile pages
+  const clinics = await getAllPublicClinicIds()
+  const clinicPages: MetadataRoute.Sitemap = clinics.map((c) => ({
+    url: `${baseUrl}/clinic/${c.slug || c.id}`,
+    lastModified: c.updated_at,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }))
+
   return [
     ...staticPages,
     ...treatmentPages,
@@ -98,5 +108,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...areaTreatmentPages,
     ...blogPosts,
     ...guides,
+    ...clinicPages,
   ]
 }

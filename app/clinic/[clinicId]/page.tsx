@@ -1,13 +1,102 @@
-"use client"
-
+import type { Metadata } from "next"
+import { notFound } from "next/navigation"
 import { Suspense } from "react"
+import { getClinicByIdOrSlug } from "@/lib/clinics/queries"
 import { ClinicProfileContent } from "@/components/clinic/profile/clinic-profile-content"
+import { ClinicJsonLd } from "@/components/clinic/profile/clinic-jsonld"
+import type { Clinic } from "@/components/clinic/profile/types"
 
-export default function ClinicDetailPage() {
+export const revalidate = 3600
+
+interface ClinicPageProps {
+  params: Promise<{ clinicId: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export async function generateMetadata({ params, searchParams }: ClinicPageProps): Promise<Metadata> {
+  const { clinicId } = await params
+  const resolvedSearchParams = await searchParams
+  const isPreview = resolvedSearchParams?.preview === "true"
+
+  // Preview mode targets non-live clinics — skip metadata generation
+  if (isPreview) {
+    return { title: "Clinic Preview | Pearlie" }
+  }
+
+  const clinic = await getClinicByIdOrSlug(clinicId)
+
+  if (!clinic) {
+    return { title: "Clinic Not Found | Pearlie" }
+  }
+
+  const title = `${clinic.name}${clinic.city ? ` — Dentist in ${clinic.city}` : ""} | Pearlie`
+  const description =
+    clinic.description?.slice(0, 160) ||
+    `Book an appointment at ${clinic.name}${clinic.city ? ` in ${clinic.city}` : ""}. Compare prices, read reviews, and message the clinic directly on Pearlie.`
+
+  const canonicalSlug = clinic.slug || clinic.id
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `https://pearlie.org/clinic/${canonicalSlug}`,
+    },
+    openGraph: {
+      title: clinic.name,
+      description,
+      url: `https://pearlie.org/clinic/${canonicalSlug}`,
+      type: "website",
+      images: clinic.images?.[0] ? [{ url: clinic.images[0] }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: clinic.name,
+      description,
+      images: clinic.images?.[0] ? [clinic.images[0]] : [],
+    },
+  }
+}
+
+export default async function ClinicDetailPage({ params, searchParams }: ClinicPageProps) {
+  const { clinicId } = await params
+  const resolvedSearchParams = await searchParams
+  const isPreview = resolvedSearchParams?.preview === "true"
+
+  // For preview mode, let the client component handle fetching entirely.
+  // The API route (/api/clinics/[clinicId]?preview=true) verifies clinic
+  // ownership via cookie auth, which we cannot replicate server-side here.
+  if (isPreview) {
+    return (
+      <Suspense fallback={<ClinicProfileSkeleton />}>
+        <ClinicProfileContent />
+      </Suspense>
+    )
+  }
+
+  const clinic = await getClinicByIdOrSlug(clinicId)
+
+  if (!clinic) {
+    notFound()
+  }
+
+  // Strip internal fields before passing to client
+  const { is_live, is_archived, ...publicClinic } = clinic
+
+  // Only include treatment_prices if the clinic has enabled it
+  if (!publicClinic.show_treatment_prices) {
+    publicClinic.treatment_prices = []
+  }
+
+  const typedClinic = publicClinic as unknown as Clinic
+
   return (
-    <Suspense fallback={<ClinicProfileSkeleton />}>
-      <ClinicProfileContent />
-    </Suspense>
+    <>
+      <ClinicJsonLd clinic={typedClinic} />
+      <Suspense fallback={<ClinicProfileSkeleton />}>
+        <ClinicProfileContent initialClinic={typedClinic} />
+      </Suspense>
+    </>
   )
 }
 
