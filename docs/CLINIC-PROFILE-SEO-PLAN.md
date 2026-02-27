@@ -22,10 +22,12 @@ Right now, `app/clinic/[clinicId]/page.tsx` has `"use client"` at the top. This 
 
 `generateMetadata` is a **server-only** function. It runs on the server before the page is sent to the browser. It sets the `<title>`, `<meta description>`, and Open Graph tags in the HTML `<head>`.
 
-The problem: the 900-line `ClinicProfileContent` component uses browser-only features:
-- `useState`, `useEffect` (React hooks for interactivity)
+The problem: the ~1100-line `ClinicProfileContent` component uses browser-only features:
+- `useState`, `useEffect`, `useRef` (React hooks for interactivity)
 - `useRouter`, `useParams`, `useSearchParams` (browser URL access)
-- Event handlers, chat widgets, date pickers
+- `localStorage` access (restoring direct lead IDs for returning visitors)
+- `createClient` from `@/lib/supabase/client` (browser-side Supabase for auto-lead creation)
+- Event handlers, chat widgets, date pickers, direct enquiry forms, pre-qualifier flow
 
 These **cannot run on the server**. So we need to **split** the page:
 
@@ -171,15 +173,19 @@ const clinicUrls = clinics.map((c) => ({
 
 ## Key risks
 
-- The 900-line `ClinicProfileContent` has many interactive features — refactoring to accept props must preserve all existing behavior (chat, tabs, booking, preview mode)
+- The ~1100-line `ClinicProfileContent` has many interactive features — refactoring to accept props must preserve all existing behavior (chat, tabs, booking, preview mode, direct enquiry pre-qualifier)
 - `useSearchParams` is still needed for `matchId`, `leadId`, `preview`, `reply` query params — this stays client-side
 - The component fetches additional data (providers, lead info) based on query params — those secondary fetches stay client-side
+- Auto-lead creation for authenticated patients uses `createClient` (browser Supabase) + `localStorage` — must remain client-side
+- `DirectEnquiryForm` and `DirectLeadPreQualifier` are client components imported by `ClinicProfileContent` — these stay as-is
 
 ## Testing checklist
 
 - [ ] Clinic profile page still renders correctly with all tabs
 - [ ] Chat widget works
 - [ ] Date picker / booking flow works
+- [ ] Direct enquiry form + pre-qualifier works
+- [ ] Auto-lead creation for authenticated returning visitors works
 - [ ] Preview mode (`?preview=true`) works
 - [ ] Match context (`?matchId=...&leadId=...`) works
 - [ ] View page source shows clinic name, description in HTML (not just spinner)
