@@ -6,90 +6,93 @@ import remarkGfm from "remark-gfm"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
-import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
-import { BlogHeader } from "@/components/blog/blog-header"
-import { TableOfContents } from "@/components/blog/table-of-contents"
-import { RelatedPosts } from "@/components/blog/related-posts"
+import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
+import { GuideSidebar } from "@/components/guides/guide-sidebar"
 import { useMDXComponents } from "@/components/blog/mdx-components"
-import {
-  getBlogPostBySlug,
-  getAllBlogPosts,
-  getRelatedPosts,
-  BLOG_CATEGORIES,
-  type BlogCategory,
-} from "@/lib/content/blog"
+import { getGuideBySlug, getAllGuides } from "@/lib/content/guides"
+import { getAllBlogPosts } from "@/lib/content/blog"
 import { extractHeadings } from "@/lib/content/mdx"
+import { Clock, Calendar, ArrowLeft, BookOpen } from "lucide-react"
 
-interface BlogPostPageProps {
+interface GuidePageProps {
   params: Promise<{ slug: string }>
 }
 
 export async function generateStaticParams() {
-  const posts = getAllBlogPosts()
-  return posts.map((post) => ({ slug: post.slug }))
+  const guides = getAllGuides()
+  return guides.map((guide) => ({ slug: guide.slug }))
 }
 
 export async function generateMetadata({
   params,
-}: BlogPostPageProps): Promise<Metadata> {
+}: GuidePageProps): Promise<Metadata> {
   const { slug } = await params
-  const post = getBlogPostBySlug(slug)
+  const guide = getGuideBySlug(slug)
 
-  if (!post) {
-    return { title: "Post Not Found" }
+  if (!guide) {
+    return { title: "Guide Not Found" }
   }
 
-  const { meta } = post
+  const { meta } = guide
 
   return {
     title: meta.title,
     description: meta.description,
     keywords: meta.keywords,
     alternates: {
-      canonical: `https://pearlie.org/blog/${meta.slug}`,
+      canonical: `https://pearlie.org/guides/${meta.slug}`,
     },
     openGraph: {
       title: meta.title,
       description: meta.description,
-      url: `https://pearlie.org/blog/${meta.slug}`,
+      url: `https://pearlie.org/guides/${meta.slug}`,
       type: "article",
       publishedTime: meta.publishedAt,
       modifiedTime: meta.updatedAt || meta.publishedAt,
       authors: [meta.author],
-      images: meta.heroImage
-        ? [
-            {
-              url: meta.heroImage,
-              width: 1200,
-              height: 630,
-              alt: meta.heroImageAlt || meta.title,
-            },
-          ]
-        : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title: meta.title,
       description: meta.description,
-      images: meta.heroImage ? [meta.heroImage] : undefined,
     },
   }
 }
 
-export default async function BlogPostPage({ params }: BlogPostPageProps) {
+export default async function GuidePage({ params }: GuidePageProps) {
   const { slug } = await params
-  const post = getBlogPostBySlug(slug)
+  const guide = getGuideBySlug(slug)
 
-  if (!post) {
+  if (!guide) {
     notFound()
   }
 
-  const { meta, content } = post
+  const { meta, content } = guide
   const headings = extractHeadings(content)
-  const relatedPosts = getRelatedPosts(slug, 3)
   const components = useMDXComponents()
-  const category = BLOG_CATEGORIES[meta.category as BlogCategory]
+
+  // Find cluster blog posts linked from this guide
+  const allPosts = getAllBlogPosts()
+  const clusterPosts = meta.clusterSlugs
+    ? meta.clusterSlugs
+        .map((s) => allPosts.find((p) => p.slug === s))
+        .filter(Boolean)
+        .map((p) => ({ slug: p!.slug, title: p!.title }))
+    : []
+
+  const publishedDate = new Date(meta.publishedAt).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+  const updatedDate = meta.updatedAt
+    ? new Date(meta.updatedAt).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null
 
   // Article structured data
   const articleSchema = {
@@ -97,9 +100,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     "@type": "Article",
     headline: meta.title,
     description: meta.description,
-    image: meta.heroImage
-      ? `https://pearlie.org${meta.heroImage}`
-      : undefined,
     datePublished: meta.publishedAt,
     dateModified: meta.updatedAt || meta.publishedAt,
     author: {
@@ -117,7 +117,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://pearlie.org/blog/${meta.slug}`,
+      "@id": `https://pearlie.org/guides/${meta.slug}`,
     },
     ...(meta.keywords && { keywords: meta.keywords.join(", ") }),
   }
@@ -128,7 +128,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     "@type": "MedicalWebPage",
     name: meta.title,
     description: meta.description,
-    url: `https://pearlie.org/blog/${meta.slug}`,
+    url: `https://pearlie.org/guides/${meta.slug}`,
     lastReviewed: meta.updatedAt || meta.publishedAt,
     reviewedBy: {
       "@type": "Organization",
@@ -137,33 +137,24 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     },
   }
 
-  // Breadcrumb schema
-  const breadcrumbItems = [
-    { name: "Home", url: "https://pearlie.org" },
-    { name: "Blog", url: "https://pearlie.org/blog" },
-  ]
-  if (category) {
-    breadcrumbItems.push({
-      name: category.label,
-      url: `https://pearlie.org/blog?category=${meta.category}`,
-    })
-  }
-  breadcrumbItems.push({
-    name: meta.title,
-    url: `https://pearlie.org/blog/${meta.slug}`,
-  })
-
   return (
     <div className="min-h-screen bg-background">
-      <BreadcrumbSchema items={breadcrumbItems} />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://pearlie.org" },
+          { name: "Guides", url: "https://pearlie.org/guides" },
+          {
+            name: meta.title,
+            url: `https://pearlie.org/guides/${meta.slug}`,
+          },
+        ]}
+      />
 
-      {/* Article Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
 
-      {/* MedicalWebPage Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(medicalPageSchema) }}
@@ -172,11 +163,69 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <MainNav />
 
       <main>
-        <BlogHeader post={meta} />
+        {/* Guide Header */}
+        <div className="pt-28 pb-8 sm:pt-32 sm:pb-12 bg-background">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto">
+              <BreadcrumbNav
+                items={[
+                  { label: "Home", href: "/" },
+                  { label: "Guides", href: "/guides" },
+                  { label: meta.title, href: `/guides/${meta.slug}` },
+                ]}
+              />
 
-        <TrustBadgeStrip />
+              <Link
+                href="/guides"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#0fbcb0] transition-colors mb-6"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                All guides
+              </Link>
 
-        {/* Article body */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center">
+                  <BookOpen className="w-4 h-4 text-[#0fbcb0]" />
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#0fbcb0]">
+                  Complete Guide
+                </span>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] text-[#004443] mb-6 text-balance">
+                {meta.title}
+              </h1>
+
+              <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-6">
+                {meta.description}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">{meta.author}</span>
+                <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" />
+                  {publishedDate}
+                </span>
+                {updatedDate && updatedDate !== publishedDate && (
+                  <>
+                    <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+                    <span className="text-muted-foreground/70">
+                      Updated {updatedDate}
+                    </span>
+                  </>
+                )}
+                <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  {meta.readingTime}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Guide body */}
         <section className="py-8 sm:py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
@@ -189,7 +238,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
                   />
 
-                  {/* Inline CTA at end of article */}
+                  {/* Inline CTA */}
                   <div className="mt-12 rounded-2xl bg-[var(--cream)] border border-border/50 p-6 md:p-8 text-center">
                     <h3 className="text-xl font-heading font-bold text-[#004443] mb-2">
                       Looking for a dentist?
@@ -222,32 +271,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   )}
                 </article>
 
-                {/* Sidebar — TOC (desktop only) */}
+                {/* Sidebar */}
                 <aside className="hidden lg:block">
                   <div className="sticky top-24">
-                    <TableOfContents headings={headings} />
-                    <div className="mt-6 rounded-xl bg-[var(--cream)] border border-border/50 p-4 text-center">
-                      <p className="text-sm font-semibold text-[#004443] mb-2">Find your clinic</p>
-                      <p className="text-xs text-muted-foreground mb-3">
-                        Matched to your needs. Free, takes 60 secs.
-                      </p>
-                      <Button
-                        size="sm"
-                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full text-xs px-4 w-full border-0"
-                        asChild
-                      >
-                        <Link href="/intake">Get matched</Link>
-                      </Button>
-                    </div>
+                    <GuideSidebar
+                      headings={headings}
+                      clusterPosts={clusterPosts}
+                    />
                   </div>
                 </aside>
               </div>
             </div>
           </div>
         </section>
-
-        {/* Related posts */}
-        <RelatedPosts posts={relatedPosts} />
       </main>
 
       <SiteFooter />

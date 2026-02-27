@@ -34,11 +34,10 @@ const findDentistLinks = [
 
 const resourceLinks = [
   { label: "Blog", href: "/blog" },
-  { label: "NHS vs Private Dentist", href: "/blog/nhs-vs-private-dentist" },
-  { label: "Invisalign vs Braces", href: "/blog/invisalign-vs-braces" },
-  { label: "Dental Implants Cost", href: "/blog/dental-implants-cost-uk" },
-  { label: "Composite Bonding Cost", href: "/blog/composite-bonding-cost-uk" },
-  { label: "Emergency Dentist Guide", href: "/blog/emergency-dentist-near-you" },
+  { label: "Guides", href: "/guides" },
+  { label: "Treatment Guides", href: "/blog?category=treatment-guides" },
+  { label: "Cost & Finance", href: "/blog?category=cost-finance" },
+  { label: "For Clinics", href: "/blog?category=for-clinics" },
 ]
 
 const legalLinks = [

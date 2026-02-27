@@ -33,6 +33,9 @@ export const metadata: Metadata = {
   generator: "Pearlie",
   alternates: {
     canonical: "https://pearlie.org",
+    types: {
+      "application/rss+xml": "https://pearlie.org/feed.xml",
+    },
   },
   openGraph: {
     type: "website",
@@ -42,14 +45,12 @@ export const metadata: Metadata = {
     title: "Pearlie - Find the Right Dental Clinic in London & UK",
     description:
       "Match with trusted, GDC-registered dental clinics in London and across the UK. Free, independent, and tailored to your needs.",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Pearlie - Find the Right Dental Clinic" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Pearlie - Find the Right Dental Clinic in London & UK",
     description:
       "Match with trusted, GDC-registered dental clinics in London and across the UK.",
-    images: ["/og-image.jpg"],
   },
   icons: {
     icon: [
@@ -84,7 +85,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${interTight.variable}`}>
+    <html lang="en-GB" className={`${dmSans.variable} ${interTight.variable}`}>
       <body className="font-sans antialiased">
         <script
           type="application/ld+json"
