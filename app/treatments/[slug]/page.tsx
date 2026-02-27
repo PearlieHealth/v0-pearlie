@@ -12,6 +12,7 @@ import { KeyFactsBar } from "@/components/treatments/key-facts-bar"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
 import { TreatmentFAQ } from "@/components/treatments/treatment-faq"
+import { TreatmentAreaLinks } from "@/components/treatments/treatment-area-links"
 import { RelatedTreatments } from "@/components/treatments/related-treatments"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { RelatedPosts } from "@/components/blog/related-posts"
@@ -321,12 +322,18 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           <TreatmentFAQ faqs={meta.faqs} treatmentName={meta.treatmentName} />
         )}
 
-        {/* 6. Related Blog Posts */}
+        {/* 6. Find treatment by area */}
+        <TreatmentAreaLinks
+          treatmentSlug={slug}
+          treatmentName={meta.treatmentName}
+        />
+
+        {/* 7. Related Blog Posts */}
         {relatedBlogPosts.length > 0 && (
           <RelatedPosts posts={relatedBlogPosts} />
         )}
 
-        {/* 7. Related Treatments */}
+        {/* 8. Related Treatments */}
         <RelatedTreatments treatments={relatedTreatments} />
 
         {/* 8. Bottom CTA with postcode input */}

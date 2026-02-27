@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { Shield } from "lucide-react"
-import { LocationClinicCard } from "./location-clinic-card"
+import { TreatmentClinicCard } from "@/components/treatments/treatment-clinic-card"
 import type { LocationClinic } from "@/lib/locations/queries"
 
 type ClinicFilter = "all" | "nhs" | "private" | "denplan"
@@ -82,7 +82,9 @@ export function FilterableClinicSection({ clinics, areaName, variant = "area" }:
       {filteredClinics.length > 0 ? (
         <div className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide px-4 sm:px-6 lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] pb-4 -mb-4">
           {filteredClinics.map((clinic) => (
-            <LocationClinicCard key={clinic.id} clinic={clinic} />
+            <div key={clinic.id} className="min-w-[240px] max-w-[280px] snap-start shrink-0">
+              <TreatmentClinicCard clinic={clinic} />
+            </div>
           ))}
         </div>
       ) : (

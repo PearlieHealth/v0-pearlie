@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 import { Star, MapPin } from "lucide-react"
 
 interface ClinicData {
@@ -26,7 +27,7 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
   const heroImage = clinic.images?.[0]
 
   return (
-    <div className="group rounded-2xl border border-border/50 bg-white overflow-hidden hover:shadow-lg hover:border-[#0fbcb0]/30 transition-all duration-300">
+    <Link href={`/clinic/${clinic.id}`} className="group rounded-2xl border border-border/50 bg-white overflow-hidden hover:shadow-lg hover:border-[#0fbcb0]/30 transition-all duration-300 block">
       {heroImage && (
         <div className="relative aspect-[16/10] overflow-hidden">
           <Image
@@ -66,7 +67,7 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
           </span>
         )}
       </div>
-    </div>
+    </Link>
   )
 }
 

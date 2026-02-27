@@ -27,9 +27,8 @@ const findDentistLinks = [
   { label: "Central London", href: "/find/central-london" },
   { label: "South London", href: "/find/south-london" },
   { label: "North London", href: "/find/north-london" },
-  { label: "West London", href: "/find/west-london" },
   { label: "East London", href: "/find/east-london" },
-  { label: "All London areas", href: "/find" },
+  { label: "All London Areas", href: "/london" },
 ]
 
 const resourceLinks = [
@@ -51,7 +50,7 @@ export function SiteFooter() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="max-w-7xl mx-auto">
           {/* Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-10">
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-8 md:gap-8">
             {/* Brand */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">

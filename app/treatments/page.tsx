@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Stethoscope } from "lucide-react"
+import { Stethoscope, MapPin, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
@@ -9,6 +9,12 @@ import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
 import { TreatmentCard } from "@/components/treatments/treatment-card"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { getAllTreatments } from "@/lib/content/treatments"
+import {
+  getBoroughsByRegion,
+  type LondonBorough,
+} from "@/lib/data/london-boroughs"
+
+const REGIONS: LondonBorough["region"][] = ["Central", "North", "South", "East", "West"]
 
 export const metadata: Metadata = {
   title: "Dental Treatments - Compare Clinics & Prices",
@@ -125,6 +131,59 @@ export default function TreatmentsPage() {
                   </Button>
                 </div>
               )}
+            </div>
+          </div>
+        </section>
+
+        {/* Browse by area */}
+        <section className="py-10 sm:py-14 bg-[var(--cream)]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto">
+              <div className="flex items-center gap-2 mb-2">
+                <MapPin className="w-5 h-5 text-[#0fbcb0]" />
+                <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-[#004443]">
+                  Find treatment clinics by area
+                </h2>
+              </div>
+              <p className="text-sm text-muted-foreground mb-6">
+                Compare dental clinics and pricing for specific treatments in your London borough.
+              </p>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                {REGIONS.map((region) => {
+                  const boroughs = getBoroughsByRegion(region)
+                  if (boroughs.length === 0) return null
+                  return (
+                    <div key={region}>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                        {region} London
+                      </h3>
+                      <ul className="space-y-1.5">
+                        {boroughs.map((borough) => (
+                          <li key={borough.slug}>
+                            <Link
+                              href={`/london/${borough.slug}`}
+                              className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors"
+                            >
+                              {borough.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="mt-6">
+                <Link
+                  href="/london"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0fbcb0] hover:underline"
+                >
+                  View all London areas
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
           </div>
         </section>

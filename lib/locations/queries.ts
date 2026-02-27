@@ -163,6 +163,42 @@ export async function getClinicsNearRegion(region: LondonRegion): Promise<Locati
 }
 
 /**
+ * Lightweight version for borough/area pages that only have basic clinic data.
+ * Accepts an array of { id, name } and fetches testimonials the same way.
+ */
+export async function getTestimonialsForBasicClinics(
+  clinics: { id: string; name: string }[],
+  limit = 8,
+): Promise<AreaTestimonial[]> {
+  // Fetch featured_review for these clinics so we can feed the full function
+  const supabase = await createClient()
+  const clinicIds = clinics.map((c) => c.id)
+
+  const { data: fullClinics } = await supabase
+    .from("clinics")
+    .select("id, name, featured_review")
+    .in("id", clinicIds)
+
+  const enriched = (fullClinics ?? []).map((c) => ({
+    ...c,
+    slug: "",
+    address: "",
+    postcode: "",
+    city: "",
+    latitude: 0,
+    longitude: 0,
+    rating: 0,
+    review_count: 0,
+    images: [],
+    treatments: [],
+    verified: false,
+    description: "",
+  })) as unknown as LocationClinic[]
+
+  return getTestimonialsForClinics(enriched, limit)
+}
+
+/**
  * Fetch reviews from all available sources for a set of clinics.
  * Sources (in priority order):
  *   1. Google reviews from `google_reviews_cache` (real Google reviews)
