@@ -12,14 +12,14 @@ import { LONDON_REGIONS } from "@/lib/locations/london"
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: "Find a Dentist in London | Pearlie",
+  title: "Top Dentists in London | Find & Compare | Pearlie",
   description:
     "Find your perfect dentist in London. Compare trusted, GDC-registered dental clinics across Central, South, North, West, and East London — free on Pearlie.",
   alternates: {
     canonical: "https://pearlie.org/find",
   },
   openGraph: {
-    title: "Find a Dentist in London | Pearlie",
+    title: "Top Dentists in London | Find & Compare | Pearlie",
     description:
       "Find your perfect dentist in London. Compare verified dental clinics by area — free on Pearlie.",
     url: "https://pearlie.org/find",

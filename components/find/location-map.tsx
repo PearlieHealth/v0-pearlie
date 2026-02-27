@@ -1,12 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import dynamic from "next/dynamic"
-
-const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), { ssr: false })
-const TileLayer = dynamic(() => import("react-leaflet").then((mod) => mod.TileLayer), { ssr: false })
-const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false })
-const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false })
+import { useMemo } from "react"
+import { MapPin } from "lucide-react"
 
 interface MapClinic {
   id: string
@@ -24,60 +19,57 @@ interface LocationMapProps {
 }
 
 export function LocationMap({ clinics, center, zoom }: LocationMapProps) {
-  const [isClient, setIsClient] = useState(false)
-  const [L, setL] = useState<typeof import("leaflet") | null>(null)
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY
 
-  useEffect(() => {
-    setIsClient(true)
-    import("leaflet").then((leaflet) => {
-      setL(leaflet)
-      delete (leaflet.default.Icon.Default.prototype as any)._getIconUrl
-      leaflet.default.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      })
-    })
-  }, [])
+  const embedSrc = useMemo(() => {
+    const validClinics = clinics.filter((c) => c.latitude && c.longitude)
 
-  if (!isClient || !L) {
+    if (!apiKey || validClinics.length === 0) return null
+
+    if (validClinics.length === 1) {
+      const c = validClinics[0]
+      return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${c.latitude},${c.longitude}&zoom=${zoom}`
+    }
+
+    // Multiple clinics — use view mode centered on the area
+    const query = validClinics
+      .slice(0, 10)
+      .map((c) => `${c.name}, ${c.postcode}`)
+      .join(" | ")
+    const encoded = encodeURIComponent(query)
+
+    return `https://www.google.com/maps/embed/v1/search?key=${apiKey}&q=${encoded}&center=${center.lat},${center.lng}&zoom=${zoom}`
+  }, [clinics, center, zoom, apiKey])
+
+  if (!apiKey || !embedSrc) {
+    const fallbackQuery = encodeURIComponent(`dental clinics near ${center.lat},${center.lng}`)
+
     return (
-      <div className="w-full h-[350px] sm:h-[400px] bg-muted rounded-xl flex items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading map...</p>
+      <div className="w-full h-[350px] sm:h-[400px] rounded-xl overflow-hidden bg-[#f0eeea] flex items-center justify-center">
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${fallbackQuery}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <MapPin className="h-5 w-5" />
+          <span className="text-sm font-medium">View clinics on Google Maps</span>
+        </a>
       </div>
     )
   }
 
-  const validClinics = clinics.filter((c) => c.latitude && c.longitude)
-
   return (
     <div className="w-full h-[350px] sm:h-[400px] rounded-xl overflow-hidden">
-      <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        crossOrigin=""
+      <iframe
+        title="Clinic locations"
+        width="100%"
+        height="100%"
+        style={{ border: 0 }}
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        src={embedSrc}
       />
-      <MapContainer
-        center={[center.lat, center.lng]}
-        zoom={zoom}
-        scrollWheelZoom={false}
-        style={{ height: "100%", width: "100%" }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {validClinics.map((clinic) => (
-          <Marker key={clinic.id} position={[clinic.latitude, clinic.longitude]}>
-            <Popup>
-              <div className="text-sm">
-                <p className="font-semibold">{clinic.name}</p>
-                <p className="text-muted-foreground">{clinic.address}, {clinic.postcode}</p>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
     </div>
   )
 }

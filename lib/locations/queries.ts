@@ -2,6 +2,15 @@ import { createClient } from "@/lib/supabase/server"
 import { calculateHaversineDistance } from "@/lib/utils/geo"
 import type { LondonArea, LondonRegion } from "./london"
 
+export interface AreaTestimonial {
+  authorName: string
+  rating: number
+  text: string
+  relativeTime: string
+  clinicName: string
+  clinicId: string
+}
+
 /** Fields matching the public clinic API — safe for patient-facing views */
 const LOCATION_CLINIC_FIELDS = `
   id, name, slug, address, postcode, city, latitude, longitude,
@@ -147,4 +156,68 @@ export async function getClinicsNearRegion(region: LondonRegion): Promise<Locati
     })
 
   return clinics
+}
+
+/**
+ * Fetch real Google reviews from cached reviews for a set of clinics.
+ * Returns up to `limit` 4–5 star reviews with text, attributed to the clinic.
+ */
+export async function getTestimonialsForClinics(
+  clinics: LocationClinic[],
+  limit = 3,
+): Promise<AreaTestimonial[]> {
+  if (clinics.length === 0) return []
+
+  const supabase = await createClient()
+  const clinicIds = clinics.slice(0, 20).map((c) => c.id)
+
+  const { data, error } = await supabase
+    .from("google_reviews_cache")
+    .select("clinic_id, reviews")
+    .in("clinic_id", clinicIds)
+
+  if (error || !data) return []
+
+  const clinicMap = new Map(clinics.map((c) => [c.id, c.name]))
+
+  const testimonials: AreaTestimonial[] = []
+  for (const row of data) {
+    const reviews = (row.reviews as Array<{
+      authorName: string
+      rating: number
+      text: string
+      relativeTime: string
+    }>) || []
+
+    for (const r of reviews) {
+      if (r.rating >= 4 && r.text && r.text.length >= 40) {
+        testimonials.push({
+          authorName: r.authorName,
+          rating: r.rating,
+          text: r.text,
+          relativeTime: r.relativeTime,
+          clinicName: clinicMap.get(row.clinic_id) || "Dental Clinic",
+          clinicId: row.clinic_id,
+        })
+      }
+    }
+  }
+
+  // Prefer 5-star reviews, then by text length (more detail = better testimonial)
+  testimonials.sort((a, b) => {
+    if (b.rating !== a.rating) return b.rating - a.rating
+    return b.text.length - a.text.length
+  })
+
+  // Deduplicate by clinic — max 1 review per clinic for variety
+  const seen = new Set<string>()
+  const unique: AreaTestimonial[] = []
+  for (const t of testimonials) {
+    if (seen.has(t.clinicId)) continue
+    seen.add(t.clinicId)
+    unique.push(t)
+    if (unique.length >= limit) break
+  }
+
+  return unique
 }

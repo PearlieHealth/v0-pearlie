@@ -34,7 +34,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.5188, lng: -0.1483 },
     radiusMiles: 1.0,
     mapZoom: 15,
-    metaTitle: "Find a Dentist on Harley Street, London",
+    metaTitle: "Top Dentists on Harley Street, London | Find & Compare",
     metaDescription:
       "Compare trusted, GDC-registered dentists on Harley Street. See ratings, treatments, and pricing — then book directly through Pearlie.",
     intro:
@@ -84,7 +84,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.5054, lng: -0.0235 },
     radiusMiles: 1.5,
     mapZoom: 14,
-    metaTitle: "Find a Dentist in Canary Wharf, London",
+    metaTitle: "Top Dentists in Canary Wharf, London | Find & Compare",
     metaDescription:
       "Compare GDC-registered dentists near Canary Wharf. See ratings, availability, and pricing — book through Pearlie, free.",
     intro:
@@ -134,7 +134,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.4873, lng: -0.1687 },
     radiusMiles: 1.5,
     mapZoom: 14,
-    metaTitle: "Find a Dentist in Kensington & Chelsea, London",
+    metaTitle: "Top Dentists in Kensington & Chelsea, London | Find & Compare",
     metaDescription:
       "Compare verified dentists in Kensington and Chelsea. See ratings, treatments, and prices — book free through Pearlie.",
     intro:
@@ -179,7 +179,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.5245, lng: -0.0755 },
     radiusMiles: 1.5,
     mapZoom: 14,
-    metaTitle: "Find a Dentist in Shoreditch, London",
+    metaTitle: "Top Dentists in Shoreditch, London | Find & Compare",
     metaDescription:
       "Compare trusted dentists near Shoreditch and East London. GDC-registered, transparent pricing — book free through Pearlie.",
     intro:
@@ -224,7 +224,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.5137, lng: -0.1337 },
     radiusMiles: 1.0,
     mapZoom: 15,
-    metaTitle: "Find a Dentist in Soho, London",
+    metaTitle: "Top Dentists in Soho, London | Find & Compare",
     metaDescription:
       "Compare GDC-registered dentists in Soho and the West End. See ratings, treatments, pricing — book free through Pearlie.",
     intro:
@@ -269,7 +269,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.5095, lng: -0.1480 },
     radiusMiles: 1.0,
     mapZoom: 15,
-    metaTitle: "Find a Dentist in Mayfair, London",
+    metaTitle: "Top Dentists in Mayfair, London | Find & Compare",
     metaDescription:
       "Compare premium dentists in Mayfair. GDC-registered, verified reviews, transparent pricing — book free on Pearlie.",
     intro:
@@ -314,7 +314,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.5392, lng: -0.1426 },
     radiusMiles: 1.5,
     mapZoom: 14,
-    metaTitle: "Find a Dentist in Camden, London",
+    metaTitle: "Top Dentists in Camden, London | Find & Compare",
     metaDescription:
       "Compare verified dentists in Camden and North London. See ratings, treatments, and pricing — book free through Pearlie.",
     intro:
@@ -359,7 +359,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.5092, lng: -0.1964 },
     radiusMiles: 1.5,
     mapZoom: 14,
-    metaTitle: "Find a Dentist in Notting Hill, London",
+    metaTitle: "Top Dentists in Notting Hill, London | Find & Compare",
     metaDescription:
       "Compare trusted dentists in Notting Hill and West London. GDC-registered, verified — book free through Pearlie.",
     intro:
@@ -404,7 +404,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.4613, lng: -0.1156 },
     radiusMiles: 2.0,
     mapZoom: 14,
-    metaTitle: "Find a Dentist in Brixton, London",
+    metaTitle: "Top Dentists in Brixton, London | Find & Compare",
     metaDescription:
       "Compare verified dentists near Brixton and South London. See ratings, pricing, and treatments — book free on Pearlie.",
     intro:
@@ -449,7 +449,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.4620, lng: -0.1380 },
     radiusMiles: 1.5,
     mapZoom: 14,
-    metaTitle: "Find a Dentist in Clapham, London",
+    metaTitle: "Top Dentists in Clapham, London | Find & Compare",
     metaDescription:
       "Compare trusted, GDC-registered dentists in Clapham and South London. See ratings, treatments, and pricing — book free through Pearlie.",
     intro:
@@ -494,7 +494,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.4737, lng: -0.0693 },
     radiusMiles: 1.5,
     mapZoom: 14,
-    metaTitle: "Find a Dentist in Peckham, London",
+    metaTitle: "Top Dentists in Peckham, London | Find & Compare",
     metaDescription:
       "Compare verified dentists near Peckham and South East London. GDC-registered, transparent pricing — book free through Pearlie.",
     intro:
@@ -539,7 +539,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.5362, lng: -0.1033 },
     radiusMiles: 1.5,
     mapZoom: 14,
-    metaTitle: "Find a Dentist in Islington, London",
+    metaTitle: "Top Dentists in Islington, London | Find & Compare",
     metaDescription:
       "Compare GDC-registered dentists in Islington and North London. See ratings, treatments, and pricing — book free through Pearlie.",
     intro:
@@ -584,7 +584,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.5557, lng: -0.1780 },
     radiusMiles: 1.5,
     mapZoom: 14,
-    metaTitle: "Find a Dentist in Hampstead, London",
+    metaTitle: "Top Dentists in Hampstead, London | Find & Compare",
     metaDescription:
       "Compare premium dentists in Hampstead and North London. GDC-registered, verified reviews — book free on Pearlie.",
     intro:
@@ -629,7 +629,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.4927, lng: -0.2228 },
     radiusMiles: 1.5,
     mapZoom: 14,
-    metaTitle: "Find a Dentist in Hammersmith, London",
+    metaTitle: "Top Dentists in Hammersmith, London | Find & Compare",
     metaDescription:
       "Compare verified dentists in Hammersmith and West London. GDC-registered, transparent pricing — book free through Pearlie.",
     intro:
@@ -674,7 +674,7 @@ export const LONDON_AREAS: LondonArea[] = [
     center: { lat: 51.5430, lng: -0.0003 },
     radiusMiles: 2.0,
     mapZoom: 14,
-    metaTitle: "Find a Dentist in Stratford, East London",
+    metaTitle: "Top Dentists in Stratford, East London | Find & Compare",
     metaDescription:
       "Compare GDC-registered dentists near Stratford and East London. Verified clinics, real ratings — book free through Pearlie.",
     intro:
@@ -755,7 +755,7 @@ export const LONDON_REGIONS: LondonRegion[] = [
     center: { lat: 51.5145, lng: -0.1400 },
     radiusMiles: 3.0,
     mapZoom: 13,
-    metaTitle: "Find a Dentist in Central London",
+    metaTitle: "Top Dentists in Central London | Find & Compare",
     metaDescription:
       "Compare trusted, GDC-registered dental clinics across Central London. See ratings, treatments, and pricing — book free through Pearlie.",
     intro:
@@ -809,7 +809,7 @@ export const LONDON_REGIONS: LondonRegion[] = [
     center: { lat: 51.4500, lng: -0.1000 },
     radiusMiles: 5.0,
     mapZoom: 12,
-    metaTitle: "Find a Dentist in South London",
+    metaTitle: "Top Dentists in South London | Find & Compare",
     metaDescription:
       "Compare verified dental clinics across South London. GDC-registered, transparent pricing — book free through Pearlie.",
     intro:
@@ -863,7 +863,7 @@ export const LONDON_REGIONS: LondonRegion[] = [
     center: { lat: 51.5600, lng: -0.1200 },
     radiusMiles: 5.0,
     mapZoom: 12,
-    metaTitle: "Find a Dentist in North London",
+    metaTitle: "Top Dentists in North London | Find & Compare",
     metaDescription:
       "Compare GDC-registered dentists across North London. See ratings, treatments, and pricing — book free through Pearlie.",
     intro:
@@ -917,7 +917,7 @@ export const LONDON_REGIONS: LondonRegion[] = [
     center: { lat: 51.5000, lng: -0.2200 },
     radiusMiles: 5.0,
     mapZoom: 12,
-    metaTitle: "Find a Dentist in West London",
+    metaTitle: "Top Dentists in West London | Find & Compare",
     metaDescription:
       "Compare trusted dentists across West London. Kensington, Notting Hill, Hammersmith, and more — book free on Pearlie.",
     intro:
@@ -971,7 +971,7 @@ export const LONDON_REGIONS: LondonRegion[] = [
     center: { lat: 51.5300, lng: -0.0300 },
     radiusMiles: 5.0,
     mapZoom: 12,
-    metaTitle: "Find a Dentist in East London",
+    metaTitle: "Top Dentists in East London | Find & Compare",
     metaDescription:
       "Compare verified dentists across East London. Shoreditch, Stratford, Canary Wharf — book free through Pearlie.",
     intro:

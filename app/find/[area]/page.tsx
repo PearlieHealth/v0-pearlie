@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { MapPin, Search, Shield, CheckCircle2, Lock, MessageSquare, Sparkles, Star, CalendarCheck } from "lucide-react"
+import { MapPin, Search, Shield, CheckCircle2, Lock, MessageSquare, Sparkles, Star, CalendarCheck, Stethoscope } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { MainNav } from "@/components/main-nav"
@@ -12,6 +12,8 @@ import { LocationJsonLd } from "@/components/find/location-jsonld"
 import { HeroPostcodeSearch } from "@/components/find/hero-postcode-search"
 import { StickyPostcodeBar } from "@/components/find/sticky-postcode-bar"
 import { QuickFacts } from "@/components/find/quick-facts"
+import { PatientTestimonials } from "@/components/find/patient-testimonials"
+import { LocationMap } from "@/components/find/location-map"
 import {
   LONDON_AREAS,
   LONDON_REGIONS,
@@ -20,7 +22,16 @@ import {
   getAreasForRegion,
   getAllRegionSlugs,
 } from "@/lib/locations/london"
-import { getClinicsNearArea, getClinicsNearRegion } from "@/lib/locations/queries"
+import { getClinicsNearArea, getClinicsNearRegion, getTestimonialsForClinics } from "@/lib/locations/queries"
+
+const LONDON_TREATMENTS = [
+  { slug: "invisalign", name: "Invisalign", emoji: "🦷" },
+  { slug: "teeth-whitening", name: "Teeth Whitening", emoji: "✨" },
+  { slug: "dental-implants", name: "Dental Implants", emoji: "🔩" },
+  { slug: "veneers", name: "Porcelain Veneers", emoji: "😁" },
+  { slug: "composite-bonding", name: "Composite Bonding", emoji: "🪥" },
+  { slug: "emergency-dental", name: "Emergency Dental", emoji: "🚨" },
+]
 
 export const revalidate = 3600
 
@@ -165,7 +176,7 @@ function DentistNearMePage() {
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://pearlie.org" },
-          { name: "Find a Dentist", url: "https://pearlie.org/find" },
+          { name: "Find Dentist Near Me", url: "https://pearlie.org/find" },
           { name: "Dentist Near Me", url: "https://pearlie.org/find/dentist-near-me" },
         ]}
       />
@@ -429,6 +440,7 @@ async function RegionPage({ slug }: { slug: string }) {
   if (!region) notFound()
 
   const clinics = await getClinicsNearRegion(region)
+  const testimonials = await getTestimonialsForClinics(clinics)
   const subAreas = getAreasForRegion(region)
 
   return (
@@ -436,8 +448,8 @@ async function RegionPage({ slug }: { slug: string }) {
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://pearlie.org" },
-          { name: "Find a Dentist", url: "https://pearlie.org/find" },
-          { name: region.name, url: `https://pearlie.org/find/${region.slug}` },
+          { name: "Find Dentist Near Me", url: "https://pearlie.org/find" },
+          { name: `Dentists in ${region.name}`, url: `https://pearlie.org/find/${region.slug}` },
         ]}
       />
       <LocationJsonLd area={region} clinics={clinics} />
@@ -523,9 +535,25 @@ async function RegionPage({ slug }: { slug: string }) {
           <section className="py-10 sm:py-14 bg-white overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-5xl mx-auto">
-                <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-8 text-[#004443]">
+                <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-4 text-[#004443]">
                   Dental clinics in {region.name}
                 </h2>
+                {/* Filter badges */}
+                <div className="flex flex-wrap gap-2 mb-8">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#faf9f6] border border-border/60 text-xs font-medium text-foreground">
+                    <Shield className="w-3 h-3 text-[#0fbcb0]" />
+                    All Clinics
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#faf9f6] border border-border/60 text-xs font-medium text-muted-foreground">
+                    NHS
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#faf9f6] border border-border/60 text-xs font-medium text-muted-foreground">
+                    Private
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#faf9f6] border border-border/60 text-xs font-medium text-muted-foreground">
+                    Denplan
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide px-4 sm:px-6 lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] pb-4 -mb-4">
@@ -535,6 +563,55 @@ async function RegionPage({ slug }: { slug: string }) {
             </div>
           </section>
         )}
+
+        {/* Map */}
+        {clinics.length > 0 && (
+          <section className="py-10 sm:py-14 bg-[#faf9f6]">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="max-w-5xl mx-auto">
+                <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-6 text-[#004443]">
+                  Clinics near {region.name}
+                </h2>
+                <LocationMap
+                  clinics={clinics}
+                  center={{ lat: region.center.lat, lng: region.center.lng }}
+                  zoom={12}
+                />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Treatments */}
+        <section className="py-10 sm:py-14 bg-white">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-3 text-[#004443]">
+                Popular treatments in {region.name}
+              </h2>
+              <p className="text-muted-foreground mb-8">Find specialist clinics for the treatment you need</p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {LONDON_TREATMENTS.map((t) => (
+                  <Link
+                    key={t.slug}
+                    href={`/treatments/${t.slug}`}
+                    className="group flex items-center gap-3 p-4 rounded-xl border border-border/50 hover:border-[#0fbcb0]/40 hover:bg-[#0fbcb0]/5 transition-all"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#0fbcb0]/20 transition-colors">
+                      <Stethoscope className="w-5 h-5 text-[#0fbcb0]" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm text-foreground group-hover:text-[#004443] transition-colors">
+                        {t.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">Find clinics in {region.name}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* FAQ */}
         {region.faq.length > 0 && (
@@ -565,8 +642,11 @@ async function RegionPage({ slug }: { slug: string }) {
           </section>
         )}
 
+        {/* Patient Testimonials */}
+        <PatientTestimonials areaName={region.name} testimonials={testimonials} />
+
         {/* Other regions */}
-        <section className="py-10 sm:py-14 bg-white">
+        <section className="py-10 sm:py-14 bg-[#faf9f6]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-6 text-[#004443]">
@@ -590,6 +670,28 @@ async function RegionPage({ slug }: { slug: string }) {
 
         {/* Quick Facts */}
         <QuickFacts areaName={region.name} content={region.quickFacts} />
+
+        {/* Clinic signup CTA */}
+        <section className="py-10 sm:py-14 bg-[#faf9f6] border-t border-border/30">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+              <div className="flex-1">
+                <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
+                  Are you a dental practice in {region.name}?
+                </h2>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Join Pearlie to connect with patients actively searching for a dentist in your area. Free to list, no commitment.
+                </p>
+              </div>
+              <Button
+                className="bg-[#004443] hover:bg-[#003332] text-white rounded-full font-normal px-6 whitespace-nowrap"
+                asChild
+              >
+                <Link href="/for-clinics">List your practice</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
 
         {/* Bottom CTA */}
         <section className="py-12 sm:py-20 bg-[#004443]">
@@ -627,6 +729,7 @@ async function AreaPage({ slug }: { slug: string }) {
   const clinics = await getClinicsNearArea(area)
   if (clinics.length === 0) notFound()
 
+  const testimonials = await getTestimonialsForClinics(clinics)
   const nearbyAreas = area.nearbyAreas
     .map((s) => getAreaBySlug(s))
     .filter((a): a is NonNullable<typeof a> => a !== undefined)
@@ -636,8 +739,8 @@ async function AreaPage({ slug }: { slug: string }) {
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://pearlie.org" },
-          { name: "Find a Dentist", url: "https://pearlie.org/find" },
-          { name: area.name, url: `https://pearlie.org/find/${area.slug}` },
+          { name: "Find Dentist Near Me", url: "https://pearlie.org/find" },
+          { name: `Dentists in ${area.name}`, url: `https://pearlie.org/find/${area.slug}` },
         ]}
       />
       <LocationJsonLd area={area} clinics={clinics} />
@@ -690,15 +793,78 @@ async function AreaPage({ slug }: { slug: string }) {
         <section className="py-10 sm:py-14 bg-[#faf9f6] overflow-hidden">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-8 text-[#004443]">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-4 text-[#004443]">
                 Dental clinics near {area.name}
               </h2>
+              {/* Filter badges */}
+              <div className="flex flex-wrap gap-2 mb-8">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-border/60 text-xs font-medium text-foreground">
+                  <Shield className="w-3 h-3 text-[#0fbcb0]" />
+                  All Clinics
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-border/60 text-xs font-medium text-muted-foreground">
+                  NHS
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-border/60 text-xs font-medium text-muted-foreground">
+                  Private
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-border/60 text-xs font-medium text-muted-foreground">
+                  Denplan
+                </span>
+              </div>
             </div>
           </div>
           <div className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide px-4 sm:px-6 lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] pb-4 -mb-4">
             {clinics.map((clinic) => (
               <LocationClinicCard key={clinic.id} clinic={clinic} />
             ))}
+          </div>
+        </section>
+
+        {/* Map */}
+        <section className="py-10 sm:py-14 bg-white overflow-hidden">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-6 text-[#004443]">
+                Clinics near {area.name}
+              </h2>
+              <LocationMap
+                clinics={clinics}
+                center={{ lat: area.center.lat, lng: area.center.lng }}
+                zoom={14}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Treatments */}
+        <section className="py-10 sm:py-14 bg-[#faf9f6]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-3 text-[#004443]">
+                Popular treatments near {area.name}
+              </h2>
+              <p className="text-muted-foreground mb-8">Find specialist clinics for the treatment you need</p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {LONDON_TREATMENTS.map((t) => (
+                  <Link
+                    key={t.slug}
+                    href={`/treatments/${t.slug}`}
+                    className="group flex items-center gap-3 p-4 rounded-xl bg-white border border-border/50 hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#0fbcb0]/20 transition-colors">
+                      <Stethoscope className="w-5 h-5 text-[#0fbcb0]" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm text-foreground group-hover:text-[#004443] transition-colors">
+                        {t.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">Find clinics near {area.name}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -731,9 +897,12 @@ async function AreaPage({ slug }: { slug: string }) {
           </section>
         )}
 
+        {/* Patient Testimonials */}
+        <PatientTestimonials areaName={area.name} testimonials={testimonials} />
+
         {/* Nearby Areas */}
         {nearbyAreas.length > 0 && (
-          <section className="py-10 sm:py-14 bg-white">
+          <section className="py-10 sm:py-14 bg-[#faf9f6]">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-4xl mx-auto">
                 <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-6 text-[#004443]">
@@ -758,6 +927,28 @@ async function AreaPage({ slug }: { slug: string }) {
 
         {/* Quick Facts */}
         <QuickFacts areaName={area.name} content={area.quickFacts} />
+
+        {/* Clinic signup CTA */}
+        <section className="py-10 sm:py-14 bg-[#faf9f6] border-t border-border/30">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+              <div className="flex-1">
+                <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
+                  Are you a dental practice in {area.name}?
+                </h2>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Join Pearlie to connect with patients actively searching for a dentist in your area. Free to list, no commitment.
+                </p>
+              </div>
+              <Button
+                className="bg-[#004443] hover:bg-[#003332] text-white rounded-full font-normal px-6 whitespace-nowrap"
+                asChild
+              >
+                <Link href="/for-clinics">List your practice</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
 
         {/* Bottom CTA */}
         <section className="py-12 sm:py-20 bg-[#004443]">
