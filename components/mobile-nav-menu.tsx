@@ -131,7 +131,7 @@ export function MobileNavMenu() {
             <Button
               variant="outline"
               size="lg"
-              className="w-full text-base h-12 rounded-full"
+              className="w-full text-base h-12 rounded-full border-[#0a8f86] text-[#0a8f86] hover:bg-[#0a8f86]/10"
               asChild
             >
               <Link href={isAuthenticated ? "/patient/dashboard" : "/patient/login"} onClick={() => setOpen(false)}>

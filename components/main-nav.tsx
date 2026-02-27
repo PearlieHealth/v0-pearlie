@@ -63,14 +63,6 @@ export function MainNav({ hideCta }: MainNavProps) {
 
           {/* Desktop Navigation - Center */}
           <nav className="hidden md:flex items-center gap-1 font-heading">
-            {/* My account - highlighted */}
-            <Link
-              href={isAuthenticated ? "/patient/dashboard" : "/patient/login"}
-              className="px-4 py-2 text-sm font-medium text-[#0fbcb0] hover:text-[#0da399] transition-all duration-200"
-            >
-              My account
-            </Link>
-
             {/* Treatments - direct link */}
             <Link
               href="/treatments"
@@ -146,16 +138,24 @@ export function MainNav({ hideCta }: MainNavProps) {
           {/* CTA Buttons - Right */}
           <div className="hidden md:flex items-center gap-3 transition-all duration-500">
             {!hasScrolled && (
-              <Button
-                variant="outline"
-                size="lg"
-                className="text-sm px-6 rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-[#0fbcb0] text-[#0fbcb0] hover:bg-[#0fbcb0]/10"
-                asChild
-              >
-                <a href="https://portal.pearlie.org" target="_blank" rel="noopener noreferrer">
-                  Clinic Portal
-                </a>
-              </Button>
+              <>
+                <Link
+                  href={isAuthenticated ? "/patient/dashboard" : "/patient/login"}
+                  className="text-sm font-heading font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
+                >
+                  My account
+                </Link>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-sm px-6 rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-[#0fbcb0] text-[#0fbcb0] hover:bg-[#0fbcb0]/10"
+                  asChild
+                >
+                  <a href="https://portal.pearlie.org" target="_blank" rel="noopener noreferrer">
+                    Clinic Portal
+                  </a>
+                </Button>
+              </>
             )}
             {!hideCta && (
               <Button
