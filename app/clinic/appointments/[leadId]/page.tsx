@@ -512,13 +512,19 @@ export default function AppointmentDetailPage() {
                     </a>
                   </>
                 )}
-                {lead.postcode && (
+                {lead.postcode && lead.postcode !== "DIRECT" && (
                   <>
                     <span className="text-muted-foreground/40">|</span>
                     <span className="flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
                       {lead.postcode}
                     </span>
+                  </>
+                )}
+                {lead.source === "direct_profile" && (
+                  <>
+                    <span className="text-muted-foreground/40">|</span>
+                    <span className="text-xs text-[#0fbcb0] font-medium">Direct enquiry</span>
                   </>
                 )}
                 <span className="text-muted-foreground/40">|</span>

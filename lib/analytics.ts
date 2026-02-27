@@ -52,6 +52,8 @@ type ValidEventName =
   | "otp_sent"
   | "otp_resent"
   | "postcode_outside_london"
+  | "booking_confirmed_inline"
+  | "direct_lead_created"
 
 type TrackEventOptions = {
   leadId?: string | null

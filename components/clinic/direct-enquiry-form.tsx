@@ -7,18 +7,7 @@ import { Loader2, ArrowRight, User, Mail, Phone, Shield } from "lucide-react"
 import { OTPVerification } from "@/components/otp-verification"
 import { trackEvent, setLeadId as setAnalyticsLeadId } from "@/lib/analytics"
 import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
-
-const TREATMENT_OPTIONS = [
-  "Dental Implants",
-  "Composite Bonding",
-  "Veneers",
-  "Teeth Whitening",
-  "Invisalign",
-  "Braces",
-  "General Checkup",
-  "Emergency Care",
-  "Other",
-]
+import { TREATMENT_OPTIONS } from "@/lib/intake-form-config"
 
 const URGENCY_OPTIONS = [
   { value: "asap", label: "As soon as possible" },
@@ -204,6 +193,7 @@ export function DirectEnquiryForm({ clinicId, clinicName, onLeadCreated }: Direc
             {TREATMENT_OPTIONS.map((t) => (
               <option key={t} value={t}>{t}</option>
             ))}
+            <option value="Other">Other</option>
           </select>
         </div>
 
