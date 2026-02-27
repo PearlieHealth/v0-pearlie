@@ -250,7 +250,7 @@ export default function Home() {
 
       {/* Content is always rendered underneath - loading screen slides up like a curtain to reveal it */}
       <div className={`min-h-screen ${showLoading ? 'invisible' : 'visible'}`}>
-          <MainNav />
+          <MainNav hideCta={!!lastMatch} />
           <StickyMobileHomeCta />
 
           {/* Hero section — calm, split layout */}
@@ -318,33 +318,52 @@ export default function Home() {
                       transition={{ duration: 0.8, delay: 0.3 }}
                     >
                       {lastMatch ? (
-                        <div className="flex flex-col lg:flex-row justify-center lg:justify-start gap-2 md:gap-3 max-w-md lg:max-w-none">
-                          <Link
-                            href={`/match/${lastMatch.matchId}`}
-                            className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
-                          >
-                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                              <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-[#0fbcb0]" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm md:text-[15px] font-semibold text-black">Return to your matches</p>
-                              <p className="text-xs text-black mt-0.5 leading-snug">View the clinics we matched you with</p>
-                            </div>
-                            <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
-                          </Link>
-                          <Link
-                            href="/intake"
-                            className="group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
-                          >
-                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#f8f7f1] flex items-center justify-center flex-shrink-0">
-                              <Search className="w-4 h-4 md:w-5 md:h-5 text-[#004443]" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm md:text-[15px] font-semibold text-black">Start a new search</p>
-                              <p className="text-xs text-black mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
-                            </div>
-                            <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
-                          </Link>
+                        <div className="flex flex-col items-center lg:items-start gap-4">
+                          <div className="flex flex-col lg:flex-row justify-center lg:justify-start gap-2 md:gap-3 max-w-md lg:max-w-none w-full">
+                            <Link
+                              href={`/match/${lastMatch.matchId}`}
+                              className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                            >
+                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
+                                <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-[#0fbcb0]" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm md:text-[15px] font-semibold text-black">Return to your matches</p>
+                                <p className="text-xs text-black mt-0.5 leading-snug">View the clinics we matched you with</p>
+                              </div>
+                              <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
+                            </Link>
+                            <Link
+                              href="/intake"
+                              className="group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                            >
+                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#f8f7f1] flex items-center justify-center flex-shrink-0">
+                                <Search className="w-4 h-4 md:w-5 md:h-5 text-[#004443]" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm md:text-[15px] font-semibold text-black">Start a new search</p>
+                                <p className="text-xs text-black mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
+                              </div>
+                              <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
+                            </Link>
+                          </div>
+                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
+                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <MapPin className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                              <span className="font-semibold text-foreground">Trusted</span>
+                              <span className="text-muted-foreground">across London</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <Building2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                              <span className="font-semibold text-foreground">500+</span>
+                              <span className="text-muted-foreground">practices</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <Star className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                              <span className="font-semibold text-foreground">4.8★</span>
+                              <span className="text-muted-foreground">avg rating</span>
+                            </span>
+                          </div>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center lg:items-start gap-5">
