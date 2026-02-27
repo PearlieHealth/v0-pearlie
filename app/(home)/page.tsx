@@ -588,7 +588,7 @@ export default function Home() {
                     </h2>
 
                     <p className="text-lg text-muted-foreground leading-snug mb-8">
-                      500+ practices across London, each one verified by our team. We focus on quality over quantity — so you can choose with confidence.
+                      Verified clinics across London, reviewed by our team for quality, transparency, and GDC registration. We focus on quality over quantity — so you can choose with confidence.
                     </p>
 
                     {/* How we verify */}
