@@ -26,6 +26,7 @@ export function MobileNavMenu() {
     { href: "/blog", label: "Blog" },
     { href: "/guides", label: "Guides" },
     { href: "/about", label: "About" },
+    { href: "/for-clinics", label: "For Clinics" },
   ]
 
   return (
@@ -99,13 +100,6 @@ export function MobileNavMenu() {
               )}
             </div>
 
-            <Link
-              href="/for-clinics"
-              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              For Clinics
-            </Link>
             <Link
               href="/our-mission"
               className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
