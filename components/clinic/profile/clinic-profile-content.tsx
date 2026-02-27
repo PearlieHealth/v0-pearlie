@@ -21,6 +21,7 @@ import {
   CalendarCheck,
   CheckCircle2,
 } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
 import { clinicHref } from "@/lib/clinic-url"
 import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
@@ -91,6 +92,46 @@ export function ClinicProfileContent() {
       if (stored) setDirectLeadId(stored)
     } catch {}
   }, [clinic?.id, lead?.id, leadIdParam])
+
+  // Auto-create lead for authenticated patients visiting a new clinic directly.
+  // If the patient verified via OTP on another clinic, their Supabase auth session
+  // persists — so we can skip the form + OTP entirely and create a lead automatically.
+  const autoLeadAttempted = useRef(false)
+  useEffect(() => {
+    if (!clinic?.id || loading) return
+    // Already have a lead from matching flow or localStorage restore
+    if (lead?.id || leadIdParam || directLeadId) return
+    // Only attempt once per mount
+    if (autoLeadAttempted.current) return
+    autoLeadAttempted.current = true
+
+    const tryAutoCreateLead = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user?.id || user.user_metadata?.role !== "patient") return
+
+        const response = await fetch("/api/leads/direct-auto", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clinicId: clinic.id }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setDirectLeadId(data.leadId)
+          // Persist for future page loads
+          try {
+            localStorage.setItem(`pearlie_direct_lead_${clinic.id}`, data.leadId)
+          } catch {}
+        }
+      } catch {
+        // Non-critical — patient can still use the manual form
+      }
+    }
+
+    tryAutoCreateLead()
+  }, [clinic?.id, loading, lead?.id, leadIdParam, directLeadId])
 
   useEffect(() => {
     const fetchData = async () => {
