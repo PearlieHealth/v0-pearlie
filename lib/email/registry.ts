@@ -439,7 +439,7 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     defaultSubject: (data) => `New message from ${data.patientName}`,
     payloadSchema: chatToClinicSchema,
     generateHtml: renderChatToClinicEmail,
-    idempotencyKey: (data) => `chat_clinic:${data._conversationId}:${hourBucket()}`,
+    idempotencyKey: (data) => `chat_clinic:${data._conversationId}:${tenMinBucket()}`,
   },
 
   [EMAIL_TYPE.CLINIC_REPLY_TO_PATIENT]: {
