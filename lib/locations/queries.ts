@@ -18,7 +18,8 @@ const LOCATION_CLINIC_FIELDS = `
   facilities, opening_hours, images, verified, accepts_nhs,
   parking_available, wheelchair_accessible, tags, available_days,
   available_hours, accepts_same_day, highlight_chips, price_range,
-  featured, google_rating, google_review_count, google_maps_url
+  featured, google_rating, google_review_count, google_maps_url,
+  featured_review
 `.replace(/\s+/g, " ").trim()
 
 export interface LocationClinic {
@@ -48,6 +49,7 @@ export interface LocationClinic {
   google_rating: number | null
   google_review_count: number | null
   google_maps_url: string | null
+  featured_review: string | null
 }
 
 /**
@@ -161,8 +163,12 @@ export async function getClinicsNearRegion(region: LondonRegion): Promise<Locati
 }
 
 /**
- * Fetch real Google reviews from cached reviews for a set of clinics.
- * Returns up to `limit` 4–5 star reviews with text, attributed to the clinic.
+ * Fetch reviews from all available sources for a set of clinics.
+ * Sources (in priority order):
+ *   1. Google reviews from `google_reviews_cache` (real Google reviews)
+ *   2. `featured_review` from the clinics table (clinic-curated quote)
+ * Future-proof: as soon as reviews are connected to a clinic via either
+ * source, they will automatically appear on location pages.
  */
 export async function getTestimonialsForClinics(
   clinics: LocationClinic[],
@@ -171,38 +177,57 @@ export async function getTestimonialsForClinics(
   if (clinics.length === 0) return []
 
   const supabase = await createClient()
-  const clinicIds = clinics.slice(0, 20).map((c) => c.id)
+  const clinicIds = clinics.map((c) => c.id)
 
+  // Query all cached Google reviews for these clinics
   const { data, error } = await supabase
     .from("google_reviews_cache")
     .select("clinic_id, reviews")
     .in("clinic_id", clinicIds)
 
-  if (error || !data) return []
-
-  const clinicMap = new Map(clinics.map((c) => [c.id, c.name]))
+  const clinicMap = new Map(clinics.map((c) => [c.id, c]))
 
   const testimonials: AreaTestimonial[] = []
-  for (const row of data) {
-    const reviews = (row.reviews as Array<{
-      authorName: string
-      rating: number
-      text: string
-      relativeTime: string
-    }>) || []
 
-    for (const r of reviews) {
-      if (r.rating >= 4 && r.text && r.text.length >= 40) {
-        testimonials.push({
-          authorName: r.authorName,
-          rating: r.rating,
-          text: r.text,
-          relativeTime: r.relativeTime,
-          clinicName: clinicMap.get(row.clinic_id) || "Dental Clinic",
-          clinicId: row.clinic_id,
-        })
+  // Source 1: Google reviews from cache
+  if (!error && data) {
+    for (const row of data) {
+      const reviews = (row.reviews as Array<{
+        authorName: string
+        rating: number
+        text: string
+        relativeTime: string
+      }>) || []
+
+      for (const r of reviews) {
+        if (r.rating >= 4 && r.text && r.text.length >= 40) {
+          testimonials.push({
+            authorName: r.authorName,
+            rating: r.rating,
+            text: r.text,
+            relativeTime: r.relativeTime,
+            clinicName: clinicMap.get(row.clinic_id)?.name || "Dental Clinic",
+            clinicId: row.clinic_id,
+          })
+        }
       }
     }
+  }
+
+  // Source 2: featured_review from clinics table (fallback for clinics without cached Google reviews)
+  const clinicsWithCachedReviews = new Set(data?.map((d) => d.clinic_id) ?? [])
+  for (const clinic of clinics) {
+    if (clinicsWithCachedReviews.has(clinic.id)) continue
+    if (!clinic.featured_review || clinic.featured_review.length < 40) continue
+
+    testimonials.push({
+      authorName: "Verified Patient",
+      rating: 5,
+      text: clinic.featured_review,
+      relativeTime: "",
+      clinicName: clinic.name,
+      clinicId: clinic.id,
+    })
   }
 
   // Prefer 5-star reviews, then by text length (more detail = better testimonial)
@@ -211,7 +236,7 @@ export async function getTestimonialsForClinics(
     return b.text.length - a.text.length
   })
 
-  // Allow up to 3 reviews per clinic to fill the carousel when few clinics have cached reviews
+  // Allow up to 3 reviews per clinic to fill the carousel
   const clinicCounts = new Map<string, number>()
   const selected: AreaTestimonial[] = []
   for (const t of testimonials) {

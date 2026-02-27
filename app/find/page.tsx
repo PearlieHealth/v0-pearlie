@@ -162,6 +162,28 @@ export default function FindPage() {
           </div>
         </section>
 
+        {/* For clinics CTA */}
+        <section className="py-10 sm:py-14 bg-gradient-to-br from-[#1a2e35] to-[#0d1f26]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <p className="text-[#0fbcb0] text-sm font-medium mb-2">Dentist?</p>
+              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-white mb-3">
+                Grow Your Dental Practice
+              </h2>
+              <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-md mx-auto">
+                Join the platform with everything you need to grow your practice.
+              </p>
+              <Button
+                className="bg-white text-[#004443] hover:bg-white/90 rounded-full font-semibold px-8"
+                size="lg"
+                asChild
+              >
+                <Link href="/for-clinics">List your practice free</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
         {/* Bottom CTA */}
         <section className="py-16 sm:py-24 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">

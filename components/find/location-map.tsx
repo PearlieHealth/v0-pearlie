@@ -21,27 +21,30 @@ interface LocationMapProps {
 export function LocationMap({ clinics, center, zoom }: LocationMapProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY
 
-  const embedSrc = useMemo(() => {
+  const staticSrc = useMemo(() => {
     const validClinics = clinics.filter((c) => c.latitude && c.longitude)
 
     if (!apiKey || validClinics.length === 0) return null
 
-    if (validClinics.length === 1) {
-      const c = validClinics[0]
-      return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${c.latitude},${c.longitude}&zoom=${zoom}`
-    }
+    // Use Static Maps API with markers pinned at each clinic's exact coordinates
+    // This ensures only our clinics appear on the map (no Google search results)
+    const markers = validClinics
+      .slice(0, 15)
+      .map((c) => `${c.latitude},${c.longitude}`)
+      .join("|")
 
-    // Multiple clinics — use view mode centered on the area
-    const query = validClinics
-      .slice(0, 10)
-      .map((c) => `${c.name}, ${c.postcode}`)
-      .join(" | ")
-    const encoded = encodeURIComponent(query)
-
-    return `https://www.google.com/maps/embed/v1/search?key=${apiKey}&q=${encoded}&center=${center.lat},${center.lng}&zoom=${zoom}`
+    return `https://maps.googleapis.com/maps/api/staticmap?center=${center.lat},${center.lng}&zoom=${zoom}&size=800x400&scale=2&maptype=roadmap&markers=color:0x0fbcb0|size:mid|${markers}&key=${apiKey}`
   }, [clinics, center, zoom, apiKey])
 
-  if (!apiKey || !embedSrc) {
+  const mapsLink = useMemo(() => {
+    const validClinics = clinics.filter((c) => c.latitude && c.longitude)
+    if (validClinics.length === 0) return null
+    // Link to Google Maps with the first clinic as the destination
+    const c = validClinics[0]
+    return `https://www.google.com/maps/search/?api=1&query=${c.latitude},${c.longitude}`
+  }, [clinics])
+
+  if (!apiKey || !staticSrc) {
     const fallbackQuery = encodeURIComponent(`dental clinics near ${center.lat},${center.lng}`)
 
     return (
@@ -60,16 +63,23 @@ export function LocationMap({ clinics, center, zoom }: LocationMapProps) {
   }
 
   return (
-    <div className="w-full h-[350px] sm:h-[400px] rounded-xl overflow-hidden">
-      <iframe
-        title="Clinic locations"
-        width="100%"
-        height="100%"
-        style={{ border: 0 }}
+    <a
+      href={mapsLink || "#"}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block w-full h-[350px] sm:h-[400px] rounded-xl overflow-hidden cursor-pointer group relative"
+    >
+      <img
+        src={staticSrc}
+        alt={`Map showing ${clinics.length} dental clinics`}
+        className="w-full h-full object-cover"
         loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-        src={embedSrc}
       />
-    </div>
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-end justify-center pb-4">
+        <span className="bg-white/95 backdrop-blur-sm text-sm font-medium text-[#004443] px-4 py-2 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+          Open in Google Maps
+        </span>
+      </div>
+    </a>
   )
 }
