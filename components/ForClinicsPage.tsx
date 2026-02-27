@@ -8,11 +8,9 @@ import {
   X,
   ChevronDown,
   Zap,
-  Users,
   FileText,
   Brain,
   PoundSterling,
-  Shield,
   Clock,
   Heart,
   MapPin,
@@ -26,36 +24,105 @@ import {
 /* ────────────────────────────────────────────
    TYPES
 ──────────────────────────────────────────── */
-interface InsightCardProps {
-  icon: React.ReactNode
-  title: string
-  example: string
-  detail: string
-}
-
 interface FaqItemProps {
   question: string
   answer: string
 }
 
 /* ────────────────────────────────────────────
-   SMALL SUB-COMPONENTS
+   VISUAL INSIGHT CARDS — bar / tag / scale
 ──────────────────────────────────────────── */
-function InsightCard({ icon, title, example, detail }: InsightCardProps) {
+
+/** Horizontal bar with label + filled portion */
+function MiniBar({ label, pct, highlight }: { label: string; pct: number; highlight?: boolean }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+      <span
+        style={{
+          fontSize: 12,
+          color: highlight ? "#f1f5f9" : "#64748b",
+          fontWeight: highlight ? 600 : 400,
+          width: 100,
+          flexShrink: 0,
+          textAlign: "right",
+        }}
+      >
+        {label}
+      </span>
+      <div
+        style={{
+          flex: 1,
+          height: 8,
+          borderRadius: 4,
+          background: "rgba(255,255,255,.06)",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            borderRadius: 4,
+            background: highlight
+              ? "linear-gradient(90deg, #10b981, #34d399)"
+              : "rgba(255,255,255,.12)",
+            transition: "width .3s",
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+/** Coloured tag chip */
+function Tag({ label, active }: { label: string; active?: boolean }) {
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        padding: "5px 12px",
+        borderRadius: 8,
+        fontSize: 12,
+        fontWeight: active ? 600 : 400,
+        background: active ? "rgba(16,185,129,.15)" : "rgba(255,255,255,.04)",
+        color: active ? "#34d399" : "#64748b",
+        border: `1px solid ${active ? "rgba(16,185,129,.25)" : "rgba(255,255,255,.06)"}`,
+        lineHeight: 1.3,
+      }}
+    >
+      {label}
+    </span>
+  )
+}
+
+/** Insight card wrapper — icon, title, visual content, source note */
+function VisualInsightCard({
+  icon,
+  title,
+  question,
+  children,
+}: {
+  icon: React.ReactNode
+  title: string
+  question: string
+  children: React.ReactNode
+}) {
   return (
     <div
       style={{
         background: "rgba(255,255,255,.03)",
         border: "1px solid rgba(255,255,255,.06)",
         borderRadius: 16,
-        padding: "28px 24px",
+        padding: "24px 22px 20px",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
         <div
           style={{
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             borderRadius: 10,
             background: "rgba(16,185,129,.12)",
             display: "flex",
@@ -67,33 +134,23 @@ function InsightCard({ icon, title, example, detail }: InsightCardProps) {
         >
           {icon}
         </div>
-        <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 15 }}>{title}</span>
+        <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>{title}</span>
       </div>
-      <p
-        style={{
-          fontStyle: "italic",
-          color: "#94a3b8",
-          fontSize: 14,
-          lineHeight: 1.6,
-          marginBottom: 10,
-        }}
-      >
-        &ldquo;{example}&rdquo;
+      <div style={{ flex: 1, marginBottom: 12 }}>{children}</div>
+      <p style={{ color: "#475569", fontSize: 11, lineHeight: 1.4, marginTop: "auto" }}>
+        From questionnaire: <span style={{ color: "#64748b" }}>{question}</span>
       </p>
-      <p style={{ color: "#64748b", fontSize: 13, lineHeight: 1.5 }}>{detail}</p>
     </div>
   )
 }
 
+/* ────────────────────────────────────────────
+   FAQ ITEM
+──────────────────────────────────────────── */
 function FaqItem({ question, answer }: FaqItemProps) {
   const [open, setOpen] = useState(false)
   return (
-    <div
-      style={{
-        borderBottom: "1px solid rgba(255,255,255,.06)",
-        padding: "20px 0",
-      }}
-    >
+    <div style={{ borderBottom: "1px solid rgba(255,255,255,.06)", padding: "20px 0" }}>
       <button
         onClick={() => setOpen(!open)}
         style={{
@@ -134,7 +191,8 @@ function FaqItem({ question, answer }: FaqItemProps) {
 /* ────────────────────────────────────────────
    CONSTANTS
 ──────────────────────────────────────────── */
-const EXTRA_LEAD_PRICE = 35
+const STD_EXTRA_PRICE = 35
+const PREM_EXTRA_PRICE = 28
 const DEFAULT_LTV = 1000
 const DEFAULT_EXTRA = 5
 
@@ -151,19 +209,21 @@ export default function ForClinicsPage() {
   const premBase = 450
   const premFreeLeads = 5
 
-  const monthlyRevenue = useCallback(
-    (base: number, freeLeads: number) => {
+  const calc = useCallback(
+    (base: number, freeLeads: number, extraPrice: number) => {
       const totalLeads = freeLeads + extra
-      const totalCost = base + extra * EXTRA_LEAD_PRICE
+      const extraCost = extra * extraPrice
+      const totalCost = base + extraCost
       const revenue = totalLeads * ltv
-      const roi = revenue - totalCost
-      return { totalLeads, totalCost, revenue, roi }
+      const net = revenue - totalCost
+      const roiX = totalCost > 0 ? revenue / totalCost : 0
+      return { totalLeads, extraCost, totalCost, revenue, net, roiX }
     },
     [extra, ltv],
   )
 
-  const stdCalc = monthlyRevenue(stdBase, stdFreeLeads)
-  const premCalc = monthlyRevenue(premBase, premFreeLeads)
+  const stdCalc = calc(stdBase, stdFreeLeads, STD_EXTRA_PRICE)
+  const premCalc = calc(premBase, premFreeLeads, PREM_EXTRA_PRICE)
 
   /* Shared inline style helpers */
   const sectionPad = { padding: "96px 24px" } as const
@@ -198,6 +258,135 @@ export default function ForClinicsPage() {
     textDecoration: "none",
     transition: "border-color .15s",
   } as const
+  const heading = {
+    fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
+    fontWeight: 800,
+    letterSpacing: "-0.02em",
+    color: "#f8fafc",
+  } as const
+
+  /* ROI result card helper */
+  function RoiCard({
+    label,
+    labelColor,
+    c,
+    baseCost,
+    extraPrice,
+    highlight,
+  }: {
+    label: string
+    labelColor: string
+    c: ReturnType<typeof calc>
+    baseCost: number
+    extraPrice: number
+    highlight?: boolean
+  }) {
+    return (
+      <div
+        style={{
+          background: highlight ? "rgba(16,185,129,.04)" : "rgba(255,255,255,.03)",
+          borderRadius: 16,
+          padding: "28px 24px",
+          border: highlight
+            ? "1px solid rgba(16,185,129,.18)"
+            : "1px solid rgba(255,255,255,.06)",
+        }}
+      >
+        <p
+          style={{
+            color: labelColor,
+            fontSize: 12,
+            fontWeight: 700,
+            marginBottom: 16,
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+          }}
+        >
+          {label}
+        </p>
+
+        {/* Cost breakdown */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ color: "#64748b", fontSize: 13 }}>Base subscription</span>
+            <span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 500 }}>
+              &pound;{baseCost}
+            </span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ color: "#64748b", fontSize: 13 }}>
+              {extra} extra leads &times; &pound;{extraPrice}
+            </span>
+            <span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 500 }}>
+              &pound;{c.extraCost}
+            </span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              paddingTop: 8,
+              borderTop: "1px solid rgba(255,255,255,.06)",
+            }}
+          >
+            <span style={{ color: "#f1f5f9", fontSize: 14, fontWeight: 600 }}>Total cost</span>
+            <span style={{ color: "#f1f5f9", fontSize: 14, fontWeight: 700 }}>
+              &pound;{c.totalCost.toLocaleString()}/mo
+            </span>
+          </div>
+        </div>
+
+        {/* Revenue */}
+        <div
+          style={{
+            background: "rgba(255,255,255,.03)",
+            borderRadius: 12,
+            padding: "16px 18px",
+            marginBottom: 16,
+          }}
+        >
+          <p style={{ color: "#64748b", fontSize: 12, marginBottom: 6 }}>
+            {c.totalLeads} patients &times; &pound;{ltv.toLocaleString()} avg LTV
+          </p>
+          <p style={{ color: "#f1f5f9", fontSize: 18, fontWeight: 700 }}>
+            &pound;{c.revenue.toLocaleString()} revenue
+          </p>
+        </div>
+
+        {/* ROI hero numbers */}
+        <div style={{ display: "flex", gap: 20, alignItems: "flex-end" }}>
+          <div>
+            <p style={{ color: "#64748b", fontSize: 11, marginBottom: 2, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+              Net return
+            </p>
+            <p
+              style={{
+                ...heading,
+                fontSize: 28,
+                color: "#10b981",
+              }}
+            >
+              &pound;{c.net.toLocaleString()}
+            </p>
+          </div>
+          <div>
+            <p style={{ color: "#64748b", fontSize: 11, marginBottom: 2, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+              ROI
+            </p>
+            <p
+              style={{
+                ...heading,
+                fontSize: 28,
+                color: "#34d399",
+              }}
+            >
+              {c.roiX.toFixed(1)}x
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -234,17 +423,7 @@ export default function ForClinicsPage() {
           }}
         >
           <Link href="/" style={{ textDecoration: "none" }}>
-            <span
-              style={{
-                fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-                fontWeight: 800,
-                fontSize: 22,
-                color: "#f1f5f9",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              Pearly
-            </span>
+            <span style={{ ...heading, fontSize: 22 }}>Pearlie</span>
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
             <a href="#how" style={{ color: "#94a3b8", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>
@@ -280,12 +459,10 @@ export default function ForClinicsPage() {
           </p>
           <h1
             style={{
-              fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-              fontWeight: 800,
+              ...heading,
               fontSize: "clamp(36px, 5.5vw, 64px)",
               lineHeight: 1.08,
               letterSpacing: "-0.03em",
-              color: "#f8fafc",
               marginBottom: 24,
             }}
           >
@@ -302,7 +479,7 @@ export default function ForClinicsPage() {
               margin: "0 auto 40px",
             }}
           >
-            Pearly pre-qualifies patients&mdash;collecting their anxiety level, cost mindset,
+            Pearlie pre-qualifies patients&mdash;collecting their anxiety level, cost mindset,
             treatment goals, and what they value in a clinic&mdash;then matches them to you.
             You only see patients who are a genuine fit.
           </p>
@@ -330,21 +507,12 @@ export default function ForClinicsPage() {
           >
             {[
               { value: "8", label: "data points per patient" },
-              { value: "0", label: "setup fee" },
-              { value: "£35", label: "per extra lead" },
+              { value: "£0", label: "setup fee" },
+              { value: "From £28", label: "per extra lead" },
               { value: "No lock-in", label: "cancel anytime" },
             ].map((s) => (
               <div key={s.label} style={{ textAlign: "center", minWidth: 120 }}>
-                <div
-                  style={{
-                    fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-                    fontWeight: 800,
-                    fontSize: 28,
-                    color: "#10b981",
-                  }}
-                >
-                  {s.value}
-                </div>
+                <div style={{ ...heading, fontSize: 28, color: "#10b981" }}>{s.value}</div>
                 <div style={{ color: "#64748b", fontSize: 13, marginTop: 4 }}>{s.label}</div>
               </div>
             ))}
@@ -368,17 +536,7 @@ export default function ForClinicsPage() {
           >
             How it works
           </p>
-          <h2
-            style={{
-              fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-              fontWeight: 800,
-              fontSize: "clamp(28px, 4vw, 42px)",
-              color: "#f8fafc",
-              textAlign: "center",
-              marginBottom: 56,
-              letterSpacing: "-0.02em",
-            }}
-          >
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 56 }}>
             Three steps. Zero wasted consultations.
           </h2>
           <div
@@ -398,7 +556,7 @@ export default function ForClinicsPage() {
               {
                 step: "02",
                 icon: <Brain size={22} />,
-                title: "Pearly matches to your clinic",
+                title: "Pearlie matches to your clinic",
                 desc: "Our algorithm matches patients based on clinical fit, treatment availability, cost alignment, and what the patient said they value most in a clinic.",
               },
               {
@@ -417,14 +575,7 @@ export default function ForClinicsPage() {
                   padding: "32px 28px",
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    marginBottom: 18,
-                  }}
-                >
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
                   <div
                     style={{
                       width: 42,
@@ -443,14 +594,7 @@ export default function ForClinicsPage() {
                     STEP {item.step}
                   </span>
                 </div>
-                <h3
-                  style={{
-                    fontWeight: 700,
-                    color: "#f1f5f9",
-                    fontSize: 18,
-                    marginBottom: 10,
-                  }}
-                >
+                <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 10 }}>
                   {item.title}
                 </h3>
                 <p style={{ color: "#94a3b8", fontSize: 15, lineHeight: 1.65 }}>{item.desc}</p>
@@ -460,7 +604,79 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
-      {/* ═══════════ PATIENT INSIGHTS ═══════════ */}
+      {/* ═══════════ ZERO RISK ═══════════ */}
+      <section style={sectionPad}>
+        <div style={{ ...maxW, maxWidth: 800 }}>
+          <div style={{ textAlign: "center", marginBottom: 12 }}>
+            <span
+              style={{
+                display: "inline-block",
+                background: "rgba(16,185,129,.12)",
+                color: "#10b981",
+                fontWeight: 700,
+                fontSize: 13,
+                padding: "6px 16px",
+                borderRadius: 20,
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
+              }}
+            >
+              Zero risk
+            </span>
+          </div>
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 16 }}>
+            You only pay for patients
+            <br />
+            who actually show up
+          </h2>
+          <p
+            style={{
+              color: "#94a3b8",
+              fontSize: 16,
+              textAlign: "center",
+              maxWidth: 600,
+              margin: "0 auto 40px",
+              lineHeight: 1.65,
+            }}
+          >
+            If a patient doesn&rsquo;t attend their appointment, you are not charged.
+            If we don&rsquo;t send you any leads in a month, you don&rsquo;t pay the per-lead fee.
+            Your subscription covers platform access and your guaranteed leads &mdash; but
+            no-shows are always on us.
+          </p>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 14,
+            }}
+          >
+            {[
+              { q: "Patient no-show?", a: "No charge. Ever." },
+              { q: "No leads this month?", a: "You don't pay extra." },
+              { q: "Want to cancel?", a: "Anytime. No penalties." },
+              { q: "Unhappy with quality?", a: "We'll make it right." },
+            ].map((card) => (
+              <div
+                key={card.q}
+                style={{
+                  background: "rgba(255,255,255,.03)",
+                  border: "1px solid rgba(255,255,255,.06)",
+                  borderRadius: 14,
+                  padding: "24px 22px",
+                }}
+              >
+                <p style={{ color: "#94a3b8", fontSize: 14, marginBottom: 8 }}>{card.q}</p>
+                <p style={{ color: "#10b981", fontWeight: 700, fontSize: 18, lineHeight: 1.3 }}>
+                  {card.a}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ PATIENT INSIGHTS — VISUAL ═══════════ */}
       <section id="insights" style={sectionPad}>
         <div style={maxW}>
           <p
@@ -476,197 +692,503 @@ export default function ForClinicsPage() {
           >
             Patient Intel
           </p>
-          <h2
-            style={{
-              fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-              fontWeight: 800,
-              fontSize: "clamp(28px, 4vw, 42px)",
-              color: "#f8fafc",
-              textAlign: "center",
-              marginBottom: 16,
-              letterSpacing: "-0.02em",
-            }}
-          >
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 8 }}>
             Know your patient before they walk in
           </h2>
           <p
             style={{
               color: "#94a3b8",
-              fontSize: 17,
+              fontSize: 16,
               textAlign: "center",
-              maxWidth: 600,
-              margin: "0 auto 48px",
-              lineHeight: 1.6,
+              maxWidth: 560,
+              margin: "0 auto 16px",
+              lineHeight: 1.5,
             }}
           >
-            Every lead comes with these data points — collected directly from the patient during our
-            intake questionnaire.
+            Every lead includes 8 data points collected from our intake questionnaire.
+            Here&rsquo;s what clinics see:
           </p>
+          {/* Source badge */}
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                background: "rgba(16,185,129,.08)",
+                border: "1px solid rgba(16,185,129,.2)",
+                borderRadius: 20,
+                padding: "6px 16px",
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#34d399",
+              }}
+            >
+              <FileText size={13} />
+              All data from real patient questionnaire responses
+            </span>
+          </div>
+
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: 18,
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              gap: 16,
             }}
           >
-            <InsightCard
-              icon={<Heart size={18} />}
+            {/* 1. Anxiety Level — bar chart */}
+            <VisualInsightCard
+              icon={<Heart size={16} />}
               title="Dental anxiety level"
-              example="Quite anxious — I'd appreciate a gentle approach"
-              detail="4 levels from 'Comfortable with dental visits' to 'Very anxious — may need sedation or extra support'. Helps you prepare the right environment."
-            />
-            <InsightCard
-              icon={<PoundSterling size={18} />}
+              question="How do you feel about visiting the dentist?"
+            >
+              <MiniBar label="Comfortable" pct={30} />
+              <MiniBar label="A little nervous" pct={35} />
+              <MiniBar label="Quite anxious" pct={55} highlight />
+              <MiniBar label="Very anxious" pct={20} />
+            </VisualInsightCard>
+
+            {/* 2. Cost approach — tags */}
+            <VisualInsightCard
+              icon={<PoundSterling size={16} />}
               title="Cost approach"
-              example="I have a rough comfort range, but I'm flexible if the plan makes sense"
-              detail="Ranges from 'Best possible result regardless of cost' to 'Strict budget I need to stay within'. Includes monthly payment preferences when relevant."
-            />
-            <InsightCard
-              icon={<AlertCircle size={18} />}
+              question="How do you think about investing in treatment?"
+            >
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <Tag label="Best outcome" />
+                <Tag label="Understand value" active />
+                <Tag label="Flexible range" active />
+                <Tag label="Strict budget" />
+              </div>
+              <p style={{ color: "#64748b", fontSize: 12, marginTop: 10, lineHeight: 1.4 }}>
+                Includes monthly payment preference and budget range when shared
+              </p>
+            </VisualInsightCard>
+
+            {/* 3. Conversion blockers — tags */}
+            <VisualInsightCard
+              icon={<AlertCircle size={16} />}
               title="What's holding them back"
-              example="I'm unsure how much this might cost and whether it's the right investment"
-              detail="Up to 2 conversion blockers: cost uncertainty, needing time to decide, unsure which treatment, complexity concerns, or past bad experience."
-            />
-            <InsightCard
-              icon={<Star size={18} />}
+              question="Is there anything making you hesitate?"
+            >
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <Tag label="Cost concern" active />
+                <Tag label="Needs time to decide" />
+                <Tag label="Unsure which treatment" active />
+                <Tag label="Complexity worry" />
+                <Tag label="Past bad experience" />
+                <Tag label="No concerns" />
+              </div>
+              <p style={{ color: "#64748b", fontSize: 12, marginTop: 10, lineHeight: 1.4 }}>
+                Up to 2 selected per patient
+              </p>
+            </VisualInsightCard>
+
+            {/* 4. Clinic priorities — ranked visual */}
+            <VisualInsightCard
+              icon={<Star size={16} />}
               title="What they value in a clinic"
-              example="Clear pricing before treatment"
-              detail="Top 2 priorities from: specialist experience, flexible hours, clear pricing, calm environment, strong reviews, or continuity of care."
-            />
-            <InsightCard
-              icon={<Clock size={18} />}
+              question="What matters most when choosing a clinic?"
+            >
+              {[
+                { label: "Clear pricing", pct: 65, top: true },
+                { label: "Calm environment", pct: 50, top: true },
+                { label: "Specialist experience", pct: 45 },
+                { label: "Good reviews", pct: 40 },
+                { label: "Flexible hours", pct: 30 },
+                { label: "Continuity of care", pct: 25 },
+              ].map((v) => (
+                <div
+                  key={v.label}
+                  style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 5 }}
+                >
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: v.top ? "#f1f5f9" : "#64748b",
+                      fontWeight: v.top ? 600 : 400,
+                      width: 120,
+                      flexShrink: 0,
+                      textAlign: "right",
+                    }}
+                  >
+                    {v.label}
+                  </span>
+                  <div
+                    style={{
+                      flex: 1,
+                      height: 8,
+                      borderRadius: 4,
+                      background: "rgba(255,255,255,.06)",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${v.pct}%`,
+                        height: "100%",
+                        borderRadius: 4,
+                        background: v.top
+                          ? "linear-gradient(90deg, #10b981, #34d399)"
+                          : "rgba(255,255,255,.12)",
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+              <p style={{ color: "#64748b", fontSize: 12, marginTop: 8, lineHeight: 1.4 }}>
+                Each patient picks their top 2 priorities
+              </p>
+            </VisualInsightCard>
+
+            {/* 5. Readiness — timeline scale */}
+            <VisualInsightCard
+              icon={<Clock size={16} />}
               title="How ready they are"
-              example="Within a week"
-              detail="Readiness from 'As soon as possible' to 'Just exploring for now'. Emergency patients specify same-day or next-day urgency."
-            />
-            <InsightCard
-              icon={<Calendar size={18} />}
+              question="When are you looking to start treatment?"
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "stretch",
+                  gap: 0,
+                  marginBottom: 8,
+                }}
+              >
+                {[
+                  { label: "ASAP", color: "#10b981" },
+                  { label: "This week", color: "#34d399" },
+                  { label: "Few weeks", color: "#6ee7b7" },
+                  { label: "Exploring", color: "#475569" },
+                ].map((t, i) => (
+                  <div
+                    key={t.label}
+                    style={{
+                      flex: 1,
+                      textAlign: "center",
+                      padding: "12px 4px",
+                      background: `${t.color}15`,
+                      borderLeft: i > 0 ? "1px solid rgba(255,255,255,.04)" : undefined,
+                      borderRadius:
+                        i === 0
+                          ? "10px 0 0 10px"
+                          : i === 3
+                            ? "0 10px 10px 0"
+                            : undefined,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        background: t.color,
+                        margin: "0 auto 6px",
+                      }}
+                    />
+                    <span style={{ fontSize: 11, fontWeight: 600, color: t.color }}>{t.label}</span>
+                  </div>
+                ))}
+              </div>
+              <p style={{ color: "#64748b", fontSize: 12, lineHeight: 1.4 }}>
+                Emergency patients show same-day / next-day urgency
+              </p>
+            </VisualInsightCard>
+
+            {/* 6. Preferred visit times — time blocks */}
+            <VisualInsightCard
+              icon={<Calendar size={16} />}
               title="Preferred visit times"
-              example="Late afternoons or weekends"
-              detail="Morning (before 12pm), afternoon (12pm–5pm), or weekends. Match leads to your available slots before reaching out."
-            />
-            <InsightCard
-              icon={<Stethoscope size={18} />}
+              question="When would you prefer appointments?"
+            >
+              <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+                {[
+                  { label: "Morning", sub: "Before 12pm", icon: "9am", active: false },
+                  { label: "Afternoon", sub: "12 – 5pm", icon: "2pm", active: true },
+                  { label: "Weekend", sub: "Sat / Sun", icon: "Sat", active: true },
+                ].map((slot) => (
+                  <div
+                    key={slot.label}
+                    style={{
+                      flex: 1,
+                      textAlign: "center",
+                      padding: "14px 8px 12px",
+                      borderRadius: 12,
+                      background: slot.active ? "rgba(16,185,129,.1)" : "rgba(255,255,255,.03)",
+                      border: `1px solid ${slot.active ? "rgba(16,185,129,.25)" : "rgba(255,255,255,.06)"}`,
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 800,
+                        color: slot.active ? "#10b981" : "#475569",
+                        marginBottom: 4,
+                        fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
+                      }}
+                    >
+                      {slot.icon}
+                    </p>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: slot.active ? "#f1f5f9" : "#64748b" }}>
+                      {slot.label}
+                    </p>
+                    <p style={{ fontSize: 10, color: "#475569" }}>{slot.sub}</p>
+                  </div>
+                ))}
+              </div>
+            </VisualInsightCard>
+
+            {/* 7. Treatment interest — tag cloud */}
+            <VisualInsightCard
+              icon={<Stethoscope size={16} />}
               title="Treatment interest"
-              example="Invisalign / Clear Aligners, Composite Bonding"
-              detail="Specific treatments selected from: Invisalign, whitening, bonding, veneers, implants, check-ups, or emergency dental issues."
-            />
-            <InsightCard
-              icon={<MapPin size={18} />}
+              question="What treatment are you looking for?"
+            >
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <Tag label="Invisalign" active />
+                <Tag label="Whitening" />
+                <Tag label="Composite Bonding" active />
+                <Tag label="Veneers" />
+                <Tag label="Implants" />
+                <Tag label="Check-up & Clean" />
+                <Tag label="Emergency" />
+              </div>
+              <p style={{ color: "#64748b", fontSize: 12, marginTop: 10, lineHeight: 1.4 }}>
+                Patients can select multiple treatments
+              </p>
+            </VisualInsightCard>
+
+            {/* 8. Location flexibility — distance scale */}
+            <VisualInsightCard
+              icon={<MapPin size={16} />}
               title="Location flexibility"
-              example="Willing to travel a bit — up to 5 miles"
-              detail="3 levels: close to home/work (1.5 mi), willing to travel (5 mi), or happy to travel further for the right clinic."
-            />
+              question="How far are you willing to travel?"
+            >
+              <div style={{ marginBottom: 8 }}>
+                {[
+                  { label: "Close to home / work", dist: "1.5 mi", pct: 33 },
+                  { label: "Travel a bit", dist: "5 mi", pct: 66 },
+                  { label: "Travel further for right clinic", dist: "5+ mi", pct: 100 },
+                ].map((loc, i) => (
+                  <div
+                    key={loc.label}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "8px 12px",
+                      borderRadius: 10,
+                      marginBottom: 4,
+                      background: i === 1 ? "rgba(16,185,129,.08)" : "transparent",
+                      border: i === 1 ? "1px solid rgba(16,185,129,.15)" : "1px solid transparent",
+                    }}
+                  >
+                    <MapPin size={13} style={{ color: i === 1 ? "#10b981" : "#475569", flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, color: i === 1 ? "#f1f5f9" : "#94a3b8", flex: 1, fontWeight: i === 1 ? 600 : 400 }}>
+                      {loc.label}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: "#64748b",
+                        fontWeight: 500,
+                        background: "rgba(255,255,255,.05)",
+                        padding: "2px 8px",
+                        borderRadius: 6,
+                      }}
+                    >
+                      {loc.dist}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </VisualInsightCard>
           </div>
         </div>
       </section>
 
-      {/* ═══════════ COMPARISON TABLE ═══════════ */}
+      {/* ═══════════ FREE VISIBILITY ═══════════ */}
       <section style={{ ...sectionPad, background: "rgba(255,255,255,.015)" }}>
-        <div style={maxW}>
-          <h2
-            style={{
-              fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-              fontWeight: 800,
-              fontSize: "clamp(28px, 4vw, 42px)",
-              color: "#f8fafc",
-              textAlign: "center",
-              marginBottom: 48,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            Pearly vs everything else
-          </h2>
-          <div style={{ overflowX: "auto" }}>
-            <table
+        <div style={{ ...maxW, maxWidth: 800 }}>
+          <div style={{ textAlign: "center", marginBottom: 12 }}>
+            <span
               style={{
-                width: "100%",
-                minWidth: 700,
-                borderCollapse: "separate",
-                borderSpacing: 0,
-                fontSize: 15,
+                display: "inline-block",
+                background: "rgba(16,185,129,.12)",
+                color: "#10b981",
+                fontWeight: 700,
+                fontSize: 13,
+                padding: "6px 16px",
+                borderRadius: 20,
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
               }}
             >
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "left", padding: "16px 20px", color: "#64748b", fontWeight: 600, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-                    &nbsp;
-                  </th>
-                  <th style={{ textAlign: "center", padding: "16px 20px", color: "#10b981", fontWeight: 700, fontSize: 14, borderBottom: "2px solid #10b981", background: "rgba(16,185,129,.06)", borderRadius: "12px 12px 0 0" }}>
-                    Pearly
-                  </th>
-                  <th style={{ textAlign: "center", padding: "16px 20px", color: "#64748b", fontWeight: 600, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-                    Google Ads
-                  </th>
-                  <th style={{ textAlign: "center", padding: "16px 20px", color: "#64748b", fontWeight: 600, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-                    Directories
-                  </th>
-                  <th style={{ textAlign: "center", padding: "16px 20px", color: "#64748b", fontWeight: 600, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-                    Agencies
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { feature: "Pre-qualified patients", pearly: true, google: false, directories: false, agencies: false },
-                  { feature: "Patient anxiety & concerns shared", pearly: true, google: false, directories: false, agencies: false },
-                  { feature: "Cost mindset known upfront", pearly: true, google: false, directories: false, agencies: false },
-                  { feature: "No wasted ad spend", pearly: true, google: false, directories: true, agencies: false },
-                  { feature: "No contract lock-in", pearly: true, google: true, directories: false, agencies: false },
-                  { feature: "Under £300/month entry", pearly: true, google: false, directories: true, agencies: false },
-                  { feature: "Patient intent data included", pearly: true, google: false, directories: false, agencies: false },
-                  { feature: "No-show? No charge", pearly: true, google: false, directories: false, agencies: false },
-                ].map((row) => (
-                  <tr key={row.feature}>
-                    <td
-                      style={{
-                        padding: "14px 20px",
-                        color: "#cbd5e1",
-                        fontWeight: 500,
-                        borderBottom: "1px solid rgba(255,255,255,.04)",
-                      }}
-                    >
-                      {row.feature}
-                    </td>
-                    {[row.pearly, row.google, row.directories, row.agencies].map((val, i) => (
-                      <td
-                        key={i}
-                        style={{
-                          textAlign: "center",
-                          padding: "14px 20px",
-                          borderBottom: "1px solid rgba(255,255,255,.04)",
-                          background: i === 0 ? "rgba(16,185,129,.03)" : undefined,
-                        }}
-                      >
-                        {val ? (
-                          <Check size={18} style={{ color: "#10b981", margin: "0 auto" }} />
-                        ) : (
-                          <X size={18} style={{ color: "#475569", margin: "0 auto" }} />
-                        )}
-                      </td>
-                    ))}
+              Bonus: free visibility
+            </span>
+          </div>
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 16 }}>
+            Patients discover your clinic &mdash; even outside Pearlie
+          </h2>
+          <p
+            style={{
+              color: "#94a3b8",
+              fontSize: 16,
+              textAlign: "center",
+              maxWidth: 600,
+              margin: "0 auto 12px",
+              lineHeight: 1.65,
+            }}
+          >
+            Every clinic on Pearlie gets a public profile page that ranks on Google.
+            Patients who browse your profile may reach out to you directly &mdash; through
+            your website, phone, or walk-in. That&rsquo;s free patient acquisition you&rsquo;d
+            never have gotten otherwise.
+          </p>
+          <p
+            style={{
+              color: "#64748b",
+              fontSize: 15,
+              textAlign: "center",
+              maxWidth: 580,
+              margin: "0 auto 40px",
+              lineHeight: 1.6,
+            }}
+          >
+            Think of it as an always-on digital storefront. Your services, reviews, and
+            availability &mdash; visible to thousands of patients searching for a dentist in
+            your area. No extra cost.
+          </p>
+          <div
+            style={{
+              background: "rgba(255,255,255,.03)",
+              border: "1px solid rgba(255,255,255,.06)",
+              borderRadius: 18,
+              padding: "28px 24px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 20,
+            }}
+          >
+            {[
+              {
+                emoji: "\uD83D\uDD0D",
+                title: "SEO-optimised clinic profile",
+                desc: "Rank on Google for local dental searches — without paying for ads",
+              },
+              {
+                emoji: "\uD83D\uDC40",
+                title: "Passive brand exposure",
+                desc: "Patients see your clinic, learn about you, and may contact you directly",
+              },
+              {
+                emoji: "\u2B50",
+                title: "Social proof displayed",
+                desc: "Your reviews, services, and specialties showcased to high-intent patients",
+              },
+              {
+                emoji: "\uD83D\uDCC8",
+                title: "Organic growth channel",
+                desc: "Even if they don't book through Pearlie, they now know you exist",
+              },
+            ].map((item) => (
+              <div key={item.title} style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                <span style={{ fontSize: 22, lineHeight: 1.4, flexShrink: 0 }}>{item.emoji}</span>
+                <div>
+                  <p style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 15, marginBottom: 2 }}>
+                    {item.title}
+                  </p>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.5 }}>{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ TRADITIONAL VS PEARLIE ═══════════ */}
+      <section style={sectionPad}>
+        <div style={{ ...maxW, maxWidth: 800 }}>
+          <div style={{ textAlign: "center", marginBottom: 12 }}>
+            <span
+              style={{
+                display: "inline-block",
+                background: "rgba(239,68,68,.12)",
+                color: "#f87171",
+                fontWeight: 700,
+                fontSize: 13,
+                padding: "6px 16px",
+                borderRadius: 20,
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
+              }}
+            >
+              The old way vs. the new way
+            </span>
+          </div>
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 48 }}>
+            Traditional marketing is{" "}
+            <span style={{ color: "#f87171" }}>costing you thousands</span>
+          </h2>
+          <div
+            style={{
+              background: "rgba(255,255,255,.03)",
+              border: "1px solid rgba(255,255,255,.06)",
+              borderRadius: 18,
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", minWidth: 500, borderCollapse: "collapse", fontSize: 15 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left", padding: "18px 20px", color: "#64748b", fontWeight: 600, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
+                      &nbsp;
+                    </th>
+                    <th style={{ textAlign: "center", padding: "18px 20px", color: "#f87171", fontWeight: 700, fontSize: 14, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
+                      Traditional / Agency
+                    </th>
+                    <th style={{ textAlign: "center", padding: "18px 20px", color: "#10b981", fontWeight: 700, fontSize: 14, borderBottom: "2px solid #10b981", background: "rgba(16,185,129,.04)" }}>
+                      Pearlie
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {[
+                    { feature: "Monthly cost to clinic", old: "£2,300 – £7,000+", pearlie: "£287 – £670" },
+                    { feature: "Ad spend required from clinic", old: "£800 – £5,000 on top", pearlie: "£0 — we handle it all" },
+                    { feature: "Setup / onboarding fee", old: "£1,000 – £5,000", pearlie: "£0 — free" },
+                    { feature: "Contract", old: "12 – 36 months locked in", pearlie: "Cancel anytime" },
+                    { feature: "Time to first patient", old: "3 – 6 months (SEO ramp)", pearlie: "Within 48 hours" },
+                    { feature: "Cost per patient", old: "£66 – £750", pearlie: "From £71 (drops to £42)" },
+                    { feature: "Lead quality", old: "Cold ad clicks", pearlie: "Pre-qualified & matched" },
+                    { feature: "Patient no-show?", old: "You still pay", pearlie: "No charge" },
+                    { feature: "No leads delivered?", old: "You still pay retainer", pearlie: "No extra charge" },
+                    { feature: "Work required from clinic", old: "Approve ads, manage pages", pearlie: "None — fully hands-off" },
+                  ].map((row) => (
+                    <tr key={row.feature}>
+                      <td style={{ padding: "16px 20px", color: "#cbd5e1", fontWeight: 500, borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                        {row.feature}
+                      </td>
+                      <td style={{ textAlign: "center", padding: "16px 20px", color: "#f87171", fontWeight: 600, fontSize: 14, borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                        {row.old}
+                      </td>
+                      <td style={{ textAlign: "center", padding: "16px 20px", color: "#10b981", fontWeight: 600, fontSize: 14, borderBottom: "1px solid rgba(255,255,255,.04)", background: "rgba(16,185,129,.03)" }}>
+                        {row.pearlie}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ═══════════ ROI CALCULATOR ═══════════ */}
       <section style={sectionPad}>
-        <div style={{ ...maxW, maxWidth: 720 }}>
-          <h2
-            style={{
-              fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-              fontWeight: 800,
-              fontSize: "clamp(28px, 4vw, 42px)",
-              color: "#f8fafc",
-              textAlign: "center",
-              marginBottom: 12,
-              letterSpacing: "-0.02em",
-            }}
-          >
+        <div style={{ ...maxW, maxWidth: 840 }}>
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 12 }}>
             Your return, calculated
           </h2>
           <p
@@ -724,75 +1246,23 @@ export default function ForClinicsPage() {
               />
             </div>
 
-            {/* Results */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 16,
-              }}
-            >
-              {/* Standard */}
-              <div
-                style={{
-                  background: "rgba(255,255,255,.03)",
-                  borderRadius: 14,
-                  padding: "24px 20px",
-                  border: "1px solid rgba(255,255,255,.06)",
-                }}
-              >
-                <p style={{ color: "#64748b", fontSize: 13, fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                  Standard Plan
-                </p>
-                <p style={{ color: "#f1f5f9", fontSize: 14, marginBottom: 4 }}>
-                  {stdCalc.totalLeads} patients &times; &pound;{ltv.toLocaleString()} LTV
-                </p>
-                <p style={{ color: "#64748b", fontSize: 13, marginBottom: 12 }}>
-                  Cost: &pound;{stdCalc.totalCost}/mo
-                </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-                    fontWeight: 800,
-                    fontSize: 28,
-                    color: "#10b981",
-                  }}
-                >
-                  &pound;{stdCalc.roi.toLocaleString()}
-                </p>
-                <p style={{ color: "#64748b", fontSize: 12 }}>potential monthly return</p>
-              </div>
-
-              {/* Premium */}
-              <div
-                style={{
-                  background: "rgba(255,255,255,.03)",
-                  borderRadius: 14,
-                  padding: "24px 20px",
-                  border: "1px solid rgba(16,185,129,.15)",
-                }}
-              >
-                <p style={{ color: "#10b981", fontSize: 13, fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                  Premium Plan
-                </p>
-                <p style={{ color: "#f1f5f9", fontSize: 14, marginBottom: 4 }}>
-                  {premCalc.totalLeads} patients &times; &pound;{ltv.toLocaleString()} LTV
-                </p>
-                <p style={{ color: "#64748b", fontSize: 13, marginBottom: 12 }}>
-                  Cost: &pound;{premCalc.totalCost}/mo
-                </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-                    fontWeight: 800,
-                    fontSize: 28,
-                    color: "#10b981",
-                  }}
-                >
-                  &pound;{premCalc.roi.toLocaleString()}
-                </p>
-                <p style={{ color: "#64748b", fontSize: 12 }}>potential monthly return</p>
-              </div>
+            {/* Results — two plans side by side */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <RoiCard
+                label="Standard Plan"
+                labelColor="#94a3b8"
+                c={stdCalc}
+                baseCost={stdBase}
+                extraPrice={STD_EXTRA_PRICE}
+              />
+              <RoiCard
+                label="Premium Plan"
+                labelColor="#10b981"
+                c={premCalc}
+                baseCost={premBase}
+                extraPrice={PREM_EXTRA_PRICE}
+                highlight
+              />
             </div>
           </div>
         </div>
@@ -814,17 +1284,7 @@ export default function ForClinicsPage() {
           >
             Pricing
           </p>
-          <h2
-            style={{
-              fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-              fontWeight: 800,
-              fontSize: "clamp(28px, 4vw, 42px)",
-              color: "#f8fafc",
-              textAlign: "center",
-              marginBottom: 16,
-              letterSpacing: "-0.02em",
-            }}
-          >
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 16 }}>
             Simple, transparent plans
           </h2>
           <p
@@ -862,16 +1322,7 @@ export default function ForClinicsPage() {
                 Standard
               </p>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
-                <span
-                  style={{
-                    fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-                    fontWeight: 800,
-                    fontSize: 48,
-                    color: "#f8fafc",
-                  }}
-                >
-                  &pound;287
-                </span>
+                <span style={{ ...heading, fontSize: 48 }}>&pound;287</span>
                 <span style={{ color: "#64748b", fontSize: 16 }}>/month</span>
               </div>
               <p style={{ color: "#64748b", fontSize: 14, marginBottom: 28 }}>
@@ -946,16 +1397,7 @@ export default function ForClinicsPage() {
                 Premium
               </p>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
-                <span
-                  style={{
-                    fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-                    fontWeight: 800,
-                    fontSize: 48,
-                    color: "#f8fafc",
-                  }}
-                >
-                  &pound;450
-                </span>
+                <span style={{ ...heading, fontSize: 48 }}>&pound;450</span>
                 <span style={{ color: "#64748b", fontSize: 16 }}>/month</span>
               </div>
               <p style={{ color: "#64748b", fontSize: 14, marginBottom: 28 }}>
@@ -965,7 +1407,7 @@ export default function ForClinicsPage() {
                 {[
                   "5 pre-qualified patient leads",
                   "Full patient intent profile",
-                  "Extra leads at £35 each",
+                  "Extra leads at £28 each",
                   "Priority matching",
                   "Dedicated onboarding call",
                   "No-show? No charge",
@@ -987,7 +1429,7 @@ export default function ForClinicsPage() {
                 ))}
               </ul>
               <a
-                href="mailto:hello@pearlie.org?subject=Pearly Premium — clinic enquiry"
+                href="mailto:hello@pearlie.org?subject=Pearlie Premium — clinic enquiry"
                 style={{
                   ...greenBtn,
                   width: "100%",
@@ -1004,17 +1446,7 @@ export default function ForClinicsPage() {
       {/* ═══════════ FAQ ═══════════ */}
       <section id="faq" style={sectionPad}>
         <div style={{ ...maxW, maxWidth: 720 }}>
-          <h2
-            style={{
-              fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-              fontWeight: 800,
-              fontSize: "clamp(28px, 4vw, 42px)",
-              color: "#f8fafc",
-              textAlign: "center",
-              marginBottom: 48,
-              letterSpacing: "-0.02em",
-            }}
-          >
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 48 }}>
             Frequently asked questions
           </h2>
           <FaqItem
@@ -1039,7 +1471,7 @@ export default function ForClinicsPage() {
           />
           <FaqItem
             question="Do I need to change anything about my practice?"
-            answer="No. Pearly works alongside your existing processes. We send you qualified patient leads — you handle the consultation and booking as you normally would, just with much better information upfront."
+            answer="No. Pearlie works alongside your existing processes. We send you qualified patient leads — you handle the consultation and booking as you normally would, just with much better information upfront."
           />
           <FaqItem
             question="What if I don't get any leads in a month?"
@@ -1059,16 +1491,7 @@ export default function ForClinicsPage() {
         }}
       >
         <div style={maxW}>
-          <h2
-            style={{
-              fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
-              fontWeight: 800,
-              fontSize: "clamp(28px, 4.5vw, 48px)",
-              color: "#f8fafc",
-              marginBottom: 16,
-              letterSpacing: "-0.03em",
-            }}
-          >
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4.5vw, 48px)", marginBottom: 16, letterSpacing: "-0.03em" }}>
             Ready for patients who actually convert?
           </h2>
           <p
@@ -1080,11 +1503,11 @@ export default function ForClinicsPage() {
               lineHeight: 1.6,
             }}
           >
-            Join Pearly and start receiving pre-qualified patients — with the insights you need to
+            Join Pearlie and start receiving pre-qualified patients — with the insights you need to
             close them.
           </p>
           <Link href="/signup" style={greenBtn}>
-            Join Pearly &mdash; Free Setup <ArrowRight size={18} />
+            Join Pearlie &mdash; Free Setup <ArrowRight size={18} />
           </Link>
           <p style={{ color: "#475569", fontSize: 13, marginTop: 16 }}>
             No contracts &middot; No setup fee &middot; Cancel anytime
@@ -1101,7 +1524,7 @@ export default function ForClinicsPage() {
         }}
       >
         <p style={{ color: "#475569", fontSize: 13 }}>
-          &copy; {new Date().getFullYear()} Pearly Health Ltd. All rights reserved.
+          &copy; {new Date().getFullYear()} Pearlie Health Ltd. All rights reserved.
         </p>
       </footer>
     </div>

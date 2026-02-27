@@ -18,23 +18,23 @@ const bricolage = Bricolage_Grotesque({
 })
 
 export const metadata: Metadata = {
-  title: "Pearly — Get Pre-Qualified Dental Patients | For Clinics",
+  title: "Pearlie — Get Pre-Qualified Dental Patients | For Clinics",
   description:
     "Receive high-need, pre-qualified patients for £287/month. 3 patients included. No contracts, no ad spend, no agency needed. Cancel anytime.",
   alternates: {
     canonical: "https://pearlie.org/for-clinics",
   },
   openGraph: {
-    title: "Pearly — Get Pre-Qualified Dental Patients",
+    title: "Pearlie — Get Pre-Qualified Dental Patients",
     description:
       "Receive high-need patients who are ready to book — for less than the cost of a Google ad.",
     url: "https://pearlie.org/for-clinics",
-    siteName: "Pearly",
+    siteName: "Pearlie",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pearly — Get Pre-Qualified Dental Patients",
+    title: "Pearlie — Get Pre-Qualified Dental Patients",
     description:
       "Receive high-need patients who are ready to book — for less than the cost of a Google ad.",
   },
@@ -55,7 +55,7 @@ export default function ForClinicsRoute() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Product",
-            name: "Pearly Standard Plan",
+            name: "Pearlie Standard Plan",
             description:
               "Monthly dental clinic subscription — 3 matched patient leads included with full patient intent data.",
             provider: { "@id": "https://pearlie.org/#organization" },
