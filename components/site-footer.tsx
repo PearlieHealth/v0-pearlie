@@ -63,7 +63,7 @@ export function SiteFooter() {
           {/* Grid */}
           <div className="grid grid-cols-2 md:grid-cols-8 gap-8 md:gap-6">
             {/* Brand */}
-            <div className="col-span-2 md:col-span-1">
+            <div className="col-span-2 md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
                 <Heart className="w-5 h-5 text-[#0fbcb0] fill-[#0fbcb0]" />
                 <span className="text-lg font-heading font-bold text-white">Pearlie</span>

@@ -175,7 +175,7 @@ Pearlie publishes borough-specific treatment pages combining local clinic data, 
 
 ### London Borough Hub
 - URL: https://pearlie.org/london
-- Covers: All 15 London boroughs with verified dental clinics
+- Covers: All 14 London boroughs with verified dental clinics
 - Organised by region: Central, North, South, East, West
 
 ### Borough Pages

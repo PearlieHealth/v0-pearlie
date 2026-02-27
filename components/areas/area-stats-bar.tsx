@@ -9,13 +9,14 @@ interface AreaStatsBarProps {
 
 export function AreaStatsBar({
   borough,
+  clinicCount,
   treatmentName,
 }: AreaStatsBarProps) {
   const facts = [
     {
       icon: Building2,
       label: treatmentName ? `${treatmentName} clinics` : "Clinics",
-      value: "Verified",
+      value: clinicCount ? `${clinicCount} verified` : "Verified",
     },
     {
       icon: Users,
