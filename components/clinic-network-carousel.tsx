@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { ClinicImage } from "@/components/match/clinic-image"
 import { Building2, Users } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
@@ -136,7 +137,7 @@ export function ClinicNetworkCarousel() {
 
 function ClinicCard({ clinic }: { clinic: ClinicImageData }) {
   return (
-    <div className="w-56 h-40 flex-shrink-0 rounded-2xl overflow-hidden bg-gray-200 relative group">
+    <Link href={`/clinic/${clinic.id}`} className="w-56 h-40 flex-shrink-0 rounded-2xl overflow-hidden bg-gray-200 relative group block">
       <ClinicImage
         src={clinic.image}
         alt={`${clinic.name} dental clinic`}
@@ -149,7 +150,7 @@ function ClinicCard({ clinic }: { clinic: ClinicImageData }) {
       <div className="absolute bottom-0 left-0 right-0 p-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <p className="text-sm font-medium truncate">{clinic.name}</p>
       </div>
-    </div>
+    </Link>
   )
 }
 
