@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Menu, Heart, X } from "lucide-react"
+import { Menu, Heart, X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
@@ -11,7 +10,7 @@ import { createClient } from "@/lib/supabase/client"
 
 export function MobileNavMenu() {
   const [open, setOpen] = useState(false)
-  const pathname = usePathname()
+  const [resourcesOpen, setResourcesOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
 
@@ -23,8 +22,12 @@ export function MobileNavMenu() {
     })
   }, [])
 
-  const isForClinics = pathname === "/for-clinics"
-  const isForPatients = pathname === "/" || pathname === "/intake"
+  const resourcesLinks = [
+    { href: "/blog", label: "Blog" },
+    { href: "/guides", label: "Guides" },
+    { href: "/about", label: "About" },
+    { href: "/for-clinics", label: "For Clinics" },
+  ]
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -58,29 +61,6 @@ export function MobileNavMenu() {
 
         {/* Navigation links */}
         <nav className="flex flex-col px-6 py-6 font-heading">
-          <div className="flex items-center bg-secondary/50 rounded-full p-1 border border-border mb-6">
-            <Link
-              href="/"
-              onClick={() => setOpen(false)}
-              className={cn(
-                "flex-1 px-4 py-2 rounded-full text-sm font-medium text-center transition-all duration-300",
-                isForPatients ? "bg-primary text-white shadow-sm" : "text-muted-foreground",
-              )}
-            >
-              For Patients
-            </Link>
-            <Link
-              href="/for-clinics"
-              onClick={() => setOpen(false)}
-              className={cn(
-                "flex-1 px-4 py-2 rounded-full text-sm font-medium text-center transition-all duration-300",
-                isForClinics ? "bg-primary text-white shadow-sm" : "text-muted-foreground",
-              )}
-            >
-              For Clinics
-            </Link>
-          </div>
-
           <div className="space-y-1">
             <Link
               href="/treatments"
@@ -89,33 +69,43 @@ export function MobileNavMenu() {
             >
               Treatments
             </Link>
-            <Link
-              href="/blog"
-              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              Blog
-            </Link>
-            <Link
-              href="/guides"
-              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              Guides
-            </Link>
+
+            {/* Resources - collapsible section */}
+            <div>
+              <button
+                onClick={() => setResourcesOpen(!resourcesOpen)}
+                className="flex items-center justify-between w-full h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+              >
+                Resources
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 transition-transform duration-200",
+                    resourcesOpen && "rotate-180",
+                  )}
+                />
+              </button>
+              {resourcesOpen && (
+                <div className="ml-4 border-l border-border/50 pl-2 space-y-1">
+                  {resourcesLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="flex items-center h-10 px-4 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+                      onClick={() => setOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <Link
               href="/our-mission"
               className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
               onClick={() => setOpen(false)}
             >
               Our Mission
-            </Link>
-            <Link
-              href="/about"
-              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              About
             </Link>
             <Link
               href="/faq"
@@ -126,21 +116,22 @@ export function MobileNavMenu() {
             </Link>
           </div>
 
-          {/* CTA Buttons */}
+          {/* Bottom buttons */}
           <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
             <Button
+              variant="outline"
               size="lg"
-              className="w-full text-base h-12 bg-primary hover:bg-primary/90 text-white rounded-full shadow-sm"
+              className="w-full text-base h-12 rounded-full border-[#0fbcb0] text-[#0fbcb0] hover:bg-[#0fbcb0]/10"
               asChild
             >
-              <Link href="/intake" onClick={() => setOpen(false)}>
-                Get my clinic matches
-              </Link>
+              <a href="https://portal.pearlie.org" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
+                Clinic Portal
+              </a>
             </Button>
             <Button
               variant="outline"
               size="lg"
-              className="w-full text-base h-12 rounded-full"
+              className="w-full text-base h-12 rounded-full border-[#0a8f86] text-[#0a8f86] hover:bg-[#0a8f86]/10"
               asChild
             >
               <Link href={isAuthenticated ? "/patient/dashboard" : "/patient/login"} onClick={() => setOpen(false)}>

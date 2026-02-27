@@ -3,9 +3,11 @@
 import React from "react"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { MessageCircle, Send, ChevronDown, Heart, Check, CheckCheck, ArrowRight } from "lucide-react"
+import { MessageCircle, Send, ChevronDown, Heart, Check, CheckCheck } from "lucide-react"
 import { OTPVerification } from "@/components/otp-verification"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
+import { DirectEnquiryForm } from "@/components/clinic/direct-enquiry-form"
+import { DirectLeadPreQualifier } from "@/components/clinic/direct-lead-pre-qualifier"
 
 interface Message {
   id: string
@@ -46,6 +48,7 @@ export function EmbeddedClinicChat({
   const [conversationClosed, setConversationClosed] = useState(false)
   const [showOtpVerify, setShowOtpVerify] = useState(false)
   const [leadEmail, setLeadEmail] = useState<string | null>(leadEmailProp || null)
+  const [showQuickForm, setShowQuickForm] = useState(false)
   const pendingMessageRef = useRef<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const botTypingTimers = useRef<NodeJS.Timeout[]>([])
@@ -281,25 +284,27 @@ export function EmbeddedClinicChat({
         </div>
       )}
 
-      {/* Redirect to intake for visitors without a leadId */}
+      {/* Pre-qualifier or quick form for visitors without a leadId */}
       {!leadId && (
-        <div className={`overflow-y-auto bg-[#fafafa] ${hideHeader ? "flex-1 min-h-0" : "max-h-[400px]"} flex items-center justify-center p-6`}>
-          <div className="text-center max-w-[280px]">
-            <MessageCircle className="h-8 w-8 text-[#ccc] mx-auto mb-3" />
-            <h3 className="text-sm font-semibold text-[#1a1a1a] mb-1">
-              Quick form first
-            </h3>
-            <p className="text-xs text-[#666] mb-4 leading-relaxed">
-              Answer a few questions so {clinicName} can understand what you need. Takes under 60 seconds.
-            </p>
-            <a
-              href="/intake"
-              className="inline-flex items-center justify-center w-full bg-[#004443] hover:bg-[#003332] text-white h-10 text-sm font-medium rounded-full transition-colors"
-            >
-              Get started
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </a>
-          </div>
+        <div className={`overflow-y-auto bg-[#fafafa] ${hideHeader ? "flex-1 min-h-0" : "max-h-[400px]"}`}>
+          {showQuickForm ? (
+            <DirectEnquiryForm
+              clinicId={clinicId}
+              clinicName={clinicName}
+              onLeadCreated={(newLeadId) => {
+                setShowQuickForm(false)
+                onLeadCreated?.(newLeadId)
+              }}
+            />
+          ) : (
+            <DirectLeadPreQualifier
+              clinicName={clinicName}
+              onQuickForm={() => setShowQuickForm(true)}
+              onFullIntake={() => {
+                window.location.href = `/intake?clinic=${clinicId}`
+              }}
+            />
+          )}
         </div>
       )}
 

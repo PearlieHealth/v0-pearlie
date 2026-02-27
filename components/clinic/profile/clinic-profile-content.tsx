@@ -21,6 +21,7 @@ import {
   CalendarCheck,
   CheckCircle2,
 } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
 import { clinicHref } from "@/lib/clinic-url"
 import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
@@ -28,6 +29,8 @@ import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
+import { DirectEnquiryForm } from "@/components/clinic/direct-enquiry-form"
+import { DirectLeadPreQualifier } from "@/components/clinic/direct-lead-pre-qualifier"
 import { ClinicImage } from "@/components/match/clinic-image"
 
 import { HighlightBadgeStrip } from "./highlight-badge-strip"
@@ -56,7 +59,7 @@ export function ClinicProfileContent() {
   const [showChat, setShowChat] = useState(false)
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [showMobilePicker, setShowMobilePicker] = useState(false)
-  const [directLeadId] = useState<string | null>(null)
+  const [directLeadId, setDirectLeadId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("overview")
   const [pendingAppointment, setPendingAppointment] = useState<{
     date: Date
@@ -66,6 +69,10 @@ export function ClinicProfileContent() {
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [appointmentRequestedAt, setAppointmentRequestedAt] = useState<string | null>(null)
+  const [showDirectForm, setShowDirectForm] = useState(false)
+  const [directFormTrigger, setDirectFormTrigger] = useState<"message" | "appointment" | null>(null)
+  const [directFormPendingDate, setDirectFormPendingDate] = useState<Date | null>(null)
+  const [showQuickFormAppointment, setShowQuickFormAppointment] = useState(false)
 
   const isChatOpen = searchParams?.get("chat") === "open"
 
@@ -76,6 +83,57 @@ export function ClinicProfileContent() {
       setShowMobileChat(true)
     }
   }, [isReply, isChatOpen, leadIdParam])
+
+  // Restore directLeadId from localStorage on mount (returning direct visitors)
+  useEffect(() => {
+    if (!clinic?.id) return
+    // Don't restore if we already have a lead from the matching flow
+    if (lead?.id || leadIdParam) return
+    try {
+      const stored = localStorage.getItem(`pearlie_direct_lead_${clinic.id}`)
+      if (stored) setDirectLeadId(stored)
+    } catch {}
+  }, [clinic?.id, lead?.id, leadIdParam])
+
+  // Auto-create lead for authenticated patients visiting a new clinic directly.
+  // If the patient verified via OTP on another clinic, their Supabase auth session
+  // persists — so we can skip the form + OTP entirely and create a lead automatically.
+  const autoLeadAttempted = useRef(false)
+  useEffect(() => {
+    if (!clinic?.id || loading) return
+    // Already have a lead from matching flow or localStorage restore
+    if (lead?.id || leadIdParam || directLeadId) return
+    // Only attempt once per mount
+    if (autoLeadAttempted.current) return
+    autoLeadAttempted.current = true
+
+    const tryAutoCreateLead = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user?.id || user.user_metadata?.role !== "patient") return
+
+        const response = await fetch("/api/leads/direct-auto", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clinicId: clinic.id }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setDirectLeadId(data.leadId)
+          // Persist for future page loads
+          try {
+            localStorage.setItem(`pearlie_direct_lead_${clinic.id}`, data.leadId)
+          } catch {}
+        }
+      } catch {
+        // Non-critical — patient can still use the manual form
+      }
+    }
+
+    tryAutoCreateLead()
+  }, [clinic?.id, loading, lead?.id, leadIdParam, directLeadId])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -239,8 +297,10 @@ export function ClinicProfileContent() {
         picker.scrollIntoView({ behavior: "smooth", block: "center" })
       }
     } else {
-      // No lead — redirect to intake form
-      router.push("/intake")
+      // No lead — show inline direct enquiry form
+      setDirectFormPendingDate(date || null)
+      setDirectFormTrigger("appointment")
+      setShowDirectForm(true)
     }
   }
 
@@ -314,6 +374,72 @@ export function ClinicProfileContent() {
   const handleCancelPendingBooking = () => {
     setPendingAppointment(null)
     setBookingError(null)
+  }
+
+  const handleDirectLeadCreated = (newLeadId: string) => {
+    setDirectLeadId(newLeadId)
+    setShowDirectForm(false)
+    setShowQuickFormAppointment(false)
+    setShowMobilePicker(false)
+
+    // Persist to localStorage so returning visitors skip the form
+    if (clinic?.id) {
+      try {
+        const key = `pearlie_direct_lead_${clinic.id}`
+        localStorage.setItem(key, newLeadId)
+      } catch {}
+    }
+
+    trackEvent("direct_lead_created", {
+      leadId: newLeadId,
+      clinicId: clinic?.id,
+      meta: { trigger: directFormTrigger, source: "direct_profile_inline" },
+    })
+
+    if (directFormTrigger === "message") {
+      setShowChat(true)
+      setShowMobileChat(true)
+    } else if (directFormTrigger === "appointment") {
+      if (directFormPendingDate) {
+        // Re-trigger booking with the date now that we have a lead
+        const date = directFormPendingDate
+        setDirectFormPendingDate(null)
+        setDirectFormTrigger(null)
+        // Delay slightly so state updates propagate
+        setTimeout(() => handleBookAppointment(date), 100)
+      } else {
+        // No date was selected yet — show the date picker
+        setShowMobilePicker(true)
+        const picker = document.getElementById("clinic-date-picker")
+        if (picker) {
+          picker.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
+      }
+    }
+
+    setDirectFormTrigger(null)
+  }
+
+  const handleOpenChat = () => {
+    const effectiveLeadId = lead?.id || leadIdParam || directLeadId
+    if (effectiveLeadId) {
+      // Already have a lead — open chat directly
+      const contactEventId = generateTikTokEventId()
+      trackTikTokEvent("Contact", { content_name: "message_clinic_profile" }, contactEventId)
+      trackTikTokServerRelay("Contact", {
+        event_id: contactEventId,
+        lead_id: effectiveLeadId,
+        clinic_id: clinic?.id,
+        properties: { content_name: "message_clinic_profile" },
+      })
+      setShowChat(true)
+      setShowMobileChat(true)
+    } else {
+      // No lead — open chat which will show the inline DirectEnquiryForm
+      setDirectFormTrigger("message")
+      setShowChat(true)
+      setShowMobileChat(true)
+    }
   }
 
   const handleCallClinic = () => {
@@ -395,50 +521,35 @@ export function ClinicProfileContent() {
         </div>
       </div>
 
-      {/* Hero: Photo banner if photos available, otherwise map */}
-      {clinic.images && clinic.images.length > 0 ? (
-        <section>
-          <div className="relative w-full h-[220px] sm:h-[280px] lg:h-[320px] bg-[#f5f5f5]">
-            <ClinicImage
-              src={clinic.images[0]}
-              alt={clinic.name}
-              fill
-              className="object-cover"
-              fallbackClassName="w-full h-full flex items-center justify-center bg-[#f5f5f5]"
-              sizes="100vw"
+      {/* Hero: Always show map location */}
+      <section id="location">
+        <div className="w-full h-[200px] lg:h-[250px] bg-[#e5e5e5]">
+          {clinic.latitude && clinic.longitude && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? (
+            <iframe
+              title={`${clinic.name} location`}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}&zoom=14`}
             />
-          </div>
-        </section>
-      ) : (
-        <section id="location">
-          <div className="w-full h-[200px] lg:h-[250px] bg-[#e5e5e5]">
-            {clinic.latitude && clinic.longitude && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? (
-              <iframe
-                title={`${clinic.name} location`}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}&zoom=14`}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-[#666] hover:text-[#1a1a1a]"
-                >
-                  <MapPin className="h-5 w-5" />
-                  <span>View on Google Maps</span>
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-[#666] hover:text-[#1a1a1a]"
+              >
+                <MapPin className="h-5 w-5" />
+                <span>View on Google Maps</span>
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Main content grid */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-4 sm:pt-6">
@@ -446,8 +557,27 @@ export function ClinicProfileContent() {
           {/* LEFT COLUMN */}
           <div className="space-y-4 md:space-y-6">
             {/* Clinic Name + Address + Provider Photos */}
-            <section className="flex items-start justify-between gap-6">
-              <div>
+            <section className="flex items-start justify-between gap-4 sm:gap-6">
+              {/* Clinic photo circle */}
+              <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-[#f0f0f0] flex-shrink-0 border-2 border-white shadow-sm">
+                {clinic.images && clinic.images.length > 0 ? (
+                  <ClinicImage
+                    src={clinic.images[0]}
+                    alt={clinic.name}
+                    fill
+                    className="object-cover"
+                    fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-[#004443]">
+                    <span className="text-white font-bold text-lg drop-shadow-sm">
+                      {clinic.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 min-w-0">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#1a1a1a] tracking-tight text-balance">{clinic.name}</h1>
                 <p className="text-[#444] mt-1">{clinic.address}</p>
                 <p className="text-[#444]">{clinic.city || ""}{clinic.city && clinic.postcode ? ", " : ""}{clinic.postcode}</p>
@@ -650,15 +780,11 @@ export function ClinicProfileContent() {
                     size="lg"
                     className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white"
                     onClick={() => {
-                      const contactEventId = generateTikTokEventId()
-                      trackTikTokEvent("Contact", { content_name: "message_clinic_profile" }, contactEventId)
-                      trackTikTokServerRelay("Contact", {
-                        event_id: contactEventId,
-                        lead_id: lead?.id || leadIdParam || directLeadId,
-                        clinic_id: clinic?.id,
-                        properties: { content_name: "message_clinic_profile" },
-                      })
-                      setShowChat(!showChat)
+                      if (showChat) {
+                        setShowChat(false)
+                      } else {
+                        handleOpenChat()
+                      }
                     }}
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
@@ -671,7 +797,7 @@ export function ClinicProfileContent() {
                     clinicName={clinic.name}
                     isOpen={showChat}
                     onToggle={() => setShowChat(false)}
-                    onLeadCreated={() => {}}
+                    onLeadCreated={handleDirectLeadCreated}
                     leadEmail={lead?.email || null}
                   />
 
@@ -729,7 +855,7 @@ export function ClinicProfileContent() {
                 isOpen={true}
                 onToggle={() => setShowMobileChat(false)}
                 hideHeader
-                onLeadCreated={() => {}}
+                onLeadCreated={handleDirectLeadCreated}
                 leadEmail={lead?.email || null}
               />
             </div>
@@ -832,15 +958,104 @@ export function ClinicProfileContent() {
         </div>
       )}
 
+      {/* Direct Enquiry Pre-qualifier / Form Bottom Sheet (mobile) + Modal (desktop) — for appointment flow */}
+      {showDirectForm && directFormTrigger === "appointment" && clinic && (
+        <>
+          {/* Mobile bottom sheet */}
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null); setShowQuickFormAppointment(false) }}
+              onKeyDown={() => {}}
+              role="presentation"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
+                <h3 className="font-semibold text-[#1a1a1a]">
+                  {showQuickFormAppointment
+                    ? (directFormPendingDate ? "Request an appointment" : "Your details")
+                    : "Get started"
+                  }
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null); setShowQuickFormAppointment(false) }}
+                  className="p-1 rounded-full hover:bg-[#f5f5f5]"
+                >
+                  <X className="h-5 w-5 text-[#666]" />
+                </button>
+              </div>
+              {showQuickFormAppointment ? (
+                <DirectEnquiryForm
+                  clinicId={clinic.id}
+                  clinicName={clinic.name}
+                  onLeadCreated={handleDirectLeadCreated}
+                />
+              ) : (
+                <DirectLeadPreQualifier
+                  clinicName={clinic.name}
+                  onQuickForm={() => setShowQuickFormAppointment(true)}
+                  onFullIntake={() => {
+                    window.location.href = `/intake?clinic=${clinic.id}`
+                  }}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Desktop modal */}
+          <div className="fixed inset-0 z-50 hidden lg:flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null); setShowQuickFormAppointment(false) }}
+              onKeyDown={() => {}}
+              role="presentation"
+            />
+            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e5e5]">
+                <h3 className="font-semibold text-[#1a1a1a]">
+                  {showQuickFormAppointment
+                    ? (directFormPendingDate ? "Request an appointment" : "Your details")
+                    : "Get started"
+                  }
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null); setShowQuickFormAppointment(false) }}
+                  className="p-1 rounded-full hover:bg-[#f5f5f5]"
+                >
+                  <X className="h-5 w-5 text-[#666]" />
+                </button>
+              </div>
+              {showQuickFormAppointment ? (
+                <DirectEnquiryForm
+                  clinicId={clinic.id}
+                  clinicName={clinic.name}
+                  onLeadCreated={handleDirectLeadCreated}
+                />
+              ) : (
+                <DirectLeadPreQualifier
+                  clinicName={clinic.name}
+                  onQuickForm={() => setShowQuickFormAppointment(true)}
+                  onFullIntake={() => {
+                    window.location.href = `/intake?clinic=${clinic.id}`
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Mobile sticky CTA */}
-      {!showMobileChat && !showMobilePicker && !pendingAppointment && !bookingConfirmed && (
+      {!showMobileChat && !showMobilePicker && !pendingAppointment && !bookingConfirmed && !showDirectForm && (
         <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-[#faf3e6] to-white border-t border-[#0fbcb0]/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(15,188,176,0.12)]">
           <p className="text-xs text-[#666] text-center mb-2">No booking fees on Pearlie</p>
           <div className="flex gap-3 max-w-lg mx-auto">
             <Button
               size="lg"
               className="flex-1 bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation"
-              onClick={() => setShowMobileChat(true)}
+              onClick={handleOpenChat}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
               {(lead?.id || leadIdParam || directLeadId) ? "Message" : "Enquire"}
@@ -878,17 +1093,7 @@ export function ClinicProfileContent() {
             <Button
               size="lg"
               className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation"
-              onClick={() => {
-                const contactEventId = generateTikTokEventId()
-                trackTikTokEvent("Contact", { content_name: "message_clinic_profile_mobile" }, contactEventId)
-                trackTikTokServerRelay("Contact", {
-                  event_id: contactEventId,
-                  lead_id: lead?.id || leadIdParam || directLeadId,
-                  clinic_id: clinic?.id,
-                  properties: { content_name: "message_clinic_profile_mobile" },
-                })
-                setShowMobileChat(true)
-              }}
+              onClick={handleOpenChat}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
               Message Clinic
