@@ -278,17 +278,16 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
         <KeyFactsBar
           priceRange={meta.priceRange}
           treatmentDuration={meta.treatmentDuration}
-          clinicCount={clinics.length}
         />
-
-        {/* Trust badges */}
-        <TrustBadgeStrip />
 
         {/* 3. Clinic Listings */}
         <TreatmentClinicGrid
           clinics={clinics}
           treatmentName={meta.treatmentName}
         />
+
+        {/* Trust badges */}
+        <TrustBadgeStrip />
 
         {/* 4. MDX Editorial Content */}
         <section className="py-8 sm:py-12">
