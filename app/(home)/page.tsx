@@ -321,29 +321,25 @@ export default function Home() {
                           </Link>
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center lg:items-start gap-4">
+                        <div className="flex flex-col items-center lg:items-start gap-5">
                           <HomeHeroSearch />
-                          <div className="flex items-center gap-4 sm:gap-6 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1.5">
-                              <span className="font-semibold text-foreground">500+</span> practices
+                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
+                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <Building2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                              <span className="font-semibold text-foreground">500+</span>
+                              <span className="text-muted-foreground">practices</span>
                             </span>
-                            <span className="w-px h-3 bg-border" />
-                            <span className="flex items-center gap-1.5">
-                              <span className="font-semibold text-foreground">98%</span> patient satisfaction
+                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <Star className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                              <span className="font-semibold text-foreground">98%</span>
+                              <span className="text-muted-foreground">satisfaction</span>
                             </span>
-                            <span className="w-px h-3 bg-border" />
-                            <span className="flex items-center gap-1.5">
-                              <span className="font-semibold text-foreground">60 sec</span> avg booking time
+                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <CalendarCheck className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                              <span className="font-semibold text-foreground">60 sec</span>
+                              <span className="text-muted-foreground">avg booking</span>
                             </span>
                           </div>
-                          <button
-                            onClick={() => {
-                              document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
-                            }}
-                            className="px-4 md:px-6 py-1.5 md:py-2.5 h-auto rounded-full font-heading font-normal text-sm md:text-[15px] text-black hover:text-black border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
-                          >
-                            How it works
-                          </button>
                         </div>
                       )}
                     </motion.div>
