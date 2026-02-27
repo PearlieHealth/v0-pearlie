@@ -110,52 +110,52 @@ const TRUST_ITEMS = [
 
 const DENTIST_NEAR_ME_FAQ = [
   {
-    q: "How does Pearlie choose which clinics to show me?",
-    a: "Pearlie matches you based on your postcode, treatment needs, preferences, and schedule — not just distance. Every clinic is independently verified against the General Dental Council (GDC) register before appearing on the platform. Matching is based on relevance and fit, not paid ranking.",
+    q: "How much does a private dentist cost in London?",
+    a: "A standard private dental check-up in London typically costs between £60 and £150. Common treatments range widely: teeth whitening from £250–£1,000, Invisalign from £2,500–£5,500, composite bonding from £150–£400 per tooth, veneers from £400–£1,200 per tooth, and dental implants from £2,000–£6,000 per implant. Costs vary by area — Central London practices tend to charge 30–50% more than outer boroughs.",
   },
   {
-    q: "Are all dentists on Pearlie GDC registered?",
-    a: "Yes. Every dental clinic listed on Pearlie is verified against the General Dental Council register. The GDC is the regulatory body for all dental professionals in the UK — there are currently over 43,000 registered dentists in the UK, with approximately 4,500 practices in London alone.",
+    q: "What should I look for when choosing a dentist?",
+    a: "Start by checking they're registered with the General Dental Council (GDC) — this is the minimum standard for any dentist in the UK. Beyond that, look at patient reviews, the range of treatments offered, pricing transparency, and whether their hours fit your schedule. If you need specialist treatment, check whether the dentist has specific qualifications or accreditations in that area. Pearlie lets you compare all of this side-by-side for verified clinics.",
+  },
+  {
+    q: "How often should I visit the dentist?",
+    a: "The NHS recommends dental check-ups at intervals ranging from 3 months to 24 months, depending on your oral health. Most dentists advise a check-up every 6 to 12 months for adults. Regular visits help catch issues like decay, gum disease, and oral cancer early — when they're far easier and cheaper to treat.",
+  },
+  {
+    q: "What's the difference between an NHS dentist and a private dentist?",
+    a: "NHS dentistry covers essential treatments at fixed Band 1–3 prices (£26.80–£306.10 in England), but availability is severely limited — 5.6 million people in England tried and failed to get an NHS appointment in 2024. Private dentists offer faster access, more treatment options (especially cosmetic), longer appointments, and continuity of care, but at higher prices. Some clinics offer both NHS and private services.",
+  },
+  {
+    q: "How do I find an emergency dentist near me?",
+    a: "For a dental emergency — severe toothache, a knocked-out tooth, swelling, or a broken tooth — call NHS 111 for urgent advice. If you need same-day treatment, many private clinics offer emergency appointments. Emergency consultations in London typically cost £50–£150. For life-threatening situations (heavy bleeding, difficulty breathing), call 999 or go to A&E.",
+  },
+  {
+    q: "What happens during a dental check-up?",
+    a: "A standard check-up usually takes 20–30 minutes. Your dentist will examine your teeth, gums, and mouth for signs of decay, gum disease, and other issues. They may take X-rays to check for problems below the surface. Many dentists also include an oral cancer screening. You'll leave with a treatment plan if anything needs attention, and advice on maintaining your oral health.",
+  },
+  {
+    q: "Can I find a dentist for nervous patients?",
+    a: "Yes — many dental practices in London specialise in treating nervous or anxious patients. Look for clinics that offer sedation dentistry (oral sedation or IV sedation), longer appointment times, and a patient-first approach. Some clinics on Pearlie specifically highlight their experience with dental anxiety. Don't let fear keep you from getting care — modern dentistry has come a long way.",
+  },
+  {
+    q: "How much does Invisalign cost in London?",
+    a: "Invisalign in London typically costs between £2,500 and £5,500 depending on complexity. Invisalign Lite (for minor corrections) starts around £2,500, while Invisalign Comprehensive (for more complex cases) ranges from £3,500–£5,500. Many clinics offer 0% finance over 12–24 months. Treatment usually takes 6–18 months.",
   },
   {
     q: "Is Pearlie free to use?",
     a: "Completely free. Pearlie is a free service for patients — there are no hidden fees, no subscription, and no obligation to book. You can compare private dentists, message clinics, and book appointments at no cost. Pearlie is funded by participating clinics, not by patients.",
   },
   {
-    q: "How much does a private dentist cost in London?",
-    a: "A standard private dental check-up in London typically costs between £60 and £150. Common treatments range widely: teeth whitening from £250–£1,000, Invisalign from £2,500–£5,500, composite bonding from £150–£400 per tooth, veneers from £400–£1,200 per tooth, and dental implants from £2,000–£6,000 per implant. Pearlie shows indicative pricing for each clinic so you can compare before booking.",
+    q: "What are the most common dental problems?",
+    a: "The most common dental issues are tooth decay (cavities), gum disease (gingivitis and periodontitis), tooth sensitivity, and cracked or chipped teeth. In the UK, around 31% of adults have visible tooth decay, and nearly half of adults show signs of gum disease. Most of these are preventable with regular check-ups, good brushing habits, and limiting sugary foods and drinks.",
   },
   {
-    q: "Can I find NHS dentists on Pearlie?",
-    a: "Pearlie focuses on private dental clinics in London. According to the British Dental Association, 5.6 million people in England tried but failed to get an NHS dental appointment in 2024, with 69% of those turning to private care. For NHS dental services, we recommend using the NHS Find a Dentist tool. Some clinics listed on Pearlie may also accept NHS patients for certain treatments.",
+    q: "Can I find a dentist open on Saturdays?",
+    a: "Yes. Many private dental clinics in London offer Saturday appointments, and some are open on Sundays. Weekend availability varies by area — clinics in busier areas like Canary Wharf, Clapham, and Shoreditch are more likely to offer weekend hours. You can specify your preferred days when using Pearlie and we'll prioritise clinics that match.",
   },
   {
-    q: "What treatments can I search for on Pearlie?",
-    a: "You can search for a wide range of dental treatments including check-ups, teeth whitening, Invisalign, veneers, dental implants, composite bonding, root canals, emergency dental care, crowns, bridges, and more. Pearlie covers 10+ treatment categories across 20+ London boroughs. Tell us what you need and we'll find clinics that specialise in it.",
-  },
-  {
-    q: "How quickly will clinics respond to my enquiry?",
-    a: "Most clinics on Pearlie respond within a few hours during working days. You'll receive a notification when a clinic messages you back, and you can reply directly through our secure messaging system. There's no obligation to proceed — you can take your time to compare options.",
-  },
-  {
-    q: "Can I find a dentist open on weekends or evenings?",
-    a: "Yes. Many clinics on Pearlie offer Saturday appointments, and some offer evening hours during the week. When you complete the intake form, you can specify your preferred days and times, and Pearlie will prioritise clinics that match your availability.",
-  },
-  {
-    q: "How do I find an emergency dentist near me?",
-    a: "If you need urgent dental care, Pearlie lists clinics that offer same-day or next-day emergency appointments. Emergency dental consultations in London typically cost £50–£150, with treatment costs varying depending on the issue. For life-threatening emergencies, call 999 or go to A&E. For urgent but non-life-threatening issues, call NHS 111 or use Pearlie to find a clinic with emergency availability.",
-  },
-  {
-    q: "Do clinics on Pearlie offer payment plans?",
-    a: "Many dental clinics listed on Pearlie offer interest-free finance or monthly payment plans, particularly for higher-value treatments like Invisalign, dental implants, and veneers. Payment options vary by clinic — you can message clinics directly through Pearlie to ask about their finance options before committing.",
-  },
-  {
-    q: "What should I look for when choosing a dentist?",
-    a: "When choosing a dentist, check that they are GDC-registered, read patient reviews, compare pricing transparency, and look at the range of treatments offered. Consider location and opening hours that fit your schedule. Pearlie helps you compare all of these factors in one place — every clinic is verified, and you can see ratings, pricing, and patient feedback before making contact.",
-  },
-  {
-    q: "What happens to my data when I use Pearlie?",
-    a: "Patient data is handled under UK GDPR and used only for the matching service. Clinics only see your details when you choose to contact them — we never share your information without your consent. No cold calls, no marketing lists. You can request data deletion at any time by contacting hello@pearlie.org.",
+    q: "How do I know if a dentist is qualified?",
+    a: "Every practising dentist in the UK must be registered with the General Dental Council (GDC). You can verify any dentist's registration at gdc-uk.org. Look for 'BDS' (Bachelor of Dental Surgery) or 'BChD' after their name — these are the standard UK dental qualifications. For specialist treatments, check for additional qualifications like MSc, PGDip, or membership of relevant specialist societies. All dentists on Pearlie are independently verified against the GDC register.",
   },
 ]
 
@@ -390,7 +390,11 @@ function DentistNearMePage() {
         </section>
 
         {/* Quick Facts */}
-        <QuickFacts areaName="London" clinicCount={20} />
+        <QuickFacts
+          areaName="London"
+          clinicCount={20}
+          content="London has over 4,500 registered dental practices — more than any other city in the UK — yet finding the right one remains a challenge for most patients. According to the British Dental Association, 5.6 million people in England tried but failed to get an NHS dental appointment in 2024, and 69% of those turned to private care. The average private check-up in London costs £60–£150, with costs varying significantly by area: Central London practices charge 30–50% more than outer boroughs. Cosmetic treatments are a major driver of private dental growth, with Invisalign, teeth whitening, and composite bonding accounting for the fastest-rising categories of dental spend across the capital."
+        />
 
         {/* Bottom CTA */}
         <section className="py-16 sm:py-24 bg-[#004443]">
@@ -586,7 +590,7 @@ async function RegionPage({ slug }: { slug: string }) {
         </section>
 
         {/* Quick Facts */}
-        <QuickFacts areaName={region.name} clinicCount={clinics.length} />
+        <QuickFacts areaName={region.name} clinicCount={clinics.length} content={region.quickFacts} />
 
         {/* Bottom CTA */}
         <section className="py-12 sm:py-20 bg-[#004443]">
@@ -754,7 +758,7 @@ async function AreaPage({ slug }: { slug: string }) {
         )}
 
         {/* Quick Facts */}
-        <QuickFacts areaName={area.name} clinicCount={clinics.length} />
+        <QuickFacts areaName={area.name} clinicCount={clinics.length} content={area.quickFacts} />
 
         {/* Bottom CTA */}
         <section className="py-12 sm:py-20 bg-[#004443]">

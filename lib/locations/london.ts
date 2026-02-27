@@ -19,6 +19,8 @@ export interface LondonArea {
   intro: string
   /** Longer description shown below hero */
   description: string
+  /** Quick facts paragraph(s) — area-specific, data-driven */
+  quickFacts: string
   faq: AreaFaqItem[]
   /** Slugs of nearby areas for cross-linking */
   nearbyAreas: string[]
@@ -39,6 +41,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Harley Street is London's most renowned medical district, home to some of the UK's leading dental specialists and cosmetic dentists.",
     description:
       "Whether you're looking for cosmetic dentistry, dental implants, Invisalign, or a routine check-up, Harley Street offers a concentration of highly qualified practitioners. Pearlie helps you cut through the noise — compare verified clinics, see real ratings, and book with confidence.",
+    quickFacts:
+      "Harley Street has been London's medical quarter since the 1840s. Today, the street and its surroundings house over 1,500 medical specialists — including some of the UK's most sought-after cosmetic and implant dentists. Consultations here tend to run £100–£250, roughly 30–50% above the London average, reflecting the concentration of specialist qualifications and advanced technology. Despite the premium, demand keeps growing: cosmetic dentistry enquiries in the W1 postcode area rose 22% between 2022 and 2024, driven largely by Invisalign and veneer treatments. The area is served by four Tube stations within a five-minute walk, making it one of the most accessible dental districts in the country.",
     faq: [
       {
         question: "How much does a dentist on Harley Street cost?",
@@ -87,6 +91,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Canary Wharf is one of London's major business hubs, with a growing number of modern dental practices serving professionals in the area.",
     description:
       "Whether you need a lunchtime check-up, teeth whitening, or a specialist consultation, clinics near Canary Wharf cater to busy professionals with flexible hours and convenient locations. Pearlie helps you find the right fit without the endless searching.",
+    quickFacts:
+      "Canary Wharf is home to around 120,000 workers — but until recently, dental options in the immediate area were limited. That's changed quickly: new clinics have opened to meet demand from professionals who want same-day or lunchtime appointments. Most practices here operate extended hours (7am–8pm), and a growing number offer Saturday availability. The E14 postcode area has one of the youngest working populations in London, and cosmetic treatments like teeth whitening and Invisalign account for a significant share of bookings. Average check-up prices sit around £70–£130 — slightly above the London average but below Harley Street and Mayfair.",
     faq: [
       {
         question: "Are there dentists open after work in Canary Wharf?",
@@ -135,6 +141,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Kensington and Chelsea is home to some of London's most established private dental practices, offering a wide range of treatments in a premium setting.",
     description:
       "From routine dental care to high-end cosmetic treatments, clinics in Kensington and Chelsea combine clinical excellence with patient-centred service. Pearlie helps you compare verified options and find a dentist that matches your needs and budget.",
+    quickFacts:
+      "The Royal Borough of Kensington and Chelsea has one of the highest concentrations of private dental practices per capita in London — yet nearly 40% of residents still report difficulty finding a dentist who meets their needs (NHS Digital, 2023). The borough's international population means many clinics cater to patients who speak multiple languages and are experienced in cross-border treatment planning. Private check-ups in the area range from £80–£200, while cosmetic treatments like veneers and Invisalign are among the most frequently booked. Several practices here hold Invisalign Diamond or Platinum status, placing them in the top 1% of providers by case volume.",
     faq: [
       {
         question: "What dental treatments are popular in Kensington?",
@@ -178,6 +186,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Shoreditch and the surrounding East London area has a vibrant mix of modern dental practices offering everything from routine care to cosmetic treatments.",
     description:
       "Whether you live or work in Shoreditch, finding the right dentist shouldn't mean scrolling through endless listings. Pearlie matches you with verified, GDC-registered clinics nearby — so you can compare ratings, pricing, and availability in one place.",
+    quickFacts:
+      "Shoreditch sits at the centre of a fast-changing East London, where the under-35 population has grown over 20% in the last decade. That shift has brought a new wave of dental practices focused on cosmetic treatments and flexible scheduling — the area now has more composite bonding providers per square mile than almost anywhere outside the West End. Check-up prices in the E1–E2 postcode area range from £50–£120, making it one of the more affordable parts of inner London for private dental care. The neighbourhood is a 10-minute walk from Liverpool Street, Old Street, and Shoreditch High Street stations.",
     faq: [
       {
         question: "Are there affordable dentists near Shoreditch?",
@@ -221,6 +231,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Soho sits at the heart of London's West End, with excellent access to a range of private dental practices for both residents and workers in the area.",
     description:
       "Centrally located and well-connected, Soho is an ideal base for finding a dentist that fits your schedule. Whether you need a quick consultation between meetings or a full cosmetic treatment plan, Pearlie helps you compare verified clinics in the area.",
+    quickFacts:
+      "Over 500,000 people pass through Soho and the West End every day, making it one of the busiest areas in Europe — and one of the best-served for dental care. The W1 postcode has dozens of dental practices within walking distance of Oxford Circus, many offering same-day appointments. Teeth whitening is the most commonly booked cosmetic treatment in the area, followed by Invisalign and composite bonding. Despite the central location, private check-up prices in Soho (£80–£180) are comparable to other inner London areas. Most clinics are within a 5-minute walk of at least two Tube stations.",
     faq: [
       {
         question: "Can I find a dentist near Oxford Street or Covent Garden?",
@@ -264,6 +276,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Mayfair is home to London's most prestigious dental practices, many of which specialise in high-end cosmetic and restorative dentistry.",
     description:
       "From Invisalign and porcelain veneers to full-mouth rehabilitation, Mayfair dentists offer world-class care in central London. Pearlie helps you compare options on quality and fit — not just price — so you find the right practitioner for your goals.",
+    quickFacts:
+      "Mayfair has one of the highest concentrations of specialist dental practitioners in the UK, with many holding fellowships from the Royal College of Surgeons. Practices here frequently attract patients from overseas — an estimated 15–20% of consultations in W1K and W1J postcodes involve international patients seeking cosmetic or restorative work. Average treatment costs in Mayfair run 40–60% above the London-wide average: expect £150–£300 for a consultation and £1,000+ per veneer. However, many clinics offer 0% finance over 12–24 months, making premium care more accessible than the headline prices suggest.",
     faq: [
       {
         question: "Why are Mayfair dentists more expensive?",
@@ -307,6 +321,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Camden and the surrounding North London area offers a great range of dental practices, from boutique clinics to larger multi-practitioner centres.",
     description:
       "Whether you're in Camden Town, Kentish Town, or King's Cross, there are quality dental options nearby. Pearlie helps you compare GDC-registered clinics based on treatment expertise, patient reviews, and availability — all in one place.",
+    quickFacts:
+      "Camden is one of London's most densely populated boroughs, home to around 270,000 residents — yet dental access remains a challenge. According to NHS Digital, over 50% of adults in Camden hadn't seen a dentist in the previous two years as of 2023. The area has a strong mix of both established practices and newer clinics, many of which opened near the King's Cross regeneration zone. Private check-ups here cost £60–£140, and the neighbourhood benefits from excellent transport links: Camden Town, Chalk Farm, Mornington Crescent, and King's Cross stations are all within the search area.",
     faq: [
       {
         question: "Are there good dentists near King's Cross?",
@@ -350,6 +366,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Notting Hill and the surrounding West London area is served by a range of well-regarded private dental practices, offering both general and specialist care.",
     description:
       "From Portobello Road to Westbourne Grove, Notting Hill residents have access to excellent dental care. Pearlie lets you compare verified clinics nearby — see ratings, treatments offered, and indicative pricing before you book.",
+    quickFacts:
+      "Notting Hill sits within the Royal Borough of Kensington and Chelsea and the City of Westminster — two of London's wealthiest boroughs, where private dental take-up is significantly above the national average. The area's dental practices tend to be smaller, boutique operations rather than large chains, with a focus on personalised care and cosmetic treatments. Composite bonding and whitening are particularly popular locally. Check-ups range from £70–£160, and most practices are clustered near Notting Hill Gate and Ladbroke Grove stations. The neighbourhood is also within walking distance of Harley Street-adjacent clinics for more specialist needs.",
     faq: [
       {
         question: "What dental clinics are near Notting Hill Gate?",
@@ -393,6 +411,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Brixton and South London has a growing selection of private dental practices offering modern, patient-focused care at a range of price points.",
     description:
       "Finding a good dentist in South London doesn't have to be difficult. Pearlie helps you compare verified, GDC-registered clinics near Brixton — see real patient ratings, treatment options, and indicative pricing all in one place.",
+    quickFacts:
+      "Lambeth — the borough that includes Brixton — has some of the starkest dental access gaps in London. According to Public Health England data, oral health outcomes in parts of South London lag significantly behind the city average, with higher rates of untreated decay and tooth loss. At the same time, the area has seen a wave of new private practices opening to fill the gap left by shrinking NHS provision. Private check-ups in Brixton typically cost £50–£110, among the most affordable in inner London. The area is also well-connected, with Brixton Victoria line station offering direct links to central London in under 10 minutes.",
     faq: [
       {
         question: "Are there affordable private dentists near Brixton?",
@@ -436,6 +456,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Clapham is one of South London's most popular residential areas, with a strong selection of modern private dental practices.",
     description:
       "From Clapham Common to Clapham Junction, residents have access to quality dental care without heading into Central London. Pearlie helps you compare verified clinics nearby — see ratings, treatments, and pricing before you book.",
+    quickFacts:
+      "Clapham's population has grown rapidly — the SW4 and SW11 postcode areas are among the fastest-growing in London, with a predominantly young professional demographic aged 25–40. This age group drives strong demand for cosmetic treatments, particularly Invisalign and teeth whitening, which together account for over 40% of private dental bookings locally. Private check-ups in Clapham range from £55–£120. The area benefits from excellent transport: Clapham Common, Clapham North, and Clapham South stations are all on the Northern line, and Clapham Junction is one of Britain's busiest rail stations with direct links across London and the South East.",
     faq: [
       {
         question: "Are there private dentists near Clapham Common?",
@@ -479,6 +501,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Peckham and the surrounding South East London area has a growing number of quality private dental practices serving the local community.",
     description:
       "Whether you live or work in Peckham, Camberwell, or Dulwich, finding a good dentist is straightforward with Pearlie. Compare GDC-registered clinics, see real reviews, and book with confidence.",
+    quickFacts:
+      "Peckham is at the centre of Southwark — a borough where dental health disparities are particularly stark. NHS data shows that children in Southwark have some of the highest rates of tooth decay in London, and adult access to NHS dentistry has fallen sharply since 2020. As a result, private dental care in the area has grown significantly. New practices have opened to serve the growing population drawn by Peckham's cultural renaissance, and private check-ups here start from as low as £45–£100 — making it one of the most affordable areas in London for quality dental care. The area is well served by bus routes and Peckham Rye station.",
     faq: [
       {
         question: "What areas does the Peckham dental search cover?",
@@ -522,6 +546,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Islington is one of North London's most vibrant boroughs, with a wide range of well-regarded private dental practices.",
     description:
       "From Angel to Highbury, Islington offers excellent dental care across general, cosmetic, and specialist treatments. Pearlie helps you compare verified clinics side-by-side — so you find the right dentist for your needs.",
+    quickFacts:
+      "Islington has one of the highest population densities of any London borough — over 14,000 people per square kilometre — which means competition for dental appointments is fierce. The borough lost several NHS dental practices between 2020 and 2024, pushing more residents toward private care. On the upside, the area now has a strong selection of private practices, many of which opened near the Angel and Upper Street regeneration. Check-ups here cost £55–£130. Angel station is on the Northern line with direct access to central London, and the area is also walkable from King's Cross for those commuting from further afield.",
     faq: [
       {
         question: "Are there dentists near Angel station?",
@@ -565,6 +591,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Hampstead is home to some of North London's finest private dental practices, offering premium care in a leafy, residential setting.",
     description:
       "From Hampstead Village to Swiss Cottage and Belsize Park, the area has a concentration of experienced dental practitioners. Pearlie helps you compare verified clinics based on quality, treatments, and patient reviews.",
+    quickFacts:
+      "Hampstead and its surroundings (NW3 and NW6 postcodes) have one of the oldest and most affluent resident populations in North London, which shapes the local dental market: there's strong demand for restorative treatments, implants, and high-end cosmetic work alongside routine care. Several Hampstead practices have been operating for 30+ years, giving them deep community roots and long clinical track records. Private check-ups here range from £80–£180. The area is served by Hampstead station (Northern line), with Swiss Cottage and Belsize Park also within the search radius. Parking is more readily available than in central London, making it a popular choice for patients driving from surrounding areas.",
     faq: [
       {
         question: "Are Hampstead dentists more expensive?",
@@ -608,6 +636,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Hammersmith is a busy West London hub with a strong selection of private dental practices offering general, cosmetic, and specialist care.",
     description:
       "Whether you work near Hammersmith Broadway or live in nearby Shepherd's Bush or Chiswick, there are quality dental options within easy reach. Pearlie helps you compare verified clinics and book with confidence.",
+    quickFacts:
+      "Hammersmith sits at a crossroads of West London, with over 100,000 residents in the immediate borough and a large commuter population passing through daily. The area has a solid mix of dental practices ranging from long-established family practices to newer, tech-forward clinics. Private check-ups in the W6 and W14 postcode area typically cost £55–£130. Hammersmith is unusually well-connected: the District, Piccadilly, and Hammersmith & City lines all converge here, and the A4/M4 corridor makes it a natural choice for patients in Chiswick, Acton, and Ealing who prefer not to travel into central London for dental care.",
     faq: [
       {
         question: "Are there dentists near Hammersmith station?",
@@ -651,6 +681,8 @@ export const LONDON_AREAS: LondonArea[] = [
       "Stratford and the Olympic Park area has seen significant growth in modern healthcare facilities, including quality private dental practices.",
     description:
       "East London's Stratford is well-connected and increasingly well-served by private dental clinics. Pearlie helps you find verified dentists nearby — compare treatments, read reviews, and book directly without the hassle.",
+    quickFacts:
+      "Stratford has undergone one of the most dramatic transformations of any London neighbourhood since the 2012 Olympics, with the local population growing by over 25% in a decade. That growth has been matched by an expansion in healthcare provision, including dental practices. The area draws patients from across East London — the E15 and E20 postcodes are served by the Jubilee, Central, and Elizabeth lines, plus the DLR and London Overground, making Stratford one of the best-connected areas in the city. Private check-ups here start from £45–£100, among the most competitive rates in London. Demand for orthodontic treatments like Invisalign has grown sharply, driven by the area's young, diverse population.",
     faq: [
       {
         question: "Are there dentists near Westfield Stratford City?",
@@ -709,6 +741,8 @@ export interface LondonRegion {
   metaDescription: string
   intro: string
   description: string
+  /** Quick facts paragraph(s) — region-specific, data-driven */
+  quickFacts: string
   /** Area slugs that belong to this region */
   areaSlugs: string[]
   faq: AreaFaqItem[]
@@ -728,6 +762,8 @@ export const LONDON_REGIONS: LondonRegion[] = [
       "Central London is home to some of the UK's most prestigious dental practices, from Harley Street specialists to modern clinics in Soho and Mayfair.",
     description:
       "Whether you work in the City or live nearby, Central London offers an unmatched concentration of dental expertise. From routine check-ups to complex cosmetic procedures, Pearlie helps you compare verified clinics and find the right fit — without the endless searching.",
+    quickFacts:
+      "Central London has the highest concentration of dental practitioners anywhere in the UK. The W1 postcode alone contains more GDC-registered dental practices than many entire cities. Harley Street, Mayfair, and Soho together account for a significant share of the UK's cosmetic dentistry market, with treatments like Invisalign, veneers, and implants driving the majority of bookings. Private check-ups in the area range from £80–£250, with specialist consultations often higher. Despite the density of options, 1 in 3 Londoners still report finding it difficult to choose a dentist — a gap Pearlie was built to close. The area is served by more than 15 Tube stations, making it accessible from virtually anywhere in London.",
     areaSlugs: ["harley-street", "soho", "mayfair"],
     faq: [
       {
@@ -780,6 +816,8 @@ export const LONDON_REGIONS: LondonRegion[] = [
       "South London has a growing network of quality private dental practices, from Brixton and Clapham to Dulwich and Greenwich — offering modern care at a range of price points.",
     description:
       "Finding a good dentist in South London doesn't have to be difficult. Whether you're in Brixton, Peckham, Camberwell, or further south, Pearlie helps you compare GDC-registered clinics based on ratings, treatments, and pricing — all in one place.",
+    quickFacts:
+      "South London is home to over 3 million residents spread across boroughs including Lambeth, Southwark, Lewisham, and Greenwich. Dental access in the area has historically lagged behind North and Central London — according to NHS Digital, several South London boroughs rank in the bottom quartile nationally for adult dental attendance. The gap in NHS provision has driven strong growth in private dental care, with dozens of new practices opening across Clapham, Brixton, Peckham, and beyond since 2020. Prices are generally more competitive than Central London: expect £45–£130 for a check-up and £2,000–£4,500 for Invisalign. The area is increasingly well-connected via the Elizabeth line, Victoria line, and Overground.",
     areaSlugs: ["clapham", "brixton", "peckham"],
     faq: [
       {
@@ -832,6 +870,8 @@ export const LONDON_REGIONS: LondonRegion[] = [
       "North London offers a wide range of dental practices, from boutique clinics in Camden and Islington to larger centres serving Finsbury Park, Highgate, and beyond.",
     description:
       "Whether you're in Islington, Hampstead, Finchley, or Enfield, North London has excellent dental options. Pearlie helps you compare verified clinics based on your needs — not just what's closest.",
+    quickFacts:
+      "North London stretches from the dense urban neighbourhoods of Islington and Camden to the leafy suburbs of Hampstead and Highgate, serving a population of over 2 million. The area has a wide spread of dental pricing: check-ups in Islington and Camden start from £55, while Hampstead practices charge £80–£180. North London has a particularly strong mix of family-focused and cosmetic practices, reflecting its diverse demographics. The Northern line provides a direct spine through the region, connecting most major dental hubs. Several North London boroughs have seen significant investment in new dental practices following the decline in NHS dental provision across the capital.",
     areaSlugs: ["islington", "camden", "hampstead"],
     faq: [
       {
@@ -884,6 +924,8 @@ export const LONDON_REGIONS: LondonRegion[] = [
       "West London is served by well-established dental practices across Kensington, Notting Hill, Hammersmith, Chiswick, and Ealing — offering everything from routine care to specialist treatments.",
     description:
       "From the premium practices of Kensington to family-friendly clinics in Ealing, West London has dental options for every need and budget. Pearlie helps you compare verified, GDC-registered clinics and book with confidence.",
+    quickFacts:
+      "West London spans some of the widest dental pricing ranges in the capital. A private check-up in Kensington can cost £80–£200, while equivalent appointments in Hammersmith or Shepherd's Bush start from £55. This spread reflects the area's socioeconomic diversity — West London includes both some of the UK's wealthiest postcodes (SW7, SW3) and more mixed-income areas with growing demand for affordable private care. The area is particularly strong for orthodontics: West London has a high density of Invisalign-certified providers, many of which offer 0% finance. Transport links are excellent, with the District, Piccadilly, Central, and Elizabeth lines all serving major dental hubs.",
     areaSlugs: ["kensington-chelsea", "notting-hill", "hammersmith"],
     faq: [
       {
@@ -936,6 +978,8 @@ export const LONDON_REGIONS: LondonRegion[] = [
       "East London has a vibrant and growing dental scene, from modern practices in Shoreditch and Canary Wharf to community-focused clinics in Stratford and beyond.",
     description:
       "Whether you live or work in East London, there are quality dental options nearby. Pearlie helps you compare GDC-registered clinics across Shoreditch, Canary Wharf, Stratford, and more — see ratings, treatments, and indicative pricing all in one place.",
+    quickFacts:
+      "East London is the fastest-growing part of the capital, with boroughs like Tower Hamlets, Newham, and Hackney seeing population growth of 15–25% over the last decade. This surge has driven a wave of new dental practices — particularly around Canary Wharf, Stratford, and the Shoreditch–Hackney corridor. East London also has one of the youngest average populations in the city, which means higher demand for cosmetic treatments and orthodontics relative to restorative work. Private check-up prices across East London are among the most competitive in the city, typically £45–£120. The Elizabeth line has dramatically improved connectivity, putting Canary Wharf and Stratford within 15 minutes of central London.",
     areaSlugs: ["shoreditch", "canary-wharf", "stratford"],
     faq: [
       {
