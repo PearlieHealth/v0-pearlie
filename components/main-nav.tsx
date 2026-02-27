@@ -202,15 +202,7 @@ export function MainNav({ hideCta }: MainNavProps) {
 
           {/* Mobile Navigation */}
           <div className="flex md:hidden items-center gap-1">
-            {lastMatchId ? (
-              <Link
-                href={`/match/${lastMatchId}`}
-                className="flex items-center justify-center h-10 w-10 rounded-full bg-[#0fbcb0] text-white hover:bg-[#0da399] transition-colors"
-              >
-                <RotateCcw className="h-4 w-4" />
-                <span className="sr-only">Your matches</span>
-              </Link>
-            ) : !hideCta ? (
+            {!lastMatchId && !hideCta && (
               <Link
                 href="/intake"
                 className="flex items-center justify-center h-10 w-10 rounded-full bg-[#0fbcb0] text-white hover:bg-[#0da399] transition-colors"
@@ -218,7 +210,7 @@ export function MainNav({ hideCta }: MainNavProps) {
                 <Search className="h-4 w-4" />
                 <span className="sr-only">Find my clinic</span>
               </Link>
-            ) : null}
+            )}
             <MobileNavMenu />
           </div>
         </div>
