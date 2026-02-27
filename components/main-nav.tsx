@@ -45,12 +45,8 @@ export function MainNav({ hideCta }: MainNavProps) {
   const resourcesLinks = [
     { href: "/blog", label: "Blog" },
     { href: "/guides", label: "Guides" },
-    { href: "/for-clinics", label: "For Clinics" },
-  ]
-
-  const aboutLinks = [
     { href: "/about", label: "About" },
-    { href: "/faq", label: "FAQ" },
+    { href: "/for-clinics", label: "For Clinics" },
   ]
 
   return (
@@ -125,37 +121,18 @@ export function MainNav({ hideCta }: MainNavProps) {
               Our Mission
             </Link>
 
-            {/* About dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className={cn(
-                    "flex items-center gap-1 px-4 py-2 text-sm font-medium transition-all duration-200",
-                    aboutLinks.some((link) => pathname === link.href)
-                      ? "text-[#0fbcb0]"
-                      : "text-[#333] hover:text-[#0fbcb0]",
-                  )}
-                >
-                  About
-                  <ChevronDown className="h-3.5 w-3.5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-36">
-                {aboutLinks.map((link) => (
-                  <DropdownMenuItem key={link.href} asChild>
-                    <Link
-                      href={link.href}
-                      className={cn(
-                        "w-full cursor-pointer",
-                        pathname === link.href && "text-[#0fbcb0]",
-                      )}
-                    >
-                      {link.label}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* FAQ - direct link */}
+            <Link
+              href="/faq"
+              className={cn(
+                "px-4 py-2 text-sm font-medium transition-all duration-200",
+                pathname === "/faq"
+                  ? "text-[#0fbcb0]"
+                  : "text-[#333] hover:text-[#0fbcb0]",
+              )}
+            >
+              FAQ
+            </Link>
           </nav>
 
           {/* CTA Buttons - Right */}
