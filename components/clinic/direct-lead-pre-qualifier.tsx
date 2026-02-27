@@ -46,7 +46,7 @@ export function DirectLeadPreQualifier({
               Get personalised matches
             </div>
             <p className="text-xs text-[#666] leading-relaxed">
-              Answer a few questions and we&apos;ll match you with the best clinics for your needs — including {clinicName}.
+              Answer a few questions and we&apos;ll match you with the best clinics for your needs.
             </p>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
               <span className="flex items-center gap-1 text-[10px] text-[#0fbcb0] font-medium">
