@@ -7,6 +7,7 @@ import { MessageCircle, Send, ChevronDown, Heart, Check, CheckCheck } from "luci
 import { OTPVerification } from "@/components/otp-verification"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
 import { DirectEnquiryForm } from "@/components/clinic/direct-enquiry-form"
+import { DirectLeadPreQualifier } from "@/components/clinic/direct-lead-pre-qualifier"
 
 interface Message {
   id: string
@@ -47,6 +48,7 @@ export function EmbeddedClinicChat({
   const [conversationClosed, setConversationClosed] = useState(false)
   const [showOtpVerify, setShowOtpVerify] = useState(false)
   const [leadEmail, setLeadEmail] = useState<string | null>(leadEmailProp || null)
+  const [showQuickForm, setShowQuickForm] = useState(false)
   const pendingMessageRef = useRef<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const botTypingTimers = useRef<NodeJS.Timeout[]>([])
@@ -282,22 +284,24 @@ export function EmbeddedClinicChat({
         </div>
       )}
 
-      {/* Inline direct enquiry form for visitors without a leadId */}
+      {/* Pre-qualifier or quick form for visitors without a leadId */}
       {!leadId && (
         <div className={`overflow-y-auto bg-[#fafafa] ${hideHeader ? "flex-1 min-h-0" : "max-h-[400px]"}`}>
-          <DirectEnquiryForm
-            clinicId={clinicId}
-            clinicName={clinicName}
-            onLeadCreated={(newLeadId) => onLeadCreated?.(newLeadId)}
-          />
-          <div className="px-4 pb-3 pt-0">
-            <a
-              href="/intake"
-              className="block text-center text-xs text-[#0fbcb0] hover:underline"
-            >
-              Want better clinic matching? Complete the full form
-            </a>
-          </div>
+          {showQuickForm ? (
+            <DirectEnquiryForm
+              clinicId={clinicId}
+              clinicName={clinicName}
+              onLeadCreated={(newLeadId) => onLeadCreated?.(newLeadId)}
+            />
+          ) : (
+            <DirectLeadPreQualifier
+              clinicName={clinicName}
+              onQuickForm={() => setShowQuickForm(true)}
+              onFullIntake={() => {
+                window.location.href = `/intake?clinic=${clinicId}`
+              }}
+            />
+          )}
         </div>
       )}
 

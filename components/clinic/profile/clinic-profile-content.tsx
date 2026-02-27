@@ -30,6 +30,7 @@ import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
 import { DirectEnquiryForm } from "@/components/clinic/direct-enquiry-form"
+import { DirectLeadPreQualifier } from "@/components/clinic/direct-lead-pre-qualifier"
 import { ClinicImage } from "@/components/match/clinic-image"
 
 import { HighlightBadgeStrip } from "./highlight-badge-strip"
@@ -71,6 +72,7 @@ export function ClinicProfileContent() {
   const [showDirectForm, setShowDirectForm] = useState(false)
   const [directFormTrigger, setDirectFormTrigger] = useState<"message" | "appointment" | null>(null)
   const [directFormPendingDate, setDirectFormPendingDate] = useState<Date | null>(null)
+  const [showQuickFormAppointment, setShowQuickFormAppointment] = useState(false)
 
   const isChatOpen = searchParams?.get("chat") === "open"
 
@@ -377,6 +379,7 @@ export function ClinicProfileContent() {
   const handleDirectLeadCreated = (newLeadId: string) => {
     setDirectLeadId(newLeadId)
     setShowDirectForm(false)
+    setShowQuickFormAppointment(false)
 
     // Persist to localStorage so returning visitors skip the form
     if (clinic?.id) {
@@ -950,43 +953,48 @@ export function ClinicProfileContent() {
         </div>
       )}
 
-      {/* Direct Enquiry Form Bottom Sheet (mobile) + Modal (desktop) — for appointment flow */}
+      {/* Direct Enquiry Pre-qualifier / Form Bottom Sheet (mobile) + Modal (desktop) — for appointment flow */}
       {showDirectForm && directFormTrigger === "appointment" && clinic && (
         <>
           {/* Mobile bottom sheet */}
           <div className="fixed inset-0 z-50 lg:hidden">
             <div
               className="absolute inset-0 bg-black/40"
-              onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null) }}
+              onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null); setShowQuickFormAppointment(false) }}
               onKeyDown={() => {}}
               role="presentation"
             />
             <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
               <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
                 <h3 className="font-semibold text-[#1a1a1a]">
-                  {directFormPendingDate ? "Request an appointment" : "Your details"}
+                  {showQuickFormAppointment
+                    ? (directFormPendingDate ? "Request an appointment" : "Your details")
+                    : "Get started"
+                  }
                 </h3>
                 <button
                   type="button"
-                  onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null) }}
+                  onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null); setShowQuickFormAppointment(false) }}
                   className="p-1 rounded-full hover:bg-[#f5f5f5]"
                 >
                   <X className="h-5 w-5 text-[#666]" />
                 </button>
               </div>
-              <DirectEnquiryForm
-                clinicId={clinic.id}
-                clinicName={clinic.name}
-                onLeadCreated={handleDirectLeadCreated}
-              />
-              <div className="px-4 pb-4 pt-1 border-t border-[#e5e5e5]">
-                <a
-                  href="/intake"
-                  className="block text-center text-xs text-[#0fbcb0] hover:underline"
-                >
-                  Want better clinic matching? Complete the full form
-                </a>
-              </div>
+              {showQuickFormAppointment ? (
+                <DirectEnquiryForm
+                  clinicId={clinic.id}
+                  clinicName={clinic.name}
+                  onLeadCreated={handleDirectLeadCreated}
+                />
+              ) : (
+                <DirectLeadPreQualifier
+                  clinicName={clinic.name}
+                  onQuickForm={() => setShowQuickFormAppointment(true)}
+                  onFullIntake={() => {
+                    window.location.href = `/intake?clinic=${clinic.id}`
+                  }}
+                />
+              )}
             </div>
           </div>
 
@@ -994,36 +1002,41 @@ export function ClinicProfileContent() {
           <div className="fixed inset-0 z-50 hidden lg:flex items-center justify-center">
             <div
               className="absolute inset-0 bg-black/40"
-              onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null) }}
+              onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null); setShowQuickFormAppointment(false) }}
               onKeyDown={() => {}}
               role="presentation"
             />
             <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
               <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e5e5]">
                 <h3 className="font-semibold text-[#1a1a1a]">
-                  {directFormPendingDate ? "Request an appointment" : "Your details"}
+                  {showQuickFormAppointment
+                    ? (directFormPendingDate ? "Request an appointment" : "Your details")
+                    : "Get started"
+                  }
                 </h3>
                 <button
                   type="button"
-                  onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null) }}
+                  onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null); setShowQuickFormAppointment(false) }}
                   className="p-1 rounded-full hover:bg-[#f5f5f5]"
                 >
                   <X className="h-5 w-5 text-[#666]" />
                 </button>
               </div>
-              <DirectEnquiryForm
-                clinicId={clinic.id}
-                clinicName={clinic.name}
-                onLeadCreated={handleDirectLeadCreated}
-              />
-              <div className="px-5 pb-4 pt-1 border-t border-[#e5e5e5]">
-                <a
-                  href="/intake"
-                  className="block text-center text-xs text-[#0fbcb0] hover:underline"
-                >
-                  Want better clinic matching? Complete the full form
-                </a>
-              </div>
+              {showQuickFormAppointment ? (
+                <DirectEnquiryForm
+                  clinicId={clinic.id}
+                  clinicName={clinic.name}
+                  onLeadCreated={handleDirectLeadCreated}
+                />
+              ) : (
+                <DirectLeadPreQualifier
+                  clinicName={clinic.name}
+                  onQuickForm={() => setShowQuickFormAppointment(true)}
+                  onFullIntake={() => {
+                    window.location.href = `/intake?clinic=${clinic.id}`
+                  }}
+                />
+              )}
             </div>
           </div>
         </>
