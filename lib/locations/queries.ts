@@ -166,7 +166,7 @@ export async function getClinicsNearRegion(region: LondonRegion): Promise<Locati
  */
 export async function getTestimonialsForClinics(
   clinics: LocationClinic[],
-  limit = 3,
+  limit = 8,
 ): Promise<AreaTestimonial[]> {
   if (clinics.length === 0) return []
 

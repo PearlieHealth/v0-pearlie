@@ -1,9 +1,11 @@
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Star, CheckCircle2, ChevronRight, Clock } from "lucide-react"
+import { MapPin, Star, CheckCircle2, ChevronRight } from "lucide-react"
 import { ClinicImage } from "@/components/match/clinic-image"
 import type { LocationClinic } from "@/lib/locations/queries"
+
+const HIDDEN_CHIPS = new Set(["weekend_appointments", "Weekend Appointments", "same_day", "Same Day"])
 
 interface LocationClinicCardProps {
   clinic: LocationClinic
@@ -12,6 +14,12 @@ interface LocationClinicCardProps {
 export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
   const hasGoogleRating = clinic.google_rating != null && clinic.google_rating > 0
   const showNhsBadge = clinic.accepts_nhs
+
+  // Show Google rating only if it differs from the Pearlie rating (avoid duplication)
+  const showGoogleRating = hasGoogleRating && (clinic.rating <= 0 || clinic.google_rating !== clinic.rating)
+
+  // Filter out unwanted highlight chips
+  const chips = clinic.highlight_chips?.filter((c) => !HIDDEN_CHIPS.has(c)) ?? []
 
   return (
     <Link href={`/clinic/${clinic.id}`} className="snap-start flex-shrink-0 w-[280px] sm:w-[300px] md:w-[320px] group">
@@ -36,39 +44,23 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
           {/* Bottom gradient for readability */}
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
 
-          {/* Top badges */}
-          <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
-            {/* Left badges */}
-            <div className="flex flex-wrap gap-1.5">
-              {clinic.featured && (
-                <span className="flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
-                  <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                  Featured
-                </span>
-              )}
-              {showNhsBadge && (
-                <span className="text-[10px] font-semibold text-blue-700 bg-blue-50/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
-                  NHS
-                </span>
-              )}
-              {clinic.accepts_same_day && (
-                <span className="flex items-center gap-1 text-[10px] font-semibold text-purple-700 bg-purple-50/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
-                  <Clock className="w-2.5 h-2.5" />
-                  Same-day
-                </span>
-              )}
-            </div>
-            {/* Verified badge */}
-            {clinic.verified && (
-              <span className="flex items-center gap-1 text-[10px] font-semibold text-[#004443] bg-white/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
-                <CheckCircle2 className="w-3 h-3 text-[#0fbcb0]" />
-                Pearlie Verified
+          {/* Top-left badges */}
+          <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+            {clinic.featured && (
+              <span className="flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
+                <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                Featured
+              </span>
+            )}
+            {showNhsBadge && (
+              <span className="text-[10px] font-semibold text-blue-700 bg-blue-50/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
+                NHS
               </span>
             )}
           </div>
 
           {/* Bottom rating overlay */}
-          {(clinic.rating > 0 || hasGoogleRating) && (
+          {(clinic.rating > 0 || showGoogleRating) && (
             <div className="absolute bottom-3 left-3 flex items-center gap-2">
               {clinic.rating > 0 && (
                 <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
@@ -79,7 +71,7 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
                   )}
                 </div>
               )}
-              {hasGoogleRating && (
+              {showGoogleRating && (
                 <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
                   <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -99,10 +91,15 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
 
         {/* Content */}
         <div className="p-4 space-y-2">
-          {/* Name */}
-          <h3 className="text-[15px] font-semibold text-foreground leading-tight line-clamp-1 group-hover:text-[#004443] transition-colors">
-            {clinic.name}
-          </h3>
+          {/* Name + Verified */}
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-[15px] font-semibold text-foreground leading-tight line-clamp-1 group-hover:text-[#004443] transition-colors">
+              {clinic.name}
+            </h3>
+            {clinic.verified && (
+              <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] flex-shrink-0" />
+            )}
+          </div>
 
           {/* Location + distance */}
           <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
@@ -112,9 +109,9 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
           </div>
 
           {/* Highlight chips */}
-          {clinic.highlight_chips && clinic.highlight_chips.length > 0 && (
+          {chips.length > 0 && (
             <div className="flex flex-wrap gap-1">
-              {clinic.highlight_chips.slice(0, 3).map((chip) => (
+              {chips.slice(0, 3).map((chip) => (
                 <Badge key={chip} variant="secondary" className="text-[10px] font-medium px-2 py-0.5 bg-[#0fbcb0]/8 text-[#004443] border-[#0fbcb0]/20">
                   {chip}
                 </Badge>
@@ -123,7 +120,7 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
           )}
 
           {/* Treatments (fallback if no highlight chips) */}
-          {(!clinic.highlight_chips || clinic.highlight_chips.length === 0) && clinic.treatments && clinic.treatments.length > 0 && (
+          {chips.length === 0 && clinic.treatments && clinic.treatments.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {clinic.treatments.slice(0, 3).map((t) => (
                 <Badge key={t} variant="secondary" className="text-[10px] font-normal px-2 py-0.5">

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { MapPin, Search, Shield, CheckCircle2, Lock, Sparkles, Star, CalendarCheck, Stethoscope, Gift, Users, TrendingUp } from "lucide-react"
+import { MapPin, Search, CheckCircle2, Lock, Shield, Sparkles, Star, CalendarCheck, Stethoscope, Gift } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { MainNav } from "@/components/main-nav"
@@ -170,7 +170,11 @@ const DENTIST_NEAR_ME_FAQ = [
   },
 ]
 
-function DentistNearMePage() {
+async function DentistNearMePage() {
+  const centralLondon = getRegionBySlug("central-london")!
+  const clinics = await getClinicsNearRegion(centralLondon)
+  const testimonials = await getTestimonialsForClinics(clinics)
+
   return (
     <div className="min-h-screen bg-background">
       <BreadcrumbSchema
@@ -348,6 +352,14 @@ function DentistNearMePage() {
           </div>
         </section>
 
+        {/* Featured clinics */}
+        {clinics.length > 0 && (
+          <FilterableClinicSection clinics={clinics} areaName="London" variant="region" />
+        )}
+
+        {/* Patient testimonials */}
+        <PatientTestimonials areaName="London" testimonials={testimonials} />
+
         {/* Why patients trust Pearlie */}
         <section className="py-16 sm:py-20 bg-[#faf9f6]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -406,6 +418,28 @@ function DentistNearMePage() {
           content="London has more dental practices than any other city in the UK — yet finding the right one remains a challenge for most patients. According to the British Dental Association, millions of people in England have been unable to get an NHS dental appointment in recent years, with the majority turning to private care instead. The average private check-up in London costs £60–£150, with costs varying significantly by area: Central London practices charge 30–50% more than outer boroughs. Cosmetic treatments are a major driver of private dental growth, with Invisalign, teeth whitening, and composite bonding accounting for the fastest-rising categories of dental spend across the capital."
         />
 
+        {/* For clinics CTA */}
+        <section className="py-10 sm:py-14 bg-gradient-to-br from-[#1a2e35] to-[#0d1f26]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <p className="text-[#0fbcb0] text-sm font-medium mb-2">Dentist?</p>
+              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-white mb-3">
+                Grow Your Dental Practice
+              </h2>
+              <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-md mx-auto">
+                Join the platform with everything you need to grow your practice.
+              </p>
+              <Button
+                className="bg-white text-[#004443] hover:bg-white/90 rounded-full font-semibold px-8"
+                size="lg"
+                asChild
+              >
+                <Link href="/for-clinics">List your practice free</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
         {/* Bottom CTA */}
         <section className="py-16 sm:py-24 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -421,7 +455,7 @@ function DentistNearMePage() {
                 className="text-lg px-10 py-6 h-auto bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all"
                 asChild
               >
-                <Link href="/intake">Get my clinic matches</Link>
+                <Link href="/intake">Get my free clinic matches</Link>
               </Button>
             </div>
           </div>
@@ -687,48 +721,24 @@ async function RegionPage({ slug }: { slug: string }) {
         {/* Quick Facts */}
         <QuickFacts areaName={region.name} content={region.quickFacts} />
 
-        {/* Clinic signup CTA */}
-        <section className="py-12 sm:py-16 bg-[#faf9f6] border-t border-border/30">
+        {/* For clinics CTA */}
+        <section className="py-10 sm:py-14 bg-gradient-to-br from-[#1a2e35] to-[#0d1f26]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
-              <div className="rounded-2xl bg-white border border-border/50 p-8 sm:p-10">
-                <div className="flex flex-col sm:flex-row items-start gap-8">
-                  <div className="flex-1">
-                    <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-3">
-                      Grow your dental practice in {region.name}
-                    </h2>
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-                      Patients are actively searching for dentists in your area. Join Pearlie to get matched with them.
-                    </p>
-                    <div className="grid gap-3 sm:grid-cols-3 mb-6">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                          <Users className="w-4 h-4 text-[#0fbcb0]" />
-                        </div>
-                        <span className="text-xs text-foreground font-medium">Qualified patient leads</span>
-                      </div>
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                          <TrendingUp className="w-4 h-4 text-[#0fbcb0]" />
-                        </div>
-                        <span className="text-xs text-foreground font-medium">No cost to list</span>
-                      </div>
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                          <Shield className="w-4 h-4 text-[#0fbcb0]" />
-                        </div>
-                        <span className="text-xs text-foreground font-medium">GDC-verified platform</span>
-                      </div>
-                    </div>
-                    <Button
-                      className="bg-[#004443] hover:bg-[#003332] text-white rounded-full font-normal px-6"
-                      asChild
-                    >
-                      <Link href="/for-clinics">List your practice</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
+            <div className="max-w-3xl mx-auto text-center">
+              <p className="text-[#0fbcb0] text-sm font-medium mb-2">Dentist?</p>
+              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-white mb-3">
+                Grow Your Dental Practice
+              </h2>
+              <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-md mx-auto">
+                Join the platform with everything you need to grow your practice.
+              </p>
+              <Button
+                className="bg-white text-[#004443] hover:bg-white/90 rounded-full font-semibold px-8"
+                size="lg"
+                asChild
+              >
+                <Link href="/for-clinics">List your practice free</Link>
+              </Button>
             </div>
           </div>
         </section>
@@ -1002,48 +1012,24 @@ async function AreaPage({ slug }: { slug: string }) {
         {/* Quick Facts */}
         <QuickFacts areaName={area.name} content={area.quickFacts} />
 
-        {/* Clinic signup CTA */}
-        <section className="py-12 sm:py-16 bg-[#faf9f6] border-t border-border/30">
+        {/* For clinics CTA */}
+        <section className="py-10 sm:py-14 bg-gradient-to-br from-[#1a2e35] to-[#0d1f26]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
-              <div className="rounded-2xl bg-white border border-border/50 p-8 sm:p-10">
-                <div className="flex flex-col sm:flex-row items-start gap-8">
-                  <div className="flex-1">
-                    <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-3">
-                      Grow your dental practice in {area.name}
-                    </h2>
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-                      Patients are actively searching for dentists in your area. Join Pearlie to get matched with them.
-                    </p>
-                    <div className="grid gap-3 sm:grid-cols-3 mb-6">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                          <Users className="w-4 h-4 text-[#0fbcb0]" />
-                        </div>
-                        <span className="text-xs text-foreground font-medium">Qualified patient leads</span>
-                      </div>
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                          <TrendingUp className="w-4 h-4 text-[#0fbcb0]" />
-                        </div>
-                        <span className="text-xs text-foreground font-medium">No cost to list</span>
-                      </div>
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                          <Shield className="w-4 h-4 text-[#0fbcb0]" />
-                        </div>
-                        <span className="text-xs text-foreground font-medium">GDC-verified platform</span>
-                      </div>
-                    </div>
-                    <Button
-                      className="bg-[#004443] hover:bg-[#003332] text-white rounded-full font-normal px-6"
-                      asChild
-                    >
-                      <Link href="/for-clinics">List your practice</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
+            <div className="max-w-3xl mx-auto text-center">
+              <p className="text-[#0fbcb0] text-sm font-medium mb-2">Dentist?</p>
+              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-white mb-3">
+                Grow Your Dental Practice
+              </h2>
+              <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-md mx-auto">
+                Join the platform with everything you need to grow your practice.
+              </p>
+              <Button
+                className="bg-white text-[#004443] hover:bg-white/90 rounded-full font-semibold px-8"
+                size="lg"
+                asChild
+              >
+                <Link href="/for-clinics">List your practice free</Link>
+              </Button>
             </div>
           </div>
         </section>

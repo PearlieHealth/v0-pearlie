@@ -11,7 +11,7 @@ export function PatientTestimonials({ areaName, testimonials }: PatientTestimoni
   if (testimonials.length === 0) return null
 
   return (
-    <section className="py-14 sm:py-18 bg-white">
+    <section className="py-14 sm:py-18 bg-white overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-center gap-2 mb-3">
@@ -28,30 +28,31 @@ export function PatientTestimonials({ areaName, testimonials }: PatientTestimoni
           <p className="text-muted-foreground text-center mb-10">
             Real Google reviews from dental clinics{areaName ? ` in ${areaName}` : ""}
           </p>
-          <div className="grid gap-6 sm:grid-cols-3">
-            {testimonials.map((t, idx) => (
-              <Link
-                key={idx}
-                href={`/clinic/${t.clinicId}`}
-                className="group relative p-6 rounded-2xl bg-[#faf9f6] border border-border/40 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all"
-              >
-                <Quote className="w-8 h-8 text-[#0fbcb0]/20 mb-3" />
-                <p className="text-sm text-foreground leading-relaxed mb-4 line-clamp-4">
-                  &ldquo;{t.text}&rdquo;
-                </p>
-                <div className="flex items-center gap-0.5 mb-2">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-sm font-semibold text-foreground">{t.authorName}</p>
-                <p className="text-xs text-muted-foreground">
-                  {t.clinicName} &middot; {t.relativeTime}
-                </p>
-              </Link>
-            ))}
-          </div>
         </div>
+      </div>
+      {/* Horizontally scrollable review cards */}
+      <div className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide px-4 sm:px-6 lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] pb-4 -mb-4">
+        {testimonials.map((t, idx) => (
+          <Link
+            key={idx}
+            href={`/clinic/${t.clinicId}`}
+            className="snap-start flex-shrink-0 w-[280px] sm:w-[300px] group relative p-6 rounded-2xl bg-[#faf9f6] border border-border/40 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all"
+          >
+            <Quote className="w-7 h-7 text-[#0fbcb0]/20 mb-2.5" />
+            <p className="text-sm text-foreground leading-relaxed mb-4 line-clamp-5">
+              &ldquo;{t.text}&rdquo;
+            </p>
+            <div className="flex items-center gap-0.5 mb-2">
+              {Array.from({ length: t.rating }).map((_, i) => (
+                <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+              ))}
+            </div>
+            <p className="text-sm font-semibold text-foreground">{t.authorName}</p>
+            <p className="text-xs text-muted-foreground">
+              {t.clinicName} &middot; {t.relativeTime}
+            </p>
+          </Link>
+        ))}
       </div>
     </section>
   )
