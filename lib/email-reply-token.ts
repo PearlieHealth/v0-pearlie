@@ -192,3 +192,19 @@ export function extractThreadMarker(htmlBody: string): string | null {
   const match = htmlBody.match(/<!-- pearlie-thread:([a-f0-9-]+) -->/)
   return match ? match[1] : null
 }
+
+/**
+ * Generate RFC 5322 email threading headers for a conversation.
+ *
+ * Uses a deterministic Message-ID anchor per conversation so that all
+ * notification emails in the same conversation thread together in
+ * Gmail / Outlook / Apple Mail.
+ */
+export function generateEmailThreadHeaders(conversationId: string): Record<string, string> {
+  const domain = process.env.REPLY_EMAIL_DOMAIN || "reply.pearlie.org"
+  const anchor = `<pearlie-thread-${conversationId}@${domain}>`
+  return {
+    References: anchor,
+    "In-Reply-To": anchor,
+  }
+}
