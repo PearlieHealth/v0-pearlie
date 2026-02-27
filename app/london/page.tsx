@@ -1,17 +1,19 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { MapPin, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
+import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
+import { PatientTestimonials } from "@/components/find/patient-testimonials"
 import {
   LONDON_BOROUGHS,
   getBoroughsByRegion,
   type LondonBorough,
 } from "@/lib/data/london-boroughs"
+import { getTestimonialsForBasicClinics } from "@/lib/locations/queries"
 
 export const metadata: Metadata = {
   title: "Dentists in London — Compare Clinics by Borough",
@@ -43,7 +45,12 @@ const REGIONS: LondonBorough["region"][] = [
   "West",
 ]
 
-export default function LondonPage() {
+export const revalidate = 3600
+
+export default async function LondonPage() {
+  // Pass empty array to trigger fallback — shows London-wide testimonials
+  const testimonials = await getTestimonialsForBasicClinics([])
+
   return (
     <div className="min-h-screen bg-background">
       <BreadcrumbSchema
@@ -156,6 +163,9 @@ export default function LondonPage() {
           </div>
         </section>
 
+        {/* Patient testimonials */}
+        <PatientTestimonials areaName="London" testimonials={testimonials} />
+
         {/* Cross-link to postcode search */}
         <section className="py-8 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -174,24 +184,21 @@ export default function LondonPage() {
           </div>
         </section>
 
-        {/* CTA */}
+        {/* CTA with postcode input */}
         <section className="py-12 sm:py-16 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
                 Not sure where to start?
               </h2>
-              <p className="text-white/70 mb-6 leading-relaxed">
-                Answer a few questions and Pearlie will match you with the right
-                clinic for your treatment and location — completely free.
+              <p className="text-white/70 mb-8 leading-relaxed">
+                Enter your postcode and we&apos;ll match you with verified,
+                GDC registered clinics near you.
               </p>
-              <Button
-                size="lg"
-                className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 h-12 text-base"
-                asChild
-              >
-                <Link href="/intake">Get my clinic matches</Link>
-              </Button>
+              <TreatmentPostcodeCta
+                treatmentName="dentist"
+                intakeTreatment="general"
+              />
             </div>
           </div>
         </section>

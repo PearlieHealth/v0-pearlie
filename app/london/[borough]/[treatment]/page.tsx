@@ -13,6 +13,7 @@ import { AreaStatsBar } from "@/components/areas/area-stats-bar"
 import { AreaNhsInfo } from "@/components/areas/area-nhs-info"
 import { NearbyBoroughs } from "@/components/areas/nearby-boroughs"
 import { RelatedTreatments } from "@/components/treatments/related-treatments"
+import { PatientTestimonials } from "@/components/find/patient-testimonials"
 import {
   getBoroughBySlug,
   getNearbyBoroughs,
@@ -26,6 +27,7 @@ import {
   getAllAreaTreatmentParams,
   getAreaTreatmentData,
 } from "@/lib/data/area-treatments"
+import { getTestimonialsForBasicClinics } from "@/lib/locations/queries"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { createClient } from "@/lib/supabase/server"
 
@@ -156,6 +158,7 @@ export default async function AreaTreatmentPage({
     borough.postcodes,
     meta.clinicFilterTags
   )
+  const testimonials = await getTestimonialsForBasicClinics(clinics)
   const nearbyBoroughs = getNearbyBoroughs(boroughSlug, 4)
   const relatedTreatments = getRelatedTreatments(treatmentSlug, 3)
 
@@ -322,7 +325,10 @@ export default async function AreaTreatmentPage({
           />
         )}
 
-        {/* 7. Nearby boroughs for same treatment */}
+        {/* 7. Patient testimonials */}
+        <PatientTestimonials areaName={borough.name} testimonials={testimonials} />
+
+        {/* 8. Nearby boroughs for same treatment */}
         <NearbyBoroughs
           boroughs={nearbyBoroughs}
           treatmentSlug={treatmentSlug}

@@ -1,22 +1,23 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
+import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
 import { AreaHero } from "@/components/areas/area-hero"
 import { AreaStatsBar } from "@/components/areas/area-stats-bar"
 import { AreaNhsInfo } from "@/components/areas/area-nhs-info"
 import { AreaTreatmentGrid } from "@/components/areas/area-treatment-grid"
 import { NearbyBoroughs } from "@/components/areas/nearby-boroughs"
+import { PatientTestimonials } from "@/components/find/patient-testimonials"
 import {
   getAllBoroughSlugs,
   getBoroughBySlug,
   getNearbyBoroughs,
 } from "@/lib/data/london-boroughs"
 import { getAllTreatments } from "@/lib/content/treatments"
+import { getTestimonialsForBasicClinics } from "@/lib/locations/queries"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { createClient } from "@/lib/supabase/server"
 
@@ -117,6 +118,7 @@ export default async function BoroughPage({ params }: BoroughPageProps) {
   }
 
   const clinics = await getClinicsInArea(borough.postcodes)
+  const testimonials = await getTestimonialsForBasicClinics(clinics)
   const treatments = getAllTreatments()
   const nearbyBoroughs = getNearbyBoroughs(slug, 4)
 
@@ -230,27 +232,27 @@ export default async function BoroughPage({ params }: BoroughPageProps) {
         {/* 6. Treatment grid — links to /london/[borough]/[treatment] */}
         <AreaTreatmentGrid borough={borough} treatments={treatments} />
 
-        {/* 7. Nearby boroughs */}
+        {/* 7. Patient testimonials */}
+        <PatientTestimonials areaName={borough.name} testimonials={testimonials} />
+
+        {/* 8. Nearby boroughs */}
         <NearbyBoroughs boroughs={nearbyBoroughs} />
 
-        {/* 8. Bottom CTA */}
+        {/* 9. Bottom CTA with postcode input */}
         <section className="py-12 sm:py-16 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
                 Find my dentist in {borough.name}
               </h2>
-              <p className="text-white/70 mb-6 leading-relaxed">
+              <p className="text-white/70 mb-8 leading-relaxed">
                 Enter your postcode and we&apos;ll match you with verified,
-                GDC registered clinics near you in {borough.name}.
+                GDC registered clinics near you.
               </p>
-              <Button
-                size="lg"
-                className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 h-12 text-base"
-                asChild
-              >
-                <Link href="/intake">Get my clinic matches</Link>
-              </Button>
+              <TreatmentPostcodeCta
+                treatmentName="dentist"
+                intakeTreatment="general"
+              />
             </div>
           </div>
         </section>
