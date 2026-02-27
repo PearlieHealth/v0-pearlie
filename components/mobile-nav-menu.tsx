@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Menu, Heart, X } from "lucide-react"
+import { Menu, Heart, X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 
 export function MobileNavMenu() {
   const [open, setOpen] = useState(false)
+  const [resourcesOpen, setResourcesOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
 
@@ -20,14 +22,10 @@ export function MobileNavMenu() {
     })
   }, [])
 
-  const navLinks = [
-    { href: "/treatments", label: "Treatments" },
+  const resourcesLinks = [
     { href: "/blog", label: "Blog" },
     { href: "/guides", label: "Guides" },
-    { href: "/for-clinics", label: "For Clinics" },
-    { href: "/our-mission", label: "Our Mission" },
     { href: "/about", label: "About" },
-    { href: "/faq", label: "FAQ" },
   ]
 
   return (
@@ -63,29 +61,69 @@ export function MobileNavMenu() {
         {/* Navigation links */}
         <nav className="flex flex-col px-6 py-6 font-heading">
           <div className="space-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
-                onClick={() => setOpen(false)}
+            <Link
+              href="/treatments"
+              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              Treatments
+            </Link>
+
+            {/* Resources - collapsible section */}
+            <div>
+              <button
+                onClick={() => setResourcesOpen(!resourcesOpen)}
+                className="flex items-center justify-between w-full h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
               >
-                {link.label}
-              </Link>
-            ))}
+                Resources
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 transition-transform duration-200",
+                    resourcesOpen && "rotate-180",
+                  )}
+                />
+              </button>
+              {resourcesOpen && (
+                <div className="ml-4 border-l border-border/50 pl-2 space-y-1">
+                  {resourcesLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="flex items-center h-10 px-4 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+                      onClick={() => setOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Link
+              href="/for-clinics"
+              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              For Clinics
+            </Link>
+            <Link
+              href="/our-mission"
+              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              Our Mission
+            </Link>
+            <Link
+              href="/faq"
+              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              FAQ
+            </Link>
           </div>
 
-          {/* CTA Buttons */}
+          {/* Bottom buttons */}
           <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
-            <Button
-              size="lg"
-              className="w-full text-base h-12 bg-primary hover:bg-primary/90 text-white rounded-full shadow-sm"
-              asChild
-            >
-              <Link href="/intake" onClick={() => setOpen(false)}>
-                Get my clinic matches
-              </Link>
-            </Button>
             <Button
               variant="outline"
               size="lg"
