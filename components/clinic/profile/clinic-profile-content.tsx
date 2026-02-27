@@ -28,6 +28,7 @@ import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { EmbeddedClinicChat } from "@/components/clinic/embedded-clinic-chat"
+import { DirectEnquiryForm } from "@/components/clinic/direct-enquiry-form"
 import { ClinicImage } from "@/components/match/clinic-image"
 
 import { HighlightBadgeStrip } from "./highlight-badge-strip"
@@ -56,7 +57,7 @@ export function ClinicProfileContent() {
   const [showChat, setShowChat] = useState(false)
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [showMobilePicker, setShowMobilePicker] = useState(false)
-  const [directLeadId] = useState<string | null>(null)
+  const [directLeadId, setDirectLeadId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("overview")
   const [pendingAppointment, setPendingAppointment] = useState<{
     date: Date
@@ -66,6 +67,9 @@ export function ClinicProfileContent() {
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [appointmentRequestedAt, setAppointmentRequestedAt] = useState<string | null>(null)
+  const [showDirectForm, setShowDirectForm] = useState(false)
+  const [directFormTrigger, setDirectFormTrigger] = useState<"message" | "appointment" | null>(null)
+  const [directFormPendingDate, setDirectFormPendingDate] = useState<Date | null>(null)
 
   const isChatOpen = searchParams?.get("chat") === "open"
 
@@ -76,6 +80,17 @@ export function ClinicProfileContent() {
       setShowMobileChat(true)
     }
   }, [isReply, isChatOpen, leadIdParam])
+
+  // Restore directLeadId from localStorage on mount (returning direct visitors)
+  useEffect(() => {
+    if (!clinic?.id) return
+    // Don't restore if we already have a lead from the matching flow
+    if (lead?.id || leadIdParam) return
+    try {
+      const stored = localStorage.getItem(`pearlie_direct_lead_${clinic.id}`)
+      if (stored) setDirectLeadId(stored)
+    } catch {}
+  }, [clinic?.id, lead?.id, leadIdParam])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -239,8 +254,10 @@ export function ClinicProfileContent() {
         picker.scrollIntoView({ behavior: "smooth", block: "center" })
       }
     } else {
-      // No lead — redirect to intake form
-      router.push("/intake")
+      // No lead — show inline direct enquiry form
+      setDirectFormPendingDate(date || null)
+      setDirectFormTrigger("appointment")
+      setShowDirectForm(true)
     }
   }
 
@@ -314,6 +331,70 @@ export function ClinicProfileContent() {
   const handleCancelPendingBooking = () => {
     setPendingAppointment(null)
     setBookingError(null)
+  }
+
+  const handleDirectLeadCreated = (newLeadId: string) => {
+    setDirectLeadId(newLeadId)
+    setShowDirectForm(false)
+
+    // Persist to localStorage so returning visitors skip the form
+    if (clinic?.id) {
+      try {
+        const key = `pearlie_direct_lead_${clinic.id}`
+        localStorage.setItem(key, newLeadId)
+      } catch {}
+    }
+
+    trackEvent("direct_lead_created", {
+      leadId: newLeadId,
+      clinicId: clinic?.id,
+      meta: { trigger: directFormTrigger, source: "direct_profile_inline" },
+    })
+
+    if (directFormTrigger === "message") {
+      setShowChat(true)
+      setShowMobileChat(true)
+    } else if (directFormTrigger === "appointment") {
+      if (directFormPendingDate) {
+        // Re-trigger booking with the date now that we have a lead
+        const date = directFormPendingDate
+        setDirectFormPendingDate(null)
+        setDirectFormTrigger(null)
+        // Delay slightly so state updates propagate
+        setTimeout(() => handleBookAppointment(date), 100)
+      } else {
+        // No date was selected yet — show the date picker
+        setShowMobilePicker(true)
+        const picker = document.getElementById("clinic-date-picker")
+        if (picker) {
+          picker.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
+      }
+    }
+
+    setDirectFormTrigger(null)
+  }
+
+  const handleOpenChat = () => {
+    const effectiveLeadId = lead?.id || leadIdParam || directLeadId
+    if (effectiveLeadId) {
+      // Already have a lead — open chat directly
+      const contactEventId = generateTikTokEventId()
+      trackTikTokEvent("Contact", { content_name: "message_clinic_profile" }, contactEventId)
+      trackTikTokServerRelay("Contact", {
+        event_id: contactEventId,
+        lead_id: effectiveLeadId,
+        clinic_id: clinic?.id,
+        properties: { content_name: "message_clinic_profile" },
+      })
+      setShowChat(true)
+      setShowMobileChat(true)
+    } else {
+      // No lead — open chat which will show the inline DirectEnquiryForm
+      setDirectFormTrigger("message")
+      setShowChat(true)
+      setShowMobileChat(true)
+    }
   }
 
   const handleCallClinic = () => {
@@ -650,15 +731,11 @@ export function ClinicProfileContent() {
                     size="lg"
                     className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white"
                     onClick={() => {
-                      const contactEventId = generateTikTokEventId()
-                      trackTikTokEvent("Contact", { content_name: "message_clinic_profile" }, contactEventId)
-                      trackTikTokServerRelay("Contact", {
-                        event_id: contactEventId,
-                        lead_id: lead?.id || leadIdParam || directLeadId,
-                        clinic_id: clinic?.id,
-                        properties: { content_name: "message_clinic_profile" },
-                      })
-                      setShowChat(!showChat)
+                      if (showChat) {
+                        setShowChat(false)
+                      } else {
+                        handleOpenChat()
+                      }
                     }}
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
@@ -671,7 +748,7 @@ export function ClinicProfileContent() {
                     clinicName={clinic.name}
                     isOpen={showChat}
                     onToggle={() => setShowChat(false)}
-                    onLeadCreated={() => {}}
+                    onLeadCreated={handleDirectLeadCreated}
                     leadEmail={lead?.email || null}
                   />
 
@@ -729,7 +806,7 @@ export function ClinicProfileContent() {
                 isOpen={true}
                 onToggle={() => setShowMobileChat(false)}
                 hideHeader
-                onLeadCreated={() => {}}
+                onLeadCreated={handleDirectLeadCreated}
                 leadEmail={lead?.email || null}
               />
             </div>
@@ -832,15 +909,94 @@ export function ClinicProfileContent() {
         </div>
       )}
 
+      {/* Direct Enquiry Form Bottom Sheet (mobile) + Modal (desktop) — for appointment flow */}
+      {showDirectForm && directFormTrigger === "appointment" && clinic && (
+        <>
+          {/* Mobile bottom sheet */}
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null) }}
+              onKeyDown={() => {}}
+              role="presentation"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
+                <h3 className="font-semibold text-[#1a1a1a]">
+                  {directFormPendingDate ? "Request an appointment" : "Your details"}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null) }}
+                  className="p-1 rounded-full hover:bg-[#f5f5f5]"
+                >
+                  <X className="h-5 w-5 text-[#666]" />
+                </button>
+              </div>
+              <DirectEnquiryForm
+                clinicId={clinic.id}
+                clinicName={clinic.name}
+                onLeadCreated={handleDirectLeadCreated}
+              />
+              <div className="px-4 pb-4 pt-1 border-t border-[#e5e5e5]">
+                <a
+                  href="/intake"
+                  className="block text-center text-xs text-[#0fbcb0] hover:underline"
+                >
+                  Want better clinic matching? Complete the full form
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop modal */}
+          <div className="fixed inset-0 z-50 hidden lg:flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null) }}
+              onKeyDown={() => {}}
+              role="presentation"
+            />
+            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e5e5]">
+                <h3 className="font-semibold text-[#1a1a1a]">
+                  {directFormPendingDate ? "Request an appointment" : "Your details"}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null) }}
+                  className="p-1 rounded-full hover:bg-[#f5f5f5]"
+                >
+                  <X className="h-5 w-5 text-[#666]" />
+                </button>
+              </div>
+              <DirectEnquiryForm
+                clinicId={clinic.id}
+                clinicName={clinic.name}
+                onLeadCreated={handleDirectLeadCreated}
+              />
+              <div className="px-5 pb-4 pt-1 border-t border-[#e5e5e5]">
+                <a
+                  href="/intake"
+                  className="block text-center text-xs text-[#0fbcb0] hover:underline"
+                >
+                  Want better clinic matching? Complete the full form
+                </a>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Mobile sticky CTA */}
-      {!showMobileChat && !showMobilePicker && !pendingAppointment && !bookingConfirmed && (
+      {!showMobileChat && !showMobilePicker && !pendingAppointment && !bookingConfirmed && !showDirectForm && (
         <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-[#faf3e6] to-white border-t border-[#0fbcb0]/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(15,188,176,0.12)]">
           <p className="text-xs text-[#666] text-center mb-2">No booking fees on Pearlie</p>
           <div className="flex gap-3 max-w-lg mx-auto">
             <Button
               size="lg"
               className="flex-1 bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation"
-              onClick={() => setShowMobileChat(true)}
+              onClick={handleOpenChat}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
               {(lead?.id || leadIdParam || directLeadId) ? "Message" : "Enquire"}
@@ -878,17 +1034,7 @@ export function ClinicProfileContent() {
             <Button
               size="lg"
               className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation"
-              onClick={() => {
-                const contactEventId = generateTikTokEventId()
-                trackTikTokEvent("Contact", { content_name: "message_clinic_profile_mobile" }, contactEventId)
-                trackTikTokServerRelay("Contact", {
-                  event_id: contactEventId,
-                  lead_id: lead?.id || leadIdParam || directLeadId,
-                  clinic_id: clinic?.id,
-                  properties: { content_name: "message_clinic_profile_mobile" },
-                })
-                setShowMobileChat(true)
-              }}
+              onClick={handleOpenChat}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
               Message Clinic
