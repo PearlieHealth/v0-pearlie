@@ -510,7 +510,7 @@ export default function OurMissionPage() {
               <Link href="/intake">Find my clinic</Link>
             </Button>
             <p className="text-xs text-muted-foreground mt-3">
-              Free, independent, takes under 2 minutes
+              Free, independent, takes under 60 seconds
             </p>
           </div>
         </div>

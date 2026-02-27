@@ -35,7 +35,7 @@ export function StickyMobileHomeCta() {
           href="/intake"
           className="flex items-center justify-center gap-2 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-5 h-10 text-sm font-medium transition-all border-0"
         >
-          Find my clinic — takes 2 mins
+          Find my clinic — takes 60 secs
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>

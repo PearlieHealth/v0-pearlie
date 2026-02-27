@@ -226,7 +226,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     <div className="mt-6 rounded-xl bg-[var(--cream)] border border-border/50 p-4 text-center">
                       <p className="text-sm font-semibold text-[#004443] mb-2">Find your clinic</p>
                       <p className="text-xs text-muted-foreground mb-3">
-                        Matched to your needs. Free, takes 2 min.
+                        Matched to your needs. Free, takes 60 secs.
                       </p>
                       <Button
                         size="sm"

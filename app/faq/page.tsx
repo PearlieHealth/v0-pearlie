@@ -27,7 +27,7 @@ export default function FAQPage() {
     { question: "What happens to my data?", answer: "Your data is used only to provide the matching service and is handled in line with our Privacy Policy and UK GDPR. Clinics only see your details when you choose to contact them. You can request data deletion at any time by emailing privacy@pearlie.org." },
     { question: "Is Pearlie part of the NHS?", answer: "Pearlie is an independent, private service and is not affiliated with, endorsed by, or connected to the National Health Service (NHS). Clinics listed on Pearlie are private dental practices. If you are looking for NHS dental services, visit the NHS Find a Dentist tool." },
     { question: "Can I compare clinics side by side?", answer: "Pearlie lets you compare clinics side by side — including services offered, pricing indications, patient reviews, clinic photos, and availability. This helps you make an informed decision without needing to call each clinic individually." },
-    { question: "What if I don't find the right clinic?", answer: "You can adjust your preferences or submit another match request at any time. Pearlie's network includes 20+ verified private clinics across 20+ London boroughs, representing 50+ dental professionals. We are expanding toward 500+ clinics across the UK over the coming years." },
+    { question: "What if I don't find the right clinic?", answer: "You can adjust your preferences or submit another match request at any time. Pearlie's network includes 500+ practices across London. We focus on quality over quantity, with every clinic verified as GDC-registered." },
     { question: "Do clinics pay to appear higher?", answer: "Clinic visibility on Pearlie is based on match relevance and profile completeness — not paid ranking. Clinics cannot pay to appear higher in your results. This ensures recommendations are based on fit, not advertising spend." },
     { question: "How much does Invisalign cost in London?", answer: "Invisalign in London starts from around £2,500 depending on the complexity of your case and the clinic you choose. Pearlie helps you compare Invisalign providers across London so you can see indicative pricing, read reviews, and message clinics directly before committing. All clinics on Pearlie are GDC-registered and verified for quality care." },
     { question: "How do I find a good dentist for dental implants?", answer: "Finding the right dentist for dental implants means looking for a GDC-registered clinician with implant-specific experience, transparent pricing, and strong patient reviews. Pearlie matches you with verified implant providers in London based on your needs, budget, and location — so you can compare options without endless searching." },
@@ -195,8 +195,7 @@ export default function FAQPage() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     You can adjust your preferences or submit another match request at any time. Pearlie&apos;s network
-                    includes 20+ verified private clinics across 20+ London boroughs, representing 50+ dental professionals.
-                    We are expanding toward 500+ clinics across the UK over the coming years.
+                    includes 500+ practices across London. We focus on quality over quantity, with every clinic verified as GDC-registered.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -264,7 +263,7 @@ export default function FAQPage() {
               </h2>
               <p className="text-white/70 mb-6 leading-relaxed">
                 Answer a few quick questions and get matched with verified,
-                GDC-registered clinics near you. Free, independent, and takes under 2 minutes.
+                GDC-registered clinics near you. Free, independent, and takes under 60 seconds.
               </p>
               <Button
                 size="lg"

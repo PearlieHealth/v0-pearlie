@@ -290,7 +290,7 @@ export function EmbeddedClinicChat({
               Quick form first
             </h3>
             <p className="text-xs text-[#666] mb-4 leading-relaxed">
-              Answer a few questions so {clinicName} can understand what you need. Takes under 2 minutes.
+              Answer a few questions so {clinicName} can understand what you need. Takes under 60 seconds.
             </p>
             <a
               href="/intake"

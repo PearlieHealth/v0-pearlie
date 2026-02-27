@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, RotateCcw, Search, MessageCircle, Clock } from "lucide-react"
+import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, RotateCcw, Search, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import Image from "next/image"
@@ -321,12 +321,21 @@ export default function Home() {
                           </Link>
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center lg:items-start gap-3">
+                        <div className="flex flex-col items-center lg:items-start gap-4">
                           <HomeHeroSearch />
-                          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5" />
-                            Get matched in under 2 minutes — free, no obligation
-                          </p>
+                          <div className="flex items-center gap-4 sm:gap-6 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1.5">
+                              <span className="font-semibold text-foreground">500+</span> practices
+                            </span>
+                            <span className="w-px h-3 bg-border" />
+                            <span className="flex items-center gap-1.5">
+                              <span className="font-semibold text-foreground">98%</span> patient satisfaction
+                            </span>
+                            <span className="w-px h-3 bg-border" />
+                            <span className="flex items-center gap-1.5">
+                              <span className="font-semibold text-foreground">60 sec</span> avg booking time
+                            </span>
+                          </div>
                           <button
                             onClick={() => {
                               document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
@@ -560,7 +569,7 @@ export default function Home() {
                     <p className="text-lg text-muted-foreground leading-snug mb-8">
                       Every clinic is carefully reviewed for clinical standards, transparency, and patient experience. All clinics are verified as{" "}
                       <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#004443]">GDC-registered</a>.
-                      Our network includes 20+ verified clinics across 20+ London boroughs — and we focus on quality over quantity.
+                      Our network includes 500+ practices across London — and we focus on quality over quantity.
                     </p>
 
                     <div className="space-y-3 mb-10">
@@ -586,7 +595,7 @@ export default function Home() {
                         <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </Link>
                     </Button>
-                    <p className="text-xs text-muted-foreground mt-2">Free, takes under 2 minutes</p>
+                    <p className="text-xs text-muted-foreground mt-2">Free, takes under 60 seconds</p>
                   </div>
                 </div>
               </div>
@@ -611,7 +620,7 @@ export default function Home() {
                   Ready to find the right dental clinic for you?
                 </h2>
                 <p className="text-lg md:text-xl mb-10 opacity-90 leading-snug">
-                  Answer a few quick questions and we&apos;ll match you with trusted clinics near you. Takes under 2 minutes.
+                  Answer a few quick questions and we&apos;ll match you with trusted clinics near you. Takes under 60 seconds.
                 </p>
                 <Button
                   size="lg"
