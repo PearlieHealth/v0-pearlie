@@ -1009,7 +1009,7 @@ export default function ForClinicsPage() {
 
       {/* ═══════════ FREE VISIBILITY ═══════════ */}
       <section style={{ ...sectionPad, background: "rgba(255,255,255,.015)" }}>
-        <div style={{ ...maxW, maxWidth: 800 }}>
+        <div style={maxW}>
           <div style={{ textAlign: "center", marginBottom: 12 }}>
             <span
               style={{
@@ -1027,7 +1027,7 @@ export default function ForClinicsPage() {
               Bonus: free visibility
             </span>
           </div>
-          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 16 }}>
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 8 }}>
             Patients discover your clinic &mdash; even outside Pearlie
           </h2>
           <p
@@ -1035,73 +1035,270 @@ export default function ForClinicsPage() {
               color: "#94a3b8",
               fontSize: 16,
               textAlign: "center",
-              maxWidth: 600,
-              margin: "0 auto 12px",
-              lineHeight: 1.65,
+              maxWidth: 560,
+              margin: "0 auto 16px",
+              lineHeight: 1.5,
             }}
           >
-            Every clinic on Pearlie gets a public profile page that ranks on Google.
-            Patients who browse your profile may reach out to you directly &mdash; through
-            your website, phone, or walk-in. That&rsquo;s free patient acquisition you&rsquo;d
-            never have gotten otherwise.
+            Every clinic gets a public profile page that ranks on Google.
+            Your always-on digital storefront &mdash; at no extra cost.
           </p>
-          <p
-            style={{
-              color: "#64748b",
-              fontSize: 15,
-              textAlign: "center",
-              maxWidth: 580,
-              margin: "0 auto 40px",
-              lineHeight: 1.6,
-            }}
-          >
-            Think of it as an always-on digital storefront. Your services, reviews, and
-            availability &mdash; visible to thousands of patients searching for a dentist in
-            your area. No extra cost.
-          </p>
+          {/* Source badge */}
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                background: "rgba(16,185,129,.08)",
+                border: "1px solid rgba(16,185,129,.2)",
+                borderRadius: 20,
+                padding: "6px 16px",
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#34d399",
+              }}
+            >
+              <TrendingUp size={13} />
+              Free patient acquisition you&rsquo;d never get otherwise
+            </span>
+          </div>
+
           <div
             style={{
-              background: "rgba(255,255,255,.03)",
-              border: "1px solid rgba(255,255,255,.06)",
-              borderRadius: 18,
-              padding: "28px 24px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 20,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 16,
             }}
           >
-            {[
-              {
-                emoji: "\uD83D\uDD0D",
-                title: "SEO-optimised clinic profile",
-                desc: "Rank on Google for local dental searches — without paying for ads",
-              },
-              {
-                emoji: "\uD83D\uDC40",
-                title: "Passive brand exposure",
-                desc: "Patients see your clinic, learn about you, and may contact you directly",
-              },
-              {
-                emoji: "\u2B50",
-                title: "Social proof displayed",
-                desc: "Your reviews, services, and specialties showcased to high-intent patients",
-              },
-              {
-                emoji: "\uD83D\uDCC8",
-                title: "Organic growth channel",
-                desc: "Even if they don't book through Pearlie, they now know you exist",
-              },
-            ].map((item) => (
-              <div key={item.title} style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-                <span style={{ fontSize: 22, lineHeight: 1.4, flexShrink: 0 }}>{item.emoji}</span>
-                <div>
-                  <p style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 15, marginBottom: 2 }}>
-                    {item.title}
-                  </p>
-                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.5 }}>{item.desc}</p>
+            {/* SEO Profile */}
+            <div
+              style={{
+                background: "rgba(255,255,255,.03)",
+                border: "1px solid rgba(255,255,255,.06)",
+                borderRadius: 16,
+                padding: "24px 22px 20px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    background: "rgba(59,130,246,.12)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#60a5fa",
+                    flexShrink: 0,
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                  </svg>
+                </div>
+                <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>SEO-optimised profile</span>
+              </div>
+              {/* Mini Google search mockup */}
+              <div
+                style={{
+                  background: "rgba(255,255,255,.04)",
+                  borderRadius: 10,
+                  padding: "14px 16px",
+                  marginBottom: 12,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <div style={{ width: 14, height: 14, borderRadius: 3, background: "#4285f4" }} />
+                  <span style={{ color: "#64748b", fontSize: 11 }}>pearlie.org &rsaquo; clinic</span>
+                </div>
+                <p style={{ color: "#60a5fa", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                  Your Clinic Name &mdash; Pearlie
+                </p>
+                <p style={{ color: "#64748b", fontSize: 11, lineHeight: 1.4 }}>
+                  Invisalign, veneers &amp; cosmetic dentistry in London. View
+                  treatments, reviews &amp; book...
+                </p>
+              </div>
+              <p style={{ color: "#475569", fontSize: 11, lineHeight: 1.4 }}>
+                Rank on Google for local dental searches without paying for ads
+              </p>
+            </div>
+
+            {/* Brand Exposure */}
+            <div
+              style={{
+                background: "rgba(255,255,255,.03)",
+                border: "1px solid rgba(255,255,255,.06)",
+                borderRadius: 16,
+                padding: "24px 22px 20px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    background: "rgba(168,85,247,.12)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#a78bfa",
+                    flexShrink: 0,
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </div>
+                <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>Passive brand exposure</span>
+              </div>
+              {/* Impressions visual */}
+              <div style={{ marginBottom: 12 }}>
+                {[
+                  { label: "Profile views", value: "1,200+", pct: 80 },
+                  { label: "Direct website clicks", value: "340+", pct: 45 },
+                  { label: "Phone calls from profile", value: "85+", pct: 25 },
+                ].map((stat) => (
+                  <div key={stat.label} style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                      <span style={{ color: "#94a3b8", fontSize: 12 }}>{stat.label}</span>
+                      <span style={{ color: "#a78bfa", fontSize: 12, fontWeight: 600 }}>{stat.value}/mo</span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,.06)", overflow: "hidden" }}>
+                      <div style={{ width: `${stat.pct}%`, height: "100%", borderRadius: 3, background: "linear-gradient(90deg, #8b5cf6, #a78bfa)" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p style={{ color: "#475569", fontSize: 11, lineHeight: 1.4 }}>
+                Patients see your clinic, learn about you &mdash; and may contact you directly
+              </p>
+            </div>
+
+            {/* Social Proof */}
+            <div
+              style={{
+                background: "rgba(255,255,255,.03)",
+                border: "1px solid rgba(255,255,255,.06)",
+                borderRadius: 16,
+                padding: "24px 22px 20px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    background: "rgba(251,191,36,.12)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#fbbf24",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Star size={16} />
+                </div>
+                <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>Social proof displayed</span>
+              </div>
+              {/* Review stars mockup */}
+              <div
+                style={{
+                  background: "rgba(255,255,255,.04)",
+                  borderRadius: 10,
+                  padding: "14px 16px",
+                  marginBottom: 12,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star key={s} size={14} fill={s <= 4 ? "#fbbf24" : "none"} style={{ color: s <= 4 ? "#fbbf24" : "#475569" }} />
+                  ))}
+                  <span style={{ color: "#fbbf24", fontSize: 13, fontWeight: 700, marginLeft: 4 }}>4.8</span>
+                  <span style={{ color: "#64748b", fontSize: 11 }}>(127 reviews)</span>
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {["Invisalign", "Cosmetic", "Implants", "NHS"].map((t) => (
+                    <span
+                      key={t}
+                      style={{
+                        fontSize: 11,
+                        padding: "3px 8px",
+                        borderRadius: 6,
+                        background: "rgba(251,191,36,.1)",
+                        color: "#fbbf24",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {t}
+                    </span>
+                  ))}
                 </div>
               </div>
-            ))}
+              <p style={{ color: "#475569", fontSize: 11, lineHeight: 1.4 }}>
+                Reviews, services &amp; specialties showcased to high-intent patients
+              </p>
+            </div>
+
+            {/* Organic Growth */}
+            <div
+              style={{
+                background: "rgba(255,255,255,.03)",
+                border: "1px solid rgba(255,255,255,.06)",
+                borderRadius: 16,
+                padding: "24px 22px 20px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    background: "rgba(16,185,129,.12)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#10b981",
+                    flexShrink: 0,
+                  }}
+                >
+                  <TrendingUp size={16} />
+                </div>
+                <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>Organic growth channel</span>
+              </div>
+              {/* Growth chart mockup */}
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 80, padding: "0 4px", marginBottom: 12 }}>
+                {[18, 25, 22, 35, 40, 38, 52, 60, 55, 70, 78, 85].map((h, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      flex: 1,
+                      height: `${h}%`,
+                      borderRadius: "3px 3px 0 0",
+                      background:
+                        i >= 9
+                          ? "linear-gradient(180deg, #10b981, rgba(16,185,129,.4))"
+                          : "rgba(16,185,129,.15)",
+                      transition: "height .3s",
+                    }}
+                  />
+                ))}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                <span style={{ color: "#475569", fontSize: 10 }}>Month 1</span>
+                <span style={{ color: "#10b981", fontSize: 10, fontWeight: 600 }}>Month 12</span>
+              </div>
+              <p style={{ color: "#475569", fontSize: 11, lineHeight: 1.4 }}>
+                Even patients who don&rsquo;t book through Pearlie now know you exist
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -1160,7 +1357,6 @@ export default function ForClinicsPage() {
                     { feature: "Setup / onboarding fee", old: "£1,000 – £5,000", pearlie: "£0 — free" },
                     { feature: "Contract", old: "12 – 36 months locked in", pearlie: "Cancel anytime" },
                     { feature: "Time to first patient", old: "3 – 6 months (SEO ramp)", pearlie: "Within 48 hours" },
-                    { feature: "Cost per patient", old: "£66 – £750", pearlie: "From £71 (drops to £42)" },
                     { feature: "Lead quality", old: "Cold ad clicks", pearlie: "Pre-qualified & matched" },
                     { feature: "Patient no-show?", old: "You still pay", pearlie: "No charge" },
                     { feature: "No leads delivered?", old: "You still pay retainer", pearlie: "No extra charge" },
