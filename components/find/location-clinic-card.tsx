@@ -1,11 +1,8 @@
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { MapPin, Star, CheckCircle2, ChevronRight } from "lucide-react"
 import { ClinicImage } from "@/components/match/clinic-image"
 import type { LocationClinic } from "@/lib/locations/queries"
-
-const HIDDEN_CHIPS = new Set(["weekend_appointments", "Weekend Appointments", "same_day", "Same Day"])
 
 interface LocationClinicCardProps {
   clinic: LocationClinic
@@ -17,9 +14,6 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
 
   // Show Google rating only if it differs from the Pearlie rating (avoid duplication)
   const showGoogleRating = hasGoogleRating && (clinic.rating <= 0 || clinic.google_rating !== clinic.rating)
-
-  // Filter out unwanted highlight chips
-  const chips = clinic.highlight_chips?.filter((c) => !HIDDEN_CHIPS.has(c)) ?? []
 
   return (
     <Link href={`/clinic/${clinic.id}`} className="snap-start flex-shrink-0 w-[280px] sm:w-[300px] md:w-[320px] group">
@@ -91,15 +85,18 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
 
         {/* Content */}
         <div className="p-4 space-y-2">
-          {/* Name + Verified */}
-          <div className="flex items-center gap-1.5">
-            <h3 className="text-[15px] font-semibold text-foreground leading-tight line-clamp-1 group-hover:text-[#004443] transition-colors">
-              {clinic.name}
-            </h3>
-            {clinic.verified && (
-              <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] flex-shrink-0" />
-            )}
-          </div>
+          {/* Name */}
+          <h3 className="text-[15px] font-semibold text-foreground leading-tight line-clamp-1 group-hover:text-[#004443] transition-colors">
+            {clinic.name}
+          </h3>
+
+          {/* Verified by Pearlie */}
+          {clinic.verified && (
+            <div className="flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] flex-shrink-0" />
+              <span className="text-[11px] font-medium text-[#0fbcb0]">Verified by Pearlie</span>
+            </div>
+          )}
 
           {/* Location + distance */}
           <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
@@ -107,40 +104,6 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
             <span className="truncate">{clinic.address}{clinic.postcode ? `, ${clinic.postcode}` : ""}</span>
             <span className="flex-shrink-0 text-xs">&middot; {clinic.distance_miles.toFixed(1)} mi</span>
           </div>
-
-          {/* Highlight chips */}
-          {chips.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {chips.slice(0, 3).map((chip) => (
-                <Badge key={chip} variant="secondary" className="text-[10px] font-medium px-2 py-0.5 bg-[#0fbcb0]/8 text-[#004443] border-[#0fbcb0]/20">
-                  {chip}
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          {/* Treatments (fallback if no highlight chips) */}
-          {chips.length === 0 && clinic.treatments && clinic.treatments.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {clinic.treatments.slice(0, 3).map((t) => (
-                <Badge key={t} variant="secondary" className="text-[10px] font-normal px-2 py-0.5">
-                  {t}
-                </Badge>
-              ))}
-              {clinic.treatments.length > 3 && (
-                <Badge variant="secondary" className="text-[10px] font-normal px-2 py-0.5">
-                  +{clinic.treatments.length - 3}
-                </Badge>
-              )}
-            </div>
-          )}
-
-          {/* Price range */}
-          {clinic.price_range && (
-            <p className="text-xs text-muted-foreground">
-              {clinic.price_range}
-            </p>
-          )}
 
           {/* View clinic CTA */}
           <div className="pt-1.5 border-t border-border/30">

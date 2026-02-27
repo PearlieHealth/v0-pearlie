@@ -211,15 +211,16 @@ export async function getTestimonialsForClinics(
     return b.text.length - a.text.length
   })
 
-  // Deduplicate by clinic — max 1 review per clinic for variety
-  const seen = new Set<string>()
-  const unique: AreaTestimonial[] = []
+  // Allow up to 3 reviews per clinic to fill the carousel when few clinics have cached reviews
+  const clinicCounts = new Map<string, number>()
+  const selected: AreaTestimonial[] = []
   for (const t of testimonials) {
-    if (seen.has(t.clinicId)) continue
-    seen.add(t.clinicId)
-    unique.push(t)
-    if (unique.length >= limit) break
+    const count = clinicCounts.get(t.clinicId) ?? 0
+    if (count >= 3) continue
+    clinicCounts.set(t.clinicId, count + 1)
+    selected.push(t)
+    if (selected.length >= limit) break
   }
 
-  return unique
+  return selected
 }

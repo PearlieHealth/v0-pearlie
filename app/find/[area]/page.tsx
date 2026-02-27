@@ -357,6 +357,28 @@ async function DentistNearMePage() {
           <FilterableClinicSection clinics={clinics} areaName="London" variant="region" />
         )}
 
+        {/* For clinics CTA */}
+        <section className="py-10 sm:py-14 bg-gradient-to-br from-[#1a2e35] to-[#0d1f26]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <p className="text-[#0fbcb0] text-sm font-medium mb-2">Dentist?</p>
+              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-white mb-3">
+                Grow Your Dental Practice
+              </h2>
+              <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-md mx-auto">
+                Join the platform with everything you need to grow your practice.
+              </p>
+              <Button
+                className="bg-white text-[#004443] hover:bg-white/90 rounded-full font-semibold px-8"
+                size="lg"
+                asChild
+              >
+                <Link href="/for-clinics">List your practice free</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
         {/* Patient testimonials */}
         <PatientTestimonials areaName="London" testimonials={testimonials} />
 
@@ -417,28 +439,6 @@ async function DentistNearMePage() {
           areaName="London"
           content="London has more dental practices than any other city in the UK — yet finding the right one remains a challenge for most patients. According to the British Dental Association, millions of people in England have been unable to get an NHS dental appointment in recent years, with the majority turning to private care instead. The average private check-up in London costs £60–£150, with costs varying significantly by area: Central London practices charge 30–50% more than outer boroughs. Cosmetic treatments are a major driver of private dental growth, with Invisalign, teeth whitening, and composite bonding accounting for the fastest-rising categories of dental spend across the capital."
         />
-
-        {/* For clinics CTA */}
-        <section className="py-10 sm:py-14 bg-gradient-to-br from-[#1a2e35] to-[#0d1f26]">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center">
-              <p className="text-[#0fbcb0] text-sm font-medium mb-2">Dentist?</p>
-              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-white mb-3">
-                Grow Your Dental Practice
-              </h2>
-              <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-                Join the platform with everything you need to grow your practice.
-              </p>
-              <Button
-                className="bg-white text-[#004443] hover:bg-white/90 rounded-full font-semibold px-8"
-                size="lg"
-                asChild
-              >
-                <Link href="/for-clinics">List your practice free</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
 
         {/* Bottom CTA */}
         <section className="py-16 sm:py-24 bg-[#004443]">
@@ -568,6 +568,28 @@ async function RegionPage({ slug }: { slug: string }) {
         {clinics.length > 0 && (
           <FilterableClinicSection clinics={clinics} areaName={region.name} variant="region" />
         )}
+
+        {/* For clinics CTA */}
+        <section className="py-10 sm:py-14 bg-gradient-to-br from-[#1a2e35] to-[#0d1f26]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <p className="text-[#0fbcb0] text-sm font-medium mb-2">Dentist?</p>
+              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-white mb-3">
+                Grow Your Dental Practice
+              </h2>
+              <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-md mx-auto">
+                Join the platform with everything you need to grow your practice.
+              </p>
+              <Button
+                className="bg-white text-[#004443] hover:bg-white/90 rounded-full font-semibold px-8"
+                size="lg"
+                asChild
+              >
+                <Link href="/for-clinics">List your practice free</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
 
         {/* Map */}
         {clinics.length > 0 && (
@@ -721,28 +743,6 @@ async function RegionPage({ slug }: { slug: string }) {
         {/* Quick Facts */}
         <QuickFacts areaName={region.name} content={region.quickFacts} />
 
-        {/* For clinics CTA */}
-        <section className="py-10 sm:py-14 bg-gradient-to-br from-[#1a2e35] to-[#0d1f26]">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center">
-              <p className="text-[#0fbcb0] text-sm font-medium mb-2">Dentist?</p>
-              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-white mb-3">
-                Grow Your Dental Practice
-              </h2>
-              <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-                Join the platform with everything you need to grow your practice.
-              </p>
-              <Button
-                className="bg-white text-[#004443] hover:bg-white/90 rounded-full font-semibold px-8"
-                size="lg"
-                asChild
-              >
-                <Link href="/for-clinics">List your practice free</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-
         {/* Bottom CTA */}
         <section className="py-12 sm:py-20 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -841,6 +841,28 @@ async function AreaPage({ slug }: { slug: string }) {
 
         {/* Clinic Cards with filters */}
         <FilterableClinicSection clinics={clinics} areaName={area.name} />
+
+        {/* For clinics CTA */}
+        <section className="py-10 sm:py-14 bg-gradient-to-br from-[#1a2e35] to-[#0d1f26]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <p className="text-[#0fbcb0] text-sm font-medium mb-2">Dentist?</p>
+              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-white mb-3">
+                Grow Your Dental Practice
+              </h2>
+              <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-md mx-auto">
+                Join the platform with everything you need to grow your practice.
+              </p>
+              <Button
+                className="bg-white text-[#004443] hover:bg-white/90 rounded-full font-semibold px-8"
+                size="lg"
+                asChild
+              >
+                <Link href="/for-clinics">List your practice free</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
 
         {/* Map */}
         <section className="py-10 sm:py-14 bg-white overflow-hidden">
@@ -1011,28 +1033,6 @@ async function AreaPage({ slug }: { slug: string }) {
 
         {/* Quick Facts */}
         <QuickFacts areaName={area.name} content={area.quickFacts} />
-
-        {/* For clinics CTA */}
-        <section className="py-10 sm:py-14 bg-gradient-to-br from-[#1a2e35] to-[#0d1f26]">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center">
-              <p className="text-[#0fbcb0] text-sm font-medium mb-2">Dentist?</p>
-              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-white mb-3">
-                Grow Your Dental Practice
-              </h2>
-              <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-                Join the platform with everything you need to grow your practice.
-              </p>
-              <Button
-                className="bg-white text-[#004443] hover:bg-white/90 rounded-full font-semibold px-8"
-                size="lg"
-                asChild
-              >
-                <Link href="/for-clinics">List your practice free</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
 
         {/* Bottom CTA */}
         <section className="py-12 sm:py-20 bg-[#004443]">
