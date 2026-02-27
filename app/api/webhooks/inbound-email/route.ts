@@ -211,24 +211,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Invalid token: ${tokenResult.reason}` }, { status: 400 })
   }
 
-  const { conversationId, senderType, participantEmail } = tokenResult.payload
+  const { conversationId, senderType } = tokenResult.payload
 
-  // 5. Verify sender email matches expected participant
-  if (fromEmail.toLowerCase() !== participantEmail.toLowerCase()) {
-    await logInboundEmail(supabase, {
-      resend_message_id: resendMessageId,
-      from_email: fromEmail,
-      to_address: tokenAddress,
-      conversation_id: conversationId,
-      status: "rejected",
-      rejection_reason: "sender_mismatch",
-      raw_subject: subject,
-    })
-    console.warn(`[InboundEmail] Sender mismatch: got ${fromEmail}, expected ${participantEmail}`)
-    return NextResponse.json({ error: "Sender email does not match" }, { status: 403 })
-  }
-
-  // 6. Load conversation
+  // 5. Load conversation (needed before sender verification since email is not in token)
   const { data: conversation, error: convError } = await supabase
     .from("conversations")
     .select("id, clinic_id, lead_id, conversation_state, muted_by_patient, notification_cycles_used, current_notification_cycle_start, unread_count_clinic, unread_count_patient, clinic_first_reply_at")
@@ -247,6 +232,38 @@ export async function POST(request: NextRequest) {
     })
     console.error("[InboundEmail] Conversation not found:", conversationId)
     return NextResponse.json({ error: "Conversation not found" }, { status: 404 })
+  }
+
+  // 6. Verify sender email matches expected participant (looked up from DB)
+  let expectedEmail = ""
+  if (senderType === "patient") {
+    const { data: lead } = await supabase
+      .from("leads")
+      .select("email")
+      .eq("id", conversation.lead_id)
+      .single()
+    expectedEmail = lead?.email || ""
+  } else {
+    const { data: clinic } = await supabase
+      .from("clinics")
+      .select("email, notification_email")
+      .eq("id", conversation.clinic_id)
+      .single()
+    expectedEmail = clinic?.notification_email || clinic?.email || ""
+  }
+
+  if (!expectedEmail || fromEmail.toLowerCase() !== expectedEmail.toLowerCase()) {
+    await logInboundEmail(supabase, {
+      resend_message_id: resendMessageId,
+      from_email: fromEmail,
+      to_address: tokenAddress,
+      conversation_id: conversationId,
+      status: "rejected",
+      rejection_reason: "sender_mismatch",
+      raw_subject: subject,
+    })
+    console.warn(`[InboundEmail] Sender mismatch: got ${fromEmail}, expected ${expectedEmail}`)
+    return NextResponse.json({ error: "Sender email does not match" }, { status: 403 })
   }
 
   // 7. If conversation is closed, re-open it
