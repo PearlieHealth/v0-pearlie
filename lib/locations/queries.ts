@@ -39,6 +39,8 @@ export interface LocationClinic {
   images: string[] | null
   verified: boolean
   accepts_nhs: boolean
+  accepts_same_day: boolean
+  tags: string[] | null
   highlight_chips: string[] | null
   price_range: string | null
   featured: boolean
