@@ -167,6 +167,7 @@ export async function getClinicsNearRegion(region: LondonRegion): Promise<Locati
  * Sources (in priority order):
  *   1. Google reviews from `google_reviews_cache` (real Google reviews)
  *   2. `featured_review` from the clinics table (clinic-curated quote)
+ *   3. Fallback: reviews from ANY clinics (so every location page shows testimonials)
  * Future-proof: as soon as reviews are connected to a clinic via either
  * source, they will automatically appear on location pages.
  */
@@ -174,60 +175,128 @@ export async function getTestimonialsForClinics(
   clinics: LocationClinic[],
   limit = 8,
 ): Promise<AreaTestimonial[]> {
-  if (clinics.length === 0) return []
-
   const supabase = await createClient()
-  const clinicIds = clinics.map((c) => c.id)
-
-  // Query all cached Google reviews for these clinics
-  const { data, error } = await supabase
-    .from("google_reviews_cache")
-    .select("clinic_id, reviews")
-    .in("clinic_id", clinicIds)
-
-  const clinicMap = new Map(clinics.map((c) => [c.id, c]))
 
   const testimonials: AreaTestimonial[] = []
 
-  // Source 1: Google reviews from cache
-  if (!error && data) {
-    for (const row of data) {
-      const reviews = (row.reviews as Array<{
-        authorName: string
-        rating: number
-        text: string
-        relativeTime: string
-      }>) || []
+  if (clinics.length > 0) {
+    const clinicIds = clinics.map((c) => c.id)
 
-      for (const r of reviews) {
-        if (r.rating >= 4 && r.text && r.text.length >= 40) {
-          testimonials.push({
-            authorName: r.authorName,
-            rating: r.rating,
-            text: r.text,
-            relativeTime: r.relativeTime,
-            clinicName: clinicMap.get(row.clinic_id)?.name || "Dental Clinic",
-            clinicId: row.clinic_id,
-          })
+    // Query all cached Google reviews for these clinics
+    const { data, error } = await supabase
+      .from("google_reviews_cache")
+      .select("clinic_id, reviews")
+      .in("clinic_id", clinicIds)
+
+    const clinicMap = new Map(clinics.map((c) => [c.id, c]))
+
+    // Source 1: Google reviews from cache
+    if (!error && data) {
+      for (const row of data) {
+        const reviews = (row.reviews as Array<{
+          authorName: string
+          rating: number
+          text: string
+          relativeTime: string
+        }>) || []
+
+        for (const r of reviews) {
+          if (r.rating >= 4 && r.text && r.text.length >= 40) {
+            testimonials.push({
+              authorName: r.authorName,
+              rating: r.rating,
+              text: r.text,
+              relativeTime: r.relativeTime,
+              clinicName: clinicMap.get(row.clinic_id)?.name || "Dental Clinic",
+              clinicId: row.clinic_id,
+            })
+          }
         }
       }
     }
+
+    // Source 2: featured_review from clinics table (fallback for clinics without cached Google reviews)
+    const clinicsWithCachedReviews = new Set(data?.map((d) => d.clinic_id) ?? [])
+    for (const clinic of clinics) {
+      if (clinicsWithCachedReviews.has(clinic.id)) continue
+      if (!clinic.featured_review || clinic.featured_review.length < 40) continue
+
+      testimonials.push({
+        authorName: "Verified Patient",
+        rating: 5,
+        text: clinic.featured_review,
+        relativeTime: "",
+        clinicName: clinic.name,
+        clinicId: clinic.id,
+      })
+    }
   }
 
-  // Source 2: featured_review from clinics table (fallback for clinics without cached Google reviews)
-  const clinicsWithCachedReviews = new Set(data?.map((d) => d.clinic_id) ?? [])
-  for (const clinic of clinics) {
-    if (clinicsWithCachedReviews.has(clinic.id)) continue
-    if (!clinic.featured_review || clinic.featured_review.length < 40) continue
+  // Source 3: If no local testimonials found, fetch reviews from ANY clinics
+  if (testimonials.length === 0) {
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from("google_reviews_cache")
+      .select("clinic_id, reviews")
+      .limit(20)
 
-    testimonials.push({
-      authorName: "Verified Patient",
-      rating: 5,
-      text: clinic.featured_review,
-      relativeTime: "",
-      clinicName: clinic.name,
-      clinicId: clinic.id,
-    })
+    if (!fallbackError && fallbackData && fallbackData.length > 0) {
+      // Fetch clinic names for the fallback reviews
+      const fallbackClinicIds = fallbackData.map((d) => d.clinic_id)
+      const { data: fallbackClinics } = await supabase
+        .from("clinics")
+        .select("id, name")
+        .in("id", fallbackClinicIds)
+
+      const fallbackClinicMap = new Map(
+        (fallbackClinics ?? []).map((c: { id: string; name: string }) => [c.id, c.name]),
+      )
+
+      for (const row of fallbackData) {
+        const reviews = (row.reviews as Array<{
+          authorName: string
+          rating: number
+          text: string
+          relativeTime: string
+        }>) || []
+
+        for (const r of reviews) {
+          if (r.rating >= 4 && r.text && r.text.length >= 40) {
+            testimonials.push({
+              authorName: r.authorName,
+              rating: r.rating,
+              text: r.text,
+              relativeTime: r.relativeTime,
+              clinicName: fallbackClinicMap.get(row.clinic_id) || "Dental Clinic",
+              clinicId: row.clinic_id,
+            })
+          }
+        }
+      }
+    }
+
+    // Also try featured_review fallback from any clinics
+    if (testimonials.length === 0) {
+      const { data: featuredClinics } = await supabase
+        .from("clinics")
+        .select("id, name, featured_review")
+        .eq("is_archived", false)
+        .eq("is_live", true)
+        .not("featured_review", "is", null)
+        .limit(20)
+
+      for (const clinic of featuredClinics ?? []) {
+        if (!clinic.featured_review || clinic.featured_review.length < 40) continue
+
+        testimonials.push({
+          authorName: "Verified Patient",
+          rating: 5,
+          text: clinic.featured_review,
+          relativeTime: "",
+          clinicName: clinic.name,
+          clinicId: clinic.id,
+        })
+      }
+    }
   }
 
   // Prefer 5-star reviews, then by text length (more detail = better testimonial)
