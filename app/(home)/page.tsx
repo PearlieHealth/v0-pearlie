@@ -380,187 +380,265 @@ export default function Home() {
           <ScrollingMarquee items={marqueeItems} speed={35} />
 
           {/* How it works section */}
-          <section id="how-it-works" className="py-16 md:pt-8 md:pb-11 lg:pt-10 lg:pb-13 bg-white relative overflow-hidden">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <section id="how-it-works" className="py-16 md:py-24 lg:py-28 bg-white relative overflow-hidden">
+            {/* Subtle background decoration */}
+            <div className="absolute top-20 right-0 w-[500px] h-[500px] rounded-full bg-[#0fbcb0]/[0.02] blur-[100px] pointer-events-none" />
+            <div className="absolute bottom-20 left-0 w-[400px] h-[400px] rounded-full bg-[#004443]/[0.02] blur-[80px] pointer-events-none" />
+
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="max-w-7xl mx-auto">
                 {/* Section header */}
-                <div className="text-center mb-12 md:mb-8">
-                  <h2 className="text-[2rem] sm:text-[2.6rem] md:text-[2.6rem] lg:text-[3.25rem] font-heading font-bold tracking-[-0.03em] text-[#004443]">
-                    How It Works
+                <motion.div
+                  className="text-center mb-14 md:mb-20"
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#0fbcb0] mb-4">
+                    Simple as 1, 2, 3
+                  </span>
+                  <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] text-[#004443] leading-[1.05] mb-4">
+                    Your perfect clinic,<br /><span className="text-[#0fbcb0]">in under 60 seconds</span>
                   </h2>
-                </div>
+                  <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+                    No endless scrolling. No guesswork. Just smart matching.
+                  </p>
+                </motion.div>
 
-                {/* Step 1 - Image Left, Text Right */}
-                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8 mb-14 md:mb-10">
-                  {/* Illustration */}
-                  <div className="flex-1 flex justify-center lg:justify-end">
-                    <div className="relative w-full max-w-[280px] lg:max-w-[230px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
-                      {/* Step number */}
-                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">01</span>
-                      {/* Phone mockup with form illustration */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-4 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
-                        <div className="bg-white rounded-2xl p-4 lg:p-3 shadow-sm">
-                          <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center">
-                              <Sparkles className="w-5 h-5 text-primary" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="h-3 w-32 bg-border/50 rounded-full" />
-                            </div>
-                          </div>
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 border border-border/60">
-                              <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
-                                <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                              </div>
-                              <span className="text-sm text-primary font-medium">Dental Implants</span>
-                            </div>
-                            <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border/60">
-                              <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30" />
-                              <span className="text-sm text-muted-foreground">Cosmetic Dentistry</span>
-                            </div>
-                            <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border/60">
-                              <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30" />
-                              <span className="text-sm text-muted-foreground">General Checkup</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Text content */}
-                  <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-[#004443]">
-                      Tell us what you're looking for
-                    </h3>
-                    <p className="text-base md:text-[0.9rem] text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
-                      Answer a few simple questions about your treatment, budget, location, and preferences. It only takes a minute.
-                    </p>
-                  </div>
-                </div>
+                {/* Steps */}
+                <div className="space-y-8 md:space-y-6 lg:space-y-0">
 
-                {/* Step 2 - Text Left, Image Right */}
-                <div className="flex flex-col lg:flex-row-reverse items-center gap-6 lg:gap-8 mb-14 md:mb-10">
-                  {/* Illustration */}
-                  <div className="flex-1 flex justify-center lg:justify-start">
-                    <div className="relative w-full max-w-[280px] lg:max-w-[230px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
-                      {/* Step number */}
-                      <span className="absolute -top-6 -right-2 lg:-right-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">02</span>
-                      {/* Phone mockup with clinic cards */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
-                        <div className="space-y-4 lg:space-y-2">
-                          {/* Clinic card 1 */}
-                          <div className="bg-white rounded-2xl p-4 shadow-sm border border-border/60">
-                            <div className="flex items-start gap-3">
-                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center flex-shrink-0">
-                                <MapPin className="w-5 h-5 text-primary" />
+                  {/* Step 1 - Image Left, Text Right */}
+                  <motion.div
+                    className="flex flex-col lg:flex-row items-center gap-6 lg:gap-12 mb-8 md:mb-6 lg:mb-0"
+                    initial={{ opacity: 0, y: 32 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                  >
+                    {/* Illustration */}
+                    <div className="flex-1 flex justify-center lg:justify-end">
+                      <div className="relative w-full max-w-[280px] lg:max-w-[240px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
+                        {/* Step number */}
+                        <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl font-bold text-[#0fbcb0]/15 select-none leading-none z-0">01</span>
+                        {/* Phone mockup with form illustration */}
+                        <div className="relative bg-gradient-to-br from-[#f2f0e8] to-[#e8e5dc] rounded-[32px] p-4 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border/60">
+                          <div className="bg-white rounded-2xl p-4 lg:p-3 shadow-sm">
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="w-10 h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center">
+                                <Sparkles className="w-5 h-5 text-[#0fbcb0]" />
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="h-3 w-28 bg-foreground rounded-full mb-2" />
-                                <div className="flex items-center gap-1 mb-1">
-                                  {[1, 2, 3, 4, 5].map((i) => (
-                                    <Star
-                                      key={i}
-                                      className="w-3 h-3 fill-amber-400 text-amber-400"
-                                    />
-                                  ))}
+                              <div className="flex-1">
+                                <div className="h-3 w-32 bg-border/50 rounded-full" />
+                              </div>
+                            </div>
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0fbcb0]/5 border border-[#0fbcb0]/20">
+                                <div className="w-5 h-5 rounded-full border-2 border-[#0fbcb0] flex items-center justify-center">
+                                  <div className="w-2.5 h-2.5 rounded-full bg-[#0fbcb0]" />
                                 </div>
-                                <div className="h-2 w-20 bg-muted rounded-full" />
+                                <span className="text-sm text-[#004443] font-medium">Dental Implants</span>
                               </div>
-                              <Badge className="bg-secondary text-primary text-xs">98%</Badge>
-                            </div>
-                          </div>
-                          {/* Clinic card 2 */}
-                          <div className="bg-white rounded-2xl p-4 shadow-sm border border-border/60">
-                            <div className="flex items-start gap-3">
-                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center flex-shrink-0">
-                                <MapPin className="w-5 h-5 text-primary" />
+                              <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border/60">
+                                <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30" />
+                                <span className="text-sm text-muted-foreground">Cosmetic Dentistry</span>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="h-3 w-24 bg-foreground rounded-full mb-2" />
-                                <div className="flex items-center gap-1 mb-1">
-                                  {[1, 2, 3, 4, 5].map((i) => (
-                                    <Star
-                                      key={i}
-                                      className="w-3 h-3 fill-amber-400 text-amber-400"
-                                    />
-                                  ))}
-                                </div>
-                                <div className="h-2 w-16 bg-muted rounded-full" />
+                              <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border/60">
+                                <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30" />
+                                <span className="text-sm text-muted-foreground">General Checkup</span>
                               </div>
-                              <Badge className="bg-secondary text-primary text-xs">94%</Badge>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
+                    {/* Text content */}
+                    <div className="flex-1 text-center lg:text-left">
+                      <span className="inline-flex items-center gap-2 bg-[#0fbcb0]/10 text-[#0fbcb0] text-xs font-bold tracking-wide uppercase rounded-full px-3 py-1 mb-4">
+                        Step 1
+                      </span>
+                      <h3 className="text-2xl sm:text-3xl md:text-[2rem] font-bold mb-3 text-[#004443]">
+                        Tell us what you need
+                      </h3>
+                      <p className="text-base md:text-[1rem] text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
+                        Treatment, budget, location, anxiety level, timing — a few quick taps and we know exactly what matters to you.
+                      </p>
+                    </div>
+                  </motion.div>
+
+                  {/* Connector — desktop only */}
+                  <div className="hidden lg:flex justify-center py-2">
+                    <div className="w-px h-16 bg-gradient-to-b from-[#0fbcb0]/30 to-[#0fbcb0]/10" />
                   </div>
-                  {/* Text content */}
-                  <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-[#004443]">
-                      We match you with the right clinics
-                    </h3>
-                    <p className="text-base md:text-[0.9rem] text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
-                      Based on your answers, we suggest carefully reviewed clinics in London that meet our standards for quality and transparency — so you're not overwhelmed with endless searching.
-                    </p>
+
+                  {/* Step 2 - Text Left, Image Right */}
+                  <motion.div
+                    className="flex flex-col lg:flex-row-reverse items-center gap-6 lg:gap-12 mb-8 md:mb-6 lg:mb-0"
+                    initial={{ opacity: 0, y: 32 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                  >
+                    {/* Illustration */}
+                    <div className="flex-1 flex justify-center lg:justify-start">
+                      <div className="relative w-full max-w-[280px] lg:max-w-[240px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
+                        {/* Step number */}
+                        <span className="absolute -top-6 -right-2 lg:-right-8 text-8xl font-bold text-[#0fbcb0]/15 select-none leading-none z-0">02</span>
+                        {/* Phone mockup with clinic cards */}
+                        <div className="relative bg-gradient-to-br from-[#f2f0e8] to-[#e8e5dc] rounded-[32px] p-6 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border/60">
+                          <div className="space-y-4 lg:space-y-2">
+                            {/* Clinic card 1 */}
+                            <div className="bg-white rounded-2xl p-4 shadow-sm border border-border/60">
+                              <div className="flex items-start gap-3">
+                                <div className="w-12 h-12 rounded-xl bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
+                                  <MapPin className="w-5 h-5 text-[#0fbcb0]" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="h-3 w-28 bg-foreground rounded-full mb-2" />
+                                  <div className="flex items-center gap-1 mb-1">
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                      <Star
+                                        key={i}
+                                        className="w-3 h-3 fill-amber-400 text-amber-400"
+                                      />
+                                    ))}
+                                  </div>
+                                  <div className="h-2 w-20 bg-muted rounded-full" />
+                                </div>
+                                <Badge className="bg-[#0fbcb0]/10 text-[#0fbcb0] text-xs font-bold border-0">98%</Badge>
+                              </div>
+                            </div>
+                            {/* Clinic card 2 */}
+                            <div className="bg-white rounded-2xl p-4 shadow-sm border border-border/60">
+                              <div className="flex items-start gap-3">
+                                <div className="w-12 h-12 rounded-xl bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
+                                  <MapPin className="w-5 h-5 text-[#0fbcb0]" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="h-3 w-24 bg-foreground rounded-full mb-2" />
+                                  <div className="flex items-center gap-1 mb-1">
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                      <Star
+                                        key={i}
+                                        className="w-3 h-3 fill-amber-400 text-amber-400"
+                                      />
+                                    ))}
+                                  </div>
+                                  <div className="h-2 w-16 bg-muted rounded-full" />
+                                </div>
+                                <Badge className="bg-[#0fbcb0]/10 text-[#0fbcb0] text-xs font-bold border-0">94%</Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Text content */}
+                    <div className="flex-1 text-center lg:text-left">
+                      <span className="inline-flex items-center gap-2 bg-[#0fbcb0]/10 text-[#0fbcb0] text-xs font-bold tracking-wide uppercase rounded-full px-3 py-1 mb-4">
+                        Step 2
+                      </span>
+                      <h3 className="text-2xl sm:text-3xl md:text-[2rem] font-bold mb-3 text-[#004443]">
+                        We find your best matches
+                      </h3>
+                      <p className="text-base md:text-[1rem] text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
+                        Our matching engine scores clinics across 7 dimensions — not just distance. You get ranked results with clear reasons why each clinic fits <em>you</em>.
+                      </p>
+                    </div>
+                  </motion.div>
+
+                  {/* Connector — desktop only */}
+                  <div className="hidden lg:flex justify-center py-2">
+                    <div className="w-px h-16 bg-gradient-to-b from-[#0fbcb0]/30 to-[#0fbcb0]/10" />
                   </div>
+
+                  {/* Step 3 - Image Left, Text Right */}
+                  <motion.div
+                    className="flex flex-col lg:flex-row items-center gap-6 lg:gap-12"
+                    initial={{ opacity: 0, y: 32 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                  >
+                    {/* Illustration */}
+                    <div className="flex-1 flex justify-center lg:justify-end">
+                      <div className="relative w-full max-w-[280px] lg:max-w-[240px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
+                        {/* Step number */}
+                        <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl font-bold text-[#0fbcb0]/15 select-none leading-none z-0">03</span>
+                        {/* Phone mockup with booking */}
+                        <div className="relative bg-gradient-to-br from-[#f2f0e8] to-[#e8e5dc] rounded-[32px] p-6 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border/60">
+                          <div className="bg-white rounded-2xl p-5 lg:p-3 shadow-sm">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-2">
+                                <CalendarCheck className="w-5 h-5 text-[#0fbcb0]" />
+                                <span className="text-sm font-semibold text-foreground">Choose your time</span>
+                              </div>
+                            </div>
+                            {/* Calendar grid */}
+                            <div className="grid grid-cols-7 gap-1 mb-4">
+                              {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+                                <div key={i} className="text-center text-xs text-muted-foreground py-1">
+                                  {d}
+                                </div>
+                              ))}
+                              {[...Array(14)].map((_, i) => (
+                                <div
+                                  key={i}
+                                  className={`aspect-square rounded-lg flex items-center justify-center text-xs ${
+                                    i === 8
+                                      ? "bg-[#0fbcb0] text-white font-semibold"
+                                      : i === 5 || i === 6 || i === 12 || i === 13
+                                        ? "bg-secondary/50 text-muted-foreground"
+                                        : "bg-secondary text-[#004443]"
+                                  }`}
+                                >
+                                  {i + 10}
+                                </div>
+                              ))}
+                            </div>
+                            <Button className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-xl h-10 text-sm border-0" asChild>
+                              <Link href="/intake">Request appointment</Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Text content */}
+                    <div className="flex-1 text-center lg:text-left">
+                      <span className="inline-flex items-center gap-2 bg-[#0fbcb0]/10 text-[#0fbcb0] text-xs font-bold tracking-wide uppercase rounded-full px-3 py-1 mb-4">
+                        Step 3
+                      </span>
+                      <h3 className="text-2xl sm:text-3xl md:text-[2rem] font-bold mb-3 text-[#004443]">
+                        Compare. Chat. Book.
+                      </h3>
+                      <p className="text-base md:text-[1rem] text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
+                        See clinics side-by-side, message them directly with questions, and book when you&apos;re ready. No phone tag. No pressure.
+                      </p>
+                    </div>
+                  </motion.div>
                 </div>
 
-                {/* Step 3 - Image Left, Text Right */}
-                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
-                  {/* Illustration */}
-                  <div className="flex-1 flex justify-center lg:justify-end">
-                    <div className="relative w-full max-w-[280px] lg:max-w-[230px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
-                      {/* Step number */}
-                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">03</span>
-                      {/* Phone mockup with booking */}
-                      <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
-                        <div className="bg-white rounded-2xl p-5 lg:p-3 shadow-sm">
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                              <CalendarCheck className="w-5 h-5 text-primary" />
-                              <span className="text-sm font-semibold text-foreground">Choose your time</span>
-                            </div>
-                          </div>
-                          {/* Calendar grid */}
-                          <div className="grid grid-cols-7 gap-1 mb-4">
-                            {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                              <div key={i} className="text-center text-xs text-muted-foreground py-1">
-                                {d}
-                              </div>
-                            ))}
-                            {[...Array(14)].map((_, i) => (
-                              <div
-                                key={i}
-                                className={`aspect-square rounded-lg flex items-center justify-center text-xs ${
-                                  i === 8
-                                    ? "bg-primary text-white font-semibold"
-                                    : i === 5 || i === 6 || i === 12 || i === 13
-                                      ? "bg-secondary/50 text-muted-foreground"
-                                      : "bg-secondary text-primary"
-                                }`}
-                              >
-                                {i + 10}
-                              </div>
-                            ))}
-                          </div>
-                          <Button className="w-full bg-primary hover:bg-[var(--primary-hover)] text-white rounded-xl h-10 text-sm" asChild>
-                            <Link href="/intake">Request appointment</Link>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Text content */}
-                  <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-[#004443]">
-                      Compare. Chat. Book.
-                    </h3>
-                    <p className="text-base md:text-[0.9rem] text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
-                      Compare clinics side-by-side, chat directly with them, and book online when you're ready. All in one place.
-                    </p>
-                  </div>
-                </div>
+                {/* Bottom CTA */}
+                <motion.div
+                  className="text-center mt-14 md:mt-20"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <Button
+                    size="lg"
+                    className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] group border-0"
+                    asChild
+                  >
+                    <Link href="/intake" onClick={handleFindClinicClick}>
+                      Try it now — it&apos;s free
+                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-3">Takes under 60 seconds. No account needed.</p>
+                </motion.div>
               </div>
             </div>
           </section>
