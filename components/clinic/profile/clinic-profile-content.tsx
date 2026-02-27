@@ -520,50 +520,35 @@ export function ClinicProfileContent() {
         </div>
       </div>
 
-      {/* Hero: Photo banner if photos available, otherwise map */}
-      {clinic.images && clinic.images.length > 0 ? (
-        <section>
-          <div className="relative w-full h-[220px] sm:h-[280px] lg:h-[320px] bg-[#f5f5f5]">
-            <ClinicImage
-              src={clinic.images[0]}
-              alt={clinic.name}
-              fill
-              className="object-cover"
-              fallbackClassName="w-full h-full flex items-center justify-center bg-[#f5f5f5]"
-              sizes="100vw"
+      {/* Hero: Always show map location */}
+      <section id="location">
+        <div className="w-full h-[200px] lg:h-[250px] bg-[#e5e5e5]">
+          {clinic.latitude && clinic.longitude && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? (
+            <iframe
+              title={`${clinic.name} location`}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}&zoom=14`}
             />
-          </div>
-        </section>
-      ) : (
-        <section id="location">
-          <div className="w-full h-[200px] lg:h-[250px] bg-[#e5e5e5]">
-            {clinic.latitude && clinic.longitude && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? (
-              <iframe
-                title={`${clinic.name} location`}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}&zoom=14`}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-[#666] hover:text-[#1a1a1a]"
-                >
-                  <MapPin className="h-5 w-5" />
-                  <span>View on Google Maps</span>
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-[#666] hover:text-[#1a1a1a]"
+              >
+                <MapPin className="h-5 w-5" />
+                <span>View on Google Maps</span>
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Main content grid */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-4 sm:pt-6">
@@ -571,8 +556,27 @@ export function ClinicProfileContent() {
           {/* LEFT COLUMN */}
           <div className="space-y-4 md:space-y-6">
             {/* Clinic Name + Address + Provider Photos */}
-            <section className="flex items-start justify-between gap-6">
-              <div>
+            <section className="flex items-start justify-between gap-4 sm:gap-6">
+              {/* Clinic photo circle */}
+              <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-[#f0f0f0] flex-shrink-0 border-2 border-white shadow-sm">
+                {clinic.images && clinic.images.length > 0 ? (
+                  <ClinicImage
+                    src={clinic.images[0]}
+                    alt={clinic.name}
+                    fill
+                    className="object-cover"
+                    fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-[#004443]">
+                    <span className="text-white font-bold text-lg drop-shadow-sm">
+                      {clinic.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 min-w-0">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#1a1a1a] tracking-tight text-balance">{clinic.name}</h1>
                 <p className="text-[#444] mt-1">{clinic.address}</p>
                 <p className="text-[#444]">{clinic.city || ""}{clinic.city && clinic.postcode ? ", " : ""}{clinic.postcode}</p>
