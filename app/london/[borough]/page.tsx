@@ -17,6 +17,7 @@ import {
   getNearbyBoroughs,
 } from "@/lib/data/london-boroughs"
 import { getAllTreatments } from "@/lib/content/treatments"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { createClient } from "@/lib/supabase/server"
 
 export const revalidate = 3600
@@ -189,6 +190,8 @@ export default async function BoroughPage({ params }: BoroughPageProps) {
       <main>
         {/* 1. Hero */}
         <AreaHero borough={borough} clinicCount={clinics.length} />
+
+        <TrustBadgeStrip />
 
         {/* 2. Stats bar */}
         <AreaStatsBar borough={borough} clinicCount={clinics.length} />

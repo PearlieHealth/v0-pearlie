@@ -13,14 +13,12 @@ export const metadata: Metadata = {
     description:
       "Over 13 million adults in England have unmet dental needs. Pearlie is building a better way to connect patients with the right dental clinics.",
     url: "https://pearlie.org/our-mission",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Pearlie - Improving Dental Access" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Our Mission - Improving Dental Access in the UK",
     description:
       "Over 13 million adults in England have unmet dental needs. Pearlie is building a better way to connect patients with the right dental clinics.",
-    images: ["/og-image.jpg"],
   },
 }
 

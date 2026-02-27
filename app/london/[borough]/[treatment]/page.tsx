@@ -26,6 +26,7 @@ import {
   getAllAreaTreatmentParams,
   getAreaTreatmentData,
 } from "@/lib/data/area-treatments"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { createClient } from "@/lib/supabase/server"
 
 export const revalidate = 3600
@@ -244,6 +245,8 @@ export default async function AreaTreatmentPage({
           treatmentName={meta.treatmentName}
           treatmentSlug={treatmentSlug}
         />
+
+        <TrustBadgeStrip />
 
         {/* 2. Stats bar */}
         <AreaStatsBar

@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { BlogHeader } from "@/components/blog/blog-header"
 import { TableOfContents } from "@/components/blog/table-of-contents"
@@ -173,6 +174,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <main>
         <BlogHeader post={meta} />
 
+        <TrustBadgeStrip />
+
         {/* Article body */}
         <section className="py-8 sm:py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -223,6 +226,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <aside className="hidden lg:block">
                   <div className="sticky top-24">
                     <TableOfContents headings={headings} />
+                    <div className="mt-6 rounded-xl bg-[var(--cream)] border border-border/50 p-4 text-center">
+                      <p className="text-sm font-semibold text-[#004443] mb-2">Find your clinic</p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Matched to your needs. Free, takes 60 secs.
+                      </p>
+                      <Button
+                        size="sm"
+                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full text-xs px-4 w-full border-0"
+                        asChild
+                      >
+                        <Link href="/intake">Get matched</Link>
+                      </Button>
+                    </div>
                   </div>
                 </aside>
               </div>

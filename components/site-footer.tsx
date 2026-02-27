@@ -9,7 +9,6 @@ const platformLinks = [
   { label: "How It Works", href: "/#how-it-works" },
   { label: "For Clinics", href: "/for-clinics" },
   { label: "Our Mission", href: "/our-mission" },
-  { label: "Blog", href: "/blog" },
   { label: "FAQ", href: "/faq" },
 ]
 
@@ -23,21 +22,21 @@ const treatmentLinks = [
   { label: "Emergency Dentist", href: "/treatments/emergency-dental" },
 ]
 
-const londonAreaLinks = [
+const findDentistLinks = [
+  { label: "Dentist Near Me", href: "/find/dentist-near-me" },
+  { label: "Central London", href: "/find/central-london" },
+  { label: "South London", href: "/find/south-london" },
+  { label: "North London", href: "/find/north-london" },
+  { label: "East London", href: "/find/east-london" },
   { label: "All London Areas", href: "/london" },
-  { label: "Westminster", href: "/london/westminster" },
-  { label: "Islington", href: "/london/islington" },
-  { label: "Southwark", href: "/london/southwark" },
-  { label: "Kensington & Chelsea", href: "/london/kensington-and-chelsea" },
-  { label: "Tower Hamlets", href: "/london/tower-hamlets" },
-  { label: "Wandsworth", href: "/london/wandsworth" },
 ]
 
 const resourceLinks = [
   { label: "Blog", href: "/blog" },
+  { label: "Guides", href: "/guides" },
   { label: "Treatment Guides", href: "/blog?category=treatment-guides" },
   { label: "Cost & Finance", href: "/blog?category=cost-finance" },
-  { label: "NHS & Private Care", href: "/blog?category=nhs-private" },
+  { label: "For Clinics", href: "/blog?category=for-clinics" },
 ]
 
 const legalLinks = [
@@ -97,11 +96,11 @@ export function SiteFooter() {
               </ul>
             </div>
 
-            {/* London Areas */}
+            {/* Find a Dentist */}
             <div>
-              <h4 className="text-sm font-semibold text-white mb-4">London Areas</h4>
+              <h4 className="text-sm font-semibold text-white mb-4">Find a Dentist</h4>
               <ul className="space-y-2.5">
-                {londonAreaLinks.map((link) => (
+                {findDentistLinks.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
@@ -131,7 +130,7 @@ export function SiteFooter() {
               </ul>
             </div>
 
-            {/* Legal */}
+            {/* Legal & Contact */}
             <div>
               <h4 className="text-sm font-semibold text-white mb-4">Legal</h4>
               <ul className="space-y-2.5">
@@ -148,13 +147,6 @@ export function SiteFooter() {
                 <li>
                   <CookieSettingsButton variant="footer" />
                 </li>
-              </ul>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-4">Contact</h4>
-              <ul className="space-y-2.5">
                 <li>
                   <a
                     href="mailto:hello@pearlie.org"

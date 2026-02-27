@@ -9,7 +9,11 @@ import { MobileNavMenu } from "@/components/mobile-nav-menu"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 
-export function MainNav() {
+interface MainNavProps {
+  hideCta?: boolean
+}
+
+export function MainNav({ hideCta }: MainNavProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -29,6 +33,7 @@ export function MainNav() {
   const navLinks = [
     { href: "/treatments", label: "Treatments" },
     { href: "/blog", label: "Blog" },
+    { href: "/guides", label: "Guides" },
     { href: "/our-mission", label: "Our Mission" },
     { href: "/about", label: "About" },
     { href: "/faq", label: "FAQ" },
@@ -108,24 +113,28 @@ export function MainNav() {
             >
               My account
             </Link>
-            <Button
-              size="lg"
-              className="text-sm px-6 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0"
-              asChild
-            >
-              <Link href="/intake">Find my clinic</Link>
-            </Button>
+            {!hideCta && (
+              <Button
+                size="lg"
+                className="text-sm px-6 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0"
+                asChild
+              >
+                <Link href="/intake">Find my clinic</Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile Navigation */}
           <div className="flex md:hidden items-center gap-1">
-            <Link
-              href="/intake"
-              className="flex items-center justify-center h-10 w-10 rounded-full bg-[#0fbcb0] text-white hover:bg-[#0da399] transition-colors"
-            >
-              <Search className="h-4 w-4" />
-              <span className="sr-only">Find my clinic</span>
-            </Link>
+            {!hideCta && (
+              <Link
+                href="/intake"
+                className="flex items-center justify-center h-10 w-10 rounded-full bg-[#0fbcb0] text-white hover:bg-[#0da399] transition-colors"
+              >
+                <Search className="h-4 w-4" />
+                <span className="sr-only">Find my clinic</span>
+              </Link>
+            )}
             <MobileNavMenu />
           </div>
         </div>

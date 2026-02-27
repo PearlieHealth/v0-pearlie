@@ -16,6 +16,7 @@ export interface TreatmentMeta extends ContentMeta {
   faqs: TreatmentFAQ[]
   serviceType: string
   medicalSpecialty?: string
+  financeAvailable?: boolean
 }
 
 const CONTENT_TYPE = "treatments"

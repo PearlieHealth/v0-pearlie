@@ -6,6 +6,7 @@ import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import {
   LONDON_BOROUGHS,
   getBoroughsByRegion,
@@ -96,6 +97,8 @@ export default function LondonPage() {
           </div>
         </section>
 
+        <TrustBadgeStrip />
+
         {/* Borough grid by region */}
         <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -149,6 +152,24 @@ export default function LondonPage() {
                   </div>
                 )
               })}
+            </div>
+          </div>
+        </section>
+
+        {/* Cross-link to postcode search */}
+        <section className="py-8 bg-[var(--cream)]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto text-center">
+              <p className="text-sm text-muted-foreground mb-3">
+                Know your postcode? Search by neighbourhood instead.
+              </p>
+              <Link
+                href="/find/dentist-near-me"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0fbcb0] hover:underline"
+              >
+                Find a dentist near me
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
         </section>

@@ -7,4 +7,16 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://pearlie.org/faq",
   },
+  openGraph: {
+    title: "Frequently Asked Questions | Pearlie",
+    description:
+      "Find answers to common questions about how Pearlie matches you with dental clinics in London and the UK.",
+    url: "https://pearlie.org/faq",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Frequently Asked Questions | Pearlie",
+    description:
+      "Find answers to common questions about how Pearlie matches you with dental clinics in London and the UK.",
+  },
 }

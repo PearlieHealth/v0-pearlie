@@ -4,6 +4,7 @@ import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
+import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
 import { BlogCard } from "@/components/blog/blog-card"
@@ -28,6 +29,12 @@ export const metadata: Metadata = {
       "Expert dental guides, treatment cost breakdowns, and tips for finding the right dentist in the UK.",
     url: "https://pearlie.org/blog",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dental Blog | Pearlie",
+    description:
+      "Expert dental guides, treatment cost breakdowns, and tips for finding the right dentist in the UK.",
   },
 }
 
@@ -97,6 +104,8 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             </div>
           </div>
         </section>
+
+        <TrustBadgeStrip />
 
         {/* Category filters */}
         <section className="border-b border-border/50 bg-white sticky top-0 z-40">

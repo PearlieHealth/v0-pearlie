@@ -3,6 +3,7 @@ import type { ReactNode } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { ClinicMatchCta } from "@/components/blog/clinic-match-cta"
 
 /**
  * Recursively extract plain text from React children.
@@ -277,5 +278,6 @@ export function useMDXComponents(config?: MDXComponentsConfig): MDXComponents {
     // Custom components available in MDX
     InlineCallout: createInlineCallout(ctaLabel, ctaHref),
     CostTable,
+    ClinicMatchCta,
   }
 }
