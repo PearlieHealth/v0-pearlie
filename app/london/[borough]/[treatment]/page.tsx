@@ -261,6 +261,8 @@ export default async function AreaTreatmentPage({
           treatmentName={`${meta.treatmentName} in ${borough.name}`}
         />
 
+        <TrustBadgeStrip />
+
         {/* 4. Unique area × treatment content */}
         {areaTreatmentData && (
           <section className="py-10 sm:py-14">

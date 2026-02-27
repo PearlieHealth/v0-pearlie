@@ -202,6 +202,8 @@ export default async function BoroughPage({ params }: BoroughPageProps) {
           treatmentName={`dental care in ${borough.name}`}
         />
 
+        <TrustBadgeStrip />
+
         {/* 4. About this area */}
         <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">

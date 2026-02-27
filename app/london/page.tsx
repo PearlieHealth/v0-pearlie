@@ -156,6 +156,8 @@ export default function LondonPage() {
           </div>
         </section>
 
+        <TrustBadgeStrip />
+
         {/* Cross-link to postcode search */}
         <section className="py-8 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
