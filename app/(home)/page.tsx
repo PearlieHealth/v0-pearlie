@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, Users, RotateCcw, Search, MessageCircle } from "lucide-react"
+import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, RotateCcw, Search, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import Image from "next/image"
@@ -116,15 +116,6 @@ function PatientExperiences() {
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-4">
               Real experiences from people who used Pearlie to choose with confidence.
             </p>
-            <div className="inline-flex items-center gap-2 bg-white rounded-full px-4 py-2 border border-border/40 shadow-sm">
-              <div className="flex gap-0.5">
-                {[...Array(5)].map((_, j) => (
-                  <Star key={j} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <span className="text-sm font-semibold text-foreground">4.8</span>
-              <span className="text-xs text-muted-foreground">from 10,000+ patients</span>
-            </div>
           </div>
         </div>
       </div>
@@ -360,9 +351,9 @@ export default function Home() {
                           <HomeHeroSearch />
                           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
                             <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <Users className="w-3.5 h-3.5 text-[#0fbcb0]" />
-                              <span className="font-semibold text-foreground">10,000+</span>
-                              <span className="text-muted-foreground">patients matched</span>
+                              <MapPin className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                              <span className="font-semibold text-foreground">Trusted</span>
+                              <span className="text-muted-foreground">across London</span>
                             </span>
                             <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
                               <Building2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
@@ -670,13 +661,13 @@ export default function Home() {
                       The Pearlie Guarantee
                     </h2>
                     <p className="text-white/70 leading-relaxed mb-4 max-w-2xl">
-                      Every clinic is verified for quality care, transparent pricing, and GDC registration.
+                      Our guarantee applies to Pearlie Verified clinics — those we&apos;ve reviewed for quality care, transparent pricing, and GDC registration.
                       If your experience doesn&apos;t meet expectations, we&apos;ll cover your next consultation — free.
                     </p>
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
                       <div className="flex items-center gap-2 text-sm text-white/60">
                         <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
-                        <span>Verified clinics only</span>
+                        <span>For Pearlie Verified clinics</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-white/60">
                         <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
