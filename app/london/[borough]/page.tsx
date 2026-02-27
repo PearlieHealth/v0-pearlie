@@ -191,8 +191,6 @@ export default async function BoroughPage({ params }: BoroughPageProps) {
         {/* 1. Hero */}
         <AreaHero borough={borough} clinicCount={clinics.length} />
 
-        <TrustBadgeStrip />
-
         {/* 2. Stats bar */}
         <AreaStatsBar borough={borough} clinicCount={clinics.length} />
 

@@ -246,8 +246,6 @@ export default async function AreaTreatmentPage({
           treatmentSlug={treatmentSlug}
         />
 
-        <TrustBadgeStrip />
-
         {/* 2. Stats bar */}
         <AreaStatsBar
           borough={borough}
