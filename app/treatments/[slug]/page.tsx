@@ -9,14 +9,12 @@ import { TreatmentHero } from "@/components/treatments/treatment-hero"
 import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
 import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-postcode"
 import { KeyFactsBar } from "@/components/treatments/key-facts-bar"
-import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
 import { TreatmentFAQ } from "@/components/treatments/treatment-faq"
 import { TreatmentAreaLinks } from "@/components/treatments/treatment-area-links"
 import { RelatedTreatments } from "@/components/treatments/related-treatments"
 import { PriceBreakdown } from "@/components/treatments/price-breakdown"
 import { CompareOptions } from "@/components/treatments/compare-options"
-import { CostFAQ } from "@/components/treatments/cost-faq"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { RelatedPosts } from "@/components/blog/related-posts"
 import { useMDXComponents } from "@/components/blog/mdx-components"
@@ -298,16 +296,13 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           ctaButtonText={costContent?.ctaButtonText}
         />
 
-        {/* 2. Key Facts Bar */}
+        {/* 2. Key Facts + Trust Bar (single strip) */}
         <KeyFactsBar
           priceRange={meta.priceRange}
           treatmentDuration={meta.treatmentDuration}
         />
 
-        {/* 3. PROOF — Trust badges immediately after hero */}
-        <TrustBadgeStrip />
-
-        {/* 4. SUPPLY — Featured clinics early (top 6) to prove legitimacy */}
+        {/* 3. SUPPLY — Featured clinics early (top 6) to prove legitimacy */}
         <TreatmentClinicGrid
           clinics={featuredClinics}
           treatmentName={meta.treatmentName}
@@ -364,14 +359,9 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           </div>
         </section>
 
-        {/* 9. Cost FAQ Accordion (from cost content data) */}
-        {costContent?.costFaqs && costContent.costFaqs.length > 0 && (
-          <CostFAQ faqs={costContent.costFaqs} treatmentName={meta.treatmentName} />
-        )}
-
-        {/* 10. General FAQ Accordion (from MDX frontmatter) */}
-        {meta.faqs && meta.faqs.length > 0 && (
-          <TreatmentFAQ faqs={meta.faqs} treatmentName={meta.treatmentName} />
+        {/* 9. FAQ Accordion (merged: cost FAQs + general FAQs) */}
+        {allFaqs.length > 0 && (
+          <TreatmentFAQ faqs={allFaqs} treatmentName={meta.treatmentName} />
         )}
 
         {/* 11. Find treatment by area */}

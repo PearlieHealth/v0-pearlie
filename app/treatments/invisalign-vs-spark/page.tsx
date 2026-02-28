@@ -8,7 +8,7 @@ import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
 import { HeroPostcodeCta } from "@/components/treatments/hero-postcode-cta"
 import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-postcode"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
-import { TrustBadgeStrip } from "@/components/trust-badge-strip"
+import { KeyFactsBar } from "@/components/treatments/key-facts-bar"
 import { createClient } from "@/lib/supabase/server"
 
 export const revalidate = 3600
@@ -213,8 +213,11 @@ export default async function InvisalignVsSparkPage() {
           </div>
         </div>
 
-        {/* 2. PROOF — Trust badges */}
-        <TrustBadgeStrip />
+        {/* 2. Key Facts + Trust Bar */}
+        <KeyFactsBar
+          priceRange="£2,500 – £5,500"
+          treatmentDuration="6–18 months"
+        />
 
         {/* 3. SUPPLY — Featured clinics early */}
         <TreatmentClinicGrid
