@@ -25,7 +25,7 @@ import { verifyAdminAuth } from "@/lib/admin-auth"
 import {
   searchGooglePlaces,
   isGreaterLondon,
-  type GooglePlaceResult,
+  isDentalPlace,
 } from "@/lib/bulk-import/google-search"
 import {
   findDuplicateClinic,
@@ -107,6 +107,8 @@ export async function POST(request: NextRequest) {
     // Step 2: Filter and sort by criteria
     const filtered = searchResults
       .filter((r) => {
+        // Must be a dental clinic/dentist (reject pharmacies, medical centres, etc.)
+        if (!isDentalPlace(r.types)) return false
         // Must have a valid UK postcode
         if (!r.postcode) return false
         // Must be in Greater London
@@ -173,10 +175,29 @@ export async function POST(request: NextRequest) {
         else newPhotosFail++
       }
 
-      // Step 3c: Build opening hours JSONB
-      let openingHours = null
+      // Step 3c: Build opening hours JSONB in the same format as the
+      // opening-hours route: { monday: "9:00 AM – 6:00 PM", ... }
+      let openingHours: Record<string, string> | null = null
       if (place.openingHours && place.openingHours.length > 0) {
-        openingHours = { weekday_text: place.openingHours }
+        const dayMap: Record<string, string> = {
+          Monday: "monday", Tuesday: "tuesday", Wednesday: "wednesday",
+          Thursday: "thursday", Friday: "friday", Saturday: "saturday",
+          Sunday: "sunday",
+        }
+        openingHours = {}
+        for (const desc of place.openingHours) {
+          const colonIndex = desc.indexOf(":")
+          if (colonIndex > -1) {
+            const dayName = desc.substring(0, colonIndex).trim()
+            const hours = desc.substring(colonIndex + 1).trim()
+            const dayKey = dayMap[dayName]
+            if (dayKey) {
+              openingHours[dayKey] = hours
+            }
+          }
+        }
+        // If no days parsed, don't store empty object
+        if (Object.keys(openingHours).length === 0) openingHours = null
       }
 
       // Step 3d: Create clinic record
@@ -213,27 +234,29 @@ export async function POST(request: NextRequest) {
       }
 
       // Step 3e: Extract pricing from website
+      // Writes TreatmentCategory[] — the same format the clinic dashboard uses
       let pricingOk = false
       let priceCount = 0
       if (place.website) {
         try {
           const pricingResult = await extractPricing(place.website)
-          if (pricingResult.success && pricingResult.prices && pricingResult.prices.length > 0) {
-            // Store pricing data on the clinic record
+          if (pricingResult.success && pricingResult.categories && pricingResult.categories.length > 0) {
+            // Count total treatments that have prices
+            priceCount = pricingResult.categories.reduce(
+              (sum, cat) => sum + cat.treatments.filter((t) => t.price !== "").length,
+              0,
+            )
+
+            // Store as TreatmentCategory[] — same format as clinic dashboard
             await supabase
               .from("clinics")
               .update({
-                treatment_prices: {
-                  prices: pricingResult.prices,
-                  source_url: pricingResult.source_url,
-                  extracted_at: new Date().toISOString(),
-                  needs_review: true,
-                },
+                treatment_prices: pricingResult.categories,
+                show_treatment_prices: false, // draft — admin reviews first
               })
               .eq("id", createResult.clinicId)
 
             pricingOk = true
-            priceCount = pricingResult.prices.length
             newPricingOk++
           } else {
             newPricingFail++

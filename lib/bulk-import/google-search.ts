@@ -47,6 +47,14 @@ export interface GooglePlaceResult {
   openingHours: string[]
   photoUrl: string | null
   photoUrls: string[]
+  types: string[]
+}
+
+/** Google Places types that indicate a dental business */
+export const DENTAL_TYPES = ["dentist", "dental_clinic", "dental"]
+
+export function isDentalPlace(types: string[]): boolean {
+  return types.some((t) => DENTAL_TYPES.includes(t))
 }
 
 /**
@@ -114,6 +122,7 @@ export async function searchGooglePlaces(
       openingHours: place.regularOpeningHours?.weekdayDescriptions || [],
       photoUrl: photoUrls[0] || null,
       photoUrls,
+      types: place.types || [],
     }
   })
 }

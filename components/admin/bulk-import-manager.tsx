@@ -221,9 +221,11 @@ export function BulkImportManager() {
           setTotalSkipped((prev) => prev + batchSkipped)
           setTotalFailed((prev) => prev + batchFailed)
           setPhotosOk((prev) => prev + batchPhotosOk)
-          setPhotosFail((prev) => prev + (batchImported - batchPhotosOk))
+          const batchPhotosFail = results.filter((r: BatchClinicResult) => r.status === "imported" && !r.photosOk).length
+          setPhotosFail((prev) => prev + batchPhotosFail)
           setPricingOk((prev) => prev + batchPricingOk)
-          setPricingFail((prev) => prev + (batchImported - batchPricingOk))
+          const batchPricingFail = results.filter((r: BatchClinicResult) => r.status === "imported" && !r.pricingOk).length
+          setPricingFail((prev) => prev + batchPricingFail)
           setAllResults((prev) => [...prev, ...results])
           setCompletedNeighbourhoods((prev) => [...prev, neighbourhood])
 

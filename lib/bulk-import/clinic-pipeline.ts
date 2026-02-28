@@ -180,7 +180,7 @@ export async function findDuplicateClinic(
   }
 
   // 2. Check by website domain
-  if (website) {
+  if (website && website.length > 0) {
     try {
       const domain = new URL(website).hostname.replace(/^www\./, "")
       const { data } = await supabase
@@ -257,7 +257,7 @@ export async function createClinicRecord(
       postcode: input.postcode,
       latitude: lat,
       longitude: lng,
-      phone: input.phone || null,
+      phone: input.phone || "",
       website: input.website || null,
       google_place_id: input.google_place_id,
       google_rating: input.google_rating ?? null,
