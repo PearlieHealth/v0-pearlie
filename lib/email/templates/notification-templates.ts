@@ -868,11 +868,6 @@ export function renderDirectLeadNotificationEmail(data: DirectLeadNotificationPa
           <a href="${data.confirmUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
             Confirm Appointment
           </a>
-          <div style="margin-top: 12px;">
-            <a href="${data.declineUrl}" style="color: #6b7280; font-size: 13px; text-decoration: underline;">
-              Unable to accommodate? Decline
-            </a>
-          </div>
         </div>` : `
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
           <a href="${data.inboxUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
