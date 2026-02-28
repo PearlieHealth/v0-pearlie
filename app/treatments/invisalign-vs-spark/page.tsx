@@ -10,6 +10,7 @@ import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-post
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
 import { KeyFactsBar } from "@/components/treatments/key-facts-bar"
 import { ClinicalStandards } from "@/components/treatments/clinical-standards"
+import { ClinicDirectoryList } from "@/components/treatments/clinic-directory-list"
 import { createClient } from "@/lib/supabase/server"
 
 export const revalidate = 3600
@@ -57,8 +58,9 @@ async function getClinicsForAligners() {
       .eq("is_archived", false)
       .eq("is_live", true)
       .overlaps("treatments", ["Invisalign"])
+      .order("verified", { ascending: false })
       .order("rating", { ascending: false })
-      .limit(12)
+      .limit(20)
 
     if (data && data.length > 0) return data
 
@@ -67,8 +69,9 @@ async function getClinicsForAligners() {
       .select(CLINIC_SELECT)
       .eq("is_archived", false)
       .eq("is_live", true)
+      .order("verified", { ascending: false })
       .order("rating", { ascending: false })
-      .limit(6)
+      .limit(8)
 
     return fallback || []
   } catch {
@@ -140,9 +143,11 @@ const faqSchema = {
 export default async function InvisalignVsSparkPage() {
   const clinics = await getClinicsForAligners()
 
-  // Split clinics: featured early, more later
-  const featuredClinics = clinics.slice(0, 6)
-  const moreClinics = clinics.slice(6)
+  // Split clinics: verified as full cards, non-verified as directory listings
+  const verifiedClinics = clinics.filter((c) => c.verified)
+  const directoryClinics = clinics.filter((c) => !c.verified)
+  const featuredClinics = verifiedClinics.slice(0, 8)
+  const moreClinics = verifiedClinics.slice(8)
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -350,6 +355,12 @@ export default async function InvisalignVsSparkPage() {
             subheading="Explore more verified providers in your area."
           />
         )}
+
+        {/* Directory listings */}
+        <ClinicDirectoryList
+          clinics={directoryClinics}
+          treatmentName="Clear Aligners"
+        />
 
         {/* Clinical Standards */}
         <ClinicalStandards treatmentName="Invisalign" />

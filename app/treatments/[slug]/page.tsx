@@ -20,6 +20,7 @@ import { TreatmentTimeline } from "@/components/treatments/treatment-timeline"
 import { FinanceOptions } from "@/components/treatments/finance-options"
 import { RisksConsiderations } from "@/components/treatments/risks-considerations"
 import { ClinicalStandards } from "@/components/treatments/clinical-standards"
+import { ClinicDirectoryList } from "@/components/treatments/clinic-directory-list"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { RelatedPosts } from "@/components/blog/related-posts"
 import { useMDXComponents } from "@/components/blog/mdx-components"
@@ -101,15 +102,16 @@ async function getClinicsForTreatment(filterTags: string[]) {
   try {
     const supabase = await createClient()
 
-    // Try treatment-specific clinics first
+    // Fetch verified clinics first, then all others — more clinics overall
     const { data } = await supabase
       .from("clinics")
       .select(CLINIC_SELECT)
       .eq("is_archived", false)
       .eq("is_live", true)
       .overlaps("treatments", filterTags)
+      .order("verified", { ascending: false })
       .order("rating", { ascending: false })
-      .limit(12)
+      .limit(20)
 
     if (data && data.length > 0) return data
 
@@ -119,8 +121,9 @@ async function getClinicsForTreatment(filterTags: string[]) {
       .select(CLINIC_SELECT)
       .eq("is_archived", false)
       .eq("is_live", true)
+      .order("verified", { ascending: false })
       .order("rating", { ascending: false })
-      .limit(6)
+      .limit(8)
 
     return fallback || []
   } catch {
@@ -148,9 +151,11 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
   // Fetch clinics offering this treatment
   const clinics = await getClinicsForTreatment(meta.clinicFilterTags)
 
-  // Split clinics: featured (top 6) shown early, rest shown later
-  const featuredClinics = clinics.slice(0, 6)
-  const moreClinics = clinics.slice(6)
+  // Split clinics: verified as full cards, non-verified as directory listings
+  const verifiedClinics = clinics.filter((c) => c.verified)
+  const directoryClinics = clinics.filter((c) => !c.verified)
+  const featuredClinics = verifiedClinics.slice(0, 8)
+  const moreClinics = verifiedClinics.slice(8)
 
   // Resolve related blog posts
   const relatedBlogPosts: BlogPost[] = (meta.relatedBlogSlugs || [])
@@ -350,15 +355,21 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           />
         )}
 
-        {/* 9. SUPPLY — More clinics */}
+        {/* 9. SUPPLY — More verified clinics */}
         {moreClinics.length > 0 && (
           <TreatmentClinicGrid
             clinics={moreClinics}
             treatmentName={meta.treatmentName}
-            heading={`More ${meta.treatmentName.toLowerCase()} clinics`}
+            heading={`More verified ${meta.treatmentName.toLowerCase()} clinics`}
             subheading="Explore more verified providers in your area."
           />
         )}
+
+        {/* 9b. SUPPLY — Directory listings (non-verified) */}
+        <ClinicDirectoryList
+          clinics={directoryClinics}
+          treatmentName={meta.treatmentName}
+        />
 
         {/* 10. EDUCATION — MDX Editorial Content */}
         <section className="py-8 sm:py-12">
