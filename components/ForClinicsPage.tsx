@@ -243,7 +243,7 @@ export default function ForClinicsPage() {
       {/* ══════════ 1. NAV ══════════ */}
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(255,255,255,.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid #d1d5db", boxShadow: "0 1px 3px rgba(0,0,0,.05)" }}>
         <div style={{ ...maxW, display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, padding: "0 24px" }}>
-          <Link href="/" style={{ textDecoration: "none" }}><span style={{ ...heading, fontSize: 22 }}>Pearlie</span></Link>
+          <Link href="/" style={{ textDecoration: "none" }}><span style={{ ...heading, fontSize: 22 }}>Pearlie</span></Link><span style={{ color: "#059669", fontSize: 14, fontWeight: 600, marginLeft: 6 }}>Clinics</span>
           <div className="fc-nav-links" style={{ display: "flex", alignItems: "center", gap: 28 }}>
             {[{ href: "#how", label: "How it works" }, { href: "#insights", label: "Insights" }, { href: "#pricing", label: "Pricing" }, { href: "#faq", label: "FAQ" }].map((l) => (
               <a key={l.href} href={l.href} style={{ color: "#6b7280", textDecoration: "none", fontSize: 13, fontWeight: 500 }}>{l.label}</a>
