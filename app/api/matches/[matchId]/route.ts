@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { normalizeLead, normalizeClinic } from "@/lib/matching/normalize"
-import { scoreClinic, scoreDirectoryListing, buildMatchFacts } from "@/lib/matching/scoring"
+import { scoreClinic, scoreDirectoryListing, buildMatchFacts, isExcludedByClearPricingFilter } from "@/lib/matching/scoring"
 import { buildMatchReasonsForMultipleClinics, buildDirectoryListingReasons, validateUniqueReasons } from "@/lib/matching/reasons-engine"
 import { getExplanationVersion } from "@/lib/matching/reasons-engine"
 import { isClinicMatchable } from "@/lib/matching/clinic-status"
@@ -158,7 +158,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       const normalizedLead = normalizeLead(lead)
 
       // Score each clinic — use scoreDirectoryListing for non-matchable clinics
-      const clinicScoringData = (clinicsRaw || []).map((clinicRow, clinicIndex) => {
+      // First, apply hard filters then score remaining clinics
+      const clinicScoringData = (clinicsRaw || []).filter((clinicRow) => {
+        const filterKeys = Array.isArray(clinicRow.clinic_filter_selections)
+          ? clinicRow.clinic_filter_selections.map((sel: any) => sel.filter_key)
+          : []
+        const normalizedClinic = normalizeClinic(clinicRow, filterKeys)
+        if (isExcludedByClearPricingFilter(normalizedLead, normalizedClinic)) {
+          console.log(`[match-api] Clinic excluded (clear pricing hard filter): ${clinicRow.name}`)
+          return false
+        }
+        return true
+      }).map((clinicRow, clinicIndex) => {
         const filterKeys = Array.isArray(clinicRow.clinic_filter_selections)
           ? clinicRow.clinic_filter_selections.map((sel: any) => sel.filter_key)
           : []
@@ -316,6 +327,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
         })
 
         additionalClinics = nearbyClinics
+          .filter((clinic) => {
+            const filterKeys = Array.isArray(clinic.clinic_filter_selections)
+              ? clinic.clinic_filter_selections.map((sel: any) => sel.filter_key)
+              : []
+            const nc = normalizeClinic(clinic, filterKeys)
+            return !isExcludedByClearPricingFilter(normalizedLead, nc)
+          })
           .map((clinic) => {
             const filterKeys = Array.isArray(clinic.clinic_filter_selections)
               ? clinic.clinic_filter_selections.map((sel: any) => sel.filter_key)

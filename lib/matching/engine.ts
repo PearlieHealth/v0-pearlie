@@ -7,7 +7,7 @@
 import type { LeadAnswer, ClinicProfile, MatchScoreBreakdown, MatchReason, ClinicMatch } from "./contract"
 import { EXPLANATION_SCHEMA_VERSION } from "./contract"
 import { normalizeLead, normalizeClinic } from "./normalize"
-import { scoreClinic, scoreDirectoryListing, buildMatchFacts } from "./scoring"
+import { scoreClinic, scoreDirectoryListing, buildMatchFacts, isExcludedByClearPricingFilter } from "./scoring"
 import { buildMatchReasons, buildDirectoryListingReasons, getExplanationVersion, buildMatchReasonsDebug } from "./reasons-engine"
 import { VERIFIED_BONUS } from "./tag-schema"
 import { createClient } from "@/lib/supabase/server"
@@ -310,6 +310,12 @@ export function rankClinics(
   for (const clinic of clinics) {
     // Skip unverified clinics entirely when includeUnverified is false
     if (!includeUnverified && clinic.verified !== true) continue
+
+    // Hard filter: exclude clinics with no pricing when patient wants clear pricing
+    if (isExcludedByClearPricingFilter(profile, clinic)) {
+      console.log(`[rankClinics] Clinic excluded (clear pricing hard filter): ${clinic.name} — no price data`)
+      continue
+    }
 
     const matchable = checkClinicMatchable(clinic)
     if (matchable) {

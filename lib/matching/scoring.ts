@@ -694,6 +694,45 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
 }
 
 // =============================================================================
+// Hard Filters
+// =============================================================================
+
+/**
+ * Hard filter: exclude clinics with no pricing data when patient wants clear pricing.
+ * Triggered when patient selects "Clear pricing before treatment" (Q4 priority)
+ * or a cost approach that maps to TAG_CLEAR_PRICING_UPFRONT (e.g. comfort_range).
+ *
+ * A clinic passes the filter if it has:
+ *  - a priceRange set (budget/mid/premium), OR
+ *  - the TAG_CLEAR_PRICING_UPFRONT tag (explicitly verified for clear pricing)
+ *
+ * Returns true if the clinic should be EXCLUDED.
+ */
+export function isExcludedByClearPricingFilter(lead: LeadAnswer, clinic: ClinicProfile): boolean {
+  // Check if patient selected any Q4 priority that maps to TAG_CLEAR_PRICING_UPFRONT
+  const priorityWantsClearPricing = (lead.priorities || []).some(p => {
+    const tag = Q4_PRIORITY_TAG_MAP[p]
+    return tag === "TAG_CLEAR_PRICING_UPFRONT"
+  })
+
+  // Check if patient's Q8 cost approach maps to TAG_CLEAR_PRICING_UPFRONT
+  const costWantsClearPricing = lead.costApproach
+    ? Q8_COST_TAG_MAP[lead.costApproach] === "TAG_CLEAR_PRICING_UPFRONT"
+    : false
+
+  if (!priorityWantsClearPricing && !costWantsClearPricing) return false
+
+  // Clinic has pricing data — passes filter
+  if (clinic.priceRange) return false
+
+  // Clinic has clear pricing tag — passes filter (explicitly verified)
+  if (clinic.filterKeys.includes("TAG_CLEAR_PRICING_UPFRONT")) return false
+
+  // Patient wants clear pricing but clinic has no pricing data and no clear pricing tag
+  return true
+}
+
+// =============================================================================
 // Directory Listing Scoring
 // Simple scoring for unverified clinics without tag data.
 // Uses only universally-available signals: distance, reviews, treatment text, completeness.
