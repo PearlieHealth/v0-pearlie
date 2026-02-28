@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import { getClinicByIdOrSlug } from "@/lib/clinics/queries"
+import { isAdminAuthenticated } from "@/lib/admin-auth"
 import { ClinicProfileContent } from "@/components/clinic/profile/clinic-profile-content"
 import { ClinicJsonLd } from "@/components/clinic/profile/clinic-jsonld"
 import type { Clinic } from "@/components/clinic/profile/types"
@@ -62,6 +63,7 @@ export default async function ClinicDetailPage({ params, searchParams }: ClinicP
   const { clinicId } = await params
   const resolvedSearchParams = await searchParams
   const isPreview = resolvedSearchParams?.preview === "true"
+  const isAdminPreview = resolvedSearchParams?.admin_preview === "true"
 
   // For preview mode, let the client component handle fetching entirely.
   // The API route (/api/clinics/[clinicId]?preview=true) verifies clinic
@@ -74,7 +76,13 @@ export default async function ClinicDetailPage({ params, searchParams }: ClinicP
     )
   }
 
-  const clinic = await getClinicByIdOrSlug(clinicId)
+  // Admin preview: skip is_live check so admins can view non-live clinic profiles
+  let skipLiveCheck = false
+  if (isAdminPreview) {
+    skipLiveCheck = await isAdminAuthenticated()
+  }
+
+  const clinic = await getClinicByIdOrSlug(clinicId, { skipLiveCheck })
 
   if (!clinic) {
     notFound()

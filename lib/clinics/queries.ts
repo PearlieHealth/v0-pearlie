@@ -22,7 +22,7 @@ const LANGUAGES_FIELDS = "languages"
  * Fetch a single clinic by ID or slug for server-side rendering.
  * Returns null if the clinic is not found, archived, or not live.
  */
-export async function getClinicByIdOrSlug(clinicId: string) {
+export async function getClinicByIdOrSlug(clinicId: string, options?: { skipLiveCheck?: boolean }) {
   const supabase = createAdminClient()
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clinicId)
 
@@ -52,7 +52,7 @@ export async function getClinicByIdOrSlug(clinicId: string) {
 
   // Don't expose archived or non-live clinics
   if (clinicData.is_archived === true) return null
-  if (clinicData.is_live !== true) return null
+  if (!options?.skipLiveCheck && clinicData.is_live !== true) return null
 
   return clinicData
 }
