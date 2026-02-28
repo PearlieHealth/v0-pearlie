@@ -1,3 +1,4 @@
+import Link from "next/link"
 import type { TreatmentCostContent } from "@/lib/data/treatment-cost-content"
 
 interface CompareOptionsProps {
@@ -59,6 +60,19 @@ export function CompareOptions({ costContent }: CompareOptionsProps) {
             <p className="text-sm text-muted-foreground leading-relaxed mt-6">
               {comparison.outroParagraph}
             </p>
+          )}
+
+          {comparison.relatedLink && (
+            <Link
+              href={comparison.relatedLink.href}
+              className="flex items-center gap-3 mt-6 p-4 rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all group"
+            >
+              <span className="shrink-0 w-8 h-8 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center text-[#0fbcb0] group-hover:bg-[#0fbcb0]/20 transition-colors">&rarr;</span>
+              <span>
+                <span className="font-heading font-bold text-[#004443] text-sm block">{comparison.relatedLink.label}</span>
+                <span className="text-xs text-muted-foreground">{comparison.relatedLink.description}</span>
+              </span>
+            </Link>
           )}
         </div>
       </div>
