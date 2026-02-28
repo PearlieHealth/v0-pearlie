@@ -192,8 +192,10 @@ function FaqItem({ question, answer }: FaqItemProps) {
 /* ────────────────────────────────────────────
    CONSTANTS
 ──────────────────────────────────────────── */
-const STD_EXTRA_PRICE = 35
-const PREM_EXTRA_PRICE = 28
+const BASIC_PRIVATE_EXTRA = 30
+const BASIC_MIXED_EXTRA = 30
+const GROWTH_PRIVATE_EXTRA = 25
+const GROWTH_MIXED_EXTRA = 25
 const DEFAULT_LTV = 1000
 const DEFAULT_EXTRA = 5
 
@@ -204,14 +206,19 @@ export default function ForClinicsPage() {
   /* Mobile nav state */
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  /* Pricing toggle: "private" | "mixed" */
+  const [practiceType, setPracticeType] = useState<"private" | "mixed">("private")
+
   /* ROI calculator state */
   const [extra, setExtra] = useState(DEFAULT_EXTRA)
   const [ltv, setLtv] = useState(DEFAULT_LTV)
 
-  const stdBase = 287
-  const stdFreeLeads = 3
-  const premBase = 450
-  const premFreeLeads = 5
+  const plans = {
+    basicPrivate:  { base: 287, cosmeticCredits: 3, checkupLeads: 3, extraPrice: BASIC_PRIVATE_EXTRA },
+    basicMixed:    { base: 277, cosmeticCredits: 2, checkupLeads: 3, extraPrice: BASIC_MIXED_EXTRA },
+    growthPrivate: { base: 492, cosmeticCredits: 8, checkupLeads: 6, extraPrice: GROWTH_PRIVATE_EXTRA },
+    growthMixed:   { base: 462, cosmeticCredits: 6, checkupLeads: 6, extraPrice: GROWTH_MIXED_EXTRA },
+  }
 
   const calc = useCallback(
     (base: number, freeLeads: number, extraPrice: number) => {
@@ -226,8 +233,10 @@ export default function ForClinicsPage() {
     [extra, ltv],
   )
 
-  const stdCalc = calc(stdBase, stdFreeLeads, STD_EXTRA_PRICE)
-  const premCalc = calc(premBase, premFreeLeads, PREM_EXTRA_PRICE)
+  const basicPlan = practiceType === "private" ? plans.basicPrivate : plans.basicMixed
+  const growthPlan = practiceType === "private" ? plans.growthPrivate : plans.growthMixed
+  const basicCalc = calc(basicPlan.base, basicPlan.cosmeticCredits + basicPlan.checkupLeads, basicPlan.extraPrice)
+  const growthCalc = calc(growthPlan.base, growthPlan.cosmeticCredits + growthPlan.checkupLeads, growthPlan.extraPrice)
 
   /* Shared inline style helpers */
   const sectionPad = { padding: "96px 24px" } as const
@@ -1463,18 +1472,18 @@ export default function ForClinicsPage() {
             {/* Results — two plans side by side */}
             <div className="fc-roi-results" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <RoiCard
-                label="Standard Plan"
+                label={`Basic — ${practiceType === "private" ? "Private" : "Mixed"}`}
                 labelColor="#94a3b8"
-                c={stdCalc}
-                baseCost={stdBase}
-                extraPrice={STD_EXTRA_PRICE}
+                c={basicCalc}
+                baseCost={basicPlan.base}
+                extraPrice={basicPlan.extraPrice}
               />
               <RoiCard
-                label="Premium Plan"
+                label={`Growth — ${practiceType === "private" ? "Private" : "Mixed"}`}
                 labelColor="#10b981"
-                c={premCalc}
-                baseCost={premBase}
-                extraPrice={PREM_EXTRA_PRICE}
+                c={growthCalc}
+                baseCost={growthPlan.base}
+                extraPrice={growthPlan.extraPrice}
                 highlight
               />
             </div>
@@ -1804,12 +1813,45 @@ export default function ForClinicsPage() {
               fontSize: 17,
               textAlign: "center",
               maxWidth: 540,
-              margin: "0 auto 48px",
+              margin: "0 auto 32px",
               lineHeight: 1.6,
             }}
           >
             No setup fees. No contracts. No surprises. Cancel anytime.
           </p>
+
+          {/* ── Practice type toggle ── */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 48 }}>
+            <div
+              style={{
+                display: "inline-flex",
+                background: "rgba(255,255,255,.04)",
+                border: "1px solid rgba(255,255,255,.08)",
+                borderRadius: 12,
+                padding: 4,
+              }}
+            >
+              {(["private", "mixed"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setPracticeType(t)}
+                  style={{
+                    padding: "10px 24px",
+                    borderRadius: 10,
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    transition: "all .2s",
+                    background: practiceType === t ? "#10b981" : "transparent",
+                    color: practiceType === t ? "#030712" : "#94a3b8",
+                  }}
+                >
+                  {t === "private" ? "Private Clinic" : "Mixed Practice"}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div
             className="fc-pricing-grid"
@@ -1821,7 +1863,7 @@ export default function ForClinicsPage() {
               margin: "0 auto",
             }}
           >
-            {/* Standard */}
+            {/* ── BASIC ── */}
             <div
               style={{
                 background: "rgba(255,255,255,.03)",
@@ -1831,37 +1873,64 @@ export default function ForClinicsPage() {
               }}
             >
               <p style={{ color: "#94a3b8", fontWeight: 600, fontSize: 14, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                Standard
+                Basic
               </p>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
-                <span style={{ ...heading, fontSize: 48 }}>&pound;287</span>
+                <span style={{ ...heading, fontSize: 48 }}>
+                  &pound;{practiceType === "private" ? "287" : "277"}
+                </span>
                 <span style={{ color: "#64748b", fontSize: 16 }}>/month</span>
               </div>
               <p style={{ color: "#64748b", fontSize: 14, marginBottom: 28 }}>
-                3 matched patients included
+                {practiceType === "private"
+                  ? "3 cosmetic consults + 3 private check-up leads"
+                  : "2 cosmetic consults + 3 private check-up leads"}
               </p>
               <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px" }}>
                 {[
-                  "3 pre-qualified patient leads",
-                  "Full patient intent profile",
-                  "Extra leads at £35 each",
-                  "No setup fee",
-                  "Cancel anytime",
-                  "No-show? No charge",
+                  practiceType === "private"
+                    ? "3 cosmetic consult credits / month"
+                    : "2 cosmetic consult credits / month",
+                  "3 private check-up leads / month",
+                  ...(practiceType === "mixed" ? ["Unlimited NHS check-up enquiries"] : []),
+                  "Additional cosmetic consults £30 each",
+                  "Deep patient insights on every lead",
+                  "Full dashboard & live chat",
+                  "Appointment management",
+                  "Integrated with CRM",
+                  "AI intake matching",
+                  "Automated reminders",
+                  ...(practiceType === "mixed" ? ["NHS vs private lead tagging", "AI triage routing"] : ["Self-training onboarding portal"]),
+                  "No setup fee — cancel anytime",
                 ].map((item) => (
                   <li
                     key={item}
                     style={{
                       display: "flex",
-                      alignItems: "center",
+                      alignItems: "flex-start",
                       gap: 10,
-                      padding: "8px 0",
-                      color: "#cbd5e1",
-                      fontSize: 15,
+                      padding: "7px 0",
+                      color: item.toLowerCase().includes("patient insights") ? "#f1f5f9" : "#cbd5e1",
+                      fontSize: 14,
+                      fontWeight: item.toLowerCase().includes("patient insights") ? 600 : 400,
                     }}
                   >
-                    <Check size={16} style={{ color: "#10b981", flexShrink: 0 }} />
-                    {item}
+                    <Check
+                      size={16}
+                      style={{
+                        color: item.toLowerCase().includes("patient insights") ? "#34d399" : "#10b981",
+                        flexShrink: 0,
+                        marginTop: 2,
+                      }}
+                    />
+                    <span>
+                      {item}
+                      {item.toLowerCase().includes("patient insights") && (
+                        <span style={{ display: "block", color: "#64748b", fontSize: 12, fontWeight: 400, marginTop: 2 }}>
+                          Anxiety level, cost mindset, treatment goals &amp; priorities
+                        </span>
+                      )}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -1877,7 +1946,7 @@ export default function ForClinicsPage() {
               </Link>
             </div>
 
-            {/* Premium */}
+            {/* ── GROWTH ── */}
             <div
               style={{
                 background: "rgba(16,185,129,.06)",
@@ -1906,42 +1975,74 @@ export default function ForClinicsPage() {
                 Best value
               </div>
               <p style={{ color: "#10b981", fontWeight: 600, fontSize: 14, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                Premium
+                Growth
               </p>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
-                <span style={{ ...heading, fontSize: 48 }}>&pound;450</span>
+                <span style={{ ...heading, fontSize: 48 }}>
+                  &pound;{practiceType === "private" ? "492" : "462"}
+                </span>
                 <span style={{ color: "#64748b", fontSize: 16 }}>/month</span>
               </div>
               <p style={{ color: "#64748b", fontSize: 14, marginBottom: 28 }}>
-                5 matched patients included
+                {practiceType === "private"
+                  ? "8 cosmetic consults + 6 private check-up leads"
+                  : "6 cosmetic consults + 6 private check-up leads"}
               </p>
               <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px" }}>
                 {[
-                  "5 pre-qualified patient leads",
-                  "Full patient intent profile",
-                  "Extra leads at £28 each",
-                  "Priority matching",
-                  "Dedicated onboarding call",
-                  "No-show? No charge",
+                  practiceType === "private"
+                    ? "8 cosmetic consult credits / month"
+                    : "6 cosmetic consult credits / month",
+                  "6 private check-up leads / month",
+                  ...(practiceType === "mixed" ? ["Unlimited NHS & private check-up enquiries"] : []),
+                  "Additional cosmetic consults £25 each",
+                  "Priority patient insights & lead scoring",
+                  "Priority cosmetic matching",
+                  "Featured placement",
+                  "Advanced dashboard",
+                  "Integrated with CRM + pipeline tracking",
+                  "Conversion analytics & revenue forecasting",
+                  "AI follow-up automation",
+                  "Multi-user access",
+                  ...(practiceType === "mixed"
+                    ? ["Chair-fill optimisation tools", "NHS vs private revenue breakdown", "AI conversion nudges & upsell tracking"]
+                    : []),
+                  "Quarterly growth review",
+                  "No setup fee — cancel anytime",
                 ].map((item) => (
                   <li
                     key={item}
                     style={{
                       display: "flex",
-                      alignItems: "center",
+                      alignItems: "flex-start",
                       gap: 10,
-                      padding: "8px 0",
-                      color: "#cbd5e1",
-                      fontSize: 15,
+                      padding: "7px 0",
+                      color: item.toLowerCase().includes("patient insights") ? "#f1f5f9" : "#cbd5e1",
+                      fontSize: 14,
+                      fontWeight: item.toLowerCase().includes("patient insights") ? 600 : 400,
                     }}
                   >
-                    <Check size={16} style={{ color: "#10b981", flexShrink: 0 }} />
-                    {item}
+                    <Check
+                      size={16}
+                      style={{
+                        color: item.toLowerCase().includes("patient insights") ? "#34d399" : "#10b981",
+                        flexShrink: 0,
+                        marginTop: 2,
+                      }}
+                    />
+                    <span>
+                      {item}
+                      {item.toLowerCase().includes("patient insights") && (
+                        <span style={{ display: "block", color: "#64748b", fontSize: 12, fontWeight: 400, marginTop: 2 }}>
+                          Deep behavioural data, anxiety scores, cost alignment &amp; intent signals
+                        </span>
+                      )}
+                    </span>
                   </li>
                 ))}
               </ul>
               <a
-                href="mailto:hello@pearlie.org?subject=Pearlie Premium — clinic enquiry"
+                href="mailto:hello@pearlie.org?subject=Pearlie Growth — clinic enquiry"
                 style={{
                   ...greenBtn,
                   width: "100%",
@@ -1950,6 +2051,33 @@ export default function ForClinicsPage() {
               >
                 Contact sales <ArrowRight size={18} />
               </a>
+            </div>
+          </div>
+
+          {/* Patient insights callout */}
+          <div
+            style={{
+              maxWidth: 720,
+              margin: "40px auto 0",
+              background: "rgba(16,185,129,.06)",
+              border: "1px solid rgba(16,185,129,.15)",
+              borderRadius: 16,
+              padding: "24px 28px",
+              display: "flex",
+              gap: 16,
+              alignItems: "flex-start",
+            }}
+          >
+            <Brain size={22} style={{ color: "#10b981", flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <p style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 15, marginBottom: 6 }}>
+                Every lead comes with rich patient insights
+              </p>
+              <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.55 }}>
+                Before a patient reaches you, Pearlie captures their anxiety level, cost mindset, treatment goals,
+                and what they value most in a clinic. You know exactly who you&rsquo;re speaking to before the
+                conversation even starts.
+              </p>
             </div>
           </div>
         </div>
