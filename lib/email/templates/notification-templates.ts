@@ -816,6 +816,113 @@ export function renderBookingRequestSentEmail(data: BookingRequestSentPayload): 
 </div>`
 }
 
+// ---------------------------------------------------------------------------
+// 22. Direct Lead Notification (to clinic — from clinic profile enquiry)
+// ---------------------------------------------------------------------------
+
+export interface DirectLeadNotificationPayload {
+  clinicName: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  treatment: string
+  urgency: string
+  inboxUrl: string
+}
+
+export function renderDirectLeadNotificationEmail(data: DirectLeadNotificationPayload): string {
+  const safeClinicName = escapeHtml(data.clinicName || "")
+  const safeFirstName = escapeHtml(data.firstName || "")
+  const safeLastName = escapeHtml(data.lastName || "")
+  const safeEmail = escapeHtml(data.email || "")
+  const safePhone = escapeHtml(data.phone || "")
+  const safeTreatment = escapeHtml(data.treatment || "Not specified")
+
+  const urgencyOption = URGENCY_OPTIONS.find(u => u.key === data.urgency)
+  const urgencyLabel = urgencyOption?.label || data.urgency || "Flexible"
+  const isUrgent = data.urgency === "asap" || data.urgency === "1_week"
+
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; }
+      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+      .header { background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
+      .content { background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
+      .badge { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+      .urgent-badge { background: #fef3c7; color: #92400e; }
+      .field { margin-bottom: 15px; }
+      .label { font-size: 13px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+      .value { font-size: 16px; color: #111827; margin-top: 4px; }
+      .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+      .tip-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 15px; margin: 20px 0; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 style="margin: 0; font-size: 24px;">New Direct Enquiry</h1>
+        <p style="margin: 10px 0 0; opacity: 0.9; font-size: 16px;">${safeClinicName}</p>
+      </div>
+      <div class="content">
+        <div class="badge">Profile Enquiry</div>
+        ${isUrgent ? '<div class="badge urgent-badge" style="margin-left: 8px;">Urgent</div>' : ""}
+
+        <p style="font-size: 16px; color: #374151; margin: 10px 0 20px;">
+          A verified patient found your clinic on Pearlie and submitted an enquiry directly from your profile.
+        </p>
+
+        <div class="field">
+          <div class="label">Patient Name</div>
+          <div class="value">${safeFirstName} ${safeLastName}</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Contact</div>
+          <div class="value">
+            ${data.email ? `Email: <a href="mailto:${safeEmail}" style="color: #0fbcb0;">${safeEmail}</a>` : ""}${data.email && data.phone ? "<br>" : ""}${data.phone ? `Phone: <a href="tel:${safePhone}" style="color: #0fbcb0;">${safePhone}</a>` : ""}
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="label">Treatment Interest</div>
+          <div class="value">${safeTreatment}</div>
+        </div>
+
+        <div class="field">
+          <div class="label">When do they want treatment?</div>
+          <div class="value">${escapeHtml(urgencyLabel)}</div>
+        </div>
+
+        <div class="tip-box">
+          <strong style="color: #92400e;">Conversion Tip:</strong>
+          <ul style="margin: 10px 0 0; padding-left: 20px; color: #78350f;">
+            ${isUrgent ? "<li>This patient needs treatment soon — respond quickly!</li>" : ""}
+            <li>Patients who enquire directly are highly interested — reach out within a few hours for the best conversion rate.</li>
+            <li>Open the chat in Pearlie to continue the conversation.</li>
+          </ul>
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+          <a href="${data.inboxUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            View in Inbox
+          </a>
+          <p style="margin-top: 15px; font-size: 13px; color: #6b7280;">Log in to your clinic dashboard to respond to this patient</p>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>This enquiry was submitted directly from your <strong>Pearlie</strong> clinic profile</p>
+        <p style="font-size: 12px;">pearlie.org</p>
+      </div>
+    </div>
+  </body>
+</html>`
+}
+
 export function renderClinicReplyToPatientEmail(data: ClinicReplyToPatientPayload): string {
   const safeFirstName = data.patientFirstName ? ` ${data.patientFirstName}` : ""
 
