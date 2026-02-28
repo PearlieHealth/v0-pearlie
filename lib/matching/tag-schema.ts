@@ -142,11 +142,6 @@ export const WEIGHT_CONFIG = {
   availability: 5, // Appointment time slot compatibility
 } as const
 
-// =============================================================================
-// Verified clinic bonus (added to percent score for verified clinics)
-// Ensures verified clinics generally rank higher than directory listings
-// =============================================================================
-export const VERIFIED_BONUS = 15
 
 // =============================================================================
 // Directory listing weight config (sum = 100)
@@ -165,7 +160,7 @@ export const DIRECTORY_LISTING_MAX_RADIUS = 15
 
 // Multiplier applied to directory listing final score (0.95 = max 95%)
 // Ensures verified clinics naturally rank above equivalent directory listings
-export const DIRECTORY_LISTING_MULTIPLIER = 0.95
+export const DIRECTORY_LISTING_MULTIPLIER = 0.9
 
 export const CANONICAL_TAG_KEYS: string[] = [
   // Q4 Priority tags

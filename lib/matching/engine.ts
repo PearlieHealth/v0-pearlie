@@ -9,7 +9,6 @@ import { EXPLANATION_SCHEMA_VERSION } from "./contract"
 import { normalizeLead, normalizeClinic } from "./normalize"
 import { scoreClinic, scoreDirectoryListing, buildMatchFacts, isExcludedByClearPricingFilter } from "./scoring"
 import { buildMatchReasons, buildDirectoryListingReasons, getExplanationVersion, buildMatchReasonsDebug } from "./reasons-engine"
-import { VERIFIED_BONUS } from "./tag-schema"
 import { createClient } from "@/lib/supabase/server"
 import { isClinicMatchable, getMatchingTagCount, getLiveClinicFilter, MIN_MATCHING_TAGS } from "./clinic-status"
 import { calculateHaversineDistance } from "@/lib/utils/geo"
@@ -289,7 +288,7 @@ function getClinicMatchingTagCount(clinic: ClinicProfile): number {
  * Unified scoring model:
  * - Matchable clinics (≥3 tags): Full 7-category scoring via scoreClinic()
  * - Non-matchable clinics (<3 tags): Simple scoring via scoreDirectoryListing()
- * - Verified clinics get +VERIFIED_BONUS on their percent score
+ * - Directory listings get ×DIRECTORY_LISTING_MULTIPLIER penalty on their percent score
  * - All clinics sorted together for natural interleaving
  *
  * Two-pass system for matchable clinics to differentiate primary reasons:
@@ -333,17 +332,12 @@ export function rankClinics(
   // First pass: score all matchable clinics with normal priority
   let scoredMatchable: RankedClinic[] = matchableClinics.map((clinic, index) => {
     const { score, reasons, explanationVersion, matchFacts, reasonsDebug } = computeClinicScore(profile, clinic, false, index)
-    // Apply verified bonus: add VERIFIED_BONUS to percent (capped at 100)
-    const adjustedPercent = clinic.verified
-      ? Math.min(100, score.percent + VERIFIED_BONUS)
-      : score.percent
-    const adjustedScore = { ...score, percent: adjustedPercent }
-    const tier = getTier(adjustedPercent)
+    const tier = getTier(score.percent)
     const debug = buildDebugInfo(score, profile, clinic, reasonsDebug)
 
     return {
       clinic,
-      score: adjustedScore,
+      score,
       reasons,
       tier,
       isPinned: clinic.id === pinnedClinicId,
@@ -363,16 +357,12 @@ export function rankClinics(
     console.log("[rankClinics] All clinics have TREATMENT_MATCH primary reason, re-running with differentiation")
     scoredMatchable = matchableClinics.map((clinic, index) => {
       const { score, reasons, explanationVersion, matchFacts, reasonsDebug } = computeClinicScore(profile, clinic, true, index)
-      const adjustedPercent = clinic.verified
-        ? Math.min(100, score.percent + VERIFIED_BONUS)
-        : score.percent
-      const adjustedScore = { ...score, percent: adjustedPercent }
-      const tier = getTier(adjustedPercent)
+      const tier = getTier(score.percent)
       const debug = buildDebugInfo(score, profile, clinic, reasonsDebug)
 
       return {
         clinic,
-        score: adjustedScore,
+        score,
         reasons,
         tier,
         isPinned: clinic.id === pinnedClinicId,
@@ -388,17 +378,12 @@ export function rankClinics(
 
   const scoredDirectoryListings: RankedClinic[] = nonMatchableClinics.map((clinic, index) => {
     const score = scoreDirectoryListing(profile, clinic)
-    // Apply verified bonus if somehow a verified clinic has <3 tags (edge case)
-    const adjustedPercent = clinic.verified
-      ? Math.min(100, score.percent + VERIFIED_BONUS)
-      : score.percent
-    const adjustedScore = { ...score, percent: adjustedPercent }
     const reasons = buildDirectoryListingReasons(clinic, score, profile.treatment, index)
-    const tier = getTier(adjustedPercent)
+    const tier = getTier(score.percent)
 
     return {
       clinic,
-      score: adjustedScore,
+      score,
       reasons,
       tier,
       isPinned: clinic.id === pinnedClinicId,
@@ -411,7 +396,7 @@ export function rankClinics(
         anxietyMatched: false,
         budgetMatched: false,
         rawScore: score.totalScore,
-        percent: adjustedPercent,
+        percent: score.percent,
         categories: score.categories.map((c) => ({
           category: c.category,
           points: c.points,
