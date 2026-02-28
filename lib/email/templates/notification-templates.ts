@@ -829,9 +829,6 @@ export interface DirectLeadNotificationPayload {
   treatment: string
   urgency: string
   inboxUrl: string
-  bookingDate?: string
-  confirmUrl?: string
-  declineUrl?: string
 }
 
 export function renderDirectLeadNotificationEmail(data: DirectLeadNotificationPayload): string {
@@ -845,41 +842,6 @@ export function renderDirectLeadNotificationEmail(data: DirectLeadNotificationPa
   const urgencyOption = URGENCY_OPTIONS.find(u => u.key === data.urgency)
   const urgencyLabel = urgencyOption?.label || data.urgency || "Flexible"
   const isUrgent = data.urgency === "asap" || data.urgency === "1_week"
-  const hasBooking = data.bookingDate && data.confirmUrl && data.declineUrl
-
-  const formattedBookingDate = data.bookingDate
-    ? new Date(data.bookingDate + "T00:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
-    : ""
-
-  const headerTitle = hasBooking ? "New Appointment Request" : "New Direct Enquiry"
-  const badgeLabel = hasBooking ? "Appointment Request" : "Profile Enquiry"
-  const introParagraph = hasBooking
-    ? `<strong>${safeFirstName} ${safeLastName}</strong> would like to book an appointment at your clinic.`
-    : `A verified patient found your clinic on Pearlie and submitted an enquiry directly from your profile.`
-
-  const bookingDateSection = hasBooking ? `
-        <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 8px; padding: 16px; margin: 20px 0;">
-          <div class="label">Requested Date</div>
-          <div style="font-size: 20px; font-weight: 700; color: #1e3a8a; margin-top: 6px;">${formattedBookingDate}</div>
-        </div>` : ""
-
-  const actionButtons = hasBooking ? `
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-          <a href="${data.confirmUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-            Confirm Appointment
-          </a>
-          <div style="margin-top: 12px;">
-            <a href="${data.declineUrl}" style="color: #6b7280; font-size: 13px; text-decoration: underline;">
-              Unable to accommodate? Decline
-            </a>
-          </div>
-        </div>` : `
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-          <a href="${data.inboxUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-            View in Inbox
-          </a>
-          <p style="margin-top: 15px; font-size: 13px; color: #6b7280;">Log in to your clinic dashboard to respond to this patient</p>
-        </div>`
 
   return `<!DOCTYPE html>
 <html>
@@ -902,18 +864,16 @@ export function renderDirectLeadNotificationEmail(data: DirectLeadNotificationPa
   <body>
     <div class="container">
       <div class="header">
-        <h1 style="margin: 0; font-size: 24px;">${headerTitle}</h1>
+        <h1 style="margin: 0; font-size: 24px;">New Direct Enquiry</h1>
         <p style="margin: 10px 0 0; opacity: 0.9; font-size: 16px;">${safeClinicName}</p>
       </div>
       <div class="content">
-        <div class="badge">${badgeLabel}</div>
+        <div class="badge">Profile Enquiry</div>
         ${isUrgent ? '<div class="badge urgent-badge" style="margin-left: 8px;">Urgent</div>' : ""}
 
         <p style="font-size: 16px; color: #374151; margin: 10px 0 20px;">
-          ${introParagraph}
+          A verified patient found your clinic on Pearlie and submitted an enquiry directly from your profile.
         </p>
-
-        ${bookingDateSection}
 
         <div class="field">
           <div class="label">Patient Name</div>
@@ -932,25 +892,30 @@ export function renderDirectLeadNotificationEmail(data: DirectLeadNotificationPa
           <div class="value">${safeTreatment}</div>
         </div>
 
-        ${!hasBooking ? `
         <div class="field">
           <div class="label">When do they want treatment?</div>
           <div class="value">${escapeHtml(urgencyLabel)}</div>
-        </div>` : ""}
+        </div>
 
         <div class="tip-box">
-          <strong style="color: #92400e;">Tip:</strong>
+          <strong style="color: #92400e;">Conversion Tip:</strong>
           <ul style="margin: 10px 0 0; padding-left: 20px; color: #78350f;">
             ${isUrgent ? "<li>This patient needs treatment soon — respond quickly!</li>" : ""}
             <li>Patients who enquire directly are highly interested — reach out within a few hours for the best conversion rate.</li>
+            <li>Open the chat in Pearlie to continue the conversation.</li>
           </ul>
         </div>
 
-        ${actionButtons}
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+          <a href="${data.inboxUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            View in Inbox
+          </a>
+          <p style="margin-top: 15px; font-size: 13px; color: #6b7280;">Log in to your clinic dashboard to respond to this patient</p>
+        </div>
       </div>
 
       <div class="footer">
-        <p>This enquiry was submitted via <strong>Pearlie</strong></p>
+        <p>This enquiry was submitted directly from your <strong>Pearlie</strong> clinic profile</p>
         <p style="font-size: 12px;">pearlie.org</p>
       </div>
     </div>

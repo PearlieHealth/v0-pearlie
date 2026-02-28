@@ -124,9 +124,8 @@ export async function POST(request: Request) {
       console.error("[booking-request] Error updating lead:", updateError)
     }
 
-    // Send the direct lead notification email to the clinic (with confirm/decline links)
+    // Send the direct lead notification email to the clinic
     const clinicNotificationEmail = clinic.notification_email || clinic.email
-    const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
     if (clinicNotificationEmail) {
       try {
         await sendRegisteredEmail({
@@ -141,9 +140,6 @@ export async function POST(request: Request) {
             treatment: lead.treatment_interest || "Not specified",
             urgency: lead.preferred_timing || "flexible",
             inboxUrl: portalUrl("/clinic/appointments"),
-            bookingDate: date,
-            confirmUrl: `${appUrl}/booking/clinic-response?token=${bookingToken}&action=confirm`,
-            declineUrl: `${appUrl}/booking/clinic-response?token=${bookingToken}&action=decline`,
             _leadId: leadId,
             _clinicId: clinicId,
           },
@@ -366,6 +362,7 @@ export async function POST(request: Request) {
 
     // Send confirmation email to patient
     if (lead.email) {
+      const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
       const formattedDateForEmail = new Date(date).toLocaleDateString("en-GB", {
         weekday: "long",
         day: "numeric",
@@ -432,6 +429,7 @@ export async function POST(request: Request) {
     }
 
     // Fire TikTok Lead event (appointment request = real lead, non-blocking)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
     trackTikTokServerEvent({
       event: "Lead",
       url: `${appUrl}/booking/confirm`,
