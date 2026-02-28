@@ -9,6 +9,7 @@ import {
   COST_PRICE_TIER_MAP,
   DIRECTORY_LISTING_WEIGHTS,
   DIRECTORY_LISTING_MAX_RADIUS,
+  DIRECTORY_LISTING_MULTIPLIER,
 } from "./tag-schema"
 
 /**
@@ -853,7 +854,8 @@ export function scoreDirectoryListing(lead: LeadAnswer, clinic: ClinicProfile): 
     cat.weight = totalScore > 0 ? cat.points / totalScore : 0
   })
 
-  const percent = maxPossible > 0 ? Math.round((totalScore / maxPossible) * 100) : 0
+  const rawPercent = maxPossible > 0 ? (totalScore / maxPossible) * 100 : 0
+  const percent = Math.round(rawPercent * DIRECTORY_LISTING_MULTIPLIER)
 
   return {
     totalScore,

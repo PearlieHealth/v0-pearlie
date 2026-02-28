@@ -163,6 +163,10 @@ export const DIRECTORY_LISTING_WEIGHTS = {
 // Default distance radius for directory listing scoring (miles)
 export const DIRECTORY_LISTING_MAX_RADIUS = 15
 
+// Multiplier applied to directory listing final score (0.85 = max 85%)
+// Ensures verified clinics naturally rank above equivalent directory listings
+export const DIRECTORY_LISTING_MULTIPLIER = 0.85
+
 export const CANONICAL_TAG_KEYS: string[] = [
   // Q4 Priority tags
   ...Object.values(Q4_PRIORITY_TAG_MAP),
