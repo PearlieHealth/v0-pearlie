@@ -214,10 +214,10 @@ export default function ForClinicsPage() {
   const [ltv, setLtv] = useState(DEFAULT_LTV)
 
   const plans = {
-    basicPrivate:  { base: 287, cosmeticCredits: 3, checkupLeads: 3, extraPrice: BASIC_PRIVATE_EXTRA },
-    basicMixed:    { base: 277, cosmeticCredits: 2, checkupLeads: 3, extraPrice: BASIC_MIXED_EXTRA },
-    growthPrivate: { base: 492, cosmeticCredits: 8, checkupLeads: 6, extraPrice: GROWTH_PRIVATE_EXTRA },
-    growthMixed:   { base: 462, cosmeticCredits: 6, checkupLeads: 6, extraPrice: GROWTH_MIXED_EXTRA },
+    basicPrivate:  { base: 277, consults: 4, extraPrice: BASIC_PRIVATE_EXTRA },
+    basicMixed:    { base: 287, consults: 4, extraPrice: BASIC_MIXED_EXTRA },
+    growthPrivate: { base: 462, consults: 8, extraPrice: GROWTH_PRIVATE_EXTRA },
+    growthMixed:   { base: 492, consults: 8, extraPrice: GROWTH_MIXED_EXTRA },
   }
 
   const calc = useCallback(
@@ -235,8 +235,8 @@ export default function ForClinicsPage() {
 
   const basicPlan = practiceType === "private" ? plans.basicPrivate : plans.basicMixed
   const growthPlan = practiceType === "private" ? plans.growthPrivate : plans.growthMixed
-  const basicCalc = calc(basicPlan.base, basicPlan.cosmeticCredits + basicPlan.checkupLeads, basicPlan.extraPrice)
-  const growthCalc = calc(growthPlan.base, growthPlan.cosmeticCredits + growthPlan.checkupLeads, growthPlan.extraPrice)
+  const basicCalc = calc(basicPlan.base, basicPlan.consults, basicPlan.extraPrice)
+  const growthCalc = calc(growthPlan.base, growthPlan.consults, growthPlan.extraPrice)
 
   /* Shared inline style helpers */
   const sectionPad = { padding: "96px 24px" } as const
@@ -1877,23 +1877,20 @@ export default function ForClinicsPage() {
               </p>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
                 <span style={{ ...heading, fontSize: 48 }}>
-                  &pound;{practiceType === "private" ? "287" : "277"}
+                  &pound;{practiceType === "private" ? "277" : "287"}
                 </span>
                 <span style={{ color: "#64748b", fontSize: 16 }}>/month</span>
               </div>
               <p style={{ color: "#64748b", fontSize: 14, marginBottom: 28 }}>
                 {practiceType === "private"
-                  ? "3 cosmetic consults + 3 private check-up leads"
-                  : "2 cosmetic consults + 3 private check-up leads"}
+                  ? "4 private consults included"
+                  : "4 private consults + unlimited NHS"}
               </p>
               <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px" }}>
                 {[
-                  practiceType === "private"
-                    ? "3 cosmetic consult credits / month"
-                    : "2 cosmetic consult credits / month",
-                  "3 private check-up leads / month",
-                  ...(practiceType === "mixed" ? ["Unlimited NHS check-up enquiries"] : []),
-                  "Additional cosmetic consults £30 each",
+                  "4 private consult credits / month",
+                  ...(practiceType === "mixed" ? ["Unlimited NHS enquiries"] : []),
+                  "Additional consults £30 each",
                   "Deep patient insights on every lead",
                   "Full dashboard & live chat",
                   "Appointment management",
@@ -1979,26 +1976,42 @@ export default function ForClinicsPage() {
               </p>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
                 <span style={{ ...heading, fontSize: 48 }}>
-                  &pound;{practiceType === "private" ? "492" : "462"}
+                  &pound;{practiceType === "private" ? "462" : "492"}
                 </span>
                 <span style={{ color: "#64748b", fontSize: 16 }}>/month</span>
               </div>
               <p style={{ color: "#64748b", fontSize: 14, marginBottom: 28 }}>
                 {practiceType === "private"
-                  ? "8 cosmetic consults + 6 private check-up leads"
-                  : "6 cosmetic consults + 6 private check-up leads"}
+                  ? "8 private consults included"
+                  : "8 private consults + unlimited NHS"}
               </p>
+
+              {/* Everything in Basic callout */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(16,185,129,.08)",
+                  border: "1px solid rgba(16,185,129,.15)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  marginBottom: 20,
+                }}
+              >
+                <Check size={16} style={{ color: "#34d399", flexShrink: 0 }} />
+                <span style={{ color: "#34d399", fontSize: 14, fontWeight: 700 }}>
+                  Everything in Basic, plus:
+                </span>
+              </div>
+
               <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px" }}>
                 {[
-                  practiceType === "private"
-                    ? "8 cosmetic consult credits / month"
-                    : "6 cosmetic consult credits / month",
-                  "6 private check-up leads / month",
-                  ...(practiceType === "mixed" ? ["Unlimited NHS & private check-up enquiries"] : []),
-                  "Additional cosmetic consults £25 each",
+                  "8 private consult credits / month",
+                  ...(practiceType === "mixed" ? ["Unlimited NHS enquiries"] : []),
+                  "Additional consults £25 each (vs £30)",
                   "Priority patient insights & lead scoring",
-                  "Priority cosmetic matching",
-                  "Featured placement",
+                  "Priority matching & featured placement",
                   "Advanced dashboard",
                   "Integrated with CRM + pipeline tracking",
                   "Conversion analytics & revenue forecasting",
@@ -2008,7 +2021,6 @@ export default function ForClinicsPage() {
                     ? ["Chair-fill optimisation tools", "NHS vs private revenue breakdown", "AI conversion nudges & upsell tracking"]
                     : []),
                   "Quarterly growth review",
-                  "No setup fee — cancel anytime",
                 ].map((item) => (
                   <li
                     key={item}
