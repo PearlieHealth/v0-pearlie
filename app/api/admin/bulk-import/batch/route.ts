@@ -244,13 +244,42 @@ export async function POST(request: NextRequest) {
               0,
             )
 
+            // Derive price_range from exam/hygiene prices
+            let derivedPriceRange: string | null = null
+            const examCategory = pricingResult.categories.find(
+              (c) => /exam|consult/i.test(c.category)
+            )
+            const hygieneCategory = pricingResult.categories.find(
+              (c) => /hygiene|preventive|clean/i.test(c.category)
+            )
+            const getNumericPrice = (cat: typeof pricingResult.categories[0] | undefined): number | null => {
+              if (!cat) return null
+              for (const t of cat.treatments) {
+                if (!t.price) continue
+                const num = parseFloat(t.price.replace(/[^0-9.]/g, ""))
+                if (!isNaN(num) && num > 0) return num
+              }
+              return null
+            }
+            const examPrice = getNumericPrice(examCategory)
+            const hygienePrice = getNumericPrice(hygieneCategory)
+            const referencePrice = examPrice || hygienePrice
+            if (referencePrice !== null) {
+              if (referencePrice <= 50) derivedPriceRange = "budget"
+              else if (referencePrice <= 120) derivedPriceRange = "mid"
+              else derivedPriceRange = "premium"
+            }
+
             // Store as TreatmentCategory[] — same format as clinic dashboard
+            const priceUpdate: Record<string, any> = {
+              treatment_prices: pricingResult.categories,
+              show_treatment_prices: true,
+            }
+            if (derivedPriceRange) priceUpdate.price_range = derivedPriceRange
+
             await supabase
               .from("clinics")
-              .update({
-                treatment_prices: pricingResult.categories,
-                show_treatment_prices: false, // draft — admin reviews first
-              })
+              .update(priceUpdate)
               .eq("id", createResult.clinicId)
 
             pricingOk = true
@@ -275,6 +304,34 @@ export async function POST(request: NextRequest) {
               .from("clinics")
               .update({ email, notification_email: email })
               .eq("id", createResult.clinicId)
+          }
+        } catch {
+          // non-critical — skip
+        }
+      }
+
+      // Step 3g: Fetch a featured review from Google Places
+      if (place.placeId && apiKey) {
+        try {
+          const reviewUrl = `https://places.googleapis.com/v1/places/${place.placeId}?languageCode=en`
+          const reviewRes = await fetch(reviewUrl, {
+            headers: {
+              "X-Goog-Api-Key": apiKey,
+              "X-Goog-FieldMask": "reviews",
+            },
+          })
+          if (reviewRes.ok) {
+            const reviewData = await reviewRes.json()
+            const goodReviews = (reviewData.reviews || []).filter(
+              (r: any) => r.rating >= 4 && r.text?.text && r.text.text.length >= 40
+            )
+            if (goodReviews.length > 0) {
+              const picked = goodReviews[Math.floor(Math.random() * goodReviews.length)]
+              await supabase
+                .from("clinics")
+                .update({ featured_review: picked.text.text.slice(0, 500) })
+                .eq("id", createResult.clinicId)
+            }
           }
         } catch {
           // non-critical — skip

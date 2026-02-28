@@ -1,6 +1,6 @@
 "use client"
 
-import { Star, ExternalLink } from "lucide-react"
+import { Star } from "lucide-react"
 
 interface GoogleReviewCardProps {
   rating: number
@@ -38,15 +38,9 @@ export function GoogleReviewCard({
   reviewCount,
   googleRating,
   googleReviewCount,
-  googlePlaceId,
-  googleMapsUrl,
   featuredReview,
   compact = false,
 }: GoogleReviewCardProps) {
-  const googleReviewsUrl = googlePlaceId
-    ? `https://search.google.com/local/reviews?placeid=${googlePlaceId}`
-    : googleMapsUrl || null
-
   return (
     <div className="space-y-5">
       {/* Pearlie rating */}
@@ -96,17 +90,6 @@ export function GoogleReviewCard({
               )}
             </div>
           </div>
-          {googleReviewsUrl && (
-            <a
-              href={googleReviewsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#4285F4] hover:text-[#1a73e8] transition-colors"
-            >
-              See reviews
-              <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-          )}
         </div>
       )}
     </div>

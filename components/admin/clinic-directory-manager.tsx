@@ -136,7 +136,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       const response = await fetch("/api/admin/clinics")
       if (response.ok) {
         const data = await response.json()
-        setClinics(data)
+        setClinics(data.clinics || data)
         toast({
           title: "Data refreshed",
           description: "Clinic data has been updated.",
