@@ -333,7 +333,7 @@ export default function ForClinicsPage() {
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
             <span style={{ color: "#64748b", fontSize: 13 }}>
-              {extra} extra leads &times; &pound;{extraPrice}
+              {extra} extra consults &times; &pound;{extraPrice}
             </span>
             <span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 500 }}>
               &pound;{c.extraCost}
@@ -717,9 +717,9 @@ export default function ForClinicsPage() {
                     { feature: "Setup / onboarding fee", old: "£1,000 – £5,000", pearlie: "£0 — free" },
                     { feature: "Contract", old: "12 – 36 months locked in", pearlie: "Cancel anytime" },
                     { feature: "Time to first patient", old: "3 – 6 months (SEO ramp)", pearlie: "Within 48 hours" },
-                    { feature: "Lead quality", old: "Cold ad clicks", pearlie: "Pre-qualified & matched" },
+                    { feature: "Patient quality", old: "Cold ad clicks", pearlie: "Pre-qualified & matched" },
                     { feature: "Patient no-show?", old: "You still pay", pearlie: "No charge" },
-                    { feature: "No leads delivered?", old: "You still pay retainer", pearlie: "No extra charge" },
+                    { feature: "No patients delivered?", old: "You still pay retainer", pearlie: "No extra charge" },
                     { feature: "Work required from clinic", old: "Approve ads, manage pages", pearlie: "None — fully hands-off" },
                   ].map((row) => (
                     <tr key={row.feature}>
@@ -944,7 +944,7 @@ export default function ForClinicsPage() {
               </div>
             </div>
 
-            {/* Step 03 — Lead profile card */}
+            {/* Step 03 — Patient profile card */}
             <div
               style={{
                 background: "rgba(255,255,255,.03)",
@@ -973,7 +973,7 @@ export default function ForClinicsPage() {
                 <span style={{ color: "#10b981", fontWeight: 800, fontSize: 14 }}>STEP 03</span>
               </div>
               <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 8 }}>
-                You receive a qualified lead
+                You receive a matched patient
               </h3>
               <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.55, marginBottom: 16 }}>
                 You get the patient&rsquo;s profile with all 8 data points — anxiety level, blockers, budget mindset, preferred times, and more. Ready for a productive consultation.
@@ -1088,7 +1088,7 @@ export default function ForClinicsPage() {
               lineHeight: 1.5,
             }}
           >
-            Every lead includes 8 data points collected from our intake questionnaire.
+            Every matched patient includes 8 data points collected from our intake questionnaire.
             Here&rsquo;s what clinics see:
           </p>
           {/* Source badge */}
@@ -1427,8 +1427,8 @@ export default function ForClinicsPage() {
             }}
           >
             If a patient doesn&rsquo;t attend their appointment, you are not charged.
-            If we don&rsquo;t send you any leads in a month, you don&rsquo;t pay the per-lead fee.
-            Your subscription covers platform access and your guaranteed leads &mdash; but
+            If we don&rsquo;t send you any matched patients in a month, you don&rsquo;t pay extra.
+            Your subscription covers platform access and your guaranteed referrals &mdash; but
             no-shows are always on us.
           </p>
           <div
@@ -1441,7 +1441,7 @@ export default function ForClinicsPage() {
           >
             {[
               { q: "Patient no-show?", a: "No charge. Ever." },
-              { q: "No leads this month?", a: "You don't pay extra." },
+              { q: "No patients this month?", a: "You don't pay extra." },
               { q: "Want to cancel?", a: "Anytime. No penalties." },
               { q: "Unhappy with quality?", a: "We'll make it right." },
             ].map((card) => (
@@ -1507,7 +1507,7 @@ export default function ForClinicsPage() {
               { step: "01", title: "Sign up", desc: "Create your account and tell us about your clinic in under 5 minutes.", icon: <FileText size={20} /> },
               { step: "02", title: "Set your profile", desc: "Add treatments, team, hours, and what makes your practice unique.", icon: <Users size={20} /> },
               { step: "03", title: "We match patients", desc: "Our AI starts routing pre-qualified patients who fit your clinic.", icon: <Brain size={20} /> },
-              { step: "04", title: "Receive leads", desc: "Get full patient profiles with insights — ready for a productive consult.", icon: <Zap size={20} /> },
+              { step: "04", title: "Receive patients", desc: "Get full patient profiles with insights — ready for a productive consult.", icon: <Zap size={20} /> },
             ].map((s) => (
               <div
                 key={s.step}
@@ -1580,10 +1580,10 @@ export default function ForClinicsPage() {
               padding: "36px 32px",
             }}
           >
-            {/* Extra leads slider */}
+            {/* Extra consults slider */}
             <div style={{ marginBottom: 32 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Extra leads / month</span>
+                <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Extra consults / month</span>
                 <span style={{ color: "#10b981", fontWeight: 700, fontSize: 16 }}>{extra}</span>
               </div>
               <input
@@ -2037,13 +2037,13 @@ export default function ForClinicsPage() {
                   "4 private consult credits / month",
                   ...(practiceType === "mixed" ? ["Unlimited NHS enquiries"] : []),
                   "Additional consults £30 each",
-                  "Deep patient insights on every lead",
+                  "Deep patient insights on every referral",
                   "Full dashboard & live chat",
                   "Appointment management",
                   "Integrated with CRM",
                   "AI intake matching",
                   "Automated reminders",
-                  ...(practiceType === "mixed" ? ["NHS vs private lead tagging", "AI triage routing"] : ["Self-training onboarding portal"]),
+                  ...(practiceType === "mixed" ? ["NHS vs private patient tagging", "AI triage routing"] : ["Self-training onboarding portal"]),
                   "No setup fee — cancel anytime",
                 ].map((item) => (
                   <li
@@ -2156,7 +2156,7 @@ export default function ForClinicsPage() {
                   "8 private consult credits / month",
                   ...(practiceType === "mixed" ? ["Unlimited NHS enquiries"] : []),
                   "Additional consults £25 each (vs £30)",
-                  "Priority patient insights & lead scoring",
+                  "Priority patient insights & scoring",
                   "Priority matching & featured placement",
                   "Advanced dashboard",
                   "Integrated with CRM + pipeline tracking",
@@ -2229,7 +2229,7 @@ export default function ForClinicsPage() {
             <Brain size={22} style={{ color: "#10b981", flexShrink: 0, marginTop: 2 }} />
             <div>
               <p style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 15, marginBottom: 6 }}>
-                Every lead comes with rich patient insights
+                Every referral comes with rich patient insights
               </p>
               <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.55 }}>
                 Before a patient reaches you, Pearlie captures their anxiety level, cost mindset, treatment goals,
@@ -2311,7 +2311,7 @@ export default function ForClinicsPage() {
                 name: "Hannan Imran",
                 practice: "Siha Dental",
                 quote:
-                  "We stopped spending thousands on Google Ads and started getting higher-quality leads through Pearlie. The patient profiles are incredibly detailed \u2014 our conversion rate has gone up because we can tailor every conversation from the first call.",
+                  "We stopped spending thousands on Google Ads and started getting higher-quality patients through Pearlie. The patient profiles are incredibly detailed \u2014 our conversion rate has gone up because we can tailor every conversation from the first call.",
               },
             ].map((t) => (
               <div
@@ -2384,12 +2384,12 @@ export default function ForClinicsPage() {
             Frequently asked questions
           </h2>
           <FaqItem
-            question="What counts as a 'lead'?"
-            answer="A lead is a patient who has completed our full intake questionnaire and has been matched to your clinic based on treatment fit, location, cost approach, and what they value. You receive their complete profile including anxiety level, concerns, budget mindset, and preferred times."
+            question="What counts as a matched patient?"
+            answer="A matched patient is someone who has completed our full intake questionnaire and been matched to your clinic based on treatment fit, location, cost approach, and what they value. You receive their complete profile including anxiety level, concerns, budget mindset, and preferred times."
           />
           <FaqItem
             question="What if a patient doesn't show up?"
-            answer="No-shows happen. You won't be charged for a lead that doesn't convert or doesn't attend. You only pay for the matched leads delivered to you — what happens after is on us to improve, not on you to absorb."
+            answer="No-shows happen. You won't be charged for a patient who doesn't convert or doesn't attend. You only pay for matched patients delivered to you — what happens after is on us to improve, not on you to absorb."
           />
           <FaqItem
             question="How are patients matched to my clinic?"
@@ -2401,15 +2401,15 @@ export default function ForClinicsPage() {
           />
           <FaqItem
             question="What data do I get about each patient?"
-            answer="Every lead includes: treatment interest, anxiety level, cost approach (and budget preferences), conversion blockers/concerns, top clinic priorities, readiness/timing, preferred visit times, and location flexibility. This is the same data our intake questionnaire collects directly from patients."
+            answer="Every matched patient includes: treatment interest, anxiety level, cost approach (and budget preferences), conversion blockers/concerns, top clinic priorities, readiness/timing, preferred visit times, and location flexibility. This is the same data our intake questionnaire collects directly from patients."
           />
           <FaqItem
             question="Do I need to change anything about my practice?"
-            answer="No. Pearlie works alongside your existing processes. We send you qualified patient leads — you handle the consultation and booking as you normally would, just with much better information upfront."
+            answer="No. Pearlie works alongside your existing processes. We send you pre-qualified patients — you handle the consultation and booking as you normally would, just with much better information upfront."
           />
           <FaqItem
-            question="What if I don't get any leads in a month?"
-            answer="If we don't deliver any matched leads in a billing cycle, you won't be charged for extra leads. Your base subscription covers availability on the platform and priority matching — but we're incentivised to deliver value, not just collect fees."
+            question="What if I don't get any patients in a month?"
+            answer="If we don't deliver any matched patients in a billing cycle, you won't be charged for extra consults. Your base subscription covers availability on the platform and priority matching — but we're incentivised to deliver value, not just collect fees."
           />
         </div>
       </section>
