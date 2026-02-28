@@ -139,6 +139,10 @@ const faqSchema = {
 export default async function InvisalignVsSparkPage() {
   const clinics = await getClinicsForAligners()
 
+  // Split clinics: featured early, more later
+  const featuredClinics = clinics.slice(0, 6)
+  const moreClinics = clinics.slice(6)
+
   const breadcrumbs = [
     { label: "Home", href: "/" },
     { label: "Treatments", href: "/treatments" },
@@ -169,7 +173,7 @@ export default async function InvisalignVsSparkPage() {
       />
 
       <main>
-        {/* Hero */}
+        {/* 1. PROMISE — Hero */}
         <div className="pt-28 pb-8 sm:pt-32 sm:pb-12 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
@@ -209,7 +213,16 @@ export default async function InvisalignVsSparkPage() {
           </div>
         </div>
 
-        {/* Quick summary table */}
+        {/* 2. PROOF — Trust badges */}
+        <TrustBadgeStrip />
+
+        {/* 3. SUPPLY — Featured clinics early */}
+        <TreatmentClinicGrid
+          clinics={featuredClinics}
+          treatmentName="clear aligners (Invisalign & Spark)"
+        />
+
+        {/* 4. EDUCATION — Quick summary table */}
         <section className="py-10 sm:py-14 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
@@ -241,7 +254,7 @@ export default async function InvisalignVsSparkPage() {
           </div>
         </section>
 
-        {/* Which is cheaper? */}
+        {/* 5. Which is cheaper? */}
         <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
@@ -263,7 +276,7 @@ export default async function InvisalignVsSparkPage() {
           </div>
         </section>
 
-        {/* Which is better for... */}
+        {/* 6. Which is better for... */}
         <section className="py-10 sm:py-14 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
@@ -304,16 +317,16 @@ export default async function InvisalignVsSparkPage() {
           </div>
         </section>
 
-        {/* Mid-page CTA */}
+        {/* 7. Mid-page CTA */}
         <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
               <div className="p-6 sm:p-8 rounded-2xl bg-white border border-border/50 text-center">
                 <p className="text-lg font-heading font-bold text-[#004443] mb-2">
-                  Compare clinics offering Invisalign and Spark near you
+                  Get an exact quote from clear aligner clinics near you
                 </p>
                 <p className="text-sm text-muted-foreground mb-5">
-                  Enter your postcode and we&apos;ll match you with verified clear aligner providers in your area.
+                  Enter your postcode to compare verified providers offering Invisalign and Spark in your area.
                 </p>
                 <div className="flex justify-center">
                   <HeroPostcodeCta
@@ -327,13 +340,15 @@ export default async function InvisalignVsSparkPage() {
           </div>
         </section>
 
-        {/* Clinic Listings */}
-        <TreatmentClinicGrid
-          clinics={clinics}
-          treatmentName="clear aligners (Invisalign & Spark)"
-        />
-
-        <TrustBadgeStrip />
+        {/* 8. SUPPLY — More clinics */}
+        {moreClinics.length > 0 && (
+          <TreatmentClinicGrid
+            clinics={moreClinics}
+            treatmentName="clear aligners"
+            heading="More clear aligner clinics"
+            subheading="Explore more verified providers in your area."
+          />
+        )}
 
         {/* FAQ */}
         <section data-speakable="faq" className="py-12 sm:py-16 bg-[var(--cream)]">

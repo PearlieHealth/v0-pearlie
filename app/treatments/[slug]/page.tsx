@@ -145,6 +145,10 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
   // Fetch clinics offering this treatment
   const clinics = await getClinicsForTreatment(meta.clinicFilterTags)
 
+  // Split clinics: featured (top 6) shown early, rest shown later
+  const featuredClinics = clinics.slice(0, 6)
+  const moreClinics = clinics.slice(6)
+
   // Resolve related blog posts
   const relatedBlogPosts: BlogPost[] = (meta.relatedBlogSlugs || [])
     .map((blogSlug) => {
@@ -286,7 +290,7 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
       />
 
       <main>
-        {/* 1. Treatment Hero (cost-intent H1 + subheading + price CTA) */}
+        {/* 1. PROMISE — Hero (cost-intent H1 + subheading + transactional CTA) */}
         <TreatmentHero
           treatment={meta}
           costIntentH1={costContent?.costIntentH1}
@@ -300,7 +304,16 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           treatmentDuration={meta.treatmentDuration}
         />
 
-        {/* 3. Price Breakdown (BEFORE clinic listings for cost-intent pages) */}
+        {/* 3. PROOF — Trust badges immediately after hero */}
+        <TrustBadgeStrip />
+
+        {/* 4. SUPPLY — Featured clinics early (top 6) to prove legitimacy */}
+        <TreatmentClinicGrid
+          clinics={featuredClinics}
+          treatmentName={meta.treatmentName}
+        />
+
+        {/* 5. EDUCATION — Price Breakdown (SEO layer, keeps Google happy) */}
         {costContent && (
           <PriceBreakdown
             costContent={costContent}
@@ -309,21 +322,22 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           />
         )}
 
-        {/* 4. Compare Options */}
+        {/* 6. EDUCATION — Compare Options */}
         {costContent && (
           <CompareOptions costContent={costContent} />
         )}
 
-        {/* 5. Clinic Listings */}
-        <TreatmentClinicGrid
-          clinics={clinics}
-          treatmentName={meta.treatmentName}
-        />
+        {/* 7. SUPPLY — More clinics / expanded list */}
+        {moreClinics.length > 0 && (
+          <TreatmentClinicGrid
+            clinics={moreClinics}
+            treatmentName={meta.treatmentName}
+            heading={`More ${meta.treatmentName.toLowerCase()} clinics`}
+            subheading="Explore more verified providers in your area."
+          />
+        )}
 
-        {/* Trust badges */}
-        <TrustBadgeStrip />
-
-        {/* 6. MDX Editorial Content */}
+        {/* 8. MDX Editorial Content */}
         <section className="py-8 sm:py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
@@ -350,36 +364,36 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           </div>
         </section>
 
-        {/* 7. Cost FAQ Accordion (from cost content data) */}
+        {/* 9. Cost FAQ Accordion (from cost content data) */}
         {costContent?.costFaqs && costContent.costFaqs.length > 0 && (
           <CostFAQ faqs={costContent.costFaqs} treatmentName={meta.treatmentName} />
         )}
 
-        {/* 8. General FAQ Accordion (from MDX frontmatter) */}
+        {/* 10. General FAQ Accordion (from MDX frontmatter) */}
         {meta.faqs && meta.faqs.length > 0 && (
           <TreatmentFAQ faqs={meta.faqs} treatmentName={meta.treatmentName} />
         )}
 
-        {/* 9. Find treatment by area */}
+        {/* 11. Find treatment by area */}
         <TreatmentAreaLinks
           treatmentSlug={slug}
           treatmentName={meta.treatmentName}
         />
 
-        {/* 10. Related Blog Posts */}
+        {/* 12. Related Blog Posts */}
         {relatedBlogPosts.length > 0 && (
           <RelatedPosts posts={relatedBlogPosts} />
         )}
 
-        {/* 11. Related Treatments */}
+        {/* 13. Related Treatments */}
         <RelatedTreatments treatments={relatedTreatments} />
 
-        {/* 12. Bottom CTA with postcode input */}
+        {/* 14. Bottom CTA with postcode input */}
         <section className="py-12 sm:py-16 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
-                Compare {meta.treatmentName.toLowerCase()} prices near you
+                Compare {meta.treatmentName.toLowerCase()} clinics near you
               </h2>
               <p className="text-white/70 mb-8 leading-relaxed">
                 Enter your postcode and we&apos;ll match you with verified,

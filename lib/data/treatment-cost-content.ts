@@ -49,7 +49,7 @@ export const treatmentCostContent: Record<string, TreatmentCostContent> = {
     costIntentH1: "Invisalign Cost in London (2026) — Compare Clinics & Prices",
     heroSubheading:
       "Invisalign in the UK typically costs £2,500 – £5,500, depending on complexity. Compare verified clinics, see transparent pricing, and get matched with a provider near you — free and independent.",
-    ctaButtonText: "See Invisalign prices near me",
+    ctaButtonText: "Compare Invisalign clinics near me",
     metaTitle: "Invisalign Cost in London (2026) — Compare Clinics & Prices | Pearlie",
     metaDescription:
       "How much does Invisalign cost in London in 2026? Prices range from £2,500 to £5,500. Compare verified Invisalign providers, see transparent pricing, and get matched free.",
@@ -129,7 +129,7 @@ export const treatmentCostContent: Record<string, TreatmentCostContent> = {
     costIntentH1: "Composite Bonding Price in the UK (2026) — Compare Clinics",
     heroSubheading:
       "Composite bonding costs £250 – £450 per tooth in the UK. A full smile makeover (6–8 teeth) typically ranges from £1,500 to £3,600. Compare verified cosmetic dentists and see transparent pricing.",
-    ctaButtonText: "See bonding prices near me",
+    ctaButtonText: "Compare bonding clinics near me",
     metaTitle: "Composite Bonding Price in the UK (2026) — Compare Clinics | Pearlie",
     metaDescription:
       "How much does composite bonding cost in the UK in 2026? From £250 per tooth. Compare verified cosmetic dentists, see transparent pricing, and get matched free.",
@@ -209,7 +209,7 @@ export const treatmentCostContent: Record<string, TreatmentCostContent> = {
     costIntentH1: "Porcelain Veneers Cost Per Tooth in London (2026)",
     heroSubheading:
       "Porcelain veneers cost £700 – £1,200 per tooth in the UK. A full smile makeover (6–10 veneers) ranges from £4,200 to £12,000. Compare verified cosmetic specialists and see transparent pricing.",
-    ctaButtonText: "See veneer prices near me",
+    ctaButtonText: "Compare veneer clinics near me",
     metaTitle: "Porcelain Veneers Cost Per Tooth in London (2026) | Pearlie",
     metaDescription:
       "How much do porcelain veneers cost in London in 2026? From £700 per tooth. Compare verified cosmetic specialists, see real pricing, and get matched free.",
@@ -291,7 +291,7 @@ export const treatmentCostContent: Record<string, TreatmentCostContent> = {
     costIntentH1: "Teeth Whitening Cost in London & UK (2026)",
     heroSubheading:
       "Professional teeth whitening in the UK costs £250 – £1,000 depending on the method. Compare in-chair, take-home, and premium whitening systems at verified clinics near you.",
-    ctaButtonText: "See whitening prices near me",
+    ctaButtonText: "Compare whitening clinics near me",
     metaTitle: "Teeth Whitening Cost in London & UK (2026) | Pearlie",
     metaDescription:
       "How much does teeth whitening cost in 2026? From £250 for home kits to £1,000 for Enlighten. Compare verified whitening clinics in London and the UK.",
@@ -372,7 +372,7 @@ export const treatmentCostContent: Record<string, TreatmentCostContent> = {
     costIntentH1: "Dental Implant Cost in London (2026) — Price Guide & Clinics",
     heroSubheading:
       "A single dental implant in the UK costs £2,000 – £3,500 (post, abutment, and crown). Full arch All-on-4 ranges from £8,000 to £15,000 per arch. Compare verified implant specialists near you.",
-    ctaButtonText: "See implant prices near me",
+    ctaButtonText: "Compare implant clinics near me",
     metaTitle: "Dental Implant Cost in London (2026) — Price Guide & Clinics | Pearlie",
     metaDescription:
       "How much do dental implants cost in London in 2026? Single implants from £2,000. Full arch from £8,000. Compare verified implant specialists and see transparent pricing.",

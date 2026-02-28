@@ -62,10 +62,10 @@ export function PriceBreakdown({ costContent, treatmentName, intakeTreatment }: 
           {/* Mid-page CTA */}
           <div className="mt-10 p-6 sm:p-8 rounded-2xl bg-white border border-border/50 text-center">
             <p className="text-lg font-heading font-bold text-[#004443] mb-2">
-              Want exact pricing from clinics near you?
+              Get an exact quote from clinics near you
             </p>
             <p className="text-sm text-muted-foreground mb-5">
-              Enter your postcode and we&apos;ll match you with verified {treatmentName.toLowerCase()} clinics with transparent pricing.
+              Enter your postcode to compare verified {treatmentName.toLowerCase()} specialists with transparent, upfront pricing.
             </p>
             <div className="flex justify-center">
               <HeroPostcodeCta
