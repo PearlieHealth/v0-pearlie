@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Plus, Edit, Copy, Archive, ArchiveRestore, ImageIcon, ExternalLink, RefreshCw, AlertTriangle, Wrench, Trash2 } from "lucide-react"
+import { Search, Plus, Edit, Copy, Archive, ArchiveRestore, ImageIcon, ExternalLink, RefreshCw, AlertTriangle, Wrench, Trash2, Star, Clock, Mail, Filter } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ClinicEditorDrawer } from "./clinic-editor-drawer"
 import { ClinicInviteButton } from "./clinic-invite-button"
@@ -24,6 +24,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Progress } from "@/components/ui/progress"
 
 interface Clinic {
   id: string
@@ -68,8 +75,28 @@ interface Clinic {
   updated_at: string
 }
 
+interface BulkProgressResult {
+  clinicId: string
+  clinicName: string
+  status: string
+  error?: string
+  googleRating?: number
+  googleReviewCount?: number
+}
+
 interface ClinicDirectoryManagerProps {
   clinics: Clinic[]
+}
+
+type FilterKey = "no_email" | "no_google" | "no_hours" | "no_photos" | "no_treatments" | "no_description"
+
+const FILTER_LABELS: Record<FilterKey, string> = {
+  no_email: "No Email",
+  no_google: "No Google Link",
+  no_hours: "No Opening Hours",
+  no_photos: "No Photos",
+  no_treatments: "No Treatments",
+  no_description: "No Description",
 }
 
 export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirectoryManagerProps) {
@@ -86,6 +113,17 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [googlePhotoIssue, setGooglePhotoIssue] = useState<{ affectedClinics: number; clinics: Array<{ id: string; name: string; googleUrlCount: number }> } | null>(null)
   const [isFixingPhotos, setIsFixingPhotos] = useState(false)
+  const [activeFilters, setActiveFilters] = useState<Set<FilterKey>>(new Set())
+  const [showFilters, setShowFilters] = useState(false)
+  // Bulk Google link / fetch hours
+  const [bulkGoogleProgress, setBulkGoogleProgress] = useState<{
+    open: boolean
+    type: "google-link" | "fetch-hours"
+    total: number
+    processed: number
+    results: BulkProgressResult[]
+    done: boolean
+  } | null>(null)
   const { toast } = useToast()
 
   const handleRefresh = async () => {
@@ -164,13 +202,53 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
   const unverifiedClinics = clinics.filter((c) => !c.is_archived && !c.verified)
   const archivedClinics = clinics.filter((c) => c.is_archived)
 
+  const matchesFilter = (clinic: Clinic): boolean => {
+    if (activeFilters.size === 0) return true
+    for (const filter of activeFilters) {
+      switch (filter) {
+        case "no_email":
+          if (!clinic.email && !clinic.notification_email) return true
+          break
+        case "no_google":
+          if (!clinic.google_place_id) return true
+          break
+        case "no_hours":
+          if (!clinic.opening_hours || Object.keys(clinic.opening_hours).length === 0) return true
+          break
+        case "no_photos":
+          if (!clinic.images || clinic.images.length === 0) return true
+          break
+        case "no_treatments":
+          if (!clinic.treatments || clinic.treatments.length === 0) return true
+          break
+        case "no_description":
+          if (!clinic.description || clinic.description.trim().length < 10) return true
+          break
+      }
+    }
+    return activeFilters.size === 0
+  }
+
   const filterClinics = (clinicList: Clinic[]) => {
-    return clinicList.filter(
-      (clinic) =>
+    return clinicList.filter((clinic) => {
+      const matchesSearch =
         (clinic.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (clinic.postcode || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (clinic.treatments || []).some((t) => t.toLowerCase().includes(searchTerm.toLowerCase())),
-    )
+        (clinic.treatments || []).some((t) => t.toLowerCase().includes(searchTerm.toLowerCase()))
+
+      const matchesActiveFilter = matchesFilter(clinic)
+
+      return matchesSearch && matchesActiveFilter
+    })
+  }
+
+  const toggleFilter = (filter: FilterKey) => {
+    setActiveFilters((prev) => {
+      const next = new Set(prev)
+      if (next.has(filter)) next.delete(filter)
+      else next.add(filter)
+      return next
+    })
   }
 
   const handleCreate = () => {
@@ -345,6 +423,135 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
     setIsBulkProcessing(false)
   }
 
+  const handleBulkGoogleLink = async () => {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) return
+
+    setBulkGoogleProgress({
+      open: true,
+      type: "google-link",
+      total: ids.length,
+      processed: 0,
+      results: [],
+      done: false,
+    })
+
+    try {
+      const res = await fetch("/api/admin/clinics/bulk-google-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clinicIds: ids }),
+      })
+
+      if (!res.ok) throw new Error("Bulk link failed")
+      const data = await res.json()
+
+      // Update local state with new Google data
+      for (const result of data.results) {
+        if (result.status === "linked") {
+          setClinics((prev) =>
+            prev.map((c) =>
+              c.id === result.clinicId
+                ? {
+                    ...c,
+                    google_place_id: "linked",
+                    google_rating: result.googleRating,
+                    google_review_count: result.googleReviewCount,
+                  }
+                : c,
+            ),
+          )
+        }
+      }
+
+      setBulkGoogleProgress((prev) =>
+        prev
+          ? {
+              ...prev,
+              processed: data.summary.total,
+              results: data.results,
+              done: true,
+            }
+          : null,
+      )
+
+      const { linked, alreadyLinked, notFound, failed } = data.summary
+      toast({
+        title: "Bulk Google link complete",
+        description: `Linked: ${linked}, Already linked: ${alreadyLinked}, Not found: ${notFound}, Failed: ${failed}`,
+      })
+    } catch (error) {
+      console.error("Bulk Google link error:", error)
+      setBulkGoogleProgress((prev) => (prev ? { ...prev, done: true } : null))
+      toast({
+        variant: "destructive",
+        title: "Bulk link failed",
+        description: "Could not complete bulk Google linking.",
+      })
+    }
+  }
+
+  const handleBulkFetchHours = async () => {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) return
+
+    setBulkGoogleProgress({
+      open: true,
+      type: "fetch-hours",
+      total: ids.length,
+      processed: 0,
+      results: [],
+      done: false,
+    })
+
+    try {
+      const res = await fetch("/api/admin/clinics/bulk-fetch-hours", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clinicIds: ids }),
+      })
+
+      if (!res.ok) throw new Error("Bulk fetch hours failed")
+      const data = await res.json()
+
+      // Update local state
+      for (const result of data.results) {
+        if (result.status === "updated") {
+          setClinics((prev) =>
+            prev.map((c) =>
+              c.id === result.clinicId ? { ...c, opening_hours: { updated: true } } : c,
+            ),
+          )
+        }
+      }
+
+      setBulkGoogleProgress((prev) =>
+        prev
+          ? {
+              ...prev,
+              processed: data.summary.total,
+              results: data.results,
+              done: true,
+            }
+          : null,
+      )
+
+      const { updated, noPlaceId, noHoursFound, failed } = data.summary
+      toast({
+        title: "Bulk fetch hours complete",
+        description: `Updated: ${updated}, No Google link: ${noPlaceId}, No hours found: ${noHoursFound}, Failed: ${failed}`,
+      })
+    } catch (error) {
+      console.error("Bulk fetch hours error:", error)
+      setBulkGoogleProgress((prev) => (prev ? { ...prev, done: true } : null))
+      toast({
+        variant: "destructive",
+        title: "Bulk fetch failed",
+        description: "Could not complete bulk hours fetch.",
+      })
+    }
+  }
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev)
@@ -372,6 +579,48 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
     }
   }
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "linked":
+      case "updated":
+        return <span className="text-green-600">&#10003;</span>
+      case "already_linked":
+      case "already_has_hours":
+        return <span className="text-blue-600">&#8212;</span>
+      case "not_found":
+      case "no_place_id":
+      case "no_hours_found":
+        return <span className="text-amber-600">&#9888;</span>
+      case "failed":
+        return <span className="text-red-600">&#10007;</span>
+      default:
+        return null
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "linked":
+        return "Linked"
+      case "updated":
+        return "Updated"
+      case "already_linked":
+        return "Already linked"
+      case "already_has_hours":
+        return "Already has hours"
+      case "not_found":
+        return "Not found on Google"
+      case "no_place_id":
+        return "No Google link"
+      case "no_hours_found":
+        return "No hours on Google"
+      case "failed":
+        return "Failed"
+      default:
+        return status
+    }
+  }
+
   const renderClinicTable = (clinicList: Clinic[], showArchiveButton: boolean) => {
     const filtered = filterClinics(clinicList)
     const allSelected = filtered.length > 0 && filtered.every((c) => selectedIds.has(c.id))
@@ -393,6 +642,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
               <TableHead>Location</TableHead>
               <TableHead>Treatments</TableHead>
               <TableHead>Photo</TableHead>
+              <TableHead>Google</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Updated</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -419,6 +669,12 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground">{clinic.phone}</div>
+                    {!clinic.email && !clinic.notification_email && (
+                      <div className="flex items-center gap-1 text-xs text-red-500 mt-0.5">
+                        <Mail className="h-3 w-3" />
+                        No email
+                      </div>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -462,6 +718,34 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col gap-1">
+                    {clinic.google_place_id ? (
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xs font-medium">
+                          {clinic.google_rating?.toFixed(1) || "?"}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          ({clinic.google_review_count || 0})
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Not linked</span>
+                    )}
+                    {clinic.opening_hours && Object.keys(clinic.opening_hours).length > 0 ? (
+                      <div className="flex items-center gap-1 text-xs text-green-600">
+                        <Clock className="h-3 w-3" />
+                        Hours set
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        No hours
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col gap-1">
                     {clinic.verified && (
                       <Badge variant="default" className="text-xs w-fit bg-green-600">
                         Verified
@@ -489,8 +773,8 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
                         <ExternalLink className="h-4 w-4" />
                       </Link>
                     </Button>
-                    <ClinicInviteButton 
-                      clinicId={clinic.id} 
+                    <ClinicInviteButton
+                      clinicId={clinic.id}
                       clinicName={clinic.name}
                       existingEmail={clinic.email}
                     />
@@ -528,8 +812,8 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
             ))}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                  No clinics found. Try adjusting your search.
+                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  No clinics found. Try adjusting your search or filters.
                 </TableCell>
               </TableRow>
             )}
@@ -542,29 +826,70 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search clinics by name, postcode, or treatment..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search clinics by name, postcode, or treatment..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`gap-2 bg-transparent ${activeFilters.size > 0 ? "border-blue-400 text-blue-700" : ""}`}
+            >
+              <Filter className="h-4 w-4" />
+              Filters{activeFilters.size > 0 ? ` (${activeFilters.size})` : ""}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="gap-2 bg-transparent"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button onClick={handleCreate} className="gap-2 bg-[#004443] hover:bg-[#00332e]">
+              <Plus className="h-4 w-4" />
+              Add Clinic
+            </Button>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={handleRefresh} 
-            disabled={isRefreshing}
-            className="gap-2 bg-transparent"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
-          <Button onClick={handleCreate} className="gap-2 bg-[#004443] hover:bg-[#00332e]">
-            <Plus className="h-4 w-4" />
-            Add Clinic
-          </Button>
+
+          {/* Filter toggles */}
+          {showFilters && (
+            <div className="flex flex-wrap gap-2 pt-2 border-t">
+              {(Object.keys(FILTER_LABELS) as FilterKey[]).map((key) => (
+                <Button
+                  key={key}
+                  size="sm"
+                  variant={activeFilters.has(key) ? "default" : "outline"}
+                  onClick={() => toggleFilter(key)}
+                  className={`text-xs h-7 ${
+                    activeFilters.has(key)
+                      ? "bg-blue-600 hover:bg-blue-700"
+                      : "bg-transparent"
+                  }`}
+                >
+                  {FILTER_LABELS[key]}
+                </Button>
+              ))}
+              {activeFilters.size > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setActiveFilters(new Set())}
+                  className="text-xs h-7 text-muted-foreground"
+                >
+                  Clear all
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </Card>
 
@@ -604,11 +929,29 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       {/* Bulk action bar */}
       {selectedIds.size > 0 && (
         <Card className="p-3 border-blue-200 bg-blue-50">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <span className="text-sm font-medium text-blue-800">
               {selectedIds.size} clinic{selectedIds.size > 1 ? "s" : ""} selected
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-blue-700 border-blue-300 hover:bg-blue-100"
+                onClick={handleBulkGoogleLink}
+              >
+                <Star className="h-3.5 w-3.5 mr-1.5" />
+                Link Google Reviews
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-teal-700 border-teal-300 hover:bg-teal-50"
+                onClick={handleBulkFetchHours}
+              >
+                <Clock className="h-3.5 w-3.5 mr-1.5" />
+                Fetch Opening Hours
+              </Button>
               <Button
                 size="sm"
                 variant="outline"
@@ -653,7 +996,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
         <TabsContent value="unverified" className="mt-6">
           <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-800">
-              <strong>Unverified clinics</strong> are listed in the directory but don&apos;t appear in matched results. 
+              <strong>Unverified clinics</strong> are listed in the directory but don&apos;t appear in matched results.
               They are shown at the end of search results without match percentages or personalised recommendations.
             </p>
           </div>
@@ -732,6 +1075,77 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Bulk Google progress dialog */}
+      <Dialog
+        open={!!bulkGoogleProgress?.open}
+        onOpenChange={(open) => {
+          if (!open && bulkGoogleProgress?.done) {
+            setBulkGoogleProgress(null)
+            handleRefresh()
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {bulkGoogleProgress?.type === "google-link"
+                ? "Linking Google Reviews"
+                : "Fetching Opening Hours"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {!bulkGoogleProgress?.done && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Processing {bulkGoogleProgress?.total} clinic{(bulkGoogleProgress?.total || 0) > 1 ? "s" : ""}...
+                </div>
+                <Progress value={0} className="h-2" />
+              </div>
+            )}
+
+            {bulkGoogleProgress?.done && bulkGoogleProgress.results.length > 0 && (
+              <div className="space-y-2">
+                <Progress value={100} className="h-2" />
+                <p className="text-sm font-medium text-green-700">
+                  Complete — {bulkGoogleProgress.results.length} clinic{bulkGoogleProgress.results.length > 1 ? "s" : ""} processed
+                </p>
+                <div className="border rounded-lg divide-y max-h-64 overflow-y-auto">
+                  {bulkGoogleProgress.results.map((r) => (
+                    <div key={r.clinicId} className="flex items-center justify-between px-3 py-2 text-sm">
+                      <span className="truncate mr-2">{r.clinicName}</span>
+                      <span className="flex items-center gap-1.5 shrink-0 text-xs">
+                        {getStatusIcon(r.status)}
+                        {getStatusLabel(r.status)}
+                        {r.googleRating != null && (
+                          <span className="text-muted-foreground ml-1">
+                            ({r.googleRating?.toFixed(1)} / {r.googleReviewCount} reviews)
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {bulkGoogleProgress?.done && (
+              <div className="flex justify-end">
+                <Button
+                  onClick={() => {
+                    setBulkGoogleProgress(null)
+                    handleRefresh()
+                  }}
+                >
+                  Done
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <ClinicEditorDrawer
         open={isDrawerOpen}
