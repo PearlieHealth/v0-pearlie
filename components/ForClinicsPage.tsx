@@ -867,6 +867,24 @@ export default function ForClinicsPage() {
                   </li>
                 ))}
               </ul>
+
+              {/* Pearlie Guarantee */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(251,191,36,.06)",
+                  border: "1px solid rgba(251,191,36,.15)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  marginBottom: 16,
+                }}
+              >
+                <Shield size={16} style={{ color: "#fbbf24", flexShrink: 0 }} />
+                <span style={{ color: "#fbbf24", fontSize: 13, fontWeight: 700 }}>Pearlie Guarantee</span>
+              </div>
+
               <Link
                 href="/signup"
                 style={{
@@ -990,6 +1008,24 @@ export default function ForClinicsPage() {
                   </li>
                 ))}
               </ul>
+
+              {/* Pearlie Guarantee */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(251,191,36,.06)",
+                  border: "1px solid rgba(251,191,36,.15)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  marginBottom: 16,
+                }}
+              >
+                <Shield size={16} style={{ color: "#fbbf24", flexShrink: 0 }} />
+                <span style={{ color: "#fbbf24", fontSize: 13, fontWeight: 700 }}>Pearlie Guarantee</span>
+              </div>
+
               <a
                 href="mailto:hello@pearlie.org?subject=Pearlie Premium — clinic enquiry"
                 style={{
@@ -1167,9 +1203,12 @@ export default function ForClinicsPage() {
                   { feature: "Priority email & chat support", starter: false, standard: true, premium: true },
                   { feature: "Dedicated account manager", starter: false, standard: false, premium: true },
                   { feature: "Quarterly strategy review", starter: false, standard: false, premium: true },
+                  { feature: "Pearlie Guarantee", starter: false, standard: true, premium: true },
                 ].map((row) => (
                   <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
-                    <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
+                    <td style={{ padding: "12px 20px", color: row.feature === "Pearlie Guarantee" ? "#fbbf24" : "#cbd5e1", fontWeight: row.feature === "Pearlie Guarantee" ? 700 : 500 }}>
+                      {row.feature === "Pearlie Guarantee" ? <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Shield size={14} style={{ color: "#fbbf24" }} /> {row.feature}</span> : row.feature}
+                    </td>
                     {[row.starter, row.standard, row.premium].map((val, i) => (
                       <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
                         {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
