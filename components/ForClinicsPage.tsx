@@ -20,6 +20,11 @@ import {
   Calendar,
   Stethoscope,
   TrendingUp,
+  Shield,
+  Lock,
+  Server,
+  Quote,
+  Users,
 } from "lucide-react"
 
 /* ────────────────────────────────────────────
@@ -458,6 +463,8 @@ export default function ForClinicsPage() {
           .fc-visibility-grid { grid-template-columns: 1fr !important; }
           .fc-pricing-grid { grid-template-columns: 1fr !important; }
           .fc-pricing-grid > div { padding: 32px 20px !important; }
+          .fc-testimonials-grid { grid-template-columns: 1fr !important; }
+          .fc-onboarding-grid { grid-template-columns: 1fr 1fr !important; }
         }
       `}</style>
 
@@ -530,6 +537,24 @@ export default function ForClinicsPage() {
       {/* ═══════════ HERO ═══════════ */}
       <section className="fc-hero fc-section" style={{ ...sectionPad, paddingTop: 160, paddingBottom: 80, textAlign: "center" }}>
         <div style={maxW}>
+          {/* Early-adopter urgency badge */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: "rgba(251,191,36,.08)",
+              border: "1px solid rgba(251,191,36,.2)",
+              borderRadius: 24,
+              padding: "8px 20px",
+              marginBottom: 24,
+            }}
+          >
+            <span style={{ fontSize: 14 }}>&#9889;</span>
+            <span style={{ color: "#fbbf24", fontSize: 13, fontWeight: 600 }}>
+              Early-adopter pricing &mdash; limited spots in your area
+            </span>
+          </div>
           <p
             style={{
               color: "#10b981",
@@ -577,7 +602,7 @@ export default function ForClinicsPage() {
             </a>
           </div>
 
-          {/* Stats bar */}
+          {/* Outcome stats bar */}
           <div
             className="fc-stats-bar"
             style={{
@@ -592,14 +617,46 @@ export default function ForClinicsPage() {
             }}
           >
             {[
-              { value: "8", label: "data points per patient" },
-              { value: "£0", label: "setup fee" },
-              { value: "From £28", label: "per extra lead" },
+              { value: "92%", label: "avg match score" },
+              { value: "8", label: "insights per patient" },
+              { value: "< 72 hrs", label: "to first patient" },
               { value: "No lock-in", label: "cancel anytime" },
             ].map((s) => (
               <div key={s.label} style={{ textAlign: "center", minWidth: 120 }}>
                 <div style={{ ...heading, fontSize: 28, color: "#10b981" }}>{s.value}</div>
                 <div style={{ color: "#64748b", fontSize: 13, marginTop: 4 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Trust badges */}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: 24,
+              marginTop: 24,
+            }}
+          >
+            {[
+              { icon: <Shield size={14} />, label: "GDPR Compliant" },
+              { icon: <Lock size={14} />, label: "End-to-End Encrypted" },
+              { icon: <Server size={14} />, label: "UK Data Hosting" },
+            ].map((badge) => (
+              <div
+                key={badge.label}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  color: "#64748b",
+                  fontSize: 12,
+                  fontWeight: 500,
+                }}
+              >
+                <span style={{ color: "#10b981", display: "flex" }}>{badge.icon}</span>
+                {badge.label}
               </div>
             ))}
           </div>
@@ -1407,6 +1464,95 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
+      {/* ═══════════ ONBOARDING TIMELINE ═══════════ */}
+      <section className="fc-section" style={{ ...sectionPad, background: "rgba(255,255,255,.015)" }}>
+        <div style={{ ...maxW, maxWidth: 800 }}>
+          <p
+            style={{
+              color: "#10b981",
+              fontWeight: 700,
+              fontSize: 13,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              marginBottom: 12,
+              textAlign: "center",
+            }}
+          >
+            Get started
+          </p>
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 16 }}>
+            Go live in under 24 hours
+          </h2>
+          <p
+            style={{
+              color: "#94a3b8",
+              fontSize: 16,
+              textAlign: "center",
+              maxWidth: 540,
+              margin: "0 auto 48px",
+              lineHeight: 1.6,
+            }}
+          >
+            No complex integrations. No training required. You could be receiving your first matched patient by tomorrow.
+          </p>
+          <div
+            className="fc-steps-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 16,
+            }}
+          >
+            {[
+              { step: "01", title: "Sign up", desc: "Create your account and tell us about your clinic in under 5 minutes.", icon: <FileText size={20} /> },
+              { step: "02", title: "Set your profile", desc: "Add treatments, team, hours, and what makes your practice unique.", icon: <Users size={20} /> },
+              { step: "03", title: "We match patients", desc: "Our AI starts routing pre-qualified patients who fit your clinic.", icon: <Brain size={20} /> },
+              { step: "04", title: "Receive leads", desc: "Get full patient profiles with insights — ready for a productive consult.", icon: <Zap size={20} /> },
+            ].map((s) => (
+              <div
+                key={s.step}
+                style={{
+                  background: "rgba(255,255,255,.03)",
+                  border: "1px solid rgba(255,255,255,.06)",
+                  borderRadius: 16,
+                  padding: "28px 22px",
+                  textAlign: "center",
+                  position: "relative",
+                }}
+              >
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: "rgba(16,185,129,.1)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#10b981",
+                    margin: "0 auto 14px",
+                  }}
+                >
+                  {s.icon}
+                </div>
+                <p style={{ color: "#10b981", fontSize: 11, fontWeight: 800, marginBottom: 6, letterSpacing: "0.06em" }}>
+                  STEP {s.step}
+                </p>
+                <h3 style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 16, marginBottom: 6 }}>
+                  {s.title}
+                </h3>
+                <p style={{ color: "#94a3b8", fontSize: 13, lineHeight: 1.45 }}>
+                  {s.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+          <p style={{ textAlign: "center", color: "#64748b", fontSize: 13, marginTop: 20 }}>
+            Average time from signup to first matched patient: <span style={{ color: "#10b981", fontWeight: 700 }}>&lt; 72 hours</span>
+          </p>
+        </div>
+      </section>
+
       {/* ═══════════ ROI CALCULATOR ═══════════ */}
       <section className="fc-section" style={sectionPad}>
         <div style={{ ...maxW, maxWidth: 840 }}>
@@ -2092,6 +2238,142 @@ export default function ForClinicsPage() {
               </p>
             </div>
           </div>
+
+          {/* Demo CTA strip */}
+          <div
+            style={{
+              maxWidth: 720,
+              margin: "24px auto 0",
+              textAlign: "center",
+              padding: "28px 24px",
+              background: "rgba(255,255,255,.02)",
+              border: "1px solid rgba(255,255,255,.06)",
+              borderRadius: 16,
+            }}
+          >
+            <p style={{ color: "#94a3b8", fontSize: 15, marginBottom: 14 }}>
+              Not ready to commit? See it in action first.
+            </p>
+            <a
+              href="mailto:hello@pearlie.org?subject=Pearlie demo request"
+              style={{
+                ...outlineBtn,
+                borderColor: "rgba(16,185,129,.3)",
+                color: "#10b981",
+              }}
+            >
+              Book a free demo <ArrowRight size={16} />
+            </a>
+            <p style={{ color: "#475569", fontSize: 12, marginTop: 12 }}>
+              15-minute walkthrough &middot; No commitment &middot; See real patient data
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ TESTIMONIALS ═══════════ */}
+      <section className="fc-section" style={sectionPad}>
+        <div style={maxW}>
+          <p
+            style={{
+              color: "#10b981",
+              fontWeight: 700,
+              fontSize: 13,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              marginBottom: 12,
+              textAlign: "center",
+            }}
+          >
+            Trusted by clinics
+          </p>
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 48 }}>
+            What practice owners say
+          </h2>
+          <div
+            className="fc-testimonials-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              gap: 24,
+              maxWidth: 800,
+              margin: "0 auto",
+            }}
+          >
+            {[
+              {
+                name: "Daniel Saleem",
+                practice: "London Dental Centre",
+                quote:
+                  "Pearlie sends us patients who are genuinely ready for treatment \u2014 with full insight into their anxiety level, budget, and what they care about. It\u2019s transformed how we handle consultations. We know who we\u2019re speaking to before they even sit down.",
+              },
+              {
+                name: "Hannan Imran",
+                practice: "Siha Dental",
+                quote:
+                  "We stopped spending thousands on Google Ads and started getting higher-quality leads through Pearlie. The patient profiles are incredibly detailed \u2014 our conversion rate has gone up because we can tailor every conversation from the first call.",
+              },
+            ].map((t) => (
+              <div
+                key={t.name}
+                style={{
+                  background: "rgba(255,255,255,.03)",
+                  border: "1px solid rgba(255,255,255,.08)",
+                  borderRadius: 20,
+                  padding: "32px 28px",
+                  position: "relative",
+                }}
+              >
+                <Quote
+                  size={32}
+                  style={{
+                    color: "rgba(16,185,129,.15)",
+                    position: "absolute",
+                    top: 24,
+                    right: 24,
+                  }}
+                />
+                <div style={{ display: "flex", gap: 4, marginBottom: 18 }}>
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star key={s} size={14} fill="#fbbf24" style={{ color: "#fbbf24" }} />
+                  ))}
+                </div>
+                <p
+                  style={{
+                    color: "#cbd5e1",
+                    fontSize: 15,
+                    lineHeight: 1.65,
+                    marginBottom: 24,
+                    fontStyle: "italic",
+                  }}
+                >
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #10b981, #34d399)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#030712",
+                      fontWeight: 800,
+                      fontSize: 15,
+                    }}
+                  >
+                    {t.name[0]}
+                  </div>
+                  <div>
+                    <p style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 14 }}>{t.name}</p>
+                    <p style={{ color: "#64748b", fontSize: 12 }}>{t.practice}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -2159,9 +2441,17 @@ export default function ForClinicsPage() {
             Join Pearlie and start receiving pre-qualified patients — with the insights you need to
             close them.
           </p>
-          <Link href="/signup" style={greenBtn}>
-            Join Pearlie &mdash; Free Setup <ArrowRight size={18} />
-          </Link>
+          <div className="fc-cta-btns" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 16 }}>
+            <Link href="/signup" style={greenBtn}>
+              Join Pearlie &mdash; Free Setup <ArrowRight size={18} />
+            </Link>
+            <a
+              href="mailto:hello@pearlie.org?subject=Pearlie demo request"
+              style={outlineBtn}
+            >
+              Book a free demo
+            </a>
+          </div>
           <p style={{ color: "#475569", fontSize: 13, marginTop: 16 }}>
             No contracts &middot; No setup fee &middot; Cancel anytime
           </p>
