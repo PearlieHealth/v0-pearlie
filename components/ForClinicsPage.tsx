@@ -1010,7 +1010,7 @@ export default function ForClinicsPage() {
           <h2 style={{ ...heading, fontSize: "clamp(24px, 3.5vw, 36px)", textAlign: "center", marginBottom: 48 }}>
             Compare all features
           </h2>
-          <div className="fc-compare-table-wrap" style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,.06)", overflow: "hidden" }}>
+          <div className="fc-compare-table-wrap" style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,.06)", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
             <table className="fc-compare-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,.08)" }}>
