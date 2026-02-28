@@ -433,15 +433,20 @@ function renderRecentMessagesHtml(messages: RecentMessage[]): string {
 }
 
 export function renderChatToClinicEmail(data: ChatToClinicPayload): string {
-  const replyInstructions = data.replyToAddress
-    ? `<div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
-        <p style="margin: 0; color: #065f46; font-size: 14px; font-weight: 600;">Reply to this email to respond directly</p>
-        <p style="margin: 4px 0 0 0; color: #047857; font-size: 12px;">Your reply will appear in the Pearlie chat thread</p>
-      </div>`
-    : ""
-
   const recentHtml = data.recentMessages ? renderRecentMessagesHtml(data.recentMessages) : ""
   const threadMarker = data.threadMarker || ""
+
+  const replyCta = data.replyToAddress
+    ? `<div style="background-color: #ecfdf5; border: 2px solid #6ee7b7; border-radius: 10px; padding: 20px; margin: 24px 0 8px; text-align: center;">
+        <p style="margin: 0 0 4px; color: #065f46; font-size: 16px; font-weight: 700;">Just hit reply to respond</p>
+        <p style="margin: 0; color: #047857; font-size: 13px;">Your reply goes straight to the patient in your Pearlie chat</p>
+      </div>`
+    : `<div style="text-align: center; margin-top: 24px;">
+        <a href="${data.inboxUrl}"
+           style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+          Open Chat in Pearlie
+        </a>
+      </div>`
 
   return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
   <div style="background-color: #0fbcb0; color: white; padding: 20px; text-align: center;">
@@ -449,22 +454,17 @@ export function renderChatToClinicEmail(data: ChatToClinicPayload): string {
   </div>
   <div style="padding: 30px; background-color: #f9fafb;">
     <p style="color: #374151; font-size: 16px;">
-      You have received a new message from <strong>${data.patientName}</strong>:
+      <strong>${data.patientName}</strong> sent you a message:
     </p>
     <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0fbcb0;">
       <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${data.messagePreview}</p>
     </div>
     ${recentHtml}
-    ${replyInstructions}
-    <div style="text-align: center; margin-top: 30px;">
-      <a href="${data.inboxUrl}"
-         style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
-        Open Chat in Pearlie
-      </a>
-    </div>
+    ${replyCta}
   </div>
   <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
-    <p>This is an automated message from Pearlie</p>
+    <p style="margin: 0;">This is an automated message from Pearlie</p>
+    ${data.replyToAddress ? `<p style="margin: 4px 0 0;"><a href="${data.inboxUrl}" style="color: #9ca3af;">View in portal</a></p>` : ""}
     ${data.unsubscribeFooterHtml}
   </div>
   ${threadMarker}
@@ -926,15 +926,20 @@ export function renderDirectLeadNotificationEmail(data: DirectLeadNotificationPa
 export function renderClinicReplyToPatientEmail(data: ClinicReplyToPatientPayload): string {
   const safeFirstName = data.patientFirstName ? ` ${data.patientFirstName}` : ""
 
-  const replyInstructions = data.replyToAddress
-    ? `<div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
-        <p style="margin: 0; color: #065f46; font-size: 14px; font-weight: 600;">Reply to this email to respond directly</p>
-        <p style="margin: 4px 0 0 0; color: #047857; font-size: 12px;">Your reply will appear in the Pearlie chat thread</p>
-      </div>`
-    : ""
-
   const recentHtml = data.recentMessages ? renderRecentMessagesHtml(data.recentMessages) : ""
   const threadMarker = data.threadMarker || ""
+
+  const replyCta = data.replyToAddress
+    ? `<div style="background-color: #ecfdf5; border: 2px solid #6ee7b7; border-radius: 10px; padding: 20px; margin: 24px 0 8px; text-align: center;">
+        <p style="margin: 0 0 4px; color: #065f46; font-size: 16px; font-weight: 700;">Just hit reply to respond</p>
+        <p style="margin: 0; color: #047857; font-size: 13px;">Your reply goes straight to ${data.clinicName} in your Pearlie chat</p>
+      </div>`
+    : `<div style="text-align: center; margin-top: 24px;">
+        <a href="${data.viewReplyUrl}"
+           style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+          Open Chat in Pearlie
+        </a>
+      </div>`
 
   return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
   <div style="background-color: #0fbcb0; color: white; padding: 20px; text-align: center;">
@@ -942,22 +947,17 @@ export function renderClinicReplyToPatientEmail(data: ClinicReplyToPatientPayloa
   </div>
   <div style="padding: 30px; background-color: #f9fafb;">
     <p style="color: #374151; font-size: 16px;">
-      Hi${safeFirstName}, <strong>${data.clinicName}</strong> has replied to your message:
+      Hi${safeFirstName}, <strong>${data.clinicName}</strong> replied:
     </p>
     <div style="background-color: white; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #0fbcb0;">
       <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${data.messagePreview}</p>
     </div>
     ${recentHtml}
-    ${replyInstructions}
-    <div style="text-align: center; margin-top: 30px;">
-      <a href="${data.viewReplyUrl}"
-         style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
-        Open Chat in Pearlie
-      </a>
-    </div>
+    ${replyCta}
   </div>
   <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
-    <p>This is an automated message from Pearlie</p>
+    <p style="margin: 0;">This is an automated message from Pearlie</p>
+    ${data.replyToAddress ? `<p style="margin: 4px 0 0;"><a href="${data.viewReplyUrl}" style="color: #9ca3af;">View in Pearlie</a></p>` : ""}
     ${data.unsubscribeFooterHtml}
   </div>
   ${threadMarker}
