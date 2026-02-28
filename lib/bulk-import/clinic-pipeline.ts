@@ -48,6 +48,92 @@ export interface PhotoUploadResult {
 }
 
 // ---------------------------------------------------------------------------
+// Email extraction from website HTML
+// ---------------------------------------------------------------------------
+
+/** Common non-personal email patterns to ignore */
+const IGNORE_EMAIL_PATTERNS = [
+  /noreply@/i,
+  /no-reply@/i,
+  /donotreply@/i,
+  /example\.com$/i,
+  /sentry\.io$/i,
+  /wixpress\.com$/i,
+  /squarespace\.com$/i,
+  /wordpress\.com$/i,
+  /cloudflare\.com$/i,
+]
+
+/**
+ * Extracts email addresses from a clinic website.
+ * Fetches the HTML and uses regex to find mailto: links and email patterns.
+ * Returns the best candidate (prefers info@, hello@, contact@, reception@).
+ */
+export async function extractEmailFromWebsite(
+  websiteUrl: string,
+): Promise<string | null> {
+  try {
+    let url = websiteUrl
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = `https://${url}`
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; PearlieBot/1.0; +https://pearlie.org)",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      },
+      signal: AbortSignal.timeout(10000),
+    })
+
+    if (!response.ok) return null
+
+    const html = await response.text()
+
+    // Extract from mailto: links first (most reliable)
+    const mailtoRegex = /mailto:([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/gi
+    const mailtoMatches: string[] = []
+    let match
+    while ((match = mailtoRegex.exec(html)) !== null) {
+      mailtoMatches.push(match[1].toLowerCase())
+    }
+
+    // Also extract plain email patterns from text content
+    const textContent = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+      .replace(/<[^>]+>/g, " ")
+    const emailRegex = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g
+    const textMatches: string[] = []
+    while ((match = emailRegex.exec(textContent)) !== null) {
+      textMatches.push(match[0].toLowerCase())
+    }
+
+    // Combine and dedupe
+    const allEmails = [...new Set([...mailtoMatches, ...textMatches])]
+
+    // Filter out junk
+    const validEmails = allEmails.filter(
+      (email) => !IGNORE_EMAIL_PATTERNS.some((pattern) => pattern.test(email)),
+    )
+
+    if (validEmails.length === 0) return null
+
+    // Prefer common clinic contact patterns
+    const preferred = ["info@", "hello@", "contact@", "reception@", "enquiries@", "admin@", "appointments@", "booking@"]
+    for (const prefix of preferred) {
+      const found = validEmails.find((e) => e.startsWith(prefix))
+      if (found) return found
+    }
+
+    // Otherwise return the first one found
+    return validEmails[0]
+  } catch {
+    return null
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Geocoding (same as /api/admin/clinics)
 // ---------------------------------------------------------------------------
 

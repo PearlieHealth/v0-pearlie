@@ -31,6 +31,7 @@ import {
   findDuplicateClinic,
   createClinicRecord,
   reuploadGooglePhotos,
+  extractEmailFromWebsite,
 } from "@/lib/bulk-import/clinic-pipeline"
 import { extractPricing } from "@/lib/bulk-import/pricing-extractor"
 
@@ -43,6 +44,7 @@ interface BatchClinicResult {
   photosOk: boolean
   pricingOk: boolean
   priceCount?: number
+  email?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -267,6 +269,23 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Step 3f: Extract email from website
+      let extractedEmail: string | undefined
+      if (place.website) {
+        try {
+          const email = await extractEmailFromWebsite(place.website)
+          if (email) {
+            extractedEmail = email
+            await supabase
+              .from("clinics")
+              .update({ email, notification_email: email })
+              .eq("id", createResult.clinicId)
+          }
+        } catch {
+          // non-critical — skip
+        }
+      }
+
       batchResults.push({
         placeId: place.placeId,
         name: place.name,
@@ -275,6 +294,7 @@ export async function POST(request: NextRequest) {
         photosOk,
         pricingOk,
         priceCount,
+        email: extractedEmail,
       })
       newImported++
     }

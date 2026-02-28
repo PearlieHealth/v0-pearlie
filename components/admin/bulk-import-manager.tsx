@@ -21,6 +21,7 @@ import {
   ExternalLink,
   RefreshCw,
   Trash2,
+  Mail,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -68,6 +69,7 @@ interface BatchClinicResult {
   photosOk: boolean
   pricingOk: boolean
   priceCount?: number
+  email?: string
 }
 
 interface ImportRun {
@@ -515,7 +517,7 @@ export function BulkImportManager() {
                         key={r.placeId}
                         className="px-3 py-2 flex items-center justify-between text-sm"
                       >
-                        <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
                           <span className="truncate font-medium">{r.name}</span>
                           {r.clinicId && (
                             <a
@@ -524,6 +526,12 @@ export function BulkImportManager() {
                             >
                               <ExternalLink className="w-3 h-3" />
                             </a>
+                          )}
+                          {r.email && (
+                            <span className="text-xs text-muted-foreground flex items-center gap-1 flex-shrink-0">
+                              <Mail className="w-3 h-3" />
+                              {r.email}
+                            </span>
                           )}
                         </div>
                         <div className="flex items-center gap-1.5 flex-shrink-0">
