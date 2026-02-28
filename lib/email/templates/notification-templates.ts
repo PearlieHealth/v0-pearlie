@@ -845,7 +845,7 @@ export function renderDirectLeadNotificationEmail(data: DirectLeadNotificationPa
   const urgencyOption = URGENCY_OPTIONS.find(u => u.key === data.urgency)
   const urgencyLabel = urgencyOption?.label || data.urgency || "Flexible"
   const isUrgent = data.urgency === "asap" || data.urgency === "1_week"
-  const hasBooking = !!data.bookingDate
+  const hasBooking = data.bookingDate && data.confirmUrl && data.declineUrl
 
   const formattedBookingDate = data.bookingDate
     ? new Date(data.bookingDate + "T00:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
@@ -865,10 +865,14 @@ export function renderDirectLeadNotificationEmail(data: DirectLeadNotificationPa
 
   const actionButtons = hasBooking ? `
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-          <a href="${data.inboxUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-            Reply to Patient
+          <a href="${data.confirmUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            Confirm Appointment
           </a>
-          <p style="margin-top: 15px; font-size: 13px; color: #6b7280;">Open your inbox to message the patient and confirm their appointment</p>
+          <div style="margin-top: 12px;">
+            <a href="${data.declineUrl}" style="color: #6b7280; font-size: 13px; text-decoration: underline;">
+              Unable to accommodate? Decline
+            </a>
+          </div>
         </div>` : `
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
           <a href="${data.inboxUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
