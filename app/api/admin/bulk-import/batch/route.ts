@@ -31,6 +31,7 @@ import {
   findDuplicateClinic,
   createClinicRecord,
   reuploadGooglePhotos,
+  extractEmailFromWebsite,
 } from "@/lib/bulk-import/clinic-pipeline"
 import { extractPricing } from "@/lib/bulk-import/pricing-extractor"
 
@@ -43,6 +44,7 @@ interface BatchClinicResult {
   photosOk: boolean
   pricingOk: boolean
   priceCount?: number
+  email?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -84,14 +86,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Import run was cancelled" }, { status: 400 })
     }
 
-    // Check if we've already reached the target
-    if (run.imported_count >= run.target_count) {
-      return NextResponse.json({
-        message: "Target count already reached",
-        results: [],
-        done: true,
-      })
-    }
+    // Note: we do NOT skip neighbourhoods that are "over target" —
+    // each neighbourhood always imports at least 1 clinic for coverage.
 
     // Update current neighbourhood
     await supabase
@@ -135,11 +131,12 @@ export async function POST(request: NextRequest) {
     let newPricingOk = 0
     let newPricingFail = 0
 
-    // How many more can we import?
-    const remaining = run.target_count - run.imported_count
+    // How many more can we import beyond the guaranteed 1?
+    const remaining = Math.max(1, run.target_count - run.imported_count)
 
     for (const place of filtered) {
-      // Stop if we've hit the target
+      // Always allow at least 1 per neighbourhood for coverage,
+      // then respect the global target for additional clinics.
       if (newImported >= remaining) break
 
       // Step 3a: Deduplication
@@ -267,6 +264,23 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Step 3f: Extract email from website
+      let extractedEmail: string | undefined
+      if (place.website) {
+        try {
+          const email = await extractEmailFromWebsite(place.website)
+          if (email) {
+            extractedEmail = email
+            await supabase
+              .from("clinics")
+              .update({ email, notification_email: email })
+              .eq("id", createResult.clinicId)
+          }
+        } catch {
+          // non-critical — skip
+        }
+      }
+
       batchResults.push({
         placeId: place.placeId,
         name: place.name,
@@ -275,6 +289,7 @@ export async function POST(request: NextRequest) {
         photosOk,
         pricingOk,
         priceCount,
+        email: extractedEmail,
       })
       newImported++
     }

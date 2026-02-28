@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Plus, Edit, Copy, Archive, ArchiveRestore, ImageIcon, ExternalLink, RefreshCw, AlertTriangle, Wrench } from "lucide-react"
+import { Search, Plus, Edit, Copy, Archive, ArchiveRestore, ImageIcon, ExternalLink, RefreshCw, AlertTriangle, Wrench, Trash2 } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
 import { ClinicEditorDrawer } from "./clinic-editor-drawer"
 import { ClinicInviteButton } from "./clinic-invite-button"
 import { useToast } from "@/hooks/use-toast"
@@ -78,6 +79,10 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [clinicToArchive, setClinicToArchive] = useState<{ id: string; name: string; archive: boolean } | null>(null)
+  const [clinicToDelete, setClinicToDelete] = useState<{ id: string; name: string } | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkAction, setBulkAction] = useState<"archive" | "delete" | null>(null)
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [googlePhotoIssue, setGooglePhotoIssue] = useState<{ affectedClinics: number; clinics: Array<{ id: string; name: string; googleUrlCount: number }> } | null>(null)
   const [isFixingPhotos, setIsFixingPhotos] = useState(false)
@@ -267,14 +272,123 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       })
   }
 
+  const handleDeleteClinic = async () => {
+    if (!clinicToDelete) return
+    const { id, name } = clinicToDelete
+    setClinicToDelete(null)
+
+    try {
+      const res = await fetch(`/api/admin/clinics/${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Delete failed")
+      setClinics((prev) => prev.filter((c) => c.id !== id))
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+      toast({ title: "Clinic deleted", description: `${name} has been permanently deleted.` })
+    } catch {
+      toast({ variant: "destructive", title: "Delete failed", description: `Could not delete ${name}.` })
+    }
+  }
+
+  const handleBulkAction = async () => {
+    if (!bulkAction || selectedIds.size === 0) return
+    setIsBulkProcessing(true)
+    const ids = Array.from(selectedIds)
+    let successCount = 0
+
+    if (bulkAction === "archive") {
+      for (const id of ids) {
+        try {
+          const res = await fetch(`/api/admin/clinics/${id}/archive`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ isArchived: true }),
+          })
+          if (res.ok) {
+            successCount++
+            setClinics((prev) =>
+              prev.map((c) =>
+                c.id === id ? { ...c, is_archived: true, archived_at: new Date().toISOString() } : c,
+              ),
+            )
+          }
+        } catch {
+          // continue with remaining
+        }
+      }
+      toast({
+        title: "Clinics archived",
+        description: `${successCount} of ${ids.length} clinics archived.`,
+      })
+    } else if (bulkAction === "delete") {
+      for (const id of ids) {
+        try {
+          const res = await fetch(`/api/admin/clinics/${id}`, { method: "DELETE" })
+          if (res.ok) {
+            successCount++
+            setClinics((prev) => prev.filter((c) => c.id !== id))
+          }
+        } catch {
+          // continue with remaining
+        }
+      }
+      toast({
+        title: "Clinics deleted",
+        description: `${successCount} of ${ids.length} clinics permanently deleted.`,
+      })
+    }
+
+    setSelectedIds(new Set())
+    setBulkAction(null)
+    setIsBulkProcessing(false)
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = (clinicList: Clinic[]) => {
+    const filtered = filterClinics(clinicList)
+    const allSelected = filtered.every((c) => selectedIds.has(c.id))
+    if (allSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        filtered.forEach((c) => next.delete(c.id))
+        return next
+      })
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        filtered.forEach((c) => next.add(c.id))
+        return next
+      })
+    }
+  }
+
   const renderClinicTable = (clinicList: Clinic[], showArchiveButton: boolean) => {
     const filtered = filterClinics(clinicList)
+    const allSelected = filtered.length > 0 && filtered.every((c) => selectedIds.has(c.id))
+    const someSelected = filtered.some((c) => selectedIds.has(c.id))
 
     return (
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                  onCheckedChange={() => toggleSelectAll(clinicList)}
+                  aria-label="Select all"
+                />
+              </TableHead>
               <TableHead>Clinic</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Treatments</TableHead>
@@ -286,7 +400,14 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
           </TableHeader>
           <TableBody>
             {filtered.map((clinic) => (
-              <TableRow key={clinic.id}>
+              <TableRow key={clinic.id} className={selectedIds.has(clinic.id) ? "bg-blue-50/50" : ""}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedIds.has(clinic.id)}
+                    onCheckedChange={() => toggleSelect(clinic.id)}
+                    aria-label={`Select ${clinic.name}`}
+                  />
+                </TableCell>
                 <TableCell>
                   <div>
                     <div className="font-semibold flex items-center gap-2">
@@ -392,13 +513,22 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
                     >
                       {showArchiveButton ? <Archive className="h-4 w-4" /> : <ArchiveRestore className="h-4 w-4" />}
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => setClinicToDelete({ id: clinic.id, name: clinic.name })}
+                      title="Delete Clinic"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
             ))}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   No clinics found. Try adjusting your search.
                 </TableCell>
               </TableRow>
@@ -471,6 +601,44 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
         </Card>
       )}
 
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <Card className="p-3 border-blue-200 bg-blue-50">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-blue-800">
+              {selectedIds.size} clinic{selectedIds.size > 1 ? "s" : ""} selected
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-orange-700 border-orange-300 hover:bg-orange-50"
+                onClick={() => setBulkAction("archive")}
+              >
+                <Archive className="h-3.5 w-3.5 mr-1.5" />
+                Archive Selected
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-red-700 border-red-300 hover:bg-red-50"
+                onClick={() => setBulkAction("delete")}
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                Delete Selected
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setSelectedIds(new Set())}
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <Tabs defaultValue="active" className="w-full">
         <TabsList className="grid w-full max-w-lg grid-cols-3">
           <TabsTrigger value="active">Verified ({activeClinics.length})</TabsTrigger>
@@ -516,6 +684,50 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
               }
             >
               {clinicToArchive?.archive ? "Archive" : "Restore"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Single delete confirmation */}
+      <AlertDialog open={!!clinicToDelete} onOpenChange={() => setClinicToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Clinic</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete &quot;{clinicToDelete?.name}&quot;? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteClinic} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk action confirmation */}
+      <AlertDialog open={!!bulkAction} onOpenChange={() => setBulkAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {bulkAction === "archive" ? "Archive" : "Delete"} {selectedIds.size} Clinic{selectedIds.size > 1 ? "s" : ""}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {bulkAction === "archive"
+                ? `Are you sure you want to archive ${selectedIds.size} clinic${selectedIds.size > 1 ? "s" : ""}? They will no longer appear in patient searches but can be restored later.`
+                : `Are you sure you want to permanently delete ${selectedIds.size} clinic${selectedIds.size > 1 ? "s" : ""}? This cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkProcessing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkAction}
+              disabled={isBulkProcessing}
+              className={bulkAction === "delete" ? "bg-red-600 hover:bg-red-700" : "bg-orange-600 hover:bg-orange-700"}
+            >
+              {isBulkProcessing ? "Processing..." : bulkAction === "archive" ? "Archive All" : "Delete All"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
