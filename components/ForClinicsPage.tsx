@@ -1391,15 +1391,15 @@ export default function ForClinicsPage() {
           </div>
           {sectionH2(<>Your safety net &mdash;<br />built into every plan</>)}
           <p style={{ color: "#6b7280", fontSize: 17, textAlign: "center", maxWidth: 560, margin: "0 auto 48px", lineHeight: 1.6 }}>
-            The Pearlie Guarantee gives patients peace of mind &mdash; and gives your clinic a competitive edge. Clinics with the Guarantee badge consistently see higher booking rates.
+            The Pearlie Guarantee gives patients peace of mind &mdash; if they&rsquo;re not happy, they get a free credit towards their next clinic. This is fully funded by Pearlie, never by your clinic. The result? Patients book with more confidence, and your clinic gets more bookings.
           </p>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 40 }} className="fc-zero-risk-grid">
             {[
               { icon: <Shield size={20} />, title: "No-show protection", desc: "If a matched patient doesn\u2019t attend their appointment, you are not charged. The risk is on us, not you." },
               { icon: <Check size={20} />, title: "Quality commitment", desc: "Every patient is pre-qualified through our intake. If the match quality isn\u2019t right, we\u2019ll make it right or credit your account." },
-              { icon: <Heart size={20} />, title: "Patient confidence", desc: "Patients see the Guarantee badge on your profile and know they\u2019re choosing a vetted, trusted clinic \u2014 making them more likely to book with you." },
-              { icon: <TrendingUp size={20} />, title: "Higher conversion rates", desc: "Clinics displaying the Pearlie Guarantee see up to 30% more bookings. Patients feel safer choosing a clinic that stands behind its service." },
+              { icon: <Heart size={20} />, title: "Free patient credit if unhappy", desc: "If a patient isn\u2019t happy with their experience, Pearlie gives them a free credit towards their next clinic booking. This is funded entirely by us \u2014 your clinic pays nothing. Patients book with confidence knowing they\u2019re protected." },
+              { icon: <TrendingUp size={20} />, title: "Higher conversion rates", desc: "Because patients know they can get a free credit if things don\u2019t work out, they\u2019re far more likely to book in the first place. Clinics with the Guarantee see up to 30% more bookings." },
             ].map((card) => (
               <div key={card.title} style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "28px 24px", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
                 <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(217,119,6,.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "#d97706", marginBottom: 16 }}>{card.icon}</div>
@@ -1414,8 +1414,11 @@ export default function ForClinicsPage() {
               <Shield size={20} style={{ color: "#d97706" }} />
               <span style={{ ...heading, fontSize: 18, color: "#1f2937" }}>Why patients prefer clinics with the Guarantee</span>
             </div>
-            <p style={{ color: "#6b7280", fontSize: 15, lineHeight: 1.6, maxWidth: 540, margin: "0 auto 20px" }}>
-              When patients see the Pearlie Guarantee badge, they know the clinic has been vetted, the matching is quality-controlled, and there&rsquo;s accountability if something goes wrong. It&rsquo;s the difference between &ldquo;I hope this clinic is good&rdquo; and &ldquo;I know this clinic is trusted.&rdquo;
+            <p style={{ color: "#6b7280", fontSize: 15, lineHeight: 1.6, maxWidth: 560, margin: "0 auto 16px" }}>
+              Patients see the Guarantee badge and know they&rsquo;re protected: if they&rsquo;re not happy, Pearlie gives them a free credit towards another clinic &mdash; no questions asked. That safety net makes patients far more willing to book.
+            </p>
+            <p style={{ color: "#1f2937", fontSize: 14, fontWeight: 600, margin: "0 auto 20px" }}>
+              The credit is always funded by Pearlie &mdash; your clinic is never charged.
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 24 }}>
               {[
