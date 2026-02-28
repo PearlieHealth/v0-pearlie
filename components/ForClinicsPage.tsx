@@ -98,9 +98,10 @@ const PLAN_DATA = {
 export default function ForClinicsPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [roiPatients, setRoiPatients] = useState(DEFAULT_PATIENTS)
+  const [roiLtv, setRoiLtv] = useState(DEFAULT_LTV)
 
   const roiResult = useCallback(() => {
-    const ltv = 1000
+    const ltv = roiLtv
     let totalCost: number
     let planLabel: string
     if (roiPatients === 0) {
@@ -129,7 +130,7 @@ export default function ForClinicsPage() {
     const net = revenue - totalCost
     const roiPct = totalCost > 0 ? Math.round(((revenue - totalCost) / totalCost) * 100) : 0
     return { totalCost, revenue, net, roiPct, planLabel }
-  }, [roiPatients])
+  }, [roiPatients, roiLtv])
 
   /* ── Color tokens ── */
   const teal = "#0d9488"
@@ -1235,10 +1236,16 @@ export default function ForClinicsPage() {
                 <span style={{ color: teal, fontWeight: 700, fontSize: 16 }}>{roiPatients}</span>
               </div>
               <input type="range" min={0} max={25} value={roiPatients} onChange={(e) => setRoiPatients(Number(e.target.value))} style={{ width: "100%" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-                <span style={{ color: "#475569", fontSize: 11 }}>0 = no subscription</span>
-                <span style={{ color: "#475569", fontSize: 11 }}>LTV: &pound;1,000/patient</span>
+              <p style={{ color: "#475569", fontSize: 11, marginTop: 6 }}>0 = no subscription</p>
+            </div>
+
+            {/* LTV slider */}
+            <div style={{ marginBottom: 40 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Patient lifetime value</span>
+                <span style={{ color: teal, fontWeight: 700, fontSize: 16 }}>&pound;{roiLtv.toLocaleString()}</span>
               </div>
+              <input type="range" min={300} max={3000} step={50} value={roiLtv} onChange={(e) => setRoiLtv(Number(e.target.value))} style={{ width: "100%" }} />
             </div>
 
             {/* Output boxes */}
@@ -1265,7 +1272,7 @@ export default function ForClinicsPage() {
                     </div>
                   </div>
                   <p style={{ color: "#94a3b8", fontSize: 14, textAlign: "center", lineHeight: 1.5 }}>
-                    {roiPatients} patients &times; &pound;1,000 = &pound;{r.revenue.toLocaleString()} &mdash; for &pound;{r.totalCost.toLocaleString()}/mo{roiPatients >= 3 && <span> ({r.planLabel})</span>}
+                    {roiPatients} patients &times; &pound;{roiLtv.toLocaleString()} = &pound;{r.revenue.toLocaleString()} &mdash; for &pound;{r.totalCost.toLocaleString()}/mo{roiPatients >= 3 && <span> ({r.planLabel})</span>}
                   </p>
                 </>
               )
