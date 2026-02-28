@@ -122,7 +122,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
   // Bulk Google link / fetch hours
   const [bulkGoogleProgress, setBulkGoogleProgress] = useState<{
     open: boolean
-    type: "google-link" | "fetch-hours"
+    type: "google-link" | "fetch-hours" | "fetch-reviews"
     total: number
     processed: number
     results: BulkProgressResult[]
@@ -136,7 +136,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       const response = await fetch("/api/admin/clinics")
       if (response.ok) {
         const data = await response.json()
-        setClinics(data)
+        setClinics(data.clinics || data)
         toast({
           title: "Data refreshed",
           description: "Clinic data has been updated.",
@@ -576,6 +576,86 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
     handleBulkFetchHours(visible.map((c) => c.id))
   }
 
+  const handleBulkFetchReviews = async (overrideIds?: string[]) => {
+    const ids = overrideIds || Array.from(selectedIds)
+    if (ids.length === 0) return
+
+    setBulkGoogleProgress({
+      open: true,
+      type: "fetch-reviews",
+      total: ids.length,
+      processed: 0,
+      results: [],
+      done: false,
+    })
+
+    try {
+      const res = await fetch("/api/admin/clinics/bulk-fetch-reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clinicIds: ids }),
+      })
+
+      if (!res.ok) throw new Error("Bulk fetch reviews failed")
+      const data = await res.json()
+
+      // Update local state
+      for (const result of data.results) {
+        if (result.status === "updated") {
+          setClinics((prev) =>
+            prev.map((c) =>
+              c.id === result.clinicId
+                ? {
+                    ...c,
+                    google_rating: result.googleRating,
+                    google_review_count: result.googleReviewCount,
+                  }
+                : c,
+            ),
+          )
+        }
+      }
+
+      setBulkGoogleProgress((prev) =>
+        prev
+          ? {
+              ...prev,
+              processed: data.summary.total,
+              results: data.results,
+              done: true,
+            }
+          : null,
+      )
+
+      const { updated, noPlaceId, noReviewsFound, failed } = data.summary
+      toast({
+        title: "Bulk fetch reviews complete",
+        description: `Updated: ${updated}, No Google link: ${noPlaceId}, No reviews found: ${noReviewsFound}, Failed: ${failed}`,
+      })
+    } catch (error) {
+      console.error("Bulk fetch reviews error:", error)
+      setBulkGoogleProgress((prev) => (prev ? { ...prev, done: true } : null))
+      toast({
+        variant: "destructive",
+        title: "Bulk fetch failed",
+        description: "Could not complete bulk reviews fetch.",
+      })
+    }
+  }
+
+  const handleFetchReviewsForAll = () => {
+    const currentList =
+      activeTab === "active" ? activeClinics :
+      activeTab === "unverified" ? unverifiedClinics :
+      archivedClinics
+    const visible = filterClinics(currentList)
+    if (visible.length === 0) {
+      toast({ variant: "destructive", title: "No clinics", description: "No clinics visible to fetch reviews for." })
+      return
+    }
+    handleBulkFetchReviews(visible.map((c) => c.id))
+  }
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev)
@@ -614,6 +694,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       case "not_found":
       case "no_place_id":
       case "no_hours_found":
+      case "no_reviews_found":
         return <span className="text-amber-600">&#9888;</span>
       case "failed":
         return <span className="text-red-600">&#10007;</span>
@@ -638,6 +719,8 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
         return "No Google link"
       case "no_hours_found":
         return "No hours on Google"
+      case "no_reviews_found":
+        return "No reviews on Google"
       case "failed":
         return "Failed"
       default:
@@ -880,6 +963,15 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
             </Button>
             <Button
               variant="outline"
+              onClick={handleFetchReviewsForAll}
+              disabled={!!bulkGoogleProgress}
+              className="gap-2 bg-transparent text-amber-700 border-amber-300 hover:bg-amber-50"
+            >
+              <Star className="h-4 w-4" />
+              Fetch All Reviews
+            </Button>
+            <Button
+              variant="outline"
               onClick={handleRefresh}
               disabled={isRefreshing}
               className="gap-2 bg-transparent"
@@ -984,6 +1076,15 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
               >
                 <Clock className="h-3.5 w-3.5 mr-1.5" />
                 Fetch Opening Hours
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-amber-700 border-amber-300 hover:bg-amber-50"
+                onClick={() => handleBulkFetchReviews()}
+              >
+                <Star className="h-3.5 w-3.5 mr-1.5" />
+                Fetch Reviews
               </Button>
               <Button
                 size="sm"
@@ -1124,7 +1225,9 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
             <DialogTitle>
               {bulkGoogleProgress?.type === "google-link"
                 ? "Linking Google Reviews"
-                : "Fetching Opening Hours"}
+                : bulkGoogleProgress?.type === "fetch-reviews"
+                  ? "Fetching Google Reviews"
+                  : "Fetching Opening Hours"}
             </DialogTitle>
           </DialogHeader>
 
