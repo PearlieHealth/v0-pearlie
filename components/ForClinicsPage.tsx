@@ -1062,7 +1062,7 @@ export default function ForClinicsPage() {
             }}
           >
             <p style={{ color: "#1f2937", fontSize: 15, fontWeight: 600, lineHeight: 1.5 }}>
-              &#128176; No percentage cuts, ever. &pound;2,000 implant? You keep &pound;2,000. We charge a flat &pound;35 for the confirmed booking.
+              &#128176; No percentage cut or revenue share. &pound;2,000 implant? You keep &pound;2,000. We charge a flat &pound;35 for the confirmed booking.
             </p>
           </div>
         </div>
