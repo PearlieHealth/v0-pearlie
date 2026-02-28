@@ -71,6 +71,8 @@ interface Clinic {
   available_days?: string[]
   available_hours?: string[]
   accepts_same_day?: boolean
+  treatment_prices?: { category: string; treatments: { name: string; price: string; description: string }[] }[]
+  show_treatment_prices?: boolean
   created_at: string
   updated_at: string
 }
@@ -88,7 +90,7 @@ interface ClinicDirectoryManagerProps {
   clinics: Clinic[]
 }
 
-type FilterKey = "no_email" | "no_google" | "no_hours" | "no_photos" | "no_treatments" | "no_description"
+type FilterKey = "no_email" | "no_google" | "no_hours" | "no_photos" | "no_treatments" | "no_description" | "no_prices"
 
 const FILTER_LABELS: Record<FilterKey, string> = {
   no_email: "No Email",
@@ -96,6 +98,7 @@ const FILTER_LABELS: Record<FilterKey, string> = {
   no_hours: "No Opening Hours",
   no_photos: "No Photos",
   no_treatments: "No Treatments",
+  no_prices: "No Treatment Prices",
   no_description: "No Description",
 }
 
@@ -221,6 +224,13 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
         case "no_treatments":
           if (!clinic.treatments || clinic.treatments.length === 0) return true
           break
+        case "no_prices": {
+          const hasPrices = clinic.treatment_prices?.some((cat) =>
+            cat.treatments?.some((t) => t.price && t.price.trim() !== "")
+          )
+          if (!hasPrices) return true
+          break
+        }
         case "no_description":
           if (!clinic.description || clinic.description.trim().length < 10) return true
           break
