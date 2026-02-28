@@ -2,10 +2,13 @@ import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { randomBytes } from "crypto"
 import { createRateLimiter } from "@/lib/rate-limit"
-import { generateUnsubscribeFooterHtml, generateUnsubscribeUrl } from "@/lib/unsubscribe"
+import { generateUnsubscribeFooterHtml, generateUnsubscribeUrl, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
 import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
 import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
+import { escapeHtml } from "@/lib/escape-html"
+import { portalUrl } from "@/lib/clinic-url"
+import { generateReplyToAddress, generateThreadMarker } from "@/lib/email-reply-token"
 
 // 10 booking requests per IP per hour
 const bookingIpLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, maxAttempts: 10 })
@@ -121,46 +124,31 @@ export async function POST(request: Request) {
       console.error("[booking-request] Error updating lead:", updateError)
     }
 
-    // Call the lead-actions API to send the full detailed email
-    // This reuses the existing email template with all form details, tips, etc.
-    try {
-      // Use request origin or construct URL
-      const requestUrl = new URL(request.url)
-      const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
-      
-      console.log("[v0] Booking request - sending email via lead-actions")
-      console.log("[v0] Base URL:", baseUrl)
-      console.log("[v0] Clinic ID:", clinicId, "Lead ID:", leadId)
-      
-      // Forward auth headers so lead-actions can verify the caller
-      const incomingHeaders: Record<string, string> = { "Content-Type": "application/json" }
-      const cookie = request.headers.get("cookie")
-      if (cookie) incomingHeaders["cookie"] = cookie
-      const authorization = request.headers.get("authorization")
-      if (authorization) incomingHeaders["authorization"] = authorization
-
-      const leadActionsResponse = await fetch(`${baseUrl}/api/lead-actions`, {
-        method: "POST",
-        headers: incomingHeaders,
-        body: JSON.stringify({
+    // Send the direct lead notification email to the clinic
+    const clinicNotificationEmail = clinic.notification_email || clinic.email
+    if (clinicNotificationEmail) {
+      try {
+        await sendRegisteredEmail({
+          type: EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION,
+          to: clinicNotificationEmail,
+          data: {
+            clinicName: clinic.name || "",
+            firstName: lead.first_name || "",
+            lastName: lead.last_name || "",
+            email: lead.email || "",
+            phone: lead.phone || "",
+            treatment: lead.treatment_interest || "Not specified",
+            urgency: lead.preferred_timing || "flexible",
+            inboxUrl: portalUrl("/clinic/appointments"),
+            _leadId: leadId,
+            _clinicId: clinicId,
+          },
           clinicId,
           leadId,
-          actionType: "click_book",
-        }),
-      })
-
-      console.log("[v0] Lead-actions response status:", leadActionsResponse.status)
-      
-      if (!leadActionsResponse.ok) {
-        const errorData = await leadActionsResponse.text()
-        console.error("[v0] Failed to send email via lead-actions:", errorData)
-      } else {
-        const responseData = await leadActionsResponse.json()
-        console.log("[v0] Email sent successfully:", responseData)
+        })
+      } catch (emailError) {
+        console.error("[booking-request] Clinic notification email failed:", emailError)
       }
-    } catch (emailError) {
-      // Don't fail the booking if email fails - just log it
-      console.error("[v0] Email sending error:", emailError)
     }
 
     // Track the booking request event in analytics_events table
@@ -333,6 +321,39 @@ export async function POST(request: Request) {
             bot_greeted: true,
           })
           .eq("id", conversationId)
+
+        // Send chat notification email to clinic about the booking request message
+        if (clinicNotificationEmail && bookingMessage) {
+          try {
+            const safeName = escapeHtml(`${lead.first_name || ""} ${lead.last_name || ""}`.trim() || "A patient")
+            const safeContent = escapeHtml(bookingMessageContent.substring(0, 500))
+            const unsubFooterClinic = generateUnsubscribeFooterHtml(
+              generateUnsubscribeHeaders(clinicNotificationEmail, "clinic_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
+            )
+            const replyTo = generateReplyToAddress(conversationId, "clinic", clinicNotificationEmail)
+            const threadMarker = generateThreadMarker(conversationId)
+
+            await sendRegisteredEmail({
+              type: EMAIL_TYPE.CHAT_NOTIFICATION_TO_CLINIC,
+              to: clinicNotificationEmail,
+              data: {
+                patientName: safeName,
+                messagePreview: safeContent,
+                inboxUrl: portalUrl("/clinic/appointments"),
+                unsubscribeFooterHtml: unsubFooterClinic,
+                _conversationId: conversationId,
+                replyToAddress: replyTo,
+                threadMarker,
+              },
+              headers: generateUnsubscribeHeaders(clinicNotificationEmail, "clinic_notifications"),
+              replyTo,
+              clinicId,
+              leadId,
+            })
+          } catch (chatEmailErr) {
+            console.error("[booking-request] Chat notification email to clinic failed:", chatEmailErr)
+          }
+        }
       }
     } catch (convError) {
       // Don't fail the booking if conversation creation fails
