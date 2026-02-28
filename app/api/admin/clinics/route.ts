@@ -11,8 +11,7 @@ export async function GET() {
     
     const { data, error } = await supabase
       .from("clinics")
-      .select("id, name, postcode, is_live, is_archived")
-      .eq("is_archived", false)
+      .select("*")
       .order("name")
 
     if (error) {
