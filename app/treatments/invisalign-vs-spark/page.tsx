@@ -257,9 +257,28 @@ export default async function InvisalignVsSparkPage() {
                 </table>
               </div>
 
-              <p className="mt-6 text-sm text-muted-foreground leading-relaxed">
-                Not sure whether clear aligners are the right approach? Our <Link href="/blog/invisalign-vs-braces" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">Invisalign vs braces</Link> guide compares aligners with fixed orthodontics, and our <Link href="/guides/invisalign-clear-aligners" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">complete clear aligner guide</Link> covers everything from consultation to retention.
-              </p>
+              <div className="mt-6 grid sm:grid-cols-2 gap-3">
+                <Link
+                  href="/blog/invisalign-vs-braces"
+                  className="flex items-center gap-3 p-4 rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all group"
+                >
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center text-[#0fbcb0] group-hover:bg-[#0fbcb0]/20 transition-colors">→</span>
+                  <span>
+                    <span className="font-heading font-bold text-[#004443] text-sm block">Invisalign vs braces</span>
+                    <span className="text-xs text-muted-foreground">Compare aligners with fixed orthodontics</span>
+                  </span>
+                </Link>
+                <Link
+                  href="/guides/invisalign-clear-aligners"
+                  className="flex items-center gap-3 p-4 rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all group"
+                >
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center text-[#0fbcb0] group-hover:bg-[#0fbcb0]/20 transition-colors">→</span>
+                  <span>
+                    <span className="font-heading font-bold text-[#004443] text-sm block">Complete clear aligner guide</span>
+                    <span className="text-xs text-muted-foreground">Consultation to retention — everything to know</span>
+                  </span>
+                </Link>
+              </div>
             </div>
           </div>
         </section>
@@ -273,14 +292,37 @@ export default async function InvisalignVsSparkPage() {
               </h2>
               <div className="space-y-4 text-base text-muted-foreground leading-relaxed">
                 <p>
-                  Both systems are priced similarly in the UK, typically ranging from <strong className="text-foreground">£2,500 to £5,500</strong> depending on case complexity. Spark may be marginally cheaper at some clinics as providers compete for market share, but the difference is usually small. See our full <Link href="/treatments/invisalign" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">Invisalign cost breakdown</Link> for a detailed look at what affects pricing.
+                  Both systems are priced similarly in the UK, typically ranging from <strong className="text-foreground">£2,500 to £5,500</strong> depending on case complexity. Spark may be marginally cheaper at some clinics as providers compete for market share, but the difference is usually small.
                 </p>
                 <p>
-                  The final cost depends more on your case complexity and the clinic you choose than on the brand. A mild case requiring 7–14 aligners will cost significantly less than a complex case needing unlimited aligners. Our <Link href="/guides/dental-costs-uk" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">UK dental costs guide</Link> covers how treatment pricing works across providers.
+                  The final cost depends more on your case complexity and the clinic you choose than on the brand. A mild case requiring 7–14 aligners will cost significantly less than a complex case needing unlimited aligners.
                 </p>
                 <p>
                   Both systems offer finance options at most clinics, with 0% interest plans over 12–24 months commonly available. Monthly payments typically start from £100–£250.
                 </p>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3 mt-6">
+                <Link
+                  href="/treatments/invisalign"
+                  className="flex items-center gap-3 p-4 rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all group"
+                >
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center text-[#0fbcb0] group-hover:bg-[#0fbcb0]/20 transition-colors">→</span>
+                  <span>
+                    <span className="font-heading font-bold text-[#004443] text-sm block">Invisalign cost breakdown</span>
+                    <span className="text-xs text-muted-foreground">Full pricing by tier and what affects cost</span>
+                  </span>
+                </Link>
+                <Link
+                  href="/guides/dental-costs-uk"
+                  className="flex items-center gap-3 p-4 rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all group"
+                >
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center text-[#0fbcb0] group-hover:bg-[#0fbcb0]/20 transition-colors">→</span>
+                  <span>
+                    <span className="font-heading font-bold text-[#004443] text-sm block">UK dental costs guide</span>
+                    <span className="text-xs text-muted-foreground">How treatment pricing works across providers</span>
+                  </span>
+                </Link>
               </div>
             </div>
           </div>
@@ -298,28 +340,28 @@ export default async function InvisalignVsSparkPage() {
                 <div className="p-4 rounded-xl bg-white border border-border/50">
                   <h3 className="font-heading font-bold text-[#004443] mb-2">Simple cases (mild crowding, minor gaps)</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Both systems perform equally well. Choose based on your provider&apos;s recommendation and pricing. Spark may offer slightly fewer attachments for simple movements. For very minor gaps, <Link href="/treatments/composite-bonding" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">composite bonding</Link> can sometimes close small spaces without aligners.
+                    Both systems perform equally well. Choose based on your provider&apos;s recommendation and pricing. Spark may offer slightly fewer attachments for simple movements. For very minor gaps, <Link href="/treatments/composite-bonding" className="font-semibold text-[#0fbcb0] hover:text-[#004443] transition-colors">composite bonding →</Link> can sometimes close small spaces without aligners.
                   </p>
                 </div>
 
                 <div className="p-4 rounded-xl bg-white border border-border/50">
                   <h3 className="font-heading font-bold text-[#004443] mb-2">Moderate cases (crowding + bite correction)</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Both systems can handle moderate cases. Invisalign has a larger evidence base and more predictable refinement processes. Your provider&apos;s experience matters more than the brand. Read our <Link href="/guides/invisalign-clear-aligners" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">complete guide to clear aligners</Link> to understand how treatment planning works.
+                    Both systems can handle moderate cases. Invisalign has a larger evidence base and more predictable refinement processes. Your provider&apos;s experience matters more than the brand. Read our <Link href="/guides/invisalign-clear-aligners" className="font-semibold text-[#0fbcb0] hover:text-[#004443] transition-colors">complete guide to clear aligners →</Link> to understand how treatment planning works.
                   </p>
                 </div>
 
                 <div className="p-4 rounded-xl bg-white border border-border/50">
                   <h3 className="font-heading font-bold text-[#004443] mb-2">Complex cases (severe crowding, significant bite issues)</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Invisalign generally has the edge for complex cases due to its longer track record, SmartForce features, and Comprehensive plan with unlimited aligners and refinements. However, an experienced Spark provider can also achieve excellent results. If you&apos;re weighing aligners against traditional orthodontics, see our <Link href="/blog/invisalign-vs-braces" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">Invisalign vs braces comparison</Link>.
+                    Invisalign generally has the edge for complex cases due to its longer track record, SmartForce features, and Comprehensive plan with unlimited aligners and refinements. However, an experienced Spark provider can also achieve excellent results. If you&apos;re weighing aligners against traditional orthodontics, see our <Link href="/blog/invisalign-vs-braces" className="font-semibold text-[#0fbcb0] hover:text-[#004443] transition-colors">Invisalign vs braces comparison →</Link>
                   </p>
                 </div>
 
                 <div className="p-4 rounded-xl bg-white border border-border/50">
                   <h3 className="font-heading font-bold text-[#004443] mb-2">Aesthetics-focused (minimal attachments, stain resistance)</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Spark&apos;s TruGEN material is designed to be more stain-resistant and may require fewer attachments. If discreetness is your top priority, Spark could have a slight advantage. Many patients follow aligners with <Link href="/treatments/teeth-whitening" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">teeth whitening</Link> for a complete smile refresh.
+                    Spark&apos;s TruGEN material is designed to be more stain-resistant and may require fewer attachments. If discreetness is your top priority, Spark could have a slight advantage. Many patients follow aligners with <Link href="/treatments/teeth-whitening" className="font-semibold text-[#0fbcb0] hover:text-[#004443] transition-colors">teeth whitening →</Link> for a complete smile refresh.
                   </p>
                 </div>
               </div>
