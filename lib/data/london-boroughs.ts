@@ -9,6 +9,18 @@
  * search demand. More boroughs are added as clinic density grows.
  */
 
+/**
+ * Borough archetype for content variation.
+ * Each archetype drives different tone, FAQ phrasing, and content angles
+ * so pages don't read as templated across boroughs.
+ */
+export type BoroughArchetype =
+  | "affluent_cosmetic"
+  | "young_professional"
+  | "family_residential"
+  | "central_business"
+  | "mixed_emerging"
+
 export interface LondonBorough {
   /** URL slug, e.g. "islington" */
   slug: string
@@ -16,6 +28,8 @@ export interface LondonBorough {
   name: string
   /** Region grouping for breadcrumbs / internal linking */
   region: "Central" | "North" | "South" | "East" | "West"
+  /** Archetype classification for content variation */
+  archetype: BoroughArchetype
   /** Primary postcodes covered by this borough */
   postcodes: string[]
   /** Representative lat/lng for distance calculations */
@@ -43,6 +57,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "westminster",
     name: "Westminster",
     region: "Central",
+    archetype: "affluent_cosmetic",
     postcodes: ["SW1", "W1", "W2", "WC2"],
     lat: 51.4975,
     lng: -0.1357,
@@ -60,6 +75,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "city-of-london",
     name: "City of London",
     region: "Central",
+    archetype: "central_business",
     postcodes: ["EC1", "EC2", "EC3", "EC4"],
     lat: 51.5155,
     lng: -0.0922,
@@ -83,6 +99,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "camden",
     name: "Camden",
     region: "Central",
+    archetype: "affluent_cosmetic",
     postcodes: ["NW1", "WC1", "NW3", "NW5"],
     lat: 51.5517,
     lng: -0.1588,
@@ -114,6 +131,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "islington",
     name: "Islington",
     region: "North",
+    archetype: "young_professional",
     postcodes: ["N1", "N5", "N7", "EC1V"],
     lat: 51.5416,
     lng: -0.1022,
@@ -137,6 +155,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "hackney",
     name: "Hackney",
     region: "North",
+    archetype: "young_professional",
     postcodes: ["E8", "E9", "E5", "N16"],
     lat: 51.5432,
     lng: -0.0557,
@@ -165,6 +184,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "haringey",
     name: "Haringey",
     region: "North",
+    archetype: "family_residential",
     postcodes: ["N4", "N8", "N10", "N11", "N15", "N17", "N22"],
     lat: 51.5906,
     lng: -0.1107,
@@ -195,6 +215,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "southwark",
     name: "Southwark",
     region: "South",
+    archetype: "central_business",
     postcodes: ["SE1", "SE5", "SE15", "SE16", "SE17", "SE22"],
     lat: 51.4733,
     lng: -0.0734,
@@ -223,6 +244,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "lambeth",
     name: "Lambeth",
     region: "South",
+    archetype: "young_professional",
     postcodes: ["SE11", "SW2", "SW4", "SW8", "SW9", "SW16"],
     lat: 51.4571,
     lng: -0.1231,
@@ -246,6 +268,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "lewisham",
     name: "Lewisham",
     region: "South",
+    archetype: "family_residential",
     postcodes: ["SE4", "SE6", "SE8", "SE12", "SE13", "SE14", "SE23", "SE26"],
     lat: 51.4535,
     lng: -0.018,
@@ -277,6 +300,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "tower-hamlets",
     name: "Tower Hamlets",
     region: "East",
+    archetype: "central_business",
     postcodes: ["E1", "E2", "E3", "E14"],
     lat: 51.5099,
     lng: -0.0295,
@@ -306,6 +330,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "greenwich",
     name: "Greenwich",
     region: "East",
+    archetype: "family_residential",
     postcodes: ["SE3", "SE7", "SE9", "SE10", "SE18"],
     lat: 51.4769,
     lng: 0.0005,
@@ -337,6 +362,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "kensington-and-chelsea",
     name: "Kensington and Chelsea",
     region: "West",
+    archetype: "affluent_cosmetic",
     postcodes: ["SW3", "SW5", "SW7", "SW10", "W8", "W10", "W11", "W14"],
     lat: 51.502,
     lng: -0.1947,
@@ -365,6 +391,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "hammersmith-and-fulham",
     name: "Hammersmith and Fulham",
     region: "West",
+    archetype: "young_professional",
     postcodes: ["W6", "W12", "W14", "SW6"],
     lat: 51.4927,
     lng: -0.2339,
@@ -393,6 +420,7 @@ export const LONDON_BOROUGHS: LondonBorough[] = [
     slug: "wandsworth",
     name: "Wandsworth",
     region: "West",
+    archetype: "family_residential",
     postcodes: ["SW11", "SW12", "SW15", "SW17", "SW18"],
     lat: 51.4567,
     lng: -0.191,

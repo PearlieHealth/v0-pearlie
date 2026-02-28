@@ -14,6 +14,7 @@ import { getAllTreatments, type TreatmentMeta } from "@/lib/content/treatments"
 import {
   LONDON_BOROUGHS,
   type LondonBorough,
+  type BoroughArchetype,
 } from "@/lib/data/london-boroughs"
 
 export interface AreaFAQ {
@@ -155,6 +156,568 @@ const TREATMENT_EDUCATIONAL: Record<string, EducationalSection[]> = {
     {
       heading: "Preventing dental emergencies",
       body: "Regular dental check-ups help identify problems before they become emergencies. Wear a mouthguard for contact sports. Address tooth sensitivity or minor pain early — most emergencies develop from untreated issues. Keep your dentist's emergency contact details saved in your phone.",
+    },
+  ],
+}
+
+// ── Deterministic Hash Utilities ────────────────────────────────────
+// Used by the template variation engine. Same inputs always produce
+// the same output, making this fully ISR/SSG compatible.
+
+/** DJB2 hash — returns a stable non-negative integer. */
+function stableHash(input: string): number {
+  let hash = 5381
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) + hash + input.charCodeAt(i)) & 0x7fffffff
+  }
+  return hash
+}
+
+/** Pick one item from an array based on a deterministic hash of the key. */
+function pick<T>(templates: T[], key: string): T {
+  return templates[stableHash(key) % templates.length]
+}
+
+/** Pick N items from a pool using deterministic shuffling. */
+function pickMultiple<T>(pool: T[], count: number, key: string): T[] {
+  const indexed = pool.map((item, i) => ({
+    item,
+    sort: stableHash(`${key}:${i}`),
+  }))
+  indexed.sort((a, b) => a.sort - b.sort)
+  return indexed.slice(0, Math.min(count, pool.length)).map((x) => x.item)
+}
+
+/** Get rotated landmarks so different treatment pages mention different areas. */
+function rotatedLandmarks(borough: LondonBorough, key: string): [string, string] {
+  const offset = stableHash(key) % Math.max(1, borough.landmarks.length - 1)
+  return [
+    borough.landmarks[offset],
+    borough.landmarks[(offset + 1) % borough.landmarks.length],
+  ]
+}
+
+/** Get rotated transport stations. */
+function rotatedTransport(borough: LondonBorough, key: string): [string, string] {
+  const offset = stableHash(`t:${key}`) % Math.max(1, borough.transport.length - 1)
+  return [
+    borough.transport[offset],
+    borough.transport[(offset + 1) % borough.transport.length],
+  ]
+}
+
+// ── Archetype Template Banks ───────────────────────────────────────
+// Each bank has 3 template functions per archetype. Templates are
+// selected via pick(bank[archetype], key) where key = "borough:treatment".
+
+type Ctx = { borough: LondonBorough; treatment: TreatmentMeta; lm: [string, string]; tr: [string, string] }
+type TemplateFn = (ctx: Ctx) => string
+
+// ── 1. INTRO TEMPLATES (localInsight) ──
+
+const INTRO_TEMPLATES: Record<BoroughArchetype, TemplateFn[]> = {
+  affluent_cosmetic: [
+    ({ borough, treatment, lm }) =>
+      `${borough.name} is one of London's most sought-after locations for ${treatment.treatmentName.toLowerCase()}, with established clinics near ${lm[0]} and ${lm[1]} offering premium care. Patients here often seek experienced practitioners who use the latest techniques and materials, and the area's concentration of specialists means you can compare multiple providers within a short walk.`,
+    ({ borough, treatment, tr }) =>
+      `Clinics around ${tr[0]} and ${tr[1]} stations in ${borough.name} cater to patients who prioritise quality and expertise when choosing ${treatment.treatmentName.toLowerCase()}. The area's reputation for high-end dental care means providers compete on clinical outcomes and patient experience, giving patients access to some of London's most qualified practitioners.`,
+    ({ borough, treatment, lm, tr }) =>
+      `${borough.name} attracts patients looking for top-tier ${treatment.treatmentName.toLowerCase()} from across London and beyond. The concentration of specialist practitioners near ${tr[0]} station and the ${lm[0]} area makes it easy to access the borough's well-regarded clinics, many of which invest in advanced diagnostic and treatment technology.`,
+  ],
+  young_professional: [
+    ({ borough, treatment, lm }) =>
+      `${borough.name}'s ${treatment.treatmentName.toLowerCase()} market has grown rapidly, driven by the area's large population of 25–40 year olds seeking cosmetic dental improvements that fit their busy lifestyles. Clinics near ${lm[0]} and ${lm[1]} compete on convenience, transparent pricing, and flexible scheduling including evening appointments.`,
+    ({ borough, treatment, tr }) =>
+      `Patients in ${borough.name} looking for ${treatment.treatmentName.toLowerCase()} benefit from a competitive market where clinics near ${tr[0]} and ${tr[1]} stations actively compete for the area's young professional demographic. This means better service, clearer pricing, and more flexible appointment options than you might find elsewhere.`,
+    ({ borough, treatment, lm }) =>
+      `${treatment.treatmentName} is particularly popular in ${borough.name}, where the area's younger demographic drives strong demand for discreet cosmetic improvements. Clinics around ${lm[0]} and ${lm[1]} have responded with modern practices, digital consultations, and social-media-friendly treatment packages.`,
+  ],
+  family_residential: [
+    ({ borough, treatment, lm }) =>
+      `Families across ${borough.name} value finding a trusted clinic for ${treatment.treatmentName.toLowerCase()} close to home. With a population of ${borough.population.toLocaleString("en-GB")}, the borough has a healthy mix of providers near ${lm[0]} and ${lm[1]} offering both NHS and private options for long-term dental care.`,
+    ({ borough, treatment, tr }) =>
+      `Patients in ${borough.name} looking for ${treatment.treatmentName.toLowerCase()} benefit from a mix of established family practices and newer clinics near ${tr[0]} and ${tr[1]} stations. The borough's residential character means clinics focus on building long-term patient relationships with consistent, reliable care.`,
+    ({ borough, treatment, lm }) =>
+      `${treatment.treatmentName} providers in ${borough.name} serve the borough's diverse residential communities, with clinics near ${lm[0]} and ${lm[1]} offering treatment from general and specialist practitioners. Many practices here welcome patients of all ages and offer family appointment slots.`,
+  ],
+  central_business: [
+    ({ borough, treatment, tr }) =>
+      `${borough.name}'s dental clinics are geared towards the area's large daytime workforce, offering ${treatment.treatmentName.toLowerCase()} with flexible scheduling designed for busy professionals. Practices near ${tr[0]} and ${tr[1]} stations often accommodate lunchtime and early evening appointments so treatment doesn't disrupt your working day.`,
+    ({ borough, treatment, lm }) =>
+      `Professionals working near ${lm[0]} and ${lm[1]} in ${borough.name} can access ${treatment.treatmentName.toLowerCase()} from clinics that understand the demands of a busy schedule. Many offer streamlined booking, express consultations, and treatment plans designed to minimise time away from the office.`,
+    ({ borough, treatment, tr, lm }) =>
+      `${treatment.treatmentName} is readily available across ${borough.name}, where clinics near ${tr[0]} station and the ${lm[0]} area serve both the local residential community and the borough's substantial commuter population. Premium and mid-range options are available depending on your priorities.`,
+  ],
+  mixed_emerging: [
+    ({ borough, treatment, lm }) =>
+      `${borough.name} offers an expanding range of dental clinics providing ${treatment.treatmentName.toLowerCase()}, with options near ${lm[0]} and ${lm[1]}. Patients in the area benefit from increasing competition, which helps keep prices transparent and accessible while maintaining clinical standards.`,
+    ({ borough, treatment, tr }) =>
+      `Residents in ${borough.name} searching for ${treatment.treatmentName.toLowerCase()} can choose from growing number of providers near ${tr[0]} and ${tr[1]} stations. The area's developing dental market offers competitive pricing alongside established community practices.`,
+    ({ borough, treatment, lm }) =>
+      `${treatment.treatmentName} options in ${borough.name} are expanding as new clinics open near ${lm[0]} and ${lm[1]}. The borough offers some of London's most competitively priced dental care, with practices that prioritise transparent pricing and honest treatment planning.`,
+  ],
+}
+
+// ── 2. PRICE TEMPLATES (priceContext) ──
+
+const PRICE_TEMPLATES: Record<BoroughArchetype, TemplateFn[]> = {
+  affluent_cosmetic: [
+    ({ borough, treatment, lm }) =>
+      `${treatment.treatmentName} in ${borough.name} sits at the premium end of the London range, typically within the ${treatment.priceRange} bracket. The higher price point reflects access to experienced specialists and premium materials, particularly at clinics near ${lm[0]}.`,
+    ({ borough, treatment }) =>
+      `Patients in ${borough.name} can expect to pay at the upper end of the ${treatment.priceRange} range for ${treatment.treatmentName.toLowerCase()}. Premium clinics in the area invest in advanced equipment and often include comprehensive aftercare in the price.`,
+    ({ borough, treatment, lm }) =>
+      `${treatment.treatmentName} pricing in ${borough.name} reflects the area's specialist reputation, with costs typically within the ${treatment.priceRange} bracket. Clinics near ${lm[0]} tend to charge more, though neighbouring areas can offer better value with comparable quality.`,
+  ],
+  young_professional: [
+    ({ borough, treatment, lm }) =>
+      `${treatment.treatmentName} prices in ${borough.name} are competitive, typically within the ${treatment.priceRange} bracket. Many clinics near ${lm[0]} offer 0% finance plans to make treatment more accessible for the area's younger demographic.`,
+    ({ borough, treatment }) =>
+      `Expect to pay within the ${treatment.priceRange} range for ${treatment.treatmentName.toLowerCase()} in ${borough.name}. The area's competitive market means practices often include extras like free consultations or follow-up appointments to attract patients.`,
+    ({ borough, treatment, tr }) =>
+      `With several clinics competing in ${borough.name}, ${treatment.treatmentName.toLowerCase()} pricing is around the London average at ${treatment.priceRange}. Practices near ${tr[0]} station frequently offer interest-free monthly payment plans.`,
+  ],
+  family_residential: [
+    ({ borough, treatment, lm }) =>
+      `${treatment.treatmentName} in ${borough.name} is priced around the London average, typically within the ${treatment.priceRange} bracket. Several family-oriented practices near ${lm[0]} offer transparent pricing with no hidden costs and staged payment options.`,
+    ({ borough, treatment }) =>
+      `Prices for ${treatment.treatmentName.toLowerCase()} in ${borough.name} typically fall within the ${treatment.priceRange} range. The borough's mix of NHS-accepting and private practices means patients can find options across a range of budgets.`,
+    ({ borough, treatment, lm }) =>
+      `${treatment.treatmentName} costs in ${borough.name} are competitive for London, generally within the ${treatment.priceRange} bracket. Clinics near ${lm[0]} and ${lm[1]} often offer family discounts and flexible payment plans for longer treatments.`,
+  ],
+  central_business: [
+    ({ borough, treatment, tr }) =>
+      `${treatment.treatmentName} pricing in ${borough.name} reflects the area's mix of corporate-facing clinics and community practices, typically within the ${treatment.priceRange} range. Clinics near ${tr[0]} station cater to professionals who value efficiency and premium service.`,
+    ({ borough, treatment }) =>
+      `Expect to pay within the ${treatment.priceRange} range for ${treatment.treatmentName.toLowerCase()} in ${borough.name}. The area's central location means pricing trends towards the higher end, though the quality of service and convenience often justifies the cost for local workers.`,
+    ({ borough, treatment, lm }) =>
+      `${treatment.treatmentName} in ${borough.name} is priced competitively at ${treatment.priceRange}, with clinics near ${lm[0]} offering different tiers to suit varying budgets. Many practices offer express consultation options for time-pressed professionals.`,
+  ],
+  mixed_emerging: [
+    ({ borough, treatment }) =>
+      `${treatment.treatmentName} in ${borough.name} offers some of the most transparent pricing in London, typically within the ${treatment.priceRange} bracket. The area's growing clinic market means patients can compare options and find good value without compromising on quality.`,
+    ({ borough, treatment, lm }) =>
+      `Prices for ${treatment.treatmentName.toLowerCase()} in ${borough.name} are among the most accessible in London, generally within the ${treatment.priceRange} range. Clinics near ${lm[0]} prioritise clear, upfront pricing with no surprises.`,
+    ({ borough, treatment }) =>
+      `With increasing competition in ${borough.name}, ${treatment.treatmentName.toLowerCase()} prices have become more accessible, typically within the ${treatment.priceRange} bracket. Many practices offer payment plans and transparent breakdowns of what's included.`,
+  ],
+}
+
+// ── 3. DEMAND SIGNAL TEMPLATES ──
+
+const DEMAND_TEMPLATES: Record<BoroughArchetype, TemplateFn[]> = {
+  affluent_cosmetic: [
+    ({ borough, treatment }) =>
+      `${borough.name}'s reputation for specialist dental care draws patients from across London seeking ${treatment.treatmentName.toLowerCase()}. The area's high standards mean clinics invest in advanced technology and experienced practitioners to meet patient expectations.`,
+    ({ borough, treatment, lm }) =>
+      `Demand for ${treatment.treatmentName.toLowerCase()} near ${lm[0]} in ${borough.name} remains strong, driven by patients who prioritise clinical expertise and aesthetic outcomes. The area's competitive specialist market benefits patients through higher standards of care.`,
+    ({ borough, treatment }) =>
+      `${borough.name} consistently sees high demand for ${treatment.treatmentName.toLowerCase()}, with patients valuing the area's access to leading practitioners and premium dental laboratories. Many patients choose ${borough.name} specifically for the calibre of clinicians available.`,
+  ],
+  young_professional: [
+    ({ borough, treatment, lm }) =>
+      `${treatment.treatmentName} demand in ${borough.name} is driven by the area's large 25–40 year old population seeking cosmetic dental improvements. Clinics near ${lm[0]} report particularly strong interest from professionals wanting subtle, confidence-boosting treatments.`,
+    ({ borough, treatment }) =>
+      `Social media and word-of-mouth drive strong ${treatment.treatmentName.toLowerCase()} demand in ${borough.name}. The area's image-conscious younger demographic values before-and-after results, transparent pricing, and providers who offer digital treatment previews.`,
+    ({ borough, treatment, lm }) =>
+      `Residents in ${borough.name} are among the most active searchers for ${treatment.treatmentName.toLowerCase()} in London. The concentration of young professionals near ${lm[0]} and ${lm[1]} creates a competitive market where clinics constantly improve their offerings.`,
+  ],
+  family_residential: [
+    ({ borough, treatment }) =>
+      `Residents in ${borough.name} searching for ${treatment.treatmentName.toLowerCase()} value trusted, long-term dental relationships. The borough's family-oriented character means clinics that build strong reputations through consistent care see the highest demand.`,
+    ({ borough, treatment, lm }) =>
+      `Demand for ${treatment.treatmentName.toLowerCase()} in ${borough.name} is steady, with residents near ${lm[0]} and ${lm[1]} preferring established practices that offer comprehensive treatment planning and clear communication about options and costs.`,
+    ({ borough, treatment }) =>
+      `${borough.name} residents searching for ${treatment.treatmentName.toLowerCase()} can compare verified, GDC registered clinics on Pearlie. The borough's mix of demographics means providers cater to a range of needs, from routine treatments to more complex cases.`,
+  ],
+  central_business: [
+    ({ borough, treatment, tr }) =>
+      `${treatment.treatmentName} demand peaks during weekday working hours in ${borough.name}, driven by the area's large professional population near ${tr[0]} and ${tr[1]} stations. Clinics that offer early morning, lunchtime, and evening appointments see the strongest patient volumes.`,
+    ({ borough, treatment }) =>
+      `Convenience is the primary driver of ${treatment.treatmentName.toLowerCase()} demand in ${borough.name}. Workers in the area value minimal treatment time, efficient booking systems, and clinics that respect busy schedules.`,
+    ({ borough, treatment, lm }) =>
+      `Professionals near ${lm[0]} in ${borough.name} drive strong demand for ${treatment.treatmentName.toLowerCase()}, particularly for treatments that can be completed efficiently. The area's clinic density means patients can compare multiple providers within walking distance.`,
+  ],
+  mixed_emerging: [
+    ({ borough, treatment }) =>
+      `Residents in ${borough.name} searching for ${treatment.treatmentName.toLowerCase()} benefit from a growing market that's becoming more competitive. Pearlie helps you compare verified providers to find the right balance of quality and value.`,
+    ({ borough, treatment, lm }) =>
+      `Demand for ${treatment.treatmentName.toLowerCase()} near ${lm[0]} in ${borough.name} is growing as the area develops and new clinics open. Patients benefit from transparent pricing and the ability to compare providers before committing.`,
+    ({ borough, treatment }) =>
+      `${borough.name}'s developing dental market means more choice for patients seeking ${treatment.treatmentName.toLowerCase()}. Rising competition has improved both service quality and pricing transparency across the borough.`,
+  ],
+}
+
+// ── 4. WHY CHOOSE TEMPLATES ──
+
+const WHY_CHOOSE_TEMPLATES: Record<BoroughArchetype, TemplateFn[]> = {
+  affluent_cosmetic: [
+    ({ borough, treatment, lm, tr }) =>
+      `Patients in ${borough.name} choose ${treatment.treatmentName.toLowerCase()} at clinics near ${lm[0]} and ${lm[1]} for the area's specialist expertise and premium care standards. The ${borough.postcodes.slice(0, 2).join(" and ")} postcode areas are home to some of London's most experienced practitioners, easily accessible via ${tr[0]} and ${tr[1]} stations.`,
+    ({ borough, treatment, tr }) =>
+      `${borough.name} is a natural choice for ${treatment.treatmentName.toLowerCase()} patients who value clinical excellence. With convenient transport links via ${tr[0]} and ${tr[1]}, the ${borough.postcodes[0]} area offers access to specialists who combine advanced techniques with a personalised approach to care.`,
+    ({ borough, treatment, lm }) =>
+      `Choosing ${treatment.treatmentName.toLowerCase()} in ${borough.name} means access to clinics near ${lm[0]} that invest in the latest technology and employ highly experienced dental professionals. The borough's ${borough.postcodes.slice(0, 3).join(", ")} postcodes contain one of London's densest concentrations of cosmetic dental expertise.`,
+  ],
+  young_professional: [
+    ({ borough, treatment, lm, tr }) =>
+      `Many patients in ${borough.name} choose ${treatment.treatmentName.toLowerCase()} at clinics near ${lm[0]} and ${lm[1]} for the competitive pricing and flexible scheduling that suits busy lifestyles. The ${borough.postcodes.slice(0, 2).join(" and ")} postcode areas are well served by ${tr[0]} and ${tr[1]} stations, making it easy to fit appointments around work.`,
+    ({ borough, treatment, tr }) =>
+      `${borough.name}'s competitive dental market benefits patients seeking ${treatment.treatmentName.toLowerCase()}. Clinics near ${tr[0]} and ${tr[1]} stations in the ${borough.postcodes[0]} area offer flexible evening and weekend appointments, transparent pricing, and modern practices that appeal to the area's younger demographic.`,
+    ({ borough, treatment, lm }) =>
+      `Choosing ${treatment.treatmentName.toLowerCase()} in ${borough.name} means access to clinics near ${lm[0]} that understand what young professionals want — clear pricing, minimal disruption, and excellent results. The ${borough.postcodes.slice(0, 2).join(" and ")} postcode areas have some of London's most competitively priced cosmetic dentistry.`,
+  ],
+  family_residential: [
+    ({ borough, treatment, lm, tr }) =>
+      `Families in ${borough.name} choose ${treatment.treatmentName.toLowerCase()} at trusted clinics near ${lm[0]} and ${lm[1]} for the area's balance of quality and value. The ${borough.postcodes.slice(0, 2).join(" and ")} postcode areas are well served by ${tr[0]} and ${tr[1]} stations, making regular appointments convenient for the whole family.`,
+    ({ borough, treatment, tr }) =>
+      `Patients in ${borough.name} value clinics near ${tr[0]} and ${tr[1]} that offer ${treatment.treatmentName.toLowerCase()} alongside comprehensive general dental care. The ${borough.postcodes[0]} area has established practices that build long-term relationships with local families.`,
+    ({ borough, treatment, lm }) =>
+      `${borough.name} offers a strong selection of ${treatment.treatmentName.toLowerCase()} providers near ${lm[0]} and ${lm[1]}, with practices that serve the borough's residential communities. The ${borough.postcodes.slice(0, 3).join(", ")} postcodes have both NHS-accepting and private clinics to suit different budgets.`,
+  ],
+  central_business: [
+    ({ borough, treatment, tr, lm }) =>
+      `Professionals in ${borough.name} choose ${treatment.treatmentName.toLowerCase()} at clinics near ${tr[0]} and ${tr[1]} stations for the convenience of treating near their workplace. The ${borough.postcodes.slice(0, 2).join(" and ")} postcode areas have clinics that specialise in efficient, high-quality treatment that minimises time away from the office.`,
+    ({ borough, treatment, lm, tr }) =>
+      `${borough.name} is ideal for ${treatment.treatmentName.toLowerCase()} if you work in the area. Clinics near ${lm[0]} and accessible via ${tr[0]} station offer lunchtime and after-work appointments in the ${borough.postcodes[0]} postcode, with many providing express consultation options.`,
+    ({ borough, treatment, tr }) =>
+      `Choosing ${treatment.treatmentName.toLowerCase()} in ${borough.name} means access to clinics geared towards the area's professional population. Practices near ${tr[0]} and ${tr[1]} in the ${borough.postcodes.slice(0, 2).join(" and ")} postcodes offer flexible scheduling and premium treatment options.`,
+  ],
+  mixed_emerging: [
+    ({ borough, treatment, lm, tr }) =>
+      `Patients in ${borough.name} choosing ${treatment.treatmentName.toLowerCase()} benefit from the area's growing dental market near ${lm[0]} and ${lm[1]}. The ${borough.postcodes.slice(0, 2).join(" and ")} postcode areas are accessible via ${tr[0]} and ${tr[1]} stations, with clinics offering competitive pricing and transparent treatment plans.`,
+    ({ borough, treatment, tr }) =>
+      `${borough.name} offers accessible ${treatment.treatmentName.toLowerCase()} options near ${tr[0]} and ${tr[1]} stations. The ${borough.postcodes[0]} area's developing dental market means patients can find affordable, quality care without travelling to central London.`,
+    ({ borough, treatment, lm }) =>
+      `Choosing ${treatment.treatmentName.toLowerCase()} in ${borough.name} means access to a growing number of verified providers near ${lm[0]} and ${lm[1]}. The borough's competitive pricing in the ${borough.postcodes.slice(0, 2).join(" and ")} postcodes makes it a smart choice for cost-conscious patients.`,
+  ],
+}
+
+// ── 5. FAQ TEMPLATE POOLS ──
+// 10 templates per archetype. generateDefault() picks 6–8.
+
+interface FAQTemplate {
+  question: TemplateFn
+  answer: TemplateFn
+}
+
+const FAQ_POOL: Record<BoroughArchetype, FAQTemplate[]> = {
+  affluent_cosmetic: [
+    // 1. Cost (always included as core)
+    {
+      question: ({ borough, treatment }) =>
+        `What does ${treatment.treatmentName.toLowerCase()} typically cost in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `${treatment.treatmentName} in ${borough.name} is typically priced at the premium end of the London range, within the ${treatment.priceRange} bracket. The higher cost reflects access to experienced specialists and premium materials. Pearlie lets you compare verified providers to see transparent pricing before booking.`,
+    },
+    // 2. Provider selection (core)
+    {
+      question: ({ borough, treatment, lm }) =>
+        `How do I choose the best ${treatment.treatmentName.toLowerCase()} specialist near ${lm[0]}?`,
+      answer: ({ borough, treatment, lm, tr }) =>
+        `Look for a GDC registered provider near ${lm[0]} in ${borough.name} with specific experience in ${treatment.treatmentName.toLowerCase()}, strong patient reviews, and transparent pricing. Clinics accessible via ${tr[0]} station often list their specialist credentials. Pearlie verifies all listed providers and shows ratings to help you compare.`,
+    },
+    // 3. Finance (core)
+    {
+      question: ({ borough, treatment }) =>
+        `Do ${borough.name} clinics offer finance for ${treatment.treatmentName.toLowerCase()}?`,
+      answer: ({ borough, treatment }) =>
+        `Many premium clinics in ${borough.name} offer interest-free finance plans for ${treatment.treatmentName.toLowerCase()}, typically over 12–24 months. Some practices offer staged payments aligned with the treatment timeline. Always confirm what's included in the quoted price.`,
+    },
+    // 4-10. Archetype-specific
+    {
+      question: ({ borough, treatment }) =>
+        `Are there specialist ${treatment.treatmentName.toLowerCase()} practitioners in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `Yes. ${borough.name} has a high concentration of specialist dental practitioners. Look for providers with advanced qualifications, membership of relevant professional bodies, and a track record of ${treatment.treatmentName.toLowerCase()} cases. Many specialists in the area also hold teaching positions.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Is ${treatment.treatmentName.toLowerCase()} in ${borough.name} worth the premium price?`,
+      answer: ({ borough, treatment }) =>
+        `The premium pricing in ${borough.name} (${treatment.priceRange}) often reflects access to more experienced practitioners, better materials, and comprehensive aftercare. For patients who prioritise the best possible outcome, the investment can represent good value. Comparing providers on Pearlie helps you assess what's included in each clinic's price.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `What should my first ${treatment.treatmentName.toLowerCase()} consultation include in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `A thorough first consultation for ${treatment.treatmentName.toLowerCase()} should include a clinical examination, discussion of treatment options, a clear cost breakdown, and realistic expectations about outcomes and timeline. Many ${borough.name} clinics offer digital imaging or mock-ups so you can visualise results.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `How do I book a ${treatment.treatmentName.toLowerCase()} consultation in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `You can compare verified ${treatment.treatmentName.toLowerCase()} providers in ${borough.name} on Pearlie, then book directly with your preferred clinic. Many clinics offer free initial consultations or virtual assessments to discuss your needs before committing.`,
+    },
+    {
+      question: ({ borough, treatment, lm }) =>
+        `Which part of ${borough.name} has the most ${treatment.treatmentName.toLowerCase()} clinics?`,
+      answer: ({ borough, treatment, lm }) =>
+        `The highest concentration of ${treatment.treatmentName.toLowerCase()} providers in ${borough.name} is around ${lm[0]} and ${lm[1]}. This area has the most choice, making it easy to compare multiple clinics in a single visit.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Can I get a second opinion on ${treatment.treatmentName.toLowerCase()} in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `Absolutely. ${borough.name}'s concentration of dental specialists makes it easy to get second opinions. Several clinics offer low-cost or free consultation appointments specifically for patients seeking an alternative view on their treatment plan.`,
+    },
+    {
+      question: ({ borough }) =>
+        `Are dental clinics in ${borough.name} GDC registered?`,
+      answer: ({ borough }) =>
+        `All dental practitioners in the UK must be registered with the General Dental Council (GDC). Clinics listed on Pearlie in ${borough.name} are verified as GDC registered, giving you confidence in the regulatory standards of any provider you choose.`,
+    },
+  ],
+
+  young_professional: [
+    {
+      question: ({ borough, treatment }) =>
+        `What is the average ${treatment.treatmentName.toLowerCase()} price in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `${treatment.treatmentName} in ${borough.name} typically costs within the ${treatment.priceRange} range — competitive for London. The area's young professional market means clinics often include extras like free consultations to attract patients. Compare pricing on Pearlie before booking.`,
+    },
+    {
+      question: ({ borough, treatment, lm }) =>
+        `What should I look for in a ${treatment.treatmentName.toLowerCase()} provider near ${lm[0]}?`,
+      answer: ({ borough, treatment, lm }) =>
+        `When choosing a ${treatment.treatmentName.toLowerCase()} provider near ${lm[0]} in ${borough.name}, look for GDC registration, strong patient reviews, transparent pricing, and before-and-after examples of their work. Clinics that offer digital treatment previews can help you visualise expected results.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Are there 0% finance options for ${treatment.treatmentName.toLowerCase()} in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `Yes. Many ${borough.name} clinics offer 0% interest-free finance for ${treatment.treatmentName.toLowerCase()} over 12–24 months. This can make treatment accessible from around ${treatment.priceRange.split("–")[0].trim().replace("£", "£")}+ per month depending on the plan length. Pearlie shows which clinics offer flexible payment options.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Is ${treatment.treatmentName.toLowerCase()} popular among professionals in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `Very popular. ${borough.name}'s young professional demographic drives some of the highest demand for ${treatment.treatmentName.toLowerCase()} in London. Patients value discreet, confidence-boosting treatments that fit around busy work schedules.`,
+    },
+    {
+      question: ({ borough, treatment, tr }) =>
+        `Can I book ${treatment.treatmentName.toLowerCase()} appointments after work near ${tr[0]}?`,
+      answer: ({ borough, treatment, tr }) =>
+        `Yes. Several ${borough.name} clinics near ${tr[0]} and ${tr[1]} stations offer evening appointments (typically until 7–8pm) for ${treatment.treatmentName.toLowerCase()}. Some also offer Saturday morning appointments. Check individual clinic hours on their Pearlie profile.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `How long does ${treatment.treatmentName.toLowerCase()} take in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `${treatment.treatmentName} typically takes ${treatment.treatmentDuration}. Your dentist in ${borough.name} will give you a more precise timeline during your initial consultation, based on your specific case. Many clinics offer treatment plans designed to minimise the number of visits.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Do ${borough.name} clinics offer free ${treatment.treatmentName.toLowerCase()} consultations?`,
+      answer: ({ borough, treatment }) =>
+        `Many ${borough.name} clinics offer free or discounted initial consultations for ${treatment.treatmentName.toLowerCase()}. This lets you discuss your goals, see treatment options, and get a clear price before committing. Check which clinics offer this on Pearlie.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Is ${treatment.treatmentName.toLowerCase()} worth the investment in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `For many patients, ${treatment.treatmentName.toLowerCase()} in ${borough.name} (${treatment.priceRange}) represents excellent value given the area's competitive market and quality of care. The key is finding the right provider — compare verified clinics on Pearlie to make an informed choice.`,
+    },
+    {
+      question: ({ borough, treatment, lm }) =>
+        `How do ${treatment.treatmentName.toLowerCase()} prices near ${lm[0]} compare to central London?`,
+      answer: ({ borough, treatment, lm }) =>
+        `${treatment.treatmentName} prices near ${lm[0]} in ${borough.name} are generally competitive compared to central London zones like Westminster or Kensington. You'll typically pay within the ${treatment.priceRange} range, often with more flexible payment options.`,
+    },
+    {
+      question: ({ borough }) =>
+        `Are dental clinics in ${borough.name} GDC registered?`,
+      answer: ({ borough }) =>
+        `All dental practitioners in the UK must be registered with the General Dental Council (GDC). Every clinic listed on Pearlie in ${borough.name} has been verified as GDC registered, so you can compare providers with confidence.`,
+    },
+  ],
+
+  family_residential: [
+    {
+      question: ({ borough, treatment }) =>
+        `How much does ${treatment.treatmentName.toLowerCase()} cost in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `${treatment.treatmentName} prices in ${borough.name} are around the London average, typically within the ${treatment.priceRange} bracket. Prices vary between clinics, so comparing providers on Pearlie helps you find the best value near you.`,
+    },
+    {
+      question: ({ borough, treatment, lm }) =>
+        `What should I look for in a ${treatment.treatmentName.toLowerCase()} clinic near ${lm[0]}?`,
+      answer: ({ borough, treatment, lm }) =>
+        `When choosing a ${treatment.treatmentName.toLowerCase()} clinic near ${lm[0]} in ${borough.name}, look for GDC registration, a good track record with patient reviews, transparent pricing, and clear communication about treatment options. Established practices with long-serving dentists often provide the most consistent care.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Can I pay for ${treatment.treatmentName.toLowerCase()} in monthly instalments in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `Many ${borough.name} clinics offer finance options for ${treatment.treatmentName.toLowerCase()}, including 0% interest-free plans over 12–24 months. This makes treatment more manageable for family budgets. Ask individual clinics about their specific payment plans.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Is ${treatment.treatmentName.toLowerCase()} available on the NHS in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `${treatment.treatmentName} availability on the NHS varies. ${borough.nhsInfo} For cosmetic treatments, private care is usually needed. Pearlie shows both NHS-accepting and private clinics in ${borough.name} so you can compare options.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `How do I find a trusted ${treatment.treatmentName.toLowerCase()} dentist in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `Start by comparing verified, GDC registered ${treatment.treatmentName.toLowerCase()} providers in ${borough.name} on Pearlie. Check patient reviews, look for transparent pricing, and consider booking consultations at 2–3 clinics before deciding. Word-of-mouth recommendations from neighbours are also valuable.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `How long does ${treatment.treatmentName.toLowerCase()} treatment take?`,
+      answer: ({ borough, treatment }) =>
+        `${treatment.treatmentName} typically takes ${treatment.treatmentDuration}. Your dentist in ${borough.name} will provide a specific timeline based on your individual case during the consultation. Many clinics try to minimise the number of visits required.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Are there family-friendly dental clinics in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `Yes. Many dental clinics in ${borough.name} welcome patients of all ages and offer family appointment slots. When looking for ${treatment.treatmentName.toLowerCase()} alongside general family dental care, choose a practice that offers a full range of services.`,
+    },
+    {
+      question: ({ borough, treatment, lm }) =>
+        `Which area in ${borough.name} has the best ${treatment.treatmentName.toLowerCase()} clinics?`,
+      answer: ({ borough, treatment, lm }) =>
+        `${treatment.treatmentName} providers are distributed across ${borough.name}, with clusters near ${lm[0]} and ${lm[1]}. The "best" clinic depends on your specific needs, budget, and location. Pearlie helps you compare verified providers across the borough.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `What questions should I ask at my ${treatment.treatmentName.toLowerCase()} consultation?`,
+      answer: ({ borough, treatment }) =>
+        `Ask about the total cost (including any follow-up), the treatment timeline, what results to expect, and what aftercare is needed. Also ask about the dentist's experience with ${treatment.treatmentName.toLowerCase()} and whether they can show before-and-after examples of similar cases.`,
+    },
+    {
+      question: ({ borough }) =>
+        `How do I check if a ${borough.name} dentist is properly qualified?`,
+      answer: ({ borough }) =>
+        `All UK dentists must be registered with the General Dental Council (GDC). You can verify any dentist's registration on the GDC website. Clinics listed on Pearlie in ${borough.name} are verified as GDC registered for your peace of mind.`,
+    },
+  ],
+
+  central_business: [
+    {
+      question: ({ borough, treatment }) =>
+        `How much does ${treatment.treatmentName.toLowerCase()} cost in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `${treatment.treatmentName} in ${borough.name} typically costs within the ${treatment.priceRange} range, reflecting the area's central London location and professional-focused clinics. Compare providers on Pearlie to see transparent pricing.`,
+    },
+    {
+      question: ({ borough, treatment, lm }) =>
+        `Where can I find a good ${treatment.treatmentName.toLowerCase()} dentist near ${lm[0]}?`,
+      answer: ({ borough, treatment, lm, tr }) =>
+        `Several verified ${treatment.treatmentName.toLowerCase()} clinics operate near ${lm[0]} in ${borough.name}, easily accessible via ${tr[0]} station. Look for GDC registered providers with strong reviews and transparent pricing. Pearlie shows all verified options in the area.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Are payment plans available for ${treatment.treatmentName.toLowerCase()} in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `Yes. Many ${borough.name} clinics offer interest-free finance for ${treatment.treatmentName.toLowerCase()} over 12–24 months. Some also offer corporate dental plan partnerships. Ask individual clinics about their payment options.`,
+    },
+    {
+      question: ({ borough, treatment, tr }) =>
+        `Can I book a ${treatment.treatmentName.toLowerCase()} appointment during lunch near ${tr[0]}?`,
+      answer: ({ borough, treatment, tr }) =>
+        `Yes. Multiple ${borough.name} clinics near ${tr[0]} and ${tr[1]} stations offer 30–60 minute lunchtime appointment slots for ${treatment.treatmentName.toLowerCase()} consultations and follow-up visits. Some also offer early morning and evening appointments.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `How quickly can I start ${treatment.treatmentName.toLowerCase()} treatment in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `Most ${borough.name} clinics can book ${treatment.treatmentName.toLowerCase()} consultations within 1–2 weeks. Some offer same-week appointments. Treatment can often begin at the first appointment depending on the procedure. Check availability on Pearlie.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Do ${borough.name} dental clinics offer out-of-hours appointments?`,
+      answer: ({ borough, treatment }) =>
+        `Many ${borough.name} clinics cater to the working population with extended hours, including early morning (from 7:30am), lunchtime, and evening appointments (until 7–8pm). Some offer Saturday appointments for ${treatment.treatmentName.toLowerCase()}.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Is ${treatment.treatmentName.toLowerCase()} more expensive in ${borough.name} than outer London?`,
+      answer: ({ borough, treatment }) =>
+        `${treatment.treatmentName} in ${borough.name} can be 10–20% more expensive than outer London boroughs, reflecting central location overheads. However, the convenience of treating near your workplace and the quality of care available often make it worthwhile.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `How many visits does ${treatment.treatmentName.toLowerCase()} require?`,
+      answer: ({ borough, treatment }) =>
+        `${treatment.treatmentName} typically requires ${treatment.treatmentDuration}. Your dentist in ${borough.name} will plan a schedule that minimises disruption to your work. Many clinics offer consolidated appointments to reduce the total number of visits needed.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Do any ${borough.name} clinics offer corporate dental plans?`,
+      answer: ({ borough, treatment }) =>
+        `Some ${borough.name} dental practices offer corporate partnerships and group dental plans for local businesses. These can include discounted ${treatment.treatmentName.toLowerCase()} rates and priority booking for employees. Ask your preferred clinic about corporate arrangements.`,
+    },
+    {
+      question: ({ borough }) =>
+        `Are all ${borough.name} dental clinics on Pearlie GDC registered?`,
+      answer: ({ borough }) =>
+        `Yes. Every clinic listed on Pearlie in ${borough.name} is verified as GDC registered. This means all practitioners meet UK regulatory standards for dental care, giving you confidence in any provider you choose.`,
+    },
+  ],
+
+  mixed_emerging: [
+    {
+      question: ({ borough, treatment }) =>
+        `Are there affordable ${treatment.treatmentName.toLowerCase()} options in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `Yes. ${treatment.treatmentName} in ${borough.name} is priced competitively at ${treatment.priceRange}. The area's growing dental market means increasing competition, which benefits patients through more transparent and accessible pricing.`,
+    },
+    {
+      question: ({ borough, treatment, lm }) =>
+        `How do I find a reliable ${treatment.treatmentName.toLowerCase()} dentist near ${lm[0]}?`,
+      answer: ({ borough, treatment, lm }) =>
+        `Compare verified, GDC registered ${treatment.treatmentName.toLowerCase()} providers near ${lm[0]} in ${borough.name} on Pearlie. Check patient reviews, look for transparent pricing, and consider visiting 2–3 clinics for consultations before making your choice.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Can I get monthly payment plans for ${treatment.treatmentName.toLowerCase()} in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `Many ${borough.name} clinics offer finance options for ${treatment.treatmentName.toLowerCase()}, including interest-free plans over 12–24 months. This makes treatment accessible even on a tight budget. Check individual clinic payment options on Pearlie.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `How do ${treatment.treatmentName.toLowerCase()} prices in ${borough.name} compare to central London?`,
+      answer: ({ borough, treatment }) =>
+        `${treatment.treatmentName} in ${borough.name} (${treatment.priceRange}) is generally more affordable than central London boroughs like Westminster or Kensington. You can often find comparable quality of care at lower prices.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Is it safe to choose the cheapest ${treatment.treatmentName.toLowerCase()} provider?`,
+      answer: ({ borough, treatment }) =>
+        `Price alone shouldn't determine your choice. All UK dentists must be GDC registered, but quality can vary. Look for providers with strong patient reviews, clear treatment plans, and transparent pricing. Pearlie verifies all listed clinics in ${borough.name}.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Is ${treatment.treatmentName.toLowerCase()} available on the NHS in ${borough.name}?`,
+      answer: ({ borough, treatment }) =>
+        `NHS availability for ${treatment.treatmentName.toLowerCase()} varies. ${borough.nhsInfo} For cosmetic treatments, private care is typically required. Pearlie shows both NHS and private options in ${borough.name}.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `How long does ${treatment.treatmentName.toLowerCase()} take?`,
+      answer: ({ borough, treatment }) =>
+        `${treatment.treatmentName} typically takes ${treatment.treatmentDuration}. Your dentist in ${borough.name} will provide a specific timeline during your consultation. Treatment planning is usually straightforward and can begin promptly.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `What should I expect at my first ${treatment.treatmentName.toLowerCase()} appointment?`,
+      answer: ({ borough, treatment }) =>
+        `Your first ${treatment.treatmentName.toLowerCase()} appointment in ${borough.name} will typically include an examination, discussion of treatment options, and a clear cost breakdown. Some clinics offer free initial consultations. Bring any questions about pricing, timeline, and expected results.`,
+    },
+    {
+      question: ({ borough, treatment }) =>
+        `Can I compare ${treatment.treatmentName.toLowerCase()} clinics in ${borough.name} before booking?`,
+      answer: ({ borough, treatment }) =>
+        `Yes. Pearlie lets you compare verified ${treatment.treatmentName.toLowerCase()} providers in ${borough.name} side by side, including pricing, reviews, and available treatments. This helps you make an informed decision before committing to any clinic.`,
+    },
+    {
+      question: ({ borough }) =>
+        `How do I verify a dentist is qualified in ${borough.name}?`,
+      answer: ({ borough }) =>
+        `Check that your dentist is registered with the General Dental Council (GDC) — you can verify this on the GDC website. All clinics listed on Pearlie in ${borough.name} are confirmed as GDC registered.`,
     },
   ],
 }
@@ -483,42 +1046,45 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
 
 /**
  * Generate default area×treatment data when no hand-written override exists.
- * Uses borough and treatment metadata to produce something meaningful.
+ *
+ * Uses the borough archetype system to vary tone, phrasing, and FAQ selection
+ * across pages. A deterministic hash ensures the same borough+treatment
+ * combination always produces identical output (ISR-safe).
  */
 function generateDefault(
   borough: LondonBorough,
   treatment: TreatmentMeta
 ): AreaTreatmentData {
-  const regionPriceMap: Record<LondonBorough["region"], string> = {
-    Central: "at the higher end of the London range",
-    West: "above average for London",
-    North: "around the London average",
-    South: "competitive for London",
-    East: "among the more affordable in London",
-  }
+  const key = `${borough.slug}:${treatment.slug}`
+  const lm = rotatedLandmarks(borough, key)
+  const tr = rotatedTransport(borough, key)
+  const ctx: Ctx = { borough, treatment, lm, tr }
+  const archetype = borough.archetype
+
+  const localInsight = pick(INTRO_TEMPLATES[archetype], key)(ctx)
+  const priceContext = pick(PRICE_TEMPLATES[archetype], `p:${key}`)(ctx)
+  const demandSignal = pick(DEMAND_TEMPLATES[archetype], `d:${key}`)(ctx)
+  const whyChoose = pick(WHY_CHOOSE_TEMPLATES[archetype], `w:${key}`)(ctx)
+
+  // Select 7 FAQs from the archetype pool (first 3 are always core: cost, provider, finance)
+  const coreFaqs = FAQ_POOL[archetype].slice(0, 3)
+  const bonusFaqs = pickMultiple(FAQ_POOL[archetype].slice(3), 4, key)
+  const selectedFaqs = [...coreFaqs, ...bonusFaqs]
+
+  const areaFaqs = selectedFaqs.map((tpl) => ({
+    question: tpl.question(ctx),
+    answer: tpl.answer(ctx),
+  }))
 
   return {
-    localInsight: `${borough.name} has a range of dental clinics offering ${treatment.treatmentName.toLowerCase()}, with options near ${borough.landmarks.slice(0, 2).join(" and ")}. The area is well served by ${borough.transport.slice(0, 2).join(" and ")} stations, making clinics easily accessible.`,
-    priceContext: `${treatment.treatmentName} prices in ${borough.name} are ${regionPriceMap[borough.region]}, typically within the ${treatment.priceRange} bracket.`,
-    demandSignal: `Residents in ${borough.name} searching for ${treatment.treatmentName.toLowerCase()} can compare verified, GDC registered clinics on Pearlie to find the right provider near ${borough.landmarks[0]}.`,
-    whyChoose: `Many patients in ${borough.name} choose ${treatment.treatmentName.toLowerCase()} at clinics near ${borough.landmarks[0]} and ${borough.landmarks[1]}. The ${borough.postcodes.slice(0, 2).join(" and ")} postcode areas are well served by ${borough.transport[0]} and ${borough.transport[1]} stations, making it easy to attend regular appointments. ${borough.region} London clinics offer ${treatment.treatmentName.toLowerCase()} ${regionPriceMap[borough.region]}.`,
+    localInsight,
+    priceContext,
+    demandSignal,
+    whyChoose,
     educationalSections: TREATMENT_EDUCATIONAL[treatment.slug] || [],
     publishedAt: borough.publishedAt,
     updatedAt: borough.updatedAt,
-    areaFaqs: [
-      {
-        question: `How much does ${treatment.treatmentName.toLowerCase()} cost in ${borough.name}?`,
-        answer: `${treatment.treatmentName} prices in ${borough.name} are ${regionPriceMap[borough.region]}, typically within the ${treatment.priceRange} bracket. Prices can vary between clinics near ${borough.landmarks[0]} and ${borough.landmarks[1]}. Pearlie helps you compare verified providers in ${borough.name} so you can see indicative pricing before booking.`,
-      },
-      {
-        question: `How do I find a good ${treatment.treatmentName.toLowerCase()} dentist near ${borough.landmarks[0]}?`,
-        answer: `Clinics near ${borough.landmarks[0]} in ${borough.name} are accessible via ${borough.transport[0]} and ${borough.transport[1]}. Look for a GDC registered provider with experience in ${treatment.treatmentName.toLowerCase()}, transparent pricing, and strong patient reviews. Pearlie matches you with verified ${treatment.treatmentName.toLowerCase()} providers in ${borough.name} based on your needs and budget.`,
-      },
-      {
-        question: `Can I get monthly payment plans for ${treatment.treatmentName.toLowerCase()} in ${borough.name}?`,
-        answer: `Many ${borough.name} clinics offer finance options for ${treatment.treatmentName.toLowerCase()}, including 0% interest-free plans over 12–24 months. Check with individual providers near ${borough.landmarks[0]} for their specific finance terms. Pearlie shows which clinics offer flexible payment options.`,
-      },
-    ],
+    areaFaqs,
   }
 }
 

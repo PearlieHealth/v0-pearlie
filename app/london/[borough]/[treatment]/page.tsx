@@ -20,7 +20,6 @@ import {
 } from "@/lib/data/london-boroughs"
 import {
   getTreatmentBySlug,
-  getAllTreatments,
   getRelatedTreatments,
 } from "@/lib/content/treatments"
 import {
@@ -28,6 +27,7 @@ import {
   getAreaTreatmentData,
 } from "@/lib/data/area-treatments"
 import { getTestimonialsForBasicClinics } from "@/lib/locations/queries"
+import { getBlogPostBySlug } from "@/lib/content/blog"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { createClient } from "@/lib/supabase/server"
 
@@ -155,6 +155,21 @@ export default async function AreaTreatmentPage({
 
   const { meta } = treatment
   const areaTreatmentData = getAreaTreatmentData(boroughSlug, treatmentSlug)
+
+  // Resolve related blog posts for internal linking
+  const relatedBlogPosts = (meta.relatedBlogSlugs || [])
+    .map((slug) => {
+      const post = getBlogPostBySlug(slug)
+      return post ? { slug, title: post.meta.title } : null
+    })
+    .filter(Boolean) as { slug: string; title: string }[]
+
+  // Always include NHS vs Private guide if not already linked
+  const nhsGuide = getBlogPostBySlug("nhs-vs-private-dentist")
+  const hasNhsGuide = relatedBlogPosts.some((p) => p.slug === "nhs-vs-private-dentist")
+  if (nhsGuide && !hasNhsGuide) {
+    relatedBlogPosts.push({ slug: "nhs-vs-private-dentist", title: nhsGuide.meta.title })
+  }
 
   const clinics = await getClinicsForAreaTreatment(
     borough.postcodes,
@@ -383,6 +398,25 @@ export default async function AreaTreatmentPage({
                       )
                     })}
                   </ul>
+                  {relatedBlogPosts.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-border/50">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Guides and cost comparisons
+                      </p>
+                      <ul className="space-y-2">
+                        {relatedBlogPosts.map((post) => (
+                          <li key={post.slug}>
+                            <Link
+                              href={`/blog/${post.slug}`}
+                              className="text-[#0fbcb0] hover:underline font-medium text-sm"
+                            >
+                              {post.title}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   <div className="mt-4 pt-4 border-t border-border/50">
                     <p className="text-sm text-muted-foreground mb-2">
                       Looking outside {borough.name}?
