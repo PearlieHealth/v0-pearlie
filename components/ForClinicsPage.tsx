@@ -198,6 +198,10 @@ export default function ForClinicsPage() {
     <div className="for-clinics" style={{ background: navy, color: "#1f2937", minHeight: "100vh", fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', sans-serif", WebkitFontSmoothing: "antialiased" }}>
       {/* ── Mobile overrides ── */}
       <style>{`
+        input[type="range"] { -webkit-appearance: none; appearance: none; height: 6px; background: #d1d5db; border-radius: 3px; outline: none; cursor: pointer; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: ${teal}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.2); cursor: pointer; }
+        input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: ${teal}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.2); cursor: pointer; }
+        input[type="range"]::-moz-range-track { height: 6px; background: #d1d5db; border-radius: 3px; }
         .fc-mobile-menu-btn { display: none !important; }
         .fc-mobile-dropdown { display: none !important; }
         @media (max-width: 640px) {
