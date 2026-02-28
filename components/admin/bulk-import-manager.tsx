@@ -201,10 +201,8 @@ export function BulkImportManager() {
           return
         }
 
-        if (imported >= targetCount) {
-          addLog(`Target of ${targetCount} clinics reached! Stopping.`)
-          break
-        }
+        // Don't stop early — every neighbourhood gets at least 1 clinic for coverage.
+        // The server limits additional imports once the target is reached.
 
         setCurrentNeighbourhood(neighbourhood)
         addLog(`Searching: ${neighbourhood}...`)
@@ -250,10 +248,8 @@ export function BulkImportManager() {
             `${neighbourhood}: +${batchImported} imported, ${batchSkipped} skipped, ${batchFailed} failed (total: ${imported}/${targetCount})`,
           )
 
-          if (batchData.done) {
-            addLog(`Target reached! Total imported: ${imported}`)
-            break
-          }
+          // Don't break on batchData.done — continue to ensure every
+          // neighbourhood gets at least 1 clinic for coverage
         } catch (err) {
           addLog(`Network error processing ${neighbourhood}: ${err instanceof Error ? err.message : "unknown"}`)
         }

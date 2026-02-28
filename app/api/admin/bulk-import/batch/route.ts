@@ -86,14 +86,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Import run was cancelled" }, { status: 400 })
     }
 
-    // Check if we've already reached the target
-    if (run.imported_count >= run.target_count) {
-      return NextResponse.json({
-        message: "Target count already reached",
-        results: [],
-        done: true,
-      })
-    }
+    // Note: we do NOT skip neighbourhoods that are "over target" —
+    // each neighbourhood always imports at least 1 clinic for coverage.
 
     // Update current neighbourhood
     await supabase
@@ -137,11 +131,12 @@ export async function POST(request: NextRequest) {
     let newPricingOk = 0
     let newPricingFail = 0
 
-    // How many more can we import?
-    const remaining = run.target_count - run.imported_count
+    // How many more can we import beyond the guaranteed 1?
+    const remaining = Math.max(1, run.target_count - run.imported_count)
 
     for (const place of filtered) {
-      // Stop if we've hit the target
+      // Always allow at least 1 per neighbourhood for coverage,
+      // then respect the global target for additional clinics.
       if (newImported >= remaining) break
 
       // Step 3a: Deduplication
