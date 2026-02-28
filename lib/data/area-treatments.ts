@@ -21,6 +21,11 @@ export interface AreaFAQ {
   answer: string
 }
 
+export interface EducationalSection {
+  heading: string
+  body: string
+}
+
 export interface AreaTreatmentData {
   /** Unique intro paragraph for this borough + treatment combo */
   localInsight: string
@@ -28,11 +33,130 @@ export interface AreaTreatmentData {
   priceContext: string
   /** Local demand signal (what makes this area special for this treatment) */
   demandSignal: string
+  /** "Why choose [treatment] in [borough]" paragraph with local SEO signals */
+  whyChoose: string
+  /** Short educational sections (3-4) about the treatment, adapted for local context */
+  educationalSections: EducationalSection[]
   /** Staggered publish date for this specific page */
   publishedAt: string
   updatedAt: string
   /** Area-specific FAQs prepended before the treatment's generic FAQs */
   areaFaqs?: AreaFAQ[]
+}
+
+/**
+ * Treatment-specific educational sections used by the default generator.
+ * These provide concise, non-duplicate content for borough+treatment pages.
+ */
+const TREATMENT_EDUCATIONAL: Record<string, EducationalSection[]> = {
+  invisalign: [
+    {
+      heading: "How Invisalign works",
+      body: "Invisalign uses a series of custom-made, virtually invisible aligners to gradually straighten your teeth. Each set of aligners is worn for 1–2 weeks before moving to the next, gently shifting teeth into the planned position. Treatment is monitored with regular check-ups every 6–8 weeks.",
+    },
+    {
+      heading: "Who is suitable for Invisalign",
+      body: "Invisalign can treat mild to complex orthodontic cases including crowding, spacing, overbites, underbites, and crossbites. A dentist will assess your suitability during a consultation, often using a 3D iTero scan to show your projected results before treatment begins.",
+    },
+    {
+      heading: "Treatment duration",
+      body: "Most Invisalign treatments take 6–18 months, depending on the complexity of your case. Simple cases like minor crowding may be completed in as little as 3–6 months with Invisalign Lite. You'll need to wear your aligners for 20–22 hours per day for optimal results.",
+    },
+    {
+      heading: "Finance options",
+      body: "Many clinics offer 0% interest-free finance over 12–24 months, making Invisalign accessible from around £100–£200 per month. Some practices also offer pay-as-you-go aligner plans. Always confirm what's included in the quoted price — retainers, refinements, and follow-up appointments can vary.",
+    },
+  ],
+  "dental-implants": [
+    {
+      heading: "How dental implants work",
+      body: "A dental implant is a small titanium post surgically placed into the jawbone, where it fuses with the bone over 3–6 months (osseointegration). Once healed, a custom crown is attached to the implant, creating a permanent replacement that looks and functions like a natural tooth.",
+    },
+    {
+      heading: "Who is suitable for implants",
+      body: "Most adults with good general health are suitable for dental implants. You'll need adequate jawbone density — if bone has been lost, a bone graft may be needed first. Smokers and patients with uncontrolled diabetes may face higher risks, which your implantologist will discuss during assessment.",
+    },
+    {
+      heading: "Treatment timeline",
+      body: "From consultation to final crown, dental implant treatment typically takes 4–9 months. Same-day implants (immediate loading) are available for some patients, but most cases require a healing period between implant placement and crown fitting.",
+    },
+    {
+      heading: "Finance and payment plans",
+      body: "Due to the higher cost of implants, many clinics offer staged payment plans aligned with the treatment timeline. Interest-free finance over 12–24 months is widely available. Some clinics offer all-inclusive packages covering consultation, surgery, and final restoration.",
+    },
+  ],
+  "teeth-whitening": [
+    {
+      heading: "How professional whitening works",
+      body: "Professional teeth whitening uses higher-concentration hydrogen peroxide or carbamide peroxide gels than over-the-counter products. In-chair treatments like Philips Zoom use light activation for results in about an hour, while take-home kits use custom trays worn overnight for 1–2 weeks.",
+    },
+    {
+      heading: "Who is suitable for whitening",
+      body: "Most adults with healthy teeth and gums are suitable for professional whitening. It works best on yellowed teeth from aging, food, or drink stains. Crowns, veneers, and fillings won't change colour with whitening. Your dentist will assess suitability and recommend the best system.",
+    },
+    {
+      heading: "How long results last",
+      body: "Professional whitening results typically last 1–3 years, depending on diet and habits. Coffee, red wine, and smoking can reduce longevity. Many patients use top-up kits every 6–12 months to maintain their shade. Custom home trays make ongoing maintenance straightforward.",
+    },
+    {
+      heading: "Safety and sensitivity",
+      body: "Professional whitening is safe when performed by a GDC-registered dentist. Temporary sensitivity during or after treatment is common but usually resolves within a few days. Desensitising toothpaste used before treatment can help minimise discomfort.",
+    },
+  ],
+  "composite-bonding": [
+    {
+      heading: "How composite bonding works",
+      body: "Composite bonding involves applying tooth-coloured resin directly to your teeth, shaping it to improve appearance, then hardening it with a UV light. The entire process is usually completed in a single visit with no drilling or anaesthetic required for most cases.",
+    },
+    {
+      heading: "Who is suitable for bonding",
+      body: "Composite bonding is ideal for repairing chips, closing small gaps, reshaping uneven teeth, and improving tooth colour. It's best suited to patients with generally healthy teeth who want cosmetic improvement without the commitment of porcelain veneers.",
+    },
+    {
+      heading: "Longevity and maintenance",
+      body: "Well-maintained composite bonding typically lasts 5–7 years. Avoid biting nails, opening packaging with teeth, or chewing hard foods directly on bonded teeth. Regular dental hygiene appointments with polishing help maintain the finish and extend lifespan.",
+    },
+    {
+      heading: "Bonding vs veneers",
+      body: "Composite bonding costs £150–£400 per tooth and is reversible, while porcelain veneers cost £400–£1,200 per tooth and require enamel removal. Bonding is an excellent first step for patients exploring cosmetic options — you can always upgrade to veneers later.",
+    },
+  ],
+  veneers: [
+    {
+      heading: "How veneers work",
+      body: "Porcelain veneers are thin shells custom-made to cover the front surface of teeth. The process involves removing a thin layer of enamel (0.3–0.5mm), taking impressions, and fitting temporary veneers while the permanent ones are crafted in a dental laboratory. Final fitting typically takes 2–3 appointments.",
+    },
+    {
+      heading: "Who is suitable for veneers",
+      body: "Veneers are suitable for patients with discoloured, chipped, misaligned, or worn teeth who want a significant cosmetic improvement. You need healthy underlying teeth and gums. Patients who grind their teeth may need a night guard to protect veneers.",
+    },
+    {
+      heading: "Types of veneers",
+      body: "Porcelain veneers offer the most natural look and last 10–15 years. Composite veneers are more affordable and can be done in one visit but typically last 5–7 years. Minimal-prep veneers (like Lumineers) require less enamel removal but aren't suitable for all cases.",
+    },
+    {
+      heading: "Aftercare and longevity",
+      body: "Porcelain veneers with proper care last 10–15 years or longer. Maintain them with regular brushing, flossing, and dental check-ups. Avoid using teeth as tools and consider a night guard if you grind. Most clinics include a warranty period with their veneer treatments.",
+    },
+  ],
+  "emergency-dental": [
+    {
+      heading: "What counts as a dental emergency",
+      body: "Dental emergencies include severe toothache, knocked-out or broken teeth, abscesses (facial swelling), uncontrolled bleeding after extraction, and damage to dental work. If swelling affects your breathing or you have a high fever, go to A&E immediately.",
+    },
+    {
+      heading: "What to do before your appointment",
+      body: "For a knocked-out tooth, keep it moist in milk and see a dentist within 30 minutes. For severe pain, take over-the-counter painkillers (ibuprofen is usually most effective). For swelling, apply a cold compress to the outside of your cheek. Avoid aspirin directly on gums.",
+    },
+    {
+      heading: "NHS vs private emergency care",
+      body: "NHS emergency dental care costs £26.80 (Band 1). Access is through NHS 111 or walk-in dental emergency departments. Private emergency appointments typically cost £50–£150 for assessment, with treatment costs additional. Private practices often offer same-day availability.",
+    },
+    {
+      heading: "Preventing dental emergencies",
+      body: "Regular dental check-ups help identify problems before they become emergencies. Wear a mouthguard for contact sports. Address tooth sensitivity or minor pain early — most emergencies develop from untreated issues. Keep your dentist's emergency contact details saved in your phone.",
+    },
+  ],
 }
 
 /**
@@ -48,6 +172,9 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
       "Invisalign prices in Westminster tend to sit at the premium end (£3,500–£5,500) due to Harley Street overheads, though clinics on nearby Marylebone High Street can be 10–15% lower.",
     demandSignal:
       "High demand from Westminster's professional population seeking discreet orthodontics. Lunchtime check-ups at Harley Street clinics are a common search pattern.",
+    whyChoose:
+      "Many patients in Westminster choose Invisalign for discreet orthodontic treatment that fits around busy professional schedules. Clinics near Harley Street, Oxford Circus and Victoria station in the W1 and SW1 postcode areas offer flexible lunchtime and after-work appointments, while Marylebone High Street provides slightly more affordable options just minutes away.",
+    educationalSections: TREATMENT_EDUCATIONAL["invisalign"],
     publishedAt: "2026-01-16",
     updatedAt: "2026-02-20",
     areaFaqs: [
@@ -70,6 +197,9 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
       "Expect to pay £300–£800 for professional whitening in Westminster — at the higher end of the London range, but with access to premium Philips Zoom and Enlighten systems.",
     demandSignal:
       "Westminster sees peak whitening searches before wedding season (April–June) and Christmas party season. Clinics near Mayfair report 40% of whitening patients are first-time cosmetic dental patients.",
+    whyChoose:
+      "Westminster offers the widest choice of professional whitening systems in London. Whether you prefer a quick in-chair Zoom session near Oxford Street during a lunch break, or a premium Enlighten protocol on Harley Street in the W1 area, clinics across the SW1 and WC2 postcodes provide convenient access via Victoria, Paddington and Oxford Circus stations.",
+    educationalSections: TREATMENT_EDUCATIONAL["teeth-whitening"],
     publishedAt: "2026-01-18",
     updatedAt: "2026-02-21",
     areaFaqs: [
@@ -92,6 +222,9 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
       "Single implant prices in Westminster range from £2,500 to £6,000, reflecting the specialist expertise available. All-on-4 full arch solutions start from around £12,000.",
     demandSignal:
       "Patients travel from across London and the UK for implant treatment in Westminster due to the specialist reputation. Second-opinion consultations are a frequent search intent.",
+    whyChoose:
+      "Westminster's Harley Street and Marylebone area in the W1 postcode is the UK's foremost destination for dental implants. With access to specialist implantologists near Oxford Circus and Great Portland Street stations, patients benefit from guided surgery with 3D CBCT scanning and practitioners who are often teaching faculty at the Royal College of Surgeons.",
+    educationalSections: TREATMENT_EDUCATIONAL["dental-implants"],
     publishedAt: "2026-01-20",
     updatedAt: "2026-02-22",
     areaFaqs: [
@@ -116,6 +249,9 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
       "Invisalign prices in Islington are competitive, typically £2,500–£4,500 — below the central London average. Several clinics offer 0% finance over 12–24 months.",
     demandSignal:
       "Islington's 25–40 age demographic drives some of the highest Invisalign search volumes in north London. 'Invisalign Angel' and 'clear aligners Upper Street' are frequent local search terms.",
+    whyChoose:
+      "Many patients in Islington choose Invisalign for discreet orthodontic treatment that fits their lifestyle. Clinics near Angel tube station and along Upper Street in the N1 postcode area offer competitive pricing and free iTero 3D scan consultations. With Highbury & Islington and Holloway Road stations nearby, multiple providers are easily accessible for regular aligner check-ups.",
+    educationalSections: TREATMENT_EDUCATIONAL["invisalign"],
     publishedAt: "2026-01-26",
     updatedAt: "2026-02-23",
     areaFaqs: [
@@ -138,6 +274,9 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
       "Composite bonding in Islington typically costs £150–£350 per tooth — mid-range for London. Multi-tooth packages (4–6 teeth) with discounted rates are commonly offered.",
     demandSignal:
       "Instagram-driven demand is high in Islington's younger demographic. 'Composite bonding before and after' and 'tooth bonding near Angel' are trending local search terms.",
+    whyChoose:
+      "Islington's Angel and Upper Street area in the N1 postcode has become a hub for cosmetic bonding, with multiple clinics offering same-day smile makeovers. The area's younger professional demographic near Highbury & Islington and Canonbury makes it a competitive market, keeping prices affordable and service standards high.",
+    educationalSections: TREATMENT_EDUCATIONAL["composite-bonding"],
     publishedAt: "2026-01-28",
     updatedAt: "2026-02-24",
     areaFaqs: [
@@ -162,6 +301,9 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
       "Emergency dental assessments in Southwark range from £50 to £150 privately. Guy's Hospital provides NHS emergency care at Band 1 rates (£26.80).",
     demandSignal:
       "High search volume for emergency dentistry due to Guy's Hospital proximity. 'Emergency dentist London Bridge' and 'dental A&E near me' are top local queries.",
+    whyChoose:
+      "Southwark offers some of London's best emergency dental access. Guy's Hospital on St Thomas Street near London Bridge station in the SE1 postcode area operates a walk-in dental emergency department. Private practices around Bermondsey and Elephant & Castle also hold same-day emergency slots for patients who need urgent dental care in south London.",
+    educationalSections: TREATMENT_EDUCATIONAL["emergency-dental"],
     publishedAt: "2026-01-21",
     updatedAt: "2026-02-20",
     areaFaqs: [
@@ -184,6 +326,9 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
       "Implant prices in Southwark are competitive at £2,000–£4,500 per single implant, benefiting from proximity to teaching hospitals that drive specialist availability.",
     demandSignal:
       "Patients from across south-east London travel to Southwark for implants due to the specialist concentration. 'Dental implants London Bridge' has high commercial search intent.",
+    whyChoose:
+      "Southwark's London Bridge and Bermondsey area in the SE1 postcode benefits from proximity to Guy's Hospital and King's College Hospital, two of the UK's leading dental teaching institutions. Former hospital consultants run private implant practices near London Bridge and Elephant & Castle stations, offering specialist expertise at competitive south London prices.",
+    educationalSections: TREATMENT_EDUCATIONAL["dental-implants"],
     publishedAt: "2026-01-23",
     updatedAt: "2026-02-21",
     areaFaqs: [
@@ -208,6 +353,9 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
       "Porcelain veneers in Kensington and Chelsea typically cost £800–£1,200 per tooth — at the premium end for London. However, the quality of lab work and clinical expertise justifies the investment for many patients.",
     demandSignal:
       "International patients frequently seek veneers in this borough. 'Veneers Chelsea', 'smile makeover Kensington', and 'porcelain veneers London' are high-value local search terms.",
+    whyChoose:
+      "Kensington and Chelsea is London's premier destination for porcelain veneers. Clinics near Sloane Square, South Kensington and High Street Kensington stations in the SW3, SW7 and W8 postcodes offer bespoke smile design with digital workflows. The area attracts both local residents and international patients seeking the UK's leading minimally-invasive veneer specialists.",
+    educationalSections: TREATMENT_EDUCATIONAL["veneers"],
     publishedAt: "2026-01-17",
     updatedAt: "2026-02-21",
     areaFaqs: [
@@ -232,6 +380,9 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
       "Whitening prices range from £200 in east Tower Hamlets to £600+ in Canary Wharf. The variation is among the widest in any single London borough.",
     demandSignal:
       "Canary Wharf professionals drive lunchtime and after-work whitening demand. 'Teeth whitening Canary Wharf' and 'whitening Whitechapel' reflect the borough's dual market.",
+    whyChoose:
+      "Tower Hamlets offers teeth whitening across a wide price range, from affordable clinics near Whitechapel and Bethnal Green stations in the E1 and E2 postcodes, to premium practices in Canary Wharf (E14). The borough's dual market means patients can find express Zoom sessions near their workplace in the financial district or budget-friendly options closer to home in Mile End and Bow.",
+    educationalSections: TREATMENT_EDUCATIONAL["teeth-whitening"],
     publishedAt: "2026-01-29",
     updatedAt: "2026-02-22",
     areaFaqs: [
@@ -256,6 +407,9 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
       "Invisalign in Wandsworth typically costs £2,800–£4,800, sitting in the mid-range for London. Several clinics offer interest-free finance and free refinements.",
     demandSignal:
       "Wandsworth has the highest proportion of 25–34 year olds of any London borough, driving strong cosmetic dentistry demand. 'Invisalign Battersea', 'clear aligners Clapham' are frequent searches.",
+    whyChoose:
+      "Many patients in Wandsworth choose Invisalign providers near Clapham Junction and Putney High Street in the SW11 and SW15 postcode areas. With Battersea, Tooting Broadway and Balham stations all offering easy access, the borough's competitive market means clinics actively compete on price and service, offering free refinements and interest-free finance to attract the area's large young professional population.",
+    educationalSections: TREATMENT_EDUCATIONAL["invisalign"],
     publishedAt: "2026-02-15",
     updatedAt: "2026-02-27",
     areaFaqs: [
@@ -280,6 +434,9 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
       "Composite bonding in Lambeth ranges from £150 to £350 per tooth. Clapham practices tend to charge at the upper end, while Brixton and Streatham clinics are more affordable.",
     demandSignal:
       "TikTok and Instagram are driving bonding demand in Lambeth's younger demographic. 'Composite bonding Clapham' and 'tooth bonding Brixton' show strong month-on-month growth.",
+    whyChoose:
+      "Lambeth's Brixton and Clapham areas in the SW2, SW4 and SW9 postcodes have become south London hotspots for composite bonding. Clinics near Brixton station, Clapham North and Vauxhall offer one-visit smile makeovers that suit the borough's young professional and creative population. Streatham provides more affordable options, all easily accessible on the Northern and Victoria lines.",
+    educationalSections: TREATMENT_EDUCATIONAL["composite-bonding"],
     publishedAt: "2026-02-06",
     updatedAt: "2026-02-25",
     areaFaqs: [
@@ -304,6 +461,9 @@ const OVERRIDES: Record<string, AreaTreatmentData> = {
       "Emergency assessments in Hackney range from £50 to £120 privately. NHS emergency care is available through the Homerton at Band 1 rates.",
     demandSignal:
       "'Emergency dentist Hackney' and 'dental pain Dalston' are high-urgency search terms with strong local volume, particularly on weekends.",
+    whyChoose:
+      "Hackney residents in the E8, E9 and N16 postcodes benefit from the Homerton University Hospital's dental emergency department for out-of-hours and weekend care. Private practices near Dalston Junction, Hackney Central and Stoke Newington stations hold same-day emergency slots for both registered and walk-in patients, providing fast access when dental pain strikes.",
+    educationalSections: TREATMENT_EDUCATIONAL["emergency-dental"],
     publishedAt: "2026-02-02",
     updatedAt: "2026-02-24",
     areaFaqs: [
@@ -341,6 +501,8 @@ function generateDefault(
     localInsight: `${borough.name} has a range of dental clinics offering ${treatment.treatmentName.toLowerCase()}, with options near ${borough.landmarks.slice(0, 2).join(" and ")}. The area is well served by ${borough.transport.slice(0, 2).join(" and ")} stations, making clinics easily accessible.`,
     priceContext: `${treatment.treatmentName} prices in ${borough.name} are ${regionPriceMap[borough.region]}, typically within the ${treatment.priceRange} bracket.`,
     demandSignal: `Residents in ${borough.name} searching for ${treatment.treatmentName.toLowerCase()} can compare verified, GDC registered clinics on Pearlie to find the right provider near ${borough.landmarks[0]}.`,
+    whyChoose: `Many patients in ${borough.name} choose ${treatment.treatmentName.toLowerCase()} at clinics near ${borough.landmarks[0]} and ${borough.landmarks[1]}. The ${borough.postcodes.slice(0, 2).join(" and ")} postcode areas are well served by ${borough.transport[0]} and ${borough.transport[1]} stations, making it easy to attend regular appointments. ${borough.region} London clinics offer ${treatment.treatmentName.toLowerCase()} ${regionPriceMap[borough.region]}.`,
+    educationalSections: TREATMENT_EDUCATIONAL[treatment.slug] || [],
     publishedAt: borough.publishedAt,
     updatedAt: borough.updatedAt,
     areaFaqs: [
@@ -351,6 +513,10 @@ function generateDefault(
       {
         question: `How do I find a good ${treatment.treatmentName.toLowerCase()} dentist near ${borough.landmarks[0]}?`,
         answer: `Clinics near ${borough.landmarks[0]} in ${borough.name} are accessible via ${borough.transport[0]} and ${borough.transport[1]}. Look for a GDC registered provider with experience in ${treatment.treatmentName.toLowerCase()}, transparent pricing, and strong patient reviews. Pearlie matches you with verified ${treatment.treatmentName.toLowerCase()} providers in ${borough.name} based on your needs and budget.`,
+      },
+      {
+        question: `Can I get monthly payment plans for ${treatment.treatmentName.toLowerCase()} in ${borough.name}?`,
+        answer: `Many ${borough.name} clinics offer finance options for ${treatment.treatmentName.toLowerCase()}, including 0% interest-free plans over 12–24 months. Check with individual providers near ${borough.landmarks[0]} for their specific finance terms. Pearlie shows which clinics offer flexible payment options.`,
       },
     ],
   }
