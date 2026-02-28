@@ -23,18 +23,26 @@ export function StickyMobileHomeCta() {
   }, [])
 
   useEffect(() => {
-    const target = document.getElementById("home-hero-search")
+    const target =
+      document.getElementById("home-hero-cta") ||
+      document.getElementById("home-hero-search")
     if (!target) return
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setVisible(!entry.isIntersecting)
+        const show = !entry.isIntersecting
+        setVisible(show)
+        // Hide / restore the main nav on mobile when this sticky bar is visible
+        document.documentElement.classList.toggle("treatment-sticky-visible", show)
       },
       { threshold: 0 }
     )
 
     observer.observe(target)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      document.documentElement.classList.remove("treatment-sticky-visible")
+    }
   }, [])
 
   // Returning users: don't overlay the nav bar immediately.
