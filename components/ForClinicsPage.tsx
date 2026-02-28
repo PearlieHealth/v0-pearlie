@@ -91,27 +91,45 @@ const PLAN_DATA = {
   standard: { label: "Standard", price: 247, included: 4 },
   premium:  { label: "Premium",  price: 486, included: 8 },
 } as const
-type PlanKey = keyof typeof PLAN_DATA
 
 /* ────────────────────────────────────────────
    MAIN COMPONENT
 ──────────────────────────────────────────── */
 export default function ForClinicsPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [roiPlan, setRoiPlan] = useState<PlanKey>("standard")
-  const [roiExtra, setRoiExtra] = useState(0)
-  const [roiLtv, setRoiLtv] = useState(DEFAULT_LTV)
   const [roiPatients, setRoiPatients] = useState(DEFAULT_PATIENTS)
 
   const roiResult = useCallback(() => {
-    const plan = PLAN_DATA[roiPlan]
-    const extraCost = roiExtra * EXTRA_BOOKING_PRICE
-    const totalCost = plan.price + extraCost
-    const revenue = roiPatients * roiLtv
+    const ltv = 1000
+    let totalCost: number
+    let planLabel: string
+    if (roiPatients === 0) {
+      totalCost = 0
+      planLabel = "No subscription"
+    } else if (roiPatients === 1) {
+      totalCost = 49
+      planLabel = "1 patient"
+    } else if (roiPatients === 2) {
+      totalCost = 99
+      planLabel = "Starter"
+    } else if (roiPatients <= PLAN_DATA.starter.included) {
+      totalCost = PLAN_DATA.starter.price
+      planLabel = "Starter"
+    } else if (roiPatients <= PLAN_DATA.standard.included) {
+      totalCost = PLAN_DATA.standard.price + (roiPatients - PLAN_DATA.standard.included) * EXTRA_BOOKING_PRICE
+      planLabel = "Standard"
+    } else if (roiPatients <= PLAN_DATA.premium.included) {
+      totalCost = PLAN_DATA.premium.price + (roiPatients - PLAN_DATA.premium.included) * EXTRA_BOOKING_PRICE
+      planLabel = "Premium"
+    } else {
+      totalCost = PLAN_DATA.premium.price + (roiPatients - PLAN_DATA.premium.included) * EXTRA_BOOKING_PRICE
+      planLabel = "Premium"
+    }
+    const revenue = roiPatients * ltv
     const net = revenue - totalCost
     const roiPct = totalCost > 0 ? Math.round(((revenue - totalCost) / totalCost) * 100) : 0
-    return { totalCost, revenue, net, roiPct }
-  }, [roiPlan, roiExtra, roiLtv, roiPatients])
+    return { totalCost, revenue, net, roiPct, planLabel }
+  }, [roiPatients])
 
   /* ── Color tokens ── */
   const teal = "#0d9488"
@@ -1210,57 +1228,17 @@ export default function ForClinicsPage() {
           </p>
 
           <div className="fc-roi-wrapper" style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.06)", borderRadius: 20, padding: "36px 32px" }}>
-            {/* Plan selector */}
-            <div style={{ marginBottom: 32 }}>
-              <p style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, marginBottom: 12 }}>Select your plan</p>
-              <div style={{ display: "inline-flex", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, padding: 4 }}>
-                {(["starter", "standard", "premium"] as const).map((key) => (
-                  <button
-                    key={key}
-                    onClick={() => setRoiPlan(key)}
-                    style={{
-                      padding: "10px 20px",
-                      borderRadius: 10,
-                      border: "none",
-                      cursor: "pointer",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      transition: "all .2s",
-                      background: roiPlan === key ? teal : "transparent",
-                      color: roiPlan === key ? "#fff" : "#94a3b8",
-                    }}
-                  >
-                    {PLAN_DATA[key].label} &pound;{PLAN_DATA[key].price}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Slider 1: Extra bookings */}
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Extra confirmed bookings beyond {PLAN_DATA[roiPlan].included} included</span>
-                <span style={{ color: teal, fontWeight: 700, fontSize: 16 }}>{roiExtra}</span>
-              </div>
-              <input type="range" min={0} max={25} value={roiExtra} onChange={(e) => setRoiExtra(Number(e.target.value))} style={{ width: "100%" }} />
-            </div>
-
-            {/* Slider 2: Patient lifetime value */}
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Patient lifetime value</span>
-                <span style={{ color: teal, fontWeight: 700, fontSize: 16 }}>&pound;{roiLtv.toLocaleString()}</span>
-              </div>
-              <input type="range" min={300} max={3000} step={50} value={roiLtv} onChange={(e) => setRoiLtv(Number(e.target.value))} style={{ width: "100%" }} />
-            </div>
-
-            {/* Slider 3: Confirmed patients per month */}
+            {/* Single slider: confirmed patients */}
             <div style={{ marginBottom: 40 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
                 <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Confirmed patients per month</span>
                 <span style={{ color: teal, fontWeight: 700, fontSize: 16 }}>{roiPatients}</span>
               </div>
-              <input type="range" min={1} max={25} value={roiPatients} onChange={(e) => setRoiPatients(Number(e.target.value))} style={{ width: "100%" }} />
+              <input type="range" min={0} max={25} value={roiPatients} onChange={(e) => setRoiPatients(Number(e.target.value))} style={{ width: "100%" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+                <span style={{ color: "#475569", fontSize: 11 }}>0 = no subscription</span>
+                <span style={{ color: "#475569", fontSize: 11 }}>LTV: &pound;1,000/patient</span>
+              </div>
             </div>
 
             {/* Output boxes */}
@@ -1270,7 +1248,7 @@ export default function ForClinicsPage() {
                 <>
                   <div className="fc-roi-output-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
                     <div style={{ background: "rgba(255,255,255,.04)", borderRadius: 14, padding: "20px 16px", textAlign: "center" }}>
-                      <p style={{ color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>You pay Pearly</p>
+                      <p style={{ color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>You pay Pearlie</p>
                       <p style={{ ...heading, fontSize: 24, color: "#f8fafc" }}>&pound;{r.totalCost.toLocaleString()}<span style={{ fontSize: 13, color: "#64748b", fontWeight: 400 }}>/mo</span></p>
                     </div>
                     <div style={{ background: "rgba(13,148,136,.06)", border: "1px solid rgba(13,148,136,.15)", borderRadius: 14, padding: "20px 16px", textAlign: "center" }}>
@@ -1287,7 +1265,7 @@ export default function ForClinicsPage() {
                     </div>
                   </div>
                   <p style={{ color: "#94a3b8", fontSize: 14, textAlign: "center", lineHeight: 1.5 }}>
-                    {roiPatients} patients &times; &pound;{roiLtv.toLocaleString()} = &pound;{r.revenue.toLocaleString()} &mdash; for &pound;{r.totalCost.toLocaleString()}/mo
+                    {roiPatients} patients &times; &pound;1,000 = &pound;{r.revenue.toLocaleString()} &mdash; for &pound;{r.totalCost.toLocaleString()}/mo{roiPatients >= 3 && <span> ({r.planLabel})</span>}
                   </p>
                 </>
               )
