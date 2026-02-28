@@ -438,7 +438,7 @@ export function renderChatToClinicEmail(data: ChatToClinicPayload): string {
 
   const replyCta = data.replyToAddress
     ? `<div style="background-color: #ecfdf5; border: 2px solid #6ee7b7; border-radius: 10px; padding: 20px; margin: 24px 0 8px; text-align: center;">
-        <p style="margin: 0 0 4px; color: #065f46; font-size: 16px; font-weight: 700;">Just hit reply to respond</p>
+        <p style="margin: 0 0 4px; color: #065f46; font-size: 16px; font-weight: 700;">Reply to this email to contact the patient directly</p>
         <p style="margin: 0; color: #047857; font-size: 13px;">Your reply goes straight to the patient in your Pearlie chat</p>
       </div>`
     : `<div style="text-align: center; margin-top: 24px;">
