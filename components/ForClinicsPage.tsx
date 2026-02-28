@@ -82,46 +82,36 @@ function FaqItem({ question, answer }: FaqItemProps) {
 /* ────────────────────────────────────────────
    CONSTANTS
 ──────────────────────────────────────────── */
-const BASIC_PRIVATE_EXTRA = 30
-const BASIC_MIXED_EXTRA = 30
-const GROWTH_PRIVATE_EXTRA = 25
-const GROWTH_MIXED_EXTRA = 25
+const EXTRA_BOOKING_PRICE = 35
 const DEFAULT_LTV = 1000
-const DEFAULT_EXTRA = 5
+const DEFAULT_PATIENTS = 5
+
+const PLAN_DATA = {
+  starter:  { label: "Starter",  price: 99,  included: 2 },
+  standard: { label: "Standard", price: 247, included: 4 },
+  premium:  { label: "Premium",  price: 486, included: 8 },
+} as const
+type PlanKey = keyof typeof PLAN_DATA
 
 /* ────────────────────────────────────────────
    MAIN COMPONENT
 ──────────────────────────────────────────── */
 export default function ForClinicsPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [practiceType, setPracticeType] = useState<"private" | "mixed">("private")
-  const [extra, setExtra] = useState(DEFAULT_EXTRA)
-  const [ltv, setLtv] = useState(DEFAULT_LTV)
+  const [roiPlan, setRoiPlan] = useState<PlanKey>("standard")
+  const [roiExtra, setRoiExtra] = useState(0)
+  const [roiLtv, setRoiLtv] = useState(DEFAULT_LTV)
+  const [roiPatients, setRoiPatients] = useState(DEFAULT_PATIENTS)
 
-  const plans = {
-    basicPrivate:  { base: 277, consults: 4, extraPrice: BASIC_PRIVATE_EXTRA },
-    basicMixed:    { base: 287, consults: 4, extraPrice: BASIC_MIXED_EXTRA },
-    growthPrivate: { base: 462, consults: 8, extraPrice: GROWTH_PRIVATE_EXTRA },
-    growthMixed:   { base: 492, consults: 8, extraPrice: GROWTH_MIXED_EXTRA },
-  }
-
-  const calc = useCallback(
-    (base: number, freeLeads: number, extraPrice: number) => {
-      const totalLeads = freeLeads + extra
-      const extraCost = extra * extraPrice
-      const totalCost = base + extraCost
-      const revenue = totalLeads * ltv
-      const net = revenue - totalCost
-      const roiX = totalCost > 0 ? revenue / totalCost : 0
-      return { totalLeads, extraCost, totalCost, revenue, net, roiX }
-    },
-    [extra, ltv],
-  )
-
-  const basicPlan = practiceType === "private" ? plans.basicPrivate : plans.basicMixed
-  const growthPlan = practiceType === "private" ? plans.growthPrivate : plans.growthMixed
-  const basicCalc = calc(basicPlan.base, basicPlan.consults, basicPlan.extraPrice)
-  const growthCalc = calc(growthPlan.base, growthPlan.consults, growthPlan.extraPrice)
+  const roiResult = useCallback(() => {
+    const plan = PLAN_DATA[roiPlan]
+    const extraCost = roiExtra * EXTRA_BOOKING_PRICE
+    const totalCost = plan.price + extraCost
+    const revenue = roiPatients * roiLtv
+    const net = revenue - totalCost
+    const roiPct = totalCost > 0 ? Math.round(((revenue - totalCost) / totalCost) * 100) : 0
+    return { totalCost, revenue, net, roiPct }
+  }, [roiPlan, roiExtra, roiLtv, roiPatients])
 
   /* ── Color tokens ── */
   const teal = "#0d9488"
@@ -184,43 +174,6 @@ export default function ForClinicsPage() {
     <p style={{ color: "#94a3b8", fontSize: 17, textAlign: "center", maxWidth: width, margin: "0 auto 56px", lineHeight: 1.6 }}>{text}</p>
   )
 
-  /* ROI result card */
-  function RoiCard({ label, labelColor, c, baseCost, extraPrice: ep, highlight }: { label: string; labelColor: string; c: ReturnType<typeof calc>; baseCost: number; extraPrice: number; highlight?: boolean }) {
-    return (
-      <div style={{ background: highlight ? `rgba(13,148,136,.04)` : cardBg, borderRadius: 16, padding: "28px 24px", border: highlight ? `1px solid rgba(13,148,136,.18)` : `1px solid ${cardBorder}` }}>
-        <p style={{ color: labelColor, fontSize: 12, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</p>
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ color: "#64748b", fontSize: 13 }}>Base subscription</span>
-            <span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 500 }}>&pound;{baseCost}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ color: "#64748b", fontSize: 13 }}>{extra} extra consults &times; &pound;{ep}</span>
-            <span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 500 }}>&pound;{c.extraCost}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, borderTop: `1px solid ${cardBorder}` }}>
-            <span style={{ color: "#f1f5f9", fontSize: 14, fontWeight: 600 }}>Total cost</span>
-            <span style={{ color: "#f1f5f9", fontSize: 14, fontWeight: 700 }}>&pound;{c.totalCost.toLocaleString()}/mo</span>
-          </div>
-        </div>
-        <div style={{ background: "rgba(255,255,255,.03)", borderRadius: 12, padding: "16px 18px", marginBottom: 16 }}>
-          <p style={{ color: "#64748b", fontSize: 12, marginBottom: 6 }}>{c.totalLeads} patients &times; &pound;{ltv.toLocaleString()} avg LTV</p>
-          <p style={{ color: "#f1f5f9", fontSize: 18, fontWeight: 700 }}>&pound;{c.revenue.toLocaleString()} revenue</p>
-        </div>
-        <div style={{ display: "flex", gap: 20, alignItems: "flex-end" }}>
-          <div>
-            <p style={{ color: "#64748b", fontSize: 11, marginBottom: 2, textTransform: "uppercase", letterSpacing: "0.04em" }}>Net return</p>
-            <p style={{ ...heading, fontSize: 28, color: teal }}>&pound;{c.net.toLocaleString()}</p>
-          </div>
-          <div>
-            <p style={{ color: "#64748b", fontSize: 11, marginBottom: 2, textTransform: "uppercase", letterSpacing: "0.04em" }}>ROI</p>
-            <p style={{ ...heading, fontSize: 28, color: tealLight }}>{c.roiX.toFixed(1)}x</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="for-clinics" style={{ background: navy, color: "#e2e8f0", minHeight: "100vh", fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', sans-serif", WebkitFontSmoothing: "antialiased" }}>
       {/* ── Mobile overrides ── */}
@@ -250,6 +203,9 @@ export default function ForClinicsPage() {
           .fc-insights-grid { grid-template-columns: 1fr !important; }
           .fc-pricing-grid { grid-template-columns: 1fr !important; }
           .fc-pricing-grid > div { padding: 32px 20px !important; }
+          .fc-compare-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+          .fc-compare-table { min-width: 600px !important; }
+          .fc-roi-output-grid { grid-template-columns: 1fr 1fr !important; }
           .fc-testimonials-grid { grid-template-columns: 1fr !important; }
           .fc-zero-risk-grid { grid-template-columns: 1fr !important; }
           .fc-roi-wrapper { padding: 24px 16px !important; }
@@ -495,7 +451,7 @@ export default function ForClinicsPage() {
                 </tr></thead>
                 <tbody>
                   {[
-                    { feature: "Monthly cost to clinic", old: "£2,300 – £7,000+", pearlie: "£277 – £670" },
+                    { feature: "Monthly cost to clinic", old: "£2,300 – £7,000+", pearlie: "£99 – £486" },
                     { feature: "Ad spend required from clinic", old: "£800 – £5,000 on top", pearlie: "£0 — we handle it all" },
                     { feature: "Setup / onboarding fee", old: "£1,000 – £5,000", pearlie: "£0 — free" },
                     { feature: "Contract", old: "12 – 36 months locked in", pearlie: "Cancel anytime" },
@@ -614,82 +570,728 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
-      {/* ══════════ 8. PRICING ══════════ */}
+      {/* ═══════════ PRICING ═══════════ */}
       <section id="pricing" className="fc-section" style={sec}>
         <div style={maxW}>
-          {sectionLabel("Pricing")}
-          {sectionH2("Simple, transparent plans")}
-          {sectionSub("No setup fees. No contracts. No surprises. Cancel anytime.")}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 48 }}>
-            <div style={{ display: "inline-flex", background: "rgba(255,255,255,.04)", border: `1px solid rgba(255,255,255,.08)`, borderRadius: 12, padding: 4 }}>
-              {(["private", "mixed"] as const).map((t) => (
-                <button key={t} onClick={() => setPracticeType(t)} style={{ padding: "10px 24px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, transition: "all .2s", background: practiceType === t ? teal : "transparent", color: practiceType === t ? "#fff" : "#94a3b8" }}>
-                  {t === "private" ? "Private Clinic" : "Mixed Practice"}
-                </button>
+          <p
+            style={{
+              color: teal,
+              fontWeight: 700,
+              fontSize: 13,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              marginBottom: 12,
+              textAlign: "center",
+            }}
+          >
+            Pricing
+          </p>
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 16 }}>
+            Simple, transparent plans
+          </h2>
+          <p
+            style={{
+              color: "#94a3b8",
+              fontSize: 17,
+              textAlign: "center",
+              maxWidth: 540,
+              margin: "0 auto 48px",
+              lineHeight: 1.6,
+            }}
+          >
+            No setup fees. No contracts. No surprises. Cancel anytime.
+          </p>
+
+          {/* ── FREE TRIAL BANNER ── */}
+          <div
+            style={{
+              background: "rgba(13,148,136,.06)",
+              border: "1px solid rgba(13,148,136,.2)",
+              borderRadius: 16,
+              padding: "28px 32px",
+              textAlign: "center",
+              maxWidth: 800,
+              margin: "0 auto 48px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 12 }}>
+              <Zap size={18} style={{ color: teal }} />
+              <span style={{ ...heading, fontSize: 20, color: "#f8fafc" }}>Start free &mdash; &pound;0 upfront</span>
+            </div>
+            <p style={{ color: "#94a3b8", fontSize: 15, lineHeight: 1.6, maxWidth: 520, margin: "0 auto 16px" }}>
+              Your first matched patient is on us. Patient attends? You keep every penny &mdash; Pearlie charges &pound;0.
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 20, marginBottom: 20 }}>
+              {["No credit card required", "No contract", "Cancel anytime"].map((item) => (
+                <div key={item} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Check size={14} style={{ color: teal }} />
+                  <span style={{ color: "#cbd5e1", fontSize: 13, fontWeight: 500 }}>{item}</span>
+                </div>
               ))}
             </div>
+            <Link
+              href="/signup"
+              style={{
+                ...greenBtn,
+                padding: "14px 28px",
+                fontSize: 15,
+              }}
+            >
+              Get your free patient <ArrowRight size={16} />
+            </Link>
           </div>
-          <div className="fc-pricing-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 24, maxWidth: 800, margin: "0 auto" }}>
-            {/* Basic */}
-            <div style={{ background: cardBg, border: `1px solid rgba(255,255,255,.08)`, borderRadius: 20, padding: "40px 32px" }}>
-              <p style={{ color: "#94a3b8", fontWeight: 600, fontSize: 14, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>Basic</p>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}><span style={{ ...heading, fontSize: 48 }}>&pound;{basicPlan.base}</span><span style={{ color: "#64748b", fontSize: 16 }}>/month</span></div>
-              <p style={{ color: "#64748b", fontSize: 14, marginBottom: 28 }}>{practiceType === "private" ? "4 private consults included" : "4 private consults + unlimited NHS"}</p>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px" }}>
-                {["4 private consult credits / month", ...(practiceType === "mixed" ? ["Unlimited NHS enquiries"] : []), "Additional consults £30 each", "Deep patient insights on every referral", "Full dashboard & live chat", "Appointment management", "Integrated with CRM", "AI intake matching", "Automated reminders", ...(practiceType === "mixed" ? ["NHS vs private patient tagging", "AI triage routing"] : ["Self-training onboarding portal"])].map((item) => (
-                  <li key={item} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "7px 0", color: item.toLowerCase().includes("patient insights") ? "#f1f5f9" : "#cbd5e1", fontSize: 14, fontWeight: item.toLowerCase().includes("patient insights") ? 600 : 400 }}>
-                    <Check size={16} style={{ color: item.toLowerCase().includes("patient insights") ? tealLight : teal, flexShrink: 0, marginTop: 2 }} />
-                    <span>{item}{item.toLowerCase().includes("patient insights") && (<span style={{ display: "block", color: "#64748b", fontSize: 12, fontWeight: 400, marginTop: 2 }}>Anxiety level, cost mindset, treatment goals &amp; priorities</span>)}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" style={{ ...greenBtn, width: "100%", justifyContent: "center" }}>Get started &mdash; free setup <ArrowRight size={18} /></Link>
-            </div>
-            {/* Growth */}
-            <div style={{ background: `rgba(13,148,136,.04)`, border: `2px solid rgba(13,148,136,.2)`, borderRadius: 20, padding: "40px 32px", position: "relative" }}>
-              <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: teal, color: "#fff", fontWeight: 700, fontSize: 12, padding: "5px 16px", borderRadius: 20, textTransform: "uppercase", letterSpacing: "0.04em" }}>Best value</div>
-              <p style={{ color: teal, fontWeight: 600, fontSize: 14, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>Growth</p>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}><span style={{ ...heading, fontSize: 48 }}>&pound;{growthPlan.base}</span><span style={{ color: "#64748b", fontSize: 16 }}>/month</span></div>
-              <p style={{ color: "#64748b", fontSize: 14, marginBottom: 28 }}>{practiceType === "private" ? "8 private consults included" : "8 private consults + unlimited NHS"}</p>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, background: `rgba(13,148,136,.08)`, border: `1px solid rgba(13,148,136,.15)`, borderRadius: 10, padding: "10px 14px", marginBottom: 20 }}>
-                <Check size={16} style={{ color: tealLight, flexShrink: 0 }} /><span style={{ color: tealLight, fontSize: 14, fontWeight: 700 }}>Everything in Basic, plus:</span>
+
+          {/* ── PRICING CARDS ── */}
+          <div
+            className="fc-pricing-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 24,
+              maxWidth: 1080,
+              margin: "0 auto",
+            }}
+          >
+            {/* ── STARTER ── */}
+            <div
+              style={{
+                background: "rgba(255,255,255,.03)",
+                border: "1px solid rgba(255,255,255,.08)",
+                borderRadius: 20,
+                padding: "40px 28px",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <p style={{ color: "#94a3b8", fontWeight: 600, fontSize: 14, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                Starter
+              </p>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
+                <span style={{ ...heading, fontSize: 48 }}>&pound;99</span>
+                <span style={{ color: "#64748b", fontSize: 16 }}>/month</span>
               </div>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px" }}>
-                {["8 private consult credits / month", ...(practiceType === "mixed" ? ["Unlimited NHS enquiries"] : []), "Additional consults £25 each (vs £30)", "Priority patient insights & scoring", "Priority matching & featured placement", "Advanced dashboard", "Integrated with CRM + pipeline tracking", "Conversion analytics & revenue forecasting", "AI follow-up automation", "Multi-user access", ...(practiceType === "mixed" ? ["Chair-fill optimisation tools", "NHS vs private revenue breakdown", "AI conversion nudges & upsell tracking"] : []), "Quarterly growth review"].map((item) => (
-                  <li key={item} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "7px 0", color: item.toLowerCase().includes("patient insights") ? "#f1f5f9" : "#cbd5e1", fontSize: 14, fontWeight: item.toLowerCase().includes("patient insights") ? 600 : 400 }}>
-                    <Check size={16} style={{ color: item.toLowerCase().includes("patient insights") ? tealLight : teal, flexShrink: 0, marginTop: 2 }} />
-                    <span>{item}{item.toLowerCase().includes("patient insights") && (<span style={{ display: "block", color: "#64748b", fontSize: 12, fontWeight: 400, marginTop: 2 }}>Deep behavioural data, anxiety scores, cost alignment &amp; intent signals</span>)}</span>
+              <p style={{ color: "#64748b", fontSize: 13, marginBottom: 24 }}>
+                For single practices getting started
+              </p>
+              <p style={{ color: "#94a3b8", fontSize: 14, marginBottom: 6 }}>
+                2 confirmed bookings included
+              </p>
+              <p style={{ color: "#64748b", fontSize: 13, marginBottom: 24 }}>
+                Extra confirmed bookings: &pound;35 each
+              </p>
+
+              {/* Unlimited enquiries highlight */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(13,148,136,.08)",
+                  border: "1px solid rgba(13,148,136,.2)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  marginBottom: 16,
+                }}
+              >
+                <span style={{ fontSize: 16, color: teal }}>&infin;</span>
+                <span style={{ color: tealLight, fontSize: 14, fontWeight: 700 }}>Unlimited patient enquiries</span>
+              </div>
+
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", flex: 1 }}>
+                {[
+                  "AI-powered matching",
+                  "Clinic dashboard",
+                  "Patient messaging",
+                  "Appointment reminders",
+                  "Public clinic profile",
+                  "Email notifications",
+                  "Self-serve onboarding guide",
+                  "Email support",
+                  "Cancel anytime",
+                ].map((item) => (
+                  <li
+                    key={item}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 10,
+                      padding: "6px 0",
+                      color: "#cbd5e1",
+                      fontSize: 14,
+                    }}
+                  >
+                    <Check size={16} style={{ color: teal, flexShrink: 0, marginTop: 2 }} />
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>
-              <a href="mailto:hello@pearlie.org?subject=Pearlie Growth — clinic enquiry" style={{ ...greenBtn, width: "100%", justifyContent: "center" }}>Contact sales <ArrowRight size={18} /></a>
+              <Link
+                href="/signup"
+                style={{
+                  ...greenBtn,
+                  width: "100%",
+                  justifyContent: "center",
+                }}
+              >
+                Start free trial <ArrowRight size={16} />
+              </Link>
+              <p style={{ color: "#475569", fontSize: 11, textAlign: "center", marginTop: 8 }}>
+                Only charged when patient actually attends
+              </p>
+            </div>
+
+            {/* ── STANDARD (Best value) ── */}
+            <div
+              style={{
+                background: "rgba(13,148,136,.06)",
+                border: "2px solid rgba(13,148,136,.25)",
+                borderRadius: 20,
+                padding: "40px 28px",
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: -14,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  background: teal,
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  padding: "5px 16px",
+                  borderRadius: 20,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                Best value
+              </div>
+              <p style={{ color: teal, fontWeight: 600, fontSize: 14, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                Standard
+              </p>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
+                <span style={{ ...heading, fontSize: 48 }}>&pound;247</span>
+                <span style={{ color: "#64748b", fontSize: 16 }}>/month</span>
+              </div>
+              <p style={{ color: "#64748b", fontSize: 13, marginBottom: 24 }}>
+                For growing practices &mdash; the full platform
+              </p>
+              <p style={{ color: "#94a3b8", fontSize: 14, marginBottom: 6 }}>
+                4 confirmed bookings included
+              </p>
+              <p style={{ color: "#64748b", fontSize: 13, marginBottom: 24 }}>
+                Extra confirmed bookings: &pound;35 each
+              </p>
+
+              {/* Unlimited enquiries highlight */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(13,148,136,.08)",
+                  border: "1px solid rgba(13,148,136,.2)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  marginBottom: 8,
+                }}
+              >
+                <span style={{ fontSize: 16, color: teal }}>&infin;</span>
+                <span style={{ color: tealLight, fontSize: 14, fontWeight: 700 }}>Unlimited patient enquiries</span>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(13,148,136,.06)",
+                  border: "1px solid rgba(13,148,136,.12)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  marginBottom: 16,
+                }}
+              >
+                <Check size={16} style={{ color: tealLight, flexShrink: 0 }} />
+                <span style={{ color: tealLight, fontSize: 13, fontWeight: 600 }}>Everything in Starter, plus:</span>
+              </div>
+
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", flex: 1 }}>
+                {[
+                  "Full patient insight profiles",
+                  "SEO-optimised clinic profile (Google ranking)",
+                  "Boxly & CRM integration",
+                  "Built-in patient chat & SMS",
+                  "Advanced analytics & reporting",
+                  "Automated review requests",
+                  "Free 1-on-1 onboarding call",
+                  "Priority email & chat support",
+                  "Referral programme access",
+                ].map((item) => (
+                  <li
+                    key={item}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 10,
+                      padding: "6px 0",
+                      color: "#cbd5e1",
+                      fontSize: 14,
+                    }}
+                  >
+                    <Check size={16} style={{ color: teal, flexShrink: 0, marginTop: 2 }} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/signup"
+                style={{
+                  ...greenBtn,
+                  width: "100%",
+                  justifyContent: "center",
+                }}
+              >
+                Start free trial <ArrowRight size={16} />
+              </Link>
+              <p style={{ color: "#475569", fontSize: 11, textAlign: "center", marginTop: 8 }}>
+                Only charged when patient actually attends
+              </p>
+            </div>
+
+            {/* ── PREMIUM (Multi-practice) ── */}
+            <div
+              style={{
+                background: "rgba(255,255,255,.03)",
+                border: "1px solid rgba(255,255,255,.08)",
+                borderRadius: 20,
+                padding: "40px 28px",
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: -14,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  background: "rgba(255,255,255,.06)",
+                  border: "1px solid rgba(255,255,255,.1)",
+                  color: "#94a3b8",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  padding: "5px 16px",
+                  borderRadius: 20,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                Multi-practice
+              </div>
+              <p style={{ color: "#94a3b8", fontWeight: 600, fontSize: 14, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                Premium
+              </p>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
+                <span style={{ ...heading, fontSize: 48 }}>&pound;486</span>
+                <span style={{ color: "#64748b", fontSize: 16 }}>/month</span>
+              </div>
+              <p style={{ color: "#64748b", fontSize: 13, marginBottom: 24 }}>
+                For multi-location practices &amp; groups
+              </p>
+              <p style={{ color: "#94a3b8", fontSize: 14, marginBottom: 6 }}>
+                8 confirmed bookings included (across all locations)
+              </p>
+              <p style={{ color: "#64748b", fontSize: 13, marginBottom: 24 }}>
+                Extra confirmed bookings: &pound;35 each
+              </p>
+
+              {/* Unlimited enquiries highlight */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(13,148,136,.08)",
+                  border: "1px solid rgba(13,148,136,.2)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  marginBottom: 8,
+                }}
+              >
+                <span style={{ fontSize: 16, color: teal }}>&infin;</span>
+                <span style={{ color: tealLight, fontSize: 14, fontWeight: 700 }}>Unlimited patient enquiries</span>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(13,148,136,.06)",
+                  border: "1px solid rgba(13,148,136,.12)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  marginBottom: 16,
+                }}
+              >
+                <Check size={16} style={{ color: tealLight, flexShrink: 0 }} />
+                <span style={{ color: tealLight, fontSize: 13, fontWeight: 600 }}>Everything in Standard, plus:</span>
+              </div>
+
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", flex: 1 }}>
+                {[
+                  "Multi-practice dashboard",
+                  "Unified reporting across sites",
+                  "Dedicated account manager",
+                  "Free onboarding & team training",
+                  "Quarterly strategy review",
+                  "Priority patient matching",
+                  "Volume pricing available",
+                  "Cancel anytime",
+                ].map((item) => (
+                  <li
+                    key={item}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 10,
+                      padding: "6px 0",
+                      color: "#cbd5e1",
+                      fontSize: 14,
+                    }}
+                  >
+                    <Check size={16} style={{ color: teal, flexShrink: 0, marginTop: 2 }} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <a
+                href="mailto:hello@pearlie.org?subject=Pearlie Premium — clinic enquiry"
+                style={{
+                  ...outlineBtn,
+                  width: "100%",
+                  justifyContent: "center",
+                  borderColor: "rgba(255,255,255,.15)",
+                }}
+              >
+                Contact sales <ArrowRight size={16} />
+              </a>
             </div>
           </div>
-          <div style={{ textAlign: "center", marginTop: 40 }}>
-            <p style={{ color: "#64748b", fontSize: 14, marginBottom: 14 }}>Not ready to commit?</p>
-            <a href="mailto:hello@pearlie.org?subject=Pearlie demo request" style={{ ...outlineBtn, borderColor: `rgba(13,148,136,.25)`, color: teal }}>Book a free demo <ArrowRight size={16} /></a>
+
+          {/* ── REVENUE CALLOUT ── */}
+          <div
+            style={{
+              maxWidth: 800,
+              margin: "40px auto 0",
+              background: "rgba(13,148,136,.06)",
+              border: "1px solid rgba(13,148,136,.15)",
+              borderRadius: 14,
+              padding: "20px 28px",
+              textAlign: "center",
+            }}
+          >
+            <p style={{ color: "#f1f5f9", fontSize: 15, fontWeight: 600, lineHeight: 1.5 }}>
+              &#128176; No percentage cuts, ever. &pound;2,000 implant? You keep &pound;2,000. We charge a flat &pound;35 for the confirmed booking.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* ══════════ 9. ROI CALCULATOR ══════════ */}
+      {/* ═══════════ FEATURE COMPARISON TABLE ═══════════ */}
       <section className="fc-section" style={secAlt}>
+        <div style={{ ...maxW, maxWidth: 960 }}>
+          <h2 style={{ ...heading, fontSize: "clamp(24px, 3.5vw, 36px)", textAlign: "center", marginBottom: 48 }}>
+            Compare all features
+          </h2>
+          <div className="fc-compare-table-wrap" style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,.06)", overflow: "hidden" }}>
+            <table className="fc-compare-table" style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid rgba(255,255,255,.08)" }}>
+                  <th style={{ textAlign: "left", padding: "16px 20px", color: "#64748b", fontWeight: 600, fontSize: 13, width: "40%" }}>&nbsp;</th>
+                  <th style={{ textAlign: "center", padding: "16px 16px", color: "#f1f5f9", fontWeight: 700, fontSize: 14 }}>
+                    Starter &pound;99
+                  </th>
+                  <th style={{ textAlign: "center", padding: "16px 16px", color: teal, fontWeight: 700, fontSize: 14, background: "rgba(13,148,136,.04)" }}>
+                    <div>Standard &pound;247</div>
+                    <span style={{ display: "inline-block", background: teal, color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10, marginTop: 4, textTransform: "uppercase" }}>Best value</span>
+                  </th>
+                  <th style={{ textAlign: "center", padding: "16px 16px", color: "#f1f5f9", fontWeight: 700, fontSize: 14 }}>
+                    Premium &pound;486
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* ── Patient Acquisition ── */}
+                <tr><td colSpan={4} style={{ padding: "14px 20px", color: teal, fontWeight: 700, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(255,255,255,.04)" }}>Patient Acquisition</td></tr>
+                {/* Unlimited enquiries - HIGHLIGHTED ROW */}
+                <tr style={{ background: "rgba(13,148,136,.06)" }}>
+                  <td style={{ padding: "14px 20px", color: "#f1f5f9", fontWeight: 700, fontSize: 14, borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ color: teal, fontSize: 16 }}>&infin;</span> Unlimited patient enquiries
+                    </span>
+                  </td>
+                  <td style={{ textAlign: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.04)" }}><Check size={18} style={{ color: teal }} /></td>
+                  <td style={{ textAlign: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.04)", background: "rgba(13,148,136,.04)" }}><Check size={18} style={{ color: teal }} /></td>
+                  <td style={{ textAlign: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.04)" }}><Check size={18} style={{ color: teal }} /></td>
+                </tr>
+                {[
+                  { feature: "Confirmed bookings included", starter: "2", standard: "4", premium: "8" },
+                  { feature: "Extra confirmed bookings", starter: "£35", standard: "£35", premium: "£35" },
+                  { feature: "AI-powered patient matching", starter: true, standard: true, premium: true },
+                  { feature: "Priority matching queue", starter: false, standard: false, premium: true },
+                ].map((row) => (
+                  <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                    <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
+                    {[row.starter, row.standard, row.premium].map((val, i) => (
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                        {typeof val === "boolean" ? (val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />) : <span style={{ color: "#94a3b8", fontWeight: 600 }}>{val}</span>}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {/* ── Patient Insights ── */}
+                <tr><td colSpan={4} style={{ padding: "14px 20px", color: teal, fontWeight: 700, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(255,255,255,.04)" }}>Patient Insights</td></tr>
+                {[
+                  { feature: "Basic patient info", starter: true, standard: true, premium: true },
+                  { feature: "Full insight profiles (anxiety, budget, blockers)", starter: false, standard: true, premium: true },
+                  { feature: "Monthly area insights report", starter: false, standard: true, premium: true },
+                ].map((row) => (
+                  <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                    <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
+                    {[row.starter, row.standard, row.premium].map((val, i) => (
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                        {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {/* ── Clinic Profile & SEO ── */}
+                <tr><td colSpan={4} style={{ padding: "14px 20px", color: teal, fontWeight: 700, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(255,255,255,.04)" }}>Clinic Profile &amp; SEO</td></tr>
+                {[
+                  { feature: "Public clinic profile", starter: true, standard: true, premium: true },
+                  { feature: "SEO-optimised profile (Google ranking)", starter: false, standard: true, premium: true },
+                  { feature: "Automated review requests", starter: false, standard: true, premium: true },
+                ].map((row) => (
+                  <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                    <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
+                    {[row.starter, row.standard, row.premium].map((val, i) => (
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                        {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {/* ── Communication ── */}
+                <tr><td colSpan={4} style={{ padding: "14px 20px", color: teal, fontWeight: 700, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(255,255,255,.04)" }}>Communication</td></tr>
+                {[
+                  { feature: "Patient messaging", starter: true, standard: true, premium: true },
+                  { feature: "Built-in chat & SMS", starter: false, standard: true, premium: true },
+                  { feature: "Automated appointment reminders", starter: true, standard: true, premium: true },
+                ].map((row) => (
+                  <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                    <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
+                    {[row.starter, row.standard, row.premium].map((val, i) => (
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                        {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {/* ── Dashboard & Analytics ── */}
+                <tr><td colSpan={4} style={{ padding: "14px 20px", color: teal, fontWeight: 700, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(255,255,255,.04)" }}>Dashboard &amp; Analytics</td></tr>
+                {[
+                  { feature: "Clinic dashboard", starter: true, standard: true, premium: true },
+                  { feature: "Booking & conversion tracking", starter: true, standard: true, premium: true },
+                  { feature: "Advanced analytics & reporting", starter: false, standard: true, premium: true },
+                  { feature: "Multi-location dashboard", starter: false, standard: false, premium: true },
+                ].map((row) => (
+                  <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                    <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
+                    {[row.starter, row.standard, row.premium].map((val, i) => (
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                        {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {/* ── Integrations ── */}
+                <tr><td colSpan={4} style={{ padding: "14px 20px", color: teal, fontWeight: 700, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(255,255,255,.04)" }}>Integrations</td></tr>
+                {[
+                  { feature: "Email notifications", starter: true, standard: true, premium: true },
+                  { feature: "Boxly CRM integration", starter: false, standard: true, premium: true },
+                  { feature: "Webhook support (any CRM)", starter: false, standard: true, premium: true },
+                  { feature: "Referral programme", starter: false, standard: true, premium: true },
+                ].map((row) => (
+                  <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                    <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
+                    {[row.starter, row.standard, row.premium].map((val, i) => (
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                        {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {/* ── Support & Onboarding ── */}
+                <tr><td colSpan={4} style={{ padding: "14px 20px", color: teal, fontWeight: 700, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(255,255,255,.04)" }}>Support &amp; Onboarding</td></tr>
+                {[
+                  { feature: "Self-serve onboarding guide", starter: true, standard: true, premium: true },
+                  { feature: "Free 1-on-1 onboarding call", starter: false, standard: true, premium: true },
+                  { feature: "Full team training", starter: false, standard: false, premium: true },
+                  { feature: "Email support", starter: true, standard: true, premium: true },
+                  { feature: "Priority email & chat support", starter: false, standard: true, premium: true },
+                  { feature: "Dedicated account manager", starter: false, standard: false, premium: true },
+                  { feature: "Quarterly strategy review", starter: false, standard: false, premium: true },
+                ].map((row) => (
+                  <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                    <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
+                    {[row.starter, row.standard, row.premium].map((val, i) => (
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                        {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {/* ── Practice Management ── */}
+                <tr><td colSpan={4} style={{ padding: "14px 20px", color: teal, fontWeight: 700, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(255,255,255,.04)" }}>Practice Management</td></tr>
+                {[
+                  { feature: "Single practice", starter: true, standard: true, premium: true },
+                  { feature: "Multi-practice management", starter: false, standard: false, premium: true },
+                  { feature: "Team member management", starter: false, standard: false, premium: true },
+                ].map((row) => (
+                  <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
+                    <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
+                    {[row.starter, row.standard, row.premium].map((val, i) => (
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                        {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {/* ── Bottom CTA row ── */}
+                <tr style={{ borderTop: "1px solid rgba(255,255,255,.08)" }}>
+                  <td style={{ padding: "20px 20px" }}>&nbsp;</td>
+                  <td style={{ textAlign: "center", padding: "20px 12px" }}>
+                    <Link href="/signup" style={{ ...greenBtn, padding: "10px 20px", fontSize: 13, borderRadius: 10 }}>
+                      Start free trial
+                    </Link>
+                  </td>
+                  <td style={{ textAlign: "center", padding: "20px 12px", background: "rgba(13,148,136,.04)" }}>
+                    <Link href="/signup" style={{ ...greenBtn, padding: "10px 20px", fontSize: 13, borderRadius: 10 }}>
+                      Start free trial
+                    </Link>
+                  </td>
+                  <td style={{ textAlign: "center", padding: "20px 12px" }}>
+                    <a href="mailto:hello@pearlie.org?subject=Pearlie Premium — clinic enquiry" style={{ ...outlineBtn, padding: "10px 20px", fontSize: 13, borderRadius: 10, borderColor: "rgba(255,255,255,.15)" }}>
+                      Contact sales
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ ROI CALCULATOR ═══════════ */}
+      <section className="fc-section" style={sec}>
         <div style={{ ...maxW, maxWidth: 840 }}>
-          {sectionH2("Your return, calculated")}
-          {sectionSub("Adjust the sliders to match your practice.")}
-          <div className="fc-roi-wrapper" style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 20, padding: "36px 32px" }}>
+          <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 12 }}>
+            Your return, calculated
+          </h2>
+          <p style={{ color: "#94a3b8", fontSize: 17, textAlign: "center", marginBottom: 48, lineHeight: 1.6 }}>
+            Adjust the sliders to match your practice.
+          </p>
+
+          <div className="fc-roi-wrapper" style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.06)", borderRadius: 20, padding: "36px 32px" }}>
+            {/* Plan selector */}
             <div style={{ marginBottom: 32 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}><span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Extra consults / month</span><span style={{ color: teal, fontWeight: 700, fontSize: 16 }}>{extra}</span></div>
-              <input type="range" min={0} max={20} value={extra} onChange={(e) => setExtra(Number(e.target.value))} style={{ width: "100%" }} />
+              <p style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, marginBottom: 12 }}>Select your plan</p>
+              <div style={{ display: "inline-flex", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, padding: 4 }}>
+                {(["starter", "standard", "premium"] as const).map((key) => (
+                  <button
+                    key={key}
+                    onClick={() => setRoiPlan(key)}
+                    style={{
+                      padding: "10px 20px",
+                      borderRadius: 10,
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      transition: "all .2s",
+                      background: roiPlan === key ? teal : "transparent",
+                      color: roiPlan === key ? "#fff" : "#94a3b8",
+                    }}
+                  >
+                    {PLAN_DATA[key].label} &pound;{PLAN_DATA[key].price}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Slider 1: Extra bookings */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Extra confirmed bookings beyond {PLAN_DATA[roiPlan].included} included</span>
+                <span style={{ color: teal, fontWeight: 700, fontSize: 16 }}>{roiExtra}</span>
+              </div>
+              <input type="range" min={0} max={25} value={roiExtra} onChange={(e) => setRoiExtra(Number(e.target.value))} style={{ width: "100%" }} />
+            </div>
+
+            {/* Slider 2: Patient lifetime value */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Patient lifetime value</span>
+                <span style={{ color: teal, fontWeight: 700, fontSize: 16 }}>&pound;{roiLtv.toLocaleString()}</span>
+              </div>
+              <input type="range" min={300} max={3000} step={50} value={roiLtv} onChange={(e) => setRoiLtv(Number(e.target.value))} style={{ width: "100%" }} />
+            </div>
+
+            {/* Slider 3: Confirmed patients per month */}
             <div style={{ marginBottom: 40 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}><span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Avg patient lifetime value</span><span style={{ color: teal, fontWeight: 700, fontSize: 16 }}>&pound;{ltv.toLocaleString()}</span></div>
-              <input type="range" min={200} max={5000} step={100} value={ltv} onChange={(e) => setLtv(Number(e.target.value))} style={{ width: "100%" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Confirmed patients per month</span>
+                <span style={{ color: teal, fontWeight: 700, fontSize: 16 }}>{roiPatients}</span>
+              </div>
+              <input type="range" min={1} max={25} value={roiPatients} onChange={(e) => setRoiPatients(Number(e.target.value))} style={{ width: "100%" }} />
             </div>
-            <div className="fc-roi-results" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <RoiCard label={`Basic \u2014 ${practiceType === "private" ? "Private" : "Mixed"}`} labelColor="#94a3b8" c={basicCalc} baseCost={basicPlan.base} extraPrice={basicPlan.extraPrice} />
-              <RoiCard label={`Growth \u2014 ${practiceType === "private" ? "Private" : "Mixed"}`} labelColor={teal} c={growthCalc} baseCost={growthPlan.base} extraPrice={growthPlan.extraPrice} highlight />
-            </div>
+
+            {/* Output boxes */}
+            {(() => {
+              const r = roiResult()
+              return (
+                <>
+                  <div className="fc-roi-output-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+                    <div style={{ background: "rgba(255,255,255,.04)", borderRadius: 14, padding: "20px 16px", textAlign: "center" }}>
+                      <p style={{ color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>You pay Pearly</p>
+                      <p style={{ ...heading, fontSize: 24, color: "#f8fafc" }}>&pound;{r.totalCost.toLocaleString()}<span style={{ fontSize: 13, color: "#64748b", fontWeight: 400 }}>/mo</span></p>
+                    </div>
+                    <div style={{ background: "rgba(13,148,136,.06)", border: "1px solid rgba(13,148,136,.15)", borderRadius: 14, padding: "20px 16px", textAlign: "center" }}>
+                      <p style={{ color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Revenue you keep</p>
+                      <p style={{ ...heading, fontSize: 24, color: teal }}>&pound;{r.revenue.toLocaleString()}</p>
+                    </div>
+                    <div style={{ background: "rgba(255,255,255,.04)", borderRadius: 14, padding: "20px 16px", textAlign: "center" }}>
+                      <p style={{ color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>ROI</p>
+                      <p style={{ ...heading, fontSize: 24, color: tealLight }}>{r.roiPct.toLocaleString()}%</p>
+                    </div>
+                    <div style={{ background: "rgba(255,255,255,.04)", borderRadius: 14, padding: "20px 16px", textAlign: "center" }}>
+                      <p style={{ color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Net profit</p>
+                      <p style={{ ...heading, fontSize: 24, color: "#f8fafc" }}>&pound;{r.net.toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <p style={{ color: "#94a3b8", fontSize: 14, textAlign: "center", lineHeight: 1.5 }}>
+                    {roiPatients} patients &times; &pound;{roiLtv.toLocaleString()} = &pound;{r.revenue.toLocaleString()} &mdash; for &pound;{r.totalCost.toLocaleString()}/mo
+                  </p>
+                </>
+              )
+            })()}
           </div>
         </div>
       </section>
@@ -754,7 +1356,7 @@ export default function ForClinicsPage() {
             <FaqItem question="Can I cancel at any time?" answer="Yes. There are no contracts and no lock-in periods. You can cancel your subscription at any time and it will end at the close of your current billing cycle." />
             <FaqItem question="What data do I get about each patient?" answer="Every matched patient includes: treatment interest, anxiety level, cost approach (and budget preferences), conversion blockers/concerns, top clinic priorities, readiness/timing, preferred visit times, and location flexibility. This is the same data our intake questionnaire collects directly from patients." />
             <FaqItem question="Do I need to change anything about my practice?" answer="No. Pearlie works alongside your existing processes. We send you pre-qualified patients \u2014 you handle the consultation and booking as you normally would, just with much better information upfront." />
-            <FaqItem question="What if I don't get any patients in a month?" answer="If we don't deliver any matched patients in a billing cycle, you won't be charged for extra consults. Your base subscription covers availability on the platform and priority matching \u2014 but we're incentivised to deliver value, not just collect fees." />
+            <FaqItem question="What if I don't get any patients in a month?" answer="If we don't deliver any matched patients in a billing cycle, you won't be charged for extra bookings. Your base subscription covers availability on the platform and priority matching \u2014 but we're incentivised to deliver value, not just collect fees." />
           </div>
         </div>
       </section>
