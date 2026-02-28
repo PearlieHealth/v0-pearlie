@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { isAdminAuthenticated } from "@/lib/admin-auth"
 
 // Only return fields that are safe for public/patient-facing views.
 // Excludes: notification_email, email_forwarding_address, booking_webhook_url,
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { clinicId } = await params
     const { searchParams } = new URL(request.url)
     const isPreview = searchParams.get("preview") === "true"
+    const isAdminPreview = searchParams.get("admin_preview") === "true"
 
     // Determine if clinicId is a UUID or a slug
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clinicId)
@@ -77,27 +79,29 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
     }
 
-    // For non-live clinics, only allow if preview=true AND the user owns this clinic
+    // For non-live clinics, only allow if:
+    // 1. preview=true AND the user owns this clinic, OR
+    // 2. admin_preview=true AND the user is an admin
     if (clinicData.is_live !== true) {
-      if (!isPreview) {
-        return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
+      let allowed = false
+
+      if (isAdminPreview && await isAdminAuthenticated()) {
+        allowed = true
+      } else if (isPreview) {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: clinicUser } = await supabaseAdmin
+            .from("clinic_users")
+            .select("clinic_id")
+            .eq("user_id", user.id)
+            .eq("clinic_id", clinicData.id)
+            .single()
+          if (clinicUser) allowed = true
+        }
       }
 
-      // Verify the requesting user owns this clinic via cookie-based auth
-      const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
-      }
-
-      const { data: clinicUser } = await supabaseAdmin
-        .from("clinic_users")
-        .select("clinic_id")
-        .eq("user_id", user.id)
-        .eq("clinic_id", clinicData.id)
-        .single()
-
-      if (!clinicUser) {
+      if (!allowed) {
         return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
       }
     }

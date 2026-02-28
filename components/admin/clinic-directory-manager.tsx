@@ -118,6 +118,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
   const [isFixingPhotos, setIsFixingPhotos] = useState(false)
   const [activeFilters, setActiveFilters] = useState<Set<FilterKey>>(new Set())
   const [showFilters, setShowFilters] = useState(false)
+  const [activeTab, setActiveTab] = useState("active")
   // Bulk Google link / fetch hours
   const [bulkGoogleProgress, setBulkGoogleProgress] = useState<{
     open: boolean
@@ -501,8 +502,8 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
     }
   }
 
-  const handleBulkFetchHours = async () => {
-    const ids = Array.from(selectedIds)
+  const handleBulkFetchHours = async (overrideIds?: string[]) => {
+    const ids = overrideIds || Array.from(selectedIds)
     if (ids.length === 0) return
 
     setBulkGoogleProgress({
@@ -560,6 +561,19 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
         description: "Could not complete bulk hours fetch.",
       })
     }
+  }
+
+  const handleFetchHoursForAll = () => {
+    const currentList =
+      activeTab === "active" ? activeClinics :
+      activeTab === "unverified" ? unverifiedClinics :
+      archivedClinics
+    const visible = filterClinics(currentList)
+    if (visible.length === 0) {
+      toast({ variant: "destructive", title: "No clinics", description: "No clinics visible to fetch hours for." })
+      return
+    }
+    handleBulkFetchHours(visible.map((c) => c.id))
   }
 
   const toggleSelect = (id: string) => {
@@ -779,7 +793,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
                       asChild
                       title="View Clinic Page"
                     >
-                      <Link href={`/clinic/${clinic.id}`}>
+                      <Link href={`/clinic/${clinic.id}?admin_preview=true`} target="_blank">
                         <ExternalLink className="h-4 w-4" />
                       </Link>
                     </Button>
@@ -854,6 +868,15 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
             >
               <Filter className="h-4 w-4" />
               Filters{activeFilters.size > 0 ? ` (${activeFilters.size})` : ""}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleFetchHoursForAll}
+              disabled={!!bulkGoogleProgress}
+              className="gap-2 bg-transparent text-teal-700 border-teal-300 hover:bg-teal-50"
+            >
+              <Clock className="h-4 w-4" />
+              Fetch All Hours
             </Button>
             <Button
               variant="outline"
@@ -992,7 +1015,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
         </Card>
       )}
 
-      <Tabs defaultValue="active" className="w-full">
+      <Tabs defaultValue="active" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="grid w-full max-w-lg grid-cols-3">
           <TabsTrigger value="active">Verified ({activeClinics.length})</TabsTrigger>
           <TabsTrigger value="unverified">Unverified ({unverifiedClinics.length})</TabsTrigger>
