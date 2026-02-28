@@ -1,6 +1,12 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 
 /**
+ * Compact clinic fields for treatment/listing grids (cards + directory).
+ */
+export const CLINIC_CARD_SELECT =
+  "id, name, slug, city, address, postcode, rating, review_count, images, treatments, price_range, highlight_chips, verified, description"
+
+/**
  * Public clinic fields safe for patient-facing views.
  * Mirrors the field list in app/api/clinics/[clinicId]/route.ts.
  */

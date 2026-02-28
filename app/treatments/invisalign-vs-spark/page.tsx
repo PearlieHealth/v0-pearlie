@@ -12,6 +12,7 @@ import { KeyFactsBar } from "@/components/treatments/key-facts-bar"
 import { ClinicalStandards } from "@/components/treatments/clinical-standards"
 import { ClinicDirectoryList } from "@/components/treatments/clinic-directory-list"
 import { createClient } from "@/lib/supabase/server"
+import { CLINIC_CARD_SELECT } from "@/lib/clinics/queries"
 
 export const revalidate = 3600
 
@@ -45,16 +46,13 @@ export const metadata: Metadata = {
   },
 }
 
-const CLINIC_SELECT =
-  "id, name, slug, city, address, postcode, rating, review_count, images, treatments, price_range, highlight_chips, verified, description"
-
 async function getClinicsForAligners() {
   try {
     const supabase = await createClient()
 
     const { data } = await supabase
       .from("clinics")
-      .select(CLINIC_SELECT)
+      .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
       .eq("is_live", true)
       .overlaps("treatments", ["Invisalign"])
@@ -66,7 +64,7 @@ async function getClinicsForAligners() {
 
     const { data: fallback } = await supabase
       .from("clinics")
-      .select(CLINIC_SELECT)
+      .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
       .eq("is_live", true)
       .order("verified", { ascending: false })
@@ -143,11 +141,9 @@ const faqSchema = {
 export default async function InvisalignVsSparkPage() {
   const clinics = await getClinicsForAligners()
 
-  // Split clinics: verified as full cards, non-verified as directory listings
-  const verifiedClinics = clinics.filter((c) => c.verified)
-  const directoryClinics = clinics.filter((c) => !c.verified)
-  const featuredClinics = verifiedClinics.slice(0, 8)
-  const moreClinics = verifiedClinics.slice(8)
+  // Top 8 as featured cards, remainder as compact directory listings
+  const featuredClinics = clinics.slice(0, 8)
+  const directoryClinics = clinics.slice(8)
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -392,17 +388,7 @@ export default async function InvisalignVsSparkPage() {
           </div>
         </section>
 
-        {/* 8. SUPPLY — More clinics */}
-        {moreClinics.length > 0 && (
-          <TreatmentClinicGrid
-            clinics={moreClinics}
-            treatmentName="clear aligners"
-            heading="More clear aligner clinics"
-            subheading="Explore more verified providers in your area."
-          />
-        )}
-
-        {/* Directory listings */}
+        {/* 8. SUPPLY — Directory listings (remaining clinics) */}
         <ClinicDirectoryList
           clinics={directoryClinics}
           treatmentName="Clear Aligners"
