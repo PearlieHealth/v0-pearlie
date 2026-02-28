@@ -274,14 +274,12 @@ export default function ForClinicsPage() {
           </p>
           <div style={{ marginBottom: 64 }}>
             <a href="#pricing" style={greenBtn}>See pricing <ArrowRight size={18} /></a>
-            <p style={{ color: "#6b7280", fontSize: 13, marginTop: 14 }}>No contracts &middot; No setup fee &middot; Cancel anytime</p>
           </div>
-          <div className="fc-stats-bar" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 48, padding: "28px 32px", borderTop: `1px solid ${cardBorder}`, borderBottom: `1px solid ${cardBorder}` }}>
-            {[{ value: "92%", label: "avg match score" }, { value: "8", label: "insights per patient" }, { value: "< 72 hrs", label: "to first patient" }, { value: "£0", label: "setup fee" }].map((s) => (
-              <div key={s.label} style={{ textAlign: "center", minWidth: 110 }}>
-                <div style={{ ...heading, fontSize: 28, color: "#111827" }}>{s.value}</div>
-                <div style={{ color: "#6b7280", fontSize: 12, marginTop: 4, fontWeight: 500 }}>{s.label}</div>
-              </div>
+          <div className="fc-stats-bar" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 16, padding: "32px 24px", borderTop: `1px solid ${cardBorder}`, borderBottom: `1px solid ${cardBorder}` }}>
+            {["No contracts", "No setup fee", "Cancel anytime"].map((item) => (
+              <span key={item} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(5,150,105,.07)", border: "1px solid rgba(5,150,105,.2)", padding: "10px 22px", borderRadius: 24, color: "#047857", fontSize: 15, fontWeight: 700 }}>
+                <Check size={16} /> {item}
+              </span>
             ))}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 24, marginTop: 20 }}>
@@ -1461,7 +1459,13 @@ export default function ForClinicsPage() {
             <Link href="/signup" style={greenBtn}>Join Pearlie — Free Setup <ArrowRight size={18} /></Link>
             <a href="mailto:hello@pearlie.org?subject=Pearlie demo request" style={outlineBtn}>Book a free demo</a>
           </div>
-          <p style={{ color: "#6b7280", fontSize: 13, marginTop: 16 }}>No contracts &middot; No setup fee &middot; Cancel anytime</p>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 10, marginTop: 20 }}>
+            {["No contracts", "No setup fee", "Cancel anytime"].map((item) => (
+              <span key={item} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(5,150,105,.07)", border: "1px solid rgba(5,150,105,.2)", padding: "6px 14px", borderRadius: 20, color: "#047857", fontSize: 13, fontWeight: 600 }}>
+                <Check size={13} /> {item}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
