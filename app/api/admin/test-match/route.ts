@@ -115,7 +115,7 @@ export async function POST(request: Request) {
           tier: rc.tier,
           isPinned: rc.isPinned,
           explanationVersion: rc.explanationVersion,
-          isDirectoryListing: rc.debug?.isDirectoryListing || false,
+          isDirectoryListing: rc.isDirectoryListing,
           // Use composed reasons (same as live flow)
           reasons: rc.reasons.map((r, idx) => ({
             text: composed?.bullets[idx] || r.text,

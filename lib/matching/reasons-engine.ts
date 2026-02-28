@@ -8,7 +8,7 @@ import {
   BANNED_GENERIC_PHRASES,
   DIRECTORY_LISTING_REASON_TEMPLATES,
 } from "./tag-schema"
-import type { ClinicProfile, LeadAnswer, MatchScoreBreakdown } from "./contract"
+import type { ClinicProfile, MatchScoreBreakdown } from "./contract"
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production"
 

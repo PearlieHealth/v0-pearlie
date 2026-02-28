@@ -836,6 +836,8 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                                 cost: "Cost & value fit",
                                                 distance: "Location",
                                                 availability: "Appointment times",
+                                                reviews: "Patient reviews",
+                                                completeness: "Profile detail",
                                               }
                                               return (
                                                 <div key={item.category} className="flex items-center justify-between gap-2">

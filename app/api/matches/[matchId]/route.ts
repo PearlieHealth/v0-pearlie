@@ -157,15 +157,22 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       // Normalize lead
       const normalizedLead = normalizeLead(lead)
 
-      // Score each clinic
+      // Score each clinic — use scoreDirectoryListing for non-matchable clinics
       const clinicScoringData = (clinicsRaw || []).map((clinicRow, clinicIndex) => {
         const filterKeys = Array.isArray(clinicRow.clinic_filter_selections)
           ? clinicRow.clinic_filter_selections.map((sel: any) => sel.filter_key)
           : []
 
         const normalizedClinic = normalizeClinic(clinicRow, filterKeys)
-        const scoreBreakdown = scoreClinic(normalizedLead, normalizedClinic)
-        const matchFacts = buildMatchFacts(normalizedLead, normalizedClinic, scoreBreakdown)
+        const isDir = !isClinicMatchable(filterKeys)
+
+        // Use the appropriate scoring function based on matchability
+        const scoreBreakdown = isDir
+          ? scoreDirectoryListing(normalizedLead, normalizedClinic)
+          : scoreClinic(normalizedLead, normalizedClinic)
+        const matchFacts = isDir
+          ? null
+          : buildMatchFacts(normalizedLead, normalizedClinic, scoreBreakdown)
 
         return {
           clinicRow,
@@ -174,25 +181,42 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
           scoreBreakdown,
           matchFacts,
           clinicIndex,
+          isDir,
         }
       })
 
-      // Build reasons for ALL clinics at once with cross-clinic variant dedup
+      // Build reasons for matchable clinics with cross-clinic variant dedup
+      const matchableScoringData = clinicScoringData.filter(c => !c.isDir)
       const reasonsMap = buildMatchReasonsForMultipleClinics(
         normalizedLead.id,
-        clinicScoringData.map(c => ({
+        matchableScoringData.map(c => ({
           clinicId: c.normalizedClinic.id,
-          matchFacts: c.matchFacts,
+          matchFacts: c.matchFacts!,
           fallbackOffset: c.clinicIndex,
         }))
       )
 
       // Build final clinics with scores and reasons
-      clinicsWithScores = clinicScoringData.map(({ clinicRow, normalizedClinic, filterKeys, scoreBreakdown }) => {
-        const isDir = !isClinicMatchable(filterKeys)
-        const result = reasonsMap.get(normalizedClinic.id)
-        const reasons = result?.reasons || []
-        const composed = result?.composed
+      clinicsWithScores = clinicScoringData.map(({ clinicRow, normalizedClinic, filterKeys, scoreBreakdown, isDir }) => {
+        // For directory listings, build simple reasons; for matchable, use cross-clinic deduped reasons
+        let reasons: string[]
+        let composed: { bullets: string[]; longBullets: string[]; tagsUsed: string[]; templatesUsed: string[]; confidence: number } | undefined
+
+        if (isDir) {
+          const dirReasons = buildDirectoryListingReasons(normalizedClinic, scoreBreakdown, normalizedLead.treatment, 0)
+          reasons = dirReasons.map(r => r.text)
+          composed = {
+            bullets: reasons,
+            longBullets: reasons,
+            tagsUsed: dirReasons.map(r => r.tagKey || ""),
+            templatesUsed: [],
+            confidence: 0.3,
+          }
+        } else {
+          const result = reasonsMap.get(normalizedClinic.id)
+          reasons = result?.reasons?.map((r) => r.text) || []
+          composed = result?.composed
+        }
 
         return {
           ...clinicRow,
@@ -200,9 +224,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
           match_score: scoreBreakdown.percent,
           match_percentage: scoreBreakdown.percent,
           match_breakdown: scoreBreakdown.categories,
-          match_reasons: reasons.map((r) => r.text),
-          match_reasons_composed: composed?.bullets || reasons.map(r => r.text),
-          match_reasons_long: composed?.longBullets || reasons.map(r => r.text),
+          match_reasons: reasons,
+          match_reasons_composed: composed?.bullets || reasons,
+          match_reasons_long: composed?.longBullets || reasons,
           match_reasons_meta: {
             tagsUsed: composed?.tagsUsed || [],
             templatesUsed: composed?.templatesUsed || [],
