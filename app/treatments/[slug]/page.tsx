@@ -9,11 +9,18 @@ import { TreatmentHero } from "@/components/treatments/treatment-hero"
 import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
 import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-postcode"
 import { KeyFactsBar } from "@/components/treatments/key-facts-bar"
-import { TrustBadgeStrip } from "@/components/trust-badge-strip"
+import { WhoIsThisFor } from "@/components/treatments/who-is-this-for"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
 import { TreatmentFAQ } from "@/components/treatments/treatment-faq"
 import { TreatmentAreaLinks } from "@/components/treatments/treatment-area-links"
 import { RelatedTreatments } from "@/components/treatments/related-treatments"
+import { PriceBreakdown } from "@/components/treatments/price-breakdown"
+import { CompareOptions } from "@/components/treatments/compare-options"
+import { TreatmentTimeline } from "@/components/treatments/treatment-timeline"
+import { FinanceOptions } from "@/components/treatments/finance-options"
+import { RisksConsiderations } from "@/components/treatments/risks-considerations"
+import { ClinicalStandards } from "@/components/treatments/clinical-standards"
+import { ClinicDirectoryList } from "@/components/treatments/clinic-directory-list"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { RelatedPosts } from "@/components/blog/related-posts"
 import { useMDXComponents } from "@/components/blog/mdx-components"
@@ -25,6 +32,7 @@ import {
 import { getBlogPostBySlug, type BlogPost } from "@/lib/content/blog"
 import { extractHeadings } from "@/lib/content/mdx"
 import { createClient } from "@/lib/supabase/server"
+import { treatmentCostContent } from "@/lib/data/treatment-cost-content"
 
 export const revalidate = 3600
 
@@ -48,37 +56,40 @@ export async function generateMetadata({
   }
 
   const { meta } = treatment
+  const costContent = treatmentCostContent[slug]
+
+  const pageTitle = costContent?.metaTitle || meta.title
+  const pageDescription = costContent?.metaDescription || meta.description
 
   return {
-    title: meta.title,
-    description: meta.description,
+    title: pageTitle,
+    description: pageDescription,
     keywords: meta.keywords,
     alternates: {
       canonical: `https://pearlie.org/treatments/${meta.slug}`,
     },
     openGraph: {
-      title: meta.title,
-      description: meta.description,
+      title: pageTitle,
+      description: pageDescription,
       url: `https://pearlie.org/treatments/${meta.slug}`,
       type: "article",
       publishedTime: meta.publishedAt,
       modifiedTime: meta.updatedAt || meta.publishedAt,
-      authors: [meta.author],
       images: meta.heroImage
         ? [
             {
               url: meta.heroImage,
               width: 1200,
               height: 630,
-              alt: meta.heroImageAlt || meta.title,
+              alt: meta.heroImageAlt || pageTitle,
             },
           ]
         : undefined,
     },
     twitter: {
       card: "summary_large_image",
-      title: meta.title,
-      description: meta.description,
+      title: pageTitle,
+      description: pageDescription,
       images: meta.heroImage ? [meta.heroImage] : undefined,
     },
   }
@@ -91,15 +102,16 @@ async function getClinicsForTreatment(filterTags: string[]) {
   try {
     const supabase = await createClient()
 
-    // Try treatment-specific clinics first
+    // Fetch verified clinics first, then all others — more clinics overall
     const { data } = await supabase
       .from("clinics")
       .select(CLINIC_SELECT)
       .eq("is_archived", false)
       .eq("is_live", true)
       .overlaps("treatments", filterTags)
+      .order("verified", { ascending: false })
       .order("rating", { ascending: false })
-      .limit(12)
+      .limit(20)
 
     if (data && data.length > 0) return data
 
@@ -109,8 +121,9 @@ async function getClinicsForTreatment(filterTags: string[]) {
       .select(CLINIC_SELECT)
       .eq("is_archived", false)
       .eq("is_live", true)
+      .order("verified", { ascending: false })
       .order("rating", { ascending: false })
-      .limit(6)
+      .limit(8)
 
     return fallback || []
   } catch {
@@ -133,9 +146,16 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
     intakeTreatment: meta.intakeTreatment,
   })
   const relatedTreatments = getRelatedTreatments(slug, 3)
+  const costContent = treatmentCostContent[slug]
 
   // Fetch clinics offering this treatment
   const clinics = await getClinicsForTreatment(meta.clinicFilterTags)
+
+  // Split clinics: verified as full cards, non-verified as directory listings
+  const verifiedClinics = clinics.filter((c) => c.verified)
+  const directoryClinics = clinics.filter((c) => !c.verified)
+  const featuredClinics = verifiedClinics.slice(0, 8)
+  const moreClinics = verifiedClinics.slice(8)
 
   // Resolve related blog posts
   const relatedBlogPosts: BlogPost[] = (meta.relatedBlogSlugs || [])
@@ -144,6 +164,12 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
       return post ? post.meta : null
     })
     .filter(Boolean) as BlogPost[]
+
+  // Combine all FAQs for schema (existing + cost FAQs)
+  const allFaqs = [
+    ...(meta.faqs || []),
+    ...(costContent?.costFaqs?.map((f) => ({ question: f.question, answer: f.answer })) || []),
+  ]
 
   // Service schema
   const serviceSchema = {
@@ -178,13 +204,13 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
     },
   }
 
-  // FAQPage schema
+  // FAQPage schema (includes both original and cost FAQs)
   const faqSchema =
-    meta.faqs && meta.faqs.length > 0
+    allFaqs.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: meta.faqs.map((faq) => ({
+          mainEntity: allFaqs.map((faq) => ({
             "@type": "Question",
             name: faq.question,
             acceptedAnswer: {
@@ -199,8 +225,8 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
   const medicalPageSchema = {
     "@context": "https://schema.org",
     "@type": "MedicalWebPage",
-    name: meta.title,
-    description: meta.description,
+    name: costContent?.metaTitle || meta.title,
+    description: costContent?.metaDescription || meta.description,
     url: `https://pearlie.org/treatments/${meta.slug}`,
     datePublished: meta.publishedAt,
     dateModified: meta.updatedAt || meta.publishedAt,
@@ -272,25 +298,80 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
       />
 
       <main>
-        {/* 1. Treatment Hero */}
-        <TreatmentHero treatment={meta} />
-
-        {/* 2. Key Facts Bar */}
-        <KeyFactsBar
-          priceRange={meta.priceRange}
-          treatmentDuration={meta.treatmentDuration}
+        {/* 1. PROMISE — Hero (cost-intent H1 + subheading + transactional CTA) */}
+        <TreatmentHero
+          treatment={meta}
+          costIntentH1={costContent?.costIntentH1}
+          heroSubheading={costContent?.heroSubheading}
+          ctaButtonText={costContent?.ctaCopy?.hero || costContent?.ctaButtonText}
         />
 
-        {/* 3. Clinic Listings */}
+        {/* 2. PROMISE — Trust strip */}
+        <KeyFactsBar />
+
+        {/* 3. PROMISE — Who is this for? */}
+        {costContent?.whoIsThisFor && (
+          <WhoIsThisFor
+            personas={costContent.whoIsThisFor.personas}
+            summary={costContent.whoIsThisFor.summary}
+            treatmentName={meta.treatmentName}
+          />
+        )}
+
+        {/* 4. SUPPLY — Featured clinics (top 6) */}
         <TreatmentClinicGrid
-          clinics={clinics}
+          clinics={featuredClinics}
           treatmentName={meta.treatmentName}
         />
 
-        {/* Trust badges */}
-        <TrustBadgeStrip />
+        {/* 5. EDUCATION — Price Breakdown */}
+        {costContent && (
+          <PriceBreakdown
+            costContent={costContent}
+            treatmentName={meta.treatmentName}
+            intakeTreatment={meta.intakeTreatment}
+          />
+        )}
 
-        {/* 4. MDX Editorial Content */}
+        {/* 6. EDUCATION — Compare Options */}
+        {costContent && (
+          <CompareOptions costContent={costContent} />
+        )}
+
+        {/* 7. EDUCATION — Treatment Timeline */}
+        {costContent?.timeline && (
+          <TreatmentTimeline
+            heading={costContent.timeline.heading}
+            steps={costContent.timeline.steps}
+            totalDuration={costContent.timeline.totalDuration}
+          />
+        )}
+
+        {/* 8. EDUCATION — Finance & Payment Options */}
+        {costContent?.finance && (
+          <FinanceOptions
+            finance={costContent.finance}
+            treatmentName={meta.treatmentName}
+          />
+        )}
+
+        {/* 9. SUPPLY — More verified clinics */}
+        {moreClinics.length > 0 && (
+          <TreatmentClinicGrid
+            clinics={moreClinics}
+            treatmentName={meta.treatmentName}
+            heading={`More verified ${meta.treatmentName.toLowerCase()} clinics`}
+            subheading="Explore more verified providers in your area."
+          />
+        )}
+
+        {/* 9b. SUPPLY — Directory listings (non-verified) */}
+        <ClinicDirectoryList
+          clinics={directoryClinics}
+          treatmentName={meta.treatmentName}
+        />
+
+        {/* 10. EDUCATION — MDX Editorial Content */}
         <section className="py-8 sm:py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
@@ -317,35 +398,43 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           </div>
         </section>
 
-        {/* 5. FAQ Accordion */}
-        {meta.faqs && meta.faqs.length > 0 && (
-          <TreatmentFAQ faqs={meta.faqs} treatmentName={meta.treatmentName} />
+        {/* 11. TRUST — Risks & Considerations */}
+        {costContent?.risks && (
+          <RisksConsiderations risks={costContent.risks} />
         )}
 
-        {/* 6. Find treatment by area */}
+        {/* 12. TRUST — Clinical Standards */}
+        <ClinicalStandards treatmentName={meta.treatmentName} />
+
+        {/* 13. EDUCATION — FAQ Accordion (merged: cost FAQs + general FAQs) */}
+        {allFaqs.length > 0 && (
+          <TreatmentFAQ faqs={allFaqs} treatmentName={meta.treatmentName} />
+        )}
+
+        {/* 14. SUPPLY — Find treatment by area */}
         <TreatmentAreaLinks
           treatmentSlug={slug}
           treatmentName={meta.treatmentName}
         />
 
-        {/* 7. Related Blog Posts */}
+        {/* 15. EDUCATION — Related Blog Posts */}
         {relatedBlogPosts.length > 0 && (
           <RelatedPosts posts={relatedBlogPosts} />
         )}
 
-        {/* 8. Related Treatments */}
+        {/* 16. SUPPLY — Related Treatments */}
         <RelatedTreatments treatments={relatedTreatments} />
 
-        {/* 8. Bottom CTA with postcode input */}
+        {/* 17. CTA — Bottom CTA with postcode input */}
         <section className="py-12 sm:py-16 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
-                Find my {meta.treatmentName.toLowerCase()} clinic
+                {costContent?.ctaCopy?.bottom || `Compare ${meta.treatmentName.toLowerCase()} clinics near you`}
               </h2>
               <p className="text-white/70 mb-8 leading-relaxed">
-                Enter your postcode and we'll match you with verified,
-                GDC registered clinics near you.
+                Enter your postcode and we&apos;ll match you with verified,
+                GDC registered clinics with transparent pricing.
               </p>
               <TreatmentPostcodeCta
                 treatmentName={meta.treatmentName}
@@ -364,7 +453,6 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
                 dental advice. Always consult a GDC-registered dental
                 professional for diagnosis and treatment recommendations. Prices
                 shown are estimates and may vary by clinic and individual case.
-                Last reviewed: {meta.updatedAt || meta.publishedAt}.
               </p>
             </div>
           </div>
