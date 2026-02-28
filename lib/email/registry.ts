@@ -285,6 +285,9 @@ const directLeadNotificationSchema = z.object({
   treatment: z.string(),
   urgency: z.string(),
   inboxUrl: z.string(),
+  bookingDate: z.string().optional(),
+  confirmUrl: z.string().optional(),
+  declineUrl: z.string().optional(),
 })
 
 const appointmentNotificationSchema = z.object({
