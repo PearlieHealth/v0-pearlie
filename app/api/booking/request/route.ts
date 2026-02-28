@@ -142,8 +142,6 @@ export async function POST(request: Request) {
             urgency: lead.preferred_timing || "flexible",
             inboxUrl: portalUrl("/clinic/appointments"),
             bookingDate: date,
-            confirmUrl: `${appUrl}/booking/clinic-response?token=${bookingToken}&action=confirm`,
-            declineUrl: `${appUrl}/booking/clinic-response?token=${bookingToken}&action=decline`,
             _leadId: leadId,
             _clinicId: clinicId,
           },
