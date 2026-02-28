@@ -9,12 +9,13 @@ import { HeroPostcodeCta } from "@/components/treatments/hero-postcode-cta"
 import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-postcode"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
 import { KeyFactsBar } from "@/components/treatments/key-facts-bar"
+import { ClinicalStandards } from "@/components/treatments/clinical-standards"
 import { createClient } from "@/lib/supabase/server"
 
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: "Invisalign vs Spark (2026) — Costs, Differences & Which to Choose | Pearlie",
+  title: "Invisalign vs Spark — Costs, Differences & Which to Choose | Pearlie",
   description:
     "Invisalign vs Spark clear aligners: compare costs, treatment times, and features. Invisalign from £2,500, Spark from £2,500. Find clinics offering both near you.",
   keywords: [
@@ -23,13 +24,13 @@ export const metadata: Metadata = {
     "Invisalign comparison",
     "clear aligners UK",
     "Spark vs Invisalign cost",
-    "best clear aligners 2026",
+    "best clear aligners",
   ],
   alternates: {
     canonical: "https://pearlie.org/treatments/invisalign-vs-spark",
   },
   openGraph: {
-    title: "Invisalign vs Spark (2026) — Costs, Differences & Which to Choose",
+    title: "Invisalign vs Spark — Costs, Differences & Which to Choose",
     description:
       "Compare Invisalign and Spark clear aligners: costs, treatment time, attachments, and which is best for your case.",
     url: "https://pearlie.org/treatments/invisalign-vs-spark",
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Invisalign vs Spark (2026) — Costs, Differences & Which to Choose",
+    title: "Invisalign vs Spark — Costs, Differences & Which to Choose",
     description:
       "Compare Invisalign and Spark clear aligners: costs, treatment time, attachments, and which is best for your case.",
   },
@@ -197,7 +198,7 @@ export default async function InvisalignVsSparkPage() {
               </div>
 
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] text-[#004443] mb-6 text-balance">
-                Invisalign vs Spark (2026) — Costs, Differences & Which to Choose
+                Invisalign vs Spark — Costs, Differences & Which to Choose
               </h1>
 
               <p data-speakable="description" className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-8">
@@ -213,11 +214,8 @@ export default async function InvisalignVsSparkPage() {
           </div>
         </div>
 
-        {/* 2. Key Facts + Trust Bar */}
-        <KeyFactsBar
-          priceRange="£2,500 – £5,500"
-          treatmentDuration="6–18 months"
-        />
+        {/* 2. Trust strip */}
+        <KeyFactsBar />
 
         {/* 3. SUPPLY — Featured clinics early */}
         <TreatmentClinicGrid
@@ -352,6 +350,9 @@ export default async function InvisalignVsSparkPage() {
             subheading="Explore more verified providers in your area."
           />
         )}
+
+        {/* Clinical Standards */}
+        <ClinicalStandards treatmentName="Invisalign" />
 
         {/* FAQ */}
         <section data-speakable="faq" className="py-12 sm:py-16 bg-[var(--cream)]">

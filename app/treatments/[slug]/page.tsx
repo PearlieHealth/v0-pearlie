@@ -9,12 +9,17 @@ import { TreatmentHero } from "@/components/treatments/treatment-hero"
 import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
 import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-postcode"
 import { KeyFactsBar } from "@/components/treatments/key-facts-bar"
+import { WhoIsThisFor } from "@/components/treatments/who-is-this-for"
 import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-grid"
 import { TreatmentFAQ } from "@/components/treatments/treatment-faq"
 import { TreatmentAreaLinks } from "@/components/treatments/treatment-area-links"
 import { RelatedTreatments } from "@/components/treatments/related-treatments"
 import { PriceBreakdown } from "@/components/treatments/price-breakdown"
 import { CompareOptions } from "@/components/treatments/compare-options"
+import { TreatmentTimeline } from "@/components/treatments/treatment-timeline"
+import { FinanceOptions } from "@/components/treatments/finance-options"
+import { RisksConsiderations } from "@/components/treatments/risks-considerations"
+import { ClinicalStandards } from "@/components/treatments/clinical-standards"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { RelatedPosts } from "@/components/blog/related-posts"
 import { useMDXComponents } from "@/components/blog/mdx-components"
@@ -293,22 +298,28 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           treatment={meta}
           costIntentH1={costContent?.costIntentH1}
           heroSubheading={costContent?.heroSubheading}
-          ctaButtonText={costContent?.ctaButtonText}
+          ctaButtonText={costContent?.ctaCopy?.hero || costContent?.ctaButtonText}
         />
 
-        {/* 2. Key Facts + Trust Bar (single strip) */}
-        <KeyFactsBar
-          priceRange={meta.priceRange}
-          treatmentDuration={meta.treatmentDuration}
-        />
+        {/* 2. PROMISE — Trust strip */}
+        <KeyFactsBar />
 
-        {/* 3. SUPPLY — Featured clinics early (top 6) to prove legitimacy */}
+        {/* 3. PROMISE — Who is this for? */}
+        {costContent?.whoIsThisFor && (
+          <WhoIsThisFor
+            personas={costContent.whoIsThisFor.personas}
+            summary={costContent.whoIsThisFor.summary}
+            treatmentName={meta.treatmentName}
+          />
+        )}
+
+        {/* 4. SUPPLY — Featured clinics (top 6) */}
         <TreatmentClinicGrid
           clinics={featuredClinics}
           treatmentName={meta.treatmentName}
         />
 
-        {/* 5. EDUCATION — Price Breakdown (SEO layer, keeps Google happy) */}
+        {/* 5. EDUCATION — Price Breakdown */}
         {costContent && (
           <PriceBreakdown
             costContent={costContent}
@@ -322,7 +333,24 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           <CompareOptions costContent={costContent} />
         )}
 
-        {/* 7. SUPPLY — More clinics / expanded list */}
+        {/* 7. EDUCATION — Treatment Timeline */}
+        {costContent?.timeline && (
+          <TreatmentTimeline
+            heading={costContent.timeline.heading}
+            steps={costContent.timeline.steps}
+            totalDuration={costContent.timeline.totalDuration}
+          />
+        )}
+
+        {/* 8. EDUCATION — Finance & Payment Options */}
+        {costContent?.finance && (
+          <FinanceOptions
+            finance={costContent.finance}
+            treatmentName={meta.treatmentName}
+          />
+        )}
+
+        {/* 9. SUPPLY — More clinics */}
         {moreClinics.length > 0 && (
           <TreatmentClinicGrid
             clinics={moreClinics}
@@ -332,7 +360,7 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           />
         )}
 
-        {/* 8. MDX Editorial Content */}
+        {/* 10. EDUCATION — MDX Editorial Content */}
         <section className="py-8 sm:py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
@@ -359,31 +387,39 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           </div>
         </section>
 
-        {/* 9. FAQ Accordion (merged: cost FAQs + general FAQs) */}
+        {/* 11. TRUST — Risks & Considerations */}
+        {costContent?.risks && (
+          <RisksConsiderations risks={costContent.risks} />
+        )}
+
+        {/* 12. TRUST — Clinical Standards */}
+        <ClinicalStandards treatmentName={meta.treatmentName} />
+
+        {/* 13. EDUCATION — FAQ Accordion (merged: cost FAQs + general FAQs) */}
         {allFaqs.length > 0 && (
           <TreatmentFAQ faqs={allFaqs} treatmentName={meta.treatmentName} />
         )}
 
-        {/* 11. Find treatment by area */}
+        {/* 14. SUPPLY — Find treatment by area */}
         <TreatmentAreaLinks
           treatmentSlug={slug}
           treatmentName={meta.treatmentName}
         />
 
-        {/* 12. Related Blog Posts */}
+        {/* 15. EDUCATION — Related Blog Posts */}
         {relatedBlogPosts.length > 0 && (
           <RelatedPosts posts={relatedBlogPosts} />
         )}
 
-        {/* 13. Related Treatments */}
+        {/* 16. SUPPLY — Related Treatments */}
         <RelatedTreatments treatments={relatedTreatments} />
 
-        {/* 14. Bottom CTA with postcode input */}
+        {/* 17. CTA — Bottom CTA with postcode input */}
         <section className="py-12 sm:py-16 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
-                Compare {meta.treatmentName.toLowerCase()} clinics near you
+                {costContent?.ctaCopy?.bottom || `Compare ${meta.treatmentName.toLowerCase()} clinics near you`}
               </h2>
               <p className="text-white/70 mb-8 leading-relaxed">
                 Enter your postcode and we&apos;ll match you with verified,

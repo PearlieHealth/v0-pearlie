@@ -15,6 +15,12 @@ export function CompareOptions({ costContent }: CompareOptionsProps) {
             {comparison.heading}
           </h2>
 
+          {comparison.introParagraph && (
+            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+              {comparison.introParagraph}
+            </p>
+          )}
+
           <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -48,6 +54,12 @@ export function CompareOptions({ costContent }: CompareOptionsProps) {
               </li>
             ))}
           </ul>
+
+          {comparison.outroParagraph && (
+            <p className="text-sm text-muted-foreground leading-relaxed mt-6">
+              {comparison.outroParagraph}
+            </p>
+          )}
         </div>
       </div>
     </section>

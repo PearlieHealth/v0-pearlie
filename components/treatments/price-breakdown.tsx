@@ -19,6 +19,12 @@ export function PriceBreakdown({ costContent, treatmentName, intakeTreatment }: 
             {priceBreakdown.heading}
           </h2>
 
+          {priceBreakdown.contextParagraph && (
+            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+              {priceBreakdown.contextParagraph}
+            </p>
+          )}
+
           <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -46,6 +52,12 @@ export function PriceBreakdown({ costContent, treatmentName, intakeTreatment }: 
             </p>
           )}
 
+          {priceBreakdown.nhsNote && (
+            <p className="text-xs text-muted-foreground mt-3 leading-relaxed italic">
+              {priceBreakdown.nhsNote}
+            </p>
+          )}
+
           {/* What affects the price? */}
           <h3 className="text-xl font-heading font-bold text-[#004443] mt-10 mb-4">
             What affects the price?
@@ -62,7 +74,7 @@ export function PriceBreakdown({ costContent, treatmentName, intakeTreatment }: 
           {/* Mid-page CTA */}
           <div className="mt-10 p-6 sm:p-8 rounded-2xl bg-white border border-border/50 text-center">
             <p className="text-lg font-heading font-bold text-[#004443] mb-2">
-              Get an exact quote from clinics near you
+              {costContent.ctaCopy?.mid || "Get an exact quote from clinics near you"}
             </p>
             <p className="text-sm text-muted-foreground mb-5">
               Enter your postcode to compare verified {treatmentName.toLowerCase()} specialists with transparent, upfront pricing.
