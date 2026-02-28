@@ -263,14 +263,14 @@ export default function ForClinicsPage() {
         <div style={maxW}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(217,119,6,.06)", border: "1px solid rgba(217,119,6,.12)", borderRadius: 24, padding: "8px 20px", marginBottom: 28 }}>
             <span style={{ fontSize: 14 }}>&#9889;</span>
-            <span style={{ color: "#d97706", fontSize: 13, fontWeight: 600 }}>Early-adopter pricing &mdash; limited spots in your area</span>
+            <span style={{ color: "#d97706", fontSize: 13, fontWeight: 600 }}>Early-adopter pricing — limited spots in your area</span>
           </div>
           <h1 style={{ ...heading, fontSize: "clamp(40px, 6vw, 72px)", lineHeight: 1.05, letterSpacing: "-0.035em", marginBottom: 24 }}>
             Stop paying for clicks.
             <br /><span style={{ color: teal }}>Start receiving patients.</span>
           </h1>
           <p style={{ color: "#6b7280", fontSize: "clamp(17px, 2vw, 20px)", lineHeight: 1.6, maxWidth: 600, margin: "0 auto 44px" }}>
-            Pearlie pre-qualifies patients &mdash; collecting their anxiety level, cost mindset, and treatment goals &mdash; then matches them to your clinic. You only see patients who are a genuine fit.
+            Pearlie pre-qualifies patients — collecting their anxiety level, cost mindset, and treatment goals — then matches them to your clinic. You only see patients who are a genuine fit.
           </p>
           <div style={{ marginBottom: 64 }}>
             <a href="#pricing" style={greenBtn}>See pricing <ArrowRight size={18} /></a>
@@ -299,7 +299,7 @@ export default function ForClinicsPage() {
         <div style={maxW}>
           {sectionLabel("How it works")}
           {sectionH2("Three steps. Zero wasted consultations.")}
-          {sectionSub("Patients complete our intake, we match them to your clinic, and you receive a full profile \u2014 ready for a productive conversation.")}
+          {sectionSub("Patients complete our intake, we match them to your clinic, and you receive a full profile — ready for a productive conversation.")}
           <div className="fc-steps-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
             {/* Step 01 */}
             <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "28px 24px", display: "flex", flexDirection: "column" }}>
@@ -363,7 +363,7 @@ export default function ForClinicsPage() {
                 <span style={{ color: teal, fontWeight: 800, fontSize: 13, letterSpacing: "0.04em" }}>STEP 03</span>
               </div>
               <h3 style={{ fontWeight: 700, color: "#1f2937", fontSize: 18, marginBottom: 8 }}>You receive a matched patient</h3>
-              <p style={{ color: "#6b7280", fontSize: 14, lineHeight: 1.55, marginBottom: 16 }}>Full profile with all 8 data points &mdash; anxiety level, blockers, budget mindset, preferred times, and more.</p>
+              <p style={{ color: "#6b7280", fontSize: 14, lineHeight: 1.55, marginBottom: 16 }}>Full profile with all 8 data points — anxiety level, blockers, budget mindset, preferred times, and more.</p>
               <div style={{ background: "rgba(0,0,0,.04)", borderRadius: 12, padding: "16px 18px", flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                   <div style={{ width: 32, height: 32, borderRadius: "50%", background: `linear-gradient(135deg, ${teal}, ${tealLight})`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: 13 }}>S</div>
@@ -389,7 +389,7 @@ export default function ForClinicsPage() {
         <div style={maxW}>
           {sectionLabel("Patient intel")}
           {sectionH2("Know your patient before they walk in")}
-          {sectionSub("Every matched patient includes 8 data points collected from our intake questionnaire. Here\u2019s what clinics see:")}
+          {sectionSub("Every matched patient includes 8 data points collected from our intake questionnaire. Here's what clinics see:")}
           <div className="fc-insights-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16 }}>
             <VisualInsightCard icon={<Heart size={16} />} title="Dental anxiety level" question="How do you feel about visiting the dentist?">
               <MiniBar label="Comfortable" pct={30} /><MiniBar label="A little nervous" pct={35} /><MiniBar label="Quite anxious" pct={55} highlight /><MiniBar label="Very anxious" pct={20} />
@@ -502,10 +502,10 @@ export default function ForClinicsPage() {
           </div>
           {sectionH2(<>You only pay for patients<br />who actually show up</>)}
           <p style={{ color: "#6b7280", fontSize: 16, textAlign: "center", maxWidth: 600, margin: "0 auto 40px", lineHeight: 1.65 }}>
-            If a patient doesn&rsquo;t attend their appointment, you are not charged. If we don&rsquo;t send you any matched patients in a month, you don&rsquo;t pay extra. No-shows are always on us.
+            If a patient doesn't attend their appointment, you are not charged. If we don't send you any matched patients in a month, you don't pay extra. No-shows are always on us.
           </p>
           <div className="fc-zero-risk-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-            {[{ q: "Patient no-show?", a: "No charge. Ever." }, { q: "No patients this month?", a: "You don\u2019t pay extra." }, { q: "Want to cancel?", a: "Anytime. No penalties." }, { q: "Unhappy with quality?", a: "We\u2019ll make it right." }].map((card) => (
+            {[{ q: "Patient no-show?", a: "No charge. Ever." }, { q: "No patients this month?", a: "You don't pay extra." }, { q: "Want to cancel?", a: "Anytime. No penalties." }, { q: "Unhappy with quality?", a: "We'll make it right." }].map((card) => (
               <div key={card.q} style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: "24px 22px" }}>
                 <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 8 }}>{card.q}</p>
                 <p style={{ color: teal, fontWeight: 700, fontSize: 18, lineHeight: 1.3 }}>{card.a}</p>
@@ -521,8 +521,8 @@ export default function ForClinicsPage() {
           <div style={{ textAlign: "center", marginBottom: 12 }}>
             <span style={{ display: "inline-block", background: `rgba(5,150,105,.1)`, color: teal, fontWeight: 700, fontSize: 13, padding: "6px 16px", borderRadius: 20, textTransform: "uppercase", letterSpacing: "0.04em" }}>Bonus: free visibility</span>
           </div>
-          {sectionH2("Patients discover your clinic \u2014 even outside Pearlie")}
-          {sectionSub("Every clinic gets a public profile page that ranks on Google. Your always-on digital storefront \u2014 at no extra cost.")}
+          {sectionH2("Patients discover your clinic — even outside Pearlie")}
+          {sectionSub("Every clinic gets a public profile page that ranks on Google. Your always-on digital storefront — at no extra cost.")}
           <div className="fc-visibility-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
             {/* SEO */}
             <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "24px 22px 20px" }}>
@@ -534,7 +534,7 @@ export default function ForClinicsPage() {
               </div>
               <div style={{ background: "rgba(0,0,0,.04)", borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}><div style={{ width: 14, height: 14, borderRadius: 3, background: "#4285f4" }} /><span style={{ color: "#6b7280", fontSize: 11 }}>pearlie.org &rsaquo; clinic</span></div>
-                <p style={{ color: "#60a5fa", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Your Clinic Name &mdash; Pearlie</p>
+                <p style={{ color: "#60a5fa", fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Your Clinic Name — Pearlie</p>
                 <p style={{ color: "#6b7280", fontSize: 11, lineHeight: 1.4 }}>Invisalign, veneers &amp; cosmetic dentistry in London. View treatments, reviews &amp; book...</p>
               </div>
               <p style={{ color: "#6b7280", fontSize: 11, lineHeight: 1.4 }}>Rank on Google for local dental searches without paying for ads</p>
@@ -553,7 +553,7 @@ export default function ForClinicsPage() {
                   <div style={{ height: 6, borderRadius: 3, background: "rgba(0,0,0,.06)", overflow: "hidden" }}><div style={{ width: `${stat.pct}%`, height: "100%", borderRadius: 3, background: "linear-gradient(90deg, #8b5cf6, #a78bfa)" }} /></div>
                 </div>
               ))}
-              <p style={{ color: "#6b7280", fontSize: 11, lineHeight: 1.4 }}>Patients see your clinic, learn about you &mdash; and may contact you directly</p>
+              <p style={{ color: "#6b7280", fontSize: 11, lineHeight: 1.4 }}>Patients see your clinic, learn about you — and may contact you directly</p>
             </div>
             {/* Social proof */}
             <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "24px 22px 20px" }}>
@@ -584,7 +584,7 @@ export default function ForClinicsPage() {
                 ))}
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}><span style={{ color: "#6b7280", fontSize: 10 }}>Month 1</span><span style={{ color: teal, fontSize: 10, fontWeight: 600 }}>Month 12</span></div>
-              <p style={{ color: "#6b7280", fontSize: 11, lineHeight: 1.4 }}>Even patients who don&rsquo;t book through Pearlie now know you exist</p>
+              <p style={{ color: "#6b7280", fontSize: 11, lineHeight: 1.4 }}>Even patients who don't book through Pearlie now know you exist</p>
             </div>
           </div>
         </div>
@@ -636,10 +636,10 @@ export default function ForClinicsPage() {
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 12 }}>
               <Zap size={18} style={{ color: teal }} />
-              <span style={{ ...heading, fontSize: 20, color: "#111827" }}>Start free &mdash; &pound;0 upfront</span>
+              <span style={{ ...heading, fontSize: 20, color: "#111827" }}>Start free — &pound;0 upfront</span>
             </div>
             <p style={{ color: "#6b7280", fontSize: 15, lineHeight: 1.6, maxWidth: 520, margin: "0 auto 16px" }}>
-              Your first matched patient is on us. Patient attends? You keep every penny &mdash; Pearlie charges &pound;0.
+              Your first matched patient is on us. Patient attends? You keep every penny — Pearlie charges &pound;0.
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 20, marginBottom: 20 }}>
               {["No credit card required", "No contract", "Cancel anytime"].map((item) => (
@@ -798,7 +798,7 @@ export default function ForClinicsPage() {
                 <span style={{ color: "#6b7280", fontSize: 16 }}>/month</span>
               </div>
               <p style={{ color: "#6b7280", fontSize: 13, marginBottom: 24 }}>
-                For growing practices &mdash; the full platform
+                For growing practices — the full platform
               </p>
               <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 6 }}>
                 4 confirmed bookings included
@@ -1322,7 +1322,7 @@ export default function ForClinicsPage() {
                     </div>
                   </div>
                   <p style={{ color: "#6b7280", fontSize: 14, textAlign: "center", lineHeight: 1.5 }}>
-                    {roiPatients} patients &times; &pound;{roiLtv.toLocaleString()} = &pound;{r.revenue.toLocaleString()} &mdash; for &pound;{r.totalCost.toLocaleString()}/mo{roiPatients >= 3 && <span> ({r.planLabel})</span>}
+                    {roiPatients} patients &times; &pound;{roiLtv.toLocaleString()} = &pound;{r.revenue.toLocaleString()} — for &pound;{r.totalCost.toLocaleString()}/mo{roiPatients >= 3 && <span> ({r.planLabel})</span>}
                   </p>
                 </>
               )
@@ -1342,7 +1342,7 @@ export default function ForClinicsPage() {
               { step: "01", title: "Sign up", desc: "Create your account and tell us about your clinic in under 5 minutes.", icon: <FileText size={20} /> },
               { step: "02", title: "Set your profile", desc: "Add treatments, team, hours, and what makes your practice unique.", icon: <Users size={20} /> },
               { step: "03", title: "We match patients", desc: "Our AI starts routing pre-qualified patients who fit your clinic.", icon: <Brain size={20} /> },
-              { step: "04", title: "Receive patients", desc: "Get full patient profiles with insights \u2014 ready for a productive consult.", icon: <Zap size={20} /> },
+              { step: "04", title: "Receive patients", desc: "Get full patient profiles with insights — ready for a productive consult.", icon: <Zap size={20} /> },
             ].map((s) => (
               <div key={s.step} style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "28px 22px", textAlign: "center" }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: `rgba(5,150,105,.1)`, display: "flex", alignItems: "center", justifyContent: "center", color: teal, margin: "0 auto 14px" }}>{s.icon}</div>
@@ -1363,8 +1363,8 @@ export default function ForClinicsPage() {
           {sectionH2("What practice owners say")}
           <div className="fc-testimonials-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, maxWidth: 880, margin: "48px auto 0" }}>
             {[
-              { name: "Daniel Saleem", practice: "London Dental Centre", quote: "Pearlie sends us patients who are genuinely ready for treatment \u2014 with full insight into their anxiety level, budget, and what they care about. It\u2019s transformed how we handle consultations." },
-              { name: "Hannan Imran", practice: "Siha Dental", quote: "We stopped spending thousands on Google Ads and started getting higher-quality patients through Pearlie. The patient profiles are incredibly detailed \u2014 our conversion rate has gone up significantly." },
+              { name: "Daniel Saleem", practice: "London Dental Centre", quote: "Pearlie sends us patients who are genuinely ready for treatment — with full insight into their anxiety level, budget, and what they care about. It's transformed how we handle consultations." },
+              { name: "Hannan Imran", practice: "Siha Dental", quote: "We stopped spending thousands on Google Ads and started getting higher-quality patients through Pearlie. The patient profiles are incredibly detailed — our conversion rate has gone up significantly." },
             ].map((t) => (
               <div key={t.name} style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 20, padding: "36px 30px", position: "relative" }}>
                 <Quote size={28} style={{ color: `rgba(5,150,105,.1)`, position: "absolute", top: 28, right: 28 }} />
@@ -1389,17 +1389,17 @@ export default function ForClinicsPage() {
               <span style={{ color: "#d97706", fontWeight: 700, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.04em" }}>Pearlie Guarantee</span>
             </span>
           </div>
-          {sectionH2(<>Your safety net &mdash;<br />built into every plan</>)}
+          {sectionH2(<>Your safety net —<br />built into every plan</>)}
           <p style={{ color: "#6b7280", fontSize: 17, textAlign: "center", maxWidth: 560, margin: "0 auto 48px", lineHeight: 1.6 }}>
-            The Pearlie Guarantee gives patients peace of mind &mdash; if they&rsquo;re not happy, they get a free credit towards their next clinic. This is fully funded by Pearlie, never by your clinic. The result? Patients book with more confidence, and your clinic gets more bookings.
+            The Pearlie Guarantee gives patients peace of mind — if they're not happy, they get a free credit towards their next clinic. This is fully funded by Pearlie, never by your clinic. The result? Patients book with more confidence, and your clinic gets more bookings.
           </p>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 40 }} className="fc-zero-risk-grid">
             {[
-              { icon: <Shield size={20} />, title: "No-show protection", desc: "If a matched patient doesn\u2019t attend their appointment, you are not charged. The risk is on us, not you." },
-              { icon: <Check size={20} />, title: "Quality commitment", desc: "Every patient is pre-qualified through our intake. If the match quality isn\u2019t right, we\u2019ll make it right or credit your account." },
-              { icon: <Heart size={20} />, title: "Free patient credit if unhappy", desc: "If a patient isn\u2019t happy with their experience, Pearlie gives them a free credit towards their next clinic booking. This is funded entirely by us \u2014 your clinic pays nothing. Patients book with confidence knowing they\u2019re protected." },
-              { icon: <TrendingUp size={20} />, title: "Higher conversion rates", desc: "Because patients know they can get a free credit if things don\u2019t work out, they\u2019re far more likely to book in the first place. Clinics with the Guarantee see up to 30% more bookings." },
+              { icon: <Shield size={20} />, title: "No-show protection", desc: "If a matched patient doesn't attend their appointment, you are not charged. The risk is on us, not you." },
+              { icon: <Check size={20} />, title: "Quality commitment", desc: "Every patient is pre-qualified through our intake. If the match quality isn't right, we'll make it right or credit your account." },
+              { icon: <Heart size={20} />, title: "Free patient credit if unhappy", desc: "If a patient isn't happy with their experience, Pearlie gives them a free credit towards their next clinic booking. This is funded entirely by us — your clinic pays nothing. Patients book with confidence knowing they're protected." },
+              { icon: <TrendingUp size={20} />, title: "Higher conversion rates", desc: "Because patients know they can get a free credit if things don't work out, they're far more likely to book in the first place. Clinics with the Guarantee see up to 30% more bookings." },
             ].map((card) => (
               <div key={card.title} style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "28px 24px", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
                 <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(217,119,6,.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "#d97706", marginBottom: 16 }}>{card.icon}</div>
@@ -1415,10 +1415,10 @@ export default function ForClinicsPage() {
               <span style={{ ...heading, fontSize: 18, color: "#1f2937" }}>Why patients prefer clinics with the Guarantee</span>
             </div>
             <p style={{ color: "#6b7280", fontSize: 15, lineHeight: 1.6, maxWidth: 560, margin: "0 auto 16px" }}>
-              Patients see the Guarantee badge and know they&rsquo;re protected: if they&rsquo;re not happy, Pearlie gives them a free credit towards another clinic &mdash; no questions asked. That safety net makes patients far more willing to book.
+              Patients see the Guarantee badge and know they're protected: if they're not happy, Pearlie gives them a free credit towards another clinic — no questions asked. That safety net makes patients far more willing to book.
             </p>
             <p style={{ color: "#1f2937", fontSize: 14, fontWeight: 600, margin: "0 auto 20px" }}>
-              The credit is always funded by Pearlie &mdash; your clinic is never charged.
+              The credit is always funded by Pearlie — your clinic is never charged.
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 24 }}>
               {[
@@ -1442,12 +1442,12 @@ export default function ForClinicsPage() {
           {sectionH2("Frequently asked questions")}
           <div style={{ marginTop: 48 }}>
             <FaqItem question="What counts as a matched patient?" answer="A matched patient is someone who has completed our full intake questionnaire and been matched to your clinic based on treatment fit, location, cost approach, and what they value. You receive their complete profile including anxiety level, concerns, budget mindset, and preferred times." />
-            <FaqItem question="What if a patient doesn't show up?" answer="No-shows happen. You won't be charged for a patient who doesn't convert or doesn't attend. You only pay for matched patients delivered to you \u2014 what happens after is on us to improve, not on you to absorb." />
+            <FaqItem question="What if a patient doesn't show up?" answer="No-shows happen. You won't be charged for a patient who doesn't convert or doesn't attend. You only pay for matched patients delivered to you — what happens after is on us to improve, not on you to absorb." />
             <FaqItem question="How are patients matched to my clinic?" answer="Our matching engine scores patients against your clinic profile using treatment availability, location, clinical specialisms, anxiety accommodation, cost alignment, and the patient's stated priorities (e.g. 'clear pricing' or 'calm environment'). You only receive patients who are a genuine fit." />
             <FaqItem question="Can I cancel at any time?" answer="Yes. There are no contracts and no lock-in periods. You can cancel your subscription at any time and it will end at the close of your current billing cycle." />
             <FaqItem question="What data do I get about each patient?" answer="Every matched patient includes: treatment interest, anxiety level, cost approach (and budget preferences), conversion blockers/concerns, top clinic priorities, readiness/timing, preferred visit times, and location flexibility. This is the same data our intake questionnaire collects directly from patients." />
-            <FaqItem question="Do I need to change anything about my practice?" answer="No. Pearlie works alongside your existing processes. We send you pre-qualified patients \u2014 you handle the consultation and booking as you normally would, just with much better information upfront." />
-            <FaqItem question="What if I don't get any patients in a month?" answer="If we don't deliver any matched patients in a billing cycle, you won't be charged for extra bookings. Your base subscription covers availability on the platform and priority matching \u2014 but we're incentivised to deliver value, not just collect fees." />
+            <FaqItem question="Do I need to change anything about my practice?" answer="No. Pearlie works alongside your existing processes. We send you pre-qualified patients — you handle the consultation and booking as you normally would, just with much better information upfront." />
+            <FaqItem question="What if I don't get any patients in a month?" answer="If we don't deliver any matched patients in a billing cycle, you won't be charged for extra bookings. Your base subscription covers availability on the platform and priority matching — but we're incentivised to deliver value, not just collect fees." />
           </div>
         </div>
       </section>
@@ -1456,9 +1456,9 @@ export default function ForClinicsPage() {
       <section className="fc-section" style={{ padding: "100px 24px 140px", background: `linear-gradient(180deg, rgba(5,150,105,.04) 0%, rgba(8,13,27,0) 100%)`, textAlign: "center" }}>
         <div style={maxW}>
           <h2 style={{ ...heading, fontSize: "clamp(30px, 4.5vw, 52px)", marginBottom: 16, letterSpacing: "-0.03em", lineHeight: 1.1 }}>Ready for patients who<br />actually convert?</h2>
-          <p style={{ color: "#6b7280", fontSize: 18, maxWidth: 520, margin: "0 auto 44px", lineHeight: 1.6 }}>Join Pearlie and start receiving pre-qualified patients \u2014 with the insights you need to close them.</p>
+          <p style={{ color: "#6b7280", fontSize: 18, maxWidth: 520, margin: "0 auto 44px", lineHeight: 1.6 }}>Join Pearlie and start receiving pre-qualified patients — with the insights you need to close them.</p>
           <div className="fc-cta-btns" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 16 }}>
-            <Link href="/signup" style={greenBtn}>Join Pearlie &mdash; Free Setup <ArrowRight size={18} /></Link>
+            <Link href="/signup" style={greenBtn}>Join Pearlie — Free Setup <ArrowRight size={18} /></Link>
             <a href="mailto:hello@pearlie.org?subject=Pearlie demo request" style={outlineBtn}>Book a free demo</a>
           </div>
           <p style={{ color: "#6b7280", fontSize: 13, marginTop: 16 }}>No contracts &middot; No setup fee &middot; Cancel anytime</p>
