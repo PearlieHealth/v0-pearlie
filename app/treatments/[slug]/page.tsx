@@ -14,6 +14,9 @@ import { TreatmentClinicGrid } from "@/components/treatments/treatment-clinic-gr
 import { TreatmentFAQ } from "@/components/treatments/treatment-faq"
 import { TreatmentAreaLinks } from "@/components/treatments/treatment-area-links"
 import { RelatedTreatments } from "@/components/treatments/related-treatments"
+import { PriceBreakdown } from "@/components/treatments/price-breakdown"
+import { CompareOptions } from "@/components/treatments/compare-options"
+import { CostFAQ } from "@/components/treatments/cost-faq"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { RelatedPosts } from "@/components/blog/related-posts"
 import { useMDXComponents } from "@/components/blog/mdx-components"
@@ -25,6 +28,7 @@ import {
 import { getBlogPostBySlug, type BlogPost } from "@/lib/content/blog"
 import { extractHeadings } from "@/lib/content/mdx"
 import { createClient } from "@/lib/supabase/server"
+import { treatmentCostContent } from "@/lib/data/treatment-cost-content"
 
 export const revalidate = 3600
 
@@ -48,37 +52,40 @@ export async function generateMetadata({
   }
 
   const { meta } = treatment
+  const costContent = treatmentCostContent[slug]
+
+  const pageTitle = costContent?.metaTitle || meta.title
+  const pageDescription = costContent?.metaDescription || meta.description
 
   return {
-    title: meta.title,
-    description: meta.description,
+    title: pageTitle,
+    description: pageDescription,
     keywords: meta.keywords,
     alternates: {
       canonical: `https://pearlie.org/treatments/${meta.slug}`,
     },
     openGraph: {
-      title: meta.title,
-      description: meta.description,
+      title: pageTitle,
+      description: pageDescription,
       url: `https://pearlie.org/treatments/${meta.slug}`,
       type: "article",
       publishedTime: meta.publishedAt,
       modifiedTime: meta.updatedAt || meta.publishedAt,
-      authors: [meta.author],
       images: meta.heroImage
         ? [
             {
               url: meta.heroImage,
               width: 1200,
               height: 630,
-              alt: meta.heroImageAlt || meta.title,
+              alt: meta.heroImageAlt || pageTitle,
             },
           ]
         : undefined,
     },
     twitter: {
       card: "summary_large_image",
-      title: meta.title,
-      description: meta.description,
+      title: pageTitle,
+      description: pageDescription,
       images: meta.heroImage ? [meta.heroImage] : undefined,
     },
   }
@@ -133,6 +140,7 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
     intakeTreatment: meta.intakeTreatment,
   })
   const relatedTreatments = getRelatedTreatments(slug, 3)
+  const costContent = treatmentCostContent[slug]
 
   // Fetch clinics offering this treatment
   const clinics = await getClinicsForTreatment(meta.clinicFilterTags)
@@ -144,6 +152,12 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
       return post ? post.meta : null
     })
     .filter(Boolean) as BlogPost[]
+
+  // Combine all FAQs for schema (existing + cost FAQs)
+  const allFaqs = [
+    ...(meta.faqs || []),
+    ...(costContent?.costFaqs?.map((f) => ({ question: f.question, answer: f.answer })) || []),
+  ]
 
   // Service schema
   const serviceSchema = {
@@ -178,13 +192,13 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
     },
   }
 
-  // FAQPage schema
+  // FAQPage schema (includes both original and cost FAQs)
   const faqSchema =
-    meta.faqs && meta.faqs.length > 0
+    allFaqs.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: meta.faqs.map((faq) => ({
+          mainEntity: allFaqs.map((faq) => ({
             "@type": "Question",
             name: faq.question,
             acceptedAnswer: {
@@ -199,8 +213,8 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
   const medicalPageSchema = {
     "@context": "https://schema.org",
     "@type": "MedicalWebPage",
-    name: meta.title,
-    description: meta.description,
+    name: costContent?.metaTitle || meta.title,
+    description: costContent?.metaDescription || meta.description,
     url: `https://pearlie.org/treatments/${meta.slug}`,
     datePublished: meta.publishedAt,
     dateModified: meta.updatedAt || meta.publishedAt,
@@ -272,8 +286,13 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
       />
 
       <main>
-        {/* 1. Treatment Hero */}
-        <TreatmentHero treatment={meta} />
+        {/* 1. Treatment Hero (cost-intent H1 + subheading + price CTA) */}
+        <TreatmentHero
+          treatment={meta}
+          costIntentH1={costContent?.costIntentH1}
+          heroSubheading={costContent?.heroSubheading}
+          ctaButtonText={costContent?.ctaButtonText}
+        />
 
         {/* 2. Key Facts Bar */}
         <KeyFactsBar
@@ -281,7 +300,21 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           treatmentDuration={meta.treatmentDuration}
         />
 
-        {/* 3. Clinic Listings */}
+        {/* 3. Price Breakdown (BEFORE clinic listings for cost-intent pages) */}
+        {costContent && (
+          <PriceBreakdown
+            costContent={costContent}
+            treatmentName={meta.treatmentName}
+            intakeTreatment={meta.intakeTreatment}
+          />
+        )}
+
+        {/* 4. Compare Options */}
+        {costContent && (
+          <CompareOptions costContent={costContent} />
+        )}
+
+        {/* 5. Clinic Listings */}
         <TreatmentClinicGrid
           clinics={clinics}
           treatmentName={meta.treatmentName}
@@ -290,7 +323,7 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
         {/* Trust badges */}
         <TrustBadgeStrip />
 
-        {/* 4. MDX Editorial Content */}
+        {/* 6. MDX Editorial Content */}
         <section className="py-8 sm:py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
@@ -317,35 +350,40 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           </div>
         </section>
 
-        {/* 5. FAQ Accordion */}
+        {/* 7. Cost FAQ Accordion (from cost content data) */}
+        {costContent?.costFaqs && costContent.costFaqs.length > 0 && (
+          <CostFAQ faqs={costContent.costFaqs} treatmentName={meta.treatmentName} />
+        )}
+
+        {/* 8. General FAQ Accordion (from MDX frontmatter) */}
         {meta.faqs && meta.faqs.length > 0 && (
           <TreatmentFAQ faqs={meta.faqs} treatmentName={meta.treatmentName} />
         )}
 
-        {/* 6. Find treatment by area */}
+        {/* 9. Find treatment by area */}
         <TreatmentAreaLinks
           treatmentSlug={slug}
           treatmentName={meta.treatmentName}
         />
 
-        {/* 7. Related Blog Posts */}
+        {/* 10. Related Blog Posts */}
         {relatedBlogPosts.length > 0 && (
           <RelatedPosts posts={relatedBlogPosts} />
         )}
 
-        {/* 8. Related Treatments */}
+        {/* 11. Related Treatments */}
         <RelatedTreatments treatments={relatedTreatments} />
 
-        {/* 8. Bottom CTA with postcode input */}
+        {/* 12. Bottom CTA with postcode input */}
         <section className="py-12 sm:py-16 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
-                Find my {meta.treatmentName.toLowerCase()} clinic
+                Compare {meta.treatmentName.toLowerCase()} prices near you
               </h2>
               <p className="text-white/70 mb-8 leading-relaxed">
-                Enter your postcode and we'll match you with verified,
-                GDC registered clinics near you.
+                Enter your postcode and we&apos;ll match you with verified,
+                GDC registered clinics with transparent pricing.
               </p>
               <TreatmentPostcodeCta
                 treatmentName={meta.treatmentName}
@@ -364,7 +402,6 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
                 dental advice. Always consult a GDC-registered dental
                 professional for diagnosis and treatment recommendations. Prices
                 shown are estimates and may vary by clinic and individual case.
-                Last reviewed: {meta.updatedAt || meta.publishedAt}.
               </p>
             </div>
           </div>

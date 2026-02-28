@@ -55,17 +55,22 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
           </p>
         )}
 
-        {clinic.rating != null && (
-          <span className="flex items-center gap-1 text-sm font-medium text-foreground">
-            <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-            {clinic.rating.toFixed(1)}
-            {clinic.review_count != null && clinic.review_count > 0 && (
-              <span className="text-muted-foreground font-normal">
-                ({clinic.review_count})
-              </span>
-            )}
+        <div className="flex items-center justify-between">
+          {clinic.rating != null && (
+            <span className="flex items-center gap-1 text-sm font-medium text-foreground">
+              <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+              {clinic.rating.toFixed(1)}
+              {clinic.review_count != null && clinic.review_count > 0 && (
+                <span className="text-muted-foreground font-normal">
+                  ({clinic.review_count})
+                </span>
+              )}
+            </span>
+          )}
+          <span className="text-xs font-medium text-[#0fbcb0]">
+            View profile
           </span>
-        )}
+        </div>
       </div>
     </Link>
   )
