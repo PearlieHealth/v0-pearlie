@@ -399,6 +399,29 @@ export default function ForClinicsPage() {
         WebkitFontSmoothing: "antialiased",
       }}
     >
+      {/* Mobile overrides — desktop layout untouched */}
+      <style>{`
+        @media (max-width: 640px) {
+          .fc-nav-links { display: none !important; }
+          .fc-hero { padding-top: 100px !important; padding-bottom: 48px !important; }
+          .fc-section { padding-top: 56px !important; padding-bottom: 56px !important; padding-left: 16px !important; padding-right: 16px !important; }
+          .fc-stats-bar { gap: 16px !important; padding: 20px 16px !important; }
+          .fc-stats-bar > div { min-width: 0 !important; flex: 1 1 40% !important; }
+          .fc-cta-btns { flex-direction: column !important; align-items: stretch !important; }
+          .fc-cta-btns > a { width: 100% !important; justify-content: center !important; text-align: center !important; }
+          .fc-table { min-width: 440px !important; font-size: 13px !important; }
+          .fc-table th, .fc-table td { padding: 12px 10px !important; font-size: 12px !important; }
+          .fc-steps-grid { grid-template-columns: 1fr !important; }
+          .fc-insights-grid { grid-template-columns: 1fr !important; }
+          .fc-zero-risk-grid { grid-template-columns: 1fr !important; }
+          .fc-roi-wrapper { padding: 24px 16px !important; }
+          .fc-roi-results { grid-template-columns: 1fr !important; }
+          .fc-visibility-grid { grid-template-columns: 1fr !important; }
+          .fc-pricing-grid { grid-template-columns: 1fr !important; }
+          .fc-pricing-grid > div { padding: 32px 20px !important; }
+        }
+      `}</style>
+
       {/* ═══════════ NAV ═══════════ */}
       <nav
         style={{
@@ -425,7 +448,7 @@ export default function ForClinicsPage() {
           <Link href="/" style={{ textDecoration: "none" }}>
             <span style={{ ...heading, fontSize: 22 }}>Pearlie</span>
           </Link>
-          <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+          <div className="fc-nav-links" style={{ display: "flex", alignItems: "center", gap: 24 }}>
             <a href="#how" style={{ color: "#94a3b8", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>
               How it works
             </a>
@@ -443,7 +466,7 @@ export default function ForClinicsPage() {
       </nav>
 
       {/* ═══════════ HERO ═══════════ */}
-      <section style={{ ...sectionPad, paddingTop: 160, paddingBottom: 80, textAlign: "center" }}>
+      <section className="fc-hero fc-section" style={{ ...sectionPad, paddingTop: 160, paddingBottom: 80, textAlign: "center" }}>
         <div style={maxW}>
           <p
             style={{
@@ -483,7 +506,7 @@ export default function ForClinicsPage() {
             treatment goals, and what they value in a clinic&mdash;then matches them to you.
             You only see patients who are a genuine fit.
           </p>
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 16, marginBottom: 56 }}>
+          <div className="fc-cta-btns" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 16, marginBottom: 56 }}>
             <a href="#pricing" style={greenBtn}>
               See pricing <ArrowRight size={18} />
             </a>
@@ -494,6 +517,7 @@ export default function ForClinicsPage() {
 
           {/* Stats bar */}
           <div
+            className="fc-stats-bar"
             style={{
               display: "flex",
               flexWrap: "wrap",
@@ -521,7 +545,7 @@ export default function ForClinicsPage() {
       </section>
 
       {/* ═══════════ TRADITIONAL VS PEARLIE ═══════════ */}
-      <section style={sectionPad}>
+      <section className="fc-section" style={sectionPad}>
         <div style={{ ...maxW, maxWidth: 800 }}>
           <div style={{ textAlign: "center", marginBottom: 12 }}>
             <span
@@ -553,7 +577,7 @@ export default function ForClinicsPage() {
             }}
           >
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", minWidth: 500, borderCollapse: "collapse", fontSize: 15 }}>
+              <table className="fc-table" style={{ width: "100%", minWidth: 500, borderCollapse: "collapse", fontSize: 15 }}>
                 <thead>
                   <tr>
                     <th style={{ textAlign: "left", padding: "18px 20px", color: "#64748b", fontWeight: 600, fontSize: 13, borderBottom: "1px solid rgba(255,255,255,.08)" }}>
@@ -599,7 +623,7 @@ export default function ForClinicsPage() {
       </section>
 
       {/* ═══════════ HOW IT WORKS ═══════════ */}
-      <section id="how" style={{ ...sectionPad, background: "rgba(255,255,255,.015)" }}>
+      <section id="how" className="fc-section" style={{ ...sectionPad, background: "rgba(255,255,255,.015)" }}>
         <div style={maxW}>
           <p
             style={{
@@ -618,6 +642,7 @@ export default function ForClinicsPage() {
             Three steps. Zero wasted consultations.
           </h2>
           <div
+            className="fc-steps-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
@@ -916,7 +941,7 @@ export default function ForClinicsPage() {
       </section>
 
       {/* ═══════════ PATIENT INSIGHTS — VISUAL ═══════════ */}
-      <section id="insights" style={sectionPad}>
+      <section id="insights" className="fc-section" style={sectionPad}>
         <div style={maxW}>
           <p
             style={{
@@ -969,6 +994,7 @@ export default function ForClinicsPage() {
           </div>
 
           <div
+            className="fc-insights-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
@@ -1247,7 +1273,7 @@ export default function ForClinicsPage() {
       </section>
 
       {/* ═══════════ ZERO RISK ═══════════ */}
-      <section style={sectionPad}>
+      <section className="fc-section" style={sectionPad}>
         <div style={{ ...maxW, maxWidth: 800 }}>
           <div style={{ textAlign: "center", marginBottom: 12 }}>
             <span
@@ -1287,6 +1313,7 @@ export default function ForClinicsPage() {
             no-shows are always on us.
           </p>
           <div
+            className="fc-zero-risk-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
@@ -1319,7 +1346,7 @@ export default function ForClinicsPage() {
       </section>
 
       {/* ═══════════ ROI CALCULATOR ═══════════ */}
-      <section style={sectionPad}>
+      <section className="fc-section" style={sectionPad}>
         <div style={{ ...maxW, maxWidth: 840 }}>
           <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 12 }}>
             Your return, calculated
@@ -1337,6 +1364,7 @@ export default function ForClinicsPage() {
           </p>
 
           <div
+            className="fc-roi-wrapper"
             style={{
               background: "rgba(255,255,255,.03)",
               border: "1px solid rgba(255,255,255,.06)",
@@ -1380,7 +1408,7 @@ export default function ForClinicsPage() {
             </div>
 
             {/* Results — two plans side by side */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div className="fc-roi-results" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <RoiCard
                 label="Standard Plan"
                 labelColor="#94a3b8"
@@ -1402,7 +1430,7 @@ export default function ForClinicsPage() {
       </section>
 
       {/* ═══════════ FREE VISIBILITY ═══════════ */}
-      <section style={{ ...sectionPad, background: "rgba(255,255,255,.015)" }}>
+      <section className="fc-section" style={{ ...sectionPad, background: "rgba(255,255,255,.015)" }}>
         <div style={maxW}>
           <div style={{ textAlign: "center", marginBottom: 12 }}>
             <span
@@ -1459,6 +1487,7 @@ export default function ForClinicsPage() {
           </div>
 
           <div
+            className="fc-visibility-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
@@ -1698,7 +1727,7 @@ export default function ForClinicsPage() {
       </section>
 
       {/* ═══════════ PRICING ═══════════ */}
-      <section id="pricing" style={{ ...sectionPad, background: "rgba(255,255,255,.015)" }}>
+      <section id="pricing" className="fc-section" style={{ ...sectionPad, background: "rgba(255,255,255,.015)" }}>
         <div style={maxW}>
           <p
             style={{
@@ -1730,6 +1759,7 @@ export default function ForClinicsPage() {
           </p>
 
           <div
+            className="fc-pricing-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
@@ -1873,7 +1903,7 @@ export default function ForClinicsPage() {
       </section>
 
       {/* ═══════════ FAQ ═══════════ */}
-      <section id="faq" style={sectionPad}>
+      <section id="faq" className="fc-section" style={sectionPad}>
         <div style={{ ...maxW, maxWidth: 720 }}>
           <h2 style={{ ...heading, fontSize: "clamp(28px, 4vw, 42px)", textAlign: "center", marginBottom: 48 }}>
             Frequently asked questions
@@ -1911,6 +1941,7 @@ export default function ForClinicsPage() {
 
       {/* ═══════════ FINAL CTA ═══════════ */}
       <section
+        className="fc-section"
         style={{
           ...sectionPad,
           paddingTop: 80,
