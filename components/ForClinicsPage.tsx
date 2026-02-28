@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Check,
   X,
+  Menu,
   ChevronDown,
   Zap,
   FileText,
@@ -200,6 +201,9 @@ const DEFAULT_EXTRA = 5
    MAIN COMPONENT
 ──────────────────────────────────────────── */
 export default function ForClinicsPage() {
+  /* Mobile nav state */
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   /* ROI calculator state */
   const [extra, setExtra] = useState(DEFAULT_EXTRA)
   const [ltv, setLtv] = useState(DEFAULT_LTV)
@@ -401,8 +405,34 @@ export default function ForClinicsPage() {
     >
       {/* Mobile overrides — desktop layout untouched */}
       <style>{`
+        .fc-mobile-menu-btn { display: none !important; }
+        .fc-mobile-dropdown { display: none !important; }
         @media (max-width: 640px) {
           .fc-nav-links { display: none !important; }
+          .fc-mobile-menu-btn { display: flex !important; }
+          .fc-mobile-dropdown[data-open="true"] {
+            display: flex !important;
+            flex-direction: column;
+            position: absolute;
+            top: 64px;
+            left: 0;
+            right: 0;
+            background: rgba(3,7,18,.97);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            padding: 12px 24px 20px;
+            gap: 0;
+          }
+          .fc-mobile-dropdown a {
+            display: block;
+            padding: 14px 0;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+          }
+          .fc-mobile-dropdown a:last-child { border-bottom: none; }
           .fc-hero { padding-top: 100px !important; padding-bottom: 48px !important; }
           .fc-section { padding-top: 56px !important; padding-bottom: 56px !important; padding-left: 16px !important; padding-right: 16px !important; }
           .fc-stats-bar { gap: 16px !important; padding: 20px 16px !important; }
@@ -462,6 +492,29 @@ export default function ForClinicsPage() {
               FAQ
             </a>
           </div>
+          <button
+            className="fc-mobile-menu-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "#f1f5f9",
+              padding: 8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+        <div className="fc-mobile-dropdown" data-open={mobileMenuOpen}>
+          <a href="#how" onClick={() => setMobileMenuOpen(false)}>How it works</a>
+          <a href="#insights" onClick={() => setMobileMenuOpen(false)}>Insights</a>
+          <a href="#pricing" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
+          <a href="#faq" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
         </div>
       </nav>
 
