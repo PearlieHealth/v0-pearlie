@@ -38,6 +38,7 @@ import {
   renderBillingReminderEmail,
   renderDisputeReminderEmail,
   renderBookingRequestSentEmail,
+  renderAlternativeClinicsEmail,
 } from "./templates/notification-templates"
 
 // ---------------------------------------------------------------------------
@@ -67,6 +68,7 @@ export const EMAIL_TYPE = {
   BILLING_REMINDER: "billing_reminder",
   DISPUTE_REMINDER: "dispute_reminder",
   BOOKING_REQUEST_SENT: "booking_request_sent",
+  ALTERNATIVE_CLINICS: "alternative_clinics",
 } as const
 
 export type EmailType = (typeof EMAIL_TYPE)[keyof typeof EMAIL_TYPE]
@@ -270,6 +272,20 @@ const bookingRequestSentSchema = z.object({
   clinicName: z.string(),
   formattedDate: z.string(),
   timeLabel: z.string(),
+  dashboardUrl: z.string(),
+  unsubscribeFooterHtml: z.string(),
+})
+
+const alternativeClinicsSchema = z.object({
+  firstName: z.string(),
+  originalClinicName: z.string(),
+  waitTimeHours: z.number(),
+  alternativeClinics: z.array(z.object({
+    name: z.string(),
+    avgResponseMins: z.number().nullable(),
+    treatments: z.array(z.string()),
+    viewUrl: z.string(),
+  })),
   dashboardUrl: z.string(),
   unsubscribeFooterHtml: z.string(),
 })
@@ -574,6 +590,21 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     generateHtml: renderBookingRequestSentEmail,
     idempotencyKey: (data) => `booking_request:${data._leadId}:${data._clinicId}`,
   },
+
+  // --- Alternative Clinics (to patient — when clinic is slow to respond) ---
+
+  [EMAIL_TYPE.ALTERNATIVE_CLINICS]: {
+    type: EMAIL_TYPE.ALTERNATIVE_CLINICS,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: "patient_notifications",
+    notificationPreferenceKey: null,
+    defaultSubject: (data) => `Other clinics near you while you wait for ${data.originalClinicName}`,
+    payloadSchema: alternativeClinicsSchema,
+    generateHtml: renderAlternativeClinicsEmail,
+    // One email per conversation (never re-send for the same stale conversation)
+    idempotencyKey: (data) => `alt_clinics:${data._conversationId}`,
+  },
 }
 
 /**
@@ -602,4 +633,5 @@ export const EMAIL_TYPE_LABELS: Record<EmailType, string> = {
   [EMAIL_TYPE.BILLING_REMINDER]: "Billing Reminder → Clinic",
   [EMAIL_TYPE.DISPUTE_REMINDER]: "Dispute Reminder → Clinic",
   [EMAIL_TYPE.BOOKING_REQUEST_SENT]: "Booking Request Sent → Patient",
+  [EMAIL_TYPE.ALTERNATIVE_CLINICS]: "Alternative Clinics → Patient",
 }
