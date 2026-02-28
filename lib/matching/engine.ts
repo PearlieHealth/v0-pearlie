@@ -7,8 +7,9 @@
 import type { LeadAnswer, ClinicProfile, MatchScoreBreakdown, MatchReason, ClinicMatch } from "./contract"
 import { EXPLANATION_SCHEMA_VERSION } from "./contract"
 import { normalizeLead, normalizeClinic } from "./normalize"
-import { scoreClinic, buildMatchFacts } from "./scoring"
-import { buildMatchReasons, getExplanationVersion, buildMatchReasonsDebug } from "./reasons-engine"
+import { scoreClinic, scoreDirectoryListing, buildMatchFacts } from "./scoring"
+import { buildMatchReasons, buildDirectoryListingReasons, getExplanationVersion, buildMatchReasonsDebug } from "./reasons-engine"
+import { VERIFIED_BONUS } from "./tag-schema"
 import { createClient } from "@/lib/supabase/server"
 import { isClinicMatchable, getMatchingTagCount, getLiveClinicFilter, MIN_MATCHING_TAGS } from "./clinic-status"
 import { calculateHaversineDistance } from "@/lib/utils/geo"
@@ -55,6 +56,7 @@ export interface RankedClinic {
   reasons: MatchReason[]
   tier: "excellent" | "strong" | "good" | "possible"
   isPinned?: boolean
+  isDirectoryListing: boolean // True if unverified clinic scored with simple directory listing algorithm
   explanationVersion: string // Added explanation version tracking
   matchFacts?: any // MatchFacts from scoring, used for cross-clinic reason dedup
   debug: {
@@ -284,10 +286,13 @@ function getClinicMatchingTagCount(clinic: ClinicProfile): number {
  * Rank clinics by match score with optional pinned clinic
  * This is the main entry point for matching operations
  *
- * IMPORTANT: Clinics with NOT_MATCHABLE status (< 3 matching tags) are
- * excluded BEFORE reason generation to prevent validation failures
+ * Unified scoring model:
+ * - Matchable clinics (≥3 tags): Full 7-category scoring via scoreClinic()
+ * - Non-matchable clinics (<3 tags): Simple scoring via scoreDirectoryListing()
+ * - Verified clinics get +VERIFIED_BONUS on their percent score
+ * - All clinics sorted together for natural interleaving
  *
- * Now implements two-pass system to differentiate primary reasons:
+ * Two-pass system for matchable clinics to differentiate primary reasons:
  * 1) First pass: generate reasons normally
  * 2) If all clinics have TREATMENT_MATCH as primary, re-run with deprioritized treatment
  */
@@ -298,69 +303,74 @@ export function rankClinics(
 ): RankedClinic[] {
   const { topN = 10, pinnedClinicId, includeUnverified = false } = options
 
-  // Separate clinics into categories:
-  // 1. Verified + Matchable (primary results with full scoring)
-  // 2. Unverified + Matchable (scored but shown after verified)
-  // 3. Non-matchable (directory listings at the end)
-  const verifiedMatchable: ClinicProfile[] = []
-  const unverifiedMatchable: ClinicProfile[] = []
+  // Categorise clinics by matchability
+  const matchableClinics: ClinicProfile[] = []
   const nonMatchableClinics: ClinicProfile[] = []
-  
+
   for (const clinic of clinics) {
+    // Skip unverified clinics entirely when includeUnverified is false
+    if (!includeUnverified && clinic.verified !== true) continue
+
     const matchable = checkClinicMatchable(clinic)
-    if (!matchable) {
+    if (matchable) {
+      matchableClinics.push(clinic)
+    } else {
       console.log(
-        `[rankClinics] Clinic NOT_MATCHABLE (will appear in directory): ${clinic.name} (${getClinicMatchingTagCount(clinic)} tags, need ${MIN_MATCHING_TAGS})`,
+        `[rankClinics] Clinic NOT_MATCHABLE (directory listing scoring): ${clinic.name} (${getClinicMatchingTagCount(clinic)} tags, need ${MIN_MATCHING_TAGS})`,
       )
       nonMatchableClinics.push(clinic)
-    } else if (clinic.verified === true) {
-      verifiedMatchable.push(clinic)
-    } else {
-      unverifiedMatchable.push(clinic)
     }
   }
-  
-  // Primary clinics are always verified ones
-  // When includeUnverified is true, we also score unverified ones (but sort them after verified)
-  const primaryClinics = verifiedMatchable
 
-  // First pass: score all primary (matchable) clinics with normal priority
-  let scoredClinics: RankedClinic[] = primaryClinics.map((clinic, index) => {
+  // ── Score matchable clinics (full 7-category engine) ──────────────────────
+
+  // First pass: score all matchable clinics with normal priority
+  let scoredMatchable: RankedClinic[] = matchableClinics.map((clinic, index) => {
     const { score, reasons, explanationVersion, matchFacts, reasonsDebug } = computeClinicScore(profile, clinic, false, index)
-    const tier = getTier(score.percent)
+    // Apply verified bonus: add VERIFIED_BONUS to percent (capped at 100)
+    const adjustedPercent = clinic.verified
+      ? Math.min(100, score.percent + VERIFIED_BONUS)
+      : score.percent
+    const adjustedScore = { ...score, percent: adjustedPercent }
+    const tier = getTier(adjustedPercent)
     const debug = buildDebugInfo(score, profile, clinic, reasonsDebug)
 
     return {
       clinic,
-      score,
+      score: adjustedScore,
       reasons,
       tier,
       isPinned: clinic.id === pinnedClinicId,
+      isDirectoryListing: false,
       explanationVersion,
       matchFacts,
       debug,
     }
   })
 
-  const primaryReasons = scoredClinics.map((c) => c.reasons[0]?.tagKey).filter(Boolean)
+  const primaryReasons = scoredMatchable.map((c) => c.reasons[0]?.tagKey).filter(Boolean)
   const uniquePrimary = new Set(primaryReasons)
   const allTreatmentMatch = uniquePrimary.size === 1 && primaryReasons[0] === "TREATMENT_MATCH"
 
   // Second pass: if all have TREATMENT_MATCH, re-run with deprioritized treatment
-  if (allTreatmentMatch && scoredClinics.length > 1) {
+  if (allTreatmentMatch && scoredMatchable.length > 1) {
     console.log("[rankClinics] All clinics have TREATMENT_MATCH primary reason, re-running with differentiation")
-    scoredClinics = primaryClinics.map((clinic, index) => {
-      // Deprioritize treatment, use index as fallback offset for differentiation
+    scoredMatchable = matchableClinics.map((clinic, index) => {
       const { score, reasons, explanationVersion, matchFacts, reasonsDebug } = computeClinicScore(profile, clinic, true, index)
-      const tier = getTier(score.percent)
+      const adjustedPercent = clinic.verified
+        ? Math.min(100, score.percent + VERIFIED_BONUS)
+        : score.percent
+      const adjustedScore = { ...score, percent: adjustedPercent }
+      const tier = getTier(adjustedPercent)
       const debug = buildDebugInfo(score, profile, clinic, reasonsDebug)
 
       return {
         clinic,
-        score,
+        score: adjustedScore,
         reasons,
         tier,
         isPinned: clinic.id === pinnedClinicId,
+        isDirectoryListing: false,
         explanationVersion,
         matchFacts,
         debug,
@@ -368,113 +378,88 @@ export function rankClinics(
     })
   }
 
-  // Sort verified clinics by score (highest first), with tie-breakers
-  scoredClinics.sort((a, b) => {
-    // Pinned clinic always comes first if it exists
+  // ── Score non-matchable clinics (directory listing: distance + reviews) ────
+
+  const scoredDirectoryListings: RankedClinic[] = nonMatchableClinics.map((clinic, index) => {
+    const score = scoreDirectoryListing(profile, clinic)
+    // Apply verified bonus if somehow a verified clinic has <3 tags (edge case)
+    const adjustedPercent = clinic.verified
+      ? Math.min(100, score.percent + VERIFIED_BONUS)
+      : score.percent
+    const adjustedScore = { ...score, percent: adjustedPercent }
+    const reasons = buildDirectoryListingReasons(clinic, score, profile.treatment, index)
+    const tier = getTier(adjustedPercent)
+
+    return {
+      clinic,
+      score: adjustedScore,
+      reasons,
+      tier,
+      isPinned: clinic.id === pinnedClinicId,
+      isDirectoryListing: true,
+      explanationVersion: EXPLANATION_SCHEMA_VERSION,
+      debug: {
+        distanceMiles: score.distanceMiles,
+        treatmentMatch: score.categories.find(c => c.category === "treatment")?.points ? true : false,
+        priorityTagsMatched: [],
+        anxietyMatched: false,
+        budgetMatched: false,
+        rawScore: score.totalScore,
+        percent: adjustedPercent,
+        categories: score.categories.map((c) => ({
+          category: c.category,
+          points: c.points,
+          maxPoints: c.maxPoints,
+          weight: c.weight,
+        })),
+        isDirectoryListing: true,
+      },
+    }
+  })
+
+  if (scoredDirectoryListings.length > 0) {
+    console.log(`[rankClinics] Scored ${scoredDirectoryListings.length} directory listings`)
+  }
+
+  // ── Unified sort: all clinics together ────────────────────────────────────
+
+  const allClinics = [...scoredMatchable, ...scoredDirectoryListings]
+
+  allClinics.sort((a, b) => {
+    // Pinned clinic always comes first
     if (a.isPinned) return -1
     if (b.isPinned) return 1
 
-    // Primary: match percentage (quality of match relative to what was scored)
+    // Primary: adjusted percent (includes verified bonus)
     if (b.score.percent !== a.score.percent) {
       return b.score.percent - a.score.percent
     }
 
-    // Tie-breaker 1: distance (closer is better)
+    // Tie-breaker 1: prefer matchable over directory listing (at same score)
+    if (a.isDirectoryListing !== b.isDirectoryListing) {
+      return a.isDirectoryListing ? 1 : -1
+    }
+
+    // Tie-breaker 2: distance (closer is better)
     const distA = a.score.distanceMiles ?? 999
     const distB = b.score.distanceMiles ?? 999
     if (distA !== distB) return distA - distB
 
-    // Tie-breaker 2: review count
+    // Tie-breaker 3: review count
     if (b.clinic.reviewCount !== a.clinic.reviewCount) {
       return b.clinic.reviewCount - a.clinic.reviewCount
     }
 
-    // Tie-breaker 3: rating
+    // Tie-breaker 4: rating
     const ratingA = a.clinic.rating ?? 0
     const ratingB = b.clinic.rating ?? 0
     if (ratingB !== ratingA) return ratingB - ratingA
 
-    // Tie-breaker 4: name (alphabetical)
+    // Tie-breaker 5: name (alphabetical)
     return a.clinic.name.localeCompare(b.clinic.name)
   })
 
-  // Score and sort unverified clinics (if includeUnverified is true)
-  let scoredUnverified: RankedClinic[] = []
-  if (includeUnverified && unverifiedMatchable.length > 0) {
-    scoredUnverified = unverifiedMatchable.map((clinic, index) => {
-      // Score unverified clinics but mark them appropriately
-      const { score, reasons, explanationVersion, matchFacts, reasonsDebug } = computeClinicScore(profile, clinic, false, index)
-      const tier = getTier(score.percent)
-      const debug = buildDebugInfo(score, profile, clinic, reasonsDebug)
-      debug.isDirectoryListing = false // They're scored, not directory listings
-
-      return {
-        clinic,
-        score,
-        reasons,
-        tier,
-        isPinned: clinic.id === pinnedClinicId,
-        explanationVersion,
-        matchFacts,
-        debug,
-      }
-    })
-    
-    // Sort unverified by score (percentage first)
-    scoredUnverified.sort((a, b) => {
-      if (b.score.percent !== a.score.percent) {
-        return b.score.percent - a.score.percent
-      }
-      const distA = a.score.distanceMiles ?? 999
-      const distB = b.score.distanceMiles ?? 999
-      if (distA !== distB) return distA - distB
-      return a.clinic.name.localeCompare(b.clinic.name)
-    })
-    
-    console.log(`[rankClinics] Scored ${scoredUnverified.length} unverified clinics (will appear after verified)`)
-  }
-
-  // Combine: verified first, then unverified
-  const allScoredClinics = [...scoredClinics, ...scoredUnverified]
-  
-  // Get top N scored clinics
-  const topClinics = allScoredClinics.slice(0, topN)
-  
-  // If includeUnverified is true, also add non-matchable clinics as "directory" tier
-  // These appear at the end and don't have match scores/reasons
-  if (includeUnverified && nonMatchableClinics.length > 0) {
-    const remainingSlots = topN - topClinics.length
-    if (remainingSlots > 0) {
-      const directoryListings: RankedClinic[] = nonMatchableClinics.slice(0, remainingSlots).map((clinic) => ({
-        clinic,
-        score: {
-          totalScore: 0,
-          maxPossible: 100,
-          percent: 0,
-          categories: [],
-        },
-        reasons: [],
-        tier: "possible" as const,
-        isPinned: false,
-        explanationVersion: EXPLANATION_SCHEMA_VERSION,
-        debug: {
-          distanceMiles: undefined,
-          treatmentMatch: false,
-          priorityTagsMatched: [],
-          anxietyMatched: false,
-          budgetMatched: false,
-          rawScore: 0,
-          percent: 0,
-          categories: [],
-          isDirectoryListing: true, // Flag to indicate this is just a directory listing
-        },
-      }))
-      console.log(`[rankClinics] Adding ${directoryListings.length} non-matchable clinics as directory listings`)
-      return [...topClinics, ...directoryListings]
-    }
-  }
-  
-  return topClinics
+  return allClinics.slice(0, topN)
 }
 
 /**

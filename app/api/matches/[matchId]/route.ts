@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { normalizeLead, normalizeClinic } from "@/lib/matching/normalize"
-import { scoreClinic, buildMatchFacts } from "@/lib/matching/scoring"
-import { buildMatchReasonsForMultipleClinics, validateUniqueReasons } from "@/lib/matching/reasons-engine"
+import { scoreClinic, scoreDirectoryListing, buildMatchFacts } from "@/lib/matching/scoring"
+import { buildMatchReasonsForMultipleClinics, buildDirectoryListingReasons, validateUniqueReasons } from "@/lib/matching/reasons-engine"
 import { getExplanationVersion } from "@/lib/matching/reasons-engine"
+import { isClinicMatchable } from "@/lib/matching/clinic-status"
 import { isInGreaterLondon } from "@/lib/matching/reasons"
 import { calculateHaversineDistance } from "@/lib/utils/geo"
 
@@ -104,6 +105,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
           .map(cached => {
             const clinicRow = clinicMap.get(cached.clinic_id)
             if (!clinicRow) return null
+            const isDir = cached.tier === "directory" || cached.match_reasons_meta?.source === "directory_listing"
             return {
               ...clinicRow,
               distance_miles: cached.distance_miles,
@@ -120,8 +122,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
                 source: "template",
               },
               tier: cached.tier || "top",
-              card_title: isEmergency ? "Why this clinic" : "Why we matched you",
+              card_title: isDir ? "About this clinic" : isEmergency ? "Why this clinic" : "Why we matched you",
               is_emergency: isEmergency,
+              is_directory_listing: isDir,
             }
           })
           .filter(Boolean)
@@ -185,7 +188,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       )
 
       // Build final clinics with scores and reasons
-      clinicsWithScores = clinicScoringData.map(({ clinicRow, normalizedClinic, scoreBreakdown }) => {
+      clinicsWithScores = clinicScoringData.map(({ clinicRow, normalizedClinic, filterKeys, scoreBreakdown }) => {
+        const isDir = !isClinicMatchable(filterKeys)
         const result = reasonsMap.get(normalizedClinic.id)
         const reasons = result?.reasons || []
         const composed = result?.composed
@@ -203,11 +207,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
             tagsUsed: composed?.tagsUsed || [],
             templatesUsed: composed?.templatesUsed || [],
             confidence: composed?.confidence || 0.8,
-            source: "template" as const,
+            source: isDir ? "directory_listing" : "template" as string,
           },
-          tier: "top",
-          card_title: isEmergency ? "Why this clinic" : "Why we matched you",
+          tier: isDir ? "directory" : "top",
+          card_title: isDir ? "About this clinic" : isEmergency ? "Why this clinic" : "Why we matched you",
           is_emergency: isEmergency,
+          is_directory_listing: isDir,
         }
       })
 
@@ -280,11 +285,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       console.log(`[match-api] Found ${nearbyClinics?.length || 0} nearby clinics to check`)
 
       if (nearbyClinics && nearbyClinics.length > 0) {
+        const normalizedLead = normalizeLead({
+          ...lead,
+          latitude: lead.latitude,
+          longitude: lead.longitude,
+        })
+
         additionalClinics = nearbyClinics
           .map((clinic) => {
             const filterKeys = Array.isArray(clinic.clinic_filter_selections)
               ? clinic.clinic_filter_selections.map((sel: any) => sel.filter_key)
               : []
+
+            const normalizedClinic = normalizeClinic(clinic, filterKeys)
 
             let distance = 999
             if (clinic.latitude && clinic.longitude) {
@@ -292,9 +305,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
             }
 
             const isUnverified = !clinic.verified
-            const isDirectoryListing = isUnverified || filterKeys.length < 3
+            const isDir = isUnverified || !isClinicMatchable(filterKeys)
 
-            // Tier based on verified status: verified clinics are "nearby", unverified are "directory"
+            // Score directory listings instead of giving them zero
+            const dirScore = scoreDirectoryListing(normalizedLead, normalizedClinic)
+            const dirReasons = buildDirectoryListingReasons(normalizedClinic, dirScore, normalizedLead.treatment, 0)
+
             const tier = isUnverified ? "directory" : "nearby"
 
             return {
@@ -302,19 +318,23 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
               distance_miles: distance,
               tier,
               filter_keys: filterKeys,
-              is_directory_listing: isDirectoryListing,
-              match_percentage: (isDirectoryListing || isUnverified) ? 0 : undefined,
-              match_reasons: (isDirectoryListing || isUnverified) ? [] : undefined,
-              match_reasons_composed: (isDirectoryListing || isUnverified)
-                ? [isUnverified ? "This clinic is in our directory but hasn't completed verification yet." : "Listed in our clinic directory."]
-                : undefined,
+              is_directory_listing: isDir,
+              match_percentage: dirScore.percent,
+              match_score: dirScore.percent,
+              match_reasons: dirReasons.map(r => r.text),
+              match_reasons_composed: dirReasons.map(r => r.text),
+              match_breakdown: dirScore.categories.map(c => ({
+                category: c.category,
+                points: c.points,
+                maxPoints: c.maxPoints,
+              })),
+              card_title: "About this clinic",
             }
           })
           .filter((c) => c.tier === "directory" ? c.distance_miles <= 25 : c.distance_miles <= 15)
           .sort((a, b) => {
-            if (a.tier === "directory" && b.tier !== "directory") return 1
-            if (a.tier !== "directory" && b.tier === "directory") return -1
-            if (a.verified !== b.verified) return a.verified ? -1 : 1
+            // Sort by score (higher first), then distance
+            if (b.match_score !== a.match_score) return b.match_score - a.match_score
             return a.distance_miles - b.distance_miles
           })
       }

@@ -7,6 +7,8 @@ import {
   Q8_COST_TAG_MAP,
   Q10_ANXIETY_TAG_MAP,
   COST_PRICE_TIER_MAP,
+  DIRECTORY_LISTING_WEIGHTS,
+  DIRECTORY_LISTING_MAX_RADIUS,
 } from "./tag-schema"
 
 /**
@@ -688,6 +690,138 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
 
     clinicTags: clinic.filterKeys,
     clinicRating: clinic.rating,
+  }
+}
+
+// =============================================================================
+// Directory Listing Scoring
+// Simple scoring for unverified clinics without tag data.
+// Uses only universally-available signals: distance, reviews, treatment text, completeness.
+// =============================================================================
+
+/**
+ * Score a directory listing (unverified clinic without tags) against a lead.
+ * Returns a MatchScoreBreakdown on the same 0-100 scale as scoreClinic().
+ *
+ * Weights: distance(40), reviews(30), treatment(20), completeness(10) = 100
+ */
+export function scoreDirectoryListing(lead: LeadAnswer, clinic: ClinicProfile): MatchScoreBreakdown {
+  const categories: ScoreCategoryBreakdown[] = []
+  let totalScore = 0
+  const maxPossible = 100
+
+  // 1. Distance (40 points) — linear decay over DIRECTORY_LISTING_MAX_RADIUS
+  let distanceMiles: number | undefined
+  if (lead.latitude && lead.longitude && clinic.latitude && clinic.longitude) {
+    distanceMiles = calculateHaversineDistance(lead.latitude, lead.longitude, clinic.latitude, clinic.longitude)
+    const ratio = Math.max(0, 1 - distanceMiles / DIRECTORY_LISTING_MAX_RADIUS)
+    const distPoints = Math.round(DIRECTORY_LISTING_WEIGHTS.distance * ratio)
+    categories.push({
+      category: "distance",
+      points: distPoints,
+      maxPoints: DIRECTORY_LISTING_WEIGHTS.distance,
+      weight: 0,
+      facts: { distanceMiles, maxRadius: DIRECTORY_LISTING_MAX_RADIUS },
+    })
+    totalScore += distPoints
+  } else {
+    // No coords — 0 distance points
+    categories.push({
+      category: "distance",
+      points: 0,
+      maxPoints: DIRECTORY_LISTING_WEIGHTS.distance,
+      weight: 0,
+      facts: { distanceMiles: undefined, maxRadius: DIRECTORY_LISTING_MAX_RADIUS },
+    })
+  }
+
+  // 2. Reviews (30 points) — 60% rating, 40% review count (log scale)
+  const ratingMax = Math.round(DIRECTORY_LISTING_WEIGHTS.reviews * 0.6)
+  const countMax = DIRECTORY_LISTING_WEIGHTS.reviews - ratingMax
+
+  const ratingPoints = clinic.rating ? Math.round(ratingMax * Math.min(clinic.rating / 5, 1)) : 0
+  // Log scale for review count: 1 review=~0%, 10=~50%, 100=~80%, 500+=100%
+  const countPoints = clinic.reviewCount > 0
+    ? Math.round(countMax * Math.min(Math.log10(clinic.reviewCount) / Math.log10(500), 1))
+    : 0
+  const reviewPoints = ratingPoints + countPoints
+
+  categories.push({
+    category: "reviews",
+    points: reviewPoints,
+    maxPoints: DIRECTORY_LISTING_WEIGHTS.reviews,
+    weight: 0,
+    facts: {
+      rating: clinic.rating,
+      reviewCount: clinic.reviewCount,
+      ratingPoints,
+      countPoints,
+    },
+  })
+  totalScore += reviewPoints
+
+  // 3. Treatment match (20 points) — text match using canonical aliases
+  const aliases = getCanonicalAliases(lead.treatment)
+  const hasTreatmentMatch =
+    clinic.treatments.some((t) => {
+      const lower = t.toLowerCase()
+      return aliases.some(alias => lower.includes(alias))
+    }) ||
+    clinic.tags.some((t) => {
+      const lower = t.toLowerCase()
+      return aliases.some(alias => lower.includes(alias))
+    })
+
+  const treatmentPoints = hasTreatmentMatch ? DIRECTORY_LISTING_WEIGHTS.treatment : 0
+  categories.push({
+    category: "treatment",
+    points: treatmentPoints,
+    maxPoints: DIRECTORY_LISTING_WEIGHTS.treatment,
+    weight: 0,
+    facts: {
+      leadTreatment: lead.treatment,
+      clinicOffersTreatment: hasTreatmentMatch,
+      clinicTreatments: clinic.treatments,
+    },
+  })
+  totalScore += treatmentPoints
+
+  // 4. Profile completeness (10 points) — 2 pts each for 5 signals
+  let completenessPoints = 0
+  if (clinic.latitude && clinic.longitude) completenessPoints += 2
+  if (clinic.rating) completenessPoints += 2
+  if (clinic.reviewCount > 0) completenessPoints += 2
+  if (clinic.treatments.length > 0) completenessPoints += 2
+  if (clinic.opening_hours) completenessPoints += 2
+
+  categories.push({
+    category: "completeness",
+    points: completenessPoints,
+    maxPoints: DIRECTORY_LISTING_WEIGHTS.completeness,
+    weight: 0,
+    facts: {
+      hasCoords: !!(clinic.latitude && clinic.longitude),
+      hasRating: !!clinic.rating,
+      hasReviews: clinic.reviewCount > 0,
+      hasTreatments: clinic.treatments.length > 0,
+      hasOpeningHours: !!clinic.opening_hours,
+    },
+  })
+  totalScore += completenessPoints
+
+  // Calculate contribution weights
+  categories.forEach((cat) => {
+    cat.weight = totalScore > 0 ? cat.points / totalScore : 0
+  })
+
+  const percent = maxPossible > 0 ? Math.round((totalScore / maxPossible) * 100) : 0
+
+  return {
+    totalScore,
+    maxPossible,
+    percent,
+    categories,
+    distanceMiles,
   }
 }
 

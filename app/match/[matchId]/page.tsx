@@ -339,7 +339,7 @@ export default function MatchPage() {
 
   const getClinicLabel = (clinic: Clinic, index: number) => {
     if (clinic.tier === "directory" || clinic.is_directory_listing) {
-      return clinic.verified === false ? "Unverified clinic" : "In our directory"
+      return "Listed clinic"
     }
     if (clinic.tier === "nearby") return "Nearby option"
     if (index === 0) return "Top match"
@@ -788,15 +788,23 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                 >
                                   {clinic.name}
                                 </h2>
-                                {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
+                                {clinic.match_percentage != null && clinic.match_percentage > 0 && (
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       <button
                                         type="button"
-                                        className="flex-shrink-0 flex items-center gap-1 font-bold text-sm cursor-pointer px-2.5 py-1 rounded-full bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
+                                        className={`flex-shrink-0 flex items-center gap-1 font-bold text-sm cursor-pointer px-2.5 py-1 rounded-full transition-colors touch-manipulation ${
+                                          clinic.is_directory_listing || clinic.tier === "directory"
+                                            ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                            : "bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20"
+                                        }`}
                                         onClick={(e) => e.stopPropagation()}
                                       >
-                                        <Sparkles className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                                        {clinic.is_directory_listing || clinic.tier === "directory" ? (
+                                          <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                                        ) : (
+                                          <Sparkles className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                                        )}
                                         <span>{clinic.match_percentage}%</span>
                                         <Info className="w-3 h-3 text-[#004443]/40" />
                                       </button>
@@ -804,9 +812,15 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                     <PopoverContent className="w-72 p-4" align="end" side="bottom">
                                       <div className="space-y-3">
                                         <div>
-                                          <h4 className="font-semibold text-sm text-[#004443]">How we calculated your match</h4>
+                                          <h4 className="font-semibold text-sm text-[#004443]">
+                                            {clinic.is_directory_listing || clinic.tier === "directory"
+                                              ? "Relevance score"
+                                              : "How we calculated your match"}
+                                          </h4>
                                           <p className="text-xs text-muted-foreground mt-1">
-                                            This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.
+                                            {clinic.is_directory_listing || clinic.tier === "directory"
+                                              ? "Based on proximity and reviews. This clinic hasn't been verified by Pearlie yet."
+                                              : <>This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.</>}
                                           </p>
                                         </div>
                                         {clinic.match_breakdown && clinic.match_breakdown.length > 0 ? (
@@ -907,12 +921,26 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                 </h3>
                                 <div className="space-y-1.5 text-xs lg:text-sm text-[#1a1a1a] leading-relaxed">
                                   {clinic.tier === "directory" || clinic.is_directory_listing ? (
-                                    <>
-                                      <p>This clinic is listed in our directory and may be able to help with your dental needs.</p>
-                                      {clinic.distance_miles && (
-                                        <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
-                                      )}
-                                    </>
+                                    (() => {
+                                      const reasons = clinic.match_reasons_composed && clinic.match_reasons_composed.length > 0
+                                        ? clinic.match_reasons_composed
+                                        : clinic.match_reasons && clinic.match_reasons.length > 0
+                                          ? clinic.match_reasons
+                                          : []
+                                      if (reasons.length > 0) {
+                                        return reasons.slice(0, 2).map((sentence: string, i: number) => (
+                                          <p key={i}>{sentence}</p>
+                                        ))
+                                      }
+                                      return (
+                                        <>
+                                          <p>This clinic is listed in our directory and may be able to help with your dental needs.</p>
+                                          {clinic.distance_miles && (
+                                            <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
+                                          )}
+                                        </>
+                                      )
+                                    })()
                                   ) : clinic.tier === "nearby" ? (
                                     <>
                                       <p>This clinic is located nearby and may be able to help with your dental needs.</p>

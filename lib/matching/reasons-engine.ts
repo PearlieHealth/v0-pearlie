@@ -6,7 +6,9 @@ import {
   EMERGENCY_REASON_TEMPLATES,
   FALLBACK_REASONS,
   BANNED_GENERIC_PHRASES,
+  DIRECTORY_LISTING_REASON_TEMPLATES,
 } from "./tag-schema"
+import type { ClinicProfile, LeadAnswer, MatchScoreBreakdown } from "./contract"
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production"
 
@@ -418,6 +420,105 @@ function buildPlanningReasons(facts: MatchFacts, deprioritizeTreatment = false, 
   return selectedReasons.slice(0, 3)
 }
 
+// ─── DIRECTORY LISTING PATH ──────────────────────────────────────────────────
+// For unverified clinics without tags. 2 short reasons based on distance, reviews, treatment.
+
+/**
+ * Build reasons for a directory listing (unverified clinic without tags).
+ * Produces exactly 2 simple reasons based on available data.
+ */
+export function buildDirectoryListingReasons(
+  clinic: ClinicProfile,
+  score: MatchScoreBreakdown,
+  treatmentName?: string,
+  fallbackOffset = 0,
+): MatchReason[] {
+  const clinicId = clinic.id || "unknown"
+  const reasons: MatchReason[] = []
+  const usedTexts: string[] = []
+
+  const pickVariant = (variants: string[], offset: number) => {
+    return variants[(fallbackOffset + offset) % variants.length]
+  }
+
+  // 1. Nearby reason (if distance <= 10 miles)
+  const distanceMiles = score.distanceMiles
+  if (distanceMiles !== undefined && distanceMiles <= 10) {
+    const text = pickVariant(DIRECTORY_LISTING_REASON_TEMPLATES.nearby, 0)
+    reasons.push({
+      key: `directory_nearby_${clinicId}`,
+      text,
+      category: "distance",
+      weight: 0.4,
+      tagKey: "DIRECTORY_NEARBY",
+    })
+    usedTexts.push(text)
+  }
+
+  // 2. Well-reviewed reason (if rating >= 4 and reviewCount >= 5)
+  if (reasons.length < 2 && clinic.rating && clinic.rating >= 4 && clinic.reviewCount >= 5) {
+    const text = pickVariant(DIRECTORY_LISTING_REASON_TEMPLATES.wellReviewed, 1)
+    if (!usedTexts.some(t => hasSemanticOverlap(t, text))) {
+      reasons.push({
+        key: `directory_reviews_${clinicId}`,
+        text,
+        category: "reviews",
+        weight: 0.3,
+        tagKey: "DIRECTORY_WELL_REVIEWED",
+      })
+      usedTexts.push(text)
+    }
+  }
+
+  // 3. Treatment match reason (if treatment text matched)
+  const treatmentCat = score.categories.find(c => c.category === "treatment")
+  if (reasons.length < 2 && treatmentCat && treatmentCat.points > 0 && treatmentName) {
+    const templates = DIRECTORY_LISTING_REASON_TEMPLATES.treatmentMatch
+    let text = pickVariant(templates, 2)
+    text = text.replace(/{treatment}/g, treatmentName)
+    if (!usedTexts.some(t => hasSemanticOverlap(t, text))) {
+      reasons.push({
+        key: `directory_treatment_${clinicId}`,
+        text,
+        category: "treatment",
+        weight: 0.2,
+        tagKey: "DIRECTORY_TREATMENT_MATCH",
+      })
+      usedTexts.push(text)
+    }
+  }
+
+  // 4. Generic fallback to fill to 2 reasons
+  while (reasons.length < 2) {
+    const templates = DIRECTORY_LISTING_REASON_TEMPLATES.generic
+    const text = pickVariant(templates, reasons.length)
+    if (!usedTexts.some(t => hasSemanticOverlap(t, text))) {
+      reasons.push({
+        key: `directory_generic_${clinicId}_${reasons.length}`,
+        text,
+        category: "trust",
+        weight: 0.1,
+        tagKey: "DIRECTORY_GENERIC",
+        isFallback: true,
+      })
+      usedTexts.push(text)
+    } else {
+      // Absolute fallback
+      reasons.push({
+        key: `directory_fb_${clinicId}_${reasons.length}`,
+        text: "A local clinic listed in our directory.",
+        category: "trust",
+        weight: 0.1,
+        tagKey: "DIRECTORY_GENERIC",
+        isFallback: true,
+      })
+      break
+    }
+  }
+
+  return reasons.slice(0, 2)
+}
+
 // ─── PUBLIC API ──────────────────────────────────────────────────────────────
 
 /**
@@ -509,6 +610,7 @@ function validateAndSanitizeReasons(
       (reason.tagKey.startsWith("TAG_") ||
         reason.tagKey.startsWith("FALLBACK_") ||
         reason.tagKey.startsWith("EMERGENCY_") ||
+        reason.tagKey.startsWith("DIRECTORY_") ||
         reason.tagKey === "TREATMENT_MATCH" ||
         reason.tagKey === "TREATMENT_CHECKUP")
     if (!hasValidTag) continue
@@ -573,6 +675,7 @@ function validateReasonInvariants(
         r.tagKey.startsWith("TAG_") ||
         r.tagKey.startsWith("FALLBACK_") ||
         r.tagKey.startsWith("EMERGENCY_") ||
+        r.tagKey.startsWith("DIRECTORY_") ||
         r.tagKey === "TREATMENT_MATCH" ||
         r.tagKey === "TREATMENT_CHECKUP"
       ),

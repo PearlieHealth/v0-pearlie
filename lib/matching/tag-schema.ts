@@ -142,6 +142,27 @@ export const WEIGHT_CONFIG = {
   availability: 5, // Appointment time slot compatibility
 } as const
 
+// =============================================================================
+// Verified clinic bonus (added to percent score for verified clinics)
+// Ensures verified clinics generally rank higher than directory listings
+// =============================================================================
+export const VERIFIED_BONUS = 15
+
+// =============================================================================
+// Directory listing weight config (sum = 100)
+// Used for unverified clinics without enough tags for full matching
+// Emphasises proximity and reviews since tag data is unavailable
+// =============================================================================
+export const DIRECTORY_LISTING_WEIGHTS = {
+  distance: 40,     // Proximity is the strongest signal for directory listings
+  reviews: 30,      // Star rating + review count
+  treatment: 20,    // Text match on clinic treatments list
+  completeness: 10, // How much profile data the listing has
+} as const
+
+// Default distance radius for directory listing scoring (miles)
+export const DIRECTORY_LISTING_MAX_RADIUS = 15
+
 export const CANONICAL_TAG_KEYS: string[] = [
   // Q4 Priority tags
   ...Object.values(Q4_PRIORITY_TAG_MAP),
@@ -486,6 +507,31 @@ export const TAG_TO_CATEGORY: Record<string, TagCategory> = {
 
 export function getTagCategory(tagKey: string): TagCategory {
   return TAG_TO_CATEGORY[tagKey] || "unknown"
+}
+
+// =============================================================================
+// Directory listing reason templates (for unverified clinics without tags)
+// Based on proximity, reviews, and treatment text match only
+// =============================================================================
+export const DIRECTORY_LISTING_REASON_TEMPLATES = {
+  nearby: [
+    "Located close to your area.",
+    "A convenient option in your neighbourhood.",
+    "A nearby clinic that may suit your needs.",
+  ],
+  wellReviewed: [
+    "Highly rated by patients.",
+    "Strong patient reviews and feedback.",
+    "Well-reviewed clinic with positive ratings.",
+  ],
+  treatmentMatch: [
+    "Lists {treatment} as one of their services.",
+    "Offers treatments relevant to what you're looking for.",
+  ],
+  generic: [
+    "A local clinic listed in our directory.",
+    "Available in your area for dental care.",
+  ],
 }
 
 // =============================================================================
