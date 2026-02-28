@@ -256,6 +256,10 @@ export default async function InvisalignVsSparkPage() {
                   </tbody>
                 </table>
               </div>
+
+              <p className="mt-6 text-sm text-muted-foreground leading-relaxed">
+                Not sure whether clear aligners are the right approach? Our <Link href="/blog/invisalign-vs-braces" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">Invisalign vs braces</Link> guide compares aligners with fixed orthodontics, and our <Link href="/guides/invisalign-clear-aligners" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">complete clear aligner guide</Link> covers everything from consultation to retention.
+              </p>
             </div>
           </div>
         </section>
@@ -269,10 +273,10 @@ export default async function InvisalignVsSparkPage() {
               </h2>
               <div className="space-y-4 text-base text-muted-foreground leading-relaxed">
                 <p>
-                  Both systems are priced similarly in the UK, typically ranging from <strong className="text-foreground">£2,500 to £5,500</strong> depending on case complexity. Spark may be marginally cheaper at some clinics as providers compete for market share, but the difference is usually small.
+                  Both systems are priced similarly in the UK, typically ranging from <strong className="text-foreground">£2,500 to £5,500</strong> depending on case complexity. Spark may be marginally cheaper at some clinics as providers compete for market share, but the difference is usually small. See our full <Link href="/treatments/invisalign" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">Invisalign cost breakdown</Link> for a detailed look at what affects pricing.
                 </p>
                 <p>
-                  The final cost depends more on your case complexity and the clinic you choose than on the brand. A mild case requiring 7–14 aligners will cost significantly less than a complex case needing unlimited aligners.
+                  The final cost depends more on your case complexity and the clinic you choose than on the brand. A mild case requiring 7–14 aligners will cost significantly less than a complex case needing unlimited aligners. Our <Link href="/guides/dental-costs-uk" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">UK dental costs guide</Link> covers how treatment pricing works across providers.
                 </p>
                 <p>
                   Both systems offer finance options at most clinics, with 0% interest plans over 12–24 months commonly available. Monthly payments typically start from £100–£250.
@@ -294,28 +298,28 @@ export default async function InvisalignVsSparkPage() {
                 <div className="p-4 rounded-xl bg-white border border-border/50">
                   <h3 className="font-heading font-bold text-[#004443] mb-2">Simple cases (mild crowding, minor gaps)</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Both systems perform equally well. Choose based on your provider&apos;s recommendation and pricing. Spark may offer slightly fewer attachments for simple movements.
+                    Both systems perform equally well. Choose based on your provider&apos;s recommendation and pricing. Spark may offer slightly fewer attachments for simple movements. For very minor gaps, <Link href="/treatments/composite-bonding" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">composite bonding</Link> can sometimes close small spaces without aligners.
                   </p>
                 </div>
 
                 <div className="p-4 rounded-xl bg-white border border-border/50">
                   <h3 className="font-heading font-bold text-[#004443] mb-2">Moderate cases (crowding + bite correction)</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Both systems can handle moderate cases. Invisalign has a larger evidence base and more predictable refinement processes. Your provider&apos;s experience matters more than the brand.
+                    Both systems can handle moderate cases. Invisalign has a larger evidence base and more predictable refinement processes. Your provider&apos;s experience matters more than the brand. Read our <Link href="/guides/invisalign-clear-aligners" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">complete guide to clear aligners</Link> to understand how treatment planning works.
                   </p>
                 </div>
 
                 <div className="p-4 rounded-xl bg-white border border-border/50">
                   <h3 className="font-heading font-bold text-[#004443] mb-2">Complex cases (severe crowding, significant bite issues)</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Invisalign generally has the edge for complex cases due to its longer track record, SmartForce features, and Comprehensive plan with unlimited aligners and refinements. However, an experienced Spark provider can also achieve excellent results.
+                    Invisalign generally has the edge for complex cases due to its longer track record, SmartForce features, and Comprehensive plan with unlimited aligners and refinements. However, an experienced Spark provider can also achieve excellent results. If you&apos;re weighing aligners against traditional orthodontics, see our <Link href="/blog/invisalign-vs-braces" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">Invisalign vs braces comparison</Link>.
                   </p>
                 </div>
 
                 <div className="p-4 rounded-xl bg-white border border-border/50">
                   <h3 className="font-heading font-bold text-[#004443] mb-2">Aesthetics-focused (minimal attachments, stain resistance)</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Spark&apos;s TruGEN material is designed to be more stain-resistant and may require fewer attachments. If discreetness is your top priority, Spark could have a slight advantage.
+                    Spark&apos;s TruGEN material is designed to be more stain-resistant and may require fewer attachments. If discreetness is your top priority, Spark could have a slight advantage. Many patients follow aligners with <Link href="/treatments/teeth-whitening" className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#004443] transition-colors">teeth whitening</Link> for a complete smile refresh.
                   </p>
                 </div>
               </div>
@@ -396,38 +400,95 @@ export default async function InvisalignVsSparkPage() {
         <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
+              {/* Aligner guides & comparisons */}
               <h2 className="text-xl font-heading font-bold text-[#004443] mb-4">
-                Related treatment guides
+                Clear aligner guides
               </h2>
-              <div className="grid sm:grid-cols-2 gap-3">
+              <div className="grid sm:grid-cols-2 gap-3 mb-10">
                 <Link
                   href="/treatments/invisalign"
                   className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
                 >
-                  <p className="font-heading font-bold text-foreground mb-1">Invisalign cost guide</p>
-                  <p className="text-sm text-muted-foreground">Full pricing breakdown, tiers, and what affects cost.</p>
+                  <p className="font-heading font-bold text-foreground mb-1">Invisalign cost & treatment guide</p>
+                  <p className="text-sm text-muted-foreground">Full pricing breakdown, treatment tiers, and what affects cost.</p>
+                </Link>
+                <Link
+                  href="/guides/invisalign-clear-aligners"
+                  className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
+                >
+                  <p className="font-heading font-bold text-foreground mb-1">Complete guide to clear aligners</p>
+                  <p className="text-sm text-muted-foreground">How aligners work, what to expect, and choosing a provider.</p>
+                </Link>
+                <Link
+                  href="/blog/invisalign-vs-braces"
+                  className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
+                >
+                  <p className="font-heading font-bold text-foreground mb-1">Invisalign vs braces</p>
+                  <p className="text-sm text-muted-foreground">Comparing clear aligners with traditional fixed braces.</p>
+                </Link>
+                <Link
+                  href="/guides/dental-costs-uk"
+                  className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
+                >
+                  <p className="font-heading font-bold text-foreground mb-1">UK dental costs explained</p>
+                  <p className="text-sm text-muted-foreground">Private vs NHS pricing and what drives treatment costs.</p>
+                </Link>
+              </div>
+
+              {/* Treatments patients combine with aligners */}
+              <h2 className="text-xl font-heading font-bold text-[#004443] mb-4">
+                Treatments to combine with aligners
+              </h2>
+              <div className="grid sm:grid-cols-3 gap-3 mb-10">
+                <Link
+                  href="/treatments/teeth-whitening"
+                  className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
+                >
+                  <p className="font-heading font-bold text-foreground mb-1">Teeth whitening</p>
+                  <p className="text-sm text-muted-foreground">Whiten after aligners for maximum impact. From £250.</p>
                 </Link>
                 <Link
                   href="/treatments/composite-bonding"
                   className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
                 >
-                  <p className="font-heading font-bold text-foreground mb-1">Composite bonding prices</p>
-                  <p className="text-sm text-muted-foreground">From £250 per tooth. Same-day smile enhancement.</p>
-                </Link>
-                <Link
-                  href="/treatments/teeth-whitening"
-                  className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
-                >
-                  <p className="font-heading font-bold text-foreground mb-1">Teeth whitening cost</p>
-                  <p className="text-sm text-muted-foreground">In-chair, take-home, and premium options from £250.</p>
+                  <p className="font-heading font-bold text-foreground mb-1">Composite bonding</p>
+                  <p className="text-sm text-muted-foreground">Finishing touches after alignment. From £250 per tooth.</p>
                 </Link>
                 <Link
                   href="/treatments/veneers"
                   className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
                 >
-                  <p className="font-heading font-bold text-foreground mb-1">Porcelain veneers cost</p>
-                  <p className="text-sm text-muted-foreground">From £700 per tooth. Full smile transformation.</p>
+                  <p className="font-heading font-bold text-foreground mb-1">Porcelain veneers</p>
+                  <p className="text-sm text-muted-foreground">Full smile transformation after straightening. From £700.</p>
                 </Link>
+              </div>
+
+              {/* Find clinics by area */}
+              <h2 className="text-xl font-heading font-bold text-[#004443] mb-4">
+                Find aligner clinics by area
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: "All London boroughs", href: "/london" },
+                  { label: "Islington", href: "/london/islington" },
+                  { label: "Camden", href: "/london/camden" },
+                  { label: "Westminster", href: "/london/westminster" },
+                  { label: "Kensington & Chelsea", href: "/london/kensington-and-chelsea" },
+                  { label: "Wandsworth", href: "/london/wandsworth" },
+                  { label: "Southwark", href: "/london/southwark" },
+                  { label: "Hackney", href: "/london/hackney" },
+                  { label: "Tower Hamlets", href: "/london/tower-hamlets" },
+                  { label: "Lambeth", href: "/london/lambeth" },
+                  { label: "Hammersmith & Fulham", href: "/london/hammersmith-and-fulham" },
+                ].map((area) => (
+                  <Link
+                    key={area.href}
+                    href={area.href}
+                    className="px-3 py-1.5 text-sm rounded-full border border-border/50 bg-white text-muted-foreground hover:border-[#0fbcb0]/30 hover:text-[#004443] transition-all"
+                  >
+                    {area.label}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
