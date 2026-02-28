@@ -37,7 +37,7 @@ function MiniBar({ label, pct, highlight }: { label: string; pct: number; highli
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
       <span style={{ fontSize: 12, color: highlight ? "#f1f5f9" : "#64748b", fontWeight: highlight ? 600 : 400, width: 100, flexShrink: 0, textAlign: "right" }}>{label}</span>
       <div style={{ flex: 1, height: 8, borderRadius: 4, background: "rgba(255,255,255,.06)", overflow: "hidden" }}>
-        <div style={{ width: `${pct}%`, height: "100%", borderRadius: 4, background: highlight ? "linear-gradient(90deg, #0d9488, #2dd4bf)" : "rgba(255,255,255,.12)", transition: "width .3s" }} />
+        <div style={{ width: `${pct}%`, height: "100%", borderRadius: 4, background: highlight ? "linear-gradient(90deg, #10b981, #34d399)" : "rgba(255,255,255,.12)", transition: "width .3s" }} />
       </div>
     </div>
   )
@@ -45,7 +45,7 @@ function MiniBar({ label, pct, highlight }: { label: string; pct: number; highli
 
 function Tag({ label, active }: { label: string; active?: boolean }) {
   return (
-    <span style={{ display: "inline-block", padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: active ? 600 : 400, background: active ? "rgba(13,148,136,.15)" : "rgba(255,255,255,.04)", color: active ? "#2dd4bf" : "#64748b", border: `1px solid ${active ? "rgba(13,148,136,.25)" : "rgba(255,255,255,.06)"}`, lineHeight: 1.3 }}>
+    <span style={{ display: "inline-block", padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: active ? 600 : 400, background: active ? "rgba(16,185,129,.15)" : "rgba(255,255,255,.04)", color: active ? "#34d399" : "#64748b", border: `1px solid ${active ? "rgba(16,185,129,.25)" : "rgba(255,255,255,.06)"}`, lineHeight: 1.3 }}>
       {label}
     </span>
   )
@@ -55,7 +55,7 @@ function VisualInsightCard({ icon, title, question, children }: { icon: React.Re
   return (
     <div style={{ background: "rgba(255,255,255,.025)", border: "1px solid rgba(255,255,255,.06)", borderRadius: 16, padding: "24px 22px 20px", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-        <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(13,148,136,.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0d9488", flexShrink: 0 }}>{icon}</div>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(16,185,129,.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#10b981", flexShrink: 0 }}>{icon}</div>
         <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>{title}</span>
       </div>
       <div style={{ flex: 1, marginBottom: 12 }}>{children}</div>
@@ -133,17 +133,17 @@ export default function ForClinicsPage() {
   }, [roiPatients, roiLtv])
 
   /* ── Color tokens ── */
-  const teal = "#0d9488"
-  const tealLight = "#2dd4bf"
-  const navy = "#0a0f1e"
-  const cardBg = "rgba(255,255,255,.025)"
-  const cardBorder = "rgba(255,255,255,.06)"
+  const teal = "#10b981"
+  const tealLight = "#34d399"
+  const navy = "#080d1b"
+  const cardBg = "rgba(255,255,255,.03)"
+  const cardBorder = "rgba(255,255,255,.08)"
   const red = "#ef4444"
   const redLight = "#f87171"
 
   /* ── Shared style tokens ── */
   const sec = { padding: "120px 24px" } as const
-  const secAlt = { ...sec, background: "rgba(255,255,255,.018)" } as const
+  const secAlt = { ...sec, background: "rgba(255,255,255,.02)" } as const
   const maxW = { maxWidth: 1080, margin: "0 auto" } as const
   const heading = {
     fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
@@ -155,7 +155,7 @@ export default function ForClinicsPage() {
     display: "inline-flex",
     alignItems: "center",
     gap: 8,
-    background: teal,
+    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
     color: "#fff",
     fontWeight: 700,
     fontSize: 16,
@@ -164,17 +164,18 @@ export default function ForClinicsPage() {
     padding: "16px 32px",
     cursor: "pointer",
     textDecoration: "none",
-    transition: "background .15s",
+    transition: "opacity .15s",
+    boxShadow: "0 0 20px rgba(16,185,129,.25), 0 4px 12px rgba(0,0,0,.3)",
   } as const
   const outlineBtn = {
     display: "inline-flex",
     alignItems: "center",
     gap: 8,
-    background: "transparent",
+    background: "rgba(255,255,255,.03)",
     color: "#f1f5f9",
     fontWeight: 600,
     fontSize: 15,
-    border: "1px solid rgba(255,255,255,.12)",
+    border: "1px solid rgba(255,255,255,.15)",
     borderRadius: 12,
     padding: "14px 28px",
     cursor: "pointer",
@@ -204,7 +205,7 @@ export default function ForClinicsPage() {
           .fc-mobile-menu-btn { display: flex !important; }
           .fc-mobile-dropdown[data-open="true"] {
             display: flex !important; flex-direction: column; position: absolute;
-            top: 64px; left: 0; right: 0; background: rgba(10,15,30,.97);
+            top: 64px; left: 0; right: 0; background: rgba(8,13,27,.97);
             backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255,255,255,.08);
             padding: 12px 24px 20px; gap: 0;
           }
@@ -236,7 +237,7 @@ export default function ForClinicsPage() {
       `}</style>
 
       {/* ══════════ 1. NAV ══════════ */}
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,.88)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,.06)" }}>
+      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(8,13,27,.88)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,.06)" }}>
         <div style={{ ...maxW, display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, padding: "0 24px" }}>
           <Link href="/" style={{ textDecoration: "none" }}><span style={{ ...heading, fontSize: 22 }}>Pearlie</span></Link>
           <div className="fc-nav-links" style={{ display: "flex", alignItems: "center", gap: 28 }}>
@@ -303,7 +304,7 @@ export default function ForClinicsPage() {
             {/* Step 01 */}
             <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "28px 24px", display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-                <div style={{ width: 42, height: 42, borderRadius: 12, background: `rgba(13,148,136,.1)`, display: "flex", alignItems: "center", justifyContent: "center", color: teal }}><FileText size={22} /></div>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: `rgba(16,185,129,.1)`, display: "flex", alignItems: "center", justifyContent: "center", color: teal }}><FileText size={22} /></div>
                 <span style={{ color: teal, fontWeight: 800, fontSize: 13, letterSpacing: "0.04em" }}>STEP 01</span>
               </div>
               <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 8 }}>Patient completes intake</h3>
@@ -318,7 +319,7 @@ export default function ForClinicsPage() {
                 <p style={{ color: "#94a3b8", fontSize: 11, marginBottom: 8, fontWeight: 500 }}>What matters most when choosing a clinic?</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {[{ label: "Clear pricing before treatment", selected: true }, { label: "A calm, reassuring environment", selected: true }, { label: "Strong reputation and reviews", selected: false }].map((opt) => (
-                    <div key={opt.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 8, background: opt.selected ? `rgba(13,148,136,.1)` : "rgba(255,255,255,.03)", border: `1px solid ${opt.selected ? "rgba(13,148,136,.25)" : "rgba(255,255,255,.06)"}` }}>
+                    <div key={opt.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 8, background: opt.selected ? `rgba(16,185,129,.1)` : "rgba(255,255,255,.03)", border: `1px solid ${opt.selected ? "rgba(16,185,129,.25)" : "rgba(255,255,255,.06)"}` }}>
                       <div style={{ width: 14, height: 14, borderRadius: 4, border: `2px solid ${opt.selected ? teal : "#475569"}`, background: opt.selected ? teal : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         {opt.selected && <Check size={9} style={{ color: "#fff" }} />}
                       </div>
@@ -331,7 +332,7 @@ export default function ForClinicsPage() {
             {/* Step 02 */}
             <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "28px 24px", display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-                <div style={{ width: 42, height: 42, borderRadius: 12, background: `rgba(13,148,136,.1)`, display: "flex", alignItems: "center", justifyContent: "center", color: teal }}><Brain size={22} /></div>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: `rgba(16,185,129,.1)`, display: "flex", alignItems: "center", justifyContent: "center", color: teal }}><Brain size={22} /></div>
                 <span style={{ color: teal, fontWeight: 800, fontSize: 13, letterSpacing: "0.04em" }}>STEP 02</span>
               </div>
               <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 8 }}>Pearlie matches to your clinic</h3>
@@ -358,7 +359,7 @@ export default function ForClinicsPage() {
             {/* Step 03 */}
             <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "28px 24px", display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-                <div style={{ width: 42, height: 42, borderRadius: 12, background: `rgba(13,148,136,.1)`, display: "flex", alignItems: "center", justifyContent: "center", color: teal }}><Zap size={22} /></div>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: `rgba(16,185,129,.1)`, display: "flex", alignItems: "center", justifyContent: "center", color: teal }}><Zap size={22} /></div>
                 <span style={{ color: teal, fontWeight: 800, fontSize: 13, letterSpacing: "0.04em" }}>STEP 03</span>
               </div>
               <h3 style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 18, marginBottom: 8 }}>You receive a matched patient</h3>
@@ -367,11 +368,11 @@ export default function ForClinicsPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                   <div style={{ width: 32, height: 32, borderRadius: "50%", background: `linear-gradient(135deg, ${teal}, ${tealLight})`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: 13 }}>S</div>
                   <div><p style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600 }}>Sarah M.</p><p style={{ color: "#64748b", fontSize: 10 }}>Requested appointment</p></div>
-                  <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 700, color: teal, background: `rgba(13,148,136,.12)`, padding: "3px 8px", borderRadius: 6 }}>92% match</span>
+                  <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 700, color: teal, background: `rgba(16,185,129,.12)`, padding: "3px 8px", borderRadius: 6 }}>92% match</span>
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {["Invisalign", "Quite anxious", "Flexible range", "Within a week", "Clear pricing", "Afternoons", "Up to 5 mi", "Cost concern"].map((l) => (
-                    <span key={l} style={{ fontSize: 10, fontWeight: 500, padding: "3px 8px", borderRadius: 6, background: `rgba(13,148,136,.1)`, color: tealLight, border: `1px solid rgba(13,148,136,.2)` }}>{l}</span>
+                    <span key={l} style={{ fontSize: 10, fontWeight: 500, padding: "3px 8px", borderRadius: 6, background: `rgba(16,185,129,.1)`, color: tealLight, border: `1px solid rgba(16,185,129,.2)` }}>{l}</span>
                   ))}
                 </div>
               </div>
@@ -430,7 +431,7 @@ export default function ForClinicsPage() {
             <VisualInsightCard icon={<Calendar size={16} />} title="Preferred visit times" question="When would you prefer appointments?">
               <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
                 {[{ label: "Morning", sub: "Before 12pm", icon: "9am", active: false }, { label: "Afternoon", sub: "12 – 5pm", icon: "2pm", active: true }, { label: "Weekend", sub: "Sat / Sun", icon: "Sat", active: true }].map((slot) => (
-                  <div key={slot.label} style={{ flex: 1, textAlign: "center", padding: "14px 8px 12px", borderRadius: 12, background: slot.active ? `rgba(13,148,136,.1)` : "rgba(255,255,255,.03)", border: `1px solid ${slot.active ? "rgba(13,148,136,.25)" : "rgba(255,255,255,.06)"}` }}>
+                  <div key={slot.label} style={{ flex: 1, textAlign: "center", padding: "14px 8px 12px", borderRadius: 12, background: slot.active ? `rgba(16,185,129,.1)` : "rgba(255,255,255,.03)", border: `1px solid ${slot.active ? "rgba(16,185,129,.25)" : "rgba(255,255,255,.06)"}` }}>
                     <p style={{ fontSize: 18, fontWeight: 800, color: slot.active ? teal : "#475569", marginBottom: 4, fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif" }}>{slot.icon}</p>
                     <p style={{ fontSize: 12, fontWeight: 600, color: slot.active ? "#f1f5f9" : "#64748b" }}>{slot.label}</p>
                     <p style={{ fontSize: 10, color: "#475569" }}>{slot.sub}</p>
@@ -441,7 +442,7 @@ export default function ForClinicsPage() {
             <VisualInsightCard icon={<MapPin size={16} />} title="Location flexibility" question="How far are you willing to travel?">
               <div style={{ marginBottom: 8 }}>
                 {[{ label: "Close to home / work", dist: "1.5 mi", idx: 0 }, { label: "Travel a bit", dist: "5 mi", idx: 1 }, { label: "Travel further for right clinic", dist: "5+ mi", idx: 2 }].map((loc) => (
-                  <div key={loc.label} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 10, marginBottom: 4, background: loc.idx === 1 ? `rgba(13,148,136,.08)` : "transparent", border: loc.idx === 1 ? `1px solid rgba(13,148,136,.15)` : "1px solid transparent" }}>
+                  <div key={loc.label} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 10, marginBottom: 4, background: loc.idx === 1 ? `rgba(16,185,129,.08)` : "transparent", border: loc.idx === 1 ? `1px solid rgba(16,185,129,.15)` : "1px solid transparent" }}>
                     <MapPin size={13} style={{ color: loc.idx === 1 ? teal : "#475569", flexShrink: 0 }} />
                     <span style={{ fontSize: 12, color: loc.idx === 1 ? "#f1f5f9" : "#94a3b8", flex: 1, fontWeight: loc.idx === 1 ? 600 : 400 }}>{loc.label}</span>
                     <span style={{ fontSize: 11, color: "#64748b", fontWeight: 500, background: "rgba(255,255,255,.05)", padding: "2px 8px", borderRadius: 6 }}>{loc.dist}</span>
@@ -466,7 +467,7 @@ export default function ForClinicsPage() {
                 <thead><tr>
                   <th style={{ textAlign: "left", padding: "18px 20px", color: "#64748b", fontWeight: 600, fontSize: 13, borderBottom: `1px solid rgba(255,255,255,.08)` }}>&nbsp;</th>
                   <th style={{ textAlign: "center", padding: "18px 20px", color: redLight, fontWeight: 700, fontSize: 14, borderBottom: `1px solid rgba(255,255,255,.08)` }}>Traditional / Agency</th>
-                  <th style={{ textAlign: "center", padding: "18px 20px", color: teal, fontWeight: 700, fontSize: 14, borderBottom: `2px solid ${teal}`, background: `rgba(13,148,136,.04)` }}>Pearlie</th>
+                  <th style={{ textAlign: "center", padding: "18px 20px", color: teal, fontWeight: 700, fontSize: 14, borderBottom: `2px solid ${teal}`, background: `rgba(16,185,129,.04)` }}>Pearlie</th>
                 </tr></thead>
                 <tbody>
                   {[
@@ -483,7 +484,7 @@ export default function ForClinicsPage() {
                     <tr key={row.feature}>
                       <td style={{ padding: "16px 20px", color: "#cbd5e1", fontWeight: 500, borderBottom: `1px solid rgba(255,255,255,.04)` }}>{row.feature}</td>
                       <td style={{ textAlign: "center", padding: "16px 20px", color: redLight, fontWeight: 600, fontSize: 14, borderBottom: `1px solid rgba(255,255,255,.04)` }}>{row.old}</td>
-                      <td style={{ textAlign: "center", padding: "16px 20px", color: teal, fontWeight: 600, fontSize: 14, borderBottom: `1px solid rgba(255,255,255,.04)`, background: `rgba(13,148,136,.03)` }}>{row.pearlie}</td>
+                      <td style={{ textAlign: "center", padding: "16px 20px", color: teal, fontWeight: 600, fontSize: 14, borderBottom: `1px solid rgba(255,255,255,.04)`, background: `rgba(16,185,129,.03)` }}>{row.pearlie}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -497,7 +498,7 @@ export default function ForClinicsPage() {
       <section className="fc-section" style={sec}>
         <div style={{ ...maxW, maxWidth: 800 }}>
           <div style={{ textAlign: "center", marginBottom: 12 }}>
-            <span style={{ display: "inline-block", background: `rgba(13,148,136,.1)`, color: teal, fontWeight: 700, fontSize: 13, padding: "6px 16px", borderRadius: 20, textTransform: "uppercase", letterSpacing: "0.04em" }}>Zero risk</span>
+            <span style={{ display: "inline-block", background: `rgba(16,185,129,.1)`, color: teal, fontWeight: 700, fontSize: 13, padding: "6px 16px", borderRadius: 20, textTransform: "uppercase", letterSpacing: "0.04em" }}>Zero risk</span>
           </div>
           {sectionH2(<>You only pay for patients<br />who actually show up</>)}
           <p style={{ color: "#94a3b8", fontSize: 16, textAlign: "center", maxWidth: 600, margin: "0 auto 40px", lineHeight: 1.65 }}>
@@ -518,7 +519,7 @@ export default function ForClinicsPage() {
       <section className="fc-section" style={secAlt}>
         <div style={maxW}>
           <div style={{ textAlign: "center", marginBottom: 12 }}>
-            <span style={{ display: "inline-block", background: `rgba(13,148,136,.1)`, color: teal, fontWeight: 700, fontSize: 13, padding: "6px 16px", borderRadius: 20, textTransform: "uppercase", letterSpacing: "0.04em" }}>Bonus: free visibility</span>
+            <span style={{ display: "inline-block", background: `rgba(16,185,129,.1)`, color: teal, fontWeight: 700, fontSize: 13, padding: "6px 16px", borderRadius: 20, textTransform: "uppercase", letterSpacing: "0.04em" }}>Bonus: free visibility</span>
           </div>
           {sectionH2("Patients discover your clinic \u2014 even outside Pearlie")}
           {sectionSub("Every clinic gets a public profile page that ranks on Google. Your always-on digital storefront \u2014 at no extra cost.")}
@@ -574,12 +575,12 @@ export default function ForClinicsPage() {
             {/* Organic growth */}
             <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "24px 22px 20px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: `rgba(13,148,136,.1)`, display: "flex", alignItems: "center", justifyContent: "center", color: teal, flexShrink: 0 }}><TrendingUp size={16} /></div>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: `rgba(16,185,129,.1)`, display: "flex", alignItems: "center", justifyContent: "center", color: teal, flexShrink: 0 }}><TrendingUp size={16} /></div>
                 <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>Organic growth channel</span>
               </div>
               <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 80, padding: "0 4px", marginBottom: 12 }}>
                 {[18, 25, 22, 35, 40, 38, 52, 60, 55, 70, 78, 85].map((h, i) => (
-                  <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: "3px 3px 0 0", background: i >= 9 ? `linear-gradient(180deg, ${teal}, rgba(13,148,136,.4))` : `rgba(13,148,136,.15)` }} />
+                  <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: "3px 3px 0 0", background: i >= 9 ? `linear-gradient(180deg, ${teal}, rgba(16,185,129,.4))` : `rgba(16,185,129,.15)` }} />
                 ))}
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}><span style={{ color: "#475569", fontSize: 10 }}>Month 1</span><span style={{ color: teal, fontSize: 10, fontWeight: 600 }}>Month 12</span></div>
@@ -624,8 +625,8 @@ export default function ForClinicsPage() {
           {/* ── FREE TRIAL BANNER ── */}
           <div
             style={{
-              background: "rgba(13,148,136,.06)",
-              border: "1px solid rgba(13,148,136,.2)",
+              background: "rgba(16,185,129,.06)",
+              border: "1px solid rgba(16,185,129,.2)",
               borderRadius: 16,
               padding: "28px 32px",
               textAlign: "center",
@@ -705,8 +706,8 @@ export default function ForClinicsPage() {
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  background: "rgba(13,148,136,.08)",
-                  border: "1px solid rgba(13,148,136,.2)",
+                  background: "rgba(16,185,129,.08)",
+                  border: "1px solid rgba(16,185,129,.2)",
                   borderRadius: 10,
                   padding: "10px 14px",
                   marginBottom: 16,
@@ -762,8 +763,8 @@ export default function ForClinicsPage() {
             {/* ── STANDARD (Best value) ── */}
             <div
               style={{
-                background: "rgba(13,148,136,.06)",
-                border: "2px solid rgba(13,148,136,.25)",
+                background: "rgba(16,185,129,.06)",
+                border: "2px solid rgba(16,185,129,.25)",
                 borderRadius: 20,
                 padding: "40px 28px",
                 position: "relative",
@@ -812,8 +813,8 @@ export default function ForClinicsPage() {
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  background: "rgba(13,148,136,.08)",
-                  border: "1px solid rgba(13,148,136,.2)",
+                  background: "rgba(16,185,129,.08)",
+                  border: "1px solid rgba(16,185,129,.2)",
                   borderRadius: 10,
                   padding: "10px 14px",
                   marginBottom: 8,
@@ -828,8 +829,8 @@ export default function ForClinicsPage() {
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  background: "rgba(13,148,136,.06)",
-                  border: "1px solid rgba(13,148,136,.12)",
+                  background: "rgba(16,185,129,.06)",
+                  border: "1px solid rgba(16,185,129,.12)",
                   borderRadius: 10,
                   padding: "10px 14px",
                   marginBottom: 16,
@@ -954,8 +955,8 @@ export default function ForClinicsPage() {
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  background: "rgba(13,148,136,.08)",
-                  border: "1px solid rgba(13,148,136,.2)",
+                  background: "rgba(16,185,129,.08)",
+                  border: "1px solid rgba(16,185,129,.2)",
                   borderRadius: 10,
                   padding: "10px 14px",
                   marginBottom: 8,
@@ -970,8 +971,8 @@ export default function ForClinicsPage() {
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  background: "rgba(13,148,136,.06)",
-                  border: "1px solid rgba(13,148,136,.12)",
+                  background: "rgba(16,185,129,.06)",
+                  border: "1px solid rgba(16,185,129,.12)",
                   borderRadius: 10,
                   padding: "10px 14px",
                   marginBottom: 16,
@@ -1045,8 +1046,8 @@ export default function ForClinicsPage() {
             style={{
               maxWidth: 800,
               margin: "40px auto 0",
-              background: "rgba(13,148,136,.06)",
-              border: "1px solid rgba(13,148,136,.15)",
+              background: "rgba(16,185,129,.06)",
+              border: "1px solid rgba(16,185,129,.15)",
               borderRadius: 14,
               padding: "20px 28px",
               textAlign: "center",
@@ -1073,7 +1074,7 @@ export default function ForClinicsPage() {
                   <th style={{ textAlign: "center", padding: "16px 16px", color: "#f1f5f9", fontWeight: 700, fontSize: 14 }}>
                     Starter &pound;99
                   </th>
-                  <th style={{ textAlign: "center", padding: "16px 16px", color: teal, fontWeight: 700, fontSize: 14, background: "rgba(13,148,136,.04)" }}>
+                  <th style={{ textAlign: "center", padding: "16px 16px", color: teal, fontWeight: 700, fontSize: 14, background: "rgba(16,185,129,.04)" }}>
                     <div>Standard &pound;247</div>
                     <span style={{ display: "inline-block", background: teal, color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10, marginTop: 4, textTransform: "uppercase" }}>Best value</span>
                   </th>
@@ -1086,14 +1087,14 @@ export default function ForClinicsPage() {
                 {/* ── Patient Acquisition ── */}
                 <tr><td colSpan={4} style={{ padding: "14px 20px", color: teal, fontWeight: 700, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid rgba(255,255,255,.04)" }}>Patient Acquisition</td></tr>
                 {/* Unlimited enquiries - HIGHLIGHTED ROW */}
-                <tr style={{ background: "rgba(13,148,136,.06)" }}>
+                <tr style={{ background: "rgba(16,185,129,.06)" }}>
                   <td style={{ padding: "14px 20px", color: "#f1f5f9", fontWeight: 700, fontSize: 14, borderBottom: "1px solid rgba(255,255,255,.04)" }}>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                       <span style={{ color: teal, fontSize: 16 }}>&infin;</span> Unlimited patient enquiries
                     </span>
                   </td>
                   <td style={{ textAlign: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.04)" }}><Check size={18} style={{ color: teal }} /></td>
-                  <td style={{ textAlign: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.04)", background: "rgba(13,148,136,.04)" }}><Check size={18} style={{ color: teal }} /></td>
+                  <td style={{ textAlign: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.04)", background: "rgba(16,185,129,.04)" }}><Check size={18} style={{ color: teal }} /></td>
                   <td style={{ textAlign: "center", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.04)" }}><Check size={18} style={{ color: teal }} /></td>
                 </tr>
                 {[
@@ -1105,7 +1106,7 @@ export default function ForClinicsPage() {
                   <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
                     <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
                     {[row.starter, row.standard, row.premium].map((val, i) => (
-                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(16,185,129,.04)" : undefined }}>
                         {typeof val === "boolean" ? (val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />) : <span style={{ color: "#94a3b8", fontWeight: 600 }}>{val}</span>}
                       </td>
                     ))}
@@ -1121,7 +1122,7 @@ export default function ForClinicsPage() {
                   <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
                     <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
                     {[row.starter, row.standard, row.premium].map((val, i) => (
-                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(16,185,129,.04)" : undefined }}>
                         {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
                       </td>
                     ))}
@@ -1137,7 +1138,7 @@ export default function ForClinicsPage() {
                   <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
                     <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
                     {[row.starter, row.standard, row.premium].map((val, i) => (
-                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(16,185,129,.04)" : undefined }}>
                         {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
                       </td>
                     ))}
@@ -1153,7 +1154,7 @@ export default function ForClinicsPage() {
                   <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
                     <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
                     {[row.starter, row.standard, row.premium].map((val, i) => (
-                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(16,185,129,.04)" : undefined }}>
                         {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
                       </td>
                     ))}
@@ -1170,7 +1171,7 @@ export default function ForClinicsPage() {
                   <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
                     <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
                     {[row.starter, row.standard, row.premium].map((val, i) => (
-                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(16,185,129,.04)" : undefined }}>
                         {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
                       </td>
                     ))}
@@ -1187,7 +1188,7 @@ export default function ForClinicsPage() {
                   <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
                     <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
                     {[row.starter, row.standard, row.premium].map((val, i) => (
-                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(16,185,129,.04)" : undefined }}>
                         {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
                       </td>
                     ))}
@@ -1210,7 +1211,7 @@ export default function ForClinicsPage() {
                       {row.feature === "Pearlie Guarantee" ? <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Shield size={14} style={{ color: "#fbbf24" }} /> {row.feature}</span> : row.feature}
                     </td>
                     {[row.starter, row.standard, row.premium].map((val, i) => (
-                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(16,185,129,.04)" : undefined }}>
                         {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
                       </td>
                     ))}
@@ -1226,7 +1227,7 @@ export default function ForClinicsPage() {
                   <tr key={row.feature} style={{ borderBottom: "1px solid rgba(255,255,255,.04)" }}>
                     <td style={{ padding: "12px 20px", color: "#cbd5e1", fontWeight: 500 }}>{row.feature}</td>
                     {[row.starter, row.standard, row.premium].map((val, i) => (
-                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(13,148,136,.04)" : undefined }}>
+                      <td key={i} style={{ textAlign: "center", padding: "12px 16px", background: i === 1 ? "rgba(16,185,129,.04)" : undefined }}>
                         {val ? <Check size={16} style={{ color: teal }} /> : <X size={16} style={{ color: "#334155" }} />}
                       </td>
                     ))}
@@ -1240,7 +1241,7 @@ export default function ForClinicsPage() {
                       Start free trial
                     </Link>
                   </td>
-                  <td style={{ textAlign: "center", padding: "20px 12px", background: "rgba(13,148,136,.04)" }}>
+                  <td style={{ textAlign: "center", padding: "20px 12px", background: "rgba(16,185,129,.04)" }}>
                     <Link href="/signup" style={{ ...greenBtn, padding: "10px 20px", fontSize: 13, borderRadius: 10 }}>
                       Start free trial
                     </Link>
@@ -1297,7 +1298,7 @@ export default function ForClinicsPage() {
                       <p style={{ color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>You pay Pearlie</p>
                       <p style={{ ...heading, fontSize: 24, color: "#f8fafc" }}>&pound;{r.totalCost.toLocaleString()}<span style={{ fontSize: 13, color: "#64748b", fontWeight: 400 }}>/mo</span></p>
                     </div>
-                    <div style={{ background: "rgba(13,148,136,.06)", border: "1px solid rgba(13,148,136,.15)", borderRadius: 14, padding: "20px 16px", textAlign: "center" }}>
+                    <div style={{ background: "rgba(16,185,129,.06)", border: "1px solid rgba(16,185,129,.15)", borderRadius: 14, padding: "20px 16px", textAlign: "center" }}>
                       <p style={{ color: "#64748b", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Revenue you keep</p>
                       <p style={{ ...heading, fontSize: 24, color: teal }}>&pound;{r.revenue.toLocaleString()}</p>
                     </div>
@@ -1334,7 +1335,7 @@ export default function ForClinicsPage() {
               { step: "04", title: "Receive patients", desc: "Get full patient profiles with insights \u2014 ready for a productive consult.", icon: <Zap size={20} /> },
             ].map((s) => (
               <div key={s.step} style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "28px 22px", textAlign: "center" }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: `rgba(13,148,136,.1)`, display: "flex", alignItems: "center", justifyContent: "center", color: teal, margin: "0 auto 14px" }}>{s.icon}</div>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: `rgba(16,185,129,.1)`, display: "flex", alignItems: "center", justifyContent: "center", color: teal, margin: "0 auto 14px" }}>{s.icon}</div>
                 <p style={{ color: teal, fontSize: 11, fontWeight: 800, marginBottom: 6, letterSpacing: "0.06em" }}>STEP {s.step}</p>
                 <h3 style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 16, marginBottom: 6 }}>{s.title}</h3>
                 <p style={{ color: "#94a3b8", fontSize: 13, lineHeight: 1.45 }}>{s.desc}</p>
@@ -1356,7 +1357,7 @@ export default function ForClinicsPage() {
               { name: "Hannan Imran", practice: "Siha Dental", quote: "We stopped spending thousands on Google Ads and started getting higher-quality patients through Pearlie. The patient profiles are incredibly detailed \u2014 our conversion rate has gone up significantly." },
             ].map((t) => (
               <div key={t.name} style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 20, padding: "36px 30px", position: "relative" }}>
-                <Quote size={28} style={{ color: `rgba(13,148,136,.1)`, position: "absolute", top: 28, right: 28 }} />
+                <Quote size={28} style={{ color: `rgba(16,185,129,.1)`, position: "absolute", top: 28, right: 28 }} />
                 <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>{[1, 2, 3, 4, 5].map((s) => (<Star key={s} size={14} fill="#fbbf24" style={{ color: "#fbbf24" }} />))}</div>
                 <p style={{ color: "#cbd5e1", fontSize: 15, lineHeight: 1.7, marginBottom: 28, fontStyle: "italic" }}>&ldquo;{t.quote}&rdquo;</p>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1386,7 +1387,7 @@ export default function ForClinicsPage() {
       </section>
 
       {/* ══════════ 13. FINAL CTA ══════════ */}
-      <section className="fc-section" style={{ padding: "100px 24px 140px", background: `linear-gradient(180deg, rgba(13,148,136,.04) 0%, rgba(10,15,30,0) 100%)`, textAlign: "center" }}>
+      <section className="fc-section" style={{ padding: "100px 24px 140px", background: `linear-gradient(180deg, rgba(16,185,129,.04) 0%, rgba(8,13,27,0) 100%)`, textAlign: "center" }}>
         <div style={maxW}>
           <h2 style={{ ...heading, fontSize: "clamp(30px, 4.5vw, 52px)", marginBottom: 16, letterSpacing: "-0.03em", lineHeight: 1.1 }}>Ready for patients who<br />actually convert?</h2>
           <p style={{ color: "#94a3b8", fontSize: 18, maxWidth: 520, margin: "0 auto 44px", lineHeight: 1.6 }}>Join Pearlie and start receiving pre-qualified patients \u2014 with the insights you need to close them.</p>
