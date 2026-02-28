@@ -10,6 +10,7 @@
  */
 
 import { createAdminClient } from "@/lib/supabase/admin"
+import { TREATMENT_OPTIONS } from "@/lib/constants"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -264,6 +265,7 @@ export async function createClinicRecord(
       google_review_count: input.google_review_count ?? null,
       google_maps_url: input.google_maps_url || null,
       images: input.images || [],
+      treatments: [...TREATMENT_OPTIONS],
       is_live: input.is_live ?? false,
       is_archived: input.is_archived ?? false,
       verified: input.verified ?? false,

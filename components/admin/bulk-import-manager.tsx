@@ -20,7 +20,18 @@ import {
   SkipForward,
   ExternalLink,
   RefreshCw,
+  Trash2,
 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 // London neighbourhood seeds (must match server-side)
 const LONDON_NEIGHBOURHOODS: Record<string, string[]> = {
@@ -106,6 +117,10 @@ export function BulkImportManager() {
   // Past runs
   const [pastRuns, setPastRuns] = useState<ImportRun[]>([])
   const [loadingRuns, setLoadingRuns] = useState(false)
+
+  // Delete state
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set())
+  const [clinicToDelete, setClinicToDelete] = useState<{ id: string; name: string } | null>(null)
 
   const cancelledRef = useRef(false)
 
@@ -263,6 +278,31 @@ export function BulkImportManager() {
   const cancelImport = () => {
     cancelledRef.current = true
     addLog("Cancelling import after current batch...")
+  }
+
+  const handleDeleteClinic = async () => {
+    if (!clinicToDelete) return
+    const { id, name } = clinicToDelete
+    setClinicToDelete(null)
+    setDeletingIds((prev) => new Set(prev).add(id))
+
+    try {
+      const res = await fetch(`/api/admin/clinics/${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Delete failed")
+
+      // Remove from results list
+      setAllResults((prev) => prev.filter((r) => r.clinicId !== id))
+      setTotalImported((prev) => prev - 1)
+      addLog(`Deleted clinic: ${name}`)
+    } catch (err) {
+      addLog(`Failed to delete ${name}: ${err instanceof Error ? err.message : "unknown"}`)
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }
   }
 
   const progress = ALL_NEIGHBOURHOODS.length > 0
@@ -501,6 +541,22 @@ export function BulkImportManager() {
                             <DollarSign className="w-2.5 h-2.5 mr-0.5" />
                             {r.pricingOk ? `${r.priceCount}` : "none"}
                           </Badge>
+                          {r.clinicId && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-muted-foreground hover:text-red-600"
+                              disabled={deletingIds.has(r.clinicId)}
+                              onClick={() => setClinicToDelete({ id: r.clinicId!, name: r.name })}
+                              title="Delete clinic"
+                            >
+                              {deletingIds.has(r.clinicId) ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3 h-3" />
+                              )}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -578,6 +634,27 @@ export function BulkImportManager() {
           Start New Import
         </Button>
       )}
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!clinicToDelete} onOpenChange={() => setClinicToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Clinic</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete &quot;{clinicToDelete?.name}&quot;? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteClinic}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Past runs */}
       {pastRuns.length > 0 && (
