@@ -40,14 +40,14 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
         {/* Photos */}
         {hasPhotos && (
           <div>
-            <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Photos</h2>
-            <div className="relative rounded-2xl overflow-hidden bg-[#e5e5e5] aspect-[16/9]">
+            <h2 className="text-lg font-bold text-foreground mb-3">Photos</h2>
+            <div className="relative rounded-2xl overflow-hidden bg-secondary aspect-[16/9]">
               <ClinicImage
                 src={clinic.images[lightboxIndex] || clinic.images[0]}
                 alt={`${clinic.name} - Photo ${lightboxIndex + 1}`}
                 fill
                 className="object-cover"
-                fallbackClassName="absolute inset-0 flex items-center justify-center bg-[#f5f5f5]"
+                fallbackClassName="absolute inset-0 flex items-center justify-center bg-secondary"
                 sizes="(max-width: 1024px) 100vw, 30vw"
               />
               {clinic.images.length > 1 && (
@@ -56,13 +56,13 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
                     onClick={() => setLightboxIndex((lightboxIndex - 1 + clinic.images.length) % clinic.images.length)}
                     className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-colors"
                   >
-                    <ChevronLeftIcon className="h-4 w-4 text-[#1a1a1a]" />
+                    <ChevronLeftIcon className="h-4 w-4 text-foreground" />
                   </button>
                   <button
                     onClick={() => setLightboxIndex((lightboxIndex + 1) % clinic.images.length)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-colors"
                   >
-                    <ChevronRight className="h-4 w-4 text-[#1a1a1a]" />
+                    <ChevronRight className="h-4 w-4 text-foreground" />
                   </button>
                   <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-black/60 text-white text-xs font-medium backdrop-blur-sm flex items-center gap-1.5">
                     <ImageIcon className="h-3.5 w-3.5" />
@@ -89,12 +89,12 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
       </div>
 
       {/* Divider */}
-      <div className="border-t border-[#e5e5e5]" />
+      <div className="border-t border-border" />
 
       {/* Providers */}
       {providers.length > 0 && (
         <section>
-          <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Our Providers</h2>
+          <h2 className="text-lg font-bold text-foreground mb-3">Our Providers</h2>
           <div className="space-y-3">
             {providers.map((provider) => {
               const isExpanded = expandedProvider === provider.id
@@ -103,25 +103,25 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
               const hasCerts = provider.certifications && provider.certifications.length > 0
 
               return (
-                <div key={provider.id} className="bg-card rounded-xl border border-[#e5e5e5] overflow-hidden">
+                <div key={provider.id} className="bg-card rounded-xl border border-border overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-[#f0f0f0] overflow-hidden flex-shrink-0">
+                      <div className="h-12 w-12 rounded-full bg-secondary overflow-hidden flex-shrink-0">
                         {provider.photo_url ? (
                           <img src={provider.photo_url || "/placeholder.svg"} alt={provider.name} className="h-full w-full object-cover" />
                         ) : (
                           <div className="h-full w-full flex items-center justify-center">
-                            <UserRound className="h-6 w-6 text-[#999]" />
+                            <UserRound className="h-6 w-6 text-muted-foreground" />
                           </div>
                         )}
                       </div>
-                      <span className="font-semibold text-[#1a1a1a]">{provider.name}</span>
+                      <span className="font-semibold text-foreground">{provider.name}</span>
                     </div>
                     {(hasBio || hasEducation || hasCerts) && (
                       <button
                         type="button"
                         onClick={() => setExpandedProvider(isExpanded ? null : provider.id)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#666] border border-[#e5e5e5] rounded-full hover:bg-[#f5f5f5] transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-muted-foreground border border-border rounded-full hover:bg-secondary transition-colors"
                       >
                         {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                         {isExpanded ? "Less" : "More"}
@@ -129,8 +129,8 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
                     )}
                   </div>
                   {isExpanded && (
-                    <div className="px-4 pb-4 border-t border-[#e5e5e5] pt-3 space-y-4">
-                      {hasBio && <p className="text-sm text-[#444] leading-relaxed">{provider.bio}</p>}
+                    <div className="px-4 pb-4 border-t border-border pt-3 space-y-4">
+                      {hasBio && <p className="text-sm text-muted-foreground leading-relaxed">{provider.bio}</p>}
                       {(hasEducation || hasCerts) && (
                         <div className="grid sm:grid-cols-2 gap-3">
                           {(provider.education || []).map((edu, i) => (
@@ -139,8 +139,8 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
                                 <GraduationCap className="h-4 w-4 text-[#3b6fcf]" />
                               </div>
                               <div>
-                                <p className="font-medium text-sm text-[#1a1a1a]">{edu.degree}</p>
-                                {edu.institution && <p className="text-xs text-[#666]">{edu.institution}</p>}
+                                <p className="font-medium text-sm text-foreground">{edu.degree}</p>
+                                {edu.institution && <p className="text-xs text-muted-foreground">{edu.institution}</p>}
                               </div>
                             </div>
                           ))}
@@ -150,8 +150,8 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
                                 <Award className="h-4 w-4 text-[#3b6fcf]" />
                               </div>
                               <div>
-                                <p className="font-medium text-sm text-[#1a1a1a]">{cert.name}</p>
-                                {cert.date && <p className="text-xs text-[#666]">{cert.date}</p>}
+                                <p className="font-medium text-sm text-foreground">{cert.name}</p>
+                                {cert.date && <p className="text-xs text-muted-foreground">{cert.date}</p>}
                               </div>
                             </div>
                           ))}
@@ -169,27 +169,27 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
       {/* Before & After */}
       {clinic.before_after_images && clinic.before_after_images.length > 0 && (
         <section>
-          <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Before & After</h2>
+          <h2 className="text-lg font-bold text-foreground mb-3">Before & After</h2>
           <div className="space-y-6">
             {clinic.before_after_images
               .filter((pair) => pair.before_url || pair.after_url)
               .map((pair, idx) => (
-                <div key={idx} className="border border-[#e5e5e5] rounded-xl overflow-hidden">
+                <div key={idx} className="border border-border rounded-xl overflow-hidden">
                   {pair.treatment && (
-                    <div className="px-4 py-2.5 bg-[#fafafa] border-b border-[#e5e5e5]">
-                      <p className="text-sm font-semibold text-[#1a1a1a]">{pair.treatment}</p>
+                    <div className="px-4 py-2.5 bg-secondary border-b border-border">
+                      <p className="text-sm font-semibold text-foreground">{pair.treatment}</p>
                     </div>
                   )}
                   <div className="grid grid-cols-2">
                     {pair.before_url && (
-                      <div className="relative bg-[#f5f5f5]">
+                      <div className="relative bg-secondary">
                         <div className="relative aspect-[4/3]">
                           <ClinicImage
                             src={pair.before_url}
                             alt={`Before${pair.treatment ? ` - ${pair.treatment}` : ""}`}
                             fill
                             className="object-contain"
-                            fallbackClassName="absolute inset-0 flex items-center justify-center bg-[#f5f5f5]"
+                            fallbackClassName="absolute inset-0 flex items-center justify-center bg-secondary"
                             sizes="(max-width: 640px) 50vw, 30vw"
                           />
                         </div>
@@ -199,14 +199,14 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
                       </div>
                     )}
                     {pair.after_url && (
-                      <div className="relative bg-[#f5f5f5] border-l border-[#e5e5e5]">
+                      <div className="relative bg-secondary border-l border-border">
                         <div className="relative aspect-[4/3]">
                           <ClinicImage
                             src={pair.after_url}
                             alt={`After${pair.treatment ? ` - ${pair.treatment}` : ""}`}
                             fill
                             className="object-contain"
-                            fallbackClassName="absolute inset-0 flex items-center justify-center bg-[#f5f5f5]"
+                            fallbackClassName="absolute inset-0 flex items-center justify-center bg-secondary"
                             sizes="(max-width: 640px) 50vw, 30vw"
                           />
                         </div>
@@ -217,8 +217,8 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
                     )}
                   </div>
                   {pair.description && (
-                    <div className="px-4 py-2.5 border-t border-[#e5e5e5]">
-                      <p className="text-sm text-[#666]">{pair.description}</p>
+                    <div className="px-4 py-2.5 border-t border-border">
+                      <p className="text-sm text-muted-foreground">{pair.description}</p>
                     </div>
                   )}
                 </div>
@@ -236,7 +236,7 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
                 href={clinic.website.startsWith("http") ? clinic.website : `https://${clinic.website}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-[#444] hover:text-[#1a1a1a] transition-colors"
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ExternalLink className="h-4 w-4" />
                 <span>Website</span>
@@ -246,7 +246,7 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
               <span className="text-[#e5e5e5]">|</span>
             )}
             {clinic.phone && (
-              <a href={`tel:${clinic.phone}`} className="flex items-center gap-2 text-[#444] hover:text-[#1a1a1a] transition-colors">
+              <a href={`tel:${clinic.phone}`} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                 <Phone className="h-4 w-4" />
                 <span>{clinic.phone}</span>
               </a>

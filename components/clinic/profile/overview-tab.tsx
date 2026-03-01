@@ -119,7 +119,7 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
       {/* Treatment Focus — matched treatments shown prominently, rest collapsed */}
       {(availableTreatments.length > 0 || hasPatientSelections) && (
         <section>
-          <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">
+          <h2 className="text-lg font-bold text-foreground mb-3">
             {hasPatientSelections ? "Treatment Focus" : "Services"}
           </h2>
 
@@ -141,7 +141,7 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
               <button
                 type="button"
                 onClick={() => setShowAllTreatments(!showAllTreatments)}
-                className="inline-flex items-center gap-1 text-sm font-medium text-[#666] hover:text-[#1a1a1a] transition-colors"
+                className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showAllTreatments ? "Hide other services" : `+${availableTreatments.length} other services`}
                 <ChevronDown className={`h-4 w-4 transition-transform ${showAllTreatments ? "rotate-180" : ""}`} />
@@ -172,7 +172,7 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
                 <button
                   type="button"
                   onClick={() => setShowAllTreatments(!showAllTreatments)}
-                  className="inline-flex items-center gap-1 text-sm font-medium text-[#666] hover:text-[#1a1a1a] transition-colors mt-2"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mt-2"
                 >
                   {showAllTreatments ? "Show less" : `Show all ${availableTreatments.length}`}
                   <ChevronDown className={`h-4 w-4 transition-transform ${showAllTreatments ? "rotate-180" : ""}`} />
@@ -189,16 +189,16 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
       {/* About */}
       {clinic.description && (
         <section>
-          <h2 className="text-xl font-bold text-[#1a1a1a] mb-3">About {clinic.name}</h2>
+          <h2 className="text-xl font-bold text-foreground mb-3">About {clinic.name}</h2>
           <div className="relative">
-            <p className={`text-[#444] leading-relaxed whitespace-pre-line ${!descriptionExpanded ? "line-clamp-3" : ""}`}>
+            <p className={`text-muted-foreground leading-relaxed whitespace-pre-line ${!descriptionExpanded ? "line-clamp-3" : ""}`}>
               {clinic.description}
             </p>
             {clinic.description.length > 200 && !descriptionExpanded && (
               <button
                 type="button"
                 onClick={() => setDescriptionExpanded(true)}
-                className="text-sm font-medium text-[#1a1a1a] hover:text-[#666] mt-1 transition-colors"
+                className="text-sm font-medium text-foreground hover:text-muted-foreground mt-1 transition-colors"
               >
                 Read more
               </button>
@@ -209,15 +209,15 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
 
       {/* FAQs */}
       <section>
-        <h2 className="text-lg font-bold text-[#1a1a1a] mb-3">Frequently Asked Questions</h2>
+        <h2 className="text-lg font-bold text-foreground mb-3">Frequently Asked Questions</h2>
         <Accordion type="single" collapsible className="w-full">
           {faqs.map((faq, idx) => (
             <AccordionItem key={idx} value={`faq-${idx}`}>
-              <AccordionTrigger className="text-[15px] font-medium text-[#1a1a1a] hover:no-underline text-left py-3">
+              <AccordionTrigger className="text-[15px] font-medium text-foreground hover:no-underline text-left py-3">
                 {faq.question}
               </AccordionTrigger>
               <AccordionContent>
-                <p className="text-sm text-[#666] leading-relaxed">{faq.answer}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
                 {faq.question === "Can I see before and after photos of treatments?" && hasBeforeAfters && onSwitchToDetails && (
                   <button
                     type="button"

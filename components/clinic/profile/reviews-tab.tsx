@@ -42,15 +42,15 @@ function ReviewSkeleton() {
   return (
     <div className="animate-pulse space-y-3 py-4 border-b border-[#f0f0f0] last:border-b-0">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-full bg-[#e5e5e5]" />
+        <div className="h-10 w-10 rounded-full bg-secondary" />
         <div className="space-y-1.5">
-          <div className="h-3.5 w-24 bg-[#e5e5e5] rounded" />
-          <div className="h-3 w-16 bg-[#e5e5e5] rounded" />
+          <div className="h-3.5 w-24 bg-secondary rounded" />
+          <div className="h-3 w-16 bg-secondary rounded" />
         </div>
       </div>
       <div className="space-y-1.5">
-        <div className="h-3 w-full bg-[#e5e5e5] rounded" />
-        <div className="h-3 w-3/4 bg-[#e5e5e5] rounded" />
+        <div className="h-3 w-full bg-secondary rounded" />
+        <div className="h-3 w-3/4 bg-secondary rounded" />
       </div>
     </div>
   )
@@ -125,7 +125,7 @@ export function ReviewsTab({ clinic, clinicId }: ReviewsTabProps) {
         </div>
       ) : googleReviews.length > 0 ? (
         <section>
-          <h3 className="text-base font-semibold text-[#1a1a1a] mb-2">Google Reviews</h3>
+          <h3 className="text-base font-semibold text-foreground mb-2">Google Reviews</h3>
           <div className="divide-y divide-[#f0f0f0]">
             {googleReviews.map((review, idx) => {
               const isLong = review.text.length > 200
@@ -147,23 +147,23 @@ export function ReviewsTab({ clinic, clinicId }: ReviewsTabProps) {
                       </div>
                     )}
                     <div>
-                      <p className="text-sm font-medium text-[#1a1a1a]">{review.authorName}</p>
+                      <p className="text-sm font-medium text-foreground">{review.authorName}</p>
                       <div className="flex items-center gap-2">
                         <StarRating rating={review.rating} />
-                        <span className="text-xs text-[#999]">{review.relativeTime}</span>
+                        <span className="text-xs text-muted-foreground">{review.relativeTime}</span>
                       </div>
                     </div>
                   </div>
                   {review.text && (
                     <div>
-                      <p className={`text-sm text-[#444] leading-relaxed ${!isExpanded && isLong ? "line-clamp-3" : ""}`}>
+                      <p className={`text-sm text-muted-foreground leading-relaxed ${!isExpanded && isLong ? "line-clamp-3" : ""}`}>
                         {review.text}
                       </p>
                       {isLong && (
                         <button
                           type="button"
                           onClick={() => toggleExpanded(idx)}
-                          className="text-sm font-medium text-[#1a1a1a] hover:text-[#666] mt-1 transition-colors"
+                          className="text-sm font-medium text-foreground hover:text-[#666] mt-1 transition-colors"
                         >
                           {isExpanded ? "Show less" : "Read more"}
                         </button>
@@ -176,7 +176,7 @@ export function ReviewsTab({ clinic, clinicId }: ReviewsTabProps) {
           </div>
         </section>
       ) : fetchError ? (
-        <div className="text-sm text-[#999] py-4">
+        <div className="text-sm text-muted-foreground py-4">
           {fetchError === "no_google_place_id" && "Google profile not linked yet."}
           {fetchError === "api_key_missing" && "Google Places API key not configured."}
           {fetchError === "google_api_error" && "Could not load Google reviews right now."}
@@ -192,7 +192,7 @@ export function ReviewsTab({ clinic, clinicId }: ReviewsTabProps) {
           href={googleReviewsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl border border-[#e5e5e5] text-foreground/70 font-medium hover:bg-[#fafafa] transition-colors"
+          className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl border border-border text-foreground/70 font-medium hover:bg-secondary transition-colors"
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5 flex-shrink-0" aria-hidden="true">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -201,20 +201,20 @@ export function ReviewsTab({ clinic, clinicId }: ReviewsTabProps) {
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
           </svg>
           See all reviews on Google
-          <ExternalLink className="h-4 w-4 text-[#999]" />
+          <ExternalLink className="h-4 w-4 text-muted-foreground" />
         </a>
       )}
 
       {/* Trust indicators */}
       <div className="space-y-4 pt-2">
         {clinic.verified && (
-          <div className="flex items-center gap-3 text-sm text-[#444]">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <Shield className="h-5 w-5 text-emerald-500 flex-shrink-0" />
             <span>Verified by Pearlie — quality care guaranteed</span>
           </div>
         )}
         {clinic.review_count > 0 && (
-          <div className="flex items-center gap-3 text-sm text-[#444]">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <div className="h-5 w-5 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
               <span className="text-xs font-bold text-amber-700">{clinic.rating}</span>
             </div>

@@ -323,7 +323,7 @@ export function DentistNearMeClient({
       </section>
 
       {/* ─── SOCIAL PROOF BAR ─────────────────────────────── */}
-      <section className="border-b border-border/50 bg-white">
+      <section className="border-b border-border/50 bg-card">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center gap-4 sm:gap-10 py-3 text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
@@ -401,7 +401,7 @@ export function DentistNearMeClient({
       )}
 
       {/* ─── SEO INTRO (collapsible on mobile) ────────────── */}
-      <section className="py-8 sm:py-12 bg-[#faf9f6]">
+      <section className="py-8 sm:py-12 bg-secondary">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
             {/* Mobile: collapsible */}
@@ -489,7 +489,7 @@ export function DentistNearMeClient({
       </section>
 
       {/* ─── BOROUGH LINKS ────────────────────────────────── */}
-      <section className="py-8 sm:py-12 bg-[#faf9f6]">
+      <section className="py-8 sm:py-12 bg-secondary">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-lg sm:text-xl font-heading font-bold tracking-[-0.02em] text-foreground mb-3 sm:mb-4">
@@ -500,7 +500,7 @@ export function DentistNearMeClient({
                 <Link
                   key={borough.slug}
                   href={`/london/${borough.slug}`}
-                  className="text-sm text-foreground hover:text-primary transition-colors flex items-center gap-1.5 p-2.5 rounded-lg hover:bg-white min-h-[44px]"
+                  className="text-sm text-foreground hover:text-primary transition-colors flex items-center gap-1.5 p-2.5 rounded-lg hover:bg-card min-h-[44px]"
                 >
                   <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
                   {borough.name}

@@ -68,12 +68,12 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
       {/* Treatments */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold text-[#1a1a1a]">Treatments Available</h2>
+          <h2 className="text-lg font-bold text-foreground">Treatments Available</h2>
           {(hasPatientSelections ? otherTreatments.length > 0 : availableTreatments.length > 6) && (
             <button
               type="button"
               onClick={() => setShowAllTreatments(!showAllTreatments)}
-              className="inline-flex items-center gap-1 text-sm font-medium text-[#666] hover:text-[#1a1a1a] transition-colors"
+              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               {showAllTreatments ? "Show less" : `Show all ${availableTreatments.length}`}
               <ChevronDown className={`h-4 w-4 transition-transform ${showAllTreatments ? "rotate-180" : ""}`} />
@@ -102,7 +102,7 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
 
         {/* Expanded: show remaining treatments */}
         {showAllTreatments && (
-          <div className="mt-4 pt-4 border-t border-[#f0f0f0]">
+          <div className="mt-4 pt-4 border-t border-border">
             <div className="grid sm:grid-cols-2 gap-2">
               {(hasPatientSelections ? otherTreatments : availableTreatments.slice(6)).map((treatment, idx) => (
                 <div key={idx} className="flex items-center gap-2.5 text-foreground/70 py-1.5">
@@ -124,7 +124,7 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">Treatment Prices</h2>
-              <p className="text-xs text-[#666]">Prices are a guide. Your dentist will confirm costs before treatment.</p>
+              <p className="text-xs text-muted-foreground">Prices are a guide. Your dentist will confirm costs before treatment.</p>
             </div>
           </div>
           <Accordion type="multiple" className="w-full">
@@ -143,15 +143,15 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
                     {category.treatments.map((treatment, treatIdx) => (
                       <div
                         key={treatIdx}
-                        className="flex items-start justify-between py-2.5 border-b border-[#f0f0f0] last:border-b-0"
+                        className="flex items-start justify-between py-2.5 border-b border-border last:border-b-0"
                       >
                         <div className="flex-1 min-w-0 pr-4">
-                          <p className="font-medium text-[#1a1a1a] text-sm">{treatment.name}</p>
+                          <p className="font-medium text-foreground text-sm">{treatment.name}</p>
                           {treatment.description && (
-                            <p className="text-xs text-[#666] mt-0.5">{treatment.description}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{treatment.description}</p>
                           )}
                         </div>
-                        <span className="font-semibold text-[#1a1a1a] text-sm whitespace-nowrap">
+                        <span className="font-semibold text-foreground text-sm whitespace-nowrap">
                           {treatment.price.startsWith("£") ? treatment.price : `£${treatment.price}`}
                         </span>
                       </div>
@@ -161,7 +161,7 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
               </AccordionItem>
             ))}
           </Accordion>
-          <p className="text-xs text-[#999] mt-4">
+          <p className="text-xs text-muted-foreground mt-4">
             Prices shown are indicative and may vary depending on individual treatment needs.
           </p>
         </section>
@@ -171,9 +171,9 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
       {availableFacilities.length > 0 && (
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="facilities">
-            <AccordionTrigger className="text-[15px] font-semibold text-[#1a1a1a] hover:no-underline py-3">
+            <AccordionTrigger className="text-[15px] font-semibold text-foreground hover:no-underline py-3">
               Clinic Facilities
-              <span className="text-xs text-[#999] font-normal ml-2">{availableFacilities.length} available</span>
+              <span className="text-xs text-muted-foreground font-normal ml-2">{availableFacilities.length} available</span>
             </AccordionTrigger>
             <AccordionContent>
               <div className="grid sm:grid-cols-2 gap-2">
@@ -185,10 +185,10 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
                 ))}
               </div>
               {unavailableFacilities.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-[#f0f0f0]">
+                <div className="mt-3 pt-3 border-t border-border">
                   <div className="grid sm:grid-cols-2 gap-2">
                     {unavailableFacilities.map((facility, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-[#999] py-1">
+                      <div key={idx} className="flex items-center gap-2 text-muted-foreground py-1">
                         <XCircle className="h-4 w-4 flex-shrink-0" />
                         <span className="text-sm">{facility}</span>
                       </div>

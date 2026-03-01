@@ -468,8 +468,8 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
     return (
       <div className="min-h-screen bg-card flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a1a1a] mx-auto mb-4" />
-          <p className="text-[#666]">Loading clinic details...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading clinic details...</p>
         </div>
       </div>
     )
@@ -478,10 +478,10 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
   if (!clinic) {
     return (
       <div className="min-h-screen bg-card flex items-center justify-center p-4">
-        <Card className="p-8 text-center max-w-md bg-card border-[#e5e5e5]">
-          <h1 className="text-2xl font-bold text-[#1a1a1a] mb-2">Clinic not found</h1>
-          <p className="text-[#666] mb-4">We couldn&apos;t find the clinic you&apos;re looking for</p>
-          <Button onClick={() => router.back()} className="bg-[#1a1a1a] hover:bg-[#333] text-white">
+        <Card className="p-8 text-center max-w-md bg-card border-border">
+          <h1 className="text-2xl font-bold text-foreground mb-2">Clinic not found</h1>
+          <p className="text-muted-foreground mb-4">We couldn&apos;t find the clinic you&apos;re looking for</p>
+          <Button onClick={() => router.back()} className="bg-[#0d1019] hover:bg-[#0d1019]/90 text-white">
             Go back
           </Button>
         </Card>
@@ -503,7 +503,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
             <Button
               size="sm"
               variant="secondary"
-              className="h-7 text-xs bg-card text-primary hover:bg-white/90"
+              className="h-7 text-xs bg-card text-primary hover:bg-card/90"
               onClick={() => { window.location.href = clinicHref("/clinic/profile") }}
             >
               <Pencil className="h-3 w-3 mr-1.5" />
@@ -514,11 +514,11 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
       )}
 
       {/* Back button header */}
-      <div className="bg-card border-b border-[#e5e5e5] sticky top-0 z-20" style={isPreview ? { top: "44px" } : undefined}>
+      <div className="bg-card border-b border-border sticky top-0 z-20" style={isPreview ? { top: "44px" } : undefined}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-[#666] hover:text-[#1a1a1a] transition-colors text-sm font-medium"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm font-medium"
           >
             <ChevronLeft className="h-4 w-4" />
             {isPreview ? "Close preview" : "Back to results"}
@@ -528,7 +528,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
 
       {/* Hero: Always show map location */}
       <section id="location">
-        <div className="w-full h-[200px] lg:h-[250px] bg-[#e5e5e5]">
+        <div className="w-full h-[200px] lg:h-[250px] bg-secondary">
           {clinic.latitude && clinic.longitude && process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ? (
             <iframe
               title={`${clinic.name} location`}
@@ -545,7 +545,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clinic.address + ", " + clinic.postcode)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-[#666] hover:text-[#1a1a1a]"
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
               >
                 <MapPin className="h-5 w-5" />
                 <span>View on Google Maps</span>
@@ -564,7 +564,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
             {/* Clinic Name + Address + Provider Photos */}
             <section className="flex items-start justify-between gap-4 sm:gap-6">
               {/* Clinic photo circle */}
-              <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-[#f0f0f0] flex-shrink-0 border-2 border-white shadow-sm">
+              <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-secondary flex-shrink-0 border-2 border-white shadow-sm">
                 {clinic.images && clinic.images.length > 0 ? (
                   <ClinicImage
                     src={clinic.images[0]}
@@ -583,19 +583,19 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
               </div>
 
               <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#1a1a1a] tracking-tight text-balance">{clinic.name}</h1>
-                <p className="text-[#444] mt-1">{clinic.address}</p>
-                <p className="text-[#444]">{clinic.city || ""}{clinic.city && clinic.postcode ? ", " : ""}{clinic.postcode}</p>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight text-balance">{clinic.name}</h1>
+                <p className="text-muted-foreground mt-1">{clinic.address}</p>
+                <p className="text-muted-foreground">{clinic.city || ""}{clinic.city && clinic.postcode ? ", " : ""}{clinic.postcode}</p>
               </div>
               {providers.length > 0 && (
                 <div className="hidden sm:flex items-center -space-x-3 flex-shrink-0">
                   {providers.slice(0, 3).map((provider) => (
-                    <div key={provider.id} className="h-14 w-14 lg:h-16 lg:w-16 rounded-full border-2 border-white overflow-hidden bg-[#f0f0f0] shadow-sm">
+                    <div key={provider.id} className="h-14 w-14 lg:h-16 lg:w-16 rounded-full border-2 border-white overflow-hidden bg-secondary shadow-sm">
                       {provider.photo_url ? (
                         <img src={provider.photo_url || "/placeholder.svg"} alt={provider.name} className="h-full w-full object-cover" />
                       ) : (
                         <div className="h-full w-full flex items-center justify-center">
-                          <UserRound className="h-7 w-7 text-[#999]" />
+                          <UserRound className="h-7 w-7 text-muted-foreground" />
                         </div>
                       )}
                     </div>
@@ -631,28 +631,28 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
 
             {/* Tab Navigation */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full justify-start bg-transparent border-b border-[#e5e5e5] rounded-none h-auto p-0 gap-0 overflow-x-auto">
+              <TabsList className="w-full justify-start bg-transparent border-b border-border rounded-none h-auto p-0 gap-0 overflow-x-auto">
                 <TabsTrigger
                   value="overview"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground font-medium text-sm"
                 >
                   Overview
                 </TabsTrigger>
                 <TabsTrigger
                   value="services"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground font-medium text-sm"
                 >
                   Fees
                 </TabsTrigger>
                 <TabsTrigger
                   value="reviews"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground font-medium text-sm"
                 >
                   Reviews
                 </TabsTrigger>
                 <TabsTrigger
                   value="details"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-[#999] data-[state=active]:text-[#1a1a1a] font-medium text-sm"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground font-medium text-sm"
                 >
                   Details
                 </TabsTrigger>
@@ -679,7 +679,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
           {/* RIGHT COLUMN - Sticky Sidebar */}
           <div className="hidden lg:block">
             <div className="sticky top-24 space-y-4">
-              <Card className="bg-card border-[#e5e5e5] overflow-hidden shadow-sm">
+              <Card className="bg-card border-border overflow-hidden shadow-sm">
                 <div className="bg-[#0d1019] px-5 py-3.5">
                   <h2 className="text-base font-bold text-white text-center">
                     Request an appointment
@@ -719,7 +719,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
                             <p className="text-xs font-semibold text-foreground uppercase tracking-wide">
                               Confirm your request
                             </p>
-                            <p className="text-sm text-[#1a1a1a] mt-1">
+                            <p className="text-sm text-foreground mt-1">
                               <span className="font-semibold">{pendingAppointment.dateLabel}</span>
                             </p>
                           </div>
@@ -807,8 +807,8 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
                   />
 
                   {clinic.accepts_nhs && (
-                    <div className="pt-3 border-t border-[#e5e5e5]">
-                      <div className="flex items-center gap-2 text-sm text-[#666]">
+                    <div className="pt-3 border-t border-border">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <CreditCard className="h-4 w-4 text-blue-600" />
                         <span>NHS patients accepted</span>
                       </div>
@@ -821,12 +821,12 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
               {matchId && matchReasons.length > 0 && (
                 <div className="rounded-xl p-3.5 border border-primary/30">
                   <h3 className="font-semibold text-sm text-primary mb-1.5">Why we matched you</h3>
-                  <div className="space-y-1.5 text-sm text-[#1a1a1a] leading-relaxed">
+                  <div className="space-y-1.5 text-sm text-foreground leading-relaxed">
                     {matchReasons.slice(0, 3).map((reason, idx) => (
                       <p key={idx}>{reason}</p>
                     ))}
                   </div>
-                  <p className="text-xs text-[#999] mt-3 pt-2.5 border-t border-[#e5e5e5]">
+                  <p className="text-xs text-muted-foreground mt-3 pt-2.5 border-t border-border">
                     Thoughtfully matched based on your answers.
                   </p>
                 </div>
@@ -846,10 +846,10 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
             role="presentation"
           />
           <div className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl max-h-[75dvh] h-[75vh] flex flex-col animate-in slide-in-from-bottom duration-300">
-            <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
-              <h3 className="font-semibold text-[#1a1a1a]">Message {clinic.name}</h3>
-              <button type="button" onClick={() => setShowMobileChat(false)} className="p-2 rounded-full hover:bg-[#f5f5f5]">
-                <X className="h-5 w-5 text-[#666]" />
+            <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-border">
+              <h3 className="font-semibold text-foreground">Message {clinic.name}</h3>
+              <button type="button" onClick={() => setShowMobileChat(false)} className="p-2 rounded-full hover:bg-secondary">
+                <X className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
             <div className="flex-1 min-h-0 flex flex-col">
@@ -878,10 +878,10 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
             role="presentation"
           />
           <div className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
-              <h3 className="font-semibold text-[#1a1a1a]">Request a Visit</h3>
-              <button type="button" onClick={() => setShowMobilePicker(false)} className="p-1 rounded-full hover:bg-[#f5f5f5]">
-                <X className="h-5 w-5 text-[#666]" />
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h3 className="font-semibold text-foreground">Request a Visit</h3>
+              <button type="button" onClick={() => setShowMobilePicker(false)} className="p-1 rounded-full hover:bg-secondary">
+                <X className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
             <div className="p-4">
@@ -908,14 +908,14 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
             role="presentation"
           />
           <div className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl animate-in slide-in-from-bottom duration-300">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
-              <h3 className="font-semibold text-[#1a1a1a]">Confirm Your Request</h3>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h3 className="font-semibold text-foreground">Confirm Your Request</h3>
               <button
                 type="button"
                 onClick={handleCancelPendingBooking}
-                className="p-1 rounded-full hover:bg-[#f5f5f5]"
+                className="p-1 rounded-full hover:bg-secondary"
               >
-                <X className="h-5 w-5 text-[#666]" />
+                <X className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
             <div className="p-4 space-y-4">
@@ -923,7 +923,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
                 <p className="text-xs font-semibold text-foreground uppercase tracking-wide">
                   Appointment details
                 </p>
-                <p className="text-sm text-[#1a1a1a] mt-1">
+                <p className="text-sm text-foreground mt-1">
                   <span className="font-semibold">{pendingAppointment.dateLabel}</span>
                 </p>
                 <p className="text-xs text-muted-foreground mt-2">
@@ -975,8 +975,8 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
               role="presentation"
             />
             <div className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
-                <h3 className="font-semibold text-[#1a1a1a]">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <h3 className="font-semibold text-foreground">
                   {showQuickFormAppointment
                     ? (directFormPendingDate ? "Request an appointment" : "Your details")
                     : "Get started"
@@ -985,9 +985,9 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
                 <button
                   type="button"
                   onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null); setShowQuickFormAppointment(false) }}
-                  className="p-1 rounded-full hover:bg-[#f5f5f5]"
+                  className="p-1 rounded-full hover:bg-secondary"
                 >
-                  <X className="h-5 w-5 text-[#666]" />
+                  <X className="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>
               {showQuickFormAppointment ? (
@@ -1017,8 +1017,8 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
               role="presentation"
             />
             <div className="relative bg-card rounded-2xl shadow-xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e5e5]">
-                <h3 className="font-semibold text-[#1a1a1a]">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+                <h3 className="font-semibold text-foreground">
                   {showQuickFormAppointment
                     ? (directFormPendingDate ? "Request an appointment" : "Your details")
                     : "Get started"
@@ -1027,9 +1027,9 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
                 <button
                   type="button"
                   onClick={() => { setShowDirectForm(false); setDirectFormTrigger(null); setDirectFormPendingDate(null); setShowQuickFormAppointment(false) }}
-                  className="p-1 rounded-full hover:bg-[#f5f5f5]"
+                  className="p-1 rounded-full hover:bg-secondary"
                 >
-                  <X className="h-5 w-5 text-[#666]" />
+                  <X className="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>
               {showQuickFormAppointment ? (
@@ -1055,7 +1055,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
       {/* Mobile sticky CTA */}
       {!showMobileChat && !showMobilePicker && !pendingAppointment && !bookingConfirmed && !showDirectForm && (
         <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-secondary to-card border-t border-primary/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(15,188,176,0.12)]">
-          <p className="text-xs text-[#666] text-center mb-2">No booking fees on Pearlie</p>
+          <p className="text-xs text-muted-foreground text-center mb-2">No booking fees on Pearlie</p>
           <div className="flex gap-3 max-w-lg mx-auto">
             <Button
               size="lg"
@@ -1068,7 +1068,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
             <Button
               size="lg"
               variant="outline"
-              className="flex-1 border-primary/30 bg-card hover:bg-secondary text-[#1a1a1a] min-h-[48px] touch-manipulation"
+              className="flex-1 border-primary/30 bg-card hover:bg-secondary text-foreground min-h-[48px] touch-manipulation"
               onClick={() => setShowMobilePicker(true)}
             >
               <Calendar className="h-4 w-4 mr-2" />
