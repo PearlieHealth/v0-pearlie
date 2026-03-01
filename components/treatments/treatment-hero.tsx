@@ -6,9 +6,12 @@ import type { TreatmentMeta } from "@/lib/content/treatments"
 
 interface TreatmentHeroProps {
   treatment: TreatmentMeta
+  costIntentH1?: string
+  heroSubheading?: string
+  ctaButtonText?: string
 }
 
-export function TreatmentHero({ treatment }: TreatmentHeroProps) {
+export function TreatmentHero({ treatment, costIntentH1, heroSubheading, ctaButtonText }: TreatmentHeroProps) {
   const breadcrumbs = [
     { label: "Home", href: "/" },
     { label: "Treatments", href: "/treatments" },
@@ -39,28 +42,17 @@ export function TreatmentHero({ treatment }: TreatmentHeroProps) {
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] text-[#004443] mb-6 text-balance">
-            {treatment.title}
+            {costIntentH1 || treatment.title}
           </h1>
 
-          <p data-speakable="description" className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-4">
-            {treatment.description}
-          </p>
-
-          <p className="text-sm text-muted-foreground/70 mb-8">
-            Last reviewed:{" "}
-            <time dateTime={treatment.updatedAt || treatment.publishedAt}>
-              {new Date(treatment.updatedAt || treatment.publishedAt).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </time>
-            {" · "}By {treatment.author}
+          <p data-speakable="description" className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-8">
+            {heroSubheading || treatment.description}
           </p>
 
           <HeroPostcodeCta
             treatmentName={treatment.treatmentName}
             intakeTreatment={treatment.intakeTreatment}
+            ctaButtonText={ctaButtonText}
           />
         </div>
       </div>

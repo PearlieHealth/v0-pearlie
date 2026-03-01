@@ -28,6 +28,7 @@ import {
 } from "@/lib/data/area-treatments"
 import { getTestimonialsForBasicClinics } from "@/lib/locations/queries"
 import { getBlogPostBySlug } from "@/lib/content/blog"
+import { CLINIC_CARD_SELECT } from "@/lib/clinics/queries"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { createClient } from "@/lib/supabase/server"
 
@@ -87,9 +88,6 @@ export async function generateMetadata({
   }
 }
 
-const CLINIC_SELECT =
-  "id, name, slug, city, address, postcode, rating, review_count, images, treatments, price_range, highlight_chips, verified, description, google_rating, google_review_count"
-
 async function getClinicsForAreaTreatment(
   postcodes: string[],
   filterTags: string[]
@@ -104,9 +102,8 @@ async function getClinicsForAreaTreatment(
     // First: clinics in this area offering this treatment
     const { data } = await supabase
       .from("clinics")
-      .select(CLINIC_SELECT)
+      .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .overlaps("treatments", filterTags)
       .or(postcodeFilters)
       .order("rating", { ascending: false })
@@ -117,9 +114,8 @@ async function getClinicsForAreaTreatment(
     // Second fallback: any clinic offering this treatment in London
     const { data: treatmentFallback } = await supabase
       .from("clinics")
-      .select(CLINIC_SELECT)
+      .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .overlaps("treatments", filterTags)
       .order("rating", { ascending: false })
       .limit(6)
@@ -130,9 +126,8 @@ async function getClinicsForAreaTreatment(
     // Third fallback: top-rated clinics
     const { data: fallback } = await supabase
       .from("clinics")
-      .select(CLINIC_SELECT)
+      .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .order("rating", { ascending: false })
       .limit(6)
 

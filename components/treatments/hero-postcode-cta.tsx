@@ -19,9 +19,10 @@ import {
 interface HeroPostcodeCtaProps {
   treatmentName: string
   intakeTreatment: string
+  ctaButtonText?: string
 }
 
-export function HeroPostcodeCta({ treatmentName, intakeTreatment }: HeroPostcodeCtaProps) {
+export function HeroPostcodeCta({ treatmentName, intakeTreatment, ctaButtonText }: HeroPostcodeCtaProps) {
   const router = useRouter()
   const [postcode, setPostcode] = useState("")
   const [postcodeValid, setPostcodeValid] = useState(false)
@@ -61,8 +62,8 @@ export function HeroPostcodeCta({ treatmentName, intakeTreatment }: HeroPostcode
             disabled={!postcodeValid}
             className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-6 h-12 text-base shrink-0 disabled:opacity-50"
           >
-            <span className="md:hidden">Find my clinic</span>
-            <span className="hidden md:inline">Find my {treatmentName.toLowerCase()} clinic</span>
+            <span className="md:hidden">{ctaButtonText || "Find my clinic"}</span>
+            <span className="hidden md:inline">{ctaButtonText || `Find my ${treatmentName.toLowerCase()} clinic`}</span>
           </Button>
         </div>
       </form>

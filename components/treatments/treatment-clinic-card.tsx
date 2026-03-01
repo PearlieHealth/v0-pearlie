@@ -37,6 +37,12 @@ const GoogleIcon = () => (
 export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
   const heroImage = clinic.images?.[0]
   const isVerified = clinic.verified === true
+  const hasFinance = clinic.highlight_chips?.some(
+    (chip) => /finance|pay monthly|0%/i.test(chip)
+  )
+  const freeConsult = clinic.highlight_chips?.some(
+    (chip) => /free consult/i.test(chip)
+  )
 
   const hasGoogleRating = clinic.google_rating != null && clinic.google_rating > 0
   const showGoogleRating =
@@ -65,44 +71,56 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
         )}
 
         {/* Top badges */}
-        {isVerified && (
-          <span className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold bg-[#0fbcb0] text-white rounded-full shadow-sm">
-            <CheckCircle2 className="w-3 h-3" />
-            Verified by Pearlie
-          </span>
-        )}
+        <div className="absolute top-3 left-3 flex items-center gap-1.5">
+          {isVerified && (
+            <span className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold bg-[#0fbcb0] text-white rounded-full shadow-sm">
+              <CheckCircle2 className="w-3 h-3" />
+              Verified by Pearlie
+            </span>
+          )}
+        </div>
 
-        {/* Bottom rating overlay */}
-        {(clinic.rating != null && clinic.rating > 0 || showGoogleRating) && (
-          <div className="absolute bottom-3 left-3 flex items-center gap-2">
-            {clinic.rating != null && clinic.rating > 0 && (
-              <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
-                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                <span className="font-semibold text-[11px] text-foreground">
-                  {clinic.rating.toFixed(1)}
+        {/* Bottom overlay badges */}
+        <div className="absolute bottom-3 left-3 flex items-center gap-2 flex-wrap">
+          {/* Rating pills */}
+          {clinic.rating != null && clinic.rating > 0 && (
+            <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
+              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+              <span className="font-semibold text-[11px] text-foreground">
+                {clinic.rating.toFixed(1)}
+              </span>
+              {clinic.review_count != null && clinic.review_count > 0 && (
+                <span className="text-[11px] text-muted-foreground">
+                  ({clinic.review_count})
                 </span>
-                {clinic.review_count != null && clinic.review_count > 0 && (
-                  <span className="text-[11px] text-muted-foreground">
-                    ({clinic.review_count})
-                  </span>
-                )}
-              </div>
-            )}
-            {showGoogleRating && (
-              <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
-                <GoogleIcon />
-                <span className="font-semibold text-[11px] text-foreground">
-                  {clinic.google_rating!.toFixed(1)}
+              )}
+            </div>
+          )}
+          {showGoogleRating && (
+            <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
+              <GoogleIcon />
+              <span className="font-semibold text-[11px] text-foreground">
+                {clinic.google_rating!.toFixed(1)}
+              </span>
+              {clinic.google_review_count != null && clinic.google_review_count > 0 && (
+                <span className="text-[11px] text-muted-foreground">
+                  ({clinic.google_review_count})
                 </span>
-                {clinic.google_review_count != null && clinic.google_review_count > 0 && (
-                  <span className="text-[11px] text-muted-foreground">
-                    ({clinic.google_review_count})
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+          {/* Feature pills */}
+          {freeConsult && (
+            <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#004443]/90 text-white rounded-full">
+              Free consultation
+            </span>
+          )}
+          {hasFinance && (
+            <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#0fbcb0]/90 text-white rounded-full">
+              Finance available
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="p-4 space-y-1.5">
