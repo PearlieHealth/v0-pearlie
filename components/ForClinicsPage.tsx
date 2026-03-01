@@ -133,29 +133,29 @@ export default function ForClinicsPage() {
   }, [roiPatients, roiLtv])
 
   /* ── Color tokens ── */
-  const teal = "#059669"
-  const tealLight = "#10b981"
-  const navy = "#ffffff"
-  const cardBg = "#ffffff"
-  const cardBorder = "#d1d5db"
+  const teal = "hsl(var(--primary))"
+  const tealLight = "hsl(var(--primary))"
+  const navy = "hsl(var(--background))"
+  const cardBg = "hsl(var(--card))"
+  const cardBorder = "hsl(var(--border))"
   const red = "#dc2626"
   const redLight = "#ef4444"
 
   /* ── Shared style tokens ── */
   const sec = { padding: "120px 24px" } as const
-  const secAlt = { ...sec, background: "#f9fafb" } as const
+  const secAlt = { ...sec, background: "hsl(var(--secondary))" } as const
   const maxW = { maxWidth: 1080, margin: "0 auto" } as const
   const heading = {
     fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif",
     fontWeight: 800,
     letterSpacing: "-0.025em",
-    color: "#111827",
+    color: "hsl(var(--foreground))",
   } as const
   const greenBtn = {
     display: "inline-flex",
     alignItems: "center",
     gap: 8,
-    background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+    background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 100%)",
     color: "#fff",
     fontWeight: 700,
     fontSize: 16,
