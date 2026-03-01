@@ -59,11 +59,15 @@ interface RankedClinicResult {
   clinicName: string
   postcode: string
   verified?: boolean
+  rating?: number
+  reviewCount?: number
+  priceRange?: string | null
   filterKeys?: string[]
   score: number
   percent: number
   tier: string
   isPinned: boolean
+  isDirectoryListing?: boolean
   explanationVersion?: string
   reasons: Array<{ text: string; category: string; tagKey?: string; rawText?: string }>
   debug: {
@@ -101,6 +105,8 @@ interface MatchResult {
   rankedClinics: RankedClinicResult[]
   meta: {
     totalClinicsEvaluated: number
+    verifiedCount?: number
+    directoryCount?: number
     contractVersion: string
     timestamp: string
     inputProfile: TestLeadInput
@@ -369,7 +375,8 @@ export default function TestMatchPage() {
     })
   }
 
-  const getMatchLabel = (index: number) => {
+  const getMatchLabel = (index: number, isDirectory?: boolean) => {
+    if (isDirectory) return "About this clinic"
     if (index < 2) return "Why we matched you"
     if (index < 5) return "Could also be a good match"
     return "Good alternative"
@@ -765,10 +772,16 @@ export default function TestMatchPage() {
                 {results && (
                   <div className="space-y-4">
                     {/* Meta Info */}
-                    <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                    <div className="bg-gray-50 rounded-lg p-3 text-sm space-y-1">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Clinics evaluated:</span>
                         <span className="font-medium">{results.meta.totalClinicsEvaluated}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Results breakdown:</span>
+                        <span className="font-medium">
+                          {results.meta.verifiedCount ?? "?"} verified, {results.meta.directoryCount ?? "?"} directory
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Contract version:</span>
@@ -779,16 +792,28 @@ export default function TestMatchPage() {
                     {/* Clinic Results */}
                     <div className="space-y-4">
                       {results.rankedClinics.slice(0, visibleCount).map((clinic, index) => (
-                        <Card key={clinic.clinicId} className={clinic.isPinned ? "border-amber-400 border-2" : ""}>
+                        <Card key={clinic.clinicId} className={
+                          clinic.isPinned ? "border-amber-400 border-2" :
+                          clinic.isDirectoryListing ? "border-orange-200 border-dashed" : ""
+                        }>
                           <CardContent className="p-4">
                             {/* Header */}
                             <div className="flex items-start justify-between mb-3">
                               <div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   <h3 className="font-semibold">{clinic.clinicName}</h3>
                                   {clinic.isPinned && (
                                     <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
                                       Pinned
+                                    </Badge>
+                                  )}
+                                  {clinic.isDirectoryListing ? (
+                                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300 text-[10px]">
+                                      Directory
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300 text-[10px]">
+                                      Verified
                                     </Badge>
                                   )}
                                 </div>
@@ -798,16 +823,24 @@ export default function TestMatchPage() {
                                   {clinic.debug.distanceMiles !== undefined && (
                                     <span className="ml-1">({clinic.debug.distanceMiles.toFixed(1)} mi)</span>
                                   )}
+                                  {clinic.isDirectoryListing && clinic.rating && (
+                                    <span className="ml-2">
+                                      ★ {clinic.rating}{clinic.reviewCount ? ` (${clinic.reviewCount})` : ""}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                               <div className="text-right">
                                 <Badge className={getTierColor(clinic.tier)}>{clinic.tier}</Badge>
                                 <p className="text-lg font-bold mt-1">{clinic.percent}%</p>
+                                {clinic.isDirectoryListing && (
+                                  <p className="text-[10px] text-muted-foreground">relevance</p>
+                                )}
                               </div>
                             </div>
 
                             {/* Match Label */}
-                            <p className="text-xs font-medium text-muted-foreground mb-2">{getMatchLabel(index)}</p>
+                            <p className="text-xs font-medium text-muted-foreground mb-2">{getMatchLabel(index, clinic.isDirectoryListing)}</p>
 
                             {/* Reasons */}
                             <ul className="space-y-2">
@@ -986,16 +1019,46 @@ export default function TestMatchPage() {
                                       </div>
                                     )}
 
-                                    {/* Explanation Version & Verified Status */}
-                                    <div className="border-t pt-2 flex justify-between items-center">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-muted-foreground">Verified:</span>
-                                        {clinic.verified ? (
-                                          <CheckCircle2 className="w-4 h-4 text-green-600" />
-                                        ) : (
-                                          <XCircle className="w-4 h-4 text-amber-500" />
-                                        )}
+                                    {/* Clinic Status & Metadata */}
+                                    <div className="border-t pt-2 space-y-2">
+                                      <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-muted-foreground">Verified:</span>
+                                          {clinic.verified ? (
+                                            <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                          ) : (
+                                            <XCircle className="w-4 h-4 text-amber-500" />
+                                          )}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-muted-foreground">Type:</span>
+                                          <Badge variant="outline" className={`text-[9px] ${clinic.isDirectoryListing ? "bg-orange-50 text-orange-700" : "bg-green-50 text-green-700"}`}>
+                                            {clinic.isDirectoryListing ? "Directory Listing" : "Full Match"}
+                                          </Badge>
+                                        </div>
                                       </div>
+                                      {clinic.isDirectoryListing && (
+                                        <div className="grid grid-cols-3 gap-2">
+                                          <div>
+                                            <span className="text-muted-foreground">Rating:</span>
+                                            <span className="ml-1 font-mono">{clinic.rating ?? "—"}</span>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">Reviews:</span>
+                                            <span className="ml-1 font-mono">{clinic.reviewCount ?? 0}</span>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">Price:</span>
+                                            <span className="ml-1 font-mono">{clinic.priceRange || "—"}</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {!clinic.isDirectoryListing && (
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-muted-foreground">Price Range:</span>
+                                          <span className="font-mono">{clinic.priceRange || "not set"}</span>
+                                        </div>
+                                      )}
                                       {clinic.explanationVersion && (
                                         <div className="flex items-center gap-1">
                                           <span className="text-muted-foreground text-[10px]">v{clinic.explanationVersion}</span>

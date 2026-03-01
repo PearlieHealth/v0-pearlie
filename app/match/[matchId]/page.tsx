@@ -223,8 +223,10 @@ export default function MatchPage() {
         matchCount: data.clinics.length,
       })
 
-      // Save match info to localStorage so landing page can offer "return to matches"
-      if (data.lead?.isVerified) {
+      // Save match info to localStorage so landing page can offer "return to matches".
+      // Only save if the authenticated user owns this lead — prevents random visitors
+      // from an external backlink overwriting their own localStorage.
+      if (data.lead?.isOwner) {
         try {
           localStorage.setItem("pearlie_last_match", JSON.stringify({
             matchId: data.match.id,
@@ -350,7 +352,7 @@ export default function MatchPage() {
 
   const getClinicLabel = (clinic: Clinic, index: number) => {
     if (clinic.tier === "directory" || clinic.is_directory_listing) {
-      return clinic.verified === false ? "Unverified clinic" : "In our directory"
+      return "Listed clinic"
     }
     if (clinic.tier === "nearby") return "Nearby option"
     if (index === 0) return "Top match"
@@ -786,6 +788,15 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   </span>
                                 </div>
                               )}
+                              {/* Verified badge overlay on image */}
+                              {clinic.verified && (
+                                <div className="absolute top-3 right-3">
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm bg-[#0fbcb0] text-white">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    Verified by Pearlie
+                                  </span>
+                                </div>
+                              )}
                               </div>
                             </div>
 
@@ -799,15 +810,23 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                 >
                                   {clinic.name}
                                 </h2>
-                                {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
+                                {clinic.match_percentage != null && clinic.match_percentage > 0 && (
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       <button
                                         type="button"
-                                        className="flex-shrink-0 flex items-center gap-1 font-bold text-sm cursor-pointer px-2.5 py-1 rounded-full bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
+                                        className={`flex-shrink-0 flex items-center gap-1 font-bold text-sm cursor-pointer px-2.5 py-1 rounded-full transition-colors touch-manipulation ${
+                                          clinic.is_directory_listing || clinic.tier === "directory"
+                                            ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                            : "bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20"
+                                        }`}
                                         onClick={(e) => e.stopPropagation()}
                                       >
-                                        <Sparkles className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                                        {clinic.is_directory_listing || clinic.tier === "directory" ? (
+                                          <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                                        ) : (
+                                          <Sparkles className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                                        )}
                                         <span>{clinic.match_percentage}%</span>
                                         <Info className="w-3 h-3 text-[#004443]/40" />
                                       </button>
@@ -815,16 +834,22 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                     <PopoverContent className="w-72 p-4" align="end" side="bottom">
                                       <div className="space-y-3">
                                         <div>
-                                          <h4 className="font-semibold text-sm text-[#004443]">How we calculated your match</h4>
+                                          <h4 className="font-semibold text-sm text-[#004443]">
+                                            {clinic.is_directory_listing || clinic.tier === "directory"
+                                              ? "Relevance score"
+                                              : "How we calculated your match"}
+                                          </h4>
                                           <p className="text-xs text-muted-foreground mt-1">
-                                            This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.
+                                            {clinic.is_directory_listing || clinic.tier === "directory"
+                                              ? "Based on proximity and reviews. This clinic hasn't been verified by Pearlie yet."
+                                              : <>This shows how well this clinic fits <span className="font-medium">your preferences</span>, not a quality rating.</>}
                                           </p>
                                         </div>
                                         {clinic.match_breakdown && clinic.match_breakdown.length > 0 ? (
                                           <div className="space-y-2.5">
-                                            {clinic.match_breakdown.map((item) => {
-                                              const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
-                                              const stars = Math.round(ratio * 5)
+                                            {(() => {
+                                              const isDir = clinic.is_directory_listing || clinic.tier === "directory" || !clinic.verified
+                                              const directoryCategories = ["distance", "reviews", "treatment", "completeness"]
                                               const categoryLabels: Record<string, string> = {
                                                 treatment: "Treatment match",
                                                 priorities: "Your priorities",
@@ -833,27 +858,36 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                                 cost: "Cost & value fit",
                                                 distance: "Location",
                                                 availability: "Appointment times",
+                                                reviews: "Patient reviews",
+                                                completeness: "Profile detail",
                                               }
-                                              return (
-                                                <div key={item.category} className="flex items-center justify-between gap-2">
-                                                  <span className="text-xs text-muted-foreground">
-                                                    {categoryLabels[item.category] || item.category}
-                                                  </span>
-                                                  <div className="flex items-center gap-0.5">
-                                                    {[1, 2, 3, 4, 5].map((star) => (
-                                                      <Star
-                                                        key={star}
-                                                        className={`w-3 h-3 ${
-                                                          star <= stars
-                                                            ? "fill-amber-400 text-amber-400"
-                                                            : "fill-muted text-muted"
-                                                        }`}
-                                                      />
-                                                    ))}
+                                              const items = isDir
+                                                ? clinic.match_breakdown.filter((item: any) => directoryCategories.includes(item.category))
+                                                : clinic.match_breakdown
+                                              return items.map((item: any) => {
+                                                const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
+                                                const stars = Math.round(ratio * 5)
+                                                return (
+                                                  <div key={item.category} className="flex items-center justify-between gap-2">
+                                                    <span className="text-xs text-muted-foreground">
+                                                      {categoryLabels[item.category] || item.category}
+                                                    </span>
+                                                    <div className="flex items-center gap-0.5">
+                                                      {[1, 2, 3, 4, 5].map((star) => (
+                                                        <Star
+                                                          key={star}
+                                                          className={`w-3 h-3 ${
+                                                            star <= stars
+                                                              ? "fill-amber-400 text-amber-400"
+                                                              : "fill-muted text-muted"
+                                                          }`}
+                                                        />
+                                                      ))}
+                                                    </div>
                                                   </div>
-                                                </div>
-                                              )
-                                            })}
+                                                )
+                                              })
+                                            })()}
                                           </div>
                                         ) : (
                                           <p className="text-xs text-muted-foreground">
@@ -862,7 +896,9 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                         )}
                                         <div className="pt-2 border-t border-border">
                                           <p className="text-[10px] text-muted-foreground">
-                                            More stars = stronger match to what you told us matters.
+                                            {clinic.is_directory_listing || clinic.tier === "directory" || !clinic.verified
+                                              ? "Based on proximity, reviews, and treatment match."
+                                              : "More stars = stronger match to what you told us matters."}
                                           </p>
                                         </div>
                                       </div>
@@ -871,17 +907,13 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                 )}
                               </div>
 
-                              {/* Rating, verified, distance */}
+                              {/* Rating, distance */}
                               <div className="flex items-center gap-3 text-sm lg:text-xs text-muted-foreground flex-wrap mb-3 lg:mb-2">
-                                <div className="flex items-center gap-1">
-                                  <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                                  <span className="font-medium text-foreground">{clinic.rating}</span>
-                                  <span>({clinic.review_count})</span>
-                                </div>
-                                {clinic.verified && (
-                                  <div className="flex items-center gap-1 text-[#0fbcb0]">
-                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                    <span className="font-medium">Verified</span>
+                                {clinic.rating != null && clinic.rating > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                                    <span className="font-medium text-foreground">{clinic.rating}</span>
+                                    <span>({clinic.review_count ?? 0} Google reviews)</span>
                                   </div>
                                 )}
                                 {clinic.distance_miles !== undefined && (
@@ -918,12 +950,11 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                 </h3>
                                 <div className="space-y-1.5 text-xs lg:text-sm text-[#1a1a1a] leading-relaxed">
                                   {clinic.tier === "directory" || clinic.is_directory_listing ? (
-                                    <>
+                                    clinic.description ? (
+                                      <p className="line-clamp-3">{clinic.description}</p>
+                                    ) : (
                                       <p>This clinic is listed in our directory and may be able to help with your dental needs.</p>
-                                      {clinic.distance_miles && (
-                                        <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
-                                      )}
-                                    </>
+                                    )
                                   ) : clinic.tier === "nearby" ? (
                                     <>
                                       <p>This clinic is located nearby and may be able to help with your dental needs.</p>
@@ -1001,8 +1032,12 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   </Button>
                                 )}
                                 <Button
-                                  variant="outline"
-                                  className="flex-1 h-11 lg:h-10 rounded-full font-medium text-sm text-[#004443] border-[#004443]/20 hover:bg-[#004443]/5"
+                                  variant={clinic.tier === "directory" || clinic.is_directory_listing ? "default" : "outline"}
+                                  className={`flex-1 h-11 lg:h-10 rounded-full font-medium text-sm ${
+                                    clinic.tier === "directory" || clinic.is_directory_listing
+                                      ? "bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                                      : "text-[#004443] border-[#004443]/20 hover:bg-[#004443]/5"
+                                  }`}
                                   asChild
                                 >
                                   <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}>

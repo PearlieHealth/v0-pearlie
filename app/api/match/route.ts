@@ -164,7 +164,10 @@ export async function POST(request: Request) {
 
     const matchResultRows = rankedClinics.map((rc, index) => {
       const result = reasonsMap.get(rc.clinic.id)
-      const composed = result?.composed
+      // For directory listings, use the reasons directly (they don't go through cross-clinic dedup)
+      const composed = rc.isDirectoryListing
+        ? { bullets: rc.reasons.map(r => r.text), longBullets: rc.reasons.map(r => r.text), tagsUsed: rc.reasons.map(r => r.tagKey || ""), templatesUsed: [], confidence: 0.3 }
+        : result?.composed
 
       return {
         lead_id: leadId,
@@ -185,11 +188,11 @@ export async function POST(request: Request) {
           tagsUsed: composed?.tagsUsed || [],
           templatesUsed: composed?.templatesUsed || [],
           confidence: composed?.confidence || 0.8,
-          source: "template",
+          source: rc.isDirectoryListing ? "directory_listing" : "template",
         },
         distance_miles: rc.score.distanceMiles,
         explanation_version: getExplanationVersion(),
-        tier: rc.tier,
+        tier: rc.isDirectoryListing ? "directory" : rc.tier,
       }
     })
 
@@ -211,7 +214,7 @@ export async function POST(request: Request) {
     }
 
     // 10. Build response in format frontend expects
-    const topClinics = rankedClinics.slice(0, 2).map((rc) => ({
+    const mapClinicForResponse = (rc: typeof rankedClinics[0]) => ({
       id: rc.clinic.id,
       name: rc.clinic.name,
       postcode: rc.clinic.postcode,
@@ -226,26 +229,12 @@ export async function POST(request: Request) {
       score: rc.score.percent,
       whyMatched: rc.reasons.map((r) => r.text).slice(0, 3),
       tier: rc.tier,
+      is_directory_listing: rc.isDirectoryListing,
       secondarySuggestion: false,
-    }))
+    })
 
-    const moreClinics = rankedClinics.slice(2).map((rc) => ({
-      id: rc.clinic.id,
-      name: rc.clinic.name,
-      postcode: rc.clinic.postcode,
-      latitude: rc.clinic.latitude,
-      longitude: rc.clinic.longitude,
-      rating: rc.clinic.rating || 0,
-      review_count: rc.clinic.reviewCount || 0,
-      treatments: rc.clinic.treatments || [],
-      tags: rc.clinic.tags || [],
-      verified: rc.clinic.verified || false,
-      distance: rc.score.distanceMiles,
-      score: rc.score.percent,
-      whyMatched: rc.reasons.map((r) => r.text).slice(0, 3),
-      tier: rc.tier,
-      secondarySuggestion: false,
-    }))
+    const topClinics = rankedClinics.slice(0, 2).map(mapClinicForResponse)
+    const moreClinics = rankedClinics.slice(2).map(mapClinicForResponse)
 
     const minDistance = rankedClinics.length > 0
       ? Math.min(...rankedClinics.map((rc) => rc.score.distanceMiles ?? 999))

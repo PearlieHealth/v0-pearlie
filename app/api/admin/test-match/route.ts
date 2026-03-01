@@ -87,21 +87,29 @@ export async function POST(request: Request) {
 
     const result = await runMatchingPipeline(profile, clinics, options)
 
-    // Build reasons with cross-clinic dedup (same as live flow, uses matchFacts from engine)
+    // Build reasons with cross-clinic dedup for matchable clinics only
+    // Directory listings already have reasons from the engine (buildDirectoryListingReasons)
+    const matchableResults = result.rankedClinics.filter(rc => !rc.isDirectoryListing && rc.matchFacts)
     const reasonsMap = buildMatchReasonsForMultipleClinics(
       "test-lead",
-      result.rankedClinics.map((rc, index) => ({
+      matchableResults.map((rc, index) => ({
         clinicId: rc.clinic.id,
         matchFacts: rc.matchFacts,
         fallbackOffset: index,
       }))
     )
 
+    // Count types for meta
+    const verifiedCount = result.rankedClinics.filter(rc => !rc.isDirectoryListing).length
+    const directoryCount = result.rankedClinics.filter(rc => rc.isDirectoryListing).length
+
     // Return results with debug info
     return NextResponse.json({
       success: true,
       rankedClinics: result.rankedClinics.map((rc) => {
-        const result2 = reasonsMap.get(rc.clinic.id)
+        // For directory listings, use reasons directly from engine (no cross-clinic dedup)
+        // For matchable clinics, use composed reasons from reasonsMap
+        const result2 = rc.isDirectoryListing ? null : reasonsMap.get(rc.clinic.id)
         const composed = result2?.composed
 
         return {
@@ -109,21 +117,23 @@ export async function POST(request: Request) {
           clinicName: rc.clinic.name,
           postcode: rc.clinic.postcode,
           verified: rc.clinic.verified,
+          rating: rc.clinic.rating,
+          reviewCount: rc.clinic.reviewCount,
+          priceRange: rc.clinic.priceRange || null,
           filterKeys: rc.clinic.filterKeys,
           score: rc.score.totalScore,
           percent: rc.score.percent,
           tier: rc.tier,
           isPinned: rc.isPinned,
           explanationVersion: rc.explanationVersion,
-          isDirectoryListing: rc.debug?.isDirectoryListing || false,
-          // Use composed reasons (same as live flow)
+          isDirectoryListing: rc.isDirectoryListing,
+          // Use composed reasons for matchable, direct reasons for directory listings
           reasons: rc.reasons.map((r, idx) => ({
             text: composed?.bullets[idx] || r.text,
-            rawText: r.text, // Keep raw for debug
+            rawText: r.text,
             category: r.category,
             tagKey: r.tagKey,
           })),
-          // Primary composed reasons (as displayed to patients)
           composedReasons: composed?.bullets || rc.reasons.map(r => r.text),
           debug: {
             ...rc.debug,
@@ -137,13 +147,15 @@ export async function POST(request: Request) {
             reasonsComposer: {
               tagsUsed: composed?.tagsUsed || [],
               templatesUsed: composed?.templatesUsed || [],
-              confidence: composed?.confidence || 0.8,
+              confidence: composed?.confidence || (rc.isDirectoryListing ? 0.3 : 0.8),
             },
           },
         }
       }),
       meta: {
         totalClinicsEvaluated: result.totalClinicsEvaluated,
+        verifiedCount,
+        directoryCount,
         contractVersion: result.contractVersion,
         timestamp: result.timestamp,
         inputProfile: {
