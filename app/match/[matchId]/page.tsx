@@ -223,15 +223,19 @@ export default function MatchPage() {
         matchCount: data.clinics.length,
       })
 
-      // Save match info to localStorage so landing page can offer "return to matches"
-      try {
-        localStorage.setItem("pearlie_last_match", JSON.stringify({
-          matchId: data.match.id,
-          clinicCount: data.clinics.length,
-          treatment: data.lead?.treatmentInterest || "",
-          createdAt: new Date().toISOString(),
-        }))
-      } catch {}
+      // Save match info to localStorage so landing page can offer "return to matches".
+      // Only save if the authenticated user owns this lead — prevents random visitors
+      // from an external backlink overwriting their own localStorage.
+      if (data.lead?.isOwner) {
+        try {
+          localStorage.setItem("pearlie_last_match", JSON.stringify({
+            matchId: data.match.id,
+            clinicCount: data.clinics.length,
+            treatment: data.lead?.treatmentInterest || "",
+            createdAt: new Date().toISOString(),
+          }))
+        } catch {}
+      }
     } catch (err) {
       console.error("[v0] Error fetching initial matches:", err)
       setError(err instanceof Error ? err.message : "Failed to load matches")

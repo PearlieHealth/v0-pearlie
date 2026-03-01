@@ -437,6 +437,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
           ? {
               email: lead.email,
               isVerified: lead.is_verified ?? false,
+              isOwner: !!isOwner,
               // Strip location data for non-owners to prevent leaking patient address
               ...(isOwner
                 ? {
