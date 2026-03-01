@@ -3,24 +3,11 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ArrowRight, RotateCcw } from "lucide-react"
+import { useLastMatchId } from "@/hooks/use-last-match"
 
 export function StickyMobileHomeCta() {
   const [visible, setVisible] = useState(false)
-  const [lastMatchId, setLastMatchId] = useState<string | null>(null)
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("pearlie_last_match")
-      if (stored) {
-        const data = JSON.parse(stored)
-        const MAX_MATCH_AGE_MS = 30 * 24 * 60 * 60 * 1000
-        const age = Date.now() - new Date(data.createdAt).getTime()
-        if (age < MAX_MATCH_AGE_MS && data.matchId) {
-          setLastMatchId(data.matchId)
-        }
-      }
-    } catch {}
-  }, [])
+  const lastMatchId = useLastMatchId()
 
   useEffect(() => {
     const target =

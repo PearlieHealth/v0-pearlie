@@ -1,22 +1,11 @@
 import Link from "next/link"
 import { MapPin } from "lucide-react"
-import {
-  getBoroughsByRegion,
-  type LondonBorough,
-} from "@/lib/data/london-boroughs"
+import { LONDON_BOROUGHS } from "@/lib/data/london-boroughs"
 
 interface TreatmentAreaLinksProps {
   treatmentSlug: string
   treatmentName: string
 }
-
-const REGIONS: LondonBorough["region"][] = [
-  "Central",
-  "North",
-  "South",
-  "East",
-  "West",
-]
 
 export function TreatmentAreaLinks({
   treatmentSlug,
@@ -29,7 +18,7 @@ export function TreatmentAreaLinks({
           <div className="flex items-center gap-2 mb-2">
             <MapPin className="w-5 h-5 text-[#0fbcb0]" />
             <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-[#004443]">
-              {treatmentName} by area
+              {treatmentName} by borough
             </h2>
           </div>
           <p className="text-sm text-muted-foreground mb-6">
@@ -37,31 +26,17 @@ export function TreatmentAreaLinks({
             London borough.
           </p>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            {REGIONS.map((region) => {
-              const boroughs = getBoroughsByRegion(region)
-              if (boroughs.length === 0) return null
-
-              return (
-                <div key={region}>
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                    {region} London
-                  </h3>
-                  <ul className="space-y-1.5">
-                    {boroughs.map((borough) => (
-                      <li key={borough.slug}>
-                        <Link
-                          href={`/london/${borough.slug}/${treatmentSlug}`}
-                          className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors"
-                        >
-                          {borough.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )
-            })}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {LONDON_BOROUGHS.map((borough) => (
+              <Link
+                key={borough.slug}
+                href={`/london/${borough.slug}/${treatmentSlug}`}
+                className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors flex items-center gap-1.5 p-2 rounded-lg hover:bg-muted/50"
+              >
+                <MapPin className="w-3 h-3 text-[#0fbcb0] flex-shrink-0" />
+                {borough.name}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

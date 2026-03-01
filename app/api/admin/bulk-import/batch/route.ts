@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
         google_maps_url: place.mapsUrl,
         opening_hours: openingHours,
         images,
-        is_live: false,
+        is_live: true,
         is_archived: false,
         verified: false,
       })

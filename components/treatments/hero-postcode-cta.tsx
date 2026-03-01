@@ -19,9 +19,10 @@ import {
 interface HeroPostcodeCtaProps {
   treatmentName: string
   intakeTreatment: string
+  ctaButtonText?: string
 }
 
-export function HeroPostcodeCta({ treatmentName, intakeTreatment }: HeroPostcodeCtaProps) {
+export function HeroPostcodeCta({ treatmentName, intakeTreatment, ctaButtonText }: HeroPostcodeCtaProps) {
   const router = useRouter()
   const [postcode, setPostcode] = useState("")
   const [postcodeValid, setPostcodeValid] = useState(false)
@@ -46,8 +47,8 @@ export function HeroPostcodeCta({ treatmentName, intakeTreatment }: HeroPostcode
         <p className="text-sm text-muted-foreground mb-3">
           Enter your postcode to get started
         </p>
-        <div className="flex gap-3 items-start">
-          <div className="flex-1 [&_input]:h-12 [&_input]:rounded-full">
+        <div className="space-y-3">
+          <div className="[&_input]:h-12 [&_input]:rounded-full">
             <PostcodeInput
               value={postcode}
               onChange={setPostcode}
@@ -59,10 +60,9 @@ export function HeroPostcodeCta({ treatmentName, intakeTreatment }: HeroPostcode
             type="submit"
             size="lg"
             disabled={!postcodeValid}
-            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-6 h-12 text-base shrink-0 disabled:opacity-50"
+            className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-6 h-12 text-base disabled:opacity-50"
           >
-            <span className="md:hidden">Find my clinic</span>
-            <span className="hidden md:inline">Find my {treatmentName.toLowerCase()} clinic</span>
+            {ctaButtonText || `Compare ${treatmentName.toLowerCase()} clinics near me`}
           </Button>
         </div>
       </form>

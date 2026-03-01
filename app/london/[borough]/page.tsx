@@ -21,6 +21,7 @@ import { getAllTreatments } from "@/lib/content/treatments"
 import { getTestimonialsForBasicClinics } from "@/lib/locations/queries"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { createClient } from "@/lib/supabase/server"
+import { CLINIC_CARD_SELECT } from "@/lib/clinics/queries"
 
 export const revalidate = 3600
 
@@ -72,10 +73,7 @@ export async function generateMetadata({
   }
 }
 
-const CLINIC_SELECT =
-  "id, name, slug, city, address, postcode, rating, review_count, images, treatments, price_range, highlight_chips, verified, description"
-
-async function getClinicsInArea(postcodes: string[]) {
+async function getClinicsInArea(postcodes: string[], nearbyPostcodes: string[] = []) {
   try {
     const supabase = await createClient()
 
@@ -86,25 +84,32 @@ async function getClinicsInArea(postcodes: string[]) {
 
     const { data } = await supabase
       .from("clinics")
-      .select(CLINIC_SELECT)
+      .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .or(postcodeFilters)
       .order("rating", { ascending: false })
       .limit(12)
 
     if (data && data.length > 0) return data
 
-    // Fallback: if no postcode match, show top London clinics
-    const { data: fallback } = await supabase
-      .from("clinics")
-      .select(CLINIC_SELECT)
-      .eq("is_archived", false)
-      .eq("is_live", true)
-      .order("rating", { ascending: false })
-      .limit(6)
+    // Fallback: show clinics from nearby boroughs
+    if (nearbyPostcodes.length > 0) {
+      const nearbyFilters = nearbyPostcodes
+        .map((pc) => `postcode.ilike.${pc}%`)
+        .join(",")
 
-    return fallback || []
+      const { data: nearby } = await supabase
+        .from("clinics")
+        .select(CLINIC_CARD_SELECT)
+        .eq("is_archived", false)
+        .or(nearbyFilters)
+        .order("rating", { ascending: false })
+        .limit(6)
+
+      if (nearby && nearby.length > 0) return nearby
+    }
+
+    return []
   } catch {
     return []
   }
@@ -118,10 +123,11 @@ export default async function BoroughPage({ params }: BoroughPageProps) {
     notFound()
   }
 
-  const clinics = await getClinicsInArea(borough.postcodes)
+  const nearbyBoroughs = getNearbyBoroughs(slug, 4)
+  const nearbyPostcodes = nearbyBoroughs.flatMap((b) => b.postcodes)
+  const clinics = await getClinicsInArea(borough.postcodes, nearbyPostcodes)
   const testimonials = await getTestimonialsForBasicClinics(clinics)
   const treatments = getAllTreatments()
-  const nearbyBoroughs = getNearbyBoroughs(slug, 4)
 
   // Structured data
   const placeSchema = {
