@@ -54,13 +54,13 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
                 <>
                   <button
                     onClick={() => setLightboxIndex((lightboxIndex - 1 + clinic.images.length) % clinic.images.length)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-colors"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card/90 hover:bg-card flex items-center justify-center shadow-lg transition-colors"
                   >
                     <ChevronLeftIcon className="h-4 w-4 text-foreground" />
                   </button>
                   <button
                     onClick={() => setLightboxIndex((lightboxIndex + 1) % clinic.images.length)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card/90 hover:bg-card flex items-center justify-center shadow-lg transition-colors"
                   >
                     <ChevronRight className="h-4 w-4 text-foreground" />
                   </button>
