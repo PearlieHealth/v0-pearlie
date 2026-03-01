@@ -331,16 +331,16 @@ export default async function AreaTreatmentPage({
         <TrustBadgeStrip />
 
         {/* 6. Mid-page conversion CTA */}
-        <section className="py-10 sm:py-14 bg-[#004443]/5">
+        <section className="py-10 sm:py-14 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
-              <h2 className="text-xl sm:text-2xl font-heading font-bold text-[#004443] mb-3">
+              <h2 className="text-xl sm:text-2xl font-heading font-bold text-white mb-3">
                 Ready to compare {meta.treatmentName.toLowerCase()} clinics in {borough.name}?
               </h2>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
+              <p className="text-white/70 mb-6 leading-relaxed">
                 Enter your postcode to get matched with verified {meta.treatmentName.toLowerCase()} providers near you.
               </p>
-              <div className="[&_button]:bg-[#0fbcb0] [&_button]:hover:bg-[#0da399] [&_button]:text-white">
+              <div className="[&_button]:bg-[#0fbcb0] [&_button]:hover:bg-[#0da399] [&_button]:text-white [&_p]:text-white/60 [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-[#0fbcb0] [&_input]:focus-visible:border-[#0fbcb0]">
                 <TreatmentPostcodeCta
                   treatmentName={meta.treatmentName}
                   intakeTreatment={meta.intakeTreatment}
