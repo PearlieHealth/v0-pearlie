@@ -489,7 +489,7 @@ function ConfirmForm({
       </div>
 
       {/* Time selection — clinic must set time */}
-      <div className="space-y-3 rounded-md border border-amber-200 bg-white/60 p-3">
+      <div className="space-y-3 rounded-md border border-amber-200 bg-card/60 p-3">
         <p className="text-xs text-muted-foreground">Select the appointment time agreed with the patient:</p>
         <div className="space-y-2">
           <Label className="text-xs">Time</Label>
