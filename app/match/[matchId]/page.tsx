@@ -224,16 +224,14 @@ export default function MatchPage() {
       })
 
       // Save match info to localStorage so landing page can offer "return to matches"
-      if (data.lead?.isVerified) {
-        try {
-          localStorage.setItem("pearlie_last_match", JSON.stringify({
-            matchId: data.match.id,
-            clinicCount: data.clinics.length,
-            treatment: data.lead?.treatmentInterest || "",
-            createdAt: new Date().toISOString(),
-          }))
-        } catch {}
-      }
+      try {
+        localStorage.setItem("pearlie_last_match", JSON.stringify({
+          matchId: data.match.id,
+          clinicCount: data.clinics.length,
+          treatment: data.lead?.treatmentInterest || "",
+          createdAt: new Date().toISOString(),
+        }))
+      } catch {}
     } catch (err) {
       console.error("[v0] Error fetching initial matches:", err)
       setError(err instanceof Error ? err.message : "Failed to load matches")
