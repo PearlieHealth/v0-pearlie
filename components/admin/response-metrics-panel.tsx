@@ -52,6 +52,8 @@ interface UnansweredConvo {
   treatment: string
   waitingSince: string
   waitingHours: number
+  clinicNudgeSent: boolean
+  clinicNudgeSentAt: string | null
   altEmailSent: boolean
   altEmailSentAt: string | null
 }
@@ -333,6 +335,7 @@ export function ResponseMetricsPanel() {
                         <TableHead>Clinic</TableHead>
                         <TableHead>Treatment</TableHead>
                         <TableHead className="text-right">Waiting</TableHead>
+                        <TableHead>Clinic Nudge</TableHead>
                         <TableHead>Alt Email</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -351,6 +354,19 @@ export function ResponseMetricsPanel() {
                             <span className={`text-sm font-medium ${convo.waitingHours >= 4 ? "text-red-600" : convo.waitingHours >= 2 ? "text-amber-600" : "text-muted-foreground"}`}>
                               {formatWaitTime(convo.waitingHours)}
                             </span>
+                          </TableCell>
+                          <TableCell>
+                            {convo.clinicNudgeSent ? (
+                              <Badge variant="secondary" className="text-xs">
+                                Sent {convo.clinicNudgeSentAt
+                                  ? new Date(convo.clinicNudgeSentAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+                                  : ""}
+                              </Badge>
+                            ) : convo.waitingHours >= 2 ? (
+                              <span className="text-xs text-amber-600 font-medium">Due soon</span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Pending</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             {convo.altEmailSent ? (

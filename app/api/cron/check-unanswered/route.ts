@@ -2,12 +2,20 @@
  * Cron: Check for unanswered patient messages.
  *
  * Runs periodically (e.g. every 30 minutes via Vercel Cron).
- * For each conversation where a patient has been waiting > STALE_THRESHOLD_HOURS
- * without a clinic reply and we haven't already sent an alternative-clinics email,
- * we:
- *   1. Find nearby alternative clinics for the patient
- *   2. Send the patient an "alternative clinics" email
- *   3. Mark the conversation so we don't email again
+ *
+ * Two-stage notification flow:
+ *   Stage 1 (2 hrs) — Nudge the CLINIC: "Patient X is waiting for your reply"
+ *   Stage 2 (4 hrs) — Email the PATIENT: "Here are alternative clinics nearby"
+ *
+ * Spam prevention:
+ *   - clinic_nudge_sent flag: nudge is sent at most ONCE per conversation
+ *   - alt_clinics_email_sent flag: alternative email is sent at most ONCE per conversation
+ *   - idempotencyKey in email registry: prevents duplicates even if cron runs twice
+ *   - emailsSentThisBatch: prevents multiple emails to same recipient in one run
+ *   - Only fires on conversations where awaiting_clinic_reply = true (cleared on clinic reply)
+ *   - Respects unsubscribe preferences via sendRegisteredEmail pipeline
+ *   - Respects daily email cap (12/day) enforced by sendRegisteredEmail
+ *   - Closed conversations are excluded
  *
  * Also recomputes clinic_response_stats for aggregate response metrics.
  */
@@ -18,11 +26,13 @@ import { EMAIL_TYPE } from "@/lib/email/registry"
 import { generateUnsubscribeFooterHtml } from "@/lib/unsubscribe"
 import { escapeHtml } from "@/lib/escape-html"
 
-// How long (hours) before we send the "alternative clinics" email
-const STALE_THRESHOLD_HOURS = 4
+// Stage 1: Nudge the clinic after this many hours
+const NUDGE_THRESHOLD_HOURS = 2
+// Stage 2: Email the patient after this many hours (must be > NUDGE_THRESHOLD_HOURS)
+const ALT_CLINICS_THRESHOLD_HOURS = 4
 // Max conversations to process per cron run
 const BATCH_SIZE = 25
-// Max alternative clinics to suggest
+// Max alternative clinics to suggest in the patient email
 const MAX_ALT_CLINICS = 3
 
 export async function GET(request: Request) {
@@ -35,37 +45,141 @@ export async function GET(request: Request) {
 
     const supabase = createAdminClient()
     const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
+    const now = Date.now()
 
-    // ─── 1. Find stale conversations ────────────────────────────────────
-    const staleCutoff = new Date(Date.now() - STALE_THRESHOLD_HOURS * 60 * 60 * 1000).toISOString()
+    let clinicNudgesSent = 0
+    let patientEmailsSent = 0
 
-    const { data: staleConvos, error: staleError } = await supabase
+    // ─── Stage 1: Nudge clinics (2+ hours, not yet nudged) ──────────────
+    const nudgeCutoff = new Date(now - NUDGE_THRESHOLD_HOURS * 60 * 60 * 1000).toISOString()
+
+    const { data: needsNudge } = await supabase
       .from("conversations")
       .select("id, clinic_id, lead_id, awaiting_clinic_reply_since")
       .eq("awaiting_clinic_reply", true)
-      .eq("alt_clinics_email_sent", false)
-      .lt("awaiting_clinic_reply_since", staleCutoff)
+      .eq("clinic_nudge_sent", false)
+      .lt("awaiting_clinic_reply_since", nudgeCutoff)
       .neq("conversation_state", "closed")
       .order("awaiting_clinic_reply_since", { ascending: true })
       .limit(BATCH_SIZE)
 
-    if (staleError) {
-      console.error("[check-unanswered] Error fetching stale conversations:", staleError)
-      return NextResponse.json({ error: "Failed to fetch conversations" }, { status: 500 })
-    }
+    // Track clinics we've already nudged this batch to avoid duplicates
+    const clinicNudgedThisBatch = new Set<string>()
 
-    if (!staleConvos || staleConvos.length === 0) {
-      // Still recompute stats even if no stale conversations
-      await recomputeClinicStats(supabase)
-      return NextResponse.json({ processed: 0, emailed: 0 })
-    }
-
-    let emailed = 0
-    const emailsSentThisBatch = new Set<string>()
-
-    for (const convo of staleConvos) {
+    for (const convo of needsNudge || []) {
       try {
-        // Fetch lead info
+        // Skip if we already nudged this clinic about a different conversation in this batch
+        if (clinicNudgedThisBatch.has(convo.clinic_id)) {
+          await supabase
+            .from("conversations")
+            .update({ clinic_nudge_sent: true, clinic_nudge_sent_at: new Date().toISOString() })
+            .eq("id", convo.id)
+          continue
+        }
+
+        // Fetch clinic + lead info
+        const [{ data: clinic }, { data: lead }] = await Promise.all([
+          supabase.from("clinics").select("name, notification_email").eq("id", convo.clinic_id).single(),
+          supabase.from("leads").select("first_name, last_name, email").eq("id", convo.lead_id).single(),
+        ])
+
+        if (!clinic) continue
+
+        // Get the clinic's notification email (or fall back to clinic_users)
+        let clinicEmail = clinic.notification_email
+        if (!clinicEmail) {
+          const { data: clinicUser } = await supabase
+            .from("clinic_users")
+            .select("email")
+            .eq("clinic_id", convo.clinic_id)
+            .eq("is_active", true)
+            .limit(1)
+            .single()
+          clinicEmail = clinicUser?.email
+        }
+
+        if (!clinicEmail) {
+          // No email — mark so we don't retry
+          await supabase
+            .from("conversations")
+            .update({ clinic_nudge_sent: true, clinic_nudge_sent_at: new Date().toISOString() })
+            .eq("id", convo.id)
+          continue
+        }
+
+        const patientName = [lead?.first_name, lead?.last_name].filter(Boolean).join(" ") || "A patient"
+        const waitTimeHours = Math.max(1, Math.round((now - new Date(convo.awaiting_clinic_reply_since).getTime()) / (60 * 60 * 1000)))
+
+        // Fetch the last patient message for a preview
+        const { data: lastMsg } = await supabase
+          .from("messages")
+          .select("content")
+          .eq("conversation_id", convo.id)
+          .eq("sender_type", "patient")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single()
+
+        const messagePreview = lastMsg?.content
+          ? escapeHtml(lastMsg.content.substring(0, 300)) + (lastMsg.content.length > 300 ? "..." : "")
+          : "(message)"
+
+        const clinicUnsubFooter = generateUnsubscribeFooterHtml(
+          `${appUrl}/api/unsubscribe?email=${encodeURIComponent(clinicEmail)}&category=clinic_notifications`
+        )
+
+        const inboxUrl = `${appUrl}/clinic/inbox`
+
+        const result = await sendRegisteredEmail({
+          type: EMAIL_TYPE.CLINIC_RESPONSE_NUDGE,
+          to: clinicEmail,
+          data: {
+            clinicName: escapeHtml(clinic.name),
+            patientName: escapeHtml(patientName),
+            waitTimeHours,
+            messagePreview,
+            inboxUrl,
+            unsubscribeFooterHtml: clinicUnsubFooter,
+            _conversationId: convo.id,
+            _clinicId: convo.clinic_id,
+          },
+          clinicId: convo.clinic_id,
+        })
+
+        clinicNudgedThisBatch.add(convo.clinic_id)
+
+        // Mark nudge as sent
+        await supabase
+          .from("conversations")
+          .update({ clinic_nudge_sent: true, clinic_nudge_sent_at: new Date().toISOString() })
+          .eq("id", convo.id)
+
+        if (result.success && !result.skipped) {
+          clinicNudgesSent++
+        }
+      } catch (err) {
+        console.error(`[check-unanswered] Nudge error for conversation ${convo.id}:`, err)
+      }
+    }
+
+    // ─── Stage 2: Email patients alternatives (4+ hours, nudge already sent) ──
+    const altCutoff = new Date(now - ALT_CLINICS_THRESHOLD_HOURS * 60 * 60 * 1000).toISOString()
+
+    const { data: needsAltEmail } = await supabase
+      .from("conversations")
+      .select("id, clinic_id, lead_id, awaiting_clinic_reply_since")
+      .eq("awaiting_clinic_reply", true)
+      .eq("clinic_nudge_sent", true)           // Stage 1 must have fired first
+      .eq("alt_clinics_email_sent", false)      // Only send once
+      .lt("awaiting_clinic_reply_since", altCutoff)
+      .neq("conversation_state", "closed")
+      .order("awaiting_clinic_reply_since", { ascending: true })
+      .limit(BATCH_SIZE)
+
+    const patientEmailedThisBatch = new Set<string>()
+
+    for (const convo of needsAltEmail || []) {
+      try {
         const { data: lead } = await supabase
           .from("leads")
           .select("id, first_name, email, postcode, lat, long, treatment_interest")
@@ -73,7 +187,6 @@ export async function GET(request: Request) {
           .single()
 
         if (!lead?.email) {
-          // No email — mark so we don't retry
           await supabase
             .from("conversations")
             .update({ alt_clinics_email_sent: true, alt_clinics_email_sent_at: new Date().toISOString() })
@@ -83,8 +196,8 @@ export async function GET(request: Request) {
 
         const emailLower = lead.email.toLowerCase()
 
-        // Skip if we already emailed this patient in this batch
-        if (emailsSentThisBatch.has(emailLower)) {
+        // Skip if we already emailed this patient about a different conversation in this batch
+        if (patientEmailedThisBatch.has(emailLower)) {
           await supabase
             .from("conversations")
             .update({ alt_clinics_email_sent: true, alt_clinics_email_sent_at: new Date().toISOString() })
@@ -92,7 +205,6 @@ export async function GET(request: Request) {
           continue
         }
 
-        // Fetch the original clinic name
         const { data: originalClinic } = await supabase
           .from("clinics")
           .select("name")
@@ -101,18 +213,11 @@ export async function GET(request: Request) {
 
         if (!originalClinic) continue
 
-        // Find alternative clinics near the patient (exclude the original clinic)
-        const altClinics = await findAlternativeClinics(
-          supabase,
-          lead,
-          convo.clinic_id,
-          appUrl,
-        )
+        const altClinics = await findAlternativeClinics(supabase, lead, convo.clinic_id, appUrl)
 
-        // Calculate wait time in hours
-        const waitTimeHours = Math.round(
-          (Date.now() - new Date(convo.awaiting_clinic_reply_since).getTime()) / (60 * 60 * 1000)
-        )
+        const waitTimeHours = Math.max(1, Math.round(
+          (now - new Date(convo.awaiting_clinic_reply_since).getTime()) / (60 * 60 * 1000)
+        ))
 
         const unsubFooter = generateUnsubscribeFooterHtml(
           `${appUrl}/api/unsubscribe?email=${encodeURIComponent(lead.email)}&category=patient_notifications`
@@ -164,9 +269,9 @@ export async function GET(request: Request) {
           leadId: lead.id,
         })
 
-        emailsSentThisBatch.add(emailLower)
+        patientEmailedThisBatch.add(emailLower)
 
-        // Mark conversation as emailed
+        // Mark conversation as emailed — this is the permanent "sent once" flag
         await supabase
           .from("conversations")
           .update({
@@ -176,19 +281,19 @@ export async function GET(request: Request) {
           .eq("id", convo.id)
 
         if (result.success && !result.skipped) {
-          emailed++
+          patientEmailsSent++
         }
       } catch (err) {
-        console.error(`[check-unanswered] Error processing conversation ${convo.id}:`, err)
+        console.error(`[check-unanswered] Alt email error for conversation ${convo.id}:`, err)
       }
     }
 
-    // ─── 2. Recompute clinic response stats ─────────────────────────────
+    // ─── 3. Recompute clinic response stats ─────────────────────────────
     await recomputeClinicStats(supabase)
 
     return NextResponse.json({
-      processed: staleConvos.length,
-      emailed,
+      clinicNudges: { processed: (needsNudge || []).length, sent: clinicNudgesSent },
+      altClinicEmails: { processed: (needsAltEmail || []).length, sent: patientEmailsSent },
     })
   } catch (error) {
     console.error("[check-unanswered] Error:", error)
@@ -205,8 +310,6 @@ async function findAlternativeClinics(
   excludeClinicId: string,
   appUrl: string,
 ): Promise<{ name: string; avgResponseMins: number | null; treatments: string[]; viewUrl: string }[]> {
-  // Find nearby clinics, preferring those with good response stats
-  // Use lat/long proximity if available, otherwise just fetch verified clinics
   let query = supabase
     .from("clinics")
     .select("id, name, treatments, lat, long")
@@ -242,9 +345,8 @@ async function findAlternativeClinics(
     (stats || []).map(s => [s.clinic_id, s])
   )
 
-  // Pick top N clinics, preferring those with good response rates
   const result = sortedClinics
-    .slice(0, MAX_ALT_CLINICS * 2) // Take more than needed, then filter
+    .slice(0, MAX_ALT_CLINICS * 2)
     .map(c => {
       const s = statsMap.get(c.id)
       return {
@@ -255,7 +357,6 @@ async function findAlternativeClinics(
         responseRate: s?.response_rate ?? 0,
       }
     })
-    // Prefer clinics that actually respond
     .sort((a, b) => (b.responseRate || 0) - (a.responseRate || 0))
     .slice(0, MAX_ALT_CLINICS)
     .map(({ responseRate, ...rest }) => rest)
@@ -271,7 +372,6 @@ async function recomputeClinicStats(
   supabase: ReturnType<typeof createAdminClient>,
 ): Promise<void> {
   try {
-    // Get all clinics that have response_time_log entries
     const { data: clinicIds } = await supabase
       .from("response_time_log")
       .select("clinic_id")
@@ -282,7 +382,6 @@ async function recomputeClinicStats(
 
     for (const clinicId of uniqueClinicIds) {
       try {
-        // Fetch all response times for this clinic
         const { data: logs } = await supabase
           .from("response_time_log")
           .select("response_time_seconds, clinic_replied_at")

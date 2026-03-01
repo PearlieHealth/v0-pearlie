@@ -14,6 +14,8 @@ BEGIN
 
   ALTER TABLE conversations ADD COLUMN IF NOT EXISTS awaiting_clinic_reply BOOLEAN DEFAULT false;
   ALTER TABLE conversations ADD COLUMN IF NOT EXISTS awaiting_clinic_reply_since TIMESTAMPTZ;
+  ALTER TABLE conversations ADD COLUMN IF NOT EXISTS clinic_nudge_sent BOOLEAN DEFAULT false;
+  ALTER TABLE conversations ADD COLUMN IF NOT EXISTS clinic_nudge_sent_at TIMESTAMPTZ;
   ALTER TABLE conversations ADD COLUMN IF NOT EXISTS alt_clinics_email_sent BOOLEAN DEFAULT false;
   ALTER TABLE conversations ADD COLUMN IF NOT EXISTS alt_clinics_email_sent_at TIMESTAMPTZ;
 

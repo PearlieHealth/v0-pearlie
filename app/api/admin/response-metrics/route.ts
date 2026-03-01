@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     // ─── 2. Currently unanswered conversations ─────────────────────────
     let unansweredQuery = supabase
       .from("conversations")
-      .select("id, clinic_id, lead_id, awaiting_clinic_reply_since, alt_clinics_email_sent, alt_clinics_email_sent_at, clinics(name), leads(first_name, last_name, email, treatment_interest)")
+      .select("id, clinic_id, lead_id, awaiting_clinic_reply_since, clinic_nudge_sent, clinic_nudge_sent_at, alt_clinics_email_sent, alt_clinics_email_sent_at, clinics(name), leads(first_name, last_name, email, treatment_interest)")
       .eq("awaiting_clinic_reply", true)
       .neq("conversation_state", "closed")
       .order("awaiting_clinic_reply_since", { ascending: true })
@@ -133,6 +133,8 @@ export async function GET(request: NextRequest) {
         treatment: (c as any).leads?.treatment_interest || "",
         waitingSince: c.awaiting_clinic_reply_since,
         waitingHours: Math.round((Date.now() - new Date(c.awaiting_clinic_reply_since).getTime()) / (60 * 60 * 1000)),
+        clinicNudgeSent: c.clinic_nudge_sent,
+        clinicNudgeSentAt: c.clinic_nudge_sent_at,
         altEmailSent: c.alt_clinics_email_sent,
         altEmailSentAt: c.alt_clinics_email_sent_at,
       })),

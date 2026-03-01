@@ -346,8 +346,13 @@ export async function POST(request: NextRequest) {
           current_notification_cycle_start: null,
           last_patient_reply_at: now,
           // Response tracking: mark conversation as awaiting clinic reply
+          // Reset nudge/alt-email flags so a new tracking cycle can begin
           awaiting_clinic_reply: true,
           awaiting_clinic_reply_since: now,
+          clinic_nudge_sent: false,
+          clinic_nudge_sent_at: null,
+          alt_clinics_email_sent: false,
+          alt_clinics_email_sent_at: null,
         })
         .eq("id", conversation.id)
 

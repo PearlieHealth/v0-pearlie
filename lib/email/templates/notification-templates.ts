@@ -1032,3 +1032,54 @@ export function renderAlternativeClinicsEmail(data: AlternativeClinicsPayload): 
   ${data.unsubscribeFooterHtml}
 </div>`
 }
+
+// ---------------------------------------------------------------------------
+// 23. Clinic Response Nudge (to clinic — cron: patient waiting for reply)
+// ---------------------------------------------------------------------------
+
+export interface ClinicResponseNudgePayload {
+  clinicName: string
+  patientName: string
+  waitTimeHours: number
+  messagePreview: string
+  inboxUrl: string
+  unsubscribeFooterHtml: string
+}
+
+export function renderClinicResponseNudgeEmail(data: ClinicResponseNudgePayload): string {
+  const waitLabel = data.waitTimeHours >= 24
+    ? `${Math.round(data.waitTimeHours / 24)} day${Math.round(data.waitTimeHours / 24) !== 1 ? "s" : ""}`
+    : `${data.waitTimeHours} hour${data.waitTimeHours !== 1 ? "s" : ""}`
+
+  return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+  <div style="text-align: center; margin-bottom: 32px;">
+    <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">A patient is waiting for your reply</h1>
+  </div>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 8px;">
+    Hi ${data.clinicName},
+  </p>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    <strong>${data.patientName}</strong> messaged you <strong>${waitLabel} ago</strong> and is still waiting for a reply.
+    Quick responses help you win more patients!
+  </p>
+  <div style="background: #f5f5f5; border-radius: 12px; padding: 16px; margin-bottom: 24px; border-left: 4px solid #f59e0b;">
+    <p style="margin: 0 0 4px 0; font-size: 13px; color: #666;">Their message</p>
+    <p style="margin: 0; font-size: 14px; color: #333; line-height: 1.5; white-space: pre-wrap;">${data.messagePreview}</p>
+  </div>
+  <div style="background: #FFF8E1; border: 1px solid #FFE082; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <p style="margin: 0; font-size: 14px; color: #6D4C00; line-height: 1.5;">
+      Patients who don't hear back within a few hours often start looking at other clinics.
+      Replying now greatly increases your chance of converting this enquiry.
+    </p>
+  </div>
+  <div style="text-align: center; margin-bottom: 24px;">
+    <a href="${data.inboxUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 36px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 16px;">
+      Reply now
+    </a>
+  </div>
+  <p style="font-size: 12px; color: #999; text-align: center; margin-top: 32px;">
+    Pearlie &mdash; Your dental clinic partner
+  </p>
+  ${data.unsubscribeFooterHtml}
+</div>`
+}
