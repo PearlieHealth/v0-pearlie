@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { MapPin, Star, ExternalLink } from "lucide-react"
+import { MapPin, Star } from "lucide-react"
 import type { ClinicData } from "./treatment-clinic-card"
 
 interface ClinicDirectoryListProps {
@@ -57,7 +57,9 @@ export function ClinicDirectoryList({ clinics, treatmentName }: ClinicDirectoryL
                       {clinic.rating.toFixed(1)}
                     </span>
                   )}
-                  <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-[#0fbcb0] transition-colors" />
+                  <span className="inline-flex items-center px-4 py-1.5 text-xs font-semibold text-white bg-[#0fbcb0] rounded-full group-hover:bg-[#0da399] transition-colors">
+                    View profile
+                  </span>
                 </div>
               </Link>
             ))}
