@@ -775,6 +775,15 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   </span>
                                 </div>
                               )}
+                              {/* Verified badge overlay on image */}
+                              {clinic.verified && (
+                                <div className="absolute top-3 right-3">
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm bg-[#0fbcb0] text-white">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    Verified by Pearlie
+                                  </span>
+                                </div>
+                              )}
                               </div>
                             </div>
 
@@ -887,15 +896,11 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                               {/* Rating, verified, distance */}
                               <div className="flex items-center gap-3 text-sm lg:text-xs text-muted-foreground flex-wrap mb-3 lg:mb-2">
-                                <div className="flex items-center gap-1">
-                                  <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                                  <span className="font-medium text-foreground">{clinic.rating}</span>
-                                  <span>({clinic.review_count})</span>
-                                </div>
-                                {clinic.verified && (
-                                  <div className="flex items-center gap-1 text-[#0fbcb0]">
-                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                    <span className="font-medium">Verified</span>
+                                {clinic.rating != null && clinic.rating > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                                    <span className="font-medium text-foreground">{clinic.rating}</span>
+                                    <span>({clinic.review_count ?? 0}{!clinic.verified ? " Google reviews" : ""})</span>
                                   </div>
                                 )}
                                 {clinic.distance_miles !== undefined && (
