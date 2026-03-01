@@ -900,7 +900,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   <div className="flex items-center gap-1">
                                     <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
                                     <span className="font-medium text-foreground">{clinic.rating}</span>
-                                    <span>({clinic.review_count ?? 0})</span>
+                                    <span>({clinic.review_count ?? 0} Google reviews)</span>
                                   </div>
                                 )}
                                 {clinic.distance_miles !== undefined && (
