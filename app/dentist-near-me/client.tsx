@@ -28,7 +28,7 @@ interface DentistNearMeClientProps {
 }
 
 export function DentistNearMeClient({
-  clinics,
+  clinics: initialClinics,
   totalClinics,
   faqs,
   treatmentShortcuts,
@@ -41,6 +41,55 @@ export function DentistNearMeClient({
   const [isLocating, setIsLocating] = useState(false)
   const [postcodeError, setPostcodeError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [displayedClinics, setDisplayedClinics] = useState<ClinicData[]>(initialClinics)
+  const [isLoadingClinics, setIsLoadingClinics] = useState(false)
+
+  // Fetch clinics near a lat/lng from the API
+  const fetchNearbyClinics = useCallback(async (lat: number, lng: number) => {
+    setIsLoadingClinics(true)
+    try {
+      const res = await fetch(`/api/clinics/nearby?lat=${lat}&lng=${lng}&radius=5`)
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.clinics && data.clinics.length > 0) {
+        setDisplayedClinics(data.clinics)
+      }
+      // If no nearby clinics found, keep showing the initial set
+    } catch {
+      // Keep initial clinics on error
+    } finally {
+      setIsLoadingClinics(false)
+    }
+  }, [])
+
+  // Resolve a postcode → borough name + slug + nearby clinics
+  const lookupPostcode = useCallback(async (pc: string) => {
+    try {
+      const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`)
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.status === 200 && data.result) {
+        const district = data.result.admin_district as string
+        const lat = data.result.latitude as number
+        const lng = data.result.longitude as number
+
+        if (district) {
+          setDetectedBorough(district)
+          const slug = boroughs.find(
+            (b) => b.name.toLowerCase() === district.toLowerCase()
+          )?.slug
+          setDetectedBoroughSlug(slug || null)
+        }
+
+        // Fetch clinics near this postcode's coordinates
+        if (lat && lng) {
+          await fetchNearbyClinics(lat, lng)
+        }
+      }
+    } catch {
+      // Silently fail
+    }
+  }, [boroughs, fetchNearbyClinics])
 
   // Check localStorage for saved postcode on mount
   useEffect(() => {
@@ -49,28 +98,7 @@ export function DentistNearMeClient({
       setPostcode(saved)
       lookupPostcode(saved)
     }
-  }, [])
-
-  const lookupPostcode = useCallback(async (pc: string) => {
-    try {
-      const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`)
-      if (!res.ok) return
-      const data = await res.json()
-      if (data.status === 200 && data.result) {
-        const district = data.result.admin_district as string
-        if (district) {
-          setDetectedBorough(district)
-          // Try to match to a Pearlie borough
-          const slug = boroughs.find(
-            (b) => b.name.toLowerCase() === district.toLowerCase()
-          )?.slug
-          setDetectedBoroughSlug(slug || null)
-        }
-      }
-    } catch {
-      // Silently fail
-    }
-  }, [boroughs])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePostcodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -126,6 +154,11 @@ export function DentistNearMeClient({
       async (position) => {
         try {
           const { latitude, longitude } = position.coords
+
+          // Fetch nearby clinics immediately with raw coordinates
+          fetchNearbyClinics(latitude, longitude)
+
+          // Also reverse-geocode to get postcode + borough name
           const res = await fetch(
             `https://api.postcodes.io/postcodes?lon=${longitude}&lat=${latitude}&limit=1`
           )
@@ -133,9 +166,17 @@ export function DentistNearMeClient({
 
           if (data.status === 200 && data.result?.length > 0) {
             const pc = data.result[0].postcode as string
+            const district = data.result[0].admin_district as string
             setPostcode(pc)
             localStorage.setItem("pearlie_postcode", pc)
-            await lookupPostcode(pc)
+
+            if (district) {
+              setDetectedBorough(district)
+              const slug = boroughs.find(
+                (b) => b.name.toLowerCase() === district.toLowerCase()
+              )?.slug
+              setDetectedBoroughSlug(slug || null)
+            }
           } else {
             setPostcodeError("We couldn't determine your postcode. Please enter it manually.")
           }
@@ -158,12 +199,13 @@ export function DentistNearMeClient({
     ? `/london/${detectedBoroughSlug}`
     : "/london"
 
-  // Average rating from clinics
+  // Average rating from displayed clinics
+  const ratedClinics = displayedClinics.filter((c) => (c.rating as number) > 0)
   const avgRating =
-    clinics.length > 0
+    ratedClinics.length > 0
       ? (
-          clinics.reduce((sum, c) => sum + ((c.rating as number) || 0), 0) /
-          clinics.filter((c) => (c.rating as number) > 0).length
+          ratedClinics.reduce((sum, c) => sum + ((c.rating as number) || 0), 0) /
+          ratedClinics.length
         ).toFixed(1)
       : "4.8"
 
@@ -263,7 +305,7 @@ export function DentistNearMeClient({
       </section>
 
       {/* ─── CLINIC LISTINGS ──────────────────────────────── */}
-      {clinics.length > 0 && (
+      {displayedClinics.length > 0 && (
         <section className="py-12 sm:py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
@@ -273,10 +315,12 @@ export function DentistNearMeClient({
                   : "Top-rated clinics in London"}
               </h2>
               <p className="text-muted-foreground mb-8">
-                Verified, GDC-registered clinics sorted by rating and reviews.
+                {detectedBorough
+                  ? "Verified clinics nearest to your location, sorted by rating."
+                  : "Verified, GDC-registered clinics sorted by rating and reviews."}
               </p>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {clinics.map((clinic) => (
+              <div className={`grid sm:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity duration-300 ${isLoadingClinics ? "opacity-50" : "opacity-100"}`}>
+                {displayedClinics.map((clinic) => (
                   <TreatmentClinicCard key={clinic.id} clinic={clinic} />
                 ))}
               </div>
