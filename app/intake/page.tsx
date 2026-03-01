@@ -764,7 +764,7 @@ export default function IntakePage() {
   )
 
   return (
-    <div className="min-h-screen bg-[#ffffff] flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
       {/* Header with progress */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">

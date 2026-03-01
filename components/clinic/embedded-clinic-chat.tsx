@@ -267,7 +267,7 @@ export function EmbeddedClinicChat({
   if (!isOpen) return null
 
   return (
-    <div className={hideHeader ? "bg-card flex flex-col h-full overflow-hidden" : "border border-[#e5e5e5] rounded-xl overflow-hidden bg-white"}>
+    <div className={hideHeader ? "bg-card flex flex-col h-full overflow-hidden" : "border border-border rounded-xl overflow-hidden bg-card"}>
       {/* Header */}
       {!hideHeader && (
         <div className="bg-[#0d1019] px-4 py-3 flex items-center justify-between">
@@ -287,7 +287,7 @@ export function EmbeddedClinicChat({
 
       {/* Pre-qualifier or quick form for visitors without a leadId */}
       {!leadId && (
-        <div className={`overflow-y-auto bg-[#fafafa] ${hideHeader ? "flex-1 min-h-0" : "max-h-[400px]"}`}>
+        <div className={`overflow-y-auto bg-secondary ${hideHeader ? "flex-1 min-h-0" : "max-h-[400px]"}`}>
           {showQuickForm ? (
             <DirectEnquiryForm
               clinicId={clinicId}
@@ -313,11 +313,11 @@ export function EmbeddedClinicChat({
       {leadId && (
       <div
         ref={scrollRef}
-        className={`overflow-y-auto p-3 space-y-3 bg-[#fafafa] ${hideHeader ? "flex-1 min-h-0" : "h-[280px]"}`}
+        className={`overflow-y-auto p-3 space-y-3 bg-secondary ${hideHeader ? "flex-1 min-h-0" : "h-[280px]"}`}
       >
         {isLoading && messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="animate-spin h-5 w-5 border-2 border-[#004443] border-t-transparent rounded-full" />
+            <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
@@ -348,7 +348,7 @@ export function EmbeddedClinicChat({
                     }`}
                   >
                     {msg.sender_type === "bot" ? (
-                      <div className="max-w-[90%] bg-secondary border border-[#faf3e6] rounded-xl px-3 py-2">
+                      <div className="max-w-[90%] bg-secondary border border-secondary rounded-xl px-3 py-2">
                         <p className="text-[9px] text-primary font-medium mb-0.5 flex items-center gap-1">
                           <Heart className="w-2.5 h-2.5 fill-primary text-primary" />
                           Pearlie AI
@@ -393,7 +393,7 @@ export function EmbeddedClinicChat({
 
       {/* Inbox link - shown when conversation exists */}
       {leadId && conversationId && (
-        <div className="px-3 py-1.5 bg-card border-t border-[#e5e5e5]">
+        <div className="px-3 py-1.5 bg-card border-t border-border">
           <a
             href="/patient/login?next=/patient/dashboard"
             className="text-[11px] text-primary hover:underline"
@@ -427,7 +427,7 @@ export function EmbeddedClinicChat({
 
           {/* Inline OTP verification on 403 */}
           {showOtpVerify && leadId && leadEmail && (
-            <div className="p-3 border-t border-[#e5e5e5] bg-[#fafafa]">
+            <div className="p-3 border-t border-border bg-secondary">
               <p className="text-xs text-[#666] mb-2">Verify your email to send messages:</p>
               <OTPVerification
                 leadId={leadId}
@@ -449,11 +449,11 @@ export function EmbeddedClinicChat({
           )}
 
           {conversationClosed ? (
-            <div className="px-3 py-3 border-t border-[#e5e5e5] bg-[#f5f5f5]">
+            <div className="px-3 py-3 border-t border-border bg-secondary">
               <p className="text-[11px] text-[#888] text-center">This conversation has been closed. Looking for a dentist? <a href="/intake" className="underline text-teal-600 hover:text-teal-700">Start a new search</a> to get matched with clinics.</p>
             </div>
           ) : !showOtpVerify && (
-          <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-card overflow-hidden">
+          <form onSubmit={handleSend} className="flex-shrink-0 border-t border-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-card overflow-hidden">
             <div className="flex items-center gap-2">
               <input
                 type="text"
@@ -470,13 +470,13 @@ export function EmbeddedClinicChat({
                   }
                 }}
                 placeholder="Ask a question or say hello..."
-                className="flex-1 min-w-0 text-[16px] sm:text-sm border border-[#ddd] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#004443]/20 focus:border-[#004443] bg-white"
+                className="flex-1 min-w-0 text-[16px] sm:text-sm border border-border rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-card"
                 disabled={isSending}
               />
               <button
                 type="submit"
                 disabled={!newMessage.trim() || isSending}
-                className="flex-shrink-0 h-10 w-10 rounded-full bg-[#0d1019] text-white flex items-center justify-center hover:bg-[#003332] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-shrink-0 h-10 w-10 rounded-full bg-[#0d1019] text-white flex items-center justify-center hover:bg-[#0d1019]/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isSending ? (
                   <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />

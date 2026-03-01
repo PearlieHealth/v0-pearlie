@@ -493,7 +493,7 @@ export default function MatchPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#faf8f3]">
+      <div className="min-h-screen bg-secondary">
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-muted rounded w-2/3" />
@@ -510,7 +510,7 @@ export default function MatchPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#faf8f3] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
         <Empty>
           <EmptyHeader>
             <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
@@ -529,7 +529,7 @@ export default function MatchPage() {
 
   if (isVerified === false && leadId && leadEmail) {
     return (
-      <div className="min-h-screen bg-[#faf8f3]">
+      <div className="min-h-screen bg-secondary">
         <div className="max-w-lg mx-auto px-4 py-12">
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center justify-center gap-2.5 mb-6">
@@ -556,7 +556,7 @@ export default function MatchPage() {
   const match = { lead_id: leadId } // Assuming match object is needed for clinic actions
 
   return (
-    <div className="min-h-screen bg-[#faf8f3]">
+    <div className="min-h-screen bg-secondary">
       {/* Glass nav matching landing page */}
       <header className="fixed top-3 left-3 right-3 md:top-5 md:left-8 md:right-8 z-50">
         <div className="rounded-[3.4vw] bg-card/70 backdrop-blur-[40px] backdrop-saturate-[1.4] border border-white/30 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] px-4 sm:px-6 py-2.5">
@@ -695,7 +695,7 @@ export default function MatchPage() {
         {!loading && !error && allClinicsData.length > 0 && (
           <>
             {showExpansionBanner && (
-              <Alert className="mb-8 border-[#004443]/20 bg-card shadow-sm">
+              <Alert className="mb-8 border-border bg-card shadow-sm">
                 <Info className="h-5 w-5 text-foreground" />
                 <AlertDescription className="ml-2">
                   <div className="space-y-2">
@@ -721,7 +721,7 @@ export default function MatchPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
-                      className="gap-1.5 text-foreground border border-[#004443]/20 hover:bg-[#0d1019]/5"
+                      className="gap-1.5 text-foreground border border-border hover:bg-[#0d1019]/5"
                     >
                       {viewMode === "map" ? <><List className="w-4 h-4" /> List</> : <><Map className="w-4 h-4" /> Map</>}
                     </Button>
@@ -747,7 +747,7 @@ export default function MatchPage() {
                     return (
                       <div key={clinic.id}>
                         {isFirstNonVerified && (
-                          <div className="py-3 border-t border-[#004443]/10">
+                          <div className="py-3 border-t border-border">
                             <p className="text-xs text-muted-foreground text-center">
                               Other clinics (not verified by Pearlie)
                             </p>
@@ -772,7 +772,7 @@ export default function MatchPage() {
                                   sizes="(max-width: 768px) 100vw, 600px"
                                 />
                               ) : (
-                                <div className="w-full h-[140px] sm:h-[180px] lg:h-[135px] bg-[#faf8f3] flex items-center justify-center lg:rounded-xl">
+                                <div className="w-full h-[140px] sm:h-[180px] lg:h-[135px] bg-secondary flex items-center justify-center lg:rounded-xl">
                                   <MapPin className="w-10 h-10 text-foreground/20" />
                                 </div>
                               )}
@@ -930,7 +930,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
                                     const chipData = getChipData(chip)
                                     return (
-                                      <span key={chip} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-[#004443]/15 text-foreground bg-[#0d1019]/5">
+                                      <span key={chip} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-border text-foreground bg-[#0d1019]/5">
                                         {chipData.icon}
                                         {chipData.label}
                                       </span>
@@ -1036,7 +1036,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   className={`flex-1 h-11 lg:h-10 rounded-full font-medium text-sm ${
                                     clinic.tier === "directory" || clinic.is_directory_listing
                                       ? "bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
-                                      : "text-foreground border-[#004443]/20 hover:bg-[#0d1019]/5"
+                                      : "text-foreground border-border hover:bg-[#0d1019]/5"
                                   }`}
                                   asChild
                                 >
@@ -1132,7 +1132,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                     })}
                   {hasMoreClinics && (
                     <div className="flex justify-center mt-4">
-                      <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="sm" className="border-[#004443]/20 text-foreground hover:bg-[#0d1019]/5 bg-card rounded-full text-sm">
+                      <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="sm" className="border-border text-foreground hover:bg-[#0d1019]/5 bg-card rounded-full text-sm">
                         Show more clinics
                       </Button>
                     </div>
