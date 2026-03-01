@@ -20,7 +20,7 @@ export function HighlightBadgeStrip({ chips, maxVisible = 6 }: HighlightBadgeStr
         return (
           <span
             key={chip}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#004443]/15 text-foreground bg-[#0d1019]/5 text-sm font-medium"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-foreground/15 text-foreground bg-foreground/5 text-sm font-medium"
           >
             <span className="flex-shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:text-foreground">
               {data.icon}
@@ -30,7 +30,7 @@ export function HighlightBadgeStrip({ chips, maxVisible = 6 }: HighlightBadgeStr
         )
       })}
       {remaining > 0 && (
-        <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#f5f5f5] text-[#999] text-sm font-medium">
+        <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-secondary text-muted-foreground text-sm font-medium">
           +{remaining} more
         </span>
       )}
