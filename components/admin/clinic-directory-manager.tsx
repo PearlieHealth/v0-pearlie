@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Plus, Edit, Copy, Archive, ArchiveRestore, ImageIcon, ExternalLink, RefreshCw, AlertTriangle, Wrench, Trash2, Star, Clock, Mail, Filter } from "lucide-react"
+import { Search, Plus, Edit, Copy, Archive, ArchiveRestore, ImageIcon, ExternalLink, RefreshCw, AlertTriangle, Wrench, Trash2, Star, Clock, Mail, Filter, FileText } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ClinicEditorDrawer } from "./clinic-editor-drawer"
 import { ClinicInviteButton } from "./clinic-invite-button"
@@ -99,7 +99,7 @@ const FILTER_LABELS: Record<FilterKey, string> = {
   no_photos: "No Photos",
   no_treatments: "No Treatments",
   no_prices: "No Treatment Prices",
-  no_description: "No Description",
+  no_description: "No / Generic Description",
 }
 
 export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirectoryManagerProps) {
@@ -122,7 +122,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
   // Bulk Google link / fetch hours
   const [bulkGoogleProgress, setBulkGoogleProgress] = useState<{
     open: boolean
-    type: "google-link" | "fetch-hours" | "fetch-reviews"
+    type: "google-link" | "fetch-hours" | "fetch-reviews" | "generate-descriptions"
     total: number
     processed: number
     results: BulkProgressResult[]
@@ -233,7 +233,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
           break
         }
         case "no_description":
-          if (!clinic.description || clinic.description.trim().length < 10) return true
+          if (!clinic.description || clinic.description.trim().length < 10 || clinic.description.startsWith("Dental practice located at")) return true
           break
       }
     }
@@ -656,6 +656,78 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
     handleBulkFetchReviews(visible.map((c) => c.id))
   }
 
+  const handleBulkGenerateDescriptions = async (overrideIds?: string[]) => {
+    const ids = overrideIds || Array.from(selectedIds)
+    if (ids.length === 0) return
+
+    setBulkGoogleProgress({
+      open: true,
+      type: "generate-descriptions",
+      total: ids.length,
+      processed: 0,
+      results: [],
+      done: false,
+    })
+
+    const results: BulkProgressResult[] = []
+
+    for (let i = 0; i < ids.length; i++) {
+      try {
+        const res = await fetch("/api/admin/clinics/bulk-generate-descriptions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clinicId: ids[i] }),
+        })
+
+        const data = await res.json()
+
+        if (data.status === "updated" || data.status === "generated") {
+          // Update local state with new description
+          setClinics((prev) =>
+            prev.map((c) =>
+              c.id === data.clinicId
+                ? { ...c, description: data.description }
+                : c,
+            ),
+          )
+        }
+
+        results.push({
+          clinicId: data.clinicId || ids[i],
+          clinicName: data.clinicName || "Unknown",
+          status: data.status || "failed",
+          error: data.error,
+        })
+      } catch (err) {
+        results.push({
+          clinicId: ids[i],
+          clinicName: "Unknown",
+          status: "failed",
+          error: err instanceof Error ? err.message : "Network error",
+        })
+      }
+
+      setBulkGoogleProgress((prev) =>
+        prev
+          ? { ...prev, processed: i + 1, results: [...results] }
+          : null,
+      )
+    }
+
+    setBulkGoogleProgress((prev) =>
+      prev ? { ...prev, done: true, results } : null,
+    )
+
+    const extracted = results.filter((r) => r.status === "updated").length
+    const generated = results.filter((r) => r.status === "generated").length
+    const skipped = results.filter((r) => r.status === "skipped").length
+    const failed = results.filter((r) => r.status === "failed").length
+    toast({
+      title: "Bulk description update complete",
+      description: `Extracted: ${extracted}, AI fallback: ${generated}, Skipped: ${skipped}, Failed: ${failed}`,
+    })
+  }
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev)
@@ -688,6 +760,8 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       case "linked":
       case "updated":
         return <span className="text-green-600">&#10003;</span>
+      case "generated":
+        return <span className="text-blue-600">&#10003;</span>
       case "already_linked":
       case "already_has_hours":
         return <span className="text-blue-600">&#8212;</span>
@@ -695,6 +769,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       case "no_place_id":
       case "no_hours_found":
       case "no_reviews_found":
+      case "skipped":
         return <span className="text-amber-600">&#9888;</span>
       case "failed":
         return <span className="text-red-600">&#10007;</span>
@@ -708,7 +783,11 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       case "linked":
         return "Linked"
       case "updated":
-        return "Updated"
+        return "Extracted from website"
+      case "generated":
+        return "AI fallback"
+      case "skipped":
+        return "Skipped"
       case "already_linked":
         return "Already linked"
       case "already_has_hours":
@@ -1089,6 +1168,15 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
               <Button
                 size="sm"
                 variant="outline"
+                className="text-purple-700 border-purple-300 hover:bg-purple-50"
+                onClick={() => handleBulkGenerateDescriptions()}
+              >
+                <FileText className="h-3.5 w-3.5 mr-1.5" />
+                Update Descriptions
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
                 className="text-orange-700 border-orange-300 hover:bg-orange-50"
                 onClick={() => setBulkAction("archive")}
               >
@@ -1227,7 +1315,9 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
                 ? "Linking Google Reviews"
                 : bulkGoogleProgress?.type === "fetch-reviews"
                   ? "Fetching Google Reviews"
-                  : "Fetching Opening Hours"}
+                  : bulkGoogleProgress?.type === "generate-descriptions"
+                    ? "Generating Clinic Descriptions"
+                    : "Fetching Opening Hours"}
             </DialogTitle>
           </DialogHeader>
 
@@ -1236,9 +1326,9 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <RefreshCw className="h-4 w-4 animate-spin" />
-                  Processing {bulkGoogleProgress?.total} clinic{(bulkGoogleProgress?.total || 0) > 1 ? "s" : ""}...
+                  Processing {bulkGoogleProgress?.processed || 0} of {bulkGoogleProgress?.total} clinic{(bulkGoogleProgress?.total || 0) > 1 ? "s" : ""}...
                 </div>
-                <Progress value={0} className="h-2" />
+                <Progress value={bulkGoogleProgress?.total ? ((bulkGoogleProgress.processed || 0) / bulkGoogleProgress.total) * 100 : 0} className="h-2" />
               </div>
             )}
 
