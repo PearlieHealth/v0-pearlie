@@ -316,7 +316,7 @@ export function rankClinics(
       continue
     }
 
-    const matchable = checkClinicMatchable(clinic)
+    const matchable = clinic.verified === true || checkClinicMatchable(clinic)
     if (matchable) {
       matchableClinics.push(clinic)
     } else {

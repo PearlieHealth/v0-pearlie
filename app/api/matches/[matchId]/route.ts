@@ -177,7 +177,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
           : []
 
         const normalizedClinic = normalizeClinic(clinicRow, filterKeys)
-        const isDir = !isClinicMatchable(filterKeys)
+        const isDir = !clinicRow.verified && !isClinicMatchable(filterKeys)
 
         // Use the appropriate scoring function based on matchability
         const scoreBreakdown = isDir
@@ -351,7 +351,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
             }
 
             const isUnverified = !clinic.verified
-            const isDir = isUnverified || !isClinicMatchable(filterKeys)
+            const isDir = isUnverified
 
             // Score directory listings instead of giving them zero
             const dirScore = scoreDirectoryListing(normalizedLead, normalizedClinic)
