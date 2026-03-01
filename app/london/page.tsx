@@ -632,13 +632,13 @@ export default async function LondonPage() {
         </section>
 
         {/* 7. Why Use Pearlie */}
-        <section className="py-10 sm:py-14 bg-[var(--cream)]">
+        <section className="py-10 sm:py-14 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-white mb-2">
                 Why use Pearlie to find a dentist in London?
               </h2>
-              <p className="text-base text-muted-foreground mb-8">
+              <p className="text-base text-white/70 mb-8">
                 We help patients compare options clearly and confidently.
               </p>
 
@@ -653,10 +653,10 @@ export default async function LondonPage() {
                 ].map((item) => (
                   <div
                     key={item}
-                    className="flex items-start gap-2.5 rounded-lg border border-border/50 bg-white px-4 py-3"
+                    className="flex items-start gap-2.5 rounded-lg border border-white/10 bg-white/10 px-4 py-3"
                   >
                     <Shield className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
-                    <span className="text-sm font-medium text-foreground">
+                    <span className="text-sm font-medium text-white">
                       {item}
                     </span>
                   </div>
