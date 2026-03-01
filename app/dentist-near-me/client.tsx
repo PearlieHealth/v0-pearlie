@@ -251,33 +251,33 @@ export function DentistNearMeClient({
       {/* ─── HERO (Compact mobile, expanded desktop) ──────── */}
       <section
         ref={heroRef}
-        className="relative bg-gradient-to-b from-[#004443] to-[#00625e] text-white pt-20 pb-8 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 overflow-hidden"
+        className="relative bg-gradient-to-b from-[#004443] to-[#00625e] text-white pt-28 pb-10 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 overflow-hidden"
       >
         <div className="absolute top-10 right-10 w-72 h-72 rounded-full bg-white/[0.03] blur-3xl pointer-events-none hidden sm:block" />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-2 sm:mb-4 text-balance">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-3 sm:mb-4 text-balance">
               {detectedBorough
                 ? `Dentists Near You in ${detectedBorough}`
                 : "Dentists Near Me"}
             </h1>
-            <p className="text-sm sm:text-lg md:text-xl opacity-90 mb-4 sm:mb-6 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-white/80 mb-5 sm:mb-6 max-w-2xl mx-auto leading-relaxed">
               Compare verified clinics near you.
             </p>
 
             {detectedBorough && (
-              <p className="flex items-center justify-center gap-1.5 text-xs sm:text-sm opacity-75 mb-3 sm:mb-5">
+              <p className="flex items-center justify-center gap-1.5 text-sm opacity-75 mb-4 sm:mb-5">
                 <MapPin className="w-3.5 h-3.5" />
                 Showing clinics near: {postcode || detectedBorough}
               </p>
             )}
 
-            {/* Postcode search — full width on mobile */}
+            {/* Postcode search */}
             <form onSubmit={handlePostcodeSubmit} className="max-w-md mx-auto mb-3">
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
                     value={postcode}
@@ -286,13 +286,13 @@ export function DentistNearMeClient({
                       setPostcodeError("")
                     }}
                     placeholder="Enter your postcode"
-                    className="w-full pl-10 pr-4 py-3.5 sm:py-3 rounded-xl bg-white text-foreground text-base sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]"
                   />
                 </div>
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold px-5 sm:px-6 rounded-xl min-h-[48px] sm:min-h-0"
+                  className="bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold px-5 sm:px-6 rounded-xl h-[44px]"
                 >
                   {isSubmitting ? "Finding..." : "Find"}
                 </Button>
@@ -315,7 +315,7 @@ export function DentistNearMeClient({
               </p>
             )}
 
-            <p className="text-[11px] sm:text-xs text-white/60 mt-3 sm:mt-5">
+            <p className="text-xs text-white/60 mt-4 sm:mt-5">
               Free &bull; No booking fees &bull; Verified clinics only
             </p>
           </div>
@@ -577,18 +577,18 @@ export function DentistNearMeClient({
       </section>
 
       {/* ─── STICKY BOTTOM CTA (mobile only) ──────────────── */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border/50 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] p-3 md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border/50 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-4 py-2.5 md:hidden">
         <div className="flex gap-2">
           <Link href="/intake" className="flex-1">
-            <Button className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold rounded-xl min-h-[48px] text-sm">
-              <CalendarCheck className="w-4 h-4 mr-1.5" />
+            <Button className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold rounded-full h-10 text-sm">
+              <CalendarCheck className="w-3.5 h-3.5 mr-1.5" />
               Get matched free
             </Button>
           </Link>
           <button
             onClick={handleUseLocation}
             disabled={isLocating}
-            className="flex items-center justify-center w-12 min-h-[48px] rounded-xl border border-border bg-white hover:bg-muted/50 transition-colors"
+            className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-white hover:bg-muted/50 transition-colors"
             aria-label="Use my location"
           >
             <Navigation className="w-4 h-4 text-[#0fbcb0]" />
