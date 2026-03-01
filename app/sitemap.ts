@@ -1,5 +1,4 @@
 import type { MetadataRoute } from "next"
-import { LONDON_AREAS, LONDON_REGIONS } from "@/lib/locations/london"
 import { getAllBlogPosts } from "@/lib/content/blog"
 import { getAllGuides } from "@/lib/content/guides"
 import { getAllTreatments } from "@/lib/content/treatments"
@@ -10,22 +9,7 @@ import { getAllPublicClinicIds } from "@/lib/clinics/queries"
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://pearlie.org"
 
-  const locationPages: MetadataRoute.Sitemap = [
-    { url: `${baseUrl}/find`, lastModified: "2026-02-26", changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/find/dentist-near-me`, lastModified: "2026-02-26", changeFrequency: "weekly", priority: 0.8 },
-    ...LONDON_REGIONS.map((region) => ({
-      url: `${baseUrl}/find/${region.slug}`,
-      lastModified: "2026-02-26" as string,
-      changeFrequency: "weekly" as const,
-      priority: 0.75,
-    })),
-    ...LONDON_AREAS.map((area) => ({
-      url: `${baseUrl}/find/${area.slug}`,
-      lastModified: "2026-02-26" as string,
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
-    })),
-  ]
+  const locationPages: MetadataRoute.Sitemap = []
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

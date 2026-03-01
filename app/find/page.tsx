@@ -15,14 +15,15 @@ export const metadata: Metadata = {
   title: "Top Dentists in London | Find & Compare | Pearlie",
   description:
     "Find your perfect dentist in London. Compare trusted, GDC-registered dental clinics across Central, South, North, West, and East London — free on Pearlie.",
+  robots: { index: false, follow: true },
   alternates: {
-    canonical: "https://pearlie.org/find",
+    canonical: "https://pearlie.org/london",
   },
   openGraph: {
     title: "Top Dentists in London | Find & Compare | Pearlie",
     description:
       "Find your perfect dentist in London. Compare verified dental clinics by area — free on Pearlie.",
-    url: "https://pearlie.org/find",
+    url: "https://pearlie.org/london",
   },
 }
 
@@ -55,7 +56,7 @@ export default function FindPage() {
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://pearlie.org" },
-          { name: "Find a Dentist", url: "https://pearlie.org/find" },
+          { name: "Find a Dentist", url: "https://pearlie.org/london" },
         ]}
       />
       <MainNav />
@@ -117,7 +118,7 @@ export default function FindPage() {
                 {LONDON_REGIONS.map((region) => (
                   <Link
                     key={region.slug}
-                    href={`/find/${region.slug}`}
+                    href={`/london`}
                     className="group flex items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-border/50 hover:border-[#0fbcb0]/40 hover:shadow-lg transition-all"
                   >
                     <div className="flex items-center gap-4">
@@ -139,7 +140,7 @@ export default function FindPage() {
 
                 {/* Dentist Near Me card */}
                 <Link
-                  href="/find/dentist-near-me"
+                  href="/london"
                   className="group flex items-center justify-between gap-4 p-6 rounded-2xl bg-[#0fbcb0]/5 border border-[#0fbcb0]/20 hover:border-[#0fbcb0]/50 hover:shadow-lg transition-all"
                 >
                   <div className="flex items-center gap-4">

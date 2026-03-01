@@ -54,11 +54,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: "Dentist Near Me | Find Trusted Local Dentists | Pearlie",
       description:
         "Find trusted, GDC-registered dentists near you. Enter your postcode, compare clinics and get matched in minutes. Free, secure and no obligation.",
-      alternates: { canonical: "https://pearlie.org/find/dentist-near-me" },
+      robots: { index: false, follow: true },
+      alternates: { canonical: "https://pearlie.org/london" },
       openGraph: {
         title: "Dentist Near Me | Find Trusted Local Dentists | Pearlie",
         description: "Find trusted, GDC-registered dentists near you. Enter your postcode, compare clinics and get matched in minutes.",
-        url: "https://pearlie.org/find/dentist-near-me",
+        url: "https://pearlie.org/london",
       },
     }
   }
@@ -69,11 +70,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {
       title: region.metaTitle + " | Pearlie",
       description: region.metaDescription,
-      alternates: { canonical: `https://pearlie.org/find/${region.slug}` },
+      robots: { index: false, follow: true },
+      alternates: { canonical: "https://pearlie.org/london" },
       openGraph: {
         title: region.metaTitle,
         description: region.metaDescription,
-        url: `https://pearlie.org/find/${region.slug}`,
+        url: "https://pearlie.org/london",
       },
     }
   }
@@ -85,11 +87,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: area.metaTitle,
     description: area.metaDescription,
-    alternates: { canonical: `https://pearlie.org/find/${area.slug}` },
+    robots: { index: false, follow: true },
+    alternates: { canonical: "https://pearlie.org/london" },
     openGraph: {
       title: area.metaTitle,
       description: area.metaDescription,
-      url: `https://pearlie.org/find/${area.slug}`,
+      url: "https://pearlie.org/london",
     },
   }
 }
@@ -180,8 +183,8 @@ async function DentistNearMePage() {
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://pearlie.org" },
-          { name: "Find Dentist Near Me", url: "https://pearlie.org/find" },
-          { name: "Dentist Near Me", url: "https://pearlie.org/find/dentist-near-me" },
+          { name: "London Dentists", url: "https://pearlie.org/london" },
+          { name: "Dentist Near Me", url: "https://pearlie.org/london" },
         ]}
       />
       <script
@@ -482,8 +485,8 @@ async function RegionPage({ slug }: { slug: string }) {
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://pearlie.org" },
-          { name: "Find Dentist Near Me", url: "https://pearlie.org/find" },
-          { name: `Dentists in ${region.name}`, url: `https://pearlie.org/find/${region.slug}` },
+          { name: "London Dentists", url: "https://pearlie.org/london" },
+          { name: `Dentists in ${region.name}`, url: "https://pearlie.org/london" },
         ]}
       />
       <LocationJsonLd area={region} clinics={clinics} />
@@ -544,7 +547,7 @@ async function RegionPage({ slug }: { slug: string }) {
                   {subAreas.map((area) => (
                     <Link
                       key={area.slug}
-                      href={`/find/${area.slug}`}
+                      href={`/london`}
                       className="group flex items-start gap-4 p-5 rounded-xl bg-white border border-border/50 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all"
                     >
                       <div className="w-10 h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#0fbcb0]/20 transition-colors">
@@ -708,7 +711,7 @@ async function RegionPage({ slug }: { slug: string }) {
                 {LONDON_REGIONS.filter((r) => r.slug !== region.slug).map((r) => (
                   <Link
                     key={r.slug}
-                    href={`/find/${r.slug}`}
+                    href={`/london`}
                     className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-border/60 hover:border-[#0fbcb0]/40 hover:bg-[#0fbcb0]/5 text-sm font-medium text-foreground transition-all"
                   >
                     <MapPin className="w-3.5 h-3.5 text-[#0fbcb0]" />
@@ -721,7 +724,7 @@ async function RegionPage({ slug }: { slug: string }) {
                 Popular searches
               </h3>
               <div className="flex flex-wrap gap-2.5">
-                <Link href="/find/dentist-near-me" className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-border/60 hover:border-[#0fbcb0]/40 hover:bg-[#0fbcb0]/5 text-sm font-medium text-foreground transition-all">
+                <Link href="/london" className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-border/60 hover:border-[#0fbcb0]/40 hover:bg-[#0fbcb0]/5 text-sm font-medium text-foreground transition-all">
                   <Search className="w-3.5 h-3.5 text-[#0fbcb0]" />
                   Dentist near me
                 </Link>
@@ -789,8 +792,8 @@ async function AreaPage({ slug }: { slug: string }) {
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://pearlie.org" },
-          { name: "Find Dentist Near Me", url: "https://pearlie.org/find" },
-          { name: `Dentists in ${area.name}`, url: `https://pearlie.org/find/${area.slug}` },
+          { name: "London Dentists", url: "https://pearlie.org/london" },
+          { name: `Dentists in ${area.name}`, url: "https://pearlie.org/london" },
         ]}
       />
       <LocationJsonLd area={area} clinics={clinics} />
@@ -981,7 +984,7 @@ async function AreaPage({ slug }: { slug: string }) {
                     {nearbyAreas.map((nearby) => (
                       <Link
                         key={nearby.slug}
-                        href={`/find/${nearby.slug}`}
+                        href={`/london`}
                         className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-border/60 hover:border-[#0fbcb0]/40 hover:bg-[#0fbcb0]/5 text-sm font-medium text-foreground transition-all"
                       >
                         <MapPin className="w-3.5 h-3.5 text-[#0fbcb0]" />
@@ -999,7 +1002,7 @@ async function AreaPage({ slug }: { slug: string }) {
                 {LONDON_REGIONS.map((r) => (
                   <Link
                     key={r.slug}
-                    href={`/find/${r.slug}`}
+                    href={`/london`}
                     className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-border/60 hover:border-[#0fbcb0]/40 hover:bg-[#0fbcb0]/5 text-sm font-medium text-foreground transition-all"
                   >
                     <MapPin className="w-3.5 h-3.5 text-[#0fbcb0]" />
@@ -1012,7 +1015,7 @@ async function AreaPage({ slug }: { slug: string }) {
                 Popular searches
               </h3>
               <div className="flex flex-wrap gap-2.5">
-                <Link href="/find/dentist-near-me" className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-border/60 hover:border-[#0fbcb0]/40 hover:bg-[#0fbcb0]/5 text-sm font-medium text-foreground transition-all">
+                <Link href="/london" className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-border/60 hover:border-[#0fbcb0]/40 hover:bg-[#0fbcb0]/5 text-sm font-medium text-foreground transition-all">
                   <Search className="w-3.5 h-3.5 text-[#0fbcb0]" />
                   Dentist near me
                 </Link>

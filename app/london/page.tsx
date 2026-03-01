@@ -683,7 +683,7 @@ export default async function LondonPage() {
                 Know your postcode? Search by neighbourhood instead.
               </p>
               <Link
-                href="/find/dentist-near-me"
+                href="/intake"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0fbcb0] hover:underline"
               >
                 Find a dentist near me

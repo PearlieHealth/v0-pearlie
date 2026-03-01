@@ -23,13 +23,13 @@ const treatmentLinks = [
 ]
 
 const findDentistLinks = [
-  { label: "Dentist Near Me", href: "/find/dentist-near-me" },
-  { label: "Central London", href: "/find/central-london" },
-  { label: "South London", href: "/find/south-london" },
-  { label: "North London", href: "/find/north-london" },
-  { label: "West London", href: "/find/west-london" },
-  { label: "East London", href: "/find/east-london" },
-  { label: "All Areas", href: "/find" },
+  { label: "Find a Dentist", href: "/london" },
+  { label: "Central London", href: "/london/westminster" },
+  { label: "South London", href: "/london/southwark" },
+  { label: "North London", href: "/london/islington" },
+  { label: "West London", href: "/london/kensington-and-chelsea" },
+  { label: "East London", href: "/london/tower-hamlets" },
+  { label: "All Areas", href: "/london" },
 ]
 
 const londonAreaLinks = [
