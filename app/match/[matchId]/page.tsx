@@ -721,7 +721,7 @@ export default function MatchPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
-                      className="gap-1.5 text-foreground border border-border hover:bg-[#0d1019]/5"
+                      className="gap-1.5 text-foreground border border-border hover:bg-muted"
                     >
                       {viewMode === "map" ? <><List className="w-4 h-4" /> List</> : <><Map className="w-4 h-4" /> Map</>}
                     </Button>
@@ -930,7 +930,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
                                     const chipData = getChipData(chip)
                                     return (
-                                      <span key={chip} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-border text-foreground bg-[#0d1019]/5">
+                                      <span key={chip} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-border text-foreground bg-muted">
                                         {chipData.icon}
                                         {chipData.label}
                                       </span>
@@ -1036,7 +1036,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   className={`flex-1 h-11 lg:h-10 rounded-full font-medium text-sm ${
                                     clinic.tier === "directory" || clinic.is_directory_listing
                                       ? "bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
-                                      : "text-foreground border-border hover:bg-[#0d1019]/5"
+                                      : "text-foreground border-border hover:bg-muted"
                                   }`}
                                   asChild
                                 >
@@ -1132,7 +1132,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                     })}
                   {hasMoreClinics && (
                     <div className="flex justify-center mt-4">
-                      <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="sm" className="border-border text-foreground hover:bg-[#0d1019]/5 bg-card rounded-full text-sm">
+                      <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="sm" className="border-border text-foreground hover:bg-muted bg-card rounded-full text-sm">
                         Show more clinics
                       </Button>
                     </div>

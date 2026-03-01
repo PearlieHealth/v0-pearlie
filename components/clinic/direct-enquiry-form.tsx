@@ -210,7 +210,7 @@ export function DirectEnquiryForm({ clinicId, clinicName, onLeadCreated }: Direc
                 className={`flex-1 text-[11px] py-1.5 px-2 rounded-full border transition-colors ${
                   urgency === opt.value
                     ? "border-primary bg-primary/10 text-primary font-medium"
-                    : "border-[#ddd] text-[#666] hover:border-[#bbb]"
+                    : "border-border text-muted-foreground hover:border-border/80"
                 }`}
               >
                 {opt.label}
@@ -226,7 +226,7 @@ export function DirectEnquiryForm({ clinicId, clinicName, onLeadCreated }: Direc
         <Button
           type="submit"
           disabled={isSubmitting || !firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim()}
-          className="w-full bg-[#0d1019] hover:bg-[#003332] text-white h-10 text-sm rounded-full"
+          className="w-full bg-[#0d1019] hover:bg-[#0d1019]/90 text-white h-10 text-sm rounded-full"
         >
           {isSubmitting ? (
             <Loader2 className="h-4 w-4 animate-spin" />

@@ -32,7 +32,7 @@ export function DirectLeadPreQualifier({
       <button
         type="button"
         onClick={onFullIntake}
-        className="w-full text-left group relative rounded-xl border-2 border-primary bg-gradient-to-br from-primary/5 to-card p-4 transition-all hover:shadow-md hover:border-[#0da399] active:scale-[0.98]"
+        className="w-full text-left group relative rounded-xl border-2 border-primary bg-gradient-to-br from-primary/5 to-card p-4 transition-all hover:shadow-md hover:border-[var(--primary-hover)] active:scale-[0.98]"
       >
         <div className="absolute -top-2.5 left-3 px-2 py-0.5 bg-primary text-white text-[10px] font-bold uppercase tracking-wider rounded-full">
           Recommended

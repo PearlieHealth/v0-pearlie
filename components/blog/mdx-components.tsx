@@ -85,7 +85,7 @@ function CostTable({
             {rows.map((row, ri) => (
               <tr
                 key={ri}
-                className={`border-t border-border/30 hover:bg-[#0fbcb014] transition-colors ${
+                className={`border-t border-border/30 hover:bg-primary/10 transition-colors ${
                   ri % 2 === 1 ? "bg-secondary/50" : ""
                 }`}
               >
@@ -250,7 +250,7 @@ export function useMDXComponents(config?: MDXComponentsConfig): MDXComponents {
       </th>
     ),
     tr: ({ children, ...props }) => (
-      <tr className="group border-t border-border/50 even:bg-secondary/50 hover:bg-[#0fbcb014] transition-colors" {...props}>
+      <tr className="group border-t border-border/50 even:bg-secondary/50 hover:bg-primary/10 transition-colors" {...props}>
         {children}
       </tr>
     ),
