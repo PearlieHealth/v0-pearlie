@@ -88,7 +88,7 @@ export async function generateMetadata({
 }
 
 const CLINIC_SELECT =
-  "id, name, slug, city, address, postcode, rating, review_count, images, treatments, price_range, highlight_chips, verified, description"
+  "id, name, slug, city, address, postcode, rating, review_count, images, treatments, price_range, highlight_chips, verified, description, google_rating, google_review_count"
 
 async function getClinicsForAreaTreatment(
   postcodes: string[],
