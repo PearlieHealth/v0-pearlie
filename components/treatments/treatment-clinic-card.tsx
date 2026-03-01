@@ -46,11 +46,7 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
   return (
     <Link
       href={`/clinic/${clinic.id}`}
-      className={`group rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 block ${
-        isVerified
-          ? "border-2 border-[#0fbcb0] bg-white ring-1 ring-[#0fbcb0]/20 hover:shadow-[#0fbcb0]/15"
-          : "border border-border/50 bg-white hover:border-[#0fbcb0]/30"
-      }`}
+      className="group rounded-2xl border border-border/50 bg-white overflow-hidden hover:shadow-lg hover:border-[#0fbcb0]/30 transition-all duration-300 block"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
         {heroImage ? (
@@ -118,6 +114,12 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <MapPin className="w-3.5 h-3.5 shrink-0" />
             {[clinic.city, clinic.postcode].filter(Boolean).join(" · ")}
+          </p>
+        )}
+
+        {clinic.description && (
+          <p className="text-[13px] text-muted-foreground leading-snug line-clamp-2">
+            {clinic.description}
           </p>
         )}
 
