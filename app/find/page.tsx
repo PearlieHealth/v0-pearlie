@@ -7,14 +7,14 @@ import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { HeroPostcodeSearch } from "@/components/find/hero-postcode-search"
 import { StickyPostcodeBar } from "@/components/find/sticky-postcode-bar"
-import { LONDON_REGIONS } from "@/lib/locations/london"
+import { LONDON_BOROUGHS } from "@/lib/data/london-boroughs"
 
 export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: "Top Dentists in London | Find & Compare | Pearlie",
   description:
-    "Find your perfect dentist in London. Compare trusted, GDC-registered dental clinics across Central, South, North, West, and East London — free on Pearlie.",
+    "Find your perfect dentist in London. Compare trusted, GDC-registered dental clinics across all London boroughs — free on Pearlie.",
   robots: { index: false, follow: true },
   alternates: {
     canonical: "https://pearlie.org/london",
@@ -104,7 +104,7 @@ export default function FindPage() {
           </div>
         </section>
 
-        {/* Browse by Region */}
+        {/* Browse by Borough */}
         <section className="py-16 sm:py-20 bg-[#faf9f6]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
@@ -112,13 +112,13 @@ export default function FindPage() {
                 <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-3">
                   Dentists across London
                 </h2>
-                <p className="text-muted-foreground text-lg">Browse by region to find clinics near you</p>
+                <p className="text-muted-foreground text-lg">Browse by borough to find clinics near you</p>
               </div>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {LONDON_REGIONS.map((region) => (
+                {LONDON_BOROUGHS.map((borough) => (
                   <Link
-                    key={region.slug}
-                    href={`/london`}
+                    key={borough.slug}
+                    href={`/london/${borough.slug}`}
                     className="group flex items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-border/50 hover:border-[#0fbcb0]/40 hover:shadow-lg transition-all"
                   >
                     <div className="flex items-center gap-4">
@@ -127,37 +127,13 @@ export default function FindPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-foreground group-hover:text-[#004443] transition-colors text-lg">
-                          {region.name}
+                          {borough.name}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {region.areaSlugs.length} {region.areaSlugs.length === 1 ? "area" : "areas"}
-                        </p>
                       </div>
                     </div>
                     <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-[#0fbcb0] transition-colors" />
                   </Link>
                 ))}
-
-                {/* Dentist Near Me card */}
-                <Link
-                  href="/london"
-                  className="group flex items-center justify-between gap-4 p-6 rounded-2xl bg-[#0fbcb0]/5 border border-[#0fbcb0]/20 hover:border-[#0fbcb0]/50 hover:shadow-lg transition-all"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[#0fbcb0] flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground group-hover:text-[#004443] transition-colors text-lg">
-                        Dentist Near Me
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Search by your postcode
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-[#0fbcb0] transition-colors" />
-                </Link>
               </div>
             </div>
           </div>

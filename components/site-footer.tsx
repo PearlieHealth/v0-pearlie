@@ -24,12 +24,12 @@ const treatmentLinks = [
 
 const findDentistLinks = [
   { label: "Find a Dentist", href: "/london" },
-  { label: "Central London", href: "/london/westminster" },
-  { label: "South London", href: "/london/southwark" },
-  { label: "North London", href: "/london/islington" },
-  { label: "West London", href: "/london/kensington-and-chelsea" },
-  { label: "East London", href: "/london/tower-hamlets" },
-  { label: "All Areas", href: "/london" },
+  { label: "Westminster", href: "/london/westminster" },
+  { label: "Camden", href: "/london/camden" },
+  { label: "Islington", href: "/london/islington" },
+  { label: "Southwark", href: "/london/southwark" },
+  { label: "Lambeth", href: "/london/lambeth" },
+  { label: "All Boroughs", href: "/london" },
 ]
 
 const londonAreaLinks = [
