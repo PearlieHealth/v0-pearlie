@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
+import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
 import { TreatmentHero } from "@/components/treatments/treatment-hero"
 import { TreatmentPostcodeCta } from "@/components/treatments/treatment-postcode-cta"
 import { StickyMobilePostcode } from "@/components/treatments/sticky-mobile-postcode"
@@ -303,6 +304,19 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
         {/* 2. PROMISE — Trust strip */}
         <KeyFactsBar />
 
+        {/* Breadcrumb */}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <div className="max-w-5xl mx-auto">
+            <BreadcrumbNav
+              items={[
+                { label: "Home", href: "/" },
+                { label: "Treatments", href: "/treatments" },
+                { label: meta.treatmentName, href: `/treatments/${slug}` },
+              ]}
+            />
+          </div>
+        </div>
+
         {/* 3. PROMISE — Who is this for? */}
         {costContent?.whoIsThisFor && (
           <WhoIsThisFor
@@ -414,11 +428,11 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
-                {costContent?.ctaCopy?.bottom || `Compare ${meta.treatmentName.toLowerCase()} clinics near you`}
+                {costContent?.ctaCopy?.bottom || `Get a personalised ${meta.treatmentName.toLowerCase()} quote`}
               </h2>
               <p className="text-white/70 mb-8 leading-relaxed">
                 Enter your postcode and we&apos;ll match you with verified,
-                GDC registered clinics with transparent pricing.
+                GDC-registered clinics with transparent pricing.
               </p>
               <TreatmentPostcodeCta
                 treatmentName={meta.treatmentName}

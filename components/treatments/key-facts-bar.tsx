@@ -1,29 +1,21 @@
-import { ShieldCheck, PoundSterling, BadgeCheck, ArrowRight } from "lucide-react"
-
-const trustSignals = [
-  { icon: ShieldCheck, label: "Standard", value: "GDC-registered clinics only" },
-  { icon: PoundSterling, label: "Pricing", value: "Transparent pricing ranges" },
-  { icon: BadgeCheck, label: "Quality", value: "Reviewed annually" },
-  { icon: ArrowRight, label: "Compare", value: "Compare before booking" },
-]
+import { Star, Shield, CheckCircle2 } from "lucide-react"
 
 export function KeyFactsBar() {
   return (
-    <section className="bg-[var(--cream)] border-y border-border/50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 sm:gap-x-8 md:gap-x-10">
-            {trustSignals.map((fact) => (
-              <div key={fact.label} className="flex items-center gap-2.5">
-                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#0fbcb0]/10 shrink-0">
-                  <fact.icon className="w-4.5 h-4.5 text-[#0fbcb0]" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted-foreground leading-tight">{fact.label}</p>
-                  <p className="text-sm font-semibold text-foreground leading-tight">{fact.value}</p>
-                </div>
-              </div>
-            ))}
+    <section className="border-b border-border/50 bg-white">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center gap-4 sm:gap-10 py-3 text-xs sm:text-sm text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+            <span className="font-semibold text-foreground">4.8</span> avg
+          </div>
+          <div className="flex items-center gap-1">
+            <Shield className="w-3.5 h-3.5 text-[#0fbcb0]" />
+            <span className="font-semibold text-foreground">100+</span> clinics
+          </div>
+          <div className="flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
+            Free matching
           </div>
         </div>
       </div>

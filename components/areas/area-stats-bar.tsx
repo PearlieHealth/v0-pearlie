@@ -35,7 +35,7 @@ export function AreaStatsBar({
   ]
 
   return (
-    <section className="bg-[var(--cream)] border-y border-border/50">
+    <section className="bg-white border-y border-border/50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-5">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">

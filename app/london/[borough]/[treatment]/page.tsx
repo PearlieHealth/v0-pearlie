@@ -90,7 +90,8 @@ export async function generateMetadata({
 
 async function getClinicsForAreaTreatment(
   postcodes: string[],
-  filterTags: string[]
+  filterTags: string[],
+  nearbyPostcodes: string[] = []
 ) {
   try {
     const supabase = await createClient()
@@ -111,7 +112,26 @@ async function getClinicsForAreaTreatment(
 
     if (data && data.length > 0) return data
 
-    // Second fallback: any clinic offering this treatment in London
+    // Second fallback: clinics offering this treatment in nearby boroughs
+    if (nearbyPostcodes.length > 0) {
+      const nearbyFilters = nearbyPostcodes
+        .map((pc) => `postcode.ilike.${pc}%`)
+        .join(",")
+
+      const { data: nearbyTreatment } = await supabase
+        .from("clinics")
+        .select(CLINIC_CARD_SELECT)
+        .eq("is_archived", false)
+        .overlaps("treatments", filterTags)
+        .or(nearbyFilters)
+        .order("rating", { ascending: false })
+        .limit(6)
+
+      if (nearbyTreatment && nearbyTreatment.length > 0)
+        return nearbyTreatment
+    }
+
+    // Third fallback: any clinic offering this treatment in London
     const { data: treatmentFallback } = await supabase
       .from("clinics")
       .select(CLINIC_CARD_SELECT)
@@ -123,15 +143,7 @@ async function getClinicsForAreaTreatment(
     if (treatmentFallback && treatmentFallback.length > 0)
       return treatmentFallback
 
-    // Third fallback: top-rated clinics
-    const { data: fallback } = await supabase
-      .from("clinics")
-      .select(CLINIC_CARD_SELECT)
-      .eq("is_archived", false)
-      .order("rating", { ascending: false })
-      .limit(6)
-
-    return fallback || []
+    return []
   } catch {
     return []
   }
@@ -166,12 +178,14 @@ export default async function AreaTreatmentPage({
     relatedBlogPosts.push({ slug: "nhs-vs-private-dentist", title: nhsGuide.meta.title })
   }
 
+  const nearbyBoroughs = getNearbyBoroughs(boroughSlug, 4)
+  const nearbyPostcodes = nearbyBoroughs.flatMap((b) => b.postcodes)
   const clinics = await getClinicsForAreaTreatment(
     borough.postcodes,
-    meta.clinicFilterTags
+    meta.clinicFilterTags,
+    nearbyPostcodes
   )
   const testimonials = await getTestimonialsForBasicClinics(clinics)
-  const nearbyBoroughs = getNearbyBoroughs(boroughSlug, 4)
   const relatedTreatments = getRelatedTreatments(treatmentSlug, 3)
 
   // Structured data

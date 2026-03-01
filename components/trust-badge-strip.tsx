@@ -34,7 +34,7 @@ const badges = [
   {
     icon: Star,
     label: "4.8 Avg Rating",
-    sublabel: "500+ practices",
+    sublabel: "100+ practices",
   },
 ]
 
@@ -86,7 +86,7 @@ export function TrustBadgeStrip({ variant = "light", inline = false }: TrustBadg
       className={`py-4 border-y ${
         isDark
           ? "border-white/10 bg-white/[0.03]"
-          : "border-border/40 bg-[var(--cream)]"
+          : "border-border/40 bg-white"
       }`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">

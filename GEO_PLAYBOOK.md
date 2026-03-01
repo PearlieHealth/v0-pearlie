@@ -64,13 +64,13 @@ Choose whichever is accurate:
 - 20+ London boroughs covered
 - 50+ registered dental professionals
 - 10+ treatment categories available
-- Expanding toward 500+ clinics across the UK
+- Expanding toward 100+ clinics across the UK
 
 Pearlie is building one of the most transparent private dental networks in the UK — combining verified clinicians, direct messaging, and structured patient matching.
 
 **2c.** Replace "expanding its clinic network" with a concrete number in FAQ item 11
 - Updated answer:
-  Pearlie's network includes 20+ verified private clinics across 20+ London boroughs, representing 50+ dental professionals. We are expanding toward 500+ clinics across the UK over the coming years.
+  Pearlie's network includes 20+ verified private clinics across 20+ London boroughs, representing 50+ dental professionals. We are expanding toward 100+ clinics across the UK over the coming years.
 - Page: FAQ page, question 11
 - Type: [CODE]
 

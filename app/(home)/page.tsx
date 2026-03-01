@@ -19,15 +19,12 @@ import { SiteFooter } from "@/components/site-footer"
 import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config"
 import {
   LONDON_BOROUGHS,
-  getBoroughsByRegion,
-  type LondonBorough,
 } from "@/lib/data/london-boroughs"
 import { HomeHeroSearch } from "@/components/home-hero-search"
 import { StickyMobileHomeCta } from "@/components/sticky-mobile-home-cta"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { useLastMatch } from "@/hooks/use-last-match"
 
-const REGIONS: LondonBorough["region"][] = ["Central", "North", "South", "East", "West"]
 
 // Homepage treatment list derived from the canonical config (not hardcoded)
 const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT)
@@ -719,31 +716,17 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-8 mb-10">
-                  {REGIONS.map((region) => {
-                    const boroughs = getBoroughsByRegion(region)
-                    if (boroughs.length === 0) return null
-                    return (
-                      <div key={region}>
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                          {region} London
-                        </h3>
-                        <ul className="space-y-2">
-                          {boroughs.map((borough) => (
-                            <li key={borough.slug}>
-                              <Link
-                                href={`/london/${borough.slug}`}
-                                className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors flex items-center gap-1.5"
-                              >
-                                <MapPin className="w-3 h-3 text-[#0fbcb0]" />
-                                {borough.name}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )
-                  })}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-10">
+                  {LONDON_BOROUGHS.map((borough) => (
+                    <Link
+                      key={borough.slug}
+                      href={`/london/${borough.slug}`}
+                      className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors flex items-center gap-1.5 p-2 rounded-lg hover:bg-muted/50"
+                    >
+                      <MapPin className="w-3 h-3 text-[#0fbcb0] flex-shrink-0" />
+                      {borough.name}
+                    </Link>
+                  ))}
                 </div>
 
                 <div className="text-center">
