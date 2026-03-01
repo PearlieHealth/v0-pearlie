@@ -750,11 +750,14 @@ export function scoreDirectoryListing(lead: LeadAnswer, clinic: ClinicProfile): 
   let totalScore = 0
   const maxPossible = 100
 
-  // 1. Distance (40 points) — linear decay over DIRECTORY_LISTING_MAX_RADIUS
+  // 1. Distance (40 points) — quadratic decay over DIRECTORY_LISTING_MAX_RADIUS
+  //    Quadratic curve penalises farther clinics more aggressively:
+  //    2 mi → 75%, 5 mi → 44%, 8 mi → 22%, 10 mi → 11%, 15 mi → 0%
   let distanceMiles: number | undefined
   if (lead.latitude && lead.longitude && clinic.latitude && clinic.longitude) {
     distanceMiles = calculateHaversineDistance(lead.latitude, lead.longitude, clinic.latitude, clinic.longitude)
-    const ratio = Math.max(0, 1 - distanceMiles / DIRECTORY_LISTING_MAX_RADIUS)
+    const linearRatio = Math.max(0, 1 - distanceMiles / DIRECTORY_LISTING_MAX_RADIUS)
+    const ratio = linearRatio * linearRatio // quadratic decay
     const distPoints = Math.round(DIRECTORY_LISTING_WEIGHTS.distance * ratio)
     categories.push({
       category: "distance",
@@ -779,10 +782,13 @@ export function scoreDirectoryListing(lead: LeadAnswer, clinic: ClinicProfile): 
   const ratingMax = Math.round(DIRECTORY_LISTING_WEIGHTS.reviews * 0.6)
   const countMax = DIRECTORY_LISTING_WEIGHTS.reviews - ratingMax
 
-  const ratingPoints = clinic.rating ? Math.round(ratingMax * Math.min(clinic.rating / 5, 1)) : 0
-  // Log scale for review count: 1 review=~0%, 10=~50%, 100=~80%, 500+=100%
+  // Stricter rating scale: map 0-5 stars onto 0-18 pts with steeper curve
+  // Below 3.0 → near-zero, 3.5 → ~30%, 4.0 → ~56%, 4.5 → ~80%, 5.0 → 100%
+  const ratingRatio = clinic.rating ? Math.max(0, (clinic.rating - 2.5) / 2.5) : 0
+  const ratingPoints = Math.round(ratingMax * Math.min(ratingRatio * ratingRatio, 1))
+  // Log scale for review count: 1→~0%, 10→~33%, 100→~67%, 1000+=100%
   const countPoints = clinic.reviewCount > 0
-    ? Math.round(countMax * Math.min(Math.log10(clinic.reviewCount) / Math.log10(500), 1))
+    ? Math.round(countMax * Math.min(Math.log10(clinic.reviewCount) / Math.log10(1000), 1))
     : 0
   const reviewPoints = ratingPoints + countPoints
 

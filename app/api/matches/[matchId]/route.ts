@@ -177,13 +177,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
           : []
 
         const normalizedClinic = normalizeClinic(clinicRow, filterKeys)
-        const isDir = !clinicRow.verified && !isClinicMatchable(filterKeys)
+        // Scoring algorithm is based on tag data availability
+        const useDirScoring = !isClinicMatchable(filterKeys)
+        // UI treatment: verified clinics are never shown as directory listings
+        const isDir = !clinicRow.verified && useDirScoring
 
         // Use the appropriate scoring function based on matchability
-        const scoreBreakdown = isDir
+        const scoreBreakdown = useDirScoring
           ? scoreDirectoryListing(normalizedLead, normalizedClinic)
           : scoreClinic(normalizedLead, normalizedClinic)
-        const matchFacts = isDir
+        const matchFacts = useDirScoring
           ? null
           : buildMatchFacts(normalizedLead, normalizedClinic, scoreBreakdown)
 
@@ -195,11 +198,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
           matchFacts,
           clinicIndex,
           isDir,
+          useDirScoring,
         }
       })
 
       // Build reasons for matchable clinics with cross-clinic variant dedup
-      const matchableScoringData = clinicScoringData.filter(c => !c.isDir)
+      const matchableScoringData = clinicScoringData.filter(c => !c.useDirScoring)
       const reasonsMap = buildMatchReasonsForMultipleClinics(
         normalizedLead.id,
         matchableScoringData.map(c => ({
@@ -210,12 +214,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       )
 
       // Build final clinics with scores and reasons
-      clinicsWithScores = clinicScoringData.map(({ clinicRow, normalizedClinic, filterKeys, scoreBreakdown, isDir }) => {
-        // For directory listings, build simple reasons; for matchable, use cross-clinic deduped reasons
+      clinicsWithScores = clinicScoringData.map(({ clinicRow, normalizedClinic, filterKeys, scoreBreakdown, isDir, useDirScoring }) => {
+        // For directory-scored clinics, build simple reasons; for matchable, use cross-clinic deduped reasons
         let reasons: string[]
         let composed: { bullets: string[]; longBullets: string[]; tagsUsed: string[]; templatesUsed: string[]; confidence: number } | undefined
 
-        if (isDir) {
+        if (useDirScoring) {
           const dirReasons = buildDirectoryListingReasons(normalizedClinic, scoreBreakdown, normalizedLead.treatment, 0)
           reasons = dirReasons.map(r => r.text)
           composed = {

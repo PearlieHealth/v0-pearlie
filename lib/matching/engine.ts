@@ -316,7 +316,7 @@ export function rankClinics(
       continue
     }
 
-    const matchable = clinic.verified === true || checkClinicMatchable(clinic)
+    const matchable = checkClinicMatchable(clinic)
     if (matchable) {
       matchableClinics.push(clinic)
     } else {
@@ -380,6 +380,9 @@ export function rankClinics(
     const score = scoreDirectoryListing(profile, clinic)
     const reasons = buildDirectoryListingReasons(clinic, score, profile.treatment, index)
     const tier = getTier(score.percent)
+    // Verified clinics use directory scoring (limited tag data) but should NOT
+    // be labelled as directory listings — they keep "top" tier and full card UI
+    const isVerified = clinic.verified === true
 
     return {
       clinic,
@@ -387,7 +390,7 @@ export function rankClinics(
       reasons,
       tier,
       isPinned: clinic.id === pinnedClinicId,
-      isDirectoryListing: true,
+      isDirectoryListing: !isVerified,
       explanationVersion: EXPLANATION_SCHEMA_VERSION,
       debug: {
         distanceMiles: score.distanceMiles,
@@ -403,7 +406,7 @@ export function rankClinics(
           maxPoints: c.maxPoints,
           weight: c.weight,
         })),
-        isDirectoryListing: true,
+        isDirectoryListing: !isVerified,
       },
     }
   })
