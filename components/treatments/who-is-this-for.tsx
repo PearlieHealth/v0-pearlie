@@ -12,7 +12,7 @@ export function WhoIsThisFor({ personas, summary, treatmentName }: WhoIsThisForP
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-6">
-            Is {treatmentName.toLowerCase()} right for you?
+            Could {treatmentName.toLowerCase()} be right for you?
           </h2>
 
           <p className="text-sm text-muted-foreground leading-relaxed mb-6">

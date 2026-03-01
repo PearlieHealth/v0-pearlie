@@ -32,6 +32,7 @@ import {
 import { getBlogPostBySlug, type BlogPost } from "@/lib/content/blog"
 import { extractHeadings } from "@/lib/content/mdx"
 import { createClient } from "@/lib/supabase/server"
+import { CLINIC_CARD_SELECT } from "@/lib/clinics/queries"
 import { treatmentCostContent } from "@/lib/data/treatment-cost-content"
 
 export const revalidate = 3600
@@ -95,9 +96,6 @@ export async function generateMetadata({
   }
 }
 
-const CLINIC_SELECT =
-  "id, name, slug, city, address, postcode, rating, review_count, images, treatments, price_range, highlight_chips, verified, description"
-
 async function getClinicsForTreatment(filterTags: string[]) {
   try {
     const supabase = await createClient()
@@ -105,9 +103,8 @@ async function getClinicsForTreatment(filterTags: string[]) {
     // Fetch verified clinics first, then all others — more clinics overall
     const { data } = await supabase
       .from("clinics")
-      .select(CLINIC_SELECT)
+      .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .overlaps("treatments", filterTags)
       .order("verified", { ascending: false })
       .order("rating", { ascending: false })
@@ -118,9 +115,8 @@ async function getClinicsForTreatment(filterTags: string[]) {
     // Fallback: show top-rated verified clinics if no treatment match
     const { data: fallback } = await supabase
       .from("clinics")
-      .select(CLINIC_SELECT)
+      .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .order("verified", { ascending: false })
       .order("rating", { ascending: false })
       .limit(8)
@@ -151,11 +147,9 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
   // Fetch clinics offering this treatment
   const clinics = await getClinicsForTreatment(meta.clinicFilterTags)
 
-  // Split clinics: verified as full cards, non-verified as directory listings
-  const verifiedClinics = clinics.filter((c) => c.verified)
-  const directoryClinics = clinics.filter((c) => !c.verified)
-  const featuredClinics = verifiedClinics.slice(0, 8)
-  const moreClinics = verifiedClinics.slice(8)
+  // Top 8 as featured cards, remainder as compact directory listings
+  const featuredClinics = clinics.slice(0, 8)
+  const directoryClinics = clinics.slice(8)
 
   // Resolve related blog posts
   const relatedBlogPosts: BlogPost[] = (meta.relatedBlogSlugs || [])
@@ -355,17 +349,7 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
           />
         )}
 
-        {/* 9. SUPPLY — More verified clinics */}
-        {moreClinics.length > 0 && (
-          <TreatmentClinicGrid
-            clinics={moreClinics}
-            treatmentName={meta.treatmentName}
-            heading={`More verified ${meta.treatmentName.toLowerCase()} clinics`}
-            subheading="Explore more verified providers in your area."
-          />
-        )}
-
-        {/* 9b. SUPPLY — Directory listings (non-verified) */}
+        {/* 9. SUPPLY — Directory listings (remaining clinics) */}
         <ClinicDirectoryList
           clinics={directoryClinics}
           treatmentName={meta.treatmentName}

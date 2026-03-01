@@ -21,6 +21,7 @@ import { getAllTreatments } from "@/lib/content/treatments"
 import { getTestimonialsForBasicClinics } from "@/lib/locations/queries"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { createClient } from "@/lib/supabase/server"
+import { CLINIC_CARD_SELECT } from "@/lib/clinics/queries"
 
 export const revalidate = 3600
 
@@ -72,9 +73,6 @@ export async function generateMetadata({
   }
 }
 
-const CLINIC_SELECT =
-  "id, name, slug, city, address, postcode, rating, review_count, images, treatments, price_range, highlight_chips, verified, description"
-
 async function getClinicsInArea(postcodes: string[]) {
   try {
     const supabase = await createClient()
@@ -86,9 +84,8 @@ async function getClinicsInArea(postcodes: string[]) {
 
     const { data } = await supabase
       .from("clinics")
-      .select(CLINIC_SELECT)
+      .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .or(postcodeFilters)
       .order("rating", { ascending: false })
       .limit(12)
@@ -98,9 +95,8 @@ async function getClinicsInArea(postcodes: string[]) {
     // Fallback: if no postcode match, show top London clinics
     const { data: fallback } = await supabase
       .from("clinics")
-      .select(CLINIC_SELECT)
+      .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .order("rating", { ascending: false })
       .limit(6)
 

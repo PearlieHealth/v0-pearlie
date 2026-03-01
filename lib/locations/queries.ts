@@ -75,7 +75,6 @@ export async function getClinicsNearArea(area: LondonArea): Promise<LocationClin
     .from("clinics")
     .select(LOCATION_CLINIC_FIELDS)
     .eq("is_archived", false)
-    .eq("is_live", true)
     .not("latitude", "is", null)
     .not("longitude", "is", null)
     .gte("latitude", box.minLat)
@@ -125,7 +124,6 @@ export async function getClinicsNearRegion(region: LondonRegion): Promise<Locati
     .from("clinics")
     .select(LOCATION_CLINIC_FIELDS)
     .eq("is_archived", false)
-    .eq("is_live", true)
     .not("latitude", "is", null)
     .not("longitude", "is", null)
     .gte("latitude", box.minLat)
@@ -316,7 +314,6 @@ export async function getTestimonialsForClinics(
         .from("clinics")
         .select("id, name, featured_review")
         .eq("is_archived", false)
-        .eq("is_live", true)
         .not("featured_review", "is", null)
         .limit(20)
 

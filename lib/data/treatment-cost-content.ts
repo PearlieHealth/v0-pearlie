@@ -44,6 +44,11 @@ export interface TreatmentCostContent {
     bullets: string[]
     introParagraph?: string
     outroParagraph?: string
+    relatedLink?: {
+      href: string
+      label: string
+      description: string
+    }
   }
   /** Cost-intent FAQ section */
   costFaqs: CostFAQ[]
@@ -138,6 +143,11 @@ export const treatmentCostContent: Record<string, TreatmentCostContent> = {
       ],
       introParagraph: "If you're weighing Invisalign against traditional braces, cost is often a deciding factor. Here's how the two compare across price, treatment time, and lifestyle impact.",
       outroParagraph: "For most adults seeking a discreet option, Invisalign offers comparable results to braces at a similar price point. Your orthodontist can advise which approach suits your case best.",
+      relatedLink: {
+        href: "/treatments/invisalign-vs-spark",
+        label: "Invisalign vs Spark — full comparison",
+        description: "Compare Invisalign and Spark on cost, material, attachments, and which suits your case.",
+      },
     },
     costFaqs: [
       {
