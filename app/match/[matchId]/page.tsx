@@ -825,9 +825,9 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                         </div>
                                         {clinic.match_breakdown && clinic.match_breakdown.length > 0 ? (
                                           <div className="space-y-2.5">
-                                            {clinic.match_breakdown.map((item) => {
-                                              const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
-                                              const stars = Math.round(ratio * 5)
+                                            {(() => {
+                                              const isDir = clinic.is_directory_listing || clinic.tier === "directory" || !clinic.verified
+                                              const directoryCategories = ["distance", "reviews", "treatment", "completeness"]
                                               const categoryLabels: Record<string, string> = {
                                                 treatment: "Treatment match",
                                                 priorities: "Your priorities",
@@ -839,26 +839,33 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                                 reviews: "Patient reviews",
                                                 completeness: "Profile detail",
                                               }
-                                              return (
-                                                <div key={item.category} className="flex items-center justify-between gap-2">
-                                                  <span className="text-xs text-muted-foreground">
-                                                    {categoryLabels[item.category] || item.category}
-                                                  </span>
-                                                  <div className="flex items-center gap-0.5">
-                                                    {[1, 2, 3, 4, 5].map((star) => (
-                                                      <Star
-                                                        key={star}
-                                                        className={`w-3 h-3 ${
-                                                          star <= stars
-                                                            ? "fill-amber-400 text-amber-400"
-                                                            : "fill-muted text-muted"
-                                                        }`}
-                                                      />
-                                                    ))}
+                                              const items = isDir
+                                                ? clinic.match_breakdown.filter((item: any) => directoryCategories.includes(item.category))
+                                                : clinic.match_breakdown
+                                              return items.map((item: any) => {
+                                                const ratio = item.maxPoints > 0 ? item.points / item.maxPoints : 0
+                                                const stars = Math.round(ratio * 5)
+                                                return (
+                                                  <div key={item.category} className="flex items-center justify-between gap-2">
+                                                    <span className="text-xs text-muted-foreground">
+                                                      {categoryLabels[item.category] || item.category}
+                                                    </span>
+                                                    <div className="flex items-center gap-0.5">
+                                                      {[1, 2, 3, 4, 5].map((star) => (
+                                                        <Star
+                                                          key={star}
+                                                          className={`w-3 h-3 ${
+                                                            star <= stars
+                                                              ? "fill-amber-400 text-amber-400"
+                                                              : "fill-muted text-muted"
+                                                          }`}
+                                                        />
+                                                      ))}
+                                                    </div>
                                                   </div>
-                                                </div>
-                                              )
-                                            })}
+                                                )
+                                              })
+                                            })()}
                                           </div>
                                         ) : (
                                           <p className="text-xs text-muted-foreground">
@@ -867,7 +874,9 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                         )}
                                         <div className="pt-2 border-t border-border">
                                           <p className="text-[10px] text-muted-foreground">
-                                            More stars = stronger match to what you told us matters.
+                                            {clinic.is_directory_listing || clinic.tier === "directory" || !clinic.verified
+                                              ? "Based on proximity, reviews, and treatment match."
+                                              : "More stars = stronger match to what you told us matters."}
                                           </p>
                                         </div>
                                       </div>
