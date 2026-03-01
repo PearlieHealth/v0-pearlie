@@ -359,16 +359,16 @@ export function DentistNearMeClient({
       </section>
 
       {/* ─── TREATMENT SHORTCUTS ──────────────────────────── */}
-      <section className="py-12 sm:py-14 bg-[#faf9f6]">
+      <section className="py-12 sm:py-14 bg-[#004443] text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-2 mb-2">
               <Stethoscope className="w-5 h-5 text-[#0fbcb0]" />
-              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-[#004443]">
+              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-white">
                 Find treatment clinics near you
               </h2>
             </div>
-            <p className="text-sm text-muted-foreground mb-6">
+            <p className="text-sm text-white/70 mb-6">
               Compare specialist clinics for specific treatments in your area.
             </p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -376,12 +376,12 @@ export function DentistNearMeClient({
                 <Link
                   key={t.slug}
                   href={`${treatmentLinkBase}/${t.slug}`}
-                  className="flex items-center justify-between gap-3 p-4 rounded-xl bg-white border border-border/50 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all group"
+                  className="flex items-center justify-between gap-3 p-4 rounded-xl bg-white/10 border border-white/15 hover:bg-white/15 hover:border-[#0fbcb0]/50 transition-all group"
                 >
-                  <span className="text-sm font-medium text-foreground group-hover:text-[#004443]">
+                  <span className="text-sm font-medium text-white group-hover:text-[#0fbcb0]">
                     {t.label}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-[#0fbcb0] transition-colors" />
+                  <ArrowRight className="w-4 h-4 text-white/60 group-hover:text-[#0fbcb0] transition-colors" />
                 </Link>
               ))}
             </div>
