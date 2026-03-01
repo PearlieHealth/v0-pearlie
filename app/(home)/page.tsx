@@ -19,14 +19,12 @@ import { SiteFooter } from "@/components/site-footer"
 import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config"
 import {
   LONDON_BOROUGHS,
-  getBoroughsByRegion,
-  type LondonBorough,
 } from "@/lib/data/london-boroughs"
 import { HomeHeroSearch } from "@/components/home-hero-search"
 import { StickyMobileHomeCta } from "@/components/sticky-mobile-home-cta"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
+import { useLastMatch } from "@/hooks/use-last-match"
 
-const REGIONS: LondonBorough["region"][] = ["Central", "North", "South", "East", "West"]
 
 // Homepage treatment list derived from the canonical config (not hardcoded)
 const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT)
@@ -41,12 +39,6 @@ const marqueeItems = [
 
 
 
-interface LastMatch {
-  matchId: string
-  clinicCount: number
-  treatment: string
-  createdAt: string
-}
 
 const testimonials = [
   {
@@ -183,24 +175,7 @@ export default function Home() {
   })
   const treatments = HOMEPAGE_TREATMENTS
 
-  const [lastMatch, setLastMatch] = useState<LastMatch | null>(null)
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("pearlie_last_match")
-      if (stored) {
-        const data = JSON.parse(stored) as LastMatch
-        const MAX_MATCH_AGE_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
-        const age = Date.now() - new Date(data.createdAt).getTime()
-        if (age < MAX_MATCH_AGE_MS && data.matchId) {
-          setLastMatch(data)
-        } else {
-          localStorage.removeItem("pearlie_last_match")
-        }
-      }
-    } catch {
-      localStorage.removeItem("pearlie_last_match")
-    }
-  }, [])
+  const lastMatch = useLastMatch()
 
   // iOS Safari: resume video on return from background.
   // iOS pauses the video when backgrounded and sometimes doesn't auto-resume.
@@ -320,6 +295,7 @@ export default function Home() {
                     </motion.p>
 
                     <motion.div
+                      id="home-hero-cta"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.3 }}
@@ -740,31 +716,17 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-8 mb-10">
-                  {REGIONS.map((region) => {
-                    const boroughs = getBoroughsByRegion(region)
-                    if (boroughs.length === 0) return null
-                    return (
-                      <div key={region}>
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                          {region} London
-                        </h3>
-                        <ul className="space-y-2">
-                          {boroughs.map((borough) => (
-                            <li key={borough.slug}>
-                              <Link
-                                href={`/london/${borough.slug}`}
-                                className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors flex items-center gap-1.5"
-                              >
-                                <MapPin className="w-3 h-3 text-[#0fbcb0]" />
-                                {borough.name}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )
-                  })}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-10">
+                  {LONDON_BOROUGHS.map((borough) => (
+                    <Link
+                      key={borough.slug}
+                      href={`/london/${borough.slug}`}
+                      className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors flex items-center gap-1.5 p-2 rounded-lg hover:bg-muted/50"
+                    >
+                      <MapPin className="w-3 h-3 text-[#0fbcb0] flex-shrink-0" />
+                      {borough.name}
+                    </Link>
+                  ))}
                 </div>
 
                 <div className="text-center">

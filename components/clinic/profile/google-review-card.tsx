@@ -1,6 +1,6 @@
 "use client"
 
-import { Star, ExternalLink } from "lucide-react"
+import { Star } from "lucide-react"
 
 interface GoogleReviewCardProps {
   rating: number
@@ -38,46 +38,48 @@ export function GoogleReviewCard({
   reviewCount,
   googleRating,
   googleReviewCount,
-  googlePlaceId,
-  googleMapsUrl,
   featuredReview,
   compact = false,
 }: GoogleReviewCardProps) {
-  const googleReviewsUrl = googlePlaceId
-    ? `https://search.google.com/local/reviews?placeid=${googlePlaceId}`
-    : googleMapsUrl || null
+  // Use Pearlie rating if available, otherwise fall back to Google rating
+  const hasPearlieRating = rating > 0
+  const hasGoogleRating = !!googleRating
+  const primaryRating = hasPearlieRating ? rating : (googleRating || 0)
+  const primaryReviewCount = hasPearlieRating ? reviewCount : (googleReviewCount || 0)
 
   return (
     <div className="space-y-5">
-      {/* Pearlie rating */}
-      <div className="flex items-start gap-6">
-        <div className="flex-shrink-0">
-          <div className="flex items-baseline gap-1">
-            <span className={`font-bold text-[#1a1a1a] ${compact ? "text-4xl" : "text-5xl"}`}>{rating}</span>
-            <span className="text-xl text-[#999]">/5</span>
+      {/* Primary rating */}
+      {(hasPearlieRating || hasGoogleRating) && (
+        <div className="flex items-start gap-6">
+          <div className="flex-shrink-0">
+            <div className="flex items-baseline gap-1">
+              <span className={`font-bold text-[#1a1a1a] ${compact ? "text-4xl" : "text-5xl"}`}>{primaryRating}</span>
+              <span className="text-xl text-[#999]">/5</span>
+            </div>
+            <StarRating rating={primaryRating} />
+            {primaryReviewCount > 0 && (
+              <p className="text-sm text-[#666] mt-1">{primaryReviewCount} {hasPearlieRating ? "reviews" : "Google reviews"}</p>
+            )}
           </div>
-          <StarRating rating={rating} />
-          {reviewCount > 0 && (
-            <p className="text-sm text-[#666] mt-1">{reviewCount} reviews</p>
+
+          {/* Featured review quote */}
+          {featuredReview && (
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[#ccc] text-3xl leading-none">{"\u201C"}</span>
+                <span className="text-xs font-bold text-[#666] uppercase tracking-wider">Trusted Review</span>
+              </div>
+              <p className={`text-[#444] leading-relaxed italic ${compact ? "line-clamp-2" : "line-clamp-3"}`}>
+                {featuredReview}
+              </p>
+            </div>
           )}
         </div>
+      )}
 
-        {/* Featured review quote */}
-        {featuredReview && (
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[#ccc] text-3xl leading-none">{"\u201C"}</span>
-              <span className="text-xs font-bold text-[#666] uppercase tracking-wider">Trusted Review</span>
-            </div>
-            <p className={`text-[#444] leading-relaxed italic ${compact ? "line-clamp-2" : "line-clamp-3"}`}>
-              {featuredReview}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Google rating */}
-      {(googleRating || googleReviewCount) && (
+      {/* Google rating badge — only show separately when Pearlie rating exists */}
+      {hasPearlieRating && (googleRating || googleReviewCount) && (
         <div className="flex items-center justify-between bg-[#f8f8f8] rounded-lg px-4 py-3">
           <div className="flex items-center gap-3">
             <svg viewBox="0 0 24 24" className="h-5 w-5 flex-shrink-0" aria-hidden="true">
@@ -96,17 +98,6 @@ export function GoogleReviewCard({
               )}
             </div>
           </div>
-          {googleReviewsUrl && (
-            <a
-              href={googleReviewsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#4285F4] hover:text-[#1a73e8] transition-colors"
-            >
-              See reviews
-              <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-          )}
         </div>
       )}
     </div>

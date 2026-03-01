@@ -39,6 +39,7 @@ import {
   renderDisputeReminderEmail,
   renderBookingRequestSentEmail,
   renderAlternativeClinicsEmail,
+  renderDirectLeadNotificationEmail,
 } from "./templates/notification-templates"
 
 // ---------------------------------------------------------------------------
@@ -69,6 +70,7 @@ export const EMAIL_TYPE = {
   DISPUTE_REMINDER: "dispute_reminder",
   BOOKING_REQUEST_SENT: "booking_request_sent",
   ALTERNATIVE_CLINICS: "alternative_clinics",
+  DIRECT_LEAD_NOTIFICATION: "direct_lead_notification",
 } as const
 
 export type EmailType = (typeof EMAIL_TYPE)[keyof typeof EMAIL_TYPE]
@@ -288,6 +290,17 @@ const alternativeClinicsSchema = z.object({
   })),
   dashboardUrl: z.string(),
   unsubscribeFooterHtml: z.string(),
+})
+
+const directLeadNotificationSchema = z.object({
+  clinicName: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string(),
+  phone: z.string(),
+  treatment: z.string(),
+  urgency: z.string(),
+  inboxUrl: z.string(),
 })
 
 const appointmentNotificationSchema = z.object({
@@ -605,6 +618,21 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     // One email per conversation (never re-send for the same stale conversation)
     idempotencyKey: (data) => `alt_clinics:${data._conversationId}`,
   },
+
+  // --- Direct Lead Notification (to clinic — from profile enquiry) ---
+
+  [EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION]: {
+    type: EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: null, // Controlled by notification_preferences instead
+    notificationPreferenceKey: "new_leads",
+    defaultSubject: (data) =>
+      `New enquiry from ${data.firstName} ${data.lastName} via your profile`,
+    payloadSchema: directLeadNotificationSchema,
+    generateHtml: renderDirectLeadNotificationEmail,
+    idempotencyKey: (data) => `direct_lead:${data._leadId}:${data._clinicId}`,
+  },
 }
 
 /**
@@ -634,4 +662,5 @@ export const EMAIL_TYPE_LABELS: Record<EmailType, string> = {
   [EMAIL_TYPE.DISPUTE_REMINDER]: "Dispute Reminder → Clinic",
   [EMAIL_TYPE.BOOKING_REQUEST_SENT]: "Booking Request Sent → Patient",
   [EMAIL_TYPE.ALTERNATIVE_CLINICS]: "Alternative Clinics → Patient",
+  [EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION]: "Direct Lead → Clinic",
 }

@@ -411,7 +411,7 @@ export async function POST(request: NextRequest) {
 
           if (recent && recent.length > 0) {
             recentMessages = recent.reverse().map((m: any) => ({
-              sender: m.sender_type === "patient" ? escapeHtml(`${lead.first_name}`) : escapeHtml(clinic.name),
+              sender: m.sender_type === "patient" ? escapeHtml(`${lead.first_name}`) : m.sender_type === "bot" ? "Pearlie" : escapeHtml(clinic.name),
               content: escapeHtml(m.content.substring(0, 200)) + (m.content.length > 200 ? "..." : ""),
               timestamp: new Date(m.created_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
             }))

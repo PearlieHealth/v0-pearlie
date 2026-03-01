@@ -19,6 +19,7 @@ import {
   MessageSquare,
   MoreHorizontal,
   Clock,
+  Upload,
 } from "lucide-react"
 import { AdminLogoutButton } from "./admin-auth-provider"
 import { cn } from "@/lib/utils"
@@ -54,6 +55,7 @@ const navGroups: NavGroup[] = [
     label: "Clinics",
     items: [
       { href: "/admin/clinics", label: "Clinic Directory", shortLabel: "Clinics", icon: Building2 },
+      { href: "/admin/bulk-import", label: "Bulk Import", shortLabel: "Import", icon: Upload },
       { href: "/admin/clinic-waitlist", label: "Waitlist", icon: ClipboardList },
       { href: "/admin/clinic-users", label: "Clinic Users", shortLabel: "Users", icon: Users },
     ],

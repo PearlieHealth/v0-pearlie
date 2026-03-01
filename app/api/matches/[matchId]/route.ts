@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { normalizeLead, normalizeClinic } from "@/lib/matching/normalize"
-import { scoreClinic, buildMatchFacts } from "@/lib/matching/scoring"
-import { buildMatchReasonsForMultipleClinics, validateUniqueReasons } from "@/lib/matching/reasons-engine"
+import { scoreClinic, scoreDirectoryListing, buildMatchFacts, isExcludedByClearPricingFilter } from "@/lib/matching/scoring"
+import { buildMatchReasonsForMultipleClinics, buildDirectoryListingReasons, validateUniqueReasons } from "@/lib/matching/reasons-engine"
 import { getExplanationVersion } from "@/lib/matching/reasons-engine"
+import { isClinicMatchable } from "@/lib/matching/clinic-status"
 import { isInGreaterLondon } from "@/lib/matching/reasons"
 import { calculateHaversineDistance } from "@/lib/utils/geo"
 
@@ -25,6 +26,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
     if (matchError || !match) {
       console.error("[match-api] Match not found:", matchError)
       return NextResponse.json({ error: "Match not found" }, { status: 404 })
+    }
+
+    // Fast path: useLastMatch hook only needs to know if the match exists
+    if (request.headers.get("x-validate-only") === "1") {
+      return NextResponse.json({ ok: true }, { status: 200 })
     }
 
     // Check session status
@@ -104,8 +110,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
           .map(cached => {
             const clinicRow = clinicMap.get(cached.clinic_id)
             if (!clinicRow) return null
+            const isDir = cached.tier === "directory" || cached.match_reasons_meta?.source === "directory_listing"
             return {
               ...clinicRow,
+              rating: Number(clinicRow.google_rating || clinicRow.rating) || 0,
+              review_count: clinicRow.google_review_count || clinicRow.review_count || 0,
               distance_miles: cached.distance_miles,
               match_score: cached.score,
               match_percentage: cached.score,
@@ -120,8 +129,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
                 source: "template",
               },
               tier: cached.tier || "top",
-              card_title: isEmergency ? "Why this clinic" : "Why we matched you",
+              card_title: isDir ? "About this clinic" : isEmergency ? "Why this clinic" : "Why we matched you",
               is_emergency: isEmergency,
+              is_directory_listing: isDir,
             }
           })
           .filter(Boolean)
@@ -154,15 +164,36 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       // Normalize lead
       const normalizedLead = normalizeLead(lead)
 
-      // Score each clinic
-      const clinicScoringData = (clinicsRaw || []).map((clinicRow, clinicIndex) => {
+      // Score each clinic — use scoreDirectoryListing for non-matchable clinics
+      // First, apply hard filters then score remaining clinics
+      const clinicScoringData = (clinicsRaw || []).filter((clinicRow) => {
+        const filterKeys = Array.isArray(clinicRow.clinic_filter_selections)
+          ? clinicRow.clinic_filter_selections.map((sel: any) => sel.filter_key)
+          : []
+        const normalizedClinic = normalizeClinic(clinicRow, filterKeys)
+        if (isExcludedByClearPricingFilter(normalizedLead, normalizedClinic)) {
+          console.log(`[match-api] Clinic excluded (clear pricing hard filter): ${clinicRow.name}`)
+          return false
+        }
+        return true
+      }).map((clinicRow, clinicIndex) => {
         const filterKeys = Array.isArray(clinicRow.clinic_filter_selections)
           ? clinicRow.clinic_filter_selections.map((sel: any) => sel.filter_key)
           : []
 
         const normalizedClinic = normalizeClinic(clinicRow, filterKeys)
-        const scoreBreakdown = scoreClinic(normalizedLead, normalizedClinic)
-        const matchFacts = buildMatchFacts(normalizedLead, normalizedClinic, scoreBreakdown)
+        // Scoring algorithm is based on tag data availability
+        const useDirScoring = !isClinicMatchable(filterKeys)
+        // UI treatment: verified clinics are never shown as directory listings
+        const isDir = !clinicRow.verified && useDirScoring
+
+        // Use the appropriate scoring function based on matchability
+        const scoreBreakdown = useDirScoring
+          ? scoreDirectoryListing(normalizedLead, normalizedClinic)
+          : scoreClinic(normalizedLead, normalizedClinic)
+        const matchFacts = useDirScoring
+          ? null
+          : buildMatchFacts(normalizedLead, normalizedClinic, scoreBreakdown)
 
         return {
           clinicRow,
@@ -171,43 +202,65 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
           scoreBreakdown,
           matchFacts,
           clinicIndex,
+          isDir,
+          useDirScoring,
         }
       })
 
-      // Build reasons for ALL clinics at once with cross-clinic variant dedup
+      // Build reasons for matchable clinics with cross-clinic variant dedup
+      const matchableScoringData = clinicScoringData.filter(c => !c.useDirScoring)
       const reasonsMap = buildMatchReasonsForMultipleClinics(
         normalizedLead.id,
-        clinicScoringData.map(c => ({
+        matchableScoringData.map(c => ({
           clinicId: c.normalizedClinic.id,
-          matchFacts: c.matchFacts,
+          matchFacts: c.matchFacts!,
           fallbackOffset: c.clinicIndex,
         }))
       )
 
       // Build final clinics with scores and reasons
-      clinicsWithScores = clinicScoringData.map(({ clinicRow, normalizedClinic, scoreBreakdown }) => {
-        const result = reasonsMap.get(normalizedClinic.id)
-        const reasons = result?.reasons || []
-        const composed = result?.composed
+      clinicsWithScores = clinicScoringData.map(({ clinicRow, normalizedClinic, filterKeys, scoreBreakdown, isDir, useDirScoring }) => {
+        // For directory-scored clinics, build simple reasons; for matchable, use cross-clinic deduped reasons
+        let reasons: string[]
+        let composed: { bullets: string[]; longBullets: string[]; tagsUsed: string[]; templatesUsed: string[]; confidence: number } | undefined
+
+        if (useDirScoring) {
+          const dirReasons = buildDirectoryListingReasons(normalizedClinic, scoreBreakdown, normalizedLead.treatment, 0)
+          reasons = dirReasons.map(r => r.text)
+          composed = {
+            bullets: reasons,
+            longBullets: reasons,
+            tagsUsed: dirReasons.map(r => r.tagKey || ""),
+            templatesUsed: [],
+            confidence: 0.3,
+          }
+        } else {
+          const result = reasonsMap.get(normalizedClinic.id)
+          reasons = result?.reasons?.map((r) => r.text) || []
+          composed = result?.composed
+        }
 
         return {
           ...clinicRow,
+          rating: Number(clinicRow.google_rating || clinicRow.rating) || 0,
+          review_count: clinicRow.google_review_count || clinicRow.review_count || 0,
           distance_miles: scoreBreakdown.distanceMiles,
           match_score: scoreBreakdown.percent,
           match_percentage: scoreBreakdown.percent,
           match_breakdown: scoreBreakdown.categories,
-          match_reasons: reasons.map((r) => r.text),
-          match_reasons_composed: composed?.bullets || reasons.map(r => r.text),
-          match_reasons_long: composed?.longBullets || reasons.map(r => r.text),
+          match_reasons: reasons,
+          match_reasons_composed: composed?.bullets || reasons,
+          match_reasons_long: composed?.longBullets || reasons,
           match_reasons_meta: {
             tagsUsed: composed?.tagsUsed || [],
             templatesUsed: composed?.templatesUsed || [],
             confidence: composed?.confidence || 0.8,
-            source: "template" as const,
+            source: isDir ? "directory_listing" : "template" as string,
           },
-          tier: "top",
-          card_title: isEmergency ? "Why this clinic" : "Why we matched you",
+          tier: isDir ? "directory" : "top",
+          card_title: isDir ? "About this clinic" : isEmergency ? "Why this clinic" : "Why we matched you",
           is_emergency: isEmergency,
+          is_directory_listing: isDir,
         }
       })
 
@@ -280,11 +333,26 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       console.log(`[match-api] Found ${nearbyClinics?.length || 0} nearby clinics to check`)
 
       if (nearbyClinics && nearbyClinics.length > 0) {
+        const normalizedLead = normalizeLead({
+          ...lead,
+          latitude: lead.latitude,
+          longitude: lead.longitude,
+        })
+
         additionalClinics = nearbyClinics
+          .filter((clinic) => {
+            const filterKeys = Array.isArray(clinic.clinic_filter_selections)
+              ? clinic.clinic_filter_selections.map((sel: any) => sel.filter_key)
+              : []
+            const nc = normalizeClinic(clinic, filterKeys)
+            return !isExcludedByClearPricingFilter(normalizedLead, nc)
+          })
           .map((clinic) => {
             const filterKeys = Array.isArray(clinic.clinic_filter_selections)
               ? clinic.clinic_filter_selections.map((sel: any) => sel.filter_key)
               : []
+
+            const normalizedClinic = normalizeClinic(clinic, filterKeys)
 
             let distance = 999
             if (clinic.latitude && clinic.longitude) {
@@ -292,29 +360,38 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
             }
 
             const isUnverified = !clinic.verified
-            const isDirectoryListing = isUnverified || filterKeys.length < 3
+            const isDir = isUnverified
 
-            // Tier based on verified status: verified clinics are "nearby", unverified are "directory"
+            // Score directory listings instead of giving them zero
+            const dirScore = scoreDirectoryListing(normalizedLead, normalizedClinic)
+            const dirReasons = buildDirectoryListingReasons(normalizedClinic, dirScore, normalizedLead.treatment, 0)
+
             const tier = isUnverified ? "directory" : "nearby"
 
             return {
               ...clinic,
+              rating: Number(clinic.google_rating || clinic.rating) || 0,
+              review_count: clinic.google_review_count || clinic.review_count || 0,
               distance_miles: distance,
               tier,
               filter_keys: filterKeys,
-              is_directory_listing: isDirectoryListing,
-              match_percentage: (isDirectoryListing || isUnverified) ? 0 : undefined,
-              match_reasons: (isDirectoryListing || isUnverified) ? [] : undefined,
-              match_reasons_composed: (isDirectoryListing || isUnverified)
-                ? [isUnverified ? "This clinic is in our directory but hasn't completed verification yet." : "Listed in our clinic directory."]
-                : undefined,
+              is_directory_listing: isDir,
+              match_percentage: dirScore.percent,
+              match_score: dirScore.percent,
+              match_reasons: dirReasons.map(r => r.text),
+              match_reasons_composed: dirReasons.map(r => r.text),
+              match_breakdown: dirScore.categories.map(c => ({
+                category: c.category,
+                points: c.points,
+                maxPoints: c.maxPoints,
+              })),
+              card_title: "About this clinic",
             }
           })
           .filter((c) => c.tier === "directory" ? c.distance_miles <= 25 : c.distance_miles <= 15)
           .sort((a, b) => {
-            if (a.tier === "directory" && b.tier !== "directory") return 1
-            if (a.tier !== "directory" && b.tier === "directory") return -1
-            if (a.verified !== b.verified) return a.verified ? -1 : 1
+            // Sort by score (higher first), then distance
+            if (b.match_score !== a.match_score) return b.match_score - a.match_score
             return a.distance_miles - b.distance_miles
           })
       }
@@ -360,6 +437,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
           ? {
               email: lead.email,
               isVerified: lead.is_verified ?? false,
+              isOwner: !!isOwner,
               // Strip location data for non-owners to prevent leaking patient address
               ...(isOwner
                 ? {

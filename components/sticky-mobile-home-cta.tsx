@@ -3,38 +3,33 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ArrowRight, RotateCcw } from "lucide-react"
+import { useLastMatchId } from "@/hooks/use-last-match"
 
 export function StickyMobileHomeCta() {
   const [visible, setVisible] = useState(false)
-  const [lastMatchId, setLastMatchId] = useState<string | null>(null)
+  const lastMatchId = useLastMatchId()
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("pearlie_last_match")
-      if (stored) {
-        const data = JSON.parse(stored)
-        const MAX_MATCH_AGE_MS = 30 * 24 * 60 * 60 * 1000
-        const age = Date.now() - new Date(data.createdAt).getTime()
-        if (age < MAX_MATCH_AGE_MS && data.matchId) {
-          setLastMatchId(data.matchId)
-        }
-      }
-    } catch {}
-  }, [])
-
-  useEffect(() => {
-    const target = document.getElementById("home-hero-search")
+    const target =
+      document.getElementById("home-hero-cta") ||
+      document.getElementById("home-hero-search")
     if (!target) return
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setVisible(!entry.isIntersecting)
+        const show = !entry.isIntersecting
+        setVisible(show)
+        // Hide / restore the main nav on mobile when this sticky bar is visible
+        document.documentElement.classList.toggle("treatment-sticky-visible", show)
       },
       { threshold: 0 }
     )
 
     observer.observe(target)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      document.documentElement.classList.remove("treatment-sticky-visible")
+    }
   }, [])
 
   // Returning users: don't overlay the nav bar immediately.

@@ -27,8 +27,8 @@ export async function GET(request: Request) {
 
     let query = supabase.from("clinics").select(PUBLIC_CLINIC_FIELDS, { count: "exact" })
 
-    // Only show live, non-archived clinics to the public
-    query = query.eq("is_archived", false).eq("is_live", true)
+    // Only show non-archived clinics to the public
+    query = query.eq("is_archived", false)
 
     // Apply filters
     if (treatment) {

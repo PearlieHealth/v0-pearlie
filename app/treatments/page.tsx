@@ -10,11 +10,8 @@ import { TreatmentCard } from "@/components/treatments/treatment-card"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { getAllTreatments } from "@/lib/content/treatments"
 import {
-  getBoroughsByRegion,
-  type LondonBorough,
+  LONDON_BOROUGHS,
 } from "@/lib/data/london-boroughs"
-
-const REGIONS: LondonBorough["region"][] = ["Central", "North", "South", "East", "West"]
 
 export const metadata: Metadata = {
   title: "Dental Treatments - Compare Clinics & Prices",
@@ -149,30 +146,17 @@ export default function TreatmentsPage() {
                 Compare dental clinics and pricing for specific treatments in your London borough.
               </p>
 
-              <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                {REGIONS.map((region) => {
-                  const boroughs = getBoroughsByRegion(region)
-                  if (boroughs.length === 0) return null
-                  return (
-                    <div key={region}>
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                        {region} London
-                      </h3>
-                      <ul className="space-y-1.5">
-                        {boroughs.map((borough) => (
-                          <li key={borough.slug}>
-                            <Link
-                              href={`/london/${borough.slug}`}
-                              className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors"
-                            >
-                              {borough.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )
-                })}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {LONDON_BOROUGHS.map((borough) => (
+                  <Link
+                    key={borough.slug}
+                    href={`/london/${borough.slug}`}
+                    className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors flex items-center gap-1.5 p-2 rounded-lg hover:bg-muted/50"
+                  >
+                    <MapPin className="w-3 h-3 text-[#0fbcb0] flex-shrink-0" />
+                    {borough.name}
+                  </Link>
+                ))}
               </div>
 
               <div className="mt-6">

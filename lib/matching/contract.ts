@@ -99,7 +99,7 @@ export interface MatchScoreBreakdown {
 export interface MatchReason {
   key: string // Unique key for deduplication
   text: string // Display text
-  category: "treatment" | "distance" | "priorities" | "blockers" | "anxiety" | "cost" | "budget" | "trust"
+  category: "treatment" | "distance" | "priorities" | "blockers" | "anxiety" | "cost" | "budget" | "trust" | "reviews"
   weight: number // How important this reason is (0-1)
   tagKey?: string // The TAG_* key this reason maps to (for validation)
   isFallback?: boolean // True if this is a fallback reason

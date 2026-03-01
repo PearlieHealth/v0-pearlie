@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import { getClinicByIdOrSlug } from "@/lib/clinics/queries"
+
 import { ClinicProfileContent } from "@/components/clinic/profile/clinic-profile-content"
 import { ClinicJsonLd } from "@/components/clinic/profile/clinic-jsonld"
 import type { Clinic } from "@/components/clinic/profile/types"
