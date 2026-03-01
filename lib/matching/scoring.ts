@@ -7,6 +7,9 @@ import {
   Q8_COST_TAG_MAP,
   Q10_ANXIETY_TAG_MAP,
   COST_PRICE_TIER_MAP,
+  DIRECTORY_LISTING_WEIGHTS,
+  DIRECTORY_LISTING_MAX_RADIUS,
+  DIRECTORY_LISTING_MULTIPLIER,
 } from "./tag-schema"
 
 /**
@@ -688,6 +691,184 @@ export function buildMatchFacts(lead: LeadAnswer, clinic: ClinicProfile, breakdo
 
     clinicTags: clinic.filterKeys,
     clinicRating: clinic.rating,
+  }
+}
+
+// =============================================================================
+// Hard Filters
+// =============================================================================
+
+/**
+ * Hard filter: exclude clinics with no pricing data when patient wants clear pricing.
+ * Triggered when patient selects "Clear pricing before treatment" (Q4 priority)
+ * or a cost approach that maps to TAG_CLEAR_PRICING_UPFRONT (e.g. comfort_range).
+ *
+ * A clinic passes the filter if it has:
+ *  - a priceRange set (budget/mid/premium), OR
+ *  - the TAG_CLEAR_PRICING_UPFRONT tag (explicitly verified for clear pricing)
+ *
+ * Returns true if the clinic should be EXCLUDED.
+ */
+export function isExcludedByClearPricingFilter(lead: LeadAnswer, clinic: ClinicProfile): boolean {
+  // Check if patient selected any Q4 priority that maps to TAG_CLEAR_PRICING_UPFRONT
+  const priorityWantsClearPricing = (lead.priorities || []).some(p => {
+    const tag = Q4_PRIORITY_TAG_MAP[p]
+    return tag === "TAG_CLEAR_PRICING_UPFRONT"
+  })
+
+  // Check if patient's Q8 cost approach maps to TAG_CLEAR_PRICING_UPFRONT
+  const costWantsClearPricing = lead.costApproach
+    ? Q8_COST_TAG_MAP[lead.costApproach] === "TAG_CLEAR_PRICING_UPFRONT"
+    : false
+
+  if (!priorityWantsClearPricing && !costWantsClearPricing) return false
+
+  // Clinic has pricing data — passes filter
+  if (clinic.priceRange) return false
+
+  // Clinic has clear pricing tag — passes filter (explicitly verified)
+  if (clinic.filterKeys.includes("TAG_CLEAR_PRICING_UPFRONT")) return false
+
+  // Patient wants clear pricing but clinic has no pricing data and no clear pricing tag
+  return true
+}
+
+// =============================================================================
+// Directory Listing Scoring
+// Simple scoring for unverified clinics without tag data.
+// Uses only universally-available signals: distance, reviews, treatment text, completeness.
+// =============================================================================
+
+/**
+ * Score a directory listing (unverified clinic without tags) against a lead.
+ * Returns a MatchScoreBreakdown on the same 0-100 scale as scoreClinic().
+ *
+ * Weights: distance(40), reviews(30), treatment(20), completeness(10) = 100
+ */
+export function scoreDirectoryListing(lead: LeadAnswer, clinic: ClinicProfile): MatchScoreBreakdown {
+  const categories: ScoreCategoryBreakdown[] = []
+  let totalScore = 0
+  const maxPossible = 100
+
+  // 1. Distance (40 points) — quadratic decay over DIRECTORY_LISTING_MAX_RADIUS
+  //    Quadratic curve penalises farther clinics more aggressively:
+  //    2 mi → 75%, 5 mi → 44%, 8 mi → 22%, 10 mi → 11%, 15 mi → 0%
+  let distanceMiles: number | undefined
+  if (lead.latitude && lead.longitude && clinic.latitude && clinic.longitude) {
+    distanceMiles = calculateHaversineDistance(lead.latitude, lead.longitude, clinic.latitude, clinic.longitude)
+    const linearRatio = Math.max(0, 1 - distanceMiles / DIRECTORY_LISTING_MAX_RADIUS)
+    const ratio = linearRatio * linearRatio // quadratic decay
+    const distPoints = Math.round(DIRECTORY_LISTING_WEIGHTS.distance * ratio)
+    categories.push({
+      category: "distance",
+      points: distPoints,
+      maxPoints: DIRECTORY_LISTING_WEIGHTS.distance,
+      weight: 0,
+      facts: { distanceMiles, maxRadius: DIRECTORY_LISTING_MAX_RADIUS },
+    })
+    totalScore += distPoints
+  } else {
+    // No coords — 0 distance points
+    categories.push({
+      category: "distance",
+      points: 0,
+      maxPoints: DIRECTORY_LISTING_WEIGHTS.distance,
+      weight: 0,
+      facts: { distanceMiles: undefined, maxRadius: DIRECTORY_LISTING_MAX_RADIUS },
+    })
+  }
+
+  // 2. Reviews (30 points) — 60% rating, 40% review count (log scale)
+  const ratingMax = Math.round(DIRECTORY_LISTING_WEIGHTS.reviews * 0.6)
+  const countMax = DIRECTORY_LISTING_WEIGHTS.reviews - ratingMax
+
+  // Stricter rating scale: map 0-5 stars onto 0-18 pts with steeper curve
+  // Below 3.0 → near-zero, 3.5 → ~30%, 4.0 → ~56%, 4.5 → ~80%, 5.0 → 100%
+  const ratingRatio = clinic.rating ? Math.max(0, (clinic.rating - 2.5) / 2.5) : 0
+  const ratingPoints = Math.round(ratingMax * Math.min(ratingRatio * ratingRatio, 1))
+  // Log scale for review count: 1→~0%, 10→~33%, 100→~67%, 1000+=100%
+  const countPoints = clinic.reviewCount > 0
+    ? Math.round(countMax * Math.min(Math.log10(clinic.reviewCount) / Math.log10(1000), 1))
+    : 0
+  const reviewPoints = ratingPoints + countPoints
+
+  categories.push({
+    category: "reviews",
+    points: reviewPoints,
+    maxPoints: DIRECTORY_LISTING_WEIGHTS.reviews,
+    weight: 0,
+    facts: {
+      rating: clinic.rating,
+      reviewCount: clinic.reviewCount,
+      ratingPoints,
+      countPoints,
+    },
+  })
+  totalScore += reviewPoints
+
+  // 3. Treatment match (20 points) — text match using canonical aliases
+  const aliases = getCanonicalAliases(lead.treatment)
+  const hasTreatmentMatch =
+    clinic.treatments.some((t) => {
+      const lower = t.toLowerCase()
+      return aliases.some(alias => lower.includes(alias))
+    }) ||
+    clinic.tags.some((t) => {
+      const lower = t.toLowerCase()
+      return aliases.some(alias => lower.includes(alias))
+    })
+
+  const treatmentPoints = hasTreatmentMatch ? DIRECTORY_LISTING_WEIGHTS.treatment : 0
+  categories.push({
+    category: "treatment",
+    points: treatmentPoints,
+    maxPoints: DIRECTORY_LISTING_WEIGHTS.treatment,
+    weight: 0,
+    facts: {
+      leadTreatment: lead.treatment,
+      clinicOffersTreatment: hasTreatmentMatch,
+      clinicTreatments: clinic.treatments,
+    },
+  })
+  totalScore += treatmentPoints
+
+  // 4. Profile completeness (10 points) — 2 pts each for 5 signals
+  let completenessPoints = 0
+  if (clinic.latitude && clinic.longitude) completenessPoints += 2
+  if (clinic.rating) completenessPoints += 2
+  if (clinic.reviewCount > 0) completenessPoints += 2
+  if (clinic.treatments.length > 0) completenessPoints += 2
+  if (clinic.opening_hours) completenessPoints += 2
+
+  categories.push({
+    category: "completeness",
+    points: completenessPoints,
+    maxPoints: DIRECTORY_LISTING_WEIGHTS.completeness,
+    weight: 0,
+    facts: {
+      hasCoords: !!(clinic.latitude && clinic.longitude),
+      hasRating: !!clinic.rating,
+      hasReviews: clinic.reviewCount > 0,
+      hasTreatments: clinic.treatments.length > 0,
+      hasOpeningHours: !!clinic.opening_hours,
+    },
+  })
+  totalScore += completenessPoints
+
+  // Calculate contribution weights
+  categories.forEach((cat) => {
+    cat.weight = totalScore > 0 ? cat.points / totalScore : 0
+  })
+
+  const rawPercent = maxPossible > 0 ? (totalScore / maxPossible) * 100 : 0
+  const percent = Math.round(rawPercent * DIRECTORY_LISTING_MULTIPLIER)
+
+  return {
+    totalScore,
+    maxPossible,
+    percent,
+    categories,
+    distanceMiles,
   }
 }
 

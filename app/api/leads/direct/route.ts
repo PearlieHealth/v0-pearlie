@@ -40,14 +40,14 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient()
 
-    // Verify the clinic exists and is live
+    // Verify the clinic exists and is not archived
     const { data: clinic, error: clinicError } = await supabase
       .from("clinics")
-      .select("id, name, is_live")
+      .select("id, name, is_archived")
       .eq("id", clinicId)
       .single()
 
-    if (clinicError || !clinic || !clinic.is_live) {
+    if (clinicError || !clinic || clinic.is_archived) {
       return NextResponse.json({ error: "Clinic not found" }, { status: 404 })
     }
 

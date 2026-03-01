@@ -8,13 +8,7 @@ import Link from "next/link"
 import { LoadingAnimation } from "@/components/loading-animation"
 import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
-
-interface LastMatch {
-  matchId: string
-  clinicCount: number
-  treatment: string
-  createdAt: string
-}
+import { useLastMatch } from "@/hooks/use-last-match"
 
 export function HeroSection() {
   const [showLoading, setShowLoading] = useState(() => {
@@ -22,24 +16,7 @@ export function HeroSection() {
     return window.innerWidth >= 768
   })
 
-  const [lastMatch, setLastMatch] = useState<LastMatch | null>(null)
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("pearlie_last_match")
-      if (stored) {
-        const data = JSON.parse(stored) as LastMatch
-        const MAX_MATCH_AGE_MS = 30 * 24 * 60 * 60 * 1000
-        const age = Date.now() - new Date(data.createdAt).getTime()
-        if (age < MAX_MATCH_AGE_MS && data.matchId) {
-          setLastMatch(data)
-        } else {
-          localStorage.removeItem("pearlie_last_match")
-        }
-      }
-    } catch {
-      localStorage.removeItem("pearlie_last_match")
-    }
-  }, [])
+  const lastMatch = useLastMatch()
 
   const heroVideoRef = useRef<HTMLVideoElement>(null)
   const [showResumeHint, setShowResumeHint] = useState(false)
@@ -135,14 +112,16 @@ export function HeroSection() {
                   <span className="block whitespace-nowrap mt-1 md:mt-2">Not just the closest one.</span>
                 </motion.h1>
 
-                <motion.p
-                  className="text-[15px] md:text-lg text-black mb-5 md:mb-6 lg:mb-8 leading-[1.5] max-w-lg mx-auto lg:mx-0"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                >
-                  Matching you with carefully reviewed clinics based on your budget, needs, preferences, and timing — so you can choose with confidence.
-                </motion.p>
+                {!lastMatch && (
+                  <motion.p
+                    className="text-[15px] md:text-lg text-black mb-5 md:mb-6 lg:mb-8 leading-[1.5] max-w-lg mx-auto lg:mx-0"
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                  >
+                    Matching you with carefully reviewed clinics based on your budget, needs, preferences, and timing — so you can choose with confidence.
+                  </motion.p>
+                )}
 
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}

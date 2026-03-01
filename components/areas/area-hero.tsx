@@ -1,4 +1,4 @@
-import { MapPin, Train } from "lucide-react"
+import { MapPin, Train, ShieldCheck, Star } from "lucide-react"
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
 import { HeroPostcodeCta } from "@/components/treatments/hero-postcode-cta"
 import type { LondonBorough } from "@/lib/data/london-boroughs"
@@ -11,6 +11,8 @@ interface AreaHeroProps {
   treatmentSlug?: string
   /** Intake treatment key for postcode CTA */
   intakeTreatment?: string
+  /** Price range string (e.g. "£2,500 – £5,500") for treatment pages */
+  priceRange?: string
 }
 
 export function AreaHero({
@@ -19,6 +21,7 @@ export function AreaHero({
   treatmentName,
   treatmentSlug,
   intakeTreatment = "general",
+  priceRange,
 }: AreaHeroProps) {
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -35,11 +38,11 @@ export function AreaHero({
   ]
 
   const title = treatmentName
-    ? `${treatmentName} in ${borough.name}`
+    ? `${treatmentName} in ${borough.name} — Compare Verified Clinics`
     : `Dentists in ${borough.name}`
 
   const subtitle = treatmentName
-    ? `Compare verified ${treatmentName.toLowerCase()} providers in ${borough.name}. See pricing, read reviews, and get matched — free and independent.`
+    ? `Looking for ${treatmentName.toLowerCase()} treatment in ${borough.name}? Compare GDC-registered clinics near ${borough.postcodes[0]} and see price ranges, reviews and availability.`
     : `Compare verified, GDC registered dental clinics in ${borough.name}. See pricing, read reviews, and get matched with the right clinic — free.`
 
   return (
@@ -54,6 +57,11 @@ export function AreaHero({
             <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0fbcb0] bg-[#0fbcb0]/10 rounded-full">
               {borough.region} London
             </span>
+            {treatmentName && (
+              <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/80 bg-white/10 rounded-full">
+                Verified clinics only
+              </span>
+            )}
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] text-white mb-6 text-balance">
@@ -63,6 +71,25 @@ export function AreaHero({
           <p className="text-lg sm:text-xl text-white/70 leading-relaxed mb-6">
             {subtitle}
           </p>
+
+          {/* Trust signals */}
+          {treatmentName && (
+            <div className="flex flex-wrap gap-4 text-sm text-white/70 mb-6">
+              {priceRange && (
+                <span className="flex items-center gap-1.5">
+                  <span className="text-[#0fbcb0] font-semibold">From {priceRange.split("–")[0].trim()}</span>
+                </span>
+              )}
+              <span className="flex items-center gap-1.5">
+                <Star className="w-4 h-4 text-[#0fbcb0] fill-[#0fbcb0]" />
+                Rated clinics
+              </span>
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-[#0fbcb0]" />
+                GDC registered
+              </span>
+            </div>
+          )}
 
           {/* Local signals */}
           <div className="flex flex-wrap gap-4 text-sm text-white/60 mb-8">

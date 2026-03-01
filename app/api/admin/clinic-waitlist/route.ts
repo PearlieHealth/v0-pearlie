@@ -84,7 +84,7 @@ export async function PATCH(request: Request) {
             price_range: "mid",
             opening_hours: "",
             is_archived: false,
-            is_live: false, // Step 2: New clinics start as NOT live
+            is_live: true,
           })
           .select("id")
           .single()
