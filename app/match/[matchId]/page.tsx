@@ -223,8 +223,10 @@ export default function MatchPage() {
         matchCount: data.clinics.length,
       })
 
-      // Save match info to localStorage so landing page can offer "return to matches"
-      if (data.lead?.isVerified) {
+      // Save match info to localStorage so landing page can offer "return to matches".
+      // Only save if the authenticated user owns this lead — prevents random visitors
+      // from an external backlink overwriting their own localStorage.
+      if (data.lead?.isOwner) {
         try {
           localStorage.setItem("pearlie_last_match", JSON.stringify({
             matchId: data.match.id,

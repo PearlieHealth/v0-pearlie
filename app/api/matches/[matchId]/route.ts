@@ -28,6 +28,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
       return NextResponse.json({ error: "Match not found" }, { status: 404 })
     }
 
+    // Fast path: useLastMatch hook only needs to know if the match exists
+    if (request.headers.get("x-validate-only") === "1") {
+      return NextResponse.json({ ok: true }, { status: 200 })
+    }
+
     // Check session status
     const { data: session } = await supabase
       .from("match_sessions")
@@ -432,6 +437,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
           ? {
               email: lead.email,
               isVerified: lead.is_verified ?? false,
+              isOwner: !!isOwner,
               // Strip location data for non-owners to prevent leaking patient address
               ...(isOwner
                 ? {
