@@ -1,6 +1,12 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { MapPin, ArrowRight, Stethoscope } from "lucide-react"
+import {
+  MapPin,
+  ArrowRight,
+  Stethoscope,
+  CheckCircle2,
+  Shield,
+} from "lucide-react"
 import { MainNav } from "@/components/main-nav"
 import { SiteFooter } from "@/components/site-footer"
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
@@ -99,47 +105,56 @@ const POPULAR_TREATMENTS = [
   },
 ]
 
+const PRICING_TABLE = [
+  { treatment: "Private dental check-up", range: "£50–£120" },
+  { treatment: "Hygiene appointment", range: "£70–£150" },
+  { treatment: "Composite bonding", range: "£200–£400 per tooth" },
+  { treatment: "Teeth whitening", range: "£250–£1,000" },
+  { treatment: "Invisalign treatment", range: "£2,500–£5,000" },
+  { treatment: "Single dental implant", range: "£2,000–£3,500" },
+]
+
 const LONDON_FAQS = [
   {
     question: "How much does a private dentist cost in London?",
     answer:
-      "A private check-up in London typically costs £50–£150, though Central London practices often charge more. Specialist treatments like dental implants range from £2,000–£6,000 per implant and Invisalign from £2,500–£5,500. Outer boroughs like Lewisham and Greenwich tend to be 15–30% cheaper than Zone 1 clinics. Pearlie lets you compare prices across boroughs side-by-side so you can find the right balance of quality and cost.",
+      "Routine check-ups typically range from £50 to £120. Cosmetic treatments and implants vary depending on complexity and borough location. Central London clinics may charge 20–40% more than outer borough practices.",
   },
   {
     question: "Are NHS dentists accepting new patients in London?",
     answer:
-      "NHS dental availability in London is extremely limited. Most NHS practices across boroughs maintain long waiting lists and many have stopped accepting new adult patients entirely. Boroughs like Lewisham, Haringey, and Greenwich tend to have slightly better NHS provision than Central London. You can check the NHS Find a Dentist tool or call individual practices — or compare affordable private options on Pearlie where many clinics offer NHS-competitive pricing for routine care.",
+      "Availability varies by borough. Some areas have long waiting lists, while others may have limited capacity. You can check the NHS Find a Dentist tool or compare affordable private options on Pearlie where many clinics offer NHS-competitive pricing for routine care.",
   },
   {
-    question: "Which London boroughs have the best cosmetic dentists?",
+    question: "Are dentists more expensive in Central London?",
     answer:
-      "Westminster (especially the Harley Street area), Kensington & Chelsea, and Camden are known for high concentrations of specialist cosmetic dentists. However, boroughs like Islington, Lambeth (Clapham), and Hackney have seen a surge in quality cosmetic practices — often at lower prices. On Pearlie you can compare verified cosmetic clinics across all London boroughs to find the best fit for your budget and treatment.",
+      "Yes, clinics in Central London often charge higher fees due to location and overheads. The same treatment in an outer borough may be 20–40% cheaper, often from equally qualified clinicians.",
   },
   {
-    question: "How much are dental implants in London?",
+    question: "How much do dental implants cost in London?",
     answer:
-      "Dental implants in London typically cost £2,000–£6,000 per single implant, depending on the borough, clinic, and complexity. Central London (Westminster, City of London) tends to be at the higher end, while outer boroughs may start closer to £2,000. Many London clinics offer finance plans with 0% interest. Compare implant prices across London boroughs on Pearlie to find clinics within your budget.",
+      "A single implant typically ranges from £2,000 to £3,500, depending on complexity and whether bone grafting is required. Many London clinics offer 0% finance plans for implant treatment.",
   },
   {
-    question: "Is Invisalign more expensive in Central London?",
+    question: "How much is Invisalign in London?",
     answer:
-      "Yes, Invisalign treatment in Central London (Westminster, City of London, Camden) typically costs £3,500–£5,500, compared to £2,500–£4,500 in outer boroughs. The difference reflects higher operating costs rather than treatment quality — many outer-London orthodontists hold the same Diamond or Platinum Invisalign provider status. Pearlie helps you compare Invisalign providers across boroughs so you can see the price difference clearly.",
+      "Invisalign treatment usually ranges between £2,500 and £5,000 depending on case complexity. Many outer-London orthodontists hold the same Diamond or Platinum Invisalign provider status as Central London clinics, often at lower prices.",
   },
   {
-    question: "How do I find an emergency dentist in London?",
+    question: "Can I find a same-day or emergency dentist in London?",
     answer:
-      "For dental emergencies in London you have several options: call NHS 111 for out-of-hours referrals, visit a walk-in emergency dental clinic, or book a same-day appointment at a private practice. Emergency appointments typically cost £50–£250 privately. Most London boroughs have at least one practice offering same-day emergency slots. On Pearlie, you can filter for emergency dental care and find available clinics near your postcode.",
+      "Yes. Many private clinics offer same-day emergency appointments, particularly in larger boroughs. Emergency appointments typically cost £50–£250 privately. You can also call NHS 111 for out-of-hours referrals.",
   },
   {
     question: "What should I look for when choosing a dentist in London?",
     answer:
-      "Look for GDC (General Dental Council) registration first — every practising dentist in the UK must be registered. Beyond that, check patient reviews, whether the clinic offers your specific treatment, pricing transparency, and convenience (location, opening hours, weekend availability). Pearlie verifies all listed clinics are GDC-registered and shows you real patient reviews, pricing, and available treatments so you can compare easily.",
+      "Look for GDC (General Dental Council) registration first — every practising dentist in the UK must be registered. Beyond that, check patient reviews, whether the clinic offers your specific treatment, pricing transparency, and convenience such as location and opening hours.",
   },
   {
     question:
       "What is the difference between private and NHS dental care in London?",
     answer:
-      "NHS dental care covers essential treatments at fixed Band 1–3 prices (£26.80–£306.80) but availability is severely limited in London and cosmetic treatments are excluded. Private dentists offer shorter wait times, longer appointments, a wider range of treatments (Invisalign, veneers, implants), and modern facilities — but at higher cost. Many London patients use NHS for routine check-ups and private for specialist or cosmetic work.",
+      "NHS dental care covers essential treatments at fixed Band 1–3 prices (£26.80–£306.80) but availability is severely limited in London and cosmetic treatments are excluded. Private dentists offer shorter wait times, longer appointments, a wider range of treatments, and modern facilities — but at higher cost.",
   },
 ]
 
@@ -219,9 +234,9 @@ export default async function LondonPage() {
                 Dentists in London — Compare Verified Private &amp; NHS Clinics
               </h1>
               <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed mb-8">
-                Compare GDC-registered clinics across {LONDON_BOROUGHS.length}{" "}
-                London boroughs. Transparent pricing. Real reviews. Free
-                matching.
+                Compare GDC-registered dental clinics across London boroughs.
+                Transparent pricing, real patient reviews, and free matching in
+                under 60 seconds.
               </p>
               <div className="max-w-lg mx-auto [&_p]:text-white/60 [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-[#0fbcb0] [&_input]:focus-visible:border-[#0fbcb0] [&_.text-destructive]:text-red-300 [&_form]:mx-auto">
                 <HeroPostcodeCta
@@ -235,7 +250,7 @@ export default async function LondonPage() {
 
         <TrustBadgeStrip />
 
-        {/* 2. Intro content block — SEO authority copy */}
+        {/* 2. Intro content block */}
         <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
@@ -254,23 +269,30 @@ export default async function LondonPage() {
                   London is home to thousands of dental practices — from
                   specialist cosmetic clinics on Harley Street to family-friendly
                   NHS practices in the outer boroughs. Whether you&apos;re
-                  looking for a{" "}
+                  searching for a{" "}
                   <strong>private dentist in London</strong> for routine
                   check-ups, a{" "}
-                  <strong>cosmetic dentist</strong> for Invisalign or veneers, or
-                  an <strong>emergency dentist</strong> who can see you today,
-                  the sheer number of options can be overwhelming.
+                  <strong>cosmetic dentist</strong> for veneers or{" "}
+                  <Link
+                    href="/treatments/composite-bonding"
+                    className="text-[#0fbcb0] hover:underline font-medium"
+                  >
+                    composite bonding
+                  </Link>
+                  , or an <strong>emergency dentist in London</strong> who can
+                  see you today, the sheer number of options can feel
+                  overwhelming.
                 </p>
                 <p>
-                  Pricing varies significantly across boroughs. A dental implant
-                  in{" "}
+                  Pricing and availability vary significantly across boroughs. A
+                  dental implant in{" "}
                   <Link
                     href="/london/westminster"
                     className="text-[#0fbcb0] hover:underline font-medium"
                   >
                     Westminster
                   </Link>{" "}
-                  might cost £4,000–£6,000, while the same procedure in{" "}
+                  may cost more than the same treatment in{" "}
                   <Link
                     href="/london/greenwich"
                     className="text-[#0fbcb0] hover:underline font-medium"
@@ -283,23 +305,30 @@ export default async function LondonPage() {
                     className="text-[#0fbcb0] hover:underline font-medium"
                   >
                     Lewisham
-                  </Link>{" "}
-                  could start from £2,000. Cosmetic treatments like{" "}
+                  </Link>
+                  . Cosmetic treatments like{" "}
+                  <Link
+                    href="/treatments/invisalign"
+                    className="text-[#0fbcb0] hover:underline font-medium"
+                  >
+                    Invisalign
+                  </Link>
+                  ,{" "}
                   <Link
                     href="/treatments/composite-bonding"
                     className="text-[#0fbcb0] hover:underline font-medium"
                   >
                     composite bonding
-                  </Link>{" "}
-                  and{" "}
+                  </Link>
+                  , and{" "}
                   <Link
                     href="/treatments/teeth-whitening"
                     className="text-[#0fbcb0] hover:underline font-medium"
                   >
                     teeth whitening
                   </Link>{" "}
-                  follow a similar pattern — Central London practices charge a
-                  premium, while equally qualified clinics in boroughs like{" "}
+                  often carry a premium in Central London, while equally
+                  experienced clinicians in boroughs such as{" "}
                   <Link
                     href="/london/hackney"
                     className="text-[#0fbcb0] hover:underline font-medium"
@@ -320,16 +349,14 @@ export default async function LondonPage() {
                   >
                     Wandsworth
                   </Link>{" "}
-                  offer competitive rates.
+                  offer competitive alternatives.
                 </p>
                 <p>
-                  NHS dental availability in London remains extremely limited.
-                  Most NHS practices maintain long waiting lists, and many have
-                  stopped accepting new adult patients altogether. This has
-                  driven demand for affordable private dentistry — and with it, a
-                  need for transparent pricing and genuine patient reviews. Many
-                  patients now combine NHS care for routine check-ups with
-                  private treatment for specialist work like{" "}
+                  NHS dental availability in London remains limited in many
+                  areas. Waiting lists can be long, and many practices are not
+                  currently accepting new NHS patients. As a result, many
+                  Londoners choose a mix of NHS care for routine check-ups and
+                  private dentistry for cosmetic or specialist treatments such as{" "}
                   <Link
                     href="/treatments/dental-implants"
                     className="text-[#0fbcb0] hover:underline font-medium"
@@ -338,35 +365,90 @@ export default async function LondonPage() {
                   </Link>{" "}
                   or{" "}
                   <Link
-                    href="/treatments/invisalign"
+                    href="/treatments/veneers"
                     className="text-[#0fbcb0] hover:underline font-medium"
                   >
-                    Invisalign
+                    porcelain veneers
                   </Link>
                   .
                 </p>
                 <p>
-                  Pearlie helps you cut through the noise. Every clinic listed is
-                  verified as GDC-registered, and our platform shows real patient
-                  reviews, transparent pricing, and available treatments — so you
-                  can compare dentists across London boroughs and choose with
-                  confidence. No referral fees, no hidden costs.
+                  Pearlie helps you compare verified clinics across London in one
+                  place. Every practice listed is GDC-registered, and we
+                  highlight transparent pricing, real patient reviews, available
+                  treatments, finance options, and appointment availability — so
+                  you can make an informed choice without hidden costs.
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 3. Borough grid — primary navigation */}
+        {/* 3. Pricing table */}
         <section className="py-10 sm:py-14 bg-[var(--cream)]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
+                Typical private dental prices in London
+              </h2>
+              <p className="text-base text-muted-foreground mb-6">
+                While final fees depend on clinical assessment and borough
+                location, here is a general pricing snapshot.
+              </p>
+
+              <div className="rounded-xl border border-border/50 bg-white overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/50 bg-muted/30">
+                      <th className="text-left font-semibold text-foreground px-5 py-3">
+                        Treatment
+                      </th>
+                      <th className="text-right font-semibold text-foreground px-5 py-3">
+                        Typical London range
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {PRICING_TABLE.map((row, i) => (
+                      <tr
+                        key={row.treatment}
+                        className={
+                          i < PRICING_TABLE.length - 1
+                            ? "border-b border-border/30"
+                            : ""
+                        }
+                      >
+                        <td className="px-5 py-3 text-foreground">
+                          {row.treatment}
+                        </td>
+                        <td className="px-5 py-3 text-right text-muted-foreground font-medium">
+                          {row.range}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <p className="text-sm text-muted-foreground mt-4">
+                Central London clinics may charge 20–40% more than outer borough
+                practices. Many private clinics offer 0% finance options for
+                higher-value treatments.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Borough grid */}
+        <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
-                London boroughs
+                Browse dentists by London borough
               </h2>
               <p className="text-base text-muted-foreground mb-8">
-                Browse verified dental clinics by borough — compare local
-                pricing, read patient reviews, and find available treatments.
+                Choose your borough to compare verified clinics, see real
+                reviews, and explore available treatments.
               </p>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -394,20 +476,43 @@ export default async function LondonPage() {
                   </Link>
                 ))}
               </div>
+
+              <div className="mt-8 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground mb-2">
+                  Each borough page includes:
+                </p>
+                <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    Local pricing insights
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    Available NHS vs private options
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    Cosmetic and restorative treatment availability
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    Real patient ratings
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* 4. Popular treatments in London — treatment hub links */}
-        <section className="py-10 sm:py-14">
+        {/* 5. Popular treatments in London */}
+        <section className="py-10 sm:py-14 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
-                Popular treatments in London
+                Popular dental treatments in London
               </h2>
               <p className="text-base text-muted-foreground mb-8">
-                Compare clinics and prices for the most searched dental
-                treatments across London.
+                Looking for a specific treatment? Compare clinics offering:
               </p>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -432,20 +537,145 @@ export default async function LondonPage() {
                   </Link>
                 ))}
               </div>
+
+              <div className="mt-8 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground mb-2">
+                  Each treatment page explains:
+                </p>
+                <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    Typical costs
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    What affects pricing
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    Procedure overview
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    Local clinic options
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* 5. Patient testimonials */}
+        {/* 6. NHS vs Private comparison */}
+        <section className="py-10 sm:py-14">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2 text-center">
+                NHS vs private dentists in London
+              </h2>
+              <p className="text-base text-muted-foreground mb-8 text-center max-w-2xl mx-auto">
+                Understanding the difference can help you choose the right
+                option.
+              </p>
+
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="rounded-xl border border-border/50 bg-white p-6">
+                  <h3 className="text-lg font-heading font-bold text-[#004443] mb-4">
+                    NHS dentistry
+                  </h3>
+                  <ul className="space-y-2.5 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      Lower fixed Band pricing (£26.80–£306.80)
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      Limited cosmetic treatment availability
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      Longer waiting times in many boroughs
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="rounded-xl border border-border/50 bg-white p-6">
+                  <h3 className="text-lg font-heading font-bold text-[#004443] mb-4">
+                    Private dentistry
+                  </h3>
+                  <ul className="space-y-2.5 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      Wider appointment availability
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      Cosmetic and specialist treatments available
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      Flexible finance options
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      Shorter waiting times
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <p className="text-sm text-muted-foreground mt-6 text-center">
+                Many London patients use NHS care for routine examinations and
+                private care for cosmetic or advanced procedures.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* 7. Why Use Pearlie */}
+        <section className="py-10 sm:py-14 bg-[var(--cream)]">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
+                Why use Pearlie to find a dentist in London?
+              </h2>
+              <p className="text-base text-muted-foreground mb-8">
+                We help patients compare options clearly and confidently.
+              </p>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
+                {[
+                  "All clinics are GDC-registered",
+                  "Verified quality standards",
+                  "Real Google reviews integrated",
+                  "Transparent pricing where available",
+                  "No hidden referral fees",
+                  "Free matching service",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-start gap-2.5 rounded-lg border border-border/50 bg-white px-4 py-3"
+                  >
+                    <Shield className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                    <span className="text-sm font-medium text-foreground">
+                      {item}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 8. Patient testimonials */}
         <PatientTestimonials areaName="London" testimonials={testimonials} />
 
-        {/* 6. FAQ section */}
+        {/* 9. FAQ section */}
         <TreatmentFAQ
           faqs={LONDON_FAQS}
           treatmentName="dentists in London"
         />
 
-        {/* 7. Cross-link to postcode search */}
+        {/* 10. Cross-link to postcode search */}
         <section className="py-8 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto text-center">
@@ -463,16 +693,16 @@ export default async function LondonPage() {
           </div>
         </section>
 
-        {/* 8. Bottom CTA */}
+        {/* 11. Bottom CTA */}
         <section className="py-12 sm:py-16 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
-                Not sure where to start?
+                Find a trusted dentist in your London borough
               </h2>
               <p className="text-white/70 mb-8 leading-relaxed">
-                Enter your postcode and we&apos;ll match you with verified,
-                GDC-registered clinics near you — across all London boroughs.
+                Compare verified clinics, see real reviews, and book with
+                confidence.
               </p>
               <TreatmentPostcodeCta
                 treatmentName="dentist"
