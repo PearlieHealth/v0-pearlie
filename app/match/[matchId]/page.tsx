@@ -894,14 +894,35 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                 )}
                               </div>
 
-                              {/* Rating, verified, distance */}
+                              {/* Rating, distance */}
                               <div className="flex items-center gap-3 text-sm lg:text-xs text-muted-foreground flex-wrap mb-3 lg:mb-2">
                                 {clinic.rating != null && clinic.rating > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                                    <span className="font-medium text-foreground">{clinic.rating}</span>
-                                    <span>({clinic.review_count ?? 0}{!clinic.verified ? " Google reviews" : ""})</span>
-                                  </div>
+                                  !clinic.verified ? (
+                                    <div className="flex items-center gap-1.5">
+                                      <div className="flex items-center gap-0.5">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                          <Star
+                                            key={s}
+                                            className={`w-3.5 h-3.5 ${
+                                              s <= Math.round(clinic.rating)
+                                                ? "fill-yellow-400 text-yellow-400"
+                                                : s - 0.5 <= clinic.rating
+                                                  ? "fill-yellow-400/50 text-yellow-400"
+                                                  : "fill-gray-200 text-gray-200"
+                                            }`}
+                                          />
+                                        ))}
+                                      </div>
+                                      <span className="font-semibold text-foreground">{clinic.rating}</span>
+                                      <span className="text-muted-foreground">({clinic.review_count ?? 0} Google reviews)</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-1">
+                                      <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                                      <span className="font-medium text-foreground">{clinic.rating}</span>
+                                      <span>({clinic.review_count ?? 0})</span>
+                                    </div>
+                                  )
                                 )}
                                 {clinic.distance_miles !== undefined && (
                                   <div className="flex items-center gap-1">
