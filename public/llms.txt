@@ -128,9 +128,15 @@ Pearlie publishes detailed, clinically reviewed treatment guides to help patient
 
 Pearlie helps patients find dentists across all areas of London. Each borough page lists verified, GDC-registered clinics with ratings, pricing, and direct messaging.
 
+### Dentist Near Me
+- URL: https://pearlie.org/dentist-near-me
+- Location-aware page that detects your area and shows nearby verified dental clinics
+- Compare GDC-registered clinics by rating, pricing, and availability
+- Links to borough-specific and treatment-specific pages for deeper exploration
+
 ### London Dentist Directory
 - URL: https://pearlie.org/london
-- Browse dentists by London borough across Central, South, North, West, and East London
+- Browse dentists by London borough
 - Enter your postcode to find nearby verified dental clinics
 - Matches based on treatment needs, not just distance
 
@@ -178,6 +184,7 @@ Each borough also has treatment-specific sub-pages (e.g., /london/westminster/in
 - FAQ: https://pearlie.org/faq
 - Our Mission: https://pearlie.org/our-mission
 - All Treatments: https://pearlie.org/treatments
+- Dentist Near Me: https://pearlie.org/dentist-near-me
 - London Dentists: https://pearlie.org/london
 - Find Your Match: https://pearlie.org/intake
 - For Clinics: https://pearlie.org/for-clinics

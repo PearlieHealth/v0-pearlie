@@ -31,8 +31,8 @@ const nextConfig = {
     return [
       // /find hub → /london hub
       { source: '/find', destination: '/london', permanent: true },
-      // /find/dentist-near-me → /london hub
-      { source: '/find/dentist-near-me', destination: '/london', permanent: true },
+      // /find/dentist-near-me → new dentist-near-me page
+      { source: '/find/dentist-near-me', destination: '/dentist-near-me', permanent: true },
       // Region pages → /london hub
       { source: '/find/central-london', destination: '/london', permanent: true },
       { source: '/find/south-london', destination: '/london', permanent: true },
@@ -67,7 +67,7 @@ const nextConfig = {
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
         ],
       },

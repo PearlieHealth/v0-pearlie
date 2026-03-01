@@ -19,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/blog`, lastModified: new Date().toISOString().split("T")[0], changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/treatments`, lastModified: new Date().toISOString().split("T")[0], changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/london`, lastModified: "2026-02-20", changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}/dentist-near-me`, lastModified: "2026-03-01", changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/guides`, lastModified: new Date().toISOString().split("T")[0], changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/faq`, lastModified: "2026-02-23", changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/for-clinics`, lastModified: "2026-02-26", changeFrequency: "monthly", priority: 0.8 },

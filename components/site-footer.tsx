@@ -23,7 +23,7 @@ const treatmentLinks = [
 ]
 
 const findDentistLinks = [
-  { label: "Find a Dentist", href: "/london" },
+  { label: "Dentist Near Me", href: "/dentist-near-me" },
   { label: "Westminster", href: "/london/westminster" },
   { label: "Camden", href: "/london/camden" },
   { label: "Islington", href: "/london/islington" },
