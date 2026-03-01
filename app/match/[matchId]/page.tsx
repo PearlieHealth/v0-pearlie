@@ -18,6 +18,8 @@ import {
   Calendar,
   Sparkles,
   Info,
+  Shield,
+  Clock,
   MessageCircle,
   CalendarCheck,
 } from "lucide-react"
@@ -36,7 +38,6 @@ import { getChipData } from "@/lib/chipData"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 
 import { GoogleClinicsMap } from "@/components/google-clinics-map"
-import { TrustBox } from "@/components/match/trust-box"
 
 interface Clinic {
   id: string
@@ -326,11 +327,12 @@ export default function MatchPage() {
     return clinics
   })()
 
-  const hasActiveFilters = filters.distanceMiles !== null || filters.financeAvailable || filters.freeConsultation || filters.sedationAvailable || filters.verifiedOnly || filters.highRatingOnly
+  const needsExpansion =
+    filters.distanceMiles !== null && filteredAndRankedClinics.length < 2 && allClinicsData.length > 2
 
-  const filtersReducedResults = hasActiveFilters && filteredAndRankedClinics.length === 0 && allClinicsData.length > 0
-
-  const displayedClinics = filteredAndRankedClinics
+  const displayedClinics = needsExpansion
+    ? [...allClinicsData].sort((a, b) => (a.distance_miles ?? 999) - (b.distance_miles ?? 999)).slice(0, 3)
+    : filteredAndRankedClinics
 
   const visibleClinics = displayedClinics.slice(0, visibleClinicsCount)
   const hasMoreClinics = displayedClinics.length > visibleClinicsCount
@@ -722,33 +724,6 @@ export default function MatchPage() {
                   </div>
                 )}
 
-                {/* Filter empty state */}
-                {filtersReducedResults && (
-                  <div className="rounded-2xl border border-[#004443]/10 bg-white p-6 text-center mb-4">
-                    <MapPin className="w-8 h-8 text-[#004443]/30 mx-auto mb-3" />
-                    <p className="text-sm font-medium text-[#004443] mb-1">No clinics match your current filters</p>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Try widening your search — {allClinicsData.length} {allClinicsData.length === 1 ? "clinic is" : "clinics are"} available without filters.
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="rounded-full border-[#004443]/20 text-[#004443] hover:bg-[#004443]/5"
-                      onClick={() => setFilters({
-                        distanceMiles: null,
-                        prioritiseDistance: false,
-                        financeAvailable: false,
-                        freeConsultation: false,
-                        sedationAvailable: false,
-                        verifiedOnly: false,
-                        highRatingOnly: false,
-                      })}
-                    >
-                      Clear all filters
-                    </Button>
-                  </div>
-                )}
-
                 {/* Clinic cards list */}
                 <div className="space-y-4">
                   {visibleClinics.map((clinic, index) => {
@@ -768,11 +743,7 @@ export default function MatchPage() {
                           <Card
                             ref={(el) => { clinicRefs.current[clinic.id] = el }}
                             data-clinic-id={clinic.id}
-                            onMouseEnter={() => handleClinicHover(clinic.id)}
-                            onMouseLeave={() => handleClinicHover(null)}
-                            className={`overflow-hidden transition-all duration-200 ease-out hover:shadow-lg border-0 shadow-sm bg-white rounded-2xl ${
-                              highlightedClinicId === clinic.id ? "ring-2 ring-[#0fbcb0] shadow-lg" : ""
-                            }`}
+                            className="overflow-hidden transition-all duration-200 ease-out hover:shadow-lg border-0 shadow-sm bg-white rounded-2xl"
                           >
                             {/* Photo banner — flush on mobile, inset with rounded edges on desktop */}
                             <div className="lg:px-4 lg:pt-4">
@@ -1027,20 +998,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                               {/* CTA */}
                               <div className="flex items-center gap-3">
-                                {clinic.tier === "directory" || clinic.is_directory_listing ? (
-                                  /* Directory listings: Call button (if phone available) + View Profile */
-                                  <>
-                                    {clinic.phone && (
-                                      <Button
-                                        className="flex-1 h-11 lg:h-10 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
-                                        onClick={() => handleClinicAction(clinic.id, leadId || match.lead_id || "", "click_call", undefined, clinic.phone)}
-                                      >
-                                        <Phone className="w-4 h-4 mr-1.5" />
-                                        Call Clinic
-                                      </Button>
-                                    )}
-                                  </>
-                                ) : (
+                                {clinic.tier !== "directory" && (
                                   <Button
                                     className="flex-1 h-11 lg:h-10 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
                                     asChild
@@ -1076,8 +1034,81 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                         {/* Mobile trust box — shown after 4th clinic */}
                         {index === 3 && (
-                          <div className="lg:hidden mt-4">
-                            <TrustBox />
+                          <div className="lg:hidden mt-4 rounded-2xl bg-[#004443] p-5 shadow-lg">
+                            <h3 className="text-[15px] font-bold text-white leading-snug mb-1.5">
+                              Not seeing every dentist near you? Here&apos;s why.
+                            </h3>
+                            <p className="text-xs text-white/70 leading-relaxed mb-4">
+                              We carefully select and recommend clinics that meet our standards for quality, transparency, and patient care.
+                            </p>
+
+                            <div className="space-y-3.5">
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <Shield className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Verified &amp; Compliant</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    All clinics are verified and must hold active professional registration and regulatory compliance.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <MessageCircle className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Interviewed by Pearlie</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    We conduct a comprehensive review with the dentist and their staff to understand how the practice operates and delivers care.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <Star className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Consistent Patient Feedback</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    We prioritise clinics with strong, consistent patient reviews and clear evidence of patient satisfaction.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Transparent &amp; Clear Communication</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    Clinics must provide clear treatment information, honest communication, and upfront guidance on care options.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2.5">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
+                                </div>
+                                <div>
+                                  <p className="text-[13px] font-semibold text-white">Match-Based Recommendations</p>
+                                  <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                                    We recommend clinics based on your needs, preferences, urgency, and availability — not just who is closest.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 pt-3.5 border-t border-white/10">
+                              <p className="text-xs text-white/50 leading-relaxed italic">
+                                We prioritise quality and fit over quantity — so you can feel confident in your choice.
+                              </p>
+                            </div>
                           </div>
                         )}
                         </div>
@@ -1085,7 +1116,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                     })}
                   {hasMoreClinics && (
                     <div className="flex justify-center mt-4">
-                      <Button onClick={() => setVisibleClinicsCount((prev) => prev + 3)} variant="outline" size="sm" className="border-[#004443]/20 text-[#004443] hover:bg-[#004443]/5 bg-white rounded-full text-sm">
+                      <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="sm" className="border-[#004443]/20 text-[#004443] hover:bg-[#004443]/5 bg-white rounded-full text-sm">
                         Show more clinics
                       </Button>
                     </div>
@@ -1107,7 +1138,82 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                   <MatchFiltersPanel filters={filters} onFiltersChange={setFilters} />
 
                   {/* Trust & Standards */}
-                  <TrustBox />
+                  <div className="rounded-2xl bg-[#004443] p-5 shadow-lg">
+                    <h3 className="text-[15px] font-bold text-white leading-snug mb-1.5">
+                      Not seeing every dentist near you? Here&apos;s why.
+                    </h3>
+                    <p className="text-xs text-white/70 leading-relaxed mb-4">
+                      We carefully select and recommend clinics that meet our standards for quality, transparency, and patient care.
+                    </p>
+
+                    <div className="space-y-3.5">
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <Shield className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Verified &amp; Compliant</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            All clinics are verified and must hold active professional registration and regulatory compliance.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <MessageCircle className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Interviewed by Pearlie</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            We conduct a comprehensive review with the dentist and their staff to understand how the practice operates and delivers care.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <Star className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Consistent Patient Feedback</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            We prioritise clinics with strong, consistent patient reviews and clear evidence of patient satisfaction.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Transparent &amp; Clear Communication</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            Clinics must provide clear treatment information, honest communication, and upfront guidance on care options.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-white">Match-Based Recommendations</p>
+                          <p className="text-xs text-white/60 leading-relaxed mt-0.5">
+                            We recommend clinics based on your needs, preferences, urgency, and availability — not just who is closest.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3.5 border-t border-white/10">
+                      <p className="text-xs text-white/50 leading-relaxed italic">
+                        We prioritise quality and fit over quantity — so you can feel confident in your choice.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </aside>
             </div>
