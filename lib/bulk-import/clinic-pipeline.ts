@@ -352,7 +352,7 @@ export async function createClinicRecord(
       google_maps_url: input.google_maps_url || null,
       images: input.images || [],
       treatments: [...TREATMENT_OPTIONS],
-      is_live: input.is_live ?? true,
+      is_live: input.is_live ?? false,
       is_archived: input.is_archived ?? false,
       verified: input.verified ?? false,
       description: input.description || `Dental practice located at ${input.address}`,
