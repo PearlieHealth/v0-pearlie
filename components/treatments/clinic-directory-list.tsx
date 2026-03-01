@@ -51,7 +51,17 @@ export function ClinicDirectoryList({ clinics, treatmentName }: ClinicDirectoryL
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
-                  {clinic.rating != null && (
+                  {clinic.google_rating != null && clinic.google_rating > 0 ? (
+                    <span className="flex items-center gap-1 text-sm font-medium text-foreground">
+                      <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                      {clinic.google_rating.toFixed(1)}
+                      {clinic.google_review_count != null && clinic.google_review_count > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          ({clinic.google_review_count})
+                        </span>
+                      )}
+                    </span>
+                  ) : clinic.rating != null && (
                     <span className="flex items-center gap-1 text-sm font-medium text-foreground">
                       <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                       {clinic.rating.toFixed(1)}
