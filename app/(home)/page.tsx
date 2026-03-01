@@ -285,14 +285,16 @@ export default function Home() {
                       <span className="block whitespace-nowrap mt-1 md:mt-2">Not just the closest one.</span>
                     </motion.h1>
 
-                    <motion.p
-                      className="text-[15px] md:text-lg text-black mb-5 md:mb-6 lg:mb-8 leading-[1.5] max-w-lg mx-auto lg:mx-0"
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.8, delay: 0.2 }}
-                    >
-                      Matching you with carefully reviewed clinics based on your budget, needs, preferences, and timing — so you can choose with confidence.
-                    </motion.p>
+                    {!lastMatch && (
+                      <motion.p
+                        className="text-[15px] md:text-lg text-black mb-5 md:mb-6 lg:mb-8 leading-[1.5] max-w-lg mx-auto lg:mx-0"
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                      >
+                        Matching you with carefully reviewed clinics based on your budget, needs, preferences, and timing — so you can choose with confidence.
+                      </motion.p>
+                    )}
 
                     <motion.div
                       id="home-hero-cta"
