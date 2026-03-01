@@ -25,6 +25,7 @@ import {
 import { HomeHeroSearch } from "@/components/home-hero-search"
 import { StickyMobileHomeCta } from "@/components/sticky-mobile-home-cta"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
+import { useLastMatch } from "@/hooks/use-last-match"
 
 const REGIONS: LondonBorough["region"][] = ["Central", "North", "South", "East", "West"]
 
@@ -41,12 +42,6 @@ const marqueeItems = [
 
 
 
-interface LastMatch {
-  matchId: string
-  clinicCount: number
-  treatment: string
-  createdAt: string
-}
 
 const testimonials = [
   {
@@ -183,24 +178,7 @@ export default function Home() {
   })
   const treatments = HOMEPAGE_TREATMENTS
 
-  const [lastMatch, setLastMatch] = useState<LastMatch | null>(null)
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("pearlie_last_match")
-      if (stored) {
-        const data = JSON.parse(stored) as LastMatch
-        const MAX_MATCH_AGE_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
-        const age = Date.now() - new Date(data.createdAt).getTime()
-        if (age < MAX_MATCH_AGE_MS && data.matchId) {
-          setLastMatch(data)
-        } else {
-          localStorage.removeItem("pearlie_last_match")
-        }
-      }
-    } catch {
-      localStorage.removeItem("pearlie_last_match")
-    }
-  }, [])
+  const lastMatch = useLastMatch()
 
   // iOS Safari: resume video on return from background.
   // iOS pauses the video when backgrounded and sometimes doesn't auto-resume.
