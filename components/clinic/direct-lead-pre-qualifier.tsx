@@ -71,10 +71,10 @@ export function DirectLeadPreQualifier({
       <button
         type="button"
         onClick={onQuickForm}
-        className="w-full text-left group rounded-xl border border-[#e5e5e5] bg-card p-4 transition-all hover:border-[#ccc] hover:shadow-sm active:scale-[0.98]"
+        className="w-full text-left group rounded-xl border border-border bg-card p-4 transition-all hover:border-border/80 hover:shadow-sm active:scale-[0.98]"
       >
         <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[#f5f5f5] flex items-center justify-center flex-shrink-0 mt-0.5">
+          <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
             <Zap className="w-4.5 h-4.5 text-[#666]" />
           </div>
           <div className="flex-1 min-w-0">

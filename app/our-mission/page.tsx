@@ -52,7 +52,7 @@ function CareTierCard({
   tag,
   includes,
   promise,
-  accentColor = "#0fbcb0",
+  accentColor = "hsl(var(--primary))",
 }: {
   title: string
   tag: string
@@ -220,7 +220,7 @@ export default function OurMissionPage() {
                           <span className="font-semibold text-foreground">69%</span>
                         </div>
                         <div className="h-8 bg-[#0d1019]/[0.06] rounded-full overflow-hidden">
-                          <AnimatedBar width="69%" color="#0fbcb0" />
+                          <AnimatedBar width="69%" color="hsl(var(--primary))" />
                         </div>
                       </div>
                       <div>
@@ -251,7 +251,7 @@ export default function OurMissionPage() {
                           <span className="font-semibold text-foreground">13m (28%)</span>
                         </div>
                         <div className="h-8 bg-[#0d1019]/[0.06] rounded-full overflow-hidden">
-                          <AnimatedBar width="100%" color="#0fbcb0" />
+                          <AnimatedBar width="100%" color="hsl(var(--primary))" />
                         </div>
                       </div>
                       <div>
@@ -328,7 +328,7 @@ export default function OurMissionPage() {
                     "Advice + prescriptions when clinically indicated",
                   ]}
                   promise="Relief and stabilisation — not a full treatment plan."
-                  accentColor="#0fbcb0"
+                  accentColor="hsl(var(--primary))"
                 />
 
                 <CareTierCard
