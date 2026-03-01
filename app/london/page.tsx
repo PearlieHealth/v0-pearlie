@@ -505,13 +505,13 @@ export default async function LondonPage() {
         </section>
 
         {/* 5. Popular treatments in London */}
-        <section className="py-10 sm:py-14 bg-[var(--cream)]">
+        <section className="py-10 sm:py-14 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-white mb-2">
                 Popular dental treatments in London
               </h2>
-              <p className="text-base text-muted-foreground mb-8">
+              <p className="text-base text-white/70 mb-8">
                 Looking for a specific treatment? Compare clinics offering:
               </p>
 
@@ -520,7 +520,7 @@ export default async function LondonPage() {
                   <Link
                     key={treatment.slug}
                     href={`/treatments/${treatment.slug}`}
-                    className="group rounded-xl border border-border/50 bg-white p-5 hover:shadow-md hover:border-[#0fbcb0]/30 transition-all"
+                    className="group rounded-xl border border-white/10 bg-white/10 p-5 hover:bg-white/15 transition-all"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-1.5">
@@ -529,17 +529,17 @@ export default async function LondonPage() {
                           {treatment.price}
                         </span>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-[#0fbcb0] transition-colors" />
+                      <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-[#0fbcb0] transition-colors" />
                     </div>
-                    <h3 className="text-base font-heading font-bold text-foreground">
+                    <h3 className="text-base font-heading font-bold text-white">
                       {treatment.name} in London
                     </h3>
                   </Link>
                 ))}
               </div>
 
-              <div className="mt-8 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground mb-2">
+              <div className="mt-8 text-sm text-white/70">
+                <p className="font-medium text-white mb-2">
                   Each treatment page explains:
                 </p>
                 <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5">
@@ -632,13 +632,13 @@ export default async function LondonPage() {
         </section>
 
         {/* 7. Why Use Pearlie */}
-        <section className="py-10 sm:py-14 bg-[#004443]">
+        <section className="py-10 sm:py-14 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-white mb-2">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
                 Why use Pearlie to find a dentist in London?
               </h2>
-              <p className="text-base text-white/70 mb-8">
+              <p className="text-base text-muted-foreground mb-8">
                 We help patients compare options clearly and confidently.
               </p>
 
@@ -653,10 +653,10 @@ export default async function LondonPage() {
                 ].map((item) => (
                   <div
                     key={item}
-                    className="flex items-start gap-2.5 rounded-lg border border-white/10 bg-white/10 px-4 py-3"
+                    className="flex items-start gap-2.5 rounded-lg border border-border/50 bg-white px-4 py-3"
                   >
                     <Shield className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
-                    <span className="text-sm font-medium text-white">
+                    <span className="text-sm font-medium text-foreground">
                       {item}
                     </span>
                   </div>
