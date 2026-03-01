@@ -93,6 +93,8 @@ export interface TreatmentCostContent {
     mid: string
     bottom: string
   }
+  /** Key facts shown as pills below the hero */
+  keyFacts?: string[]
 }
 
 export const treatmentCostContent: Record<string, TreatmentCostContent> = {
@@ -230,6 +232,12 @@ export const treatmentCostContent: Record<string, TreatmentCostContent> = {
       mid: "Get a personalised Invisalign quote",
       bottom: "Find your perfect Invisalign provider",
     },
+    keyFacts: [
+      "6–18 months treatment time",
+      "Nearly invisible aligners",
+      "Removable for eating & brushing",
+      "From £2,500",
+    ],
   },
 
   "composite-bonding": {
@@ -359,6 +367,12 @@ export const treatmentCostContent: Record<string, TreatmentCostContent> = {
       mid: "Get a personalised bonding quote",
       bottom: "Find the right cosmetic dentist",
     },
+    keyFacts: [
+      "30–60 minutes per tooth",
+      "No drilling required",
+      "Same-day results",
+      "From £250 per tooth",
+    ],
   },
 
   veneers: {
@@ -492,6 +506,12 @@ export const treatmentCostContent: Record<string, TreatmentCostContent> = {
       mid: "Get a personalised veneer quote",
       bottom: "Find your ideal veneer specialist",
     },
+    keyFacts: [
+      "10–25 year lifespan",
+      "2–3 visits to complete",
+      "Natural-looking results",
+      "From £700 per tooth",
+    ],
   },
 
   "teeth-whitening": {
@@ -622,6 +642,12 @@ export const treatmentCostContent: Record<string, TreatmentCostContent> = {
       mid: "Get a personalised whitening quote",
       bottom: "Find a safe, verified whitening clinic",
     },
+    keyFacts: [
+      "Up to 8 shades brighter",
+      "60–90 minute treatment",
+      "1–3 years results last",
+      "From £250",
+    ],
   },
 
   "dental-implants": {
@@ -755,5 +781,11 @@ export const treatmentCostContent: Record<string, TreatmentCostContent> = {
       mid: "Get a personalised implant quote",
       bottom: "Find the right implant specialist",
     },
+    keyFacts: [
+      "25+ year lifespan",
+      "Looks & feels like a real tooth",
+      "98% success rate",
+      "From £2,000",
+    ],
   },
 }
