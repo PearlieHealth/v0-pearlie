@@ -13,7 +13,6 @@ import { TreatmentFAQ } from "@/components/treatments/treatment-faq"
 import { PatientTestimonials } from "@/components/find/patient-testimonials"
 import {
   LONDON_BOROUGHS,
-  getBoroughsByRegion,
   type LondonBorough,
 } from "@/lib/data/london-boroughs"
 import { getTestimonialsForBasicClinics } from "@/lib/locations/queries"
@@ -57,16 +56,8 @@ export const metadata: Metadata = {
   },
 }
 
-const REGIONS: LondonBorough["region"][] = [
-  "Central",
-  "North",
-  "South",
-  "East",
-  "West",
-]
-
-/** High-traffic boroughs shown prominently before the full region breakdown. */
-const POPULAR_BOROUGH_SLUGS = [
+/** All boroughs ordered by search volume / prominence. */
+const BOROUGH_SLUGS_ORDERED = [
   "westminster",
   "camden",
   "southwark",
@@ -77,6 +68,10 @@ const POPULAR_BOROUGH_SLUGS = [
   "wandsworth",
   "greenwich",
   "hammersmith-and-fulham",
+  "tower-hamlets",
+  "city-of-london",
+  "lewisham",
+  "haringey",
 ]
 
 const POPULAR_TREATMENTS = [
@@ -153,7 +148,7 @@ export const revalidate = 3600
 export default async function LondonPage() {
   const testimonials = await getTestimonialsForBasicClinics([])
 
-  const popularBoroughs = POPULAR_BOROUGH_SLUGS.map((slug) =>
+  const boroughs = BOROUGH_SLUGS_ORDERED.map((slug) =>
     LONDON_BOROUGHS.find((b) => b.slug === slug)
   ).filter(Boolean) as LondonBorough[]
 
@@ -180,6 +175,24 @@ export default async function LondonPage() {
               position: i + 1,
               name: `Dentists in ${b.name}`,
               url: `https://pearlie.org/london/${b.slug}`,
+            })),
+          }),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: LONDON_FAQS.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
             })),
           }),
         }}
@@ -250,9 +263,28 @@ export default async function LondonPage() {
                 </p>
                 <p>
                   Pricing varies significantly across boroughs. A dental implant
-                  in Westminster might cost £4,000–£6,000, while the same
-                  procedure in Greenwich or Lewisham could start from £2,000.
-                  Cosmetic treatments like{" "}
+                  in{" "}
+                  <Link
+                    href="/london/westminster"
+                    className="text-[#0fbcb0] hover:underline font-medium"
+                  >
+                    Westminster
+                  </Link>{" "}
+                  might cost £4,000–£6,000, while the same procedure in{" "}
+                  <Link
+                    href="/london/greenwich"
+                    className="text-[#0fbcb0] hover:underline font-medium"
+                  >
+                    Greenwich
+                  </Link>{" "}
+                  or{" "}
+                  <Link
+                    href="/london/lewisham"
+                    className="text-[#0fbcb0] hover:underline font-medium"
+                  >
+                    Lewisham
+                  </Link>{" "}
+                  could start from £2,000. Cosmetic treatments like{" "}
                   <Link
                     href="/treatments/composite-bonding"
                     className="text-[#0fbcb0] hover:underline font-medium"
@@ -267,8 +299,28 @@ export default async function LondonPage() {
                     teeth whitening
                   </Link>{" "}
                   follow a similar pattern — Central London practices charge a
-                  premium, while equally qualified clinics in boroughs like
-                  Hackney, Lambeth, and Wandsworth offer competitive rates.
+                  premium, while equally qualified clinics in boroughs like{" "}
+                  <Link
+                    href="/london/hackney"
+                    className="text-[#0fbcb0] hover:underline font-medium"
+                  >
+                    Hackney
+                  </Link>
+                  ,{" "}
+                  <Link
+                    href="/london/lambeth"
+                    className="text-[#0fbcb0] hover:underline font-medium"
+                  >
+                    Lambeth
+                  </Link>
+                  , and{" "}
+                  <Link
+                    href="/london/wandsworth"
+                    className="text-[#0fbcb0] hover:underline font-medium"
+                  >
+                    Wandsworth
+                  </Link>{" "}
+                  offer competitive rates.
                 </p>
                 <p>
                   NHS dental availability in London remains extremely limited.
@@ -305,20 +357,20 @@ export default async function LondonPage() {
           </div>
         </section>
 
-        {/* 3. Popular London boroughs — primary navigation */}
+        {/* 3. Borough grid — primary navigation */}
         <section className="py-10 sm:py-14 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
-                Popular London boroughs
+                London boroughs
               </h2>
               <p className="text-base text-muted-foreground mb-8">
-                Browse verified dental clinics by borough — see local pricing,
-                patient reviews, and available treatments.
+                Browse verified dental clinics by borough — compare local
+                pricing, read patient reviews, and find available treatments.
               </p>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {popularBoroughs.map((borough) => (
+                {boroughs.map((borough) => (
                   <Link
                     key={borough.slug}
                     href={`/london/${borough.slug}`}
@@ -346,60 +398,8 @@ export default async function LondonPage() {
           </div>
         </section>
 
-        {/* 4. Browse by area — secondary region navigation */}
+        {/* 4. Popular treatments in London — treatment hub links */}
         <section className="py-10 sm:py-14">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-5xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
-                Browse by area of London
-              </h2>
-              <p className="text-base text-muted-foreground mb-8">
-                All {LONDON_BOROUGHS.length} boroughs, organised by region.
-              </p>
-
-              {REGIONS.map((region) => {
-                const boroughs = getBoroughsByRegion(region)
-                if (boroughs.length === 0) return null
-
-                return (
-                  <div key={region} className="mb-10 last:mb-0">
-                    <h3 className="text-lg sm:text-xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-1">
-                      {region} London
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {boroughs.length} borough
-                      {boroughs.length !== 1 ? "s" : ""}
-                    </p>
-
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {boroughs.map((borough) => (
-                        <Link
-                          key={borough.slug}
-                          href={`/london/${borough.slug}`}
-                          className="group flex items-center gap-3 rounded-lg border border-border/50 bg-white px-4 py-3 hover:shadow-sm hover:border-[#0fbcb0]/30 transition-all"
-                        >
-                          <MapPin className="w-4 h-4 text-[#0fbcb0] shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <span className="text-sm font-semibold text-foreground group-hover:text-[#004443]">
-                              {borough.name}
-                            </span>
-                            <span className="block text-xs text-muted-foreground">
-                              {borough.postcodes.slice(0, 3).join(", ")}
-                            </span>
-                          </div>
-                          <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-[#0fbcb0] transition-colors shrink-0" />
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* 5. Popular treatments in London — treatment hub links */}
-        <section className="py-10 sm:py-14 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
@@ -436,16 +436,16 @@ export default async function LondonPage() {
           </div>
         </section>
 
-        {/* 6. Patient testimonials */}
+        {/* 5. Patient testimonials */}
         <PatientTestimonials areaName="London" testimonials={testimonials} />
 
-        {/* 7. FAQ section */}
+        {/* 6. FAQ section */}
         <TreatmentFAQ
           faqs={LONDON_FAQS}
           treatmentName="dentists in London"
         />
 
-        {/* 8. Cross-link to postcode search */}
+        {/* 7. Cross-link to postcode search */}
         <section className="py-8 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto text-center">
@@ -463,7 +463,7 @@ export default async function LondonPage() {
           </div>
         </section>
 
-        {/* 9. Bottom CTA */}
+        {/* 8. Bottom CTA */}
         <section className="py-12 sm:py-16 bg-[#004443]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
