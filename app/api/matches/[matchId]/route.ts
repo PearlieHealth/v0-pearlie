@@ -108,6 +108,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
             const isDir = cached.tier === "directory" || cached.match_reasons_meta?.source === "directory_listing"
             return {
               ...clinicRow,
+              rating: Number(clinicRow.google_rating || clinicRow.rating) || 0,
+              review_count: clinicRow.google_review_count || clinicRow.review_count || 0,
               distance_miles: cached.distance_miles,
               match_score: cached.score,
               match_percentage: cached.score,
@@ -231,6 +233,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
 
         return {
           ...clinicRow,
+          rating: Number(clinicRow.google_rating || clinicRow.rating) || 0,
+          review_count: clinicRow.google_review_count || clinicRow.review_count || 0,
           distance_miles: scoreBreakdown.distanceMiles,
           match_score: scoreBreakdown.percent,
           match_percentage: scoreBreakdown.percent,
@@ -357,6 +361,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
 
             return {
               ...clinic,
+              rating: Number(clinic.google_rating || clinic.rating) || 0,
+              review_count: clinic.google_review_count || clinic.review_count || 0,
               distance_miles: distance,
               tier,
               filter_keys: filterKeys,

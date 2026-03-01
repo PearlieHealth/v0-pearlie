@@ -897,32 +897,11 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                               {/* Rating, distance */}
                               <div className="flex items-center gap-3 text-sm lg:text-xs text-muted-foreground flex-wrap mb-3 lg:mb-2">
                                 {clinic.rating != null && clinic.rating > 0 && (
-                                  !clinic.verified ? (
-                                    <div className="flex items-center gap-1.5">
-                                      <div className="flex items-center gap-0.5">
-                                        {[1, 2, 3, 4, 5].map((s) => (
-                                          <Star
-                                            key={s}
-                                            className={`w-3.5 h-3.5 ${
-                                              s <= Math.round(clinic.rating)
-                                                ? "fill-yellow-400 text-yellow-400"
-                                                : s - 0.5 <= clinic.rating
-                                                  ? "fill-yellow-400/50 text-yellow-400"
-                                                  : "fill-gray-200 text-gray-200"
-                                            }`}
-                                          />
-                                        ))}
-                                      </div>
-                                      <span className="font-semibold text-foreground">{clinic.rating}</span>
-                                      <span className="text-muted-foreground">({clinic.review_count ?? 0} Google reviews)</span>
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center gap-1">
-                                      <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                                      <span className="font-medium text-foreground">{clinic.rating}</span>
-                                      <span>({clinic.review_count ?? 0})</span>
-                                    </div>
-                                  )
+                                  <div className="flex items-center gap-1">
+                                    <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                                    <span className="font-medium text-foreground">{clinic.rating}</span>
+                                    <span>({clinic.review_count ?? 0})</span>
+                                  </div>
                                 )}
                                 {clinic.distance_miles !== undefined && (
                                   <div className="flex items-center gap-1">
@@ -958,26 +937,11 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                 </h3>
                                 <div className="space-y-1.5 text-xs lg:text-sm text-[#1a1a1a] leading-relaxed">
                                   {clinic.tier === "directory" || clinic.is_directory_listing ? (
-                                    (() => {
-                                      const reasons = clinic.match_reasons_composed && clinic.match_reasons_composed.length > 0
-                                        ? clinic.match_reasons_composed
-                                        : clinic.match_reasons && clinic.match_reasons.length > 0
-                                          ? clinic.match_reasons
-                                          : []
-                                      if (reasons.length > 0) {
-                                        return reasons.slice(0, 2).map((sentence: string, i: number) => (
-                                          <p key={i}>{sentence}</p>
-                                        ))
-                                      }
-                                      return (
-                                        <>
-                                          <p>This clinic is listed in our directory and may be able to help with your dental needs.</p>
-                                          {clinic.distance_miles && (
-                                            <p>Located approximately {clinic.distance_miles.toFixed(1)} miles from your location.</p>
-                                          )}
-                                        </>
-                                      )
-                                    })()
+                                    clinic.description ? (
+                                      <p className="line-clamp-3">{clinic.description}</p>
+                                    ) : (
+                                      <p>This clinic is listed in our directory and may be able to help with your dental needs.</p>
+                                    )
                                   ) : clinic.tier === "nearby" ? (
                                     <>
                                       <p>This clinic is located nearby and may be able to help with your dental needs.</p>
