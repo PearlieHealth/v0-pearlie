@@ -681,7 +681,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
 
         const data = await res.json()
 
-        if (data.status === "updated") {
+        if (data.status === "updated" || data.status === "generated") {
           // Update local state with new description
           setClinics((prev) =>
             prev.map((c) =>
@@ -693,9 +693,9 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
         }
 
         results.push({
-          clinicId: data.clinicId,
-          clinicName: data.clinicName,
-          status: data.status === "updated" ? "updated" : "failed",
+          clinicId: data.clinicId || ids[i],
+          clinicName: data.clinicName || "Unknown",
+          status: data.status || "failed",
           error: data.error,
         })
       } catch (err) {
@@ -718,11 +718,13 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       prev ? { ...prev, done: true, results } : null,
     )
 
-    const updated = results.filter((r) => r.status === "updated").length
+    const extracted = results.filter((r) => r.status === "updated").length
+    const generated = results.filter((r) => r.status === "generated").length
+    const skipped = results.filter((r) => r.status === "skipped").length
     const failed = results.filter((r) => r.status === "failed").length
     toast({
-      title: "Bulk description generation complete",
-      description: `Updated: ${updated}, Failed: ${failed}`,
+      title: "Bulk description update complete",
+      description: `Extracted: ${extracted}, AI fallback: ${generated}, Skipped: ${skipped}, Failed: ${failed}`,
     })
   }
 
@@ -758,6 +760,8 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       case "linked":
       case "updated":
         return <span className="text-green-600">&#10003;</span>
+      case "generated":
+        return <span className="text-blue-600">&#10003;</span>
       case "already_linked":
       case "already_has_hours":
         return <span className="text-blue-600">&#8212;</span>
@@ -765,6 +769,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       case "no_place_id":
       case "no_hours_found":
       case "no_reviews_found":
+      case "skipped":
         return <span className="text-amber-600">&#9888;</span>
       case "failed":
         return <span className="text-red-600">&#10007;</span>
@@ -778,7 +783,11 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
       case "linked":
         return "Linked"
       case "updated":
-        return "Updated"
+        return "Extracted from website"
+      case "generated":
+        return "AI fallback"
+      case "skipped":
+        return "Skipped"
       case "already_linked":
         return "Already linked"
       case "already_has_hours":
@@ -1163,7 +1172,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
                 onClick={() => handleBulkGenerateDescriptions()}
               >
                 <FileText className="h-3.5 w-3.5 mr-1.5" />
-                Generate Descriptions
+                Update Descriptions
               </Button>
               <Button
                 size="sm"
