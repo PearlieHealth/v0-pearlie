@@ -14,6 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
+import { useLastMatchId } from "@/hooks/use-last-match"
 
 interface MainNavProps {
   hideCta?: boolean
@@ -24,7 +25,7 @@ export function MainNav({ hideCta }: MainNavProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [hasScrolled, setHasScrolled] = useState(false)
-  const [lastMatchId, setLastMatchId] = useState<string | null>(null)
+  const lastMatchId = useLastMatchId()
 
   useEffect(() => {
     const supabase = createClient()
@@ -32,20 +33,6 @@ export function MainNav({ hideCta }: MainNavProps) {
       setIsAuthenticated(!!session)
       setUserRole(session?.user?.user_metadata?.role || null)
     })
-  }, [])
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("pearlie_last_match")
-      if (stored) {
-        const data = JSON.parse(stored)
-        const MAX_MATCH_AGE_MS = 30 * 24 * 60 * 60 * 1000
-        const age = Date.now() - new Date(data.createdAt).getTime()
-        if (age < MAX_MATCH_AGE_MS && data.matchId) {
-          setLastMatchId(data.matchId)
-        }
-      }
-    } catch {}
   }, [])
 
   useEffect(() => {

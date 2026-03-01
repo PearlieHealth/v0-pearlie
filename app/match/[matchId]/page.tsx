@@ -237,6 +237,17 @@ export default function MatchPage() {
     } catch (err) {
       console.error("[v0] Error fetching initial matches:", err)
       setError(err instanceof Error ? err.message : "Failed to load matches")
+      // Clear stale localStorage so the homepage stops offering "Return to matches"
+      // for a match that no longer loads (expired, deleted, etc.)
+      try {
+        const stored = localStorage.getItem("pearlie_last_match")
+        if (stored) {
+          const data = JSON.parse(stored)
+          if (data.matchId === matchId) {
+            localStorage.removeItem("pearlie_last_match")
+          }
+        }
+      } catch {}
     } finally {
       setLoading(false)
     }
