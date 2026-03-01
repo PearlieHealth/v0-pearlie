@@ -159,9 +159,8 @@ export const DIRECTORY_LISTING_WEIGHTS = {
 export const DIRECTORY_LISTING_MAX_RADIUS = 15
 
 // Multiplier applied to directory listing final score
-// Lower value = bigger gap between verified and directory clinics
-// Max directory score ≈ 78% vs verified clinics often 85%+
-export const DIRECTORY_LISTING_MULTIPLIER = 0.78
+// Ensures verified clinics naturally rank above equivalent directory listings
+export const DIRECTORY_LISTING_MULTIPLIER = 0.87
 
 export const CANONICAL_TAG_KEYS: string[] = [
   // Q4 Priority tags
