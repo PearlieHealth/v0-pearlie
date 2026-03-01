@@ -446,7 +446,7 @@ export default async function AreaTreatmentPage({
                   {areaTreatmentData.educationalSections.map((section) => (
                     <div
                       key={section.heading}
-                      className="rounded-xl border border-border/50 bg-[var(--cream)] p-5"
+                      className="rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 p-5"
                     >
                       <h3 className="text-base font-heading font-bold text-foreground mb-2">
                         {section.heading}
