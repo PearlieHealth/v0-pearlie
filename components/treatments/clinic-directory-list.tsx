@@ -11,10 +11,10 @@ export function ClinicDirectoryList({ clinics, treatmentName }: ClinicDirectoryL
   if (clinics.length === 0) return null
 
   return (
-    <section className="py-10 sm:py-14 bg-[var(--cream)]">
+    <section className="py-10 sm:py-14 bg-secondary">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-1">
+          <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-foreground mb-1">
             More {treatmentName.toLowerCase()} clinics
           </h2>
           <p className="text-sm text-muted-foreground mb-6">
@@ -26,7 +26,7 @@ export function ClinicDirectoryList({ clinics, treatmentName }: ClinicDirectoryL
               <Link
                 key={clinic.id}
                 href={`/clinic/${clinic.id}`}
-                className="flex items-center gap-4 p-4 rounded-xl bg-white border border-border/50 hover:border-[#0fbcb0]/30 hover:shadow-sm transition-all group"
+                className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border/50 hover:border-primary/30 hover:shadow-sm transition-all group"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
@@ -43,7 +43,7 @@ export function ClinicDirectoryList({ clinics, treatmentName }: ClinicDirectoryL
                       </span>
                     )}
                     {clinic.price_range && (
-                      <span className="font-medium text-[#004443]">
+                      <span className="font-medium text-foreground">
                         {clinic.price_range}
                       </span>
                     )}
@@ -67,7 +67,7 @@ export function ClinicDirectoryList({ clinics, treatmentName }: ClinicDirectoryL
                       {clinic.rating.toFixed(1)}
                     </span>
                   )}
-                  <span className="inline-flex items-center px-4 py-1.5 text-xs font-semibold text-white bg-[#0fbcb0] rounded-full group-hover:bg-[#0da399] transition-colors">
+                  <span className="inline-flex items-center px-4 py-1.5 text-xs font-semibold text-white bg-primary rounded-full group-hover:bg-[var(--primary-hover)] transition-colors">
                     View profile
                   </span>
                 </div>

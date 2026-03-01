@@ -56,7 +56,7 @@ export function LocationMap({ clinics, center, zoom }: LocationMapProps) {
     const fallbackQuery = encodeURIComponent(`dental clinics near ${center.lat},${center.lng}`)
 
     return (
-      <div className="w-full h-[350px] sm:h-[400px] rounded-xl overflow-hidden bg-[#f0eeea] flex items-center justify-center">
+      <div className="w-full h-[350px] sm:h-[400px] rounded-xl overflow-hidden bg-secondary flex items-center justify-center">
         <a
           href={`https://www.google.com/maps/search/?api=1&query=${fallbackQuery}`}
           target="_blank"
@@ -87,7 +87,7 @@ export function LocationMap({ clinics, center, zoom }: LocationMapProps) {
             href={mapsLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-sm text-sm font-medium text-[#004443] px-4 py-2 rounded-full shadow-sm hover:bg-white transition-colors z-10"
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#111218]/80 backdrop-blur-sm text-sm font-medium text-foreground px-4 py-2 rounded-full shadow-sm hover:bg-[#111218] transition-colors z-10"
           >
             View clinics on Google Maps
           </a>
@@ -113,7 +113,7 @@ export function LocationMap({ clinics, center, zoom }: LocationMapProps) {
           onError={() => setStaticFailed(true)}
         />
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-end justify-center pb-4">
-          <span className="bg-white/95 backdrop-blur-sm text-sm font-medium text-[#004443] px-4 py-2 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="bg-[#111218]/80 backdrop-blur-sm text-sm font-medium text-foreground px-4 py-2 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
             Open in Google Maps
           </span>
         </div>

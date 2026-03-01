@@ -283,10 +283,10 @@ export function ClinicChatWidget({
   // ── Delivery status icon ──────────────────────────────────────
   const StatusIcon = ({ status }: { status?: string }) => {
     if (!status || status === "sent") {
-      return <Check className="h-3 w-3 text-teal-200" />
+      return <Check className="h-3 w-3 text-primary-foreground/60" />
     }
     if (status === "delivered") {
-      return <CheckCheck className="h-3 w-3 text-teal-200" />
+      return <CheckCheck className="h-3 w-3 text-primary-foreground/60" />
     }
     // read
     return <CheckCheck className="h-3 w-3 text-white" />
@@ -304,7 +304,7 @@ export function ClinicChatWidget({
           }
         }}
         className={cn(
-          "fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-teal-600 text-white shadow-lg transition-all hover:bg-teal-700 hover:scale-105",
+          "fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all hover:bg-[var(--primary-hover)] hover:scale-105",
           (isOpen || showVerifyPrompt) && "hidden"
         )}
       >
@@ -318,17 +318,17 @@ export function ClinicChatWidget({
 
       {/* Inline OTP Verification Modal */}
       {showVerifyPrompt && (
-        <div className="fixed bottom-6 right-6 z-50 w-[380px] rounded-2xl bg-white shadow-2xl border border-neutral-200 p-6">
+        <div className="fixed bottom-6 right-6 z-50 w-[380px] rounded-2xl bg-card shadow-2xl border border-border p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-lg">Verify Your Email</h3>
             <button
               onClick={() => setShowVerifyPrompt(false)}
-              className="rounded-full p-1 hover:bg-neutral-100 transition-colors"
+              className="rounded-full p-1 hover:bg-muted transition-colors"
             >
-              <X className="h-5 w-5 text-neutral-500" />
+              <X className="h-5 w-5 text-muted-foreground" />
             </button>
           </div>
-          <p className="text-neutral-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             Please verify your email address to message {clinicName}. This helps us keep the conversation secure.
           </p>
           {patientEmail ? (
@@ -350,7 +350,7 @@ export function ClinicChatWidget({
                   otpSection.scrollIntoView({ behavior: "smooth" })
                 }
               }}
-              className="w-full bg-teal-600 hover:bg-teal-700"
+              className="w-full bg-primary hover:bg-[var(--primary-hover)]"
             >
               Verify Email
             </Button>
@@ -360,23 +360,23 @@ export function ClinicChatWidget({
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 flex h-[500px] w-[380px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-neutral-200">
+        <div className="fixed bottom-6 right-6 z-50 flex h-[500px] w-[380px] flex-col overflow-hidden rounded-2xl bg-card shadow-2xl border border-border">
           {/* Header */}
-          <div className="bg-teal-600 px-4 py-3 text-white">
+          <div className="bg-primary px-4 py-3 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold">{clinicName}</h3>
-                <p className="text-xs text-teal-100">Usually replies within a few hours</p>
+                <p className="text-xs text-primary-foreground/70">Usually replies within a few hours</p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="rounded-full p-1 hover:bg-teal-500 transition-colors"
+                className="rounded-full p-1 hover:bg-[var(--primary-hover)] transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             {leadInfo && (
-              <div className="mt-2 pt-2 border-t border-teal-500 text-xs text-teal-100">
+              <div className="mt-2 pt-2 border-t border-primary-foreground/20 text-xs text-primary-foreground/70">
                 <p>Chatting as: <span className="font-medium text-white">{leadInfo.name}</span></p>
                 <p className="truncate">{leadInfo.email}</p>
               </div>
@@ -399,11 +399,11 @@ export function ClinicChatWidget({
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             {isLoading && messages.length === 0 ? (
               <div className="flex h-full items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : messages.length === 0 ? (
-              <div className="flex h-full flex-col items-center justify-center text-center text-neutral-500">
-                <Heart className="h-10 w-10 mb-3 text-[#0fbcb0]/60" />
+              <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground">
+                <Heart className="h-10 w-10 mb-3 text-primary/60" />
                 <p className="font-medium">You're chatting with Pearlie</p>
                 <p className="text-sm">Ask a question or say hello — the clinic will join shortly.</p>
               </div>
@@ -412,7 +412,7 @@ export function ClinicChatWidget({
                 {Object.entries(groupedMessages).map(([date, dateMessages]) => (
                   <div key={date}>
                     <div className="flex items-center justify-center mb-3">
-                      <span className="text-xs text-neutral-400 bg-neutral-100 px-2 py-1 rounded-full">
+                      <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
                         {date}
                       </span>
                     </div>
@@ -430,20 +430,20 @@ export function ClinicChatWidget({
                           )}
                         >
                           {message.sender_type === "bot" ? (
-                            <div className="max-w-[90%] bg-[#faf3e6] border border-[#faf3e6] rounded-xl px-3 py-2">
-                              <p className="text-[9px] text-[#0fbcb0] font-medium mb-0.5 flex items-center gap-1">
-                                <Heart className="w-2.5 h-2.5 fill-[#0fbcb0] text-[#0fbcb0]" />
+                            <div className="max-w-[90%] bg-secondary border border-border rounded-xl px-3 py-2">
+                              <p className="text-[9px] text-primary font-medium mb-0.5 flex items-center gap-1">
+                                <Heart className="w-2.5 h-2.5 fill-primary text-primary" />
                                 Pearlie AI
                               </p>
-                              <p className="text-[15px] leading-relaxed text-neutral-600 whitespace-pre-wrap">{message.content}</p>
+                              <p className="text-[15px] leading-relaxed text-muted-foreground whitespace-pre-wrap">{message.content}</p>
                             </div>
                           ) : (
                             <div
                               className={cn(
                                 "max-w-[80%] rounded-2xl px-4 py-2",
                                 message.sender_type === "patient"
-                                  ? "bg-teal-600 text-white rounded-br-md"
-                                  : "bg-neutral-100 text-neutral-900 rounded-bl-md"
+                                  ? "bg-primary text-white rounded-br-md"
+                                  : "bg-muted text-foreground rounded-bl-md"
                               )}
                             >
                               <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{message.content}</p>
@@ -451,8 +451,8 @@ export function ClinicChatWidget({
                                 className={cn(
                                   "flex items-center gap-1 mt-1",
                                   message.sender_type === "patient"
-                                    ? "text-teal-100 justify-end"
-                                    : "text-neutral-400"
+                                    ? "text-primary-foreground/70 justify-end"
+                                    : "text-muted-foreground"
                                 )}
                               >
                                 {message.sent_via === "email" && (
@@ -480,11 +480,11 @@ export function ClinicChatWidget({
           {/* Typing indicator */}
           {(clinicTyping || botTyping) && (
             <div className="px-4 py-2">
-              <div className="flex items-center gap-2 text-xs text-neutral-400">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="flex gap-0.5">
-                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                 </span>
                 {botTyping ? "Pearlie is typing..." : `${clinicName} is typing...`}
               </div>
@@ -493,11 +493,11 @@ export function ClinicChatWidget({
 
           {/* Closed banner or Input */}
           {conversationClosed ? (
-            <div className="border-t border-neutral-200 px-4 py-3 bg-neutral-50">
-              <p className="text-xs text-neutral-500 text-center">This conversation has been closed. Looking for a dentist? <a href="/intake" className="underline text-teal-600 hover:text-teal-700">Start a new search</a> to get matched with clinics.</p>
+            <div className="border-t border-border px-4 py-3 bg-muted">
+              <p className="text-xs text-muted-foreground text-center">This conversation has been closed. Looking for a dentist? <a href="/intake" className="underline text-primary hover:text-[var(--primary-hover)]">Start a new search</a> to get matched with clinics.</p>
             </div>
           ) : (
-          <form onSubmit={sendMessage} className="border-t border-neutral-200 p-3">
+          <form onSubmit={sendMessage} className="border-t border-border p-3">
             <div className="flex gap-2">
               <Input
                 value={newMessage}
@@ -506,14 +506,14 @@ export function ClinicChatWidget({
                   sendTyping()
                 }}
                 placeholder="Ask a question or say hello..."
-                className="flex-1 rounded-full border-neutral-200"
+                className="flex-1 rounded-full border-border"
                 disabled={isSending}
               />
               <Button
                 type="submit"
                 size="icon"
                 disabled={!newMessage.trim() || isSending}
-                className="rounded-full bg-teal-600 hover:bg-teal-700"
+                className="rounded-full bg-primary hover:bg-[var(--primary-hover)]"
               >
                 {isSending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

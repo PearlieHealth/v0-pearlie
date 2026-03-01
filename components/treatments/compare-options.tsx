@@ -12,7 +12,7 @@ export function CompareOptions({ costContent }: CompareOptionsProps) {
     <section className="py-10 sm:py-14">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-6">
+          <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-6">
             {comparison.heading}
           </h2>
 
@@ -25,10 +25,10 @@ export function CompareOptions({ costContent }: CompareOptionsProps) {
           <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="border-b-2 border-[#004443]/10">
-                  <th className="text-left py-3 pr-4 font-semibold text-[#004443]"></th>
+                <tr className="border-b-2 border-foreground/10">
+                  <th className="text-left py-3 pr-4 font-semibold text-foreground"></th>
                   {comparison.columnHeaders.map((header, i) => (
-                    <th key={i} className="text-left py-3 pr-4 font-semibold text-[#004443] whitespace-nowrap">
+                    <th key={i} className="text-left py-3 pr-4 font-semibold text-foreground whitespace-nowrap">
                       {header}
                     </th>
                   ))}
@@ -50,7 +50,7 @@ export function CompareOptions({ costContent }: CompareOptionsProps) {
           <ul className="mt-6 space-y-2.5">
             {comparison.bullets.map((bullet, i) => (
               <li key={i} className="flex gap-2.5 text-sm text-muted-foreground leading-relaxed">
-                <span className="text-[#0fbcb0] mt-0.5 shrink-0">&#8226;</span>
+                <span className="text-primary mt-0.5 shrink-0">&#8226;</span>
                 {bullet}
               </li>
             ))}
@@ -65,11 +65,11 @@ export function CompareOptions({ costContent }: CompareOptionsProps) {
           {comparison.relatedLink && (
             <Link
               href={comparison.relatedLink.href}
-              className="flex items-center gap-3 mt-6 p-4 rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all group"
+              className="flex items-center gap-3 mt-6 p-4 rounded-xl border border-primary/20 bg-primary/5 hover:border-primary/40 hover:shadow-md transition-all group"
             >
-              <span className="shrink-0 w-8 h-8 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center text-[#0fbcb0] group-hover:bg-[#0fbcb0]/20 transition-colors">&rarr;</span>
+              <span className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">&rarr;</span>
               <span>
-                <span className="font-heading font-bold text-[#004443] text-sm block">{comparison.relatedLink.label}</span>
+                <span className="font-heading font-bold text-foreground text-sm block">{comparison.relatedLink.label}</span>
                 <span className="text-xs text-muted-foreground">{comparison.relatedLink.description}</span>
               </span>
             </Link>

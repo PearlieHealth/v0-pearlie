@@ -134,7 +134,7 @@ export function ExecutiveSnapshot({
     <TooltipProvider>
       <div className="space-y-4">
         <div className="space-y-1">
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-[#004443]">Executive Snapshot</h2>
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">Executive Snapshot</h2>
           <p className="text-xs md:text-sm text-muted-foreground">
             High-intent patient demand and conversion signals — updated in real time
           </p>
@@ -151,7 +151,7 @@ export function ExecutiveSnapshot({
                       <Icon className={`h-3 w-3 md:h-4 md:w-4 ${metric.color}`} />
                     </div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-lg md:text-2xl font-bold text-[#004443]">{metric.value}</span>
+                      <span className="text-lg md:text-2xl font-bold text-foreground">{metric.value}</span>
                       {metric.subtext && (
                         <span className="text-xs text-muted-foreground">{metric.subtext}</span>
                       )}

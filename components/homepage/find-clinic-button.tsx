@@ -15,7 +15,7 @@ interface FindClinicButtonProps {
 
 export function FindClinicButton({
   size = "lg",
-  className = "text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] group border-0",
+  className = "text-base px-8 h-14 bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] group border-0",
   children,
 }: FindClinicButtonProps) {
   const handleClick = useCallback(() => {

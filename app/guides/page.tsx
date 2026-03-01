@@ -46,12 +46,12 @@ export default function GuidesPage() {
 
       <main>
         {/* Hero */}
-        <section className="pt-28 pb-10 sm:pt-32 sm:pb-14 bg-[#004443]">
+        <section className="pt-28 pb-10 sm:pt-32 sm:pb-14 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <div className="flex items-center justify-center gap-2 mb-4">
-                <BookOpen className="w-5 h-5 text-[#0fbcb0]" />
-                <span className="text-sm font-semibold uppercase tracking-wider text-[#0fbcb0]">
+                <BookOpen className="w-5 h-5 text-primary" />
+                <span className="text-sm font-semibold uppercase tracking-wider text-primary">
                   Pearlie Guides
                 </span>
               </div>
@@ -89,7 +89,7 @@ export default function GuidesPage() {
                   </p>
                   <Button
                     size="lg"
-                    className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full"
+                    className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full"
                     asChild
                   >
                     <Link href="/blog">Browse blog articles</Link>
@@ -107,7 +107,7 @@ export default function GuidesPage() {
         </section>
 
         {/* CTA */}
-        <section className="py-12 sm:py-16 bg-[#004443]">
+        <section className="py-12 sm:py-16 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
@@ -119,7 +119,7 @@ export default function GuidesPage() {
               </p>
               <Button
                 size="lg"
-                className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 h-12 text-base"
+                className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full px-8 h-12 text-base"
                 asChild
               >
                 <Link href="/intake">Get my clinic matches</Link>

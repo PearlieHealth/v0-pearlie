@@ -60,7 +60,7 @@ export function HeroPostcodeCta({ treatmentName, intakeTreatment, ctaButtonText 
             type="submit"
             size="lg"
             disabled={!postcodeValid}
-            className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-6 h-12 text-base disabled:opacity-50"
+            className="w-full bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full px-6 h-12 text-base disabled:opacity-50"
           >
             {ctaButtonText || `Compare ${treatmentName.toLowerCase()} clinics near me`}
           </Button>
@@ -96,7 +96,7 @@ export function HeroPostcodeCta({ treatmentName, intakeTreatment, ctaButtonText 
                       <Button
                         size="sm"
                         disabled={!waitlistEmail.includes("@") || waitlistSubmitting}
-                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                        className="bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
                         onClick={async () => {
                           setWaitlistSubmitting(true)
                           try {
@@ -122,7 +122,7 @@ export function HeroPostcodeCta({ treatmentName, intakeTreatment, ctaButtonText 
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-[#0fbcb0] font-medium">
+                  <p className="text-sm text-primary font-medium">
                     You&apos;re on the list! We&apos;ll let you know when we launch near you.
                   </p>
                 )}

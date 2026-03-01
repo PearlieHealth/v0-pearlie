@@ -6,10 +6,10 @@ interface QuickFactsProps {
 
 export function QuickFacts({ areaName, content }: QuickFactsProps) {
   return (
-    <section className="py-10 sm:py-14 bg-white border-t border-border/30">
+    <section className="py-10 sm:py-14 bg-card border-t border-border/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-lg sm:text-xl font-heading font-bold tracking-[-0.02em] mb-4 text-[#004443]">
+          <h2 className="text-lg sm:text-xl font-heading font-bold tracking-[-0.02em] mb-4 text-foreground">
             Quick facts: Dentists in {areaName}
           </h2>
           <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed space-y-3">

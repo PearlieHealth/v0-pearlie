@@ -48,13 +48,13 @@ export function TrustBadgeStrip({ variant = "light", inline = false }: TrustBadg
           <div
             className={`flex items-center justify-center w-8 h-8 rounded-full shrink-0 ${
               isDark
-                ? "bg-[#0fbcb0]/20"
-                : "bg-[#0fbcb0]/10"
+                ? "bg-primary/20"
+                : "bg-primary/10"
             }`}
           >
             <badge.icon
               className={`w-4 h-4 ${
-                isDark ? "text-[#0fbcb0]" : "text-[#0fbcb0]"
+                isDark ? "text-primary" : "text-primary"
               }`}
             />
           </div>
@@ -86,7 +86,7 @@ export function TrustBadgeStrip({ variant = "light", inline = false }: TrustBadg
       className={`py-4 border-y ${
         isDark
           ? "border-white/10 bg-white/[0.03]"
-          : "border-border/40 bg-white"
+          : "border-border/40 bg-card"
       }`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">

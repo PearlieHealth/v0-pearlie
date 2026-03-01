@@ -57,7 +57,7 @@ export function LocationPreferenceCard({ leads }: LocationPreferenceCardProps) {
   return (
     <Card className="p-6">
       <div className="flex items-center gap-2 mb-6">
-        <MapPin className="h-5 w-5 text-[#004443]" />
+        <MapPin className="h-5 w-5 text-foreground" />
         <h3 className="text-lg font-semibold">Travel Willingness</h3>
       </div>
 

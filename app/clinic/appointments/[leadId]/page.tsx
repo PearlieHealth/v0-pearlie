@@ -456,7 +456,7 @@ export default function AppointmentDetailPage() {
   if (isLoading || !lead) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0fbcb0]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     )
   }
@@ -472,7 +472,7 @@ export default function AppointmentDetailPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* ── HEADER BAR ── */}
-      <div className="shrink-0 border-b bg-white px-6 py-3">
+      <div className="shrink-0 border-b bg-card px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -525,7 +525,7 @@ export default function AppointmentDetailPage() {
                 {lead.source === "direct_profile" && (
                   <>
                     <span className="text-muted-foreground/40">|</span>
-                    <span className="text-xs text-[#0fbcb0] font-medium">Direct enquiry</span>
+                    <span className="text-xs text-primary font-medium">Direct enquiry</span>
                   </>
                 )}
                 <span className="text-muted-foreground/40">|</span>
@@ -633,8 +633,8 @@ export default function AppointmentDetailPage() {
                             )}
                           >
                             {showBotLabel && (
-                              <span className="text-[10px] font-medium mb-0.5 px-1 text-[#0fbcb0] flex items-center gap-1">
-                                <Heart className="w-2.5 h-2.5 fill-[#0fbcb0] text-[#0fbcb0]" />
+                              <span className="text-[10px] font-medium mb-0.5 px-1 text-primary flex items-center gap-1">
+                                <Heart className="w-2.5 h-2.5 fill-primary text-primary" />
                                 Pearlie AI
                               </span>
                             )}
@@ -650,7 +650,7 @@ export default function AppointmentDetailPage() {
                                   ? "max-w-[52%] px-3 py-2 bg-gradient-to-br from-teal-50 to-[#faf3e6] border border-teal-100 rounded-bl-md"
                                   : "max-w-[75%] px-4 py-2.5",
                                 msg.sender_type === "clinic"
-                                  ? "bg-[#0fbcb0] text-white rounded-br-md"
+                                  ? "bg-primary text-white rounded-br-md"
                                   : msg.sender_type === "patient"
                                     ? "bg-muted rounded-bl-md"
                                     : ""
@@ -665,7 +665,7 @@ export default function AppointmentDetailPage() {
                                 {msg.content}
                               </p>
                               {msg.sender_type === "bot" && (
-                                <p className="text-[9px] text-[#0fbcb0]/70 mt-1 italic">Automated message</p>
+                                <p className="text-[9px] text-primary/70 mt-1 italic">Automated message</p>
                               )}
                               <p
                                 className={cn(
@@ -789,7 +789,7 @@ export default function AppointmentDetailPage() {
                   type="submit"
                   size="icon"
                   disabled={!newMessage.trim() || isSending}
-                  className="bg-[#0fbcb0] hover:bg-[#0da399] text-white h-[42px] w-[42px] shrink-0"
+                  className="bg-primary hover:bg-[var(--primary-hover)] text-white h-[42px] w-[42px] shrink-0"
                 >
                   {isSending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -809,7 +809,7 @@ export default function AppointmentDetailPage() {
             {/* Section: Patient Intent */}
             <SidebarSection
               title="Patient Details"
-              icon={<Heart className="w-4 h-4 text-[#0fbcb0]" />}
+              icon={<Heart className="w-4 h-4 text-primary" />}
               expanded={expandedSections.intent}
               onToggle={() => toggleSection("intent")}
             >
@@ -821,7 +821,7 @@ export default function AppointmentDetailPage() {
             {matchResult && (
               <SidebarSection
                 title="Match Score"
-                icon={<Sparkles className="w-4 h-4 text-[#0fbcb0]" />}
+                icon={<Sparkles className="w-4 h-4 text-primary" />}
                 expanded={expandedSections.match}
                 onToggle={() => toggleSection("match")}
                 badge={matchResult.score ? `${matchResult.score}%` : undefined}
@@ -850,7 +850,7 @@ export default function AppointmentDetailPage() {
                             </div>
                             <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                               <div
-                                className="h-full rounded-full bg-[#0fbcb0]"
+                                className="h-full rounded-full bg-primary"
                                 style={{ width: `${pct}%` }}
                               />
                             </div>
@@ -882,7 +882,7 @@ export default function AppointmentDetailPage() {
             {lead && (lead as any).booking_status && clinic && (
               <SidebarSection
                 title="Appointment"
-                icon={<CalendarCheck className="w-4 h-4 text-[#0fbcb0]" />}
+                icon={<CalendarCheck className="w-4 h-4 text-primary" />}
                 expanded={true}
                 onToggle={() => {}}
               >
@@ -906,7 +906,7 @@ export default function AppointmentDetailPage() {
             {/* Section: Staff Notes */}
             <SidebarSection
               title="Staff Notes"
-              icon={<StickyNote className="w-4 h-4 text-[#0fbcb0]" />}
+              icon={<StickyNote className="w-4 h-4 text-primary" />}
               expanded={expandedSections.notes}
               onToggle={() => toggleSection("notes")}
               badge={status?.staff_notes?.length ? `${status.staff_notes.length}` : undefined}
@@ -939,7 +939,7 @@ export default function AppointmentDetailPage() {
                         size="sm"
                         onClick={handleAddNote}
                         disabled={!newNote.trim() || isSaving}
-                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white text-xs h-7"
+                        className="bg-primary hover:bg-[var(--primary-hover)] text-white text-xs h-7"
                       >
                         Save
                       </Button>
@@ -1003,7 +1003,7 @@ function SidebarSection({
           {icon}
           <span className="text-sm font-semibold">{title}</span>
           {badge && (
-            <span className="text-[10px] font-medium bg-[#0fbcb0]/10 text-[#0fbcb0] px-1.5 py-0.5 rounded-full">
+            <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
               {badge}
             </span>
           )}
@@ -1198,9 +1198,9 @@ function PatientIntent({ lead }: { lead: Lead }) {
     <div className="space-y-2.5">
       {rows.map((row, i) => (
         <div key={i} className="flex items-start gap-2.5">
-          <div className="text-[#004443] mt-0.5 shrink-0">{row.icon}</div>
+          <div className="text-foreground mt-0.5 shrink-0">{row.icon}</div>
           <div className="min-w-0">
-            <p className="text-[10px] text-[#004443] font-semibold uppercase tracking-wider">{row.label}</p>
+            <p className="text-[10px] text-foreground font-semibold uppercase tracking-wider">{row.label}</p>
             <div className="mt-0.5 text-foreground">{row.value}</div>
           </div>
         </div>

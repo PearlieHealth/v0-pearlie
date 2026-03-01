@@ -533,10 +533,10 @@ export default function MatchPage() {
         <div className="max-w-lg mx-auto px-4 py-12">
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center justify-center gap-2.5 mb-6">
-              <div className="rounded-full bg-[#0fbcb0] p-2">
+              <div className="rounded-full bg-primary p-2">
                 <Heart className="w-5 h-5 text-white fill-white" />
               </div>
-              <span className="font-semibold text-xl text-[#0fbcb0]">Pearlie</span>
+              <span className="font-semibold text-xl text-primary">Pearlie</span>
             </Link>
             <h1 className="text-2xl font-semibold text-foreground mb-2">Verify your email to see your matches</h1>
             <p className="text-muted-foreground">
@@ -559,20 +559,20 @@ export default function MatchPage() {
     <div className="min-h-screen bg-[#faf8f3]">
       {/* Glass nav matching landing page */}
       <header className="fixed top-3 left-3 right-3 md:top-5 md:left-8 md:right-8 z-50">
-        <div className="rounded-[3.4vw] bg-white/70 backdrop-blur-[40px] backdrop-saturate-[1.4] border border-white/30 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] px-4 sm:px-6 py-2.5">
+        <div className="rounded-[3.4vw] bg-card/70 backdrop-blur-[40px] backdrop-saturate-[1.4] border border-white/30 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] px-4 sm:px-6 py-2.5">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <div className="rounded-full bg-[#0fbcb0] p-1.5">
+              <div className="rounded-full bg-primary p-1.5">
                 <Heart className="w-4 h-4 text-white fill-white" />
               </div>
-              <span className="text-xl font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
+              <span className="text-xl font-bold tracking-tight text-primary">Pearlie</span>
             </Link>
             <div className="flex items-center gap-3">
               <p className="text-sm text-muted-foreground hidden sm:block">
                 {displayedClinics.length} {displayedClinics.length === 1 ? "clinic" : "clinics"} matched
               </p>
               <Link href="/patient/dashboard" className="relative p-2 rounded-full hover:bg-black/5 transition-colors">
-                <MessageCircle className="w-5 h-5 text-[#0fbcb0]" />
+                <MessageCircle className="w-5 h-5 text-primary" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
                     {unreadCount > 9 ? "9+" : unreadCount}
@@ -581,7 +581,7 @@ export default function MatchPage() {
               </Link>
               <Button
                 size="sm"
-                className="text-sm px-5 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-sm hover:shadow-md transition-all border-0"
+                className="text-sm px-5 bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full shadow-sm hover:shadow-md transition-all border-0"
                 asChild
               >
                 <Link href="/intake">New search</Link>
@@ -595,7 +595,7 @@ export default function MatchPage() {
         {loading && (
           <div className="space-y-6">
             <div className="text-center py-12">
-              <Loader2 className="w-12 h-12 animate-spin mx-auto text-[#004443] mb-4" />
+              <Loader2 className="w-12 h-12 animate-spin mx-auto text-foreground mb-4" />
               <p className="text-muted-foreground text-lg">Finding your clinic matches...</p>
             </div>
             <div className="grid gap-6">
@@ -612,7 +612,7 @@ export default function MatchPage() {
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mx-auto mb-4">
                 <AlertCircle className="w-8 h-8 text-red-500" />
               </div>
-              <EmptyTitle className="text-[#004443]">Unable to load matches</EmptyTitle>
+              <EmptyTitle className="text-foreground">Unable to load matches</EmptyTitle>
               <EmptyDescription className="text-muted-foreground">{error}</EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
@@ -626,17 +626,17 @@ export default function MatchPage() {
         {!loading && !error && allClinicsData.length === 0 && (
           <Empty>
             <EmptyHeader>
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-[#004443]/10 mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-[#004443]/50" />
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-[#0d1019]/10 mx-auto mb-4">
+                <MapPin className="w-8 h-8 text-foreground/50" />
               </div>
-              <EmptyTitle className="text-[#004443]">No matching clinics found</EmptyTitle>
+              <EmptyTitle className="text-foreground">No matching clinics found</EmptyTitle>
               <EmptyDescription className="text-muted-foreground">
                 We couldn&apos;t find clinics matching your criteria right now. We&apos;re growing our network — try one of the options below.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button asChild variant="default" className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0">
+                <Button asChild variant="default" className="bg-primary hover:bg-[var(--primary-hover)] text-white border-0">
                   <Link href="/intake">Try a different postcode</Link>
                 </Button>
               </div>
@@ -653,12 +653,12 @@ export default function MatchPage() {
                       placeholder="your@email.com"
                       value={zeroMatchEmail}
                       onChange={(e) => setZeroMatchEmail(e.target.value)}
-                      className="flex-1 h-10 px-3 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]/40"
+                      className="flex-1 h-10 px-3 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                     />
                     <Button
                       size="sm"
                       disabled={!zeroMatchEmail.includes("@") || zeroMatchSubmitting}
-                      className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                      className="bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
                       onClick={async () => {
                         setZeroMatchSubmitting(true)
                         try {
@@ -684,7 +684,7 @@ export default function MatchPage() {
                   </div>
                 </div>
               ) : (
-                <p className="mt-4 text-sm text-[#0fbcb0] font-medium">
+                <p className="mt-4 text-sm text-primary font-medium">
                   We&apos;ll notify you when clinics are available in your area.
                 </p>
               )}
@@ -695,11 +695,11 @@ export default function MatchPage() {
         {!loading && !error && allClinicsData.length > 0 && (
           <>
             {showExpansionBanner && (
-              <Alert className="mb-8 border-[#004443]/20 bg-white shadow-sm">
-                <Info className="h-5 w-5 text-[#004443]" />
+              <Alert className="mb-8 border-[#004443]/20 bg-card shadow-sm">
+                <Info className="h-5 w-5 text-foreground" />
                 <AlertDescription className="ml-2">
                   <div className="space-y-2">
-                    <p className="font-semibold text-lg text-[#004443]">We're expanding to your area</p>
+                    <p className="font-semibold text-lg text-foreground">We're expanding to your area</p>
                     <p className="text-sm text-muted-foreground">
                       We're launching London first. You can still explore clinics nearby
                       {minDistanceMiles && <> (closest is ~{minDistanceMiles.toFixed(1)} miles away)</>}
@@ -721,7 +721,7 @@ export default function MatchPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
-                      className="gap-1.5 text-[#004443] border border-[#004443]/20 hover:bg-[#004443]/5"
+                      className="gap-1.5 text-foreground border border-[#004443]/20 hover:bg-[#0d1019]/5"
                     >
                       {viewMode === "map" ? <><List className="w-4 h-4" /> List</> : <><Map className="w-4 h-4" /> Map</>}
                     </Button>
@@ -756,7 +756,7 @@ export default function MatchPage() {
                           <Card
                             ref={(el) => { clinicRefs.current[clinic.id] = el }}
                             data-clinic-id={clinic.id}
-                            className="overflow-hidden transition-all duration-200 ease-out hover:shadow-lg border-0 shadow-sm bg-white rounded-2xl"
+                            className="overflow-hidden transition-all duration-200 ease-out hover:shadow-lg border-0 shadow-sm bg-card rounded-2xl"
                           >
                             {/* Photo banner — flush on mobile, inset with rounded edges on desktop */}
                             <div className="lg:px-4 lg:pt-4">
@@ -768,12 +768,12 @@ export default function MatchPage() {
                                   width={600}
                                   height={200}
                                   className="w-full h-[140px] sm:h-[180px] lg:h-[135px] object-cover lg:rounded-xl"
-                                  fallbackClassName="w-full h-[140px] sm:h-[180px] lg:h-[135px] flex items-center justify-center lg:rounded-xl bg-[#004443]"
+                                  fallbackClassName="w-full h-[140px] sm:h-[180px] lg:h-[135px] flex items-center justify-center lg:rounded-xl bg-[#0d1019]"
                                   sizes="(max-width: 768px) 100vw, 600px"
                                 />
                               ) : (
                                 <div className="w-full h-[140px] sm:h-[180px] lg:h-[135px] bg-[#faf8f3] flex items-center justify-center lg:rounded-xl">
-                                  <MapPin className="w-10 h-10 text-[#004443]/20" />
+                                  <MapPin className="w-10 h-10 text-foreground/20" />
                                 </div>
                               )}
                               {/* Label overlay on image */}
@@ -781,8 +781,8 @@ export default function MatchPage() {
                                 <div className="absolute top-3 left-3">
                                   <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${
 clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_listing
-                                        ? "bg-white/90 text-muted-foreground"
-                                        : "bg-[#0fbcb0] text-white"
+                                        ? "bg-card/90 text-muted-foreground"
+                                        : "bg-primary text-white"
                                   }`}>
                                     {getClinicLabel(clinic, index)}
                                   </span>
@@ -791,7 +791,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                               {/* Verified badge overlay on image */}
                               {clinic.verified && (
                                 <div className="absolute top-3 right-3">
-                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm bg-[#0fbcb0] text-white">
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm bg-primary text-white">
                                     <CheckCircle2 className="w-4 h-4" />
                                     Verified by Pearlie
                                   </span>
@@ -806,7 +806,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                               <div className="flex items-start justify-between gap-3 mb-2 lg:mb-1">
                                 <h2
                                   onClick={() => handleClinicClick(clinic.id, index)}
-                                  className="text-lg sm:text-xl lg:text-lg font-bold cursor-pointer text-[#004443] hover:text-[#004443]/80 transition-colors duration-200 leading-tight"
+                                  className="text-lg sm:text-xl lg:text-lg font-bold cursor-pointer text-foreground hover:text-foreground/80 transition-colors duration-200 leading-tight"
                                 >
                                   {clinic.name}
                                 </h2>
@@ -818,23 +818,23 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                         className={`flex-shrink-0 flex items-center gap-1 font-bold text-sm cursor-pointer px-2.5 py-1 rounded-full transition-colors touch-manipulation ${
                                           clinic.is_directory_listing || clinic.tier === "directory"
                                             ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                            : "bg-[#0fbcb0]/10 text-[#004443] hover:bg-[#0fbcb0]/20"
+                                            : "bg-primary/10 text-foreground hover:bg-primary/20"
                                         }`}
                                         onClick={(e) => e.stopPropagation()}
                                       >
                                         {clinic.is_directory_listing || clinic.tier === "directory" ? (
                                           <MapPin className="w-3.5 h-3.5 text-gray-400" />
                                         ) : (
-                                          <Sparkles className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                                          <Sparkles className="w-3.5 h-3.5 text-primary" />
                                         )}
                                         <span>{clinic.match_percentage}%</span>
-                                        <Info className="w-3 h-3 text-[#004443]/40" />
+                                        <Info className="w-3 h-3 text-foreground/40" />
                                       </button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-72 p-4" align="end" side="bottom">
                                       <div className="space-y-3">
                                         <div>
-                                          <h4 className="font-semibold text-sm text-[#004443]">
+                                          <h4 className="font-semibold text-sm text-foreground">
                                             {clinic.is_directory_listing || clinic.tier === "directory"
                                               ? "Relevance score"
                                               : "How we calculated your match"}
@@ -918,7 +918,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                 )}
                                 {clinic.distance_miles !== undefined && (
                                   <div className="flex items-center gap-1">
-                                    <MapPin className="w-3.5 h-3.5 text-[#004443]" />
+                                    <MapPin className="w-3.5 h-3.5 text-foreground" />
                                     <span>~{clinic.distance_miles.toFixed(1)} mi</span>
                                   </div>
                                 )}
@@ -930,7 +930,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
                                     const chipData = getChipData(chip)
                                     return (
-                                      <span key={chip} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-[#004443]/15 text-[#004443] bg-[#004443]/5">
+                                      <span key={chip} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-[#004443]/15 text-foreground bg-[#0d1019]/5">
                                         {chipData.icon}
                                         {chipData.label}
                                       </span>
@@ -940,8 +940,8 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                               )}
 
                               {/* Why we matched you - teal border only, no fill */}
-                              <div className="rounded-xl p-3.5 lg:p-3 border border-[#0fbcb0]/30 mb-4 lg:mb-3">
-                                <h3 className="font-semibold text-xs lg:text-sm text-[#0fbcb0] mb-1.5">
+                              <div className="rounded-xl p-3.5 lg:p-3 border border-primary/30 mb-4 lg:mb-3">
+                                <h3 className="font-semibold text-xs lg:text-sm text-primary mb-1.5">
                                   {clinic.card_title || (clinic.tier === "directory"
                                     ? "About this clinic"
                                     : clinic.tier === "nearby"
@@ -1012,7 +1012,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                               <div className="flex items-center gap-3">
                                 {clinic.tier !== "directory" && (
                                   <Button
-                                    className="flex-1 h-11 lg:h-10 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-medium text-sm border-0"
+                                    className="flex-1 h-11 lg:h-10 bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full font-medium text-sm border-0"
                                     asChild
                                     onClick={() => {
                                       const contactEventId = generateTikTokEventId()
@@ -1035,8 +1035,8 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   variant={clinic.tier === "directory" || clinic.is_directory_listing ? "default" : "outline"}
                                   className={`flex-1 h-11 lg:h-10 rounded-full font-medium text-sm ${
                                     clinic.tier === "directory" || clinic.is_directory_listing
-                                      ? "bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
-                                      : "text-[#004443] border-[#004443]/20 hover:bg-[#004443]/5"
+                                      ? "bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
+                                      : "text-foreground border-[#004443]/20 hover:bg-[#0d1019]/5"
                                   }`}
                                   asChild
                                 >
@@ -1050,7 +1050,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                         {/* Mobile trust box — shown after 4th clinic */}
                         {index === 3 && (
-                          <div className="lg:hidden mt-4 rounded-2xl bg-[#004443] p-5 shadow-lg">
+                          <div className="lg:hidden mt-4 rounded-2xl bg-[#0d1019] p-5 shadow-lg">
                             <h3 className="text-[15px] font-bold text-white leading-snug mb-1.5">
                               Not seeing every dentist near you? Here&apos;s why.
                             </h3>
@@ -1061,7 +1061,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                             <div className="space-y-3.5">
                               <div className="flex gap-2.5">
                                 <div className="flex-shrink-0 mt-0.5">
-                                  <Shield className="w-4 h-4 text-[#0fbcb0]" />
+                                  <Shield className="w-4 h-4 text-primary" />
                                 </div>
                                 <div>
                                   <p className="text-[13px] font-semibold text-white">Verified &amp; Compliant</p>
@@ -1073,7 +1073,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                               <div className="flex gap-2.5">
                                 <div className="flex-shrink-0 mt-0.5">
-                                  <MessageCircle className="w-4 h-4 text-[#0fbcb0]" />
+                                  <MessageCircle className="w-4 h-4 text-primary" />
                                 </div>
                                 <div>
                                   <p className="text-[13px] font-semibold text-white">Interviewed by Pearlie</p>
@@ -1085,7 +1085,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                               <div className="flex gap-2.5">
                                 <div className="flex-shrink-0 mt-0.5">
-                                  <Star className="w-4 h-4 text-[#0fbcb0]" />
+                                  <Star className="w-4 h-4 text-primary" />
                                 </div>
                                 <div>
                                   <p className="text-[13px] font-semibold text-white">Consistent Patient Feedback</p>
@@ -1097,7 +1097,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                               <div className="flex gap-2.5">
                                 <div className="flex-shrink-0 mt-0.5">
-                                  <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                                  <CheckCircle2 className="w-4 h-4 text-primary" />
                                 </div>
                                 <div>
                                   <p className="text-[13px] font-semibold text-white">Transparent &amp; Clear Communication</p>
@@ -1109,7 +1109,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                               <div className="flex gap-2.5">
                                 <div className="flex-shrink-0 mt-0.5">
-                                  <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
+                                  <Sparkles className="w-4 h-4 text-primary" />
                                 </div>
                                 <div>
                                   <p className="text-[13px] font-semibold text-white">Match-Based Recommendations</p>
@@ -1132,7 +1132,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                     })}
                   {hasMoreClinics && (
                     <div className="flex justify-center mt-4">
-                      <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="sm" className="border-[#004443]/20 text-[#004443] hover:bg-[#004443]/5 bg-white rounded-full text-sm">
+                      <Button onClick={() => setVisibleClinicsCount((prev) => prev + 1)} variant="outline" size="sm" className="border-[#004443]/20 text-foreground hover:bg-[#0d1019]/5 bg-card rounded-full text-sm">
                         Show more clinics
                       </Button>
                     </div>
@@ -1154,7 +1154,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                   <MatchFiltersPanel filters={filters} onFiltersChange={setFilters} />
 
                   {/* Trust & Standards */}
-                  <div className="rounded-2xl bg-[#004443] p-5 shadow-lg">
+                  <div className="rounded-2xl bg-[#0d1019] p-5 shadow-lg">
                     <h3 className="text-[15px] font-bold text-white leading-snug mb-1.5">
                       Not seeing every dentist near you? Here&apos;s why.
                     </h3>
@@ -1165,7 +1165,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                     <div className="space-y-3.5">
                       <div className="flex gap-2.5">
                         <div className="flex-shrink-0 mt-0.5">
-                          <Shield className="w-4 h-4 text-[#0fbcb0]" />
+                          <Shield className="w-4 h-4 text-primary" />
                         </div>
                         <div>
                           <p className="text-[13px] font-semibold text-white">Verified &amp; Compliant</p>
@@ -1177,7 +1177,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                       <div className="flex gap-2.5">
                         <div className="flex-shrink-0 mt-0.5">
-                          <MessageCircle className="w-4 h-4 text-[#0fbcb0]" />
+                          <MessageCircle className="w-4 h-4 text-primary" />
                         </div>
                         <div>
                           <p className="text-[13px] font-semibold text-white">Interviewed by Pearlie</p>
@@ -1189,7 +1189,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                       <div className="flex gap-2.5">
                         <div className="flex-shrink-0 mt-0.5">
-                          <Star className="w-4 h-4 text-[#0fbcb0]" />
+                          <Star className="w-4 h-4 text-primary" />
                         </div>
                         <div>
                           <p className="text-[13px] font-semibold text-white">Consistent Patient Feedback</p>
@@ -1201,7 +1201,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                       <div className="flex gap-2.5">
                         <div className="flex-shrink-0 mt-0.5">
-                          <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                          <CheckCircle2 className="w-4 h-4 text-primary" />
                         </div>
                         <div>
                           <p className="text-[13px] font-semibold text-white">Transparent &amp; Clear Communication</p>
@@ -1213,7 +1213,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
 
                       <div className="flex gap-2.5">
                         <div className="flex-shrink-0 mt-0.5">
-                          <Sparkles className="w-4 h-4 text-[#0fbcb0]" />
+                          <Sparkles className="w-4 h-4 text-primary" />
                         </div>
                         <div>
                           <p className="text-[13px] font-semibold text-white">Match-Based Recommendations</p>

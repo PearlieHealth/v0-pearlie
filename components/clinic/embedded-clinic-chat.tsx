@@ -267,10 +267,10 @@ export function EmbeddedClinicChat({
   if (!isOpen) return null
 
   return (
-    <div className={hideHeader ? "bg-white flex flex-col h-full overflow-hidden" : "border border-[#e5e5e5] rounded-xl overflow-hidden bg-white"}>
+    <div className={hideHeader ? "bg-card flex flex-col h-full overflow-hidden" : "border border-[#e5e5e5] rounded-xl overflow-hidden bg-white"}>
       {/* Header */}
       {!hideHeader && (
-        <div className="bg-[#004443] px-4 py-3 flex items-center justify-between">
+        <div className="bg-[#0d1019] px-4 py-3 flex items-center justify-between">
           <div>
             <p className="text-white text-sm font-semibold">{clinicName}</p>
             <p className="text-white/60 text-xs">Usually replies within a few hours</p>
@@ -321,7 +321,7 @@ export function EmbeddedClinicChat({
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <Heart className="h-8 w-8 text-[#0fbcb0]/60 mb-2" />
+            <Heart className="h-8 w-8 text-primary/60 mb-2" />
             <p className="text-sm font-medium text-[#666]">You're chatting with Pearlie</p>
             <p className="text-xs text-[#999] mt-1">
               Ask a question or say hello — the clinic will join shortly.
@@ -348,9 +348,9 @@ export function EmbeddedClinicChat({
                     }`}
                   >
                     {msg.sender_type === "bot" ? (
-                      <div className="max-w-[90%] bg-[#faf3e6] border border-[#faf3e6] rounded-xl px-3 py-2">
-                        <p className="text-[9px] text-[#0fbcb0] font-medium mb-0.5 flex items-center gap-1">
-                          <Heart className="w-2.5 h-2.5 fill-[#0fbcb0] text-[#0fbcb0]" />
+                      <div className="max-w-[90%] bg-secondary border border-[#faf3e6] rounded-xl px-3 py-2">
+                        <p className="text-[9px] text-primary font-medium mb-0.5 flex items-center gap-1">
+                          <Heart className="w-2.5 h-2.5 fill-primary text-primary" />
                           Pearlie AI
                         </p>
                         <p className="text-[15px] leading-relaxed text-[#555] whitespace-pre-wrap">{msg.content}</p>
@@ -359,8 +359,8 @@ export function EmbeddedClinicChat({
                       <div
                         className={`max-w-[85%] rounded-2xl px-3 py-2 text-[15px] leading-relaxed ${
                           msg.sender_type === "patient"
-                            ? "bg-[#004443] text-white rounded-br-md"
-                            : "bg-[#0fbcb0] text-white rounded-bl-md"
+                            ? "bg-[#0d1019] text-white rounded-br-md"
+                            : "bg-primary text-white rounded-bl-md"
                         }`}
                       >
                         <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -393,10 +393,10 @@ export function EmbeddedClinicChat({
 
       {/* Inbox link - shown when conversation exists */}
       {leadId && conversationId && (
-        <div className="px-3 py-1.5 bg-white border-t border-[#e5e5e5]">
+        <div className="px-3 py-1.5 bg-card border-t border-[#e5e5e5]">
           <a
             href="/patient/login?next=/patient/dashboard"
-            className="text-[11px] text-[#0fbcb0] hover:underline"
+            className="text-[11px] text-primary hover:underline"
           >
             Open full conversation in inbox
           </a>
@@ -453,7 +453,7 @@ export function EmbeddedClinicChat({
               <p className="text-[11px] text-[#888] text-center">This conversation has been closed. Looking for a dentist? <a href="/intake" className="underline text-teal-600 hover:text-teal-700">Start a new search</a> to get matched with clinics.</p>
             </div>
           ) : !showOtpVerify && (
-          <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white overflow-hidden">
+          <form onSubmit={handleSend} className="flex-shrink-0 border-t border-[#e5e5e5] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-card overflow-hidden">
             <div className="flex items-center gap-2">
               <input
                 type="text"
@@ -476,7 +476,7 @@ export function EmbeddedClinicChat({
               <button
                 type="submit"
                 disabled={!newMessage.trim() || isSending}
-                className="flex-shrink-0 h-10 w-10 rounded-full bg-[#004443] text-white flex items-center justify-center hover:bg-[#003332] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-shrink-0 h-10 w-10 rounded-full bg-[#0d1019] text-white flex items-center justify-center hover:bg-[#003332] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isSending ? (
                   <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />

@@ -178,7 +178,7 @@ export function BookingOutcomesCard({ leads, clinicMap }: BookingOutcomesCardPro
             <p className="text-[11px] text-muted-foreground">Confirmation Rate</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3 text-center">
-            <p className="text-lg font-bold text-[#004443]">
+            <p className="text-lg font-bold text-foreground">
               {avgConfirmHours > 0
                 ? avgConfirmHours < 1
                   ? `${Math.round(avgConfirmHours * 60)}m`

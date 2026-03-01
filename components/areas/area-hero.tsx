@@ -46,15 +46,15 @@ export function AreaHero({
     : `Compare verified, GDC registered dental clinics in ${borough.name}. See pricing, read reviews, and get matched with the right clinic — free.`
 
   return (
-    <div className="pt-28 pb-8 sm:pt-32 sm:pb-12 bg-[#004443]">
+    <div className="pt-28 pb-8 sm:pt-32 sm:pb-12 bg-[#0d1019]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          <div className="[&_a]:text-white/60 [&_a:hover]:text-[#0fbcb0] [&_span]:text-white [&_svg]:text-white/30 mb-6">
+          <div className="[&_a]:text-white/60 [&_a:hover]:text-primary [&_span]:text-white [&_svg]:text-white/30 mb-6">
             <BreadcrumbNav items={breadcrumbs} />
           </div>
 
           <div className="flex items-center gap-3 mb-4">
-            <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0fbcb0] bg-[#0fbcb0]/10 rounded-full">
+            <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 rounded-full">
               {borough.region} London
             </span>
             {treatmentName && (
@@ -77,15 +77,15 @@ export function AreaHero({
             <div className="flex flex-wrap gap-4 text-sm text-white/70 mb-6">
               {priceRange && (
                 <span className="flex items-center gap-1.5">
-                  <span className="text-[#0fbcb0] font-semibold">From {priceRange.split("–")[0].trim()}</span>
+                  <span className="text-primary font-semibold">From {priceRange.split("–")[0].trim()}</span>
                 </span>
               )}
               <span className="flex items-center gap-1.5">
-                <Star className="w-4 h-4 text-[#0fbcb0] fill-[#0fbcb0]" />
+                <Star className="w-4 h-4 text-primary fill-primary" />
                 Rated clinics
               </span>
               <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#0fbcb0]" />
+                <ShieldCheck className="w-4 h-4 text-primary" />
                 GDC registered
               </span>
             </div>
@@ -94,18 +94,18 @@ export function AreaHero({
           {/* Local signals */}
           <div className="flex flex-wrap gap-4 text-sm text-white/60 mb-8">
             <span className="flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-[#0fbcb0]" />
+              <MapPin className="w-4 h-4 text-primary" />
               {borough.postcodes.slice(0, 4).join(", ")}
               {borough.postcodes.length > 4 && " +more"}
             </span>
             <span className="flex items-center gap-1.5">
-              <Train className="w-4 h-4 text-[#0fbcb0]" />
+              <Train className="w-4 h-4 text-primary" />
               {borough.transport.slice(0, 3).join(", ")}
             </span>
           </div>
 
           {/* Postcode CTA */}
-          <div className="[&_p]:text-white/60 [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-[#0fbcb0] [&_input]:focus-visible:border-[#0fbcb0] [&_.text-destructive]:text-red-300">
+          <div className="[&_p]:text-white/60 [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-primary [&_input]:focus-visible:border-primary [&_.text-destructive]:text-red-300">
             <HeroPostcodeCta
               treatmentName={treatmentName || "dentist"}
               intakeTreatment={intakeTreatment}

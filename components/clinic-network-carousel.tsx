@@ -60,7 +60,7 @@ export function ClinicNetworkCarousel() {
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="w-56 h-40 flex-shrink-0 rounded-2xl bg-gray-200 animate-pulse"
+              className="w-56 h-40 flex-shrink-0 rounded-2xl bg-muted animate-pulse"
             />
           ))}
         </div>
@@ -68,7 +68,7 @@ export function ClinicNetworkCarousel() {
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="w-56 h-40 flex-shrink-0 rounded-2xl bg-gray-200 animate-pulse"
+              className="w-56 h-40 flex-shrink-0 rounded-2xl bg-muted animate-pulse"
             />
           ))}
         </div>
@@ -137,14 +137,14 @@ export function ClinicNetworkCarousel() {
 
 function ClinicCard({ clinic }: { clinic: ClinicImageData }) {
   return (
-    <Link href={`/clinic/${clinic.id}`} className="w-56 h-40 flex-shrink-0 rounded-2xl overflow-hidden bg-gray-200 relative group block">
+    <Link href={`/clinic/${clinic.id}`} className="w-56 h-40 flex-shrink-0 rounded-2xl overflow-hidden bg-muted relative group block">
       <ClinicImage
         src={clinic.image}
         alt={`${clinic.name} dental clinic`}
         width={300}
         height={200}
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
+        fallbackClassName="w-full h-full flex items-center justify-center bg-[#0d1019]"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <div className="absolute bottom-0 left-0 right-0 p-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -156,8 +156,8 @@ function ClinicCard({ clinic }: { clinic: ClinicImageData }) {
 
 function PlaceholderCard({ Icon }: { Icon: React.ComponentType<{ className?: string }> }) {
   return (
-    <div className="w-56 h-40 flex-shrink-0 rounded-2xl overflow-hidden bg-gray-200 flex items-center justify-center">
-      <Icon className="w-12 h-12 text-gray-400" />
+    <div className="w-56 h-40 flex-shrink-0 rounded-2xl overflow-hidden bg-muted flex items-center justify-center">
+      <Icon className="w-12 h-12 text-muted-foreground" />
     </div>
   )
 }

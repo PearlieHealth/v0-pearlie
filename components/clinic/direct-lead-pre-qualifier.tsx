@@ -32,14 +32,14 @@ export function DirectLeadPreQualifier({
       <button
         type="button"
         onClick={onFullIntake}
-        className="w-full text-left group relative rounded-xl border-2 border-[#0fbcb0] bg-gradient-to-br from-[#f0fdfb] to-white p-4 transition-all hover:shadow-md hover:border-[#0da399] active:scale-[0.98]"
+        className="w-full text-left group relative rounded-xl border-2 border-primary bg-gradient-to-br from-primary/5 to-card p-4 transition-all hover:shadow-md hover:border-[#0da399] active:scale-[0.98]"
       >
-        <div className="absolute -top-2.5 left-3 px-2 py-0.5 bg-[#0fbcb0] text-white text-[10px] font-bold uppercase tracking-wider rounded-full">
+        <div className="absolute -top-2.5 left-3 px-2 py-0.5 bg-primary text-white text-[10px] font-bold uppercase tracking-wider rounded-full">
           Recommended
         </div>
         <div className="flex items-start gap-3 mt-1">
-          <div className="w-9 h-9 rounded-lg bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <Sparkles className="w-4.5 h-4.5 text-[#0fbcb0]" />
+          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <Sparkles className="w-4.5 h-4.5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-sm text-[#1a1a1a] mb-0.5">
@@ -49,7 +49,7 @@ export function DirectLeadPreQualifier({
               Answer a few questions and we&apos;ll match you with the best clinics for your needs.
             </p>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
-              <span className="flex items-center gap-1 text-[10px] text-[#0fbcb0] font-medium">
+              <span className="flex items-center gap-1 text-[10px] text-primary font-medium">
                 <Star className="w-3 h-3" />
                 Top clinic matches
               </span>
@@ -63,7 +63,7 @@ export function DirectLeadPreQualifier({
               </span>
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-[#0fbcb0] flex-shrink-0 mt-2 group-hover:translate-x-0.5 transition-transform" />
+          <ArrowRight className="w-4 h-4 text-primary flex-shrink-0 mt-2 group-hover:translate-x-0.5 transition-transform" />
         </div>
       </button>
 
@@ -71,7 +71,7 @@ export function DirectLeadPreQualifier({
       <button
         type="button"
         onClick={onQuickForm}
-        className="w-full text-left group rounded-xl border border-[#e5e5e5] bg-white p-4 transition-all hover:border-[#ccc] hover:shadow-sm active:scale-[0.98]"
+        className="w-full text-left group rounded-xl border border-[#e5e5e5] bg-card p-4 transition-all hover:border-[#ccc] hover:shadow-sm active:scale-[0.98]"
       >
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-lg bg-[#f5f5f5] flex items-center justify-center flex-shrink-0 mt-0.5">

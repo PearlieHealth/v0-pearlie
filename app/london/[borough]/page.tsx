@@ -219,7 +219,7 @@ export default async function BoroughPage({ params }: BoroughPageProps) {
         <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-4">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-4">
                 Dental care in {borough.name}
               </h2>
               <p className="text-base text-muted-foreground leading-relaxed mb-4">
@@ -250,7 +250,7 @@ export default async function BoroughPage({ params }: BoroughPageProps) {
         <NearbyBoroughs boroughs={nearbyBoroughs} />
 
         {/* 9. Bottom CTA with postcode input */}
-        <section className="py-12 sm:py-16 bg-[#004443]">
+        <section className="py-12 sm:py-16 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">

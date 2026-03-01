@@ -56,7 +56,7 @@ export default function StatsCard({ value, suffix = "", prefix = "", label, icon
       transition={{ duration: 0.5, delay }}
       className="relative group"
     >
-      <div className="bg-gradient-to-br from-white to-secondary/30 rounded-2xl p-6 border border-primary/10 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] hover:border-primary/20">
+      <div className="bg-gradient-to-br from-card to-secondary/30 rounded-2xl p-6 border border-border shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] hover:border-primary/20">
         <div className="flex items-start justify-between mb-4">
           <div className="p-2.5 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
             {icon}

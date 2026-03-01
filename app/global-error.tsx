@@ -22,7 +22,7 @@ export default function GlobalError({
         />
       </head>
       <body style={{ fontFamily: "'Cabin', sans-serif" }} className="antialiased">
-        <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="min-h-screen bg-card flex items-center justify-center p-4">
           <div className="max-w-md w-full text-center space-y-6">
             <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto">
               <svg

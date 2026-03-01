@@ -12,7 +12,7 @@ export default function BulkImportPage() {
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <Upload className="w-5 h-5 text-[#004443]" />
+            <Upload className="w-5 h-5 text-foreground" />
             <h2 className="text-2xl font-bold">Bulk Add Clinics</h2>
           </div>
           <p className="text-muted-foreground">

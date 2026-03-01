@@ -221,12 +221,12 @@ export default async function LondonPage() {
 
       <main>
         {/* 1. Hero */}
-        <section className="pt-28 pb-10 sm:pt-32 sm:pb-14 bg-[#004443]">
+        <section className="pt-28 pb-10 sm:pt-32 sm:pb-14 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <div className="flex items-center justify-center gap-2 mb-4">
-                <MapPin className="w-5 h-5 text-[#0fbcb0]" />
-                <span className="text-sm font-semibold uppercase tracking-wider text-[#0fbcb0]">
+                <MapPin className="w-5 h-5 text-primary" />
+                <span className="text-sm font-semibold uppercase tracking-wider text-primary">
                   London
                 </span>
               </div>
@@ -238,7 +238,7 @@ export default async function LondonPage() {
                 Transparent pricing, real patient reviews, and free matching in
                 under 60 seconds.
               </p>
-              <div className="max-w-lg mx-auto [&_p]:text-white/60 [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-[#0fbcb0] [&_input]:focus-visible:border-[#0fbcb0] [&_.text-destructive]:text-red-300 [&_form]:mx-auto">
+              <div className="max-w-lg mx-auto [&_p]:text-white/60 [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-primary [&_input]:focus-visible:border-primary [&_.text-destructive]:text-red-300 [&_form]:mx-auto">
                 <HeroPostcodeCta
                   treatmentName="dentist"
                   intakeTreatment="general"
@@ -261,7 +261,7 @@ export default async function LondonPage() {
                 ]}
               />
 
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-4 mt-6">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-4 mt-6">
                 Finding the right dentist in London
               </h2>
               <div className="space-y-4 text-base text-muted-foreground leading-relaxed">
@@ -275,7 +275,7 @@ export default async function LondonPage() {
                   <strong>cosmetic dentist</strong> for veneers or{" "}
                   <Link
                     href="/treatments/composite-bonding"
-                    className="text-[#0fbcb0] hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     composite bonding
                   </Link>
@@ -288,42 +288,42 @@ export default async function LondonPage() {
                   dental implant in{" "}
                   <Link
                     href="/london/westminster"
-                    className="text-[#0fbcb0] hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     Westminster
                   </Link>{" "}
                   may cost more than the same treatment in{" "}
                   <Link
                     href="/london/greenwich"
-                    className="text-[#0fbcb0] hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     Greenwich
                   </Link>{" "}
                   or{" "}
                   <Link
                     href="/london/lewisham"
-                    className="text-[#0fbcb0] hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     Lewisham
                   </Link>
                   . Cosmetic treatments like{" "}
                   <Link
                     href="/treatments/invisalign"
-                    className="text-[#0fbcb0] hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     Invisalign
                   </Link>
                   ,{" "}
                   <Link
                     href="/treatments/composite-bonding"
-                    className="text-[#0fbcb0] hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     composite bonding
                   </Link>
                   , and{" "}
                   <Link
                     href="/treatments/teeth-whitening"
-                    className="text-[#0fbcb0] hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     teeth whitening
                   </Link>{" "}
@@ -331,21 +331,21 @@ export default async function LondonPage() {
                   experienced clinicians in boroughs such as{" "}
                   <Link
                     href="/london/hackney"
-                    className="text-[#0fbcb0] hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     Hackney
                   </Link>
                   ,{" "}
                   <Link
                     href="/london/lambeth"
-                    className="text-[#0fbcb0] hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     Lambeth
                   </Link>
                   , and{" "}
                   <Link
                     href="/london/wandsworth"
-                    className="text-[#0fbcb0] hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     Wandsworth
                   </Link>{" "}
@@ -359,14 +359,14 @@ export default async function LondonPage() {
                   private dentistry for cosmetic or specialist treatments such as{" "}
                   <Link
                     href="/treatments/dental-implants"
-                    className="text-[#0fbcb0] hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     dental implants
                   </Link>{" "}
                   or{" "}
                   <Link
                     href="/treatments/veneers"
-                    className="text-[#0fbcb0] hover:underline font-medium"
+                    className="text-primary hover:underline font-medium"
                   >
                     porcelain veneers
                   </Link>
@@ -388,7 +388,7 @@ export default async function LondonPage() {
         <section className="py-10 sm:py-14 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-2">
                 Typical private dental prices in London
               </h2>
               <p className="text-base text-muted-foreground mb-6">
@@ -396,7 +396,7 @@ export default async function LondonPage() {
                 location, here is a general pricing snapshot.
               </p>
 
-              <div className="rounded-xl border border-border/50 bg-white overflow-hidden">
+              <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border/50 bg-muted/30">
@@ -443,7 +443,7 @@ export default async function LondonPage() {
         <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-2">
                 Browse dentists by London borough
               </h2>
               <p className="text-base text-muted-foreground mb-8">
@@ -456,16 +456,16 @@ export default async function LondonPage() {
                   <Link
                     key={borough.slug}
                     href={`/london/${borough.slug}`}
-                    className="group rounded-xl border border-border/50 bg-white p-5 hover:shadow-md hover:border-[#0fbcb0]/30 transition-all"
+                    className="group rounded-xl border border-border/50 bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-1.5">
-                        <MapPin className="w-4 h-4 text-[#0fbcb0]" />
+                        <MapPin className="w-4 h-4 text-primary" />
                         <span className="text-xs text-muted-foreground">
                           {borough.postcodes.slice(0, 3).join(", ")}
                         </span>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-[#0fbcb0] transition-colors" />
+                      <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary transition-colors" />
                     </div>
                     <h3 className="text-base font-heading font-bold text-foreground mb-1.5">
                       Dentists in {borough.name}
@@ -483,19 +483,19 @@ export default async function LondonPage() {
                 </p>
                 <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                     Local pricing insights
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                     Available NHS vs private options
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                     Cosmetic and restorative treatment availability
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                     Real patient ratings
                   </li>
                 </ul>
@@ -505,7 +505,7 @@ export default async function LondonPage() {
         </section>
 
         {/* 5. Popular treatments in London */}
-        <section className="py-10 sm:py-14 bg-[#004443]">
+        <section className="py-10 sm:py-14 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-white mb-2">
@@ -524,12 +524,12 @@ export default async function LondonPage() {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-1.5">
-                        <Stethoscope className="w-4 h-4 text-[#0fbcb0]" />
-                        <span className="text-xs font-medium text-[#0fbcb0]">
+                        <Stethoscope className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-medium text-primary">
                           {treatment.price}
                         </span>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-[#0fbcb0] transition-colors" />
+                      <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-primary transition-colors" />
                     </div>
                     <h3 className="text-base font-heading font-bold text-white">
                       {treatment.name} in London
@@ -544,19 +544,19 @@ export default async function LondonPage() {
                 </p>
                 <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                     Typical costs
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                     What affects pricing
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                     Procedure overview
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                     Local clinic options
                   </li>
                 </ul>
@@ -569,7 +569,7 @@ export default async function LondonPage() {
         <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2 text-center">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-2 text-center">
                 NHS vs private dentists in London
               </h2>
               <p className="text-base text-muted-foreground mb-8 text-center max-w-2xl mx-auto">
@@ -578,45 +578,45 @@ export default async function LondonPage() {
               </p>
 
               <div className="grid sm:grid-cols-2 gap-6">
-                <div className="rounded-xl border border-border/50 bg-white p-6">
-                  <h3 className="text-lg font-heading font-bold text-[#004443] mb-4">
+                <div className="rounded-xl border border-border/50 bg-card p-6">
+                  <h3 className="text-lg font-heading font-bold text-foreground mb-4">
                     NHS dentistry
                   </h3>
                   <ul className="space-y-2.5 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                       Lower fixed Band pricing (£26.80–£306.80)
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                       Limited cosmetic treatment availability
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                       Longer waiting times in many boroughs
                     </li>
                   </ul>
                 </div>
 
-                <div className="rounded-xl border border-border/50 bg-white p-6">
-                  <h3 className="text-lg font-heading font-bold text-[#004443] mb-4">
+                <div className="rounded-xl border border-border/50 bg-card p-6">
+                  <h3 className="text-lg font-heading font-bold text-foreground mb-4">
                     Private dentistry
                   </h3>
                   <ul className="space-y-2.5 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                       Wider appointment availability
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                       Cosmetic and specialist treatments available
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                       Flexible finance options
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                       Shorter waiting times
                     </li>
                   </ul>
@@ -635,7 +635,7 @@ export default async function LondonPage() {
         <section className="py-10 sm:py-14 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-2">
                 Why use Pearlie to find a dentist in London?
               </h2>
               <p className="text-base text-muted-foreground mb-8">
@@ -653,9 +653,9 @@ export default async function LondonPage() {
                 ].map((item) => (
                   <div
                     key={item}
-                    className="flex items-start gap-2.5 rounded-lg border border-border/50 bg-white px-4 py-3"
+                    className="flex items-start gap-2.5 rounded-lg border border-border/50 bg-card px-4 py-3"
                   >
-                    <Shield className="w-4 h-4 text-[#0fbcb0] mt-0.5 shrink-0" />
+                    <Shield className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                     <span className="text-sm font-medium text-foreground">
                       {item}
                     </span>
@@ -684,7 +684,7 @@ export default async function LondonPage() {
               </p>
               <Link
                 href="/dentist-near-me"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0fbcb0] hover:underline"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
               >
                 Find a dentist near me
                 <ArrowRight className="w-4 h-4" />
@@ -694,7 +694,7 @@ export default async function LondonPage() {
         </section>
 
         {/* 11. Bottom CTA */}
-        <section className="py-12 sm:py-16 bg-[#004443]">
+        <section className="py-12 sm:py-16 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">

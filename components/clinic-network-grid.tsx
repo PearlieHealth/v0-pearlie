@@ -78,7 +78,7 @@ export function ClinicNetworkGrid() {
             width={300}
             height={300}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
+            fallbackClassName="w-full h-full flex items-center justify-center bg-[#0d1019]"
           />
         </Link>
       ))}

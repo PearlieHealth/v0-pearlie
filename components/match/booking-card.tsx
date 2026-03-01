@@ -152,7 +152,7 @@ export function BookingCard({
 
   const badge = isTopMatch ? "Top match" : "Selected clinic"
   const badgeStyle = isTopMatch
-    ? "bg-[#0fbcb0] text-white"
+    ? "bg-primary text-white"
     : "bg-card/90 text-muted-foreground"
 
   const reasons = clinic.match_reasons_composed?.length
@@ -176,11 +176,11 @@ export function BookingCard({
                 alt={clinic.name}
                 fill
                 className="object-cover"
-                fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
+                fallbackClassName="w-full h-full flex items-center justify-center bg-[#0d1019]"
                 sizes="64px"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-[#004443]">
+              <div className="w-full h-full flex items-center justify-center bg-[#0d1019]">
                 <span className="text-white text-lg font-bold">
                   {clinic.name.charAt(0).toUpperCase()}
                 </span>
@@ -199,10 +199,10 @@ export function BookingCard({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="flex-shrink-0 flex items-center gap-1 font-bold text-[10px] cursor-pointer px-1.5 py-0.5 rounded bg-[#0fbcb0]/10 text-foreground hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
+                      className="flex-shrink-0 flex items-center gap-1 font-bold text-[10px] cursor-pointer px-1.5 py-0.5 rounded bg-primary/10 text-foreground hover:bg-primary/20 transition-colors touch-manipulation"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <Sparkles className="w-3 h-3 text-[#0fbcb0]" />
+                      <Sparkles className="w-3 h-3 text-primary" />
                       <span>{clinic.match_percentage}%</span>
                       <Info className="w-2.5 h-2.5 text-foreground/40" />
                     </button>
@@ -274,7 +274,7 @@ export function BookingCard({
             </div>
           )}
           {clinic.verified && (
-            <div className="flex items-center gap-1 text-[#0fbcb0]">
+            <div className="flex items-center gap-1 text-primary">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span className="font-medium">Verified</span>
             </div>
@@ -304,10 +304,10 @@ export function BookingCard({
 
         {/* Why we matched you — collapsible */}
         {reasons.length > 0 && clinic.tier !== "directory" && !clinic.is_directory_listing && (
-          <details className="rounded-lg border border-[#0fbcb0]/30 group">
-            <summary className="px-3 py-2 cursor-pointer text-xs font-semibold text-[#0fbcb0] flex items-center justify-between list-none">
+          <details className="rounded-lg border border-primary/30 group">
+            <summary className="px-3 py-2 cursor-pointer text-xs font-semibold text-primary flex items-center justify-between list-none">
               {clinic.card_title || "Why we matched you"}
-              <ChevronDown className="w-3.5 h-3.5 text-[#0fbcb0]/50 group-open:rotate-180 transition-transform" />
+              <ChevronDown className="w-3.5 h-3.5 text-primary/50 group-open:rotate-180 transition-transform" />
             </summary>
             <div className="px-3 pb-2.5 space-y-1 text-xs text-foreground leading-relaxed">
               {reasons.slice(0, maxReasons).map((sentence, i) => (
@@ -334,7 +334,7 @@ export function BookingCard({
 
           {/* Confirmation step */}
           {pendingAppointment && (!appointmentRequested || bookingStatus === "declined" || bookingStatus === "cancelled") && (
-            <div className="rounded-lg border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-3 animate-in fade-in duration-200">
+            <div className="rounded-lg border-2 border-primary bg-primary/5 p-3 animate-in fade-in duration-200">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
                   <p className="text-[10px] font-semibold text-foreground uppercase tracking-wide">Confirm your request</p>
@@ -359,7 +359,7 @@ export function BookingCard({
               </p>
               <div className="flex gap-2">
                 <Button
-                  className="flex-1 h-8 rounded-md text-xs font-semibold bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
+                  className="flex-1 h-8 rounded-md text-xs font-semibold bg-[#0d1019] hover:bg-[#0d1019]/90 text-white border-0"
                   disabled={isRequesting}
                   onClick={async () => {
                     if (onRequestAppointment) {
@@ -423,7 +423,7 @@ export function BookingCard({
                     )}
                   </div>
                   <Button
-                    className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    className="w-full h-8 rounded-md text-xs font-semibold bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
                     onClick={onMessageClick}
                   >
                     <MessageCircle className="w-3.5 h-3.5 mr-1" />
@@ -448,7 +448,7 @@ export function BookingCard({
                   )}
                   <p className="text-[11px] text-muted-foreground">You can request a new appointment date.</p>
                   <Button
-                    className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    className="w-full h-8 rounded-md text-xs font-semibold bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
                     onClick={onMessageClick}
                   >
                     <MessageCircle className="w-3.5 h-3.5 mr-1" />
@@ -473,7 +473,7 @@ export function BookingCard({
                   )}
                   <p className="text-[11px] text-muted-foreground">You can request a new appointment date.</p>
                   <Button
-                    className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    className="w-full h-8 rounded-md text-xs font-semibold bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
                     onClick={onMessageClick}
                   >
                     <MessageCircle className="w-3.5 h-3.5 mr-1" />
@@ -497,7 +497,7 @@ export function BookingCard({
                     )}
                   </div>
                   <Button
-                    className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                    className="w-full h-8 rounded-md text-xs font-semibold bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
                     onClick={onMessageClick}
                   >
                     <MessageCircle className="w-3.5 h-3.5 mr-1" />
@@ -528,7 +528,7 @@ export function BookingCard({
                   The clinic will get back to you shortly.
                 </p>
                 <Button
-                  className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                  className="w-full h-8 rounded-md text-xs font-semibold bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
                   onClick={onMessageClick}
                 >
                   <MessageCircle className="w-3.5 h-3.5 mr-1" />
@@ -700,7 +700,7 @@ export function BookingCard({
                       <button
                         type="button"
                         onClick={() => setShowAllProviders(true)}
-                        className="text-[11px] text-[#0fbcb0] font-medium hover:underline"
+                        className="text-[11px] text-primary font-medium hover:underline"
                       >
                         View all {providers.length} providers
                       </button>
@@ -798,7 +798,7 @@ export function BookingCard({
           {(!appointmentRequested || bookingStatus === "declined" || bookingStatus === "cancelled") && (
             <div className="flex items-center gap-2">
               <Button
-                className="flex-1 h-8 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded font-medium text-xs border-0"
+                className="flex-1 h-8 bg-primary hover:bg-[var(--primary-hover)] text-white rounded font-medium text-xs border-0"
                 onClick={onMessageClick}
               >
                 <MessageCircle className="w-3.5 h-3.5 mr-1" />
@@ -806,7 +806,7 @@ export function BookingCard({
               </Button>
               {onRequestAppointment && !pendingAppointment && (
                 <Button
-                  className="flex-1 h-8 rounded-md text-xs font-medium bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
+                  className="flex-1 h-8 rounded-md text-xs font-medium bg-[#0d1019] hover:bg-[#0d1019]/90 text-white border-0"
                   onClick={() => {
                     setPendingAppointment({
                       message: "Hi! I'd like to request an appointment. What dates do you have available?",

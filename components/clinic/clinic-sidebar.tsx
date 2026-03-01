@@ -117,7 +117,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
         )}>
           {!isCollapsed && (
             <Link href={clinicHref("/clinic")} className="flex items-center gap-2.5" onClick={onNavigate}>
-              <div className="rounded-full bg-[#faf3e6] p-1.5">
+              <div className="rounded-full bg-secondary p-1.5">
                 <Heart className="w-4 h-4 text-foreground fill-foreground" />
               </div>
               <span className="font-semibold text-lg">Pearlie</span>
@@ -125,7 +125,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
           )}
           {isCollapsed && (
             <Link href={clinicHref("/clinic")}>
-              <div className="rounded-full bg-[#faf3e6] p-1.5">
+              <div className="rounded-full bg-secondary p-1.5">
                 <Heart className="w-4 h-4 text-foreground fill-foreground" />
               </div>
             </Link>
@@ -171,7 +171,7 @@ export function ClinicSidebar({ clinicName, clinicId, userRole, newLeadsCount = 
                   "flex items-center gap-3 px-3 rounded-lg transition-colors",
                   isMobile ? "py-3 text-base" : "py-2.5",
                   isActive
-                    ? "bg-[#faf3e6] text-[#0fbcb0] font-medium"
+                    ? "bg-secondary text-primary font-medium"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   isCollapsed && "justify-center px-2"
                 )}

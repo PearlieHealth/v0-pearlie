@@ -39,7 +39,7 @@ export default function AboutPage() {
 
       <main>
         {/* Hero Section — dark teal background, distinct from landing page's warm beige */}
-        <section className="pt-32 pb-16 sm:pb-24 md:pt-32 md:pb-32 bg-[#004443]">
+        <section className="pt-32 pb-16 sm:pb-24 md:pt-32 md:pb-32 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-3xl sm:text-5xl md:text-7xl font-heading font-bold tracking-[-0.03em] mb-6 sm:mb-8 text-white text-balance">
@@ -56,15 +56,15 @@ export default function AboutPage() {
         <TrustBadgeStrip />
 
         {/* Our Clinic Network — two-row carousel */}
-        <section className="py-12 sm:py-20 md:py-24 bg-white">
+        <section className="py-12 sm:py-20 md:py-24 bg-card">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12 sm:mb-16">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-foreground">
                 Our clinic network
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                 Pearlie partners with independent, trusted dental clinics across the UK. All clinics are verified,{" "}
-                <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#004443]">GDC-registered</a>,
+                <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">GDC-registered</a>,
                 and committed to providing quality patient care.
               </p>
             </div>
@@ -75,19 +75,19 @@ export default function AboutPage() {
         </section>
 
         {/* What Pearlie Does — cream background with richer descriptions */}
-        <section className="py-12 sm:py-20 md:py-28 bg-[#faf3e6]">
+        <section className="py-12 sm:py-20 md:py-28 bg-secondary">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-12 sm:mb-16">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-foreground">
                   What Pearlie does
                 </h2>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-6 lg:gap-8">
-                <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
-                  <div className="w-11 h-11 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center mb-5">
-                    <Users className="w-5 h-5 text-[#0fbcb0]" />
+                <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+                    <Users className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold mb-3 text-foreground">Match you with the right clinics</h3>
                   <p className="text-muted-foreground leading-relaxed">
@@ -96,9 +96,9 @@ export default function AboutPage() {
                   </p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
-                  <div className="w-11 h-11 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center mb-5">
-                    <CheckCircle2 className="w-5 h-5 text-[#0fbcb0]" />
+                <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+                    <CheckCircle2 className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold mb-3 text-foreground">Provide transparent clinic profiles</h3>
                   <p className="text-muted-foreground leading-relaxed">
@@ -107,9 +107,9 @@ export default function AboutPage() {
                   </p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
-                  <div className="w-11 h-11 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center mb-5">
-                    <Heart className="w-5 h-5 text-[#0fbcb0]" />
+                <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+                    <Heart className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold mb-3 text-foreground">Let you compare and connect</h3>
                   <p className="text-muted-foreground leading-relaxed">
@@ -117,9 +117,9 @@ export default function AboutPage() {
                   </p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
-                  <div className="w-11 h-11 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center mb-5">
-                    <Shield className="w-5 h-5 text-[#0fbcb0]" />
+                <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+                    <Shield className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold mb-3 text-foreground">Remain independent</h3>
                   <p className="text-muted-foreground leading-relaxed">
@@ -133,10 +133,10 @@ export default function AboutPage() {
         </section>
 
         {/* Why we built Pearlie — story section on white */}
-        <section className="py-12 sm:py-20 md:py-28 bg-white">
+        <section className="py-12 sm:py-20 md:py-28 bg-card">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-10 sm:mb-14 text-center text-[#004443]">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-10 sm:mb-14 text-center text-foreground">
                 Why we built Pearlie
               </h2>
               <div className="space-y-6 text-muted-foreground leading-relaxed text-lg max-w-3xl mx-auto">
@@ -156,7 +156,7 @@ export default function AboutPage() {
               </div>
 
               {/* Founder quote — GEO: citable pull quote with attribution */}
-              <blockquote className="mt-10 sm:mt-14 border-l-4 border-[#0fbcb0] pl-6 py-2 max-w-3xl mx-auto">
+              <blockquote className="mt-10 sm:mt-14 border-l-4 border-primary pl-6 py-2 max-w-3xl mx-auto">
                 <p className="text-lg sm:text-xl text-foreground italic leading-relaxed">
                   &ldquo;Private dentistry should be transparent, accessible, and centred around patient confidence. Pearlie was created to bridge the gap between high-quality clinicians and patients who value clarity and trust.&rdquo;
                 </p>
@@ -182,15 +182,15 @@ export default function AboutPage() {
         </section>
 
         {/* Our Commitment — cream background */}
-        <section className="py-12 sm:py-20 md:py-28 bg-[#faf3e6]">
+        <section className="py-12 sm:py-20 md:py-28 bg-secondary">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-foreground">
                 Our commitment
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
                 All clinics listed on Pearlie are independently verified and confirmed as registered with the{" "}
-                <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#004443]">General Dental Council (GDC)</a>,
+                <a href="https://www.gdc-uk.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">General Dental Council (GDC)</a>,
                 ensuring they meet UK regulatory and professional standards. There are no hidden fees, no paid placements,
                 and no misleading rankings. We continuously refine our matching so that every recommendation is based
                 on fit — not advertising spend.
@@ -200,7 +200,7 @@ export default function AboutPage() {
         </section>
 
         {/* Our Promise: Pearlie Guarantee — dark teal background */}
-        <section id="pearlie-guarantee" className="py-12 sm:py-20 md:py-28 bg-[#004443]">
+        <section id="pearlie-guarantee" className="py-12 sm:py-20 md:py-28 bg-[#0d1019]">
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
@@ -257,7 +257,7 @@ export default function AboutPage() {
               {/* Section header */}
               <div className="text-center mb-12 sm:mb-16">
                 <div className="inline-flex items-center gap-2.5 mb-5">
-                  <ShieldCheck className="w-8 h-8 text-[#0fbcb0]" />
+                  <ShieldCheck className="w-8 h-8 text-primary" />
                 </div>
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-white">
                   Our promise: Pearlie Guarantee
@@ -269,9 +269,9 @@ export default function AboutPage() {
 
               {/* Guarantee cards */}
               <div className="grid sm:grid-cols-3 gap-6 lg:gap-8 mb-14 sm:mb-20">
-                <div className="bg-white/10 rounded-2xl p-6 sm:p-8 text-center">
-                  <div className="w-12 h-12 rounded-full bg-[#0fbcb0]/15 flex items-center justify-center mx-auto mb-5">
-                    <BadgeCheck className="w-6 h-6 text-[#0fbcb0]" />
+                <div className="bg-card/10 rounded-2xl p-6 sm:p-8 text-center">
+                  <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-5">
+                    <BadgeCheck className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold mb-3 text-white">Verified for Quality</h3>
                   <p className="text-sm text-white/70 leading-relaxed">
@@ -281,9 +281,9 @@ export default function AboutPage() {
                   </p>
                 </div>
 
-                <div className="bg-white/10 rounded-2xl p-6 sm:p-8 text-center">
-                  <div className="w-12 h-12 rounded-full bg-[#0fbcb0]/15 flex items-center justify-center mx-auto mb-5">
-                    <Heart className="w-6 h-6 text-[#0fbcb0]" />
+                <div className="bg-card/10 rounded-2xl p-6 sm:p-8 text-center">
+                  <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-5">
+                    <Heart className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold mb-3 text-white">Satisfaction Promise</h3>
                   <p className="text-sm text-white/70 leading-relaxed">
@@ -291,9 +291,9 @@ export default function AboutPage() {
                   </p>
                 </div>
 
-                <div className="bg-white/10 rounded-2xl p-6 sm:p-8 text-center">
-                  <div className="w-12 h-12 rounded-full bg-[#0fbcb0]/15 flex items-center justify-center mx-auto mb-5">
-                    <MessageCircle className="w-6 h-6 text-[#0fbcb0]" />
+                <div className="bg-card/10 rounded-2xl p-6 sm:p-8 text-center">
+                  <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-5">
+                    <MessageCircle className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold mb-3 text-white">Ongoing Support</h3>
                   <p className="text-sm text-white/70 leading-relaxed">
@@ -326,7 +326,7 @@ export default function AboutPage() {
                     </AccordionTrigger>
                     <AccordionContent className="text-white/70 leading-relaxed">
                       Simply contact us at{" "}
-                      <a href="mailto:hello@pearlie.org" className="text-[#0fbcb0] hover:underline">hello@pearlie.org</a>{" "}
+                      <a href="mailto:hello@pearlie.org" className="text-primary hover:underline">hello@pearlie.org</a>{" "}
                       within 30 days of your appointment. Let us know what happened and we&apos;ll arrange your next
                       consultation or check-up fee at no cost to you.
                     </AccordionContent>
@@ -370,27 +370,27 @@ export default function AboutPage() {
         </section>
 
         {/* Pearlie in Numbers — concrete stats */}
-        <section className="py-12 sm:py-20 md:py-28 bg-white">
+        <section className="py-12 sm:py-20 md:py-28 bg-card">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-foreground">
                 Pearlie in numbers
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mt-10">
                 <div>
-                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">500+</div>
+                  <div className="text-3xl md:text-4xl font-bold text-primary">500+</div>
                   <p className="text-sm text-muted-foreground mt-2">Practices across London</p>
                 </div>
                 <div>
-                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">98%</div>
+                  <div className="text-3xl md:text-4xl font-bold text-primary">98%</div>
                   <p className="text-sm text-muted-foreground mt-2">Patient satisfaction</p>
                 </div>
                 <div>
-                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">60s</div>
+                  <div className="text-3xl md:text-4xl font-bold text-primary">60s</div>
                   <p className="text-sm text-muted-foreground mt-2">Average booking time</p>
                 </div>
                 <div>
-                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">10+</div>
+                  <div className="text-3xl md:text-4xl font-bold text-primary">10+</div>
                   <p className="text-sm text-muted-foreground mt-2">Treatment categories available</p>
                 </div>
               </div>
@@ -403,10 +403,10 @@ export default function AboutPage() {
         </section>
 
         {/* CTA Section — cream background, single clear action */}
-        <section className="py-12 sm:py-20 md:py-28 bg-[#faf3e6]">
+        <section className="py-12 sm:py-20 md:py-28 bg-secondary">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443]">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] mb-6 text-foreground">
                 Ready to find your clinic match?
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground mb-10 leading-relaxed">
@@ -414,16 +414,16 @@ export default function AboutPage() {
               </p>
               <Button
                 size="lg"
-                className="text-lg px-10 py-6 h-auto bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all"
+                className="text-lg px-10 py-6 h-auto bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full font-normal transition-all"
                 asChild
               >
                 <Link href="/intake">Get my clinic matches</Link>
               </Button>
               <div className="flex flex-wrap gap-3 justify-center mt-6">
-                <Button size="lg" variant="outline" className="rounded-full border-[#004443]/20 text-[#004443]" asChild>
+                <Button size="lg" variant="outline" className="rounded-full border-border text-foreground" asChild>
                   <Link href="/faq">Read our FAQ</Link>
                 </Button>
-                <Button size="lg" variant="outline" className="rounded-full border-[#004443]/20 text-[#004443]" asChild>
+                <Button size="lg" variant="outline" className="rounded-full border-border text-foreground" asChild>
                   <Link href="/our-mission">Our Mission</Link>
                 </Button>
               </div>

@@ -366,7 +366,7 @@ export default function SettingsPage() {
                   Your unique inbox
                 </p>
                 <div className="flex items-center gap-2">
-                  <code className="text-xs bg-white dark:bg-background px-2 py-1 rounded flex-1">
+                  <code className="text-xs bg-card dark:bg-background px-2 py-1 rounded flex-1">
                     {settings.id}@inbox.pearlie.org
                   </code>
                   <Button

@@ -46,7 +46,7 @@ export function LoadingAnimation({ onComplete }: LoadingAnimationProps) {
       <div className="flex items-center gap-3">
         {/* Animated tooth-to-heart icon */}
         <motion.div
-          className="bg-[#0fbcb0]/10 rounded-full p-3 w-14 h-14 flex items-center justify-center"
+          className="bg-primary/10 rounded-full p-3 w-14 h-14 flex items-center justify-center"
           initial={{ scale: 1 }}
           animate={{ scale: [1, 1.05, 1] }}
           transition={{
@@ -60,7 +60,7 @@ export function LoadingAnimation({ onComplete }: LoadingAnimationProps) {
             height="36"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="text-[#0fbcb0]"
+            className="text-primary"
           >
             <motion.path
               initial={{ d: toothPath }}
@@ -76,7 +76,7 @@ export function LoadingAnimation({ onComplete }: LoadingAnimationProps) {
 
         {/* Pearlie text */}
         <motion.span
-          className="text-2xl font-semibold text-[#0fbcb0]"
+          className="text-2xl font-semibold text-primary"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}

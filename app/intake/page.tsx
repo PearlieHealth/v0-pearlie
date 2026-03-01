@@ -662,10 +662,10 @@ export default function IntakePage() {
         group relative w-full p-4 sm:p-5 md:p-6 rounded-2xl border-2 text-left ${className}
         transition-all duration-200 ease-out
         ${selected
-          ? "border-[#0fbcb0] bg-[#faf3e6] shadow-md"
+          ? "border-primary bg-secondary shadow-md"
           : disabled
             ? "border-border/50 bg-muted/30 opacity-50 cursor-not-allowed"
-            : "border-border bg-white hover:border-[#0fbcb0]/50 hover:shadow-md active:scale-[0.98]"
+            : "border-border bg-card hover:border-primary/50 hover:shadow-md active:scale-[0.98]"
         }
       `}
     >
@@ -675,7 +675,7 @@ export default function IntakePage() {
             className={`
               w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0
               transition-all duration-200
-              ${selected ? "border-[#0fbcb0] bg-[#0fbcb0]" : "border-input group-hover:border-[#0fbcb0]/50"}
+              ${selected ? "border-primary bg-primary" : "border-input group-hover:border-primary/50"}
             `}
           >
             {selected && (
@@ -686,11 +686,11 @@ export default function IntakePage() {
           </div>
         )}
         <div className="flex-1">
-          <span className={`text-lg md:text-xl font-medium block ${selected ? "text-[#3d3838]" : "text-[#3d3838]"}`}>
+          <span className={`text-lg md:text-xl font-medium block ${selected ? "text-foreground" : "text-foreground"}`}>
             {children}
           </span>
           {hint && (
-            <span className={`text-sm mt-1 block ${selected ? "text-[#0fbcb0]" : "text-[#3d3838]/50"}`}>
+            <span className={`text-sm mt-1 block ${selected ? "text-primary" : "text-foreground/50"}`}>
               {hint}
             </span>
           )}
@@ -700,10 +700,10 @@ export default function IntakePage() {
             className={`
               w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0
               transition-all duration-200
-              ${selected ? "border-[#0fbcb0] bg-[#0fbcb0]" : "border-input group-hover:border-[#0fbcb0]/50"}
+              ${selected ? "border-primary bg-primary" : "border-input group-hover:border-primary/50"}
             `}
           >
-            {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+            {selected && <div className="w-2.5 h-2.5 rounded-full bg-card" />}
           </div>
         )}
       </div>
@@ -722,7 +722,7 @@ export default function IntakePage() {
   const StepHeader = ({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) => (
     <div className="text-center space-y-4">
       <motion.div
-        className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[#0fbcb0] text-white mb-2 shadow-2xl"
+        className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-primary text-white mb-2 shadow-2xl"
         initial={hasAnimated ? false : { scale: 0, rotate: -180 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", duration: 0.6 }}
@@ -730,7 +730,7 @@ export default function IntakePage() {
         {icon}
       </motion.div>
       <motion.h1
-        className="text-3xl md:text-4xl font-bold text-[#3d3838] tracking-tight text-balance"
+        className="text-3xl md:text-4xl font-bold text-foreground tracking-tight text-balance"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.1 }}
@@ -738,7 +738,7 @@ export default function IntakePage() {
         {title}
       </motion.h1>
       <motion.p
-        className="text-[#3d3838]/70 text-lg"
+        className="text-foreground/70 text-lg"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.2 }}
@@ -755,7 +755,7 @@ export default function IntakePage() {
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
+        className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg bg-primary hover:bg-[var(--primary-hover)] text-white border-0 hover:shadow-xl transition-all"
         size="lg"
       >
         {label}
@@ -779,15 +779,15 @@ export default function IntakePage() {
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="w-32 h-2 bg-[#faf3e6] rounded-full overflow-hidden">
+            <div className="w-32 h-2 bg-secondary rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-[#0fbcb0] hover:bg-[#0da399] rounded-full"
+                className="h-full bg-primary hover:bg-[var(--primary-hover)] rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
             </div>
-            <span className="text-sm font-medium text-[#3d3838]/70">{progressPercent}%</span>
+            <span className="text-sm font-medium text-foreground/70">{progressPercent}%</span>
           </div>
 
           <div className="w-16" />
@@ -818,13 +818,13 @@ export default function IntakePage() {
           {matchFailed && (
             <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-4">
               <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
-              <h2 className="text-lg font-semibold text-[#3d3838]">We couldn&apos;t find your matches</h2>
-              <p className="text-sm text-[#3d3838]/70">{matchFailed}</p>
+              <h2 className="text-lg font-semibold text-foreground">We couldn&apos;t find your matches</h2>
+              <p className="text-sm text-foreground/70">{matchFailed}</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
                   onClick={handleMatchRetry}
                   disabled={isSubmitting}
-                  className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                  className="bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
                 >
                   {isSubmitting ? "Retrying..." : "Try again"}
                 </Button>
@@ -1113,17 +1113,17 @@ export default function IntakePage() {
                             w-full p-5 rounded-2xl border-2 transition-all duration-200 text-center
                             ${
                               formData.preferred_times.includes(option.value)
-                                ? "border-[#0fbcb0] bg-[#faf3e6] ring-1 ring-[#0fbcb0]/20"
-                                : "border-border bg-card hover:border-[#0fbcb0]/50 hover:bg-[#faf3e6]/50"
+                                ? "border-primary bg-secondary ring-1 ring-primary/20"
+                                : "border-border bg-card hover:border-primary/50 hover:bg-secondary/50"
                             }
                           `}
                         >
                           <div className="flex flex-col items-center gap-2">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#faf3e6] text-[#0fbcb0]"}`}>
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-primary text-white" : "bg-secondary text-primary"}`}>
                               {option.value === "weekend" ? <Calendar className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                             </div>
-                            <span className="font-semibold text-[#3d3838]">{option.label}</span>
-                            <span className="text-sm text-[#3d3838]/60">{option.time}</span>
+                            <span className="font-semibold text-foreground">{option.label}</span>
+                            <span className="text-sm text-foreground/60">{option.time}</span>
                           </div>
                         </motion.button>
                       </motion.div>
@@ -1273,7 +1273,7 @@ export default function IntakePage() {
                     {formData.strictBudgetMode === "share_range" && (
                       <motion.div
                         {...fadeUp(0.1)}
-                        className="p-5 md:p-6 rounded-2xl border-2 border-[#0fbcb0] bg-[#faf3e6]"
+                        className="p-5 md:p-6 rounded-2xl border-2 border-primary bg-secondary"
                       >
                         <Label className="text-lg font-medium text-foreground">Enter your approximate budget or range (optional)</Label>
                         <div className="relative mt-3">
@@ -1333,17 +1333,17 @@ export default function IntakePage() {
                           }, 50)
                         }}
                         disabled={isSubmitting}
-                        className="w-full p-5 sm:p-6 rounded-2xl border-2 border-[#0fbcb0] bg-[#faf3e6] text-left transition-all duration-200 hover:shadow-md active:scale-[0.98]"
+                        className="w-full p-5 sm:p-6 rounded-2xl border-2 border-primary bg-secondary text-left transition-all duration-200 hover:shadow-md active:scale-[0.98]"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-[#0fbcb0] flex items-center justify-center flex-shrink-0">
+                          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                             <CheckCircle2 className="w-6 h-6 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <span className="text-lg font-semibold text-[#3d3838] block">
+                            <span className="text-lg font-semibold text-foreground block">
                               {isSubmitting ? "Finding your matches..." : "Continue as"}
                             </span>
-                            <span className="text-[#0fbcb0] font-medium truncate block">{authUser.email}</span>
+                            <span className="text-primary font-medium truncate block">{authUser.email}</span>
                           </div>
                         </div>
                       </button>
@@ -1434,11 +1434,11 @@ export default function IntakePage() {
                         />
                         <span className="text-sm text-foreground leading-relaxed">
                           I agree to be contacted by matched clinics about my enquiry and accept the{" "}
-                          <a href="/terms" className="text-[#3c8481] underline hover:text-[#0fbcb0]">
+                          <a href="/terms" className="text-primary/70 underline hover:text-primary">
                             Terms
                           </a>{" "}
                           and{" "}
-                          <a href="/privacy" className="text-[#3c8481] underline hover:text-[#0fbcb0]">
+                          <a href="/privacy" className="text-primary/70 underline hover:text-primary">
                             Privacy Policy
                           </a>
                           .
@@ -1464,7 +1464,7 @@ export default function IntakePage() {
                     <Button
                       type="submit"
                       disabled={!canContinueStep8 || isSubmitting}
-                      className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
+                      className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg bg-primary hover:bg-[var(--primary-hover)] text-white border-0 hover:shadow-xl transition-all"
                       size="lg"
                     >
                       {isSubmitting ? "Finding your matches..." : "Get my clinic matches"}
@@ -1475,7 +1475,7 @@ export default function IntakePage() {
 
                   {/* Trust indicators */}
                   <motion.div
-                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#3d3838]/50"
+                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-foreground/50"
                     initial={hasAnimated ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: hasAnimated ? 0 : 0.7 }}
@@ -1530,7 +1530,7 @@ export default function IntakePage() {
                       <Button
                         size="sm"
                         disabled={!(waitlistEmail || formData.email).includes("@") || waitlistSubmitting}
-                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                        className="bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
                         onClick={async () => {
                           setWaitlistSubmitting(true)
                           try {
@@ -1556,7 +1556,7 @@ export default function IntakePage() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-[#0fbcb0] font-medium">
+                  <p className="text-sm text-primary font-medium">
                     Thanks! We&apos;ll let you know when we expand to your area.
                   </p>
                 )}
@@ -1564,7 +1564,7 @@ export default function IntakePage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0">
+            <AlertDialogAction className="bg-primary hover:bg-[var(--primary-hover)] text-white border-0">
               {waitlistDone ? "Done" : "Got it"}
             </AlertDialogAction>
           </AlertDialogFooter>

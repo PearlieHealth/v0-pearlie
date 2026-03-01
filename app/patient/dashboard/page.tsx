@@ -1158,7 +1158,7 @@ export default function PatientDashboard() {
                       <div className="flex-shrink-0">
                         {conv.clinics?.images?.[0] ? (
                           <div className="relative w-9 h-9 rounded overflow-hidden bg-muted">
-                            <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" />
+                            <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#0d1019]" />
                           </div>
                         ) : (
                           <div className="w-9 h-9 rounded bg-primary flex items-center justify-center">
@@ -1217,7 +1217,7 @@ export default function PatientDashboard() {
                   <div className="flex items-center gap-2.5 min-w-0">
                     {chatHeaderImage ? (
                       <div className="relative w-8 h-8 rounded overflow-hidden flex-shrink-0 bg-muted ring-1 ring-border/40">
-                        <ClinicImage src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" />
+                        <ClinicImage src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#0d1019]" />
                       </div>
                     ) : (
                       <div className="w-8 h-8 rounded bg-primary flex items-center justify-center flex-shrink-0">
@@ -1505,7 +1505,7 @@ export default function PatientDashboard() {
                       <div className="flex-shrink-0">
                         {conv.clinics?.images?.[0] ? (
                           <div className="relative w-8 h-8 rounded overflow-hidden bg-muted">
-                            <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" />
+                            <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#0d1019]" />
                           </div>
                         ) : (
                           <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
@@ -1646,11 +1646,11 @@ export default function PatientDashboard() {
                             alt={clinic.name}
                             fill
                             className="object-cover w-full h-full"
-                            fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
+                            fallbackClassName="w-full h-full flex items-center justify-center bg-[#0d1019]"
                             sizes="(min-width: 1024px) 150px, 110px"
                           />
                         ) : (
-                          <div className="w-full h-full bg-[#004443] flex items-center justify-center">
+                          <div className="w-full h-full bg-[#0d1019] flex items-center justify-center">
                             <span className="text-white text-xl font-bold">{clinic.name.charAt(0)}</span>
                           </div>
                         )}
@@ -1681,12 +1681,12 @@ export default function PatientDashboard() {
           {/* Start a new search */}
           {latestMatch && (
             <Link href="/intake" className="block">
-              <div className="w-full bg-card rounded-lg border border-border/30 px-3 py-2.5 hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all cursor-pointer flex items-center justify-between gap-2">
+              <div className="w-full bg-card rounded-lg border border-border/30 px-3 py-2.5 hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer flex items-center justify-between gap-2">
                 <div>
                   <p className="text-xs font-semibold text-foreground">Looking for another treatment?</p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">Start a new search</p>
                 </div>
-                <span className="text-xs font-semibold text-[#0fbcb0] flex-shrink-0">
+                <span className="text-xs font-semibold text-primary flex-shrink-0">
                   New search &rarr;
                 </span>
               </div>
@@ -1698,7 +1698,7 @@ export default function PatientDashboard() {
             <section>
               <button
                 onClick={() => setShowMatchHistory(!showMatchHistory)}
-                className="flex items-center justify-between w-full text-left px-3 py-2.5 rounded-lg border border-border/30 bg-card hover:border-[#0fbcb0]/40 hover:shadow-sm transition-all"
+                className="flex items-center justify-between w-full text-left px-3 py-2.5 rounded-lg border border-border/30 bg-card hover:border-primary/40 hover:shadow-sm transition-all"
               >
                 <div>
                   <h2 className="text-xs font-semibold text-foreground">
@@ -1730,7 +1730,7 @@ export default function PatientDashboard() {
                               {new Date(match.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                             </span>
                             <span className="text-foreground font-medium text-xs truncate">{lead?.treatment_interest || "Dental enquiry"}</span>
-                            {isCurrent && <span className="text-[9px] text-[#0fbcb0] font-semibold flex-shrink-0">Current</span>}
+                            {isCurrent && <span className="text-[9px] text-primary font-semibold flex-shrink-0">Current</span>}
                           </div>
                           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                         </div>
@@ -1766,7 +1766,7 @@ export default function PatientDashboard() {
               <div className="flex items-center gap-2.5 min-w-0">
                 {chatHeaderImage ? (
                   <div className="relative w-9 h-9 rounded overflow-hidden flex-shrink-0 bg-muted ring-1 ring-border/40">
-                    <ClinicImage src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" />
+                    <ClinicImage src={chatHeaderImage} alt={chatHeaderName || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#0d1019]" />
                   </div>
                 ) : (
                   <div className="w-9 h-9 rounded bg-primary flex items-center justify-center flex-shrink-0">
@@ -2066,7 +2066,7 @@ export default function PatientDashboard() {
                     <div className="flex-shrink-0">
                       {conv.clinics?.images?.[0] ? (
                         <div className="relative w-9 h-9 rounded overflow-hidden bg-muted">
-                          <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]" />
+                          <ClinicImage src={conv.clinics.images[0]} alt={conv.clinics.name || "Clinic"} fill className="object-cover w-full h-full" fallbackClassName="w-full h-full flex items-center justify-center bg-[#0d1019]" />
                         </div>
                       ) : (
                         <div className="w-9 h-9 rounded bg-primary flex items-center justify-center">
@@ -2111,7 +2111,7 @@ export default function PatientDashboard() {
           >
             <button
               onClick={() => setMobileInboxListOpen(false)}
-              className="w-full flex items-center justify-center gap-2 h-10 rounded-lg bg-[#004443] text-white text-sm font-semibold active:scale-[0.98] transition-transform"
+              className="w-full flex items-center justify-center gap-2 h-10 rounded-lg bg-[#0d1019] text-white text-sm font-semibold active:scale-[0.98] transition-transform"
             >
               <Search className="w-4 h-4" />
               See Dashboard
@@ -2135,7 +2135,7 @@ export default function PatientDashboard() {
               <MessageCircle className="w-4 h-4 mr-1.5 flex-shrink-0" />
               Message
               {totalUnread > 0 && (
-                <span className="ml-1.5 bg-white/20 text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
+                <span className="ml-1.5 bg-card/20 text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
                   {totalUnread}
                 </span>
               )}

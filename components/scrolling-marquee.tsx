@@ -15,7 +15,7 @@ interface ScrollingMarqueeProps {
 
 export function ScrollingMarquee({ items, speed = 30, variant = "light" }: ScrollingMarqueeProps) {
   const isDark = variant === "dark"
-  const bgClass = isDark ? "bg-[#004443]" : "bg-[#004443]"
+  const bgClass = isDark ? "bg-[#0d1019]" : "bg-[#0d1019]"
   const textClass = isDark ? "text-white/80" : "text-white/90"
 
   // Render content row — duplicated for seamless looping.

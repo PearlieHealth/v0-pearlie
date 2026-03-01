@@ -44,7 +44,7 @@ function createInlineCallout(ctaLabel: string, ctaHref: string) {
           <div className="flex-1 text-base leading-relaxed">{children}</div>
           <Button
             size="lg"
-            className="shrink-0 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full"
+            className="shrink-0 bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full"
             asChild
           >
             <Link href={ctaHref}>{ctaLabel}</Link>
@@ -67,13 +67,13 @@ function CostTable({
       <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 sm:hidden rounded-r-xl" />
       <div className="overflow-x-auto">
         <table className="w-full text-sm border-collapse">
-          <thead className="bg-[#004443] text-white">
+          <thead className="bg-[#0d1019] text-white">
             <tr>
               {headers.map((h, i) => (
                 <th
                   key={i}
                   className={`px-3 sm:px-4 py-3 sm:py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
-                    i === 0 ? "sticky left-0 z-[2] bg-[#004443]" : ""
+                    i === 0 ? "sticky left-0 z-[2] bg-[#0d1019]" : ""
                   }`}
                 >
                   {h}
@@ -132,7 +132,7 @@ export function useMDXComponents(config?: MDXComponentsConfig): MDXComponents {
       return (
         <h2
           id={id}
-          className="mt-12 mb-4 text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] scroll-mt-24"
+          className="mt-12 mb-4 text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground scroll-mt-24"
           {...props}
         >
           {children}
@@ -165,7 +165,7 @@ export function useMDXComponents(config?: MDXComponentsConfig): MDXComponents {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#0da399] transition-colors"
+            className="text-primary underline underline-offset-2 hover:text-[var(--primary-hover)] transition-colors"
             {...props}
           >
             {children}
@@ -175,7 +175,7 @@ export function useMDXComponents(config?: MDXComponentsConfig): MDXComponents {
       return (
         <Link
           href={href || "#"}
-          className="text-[#0fbcb0] underline underline-offset-2 hover:text-[#0da399] transition-colors"
+          className="text-primary underline underline-offset-2 hover:text-[var(--primary-hover)] transition-colors"
           {...props}
         >
           {children}
@@ -199,7 +199,7 @@ export function useMDXComponents(config?: MDXComponentsConfig): MDXComponents {
     ),
     blockquote: ({ children, ...props }) => (
       <blockquote
-        className="my-6 border-l-4 border-[#0fbcb0] pl-6 italic text-muted-foreground"
+        className="my-6 border-l-4 border-primary pl-6 italic text-muted-foreground"
         {...props}
       >
         {children}
@@ -240,12 +240,12 @@ export function useMDXComponents(config?: MDXComponentsConfig): MDXComponents {
       </div>
     ),
     thead: ({ children, ...props }) => (
-      <thead className="bg-[#004443] text-white" {...props}>
+      <thead className="bg-[#0d1019] text-white" {...props}>
         {children}
       </thead>
     ),
     th: ({ children, ...props }) => (
-      <th className="px-3 sm:px-4 py-3 sm:py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap first:sticky first:left-0 first:z-[2] first:bg-[#004443]" {...props}>
+      <th className="px-3 sm:px-4 py-3 sm:py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap first:sticky first:left-0 first:z-[2] first:bg-[#0d1019]" {...props}>
         {children}
       </th>
     ),
@@ -255,7 +255,7 @@ export function useMDXComponents(config?: MDXComponentsConfig): MDXComponents {
       </tr>
     ),
     td: ({ children, ...props }) => (
-      <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-muted-foreground border-t border-border/30 whitespace-nowrap sm:whitespace-normal first:sticky first:left-0 first:z-[1] first:bg-background group-even:first:bg-secondary first:shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] first:font-medium first:text-foreground [&>strong]:text-[#004443] [&>strong]:font-bold" {...props}>
+      <td className="px-3 sm:px-4 py-3 sm:py-3.5 text-muted-foreground border-t border-border/30 whitespace-nowrap sm:whitespace-normal first:sticky first:left-0 first:z-[1] first:bg-background group-even:first:bg-secondary first:shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] first:font-medium first:text-foreground [&>strong]:text-foreground [&>strong]:font-bold" {...props}>
         {children}
       </td>
     ),
@@ -269,7 +269,7 @@ export function useMDXComponents(config?: MDXComponentsConfig): MDXComponents {
     ),
     pre: ({ children, ...props }) => (
       <pre
-        className="my-6 overflow-x-auto rounded-xl bg-[#004443] p-4 text-sm text-white"
+        className="my-6 overflow-x-auto rounded-xl bg-[#0d1019] p-4 text-sm text-white"
         {...props}
       >
         {children}

@@ -43,7 +43,7 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
   return (
     <Link
       href={`/clinic/${clinic.id}`}
-      className="group rounded-2xl border border-border/50 bg-white overflow-hidden hover:shadow-lg hover:border-[#0fbcb0]/30 transition-all duration-300 block"
+      className="group rounded-2xl border border-border/50 bg-card overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-300 block"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
         {heroImage ? (
@@ -54,7 +54,7 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#004443] to-[#00625e]">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0d1019] to-[#111828]">
             <span className="text-white/80 font-bold text-3xl">
               {clinic.name.charAt(0)}
             </span>
@@ -64,7 +64,7 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
         {/* Top badges */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5">
           {isVerified && (
-            <span className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold bg-[#0fbcb0] text-white rounded-full shadow-sm">
+            <span className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold bg-primary text-white rounded-full shadow-sm">
               <CheckCircle2 className="w-3 h-3" />
               Verified by Pearlie
             </span>
@@ -75,7 +75,7 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
         <div className="absolute bottom-3 left-3 flex items-center gap-2 flex-wrap">
           {/* Rating pills */}
           {clinic.rating != null && clinic.rating > 0 && (
-            <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
+            <div className="flex items-center gap-1 bg-[#111218]/80 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
               <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
               <span className="font-semibold text-[11px] text-foreground">
                 {clinic.rating.toFixed(1)}
@@ -88,7 +88,7 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
             </div>
           )}
           {showGoogleRating && (
-            <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
+            <div className="flex items-center gap-1 bg-[#111218]/80 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
               <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
               <span className="font-semibold text-[11px] text-foreground">
                 {clinic.google_rating!.toFixed(1)}
@@ -102,12 +102,12 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
           )}
           {/* Feature pills */}
           {freeConsult && (
-            <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#004443]/90 text-white rounded-full">
+            <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#0d1019]/90 text-white rounded-full">
               Free consultation
             </span>
           )}
           {hasFinance && (
-            <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#0fbcb0]/90 text-white rounded-full">
+            <span className="px-2 py-0.5 text-[10px] font-semibold bg-primary/90 text-white rounded-full">
               Finance available
             </span>
           )}
@@ -115,7 +115,7 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
       </div>
 
       <div className="p-4 space-y-1.5">
-        <h3 className="text-base font-heading font-bold text-foreground line-clamp-1 group-hover:text-[#004443] transition-colors">
+        <h3 className="text-base font-heading font-bold text-foreground line-clamp-1 group-hover:text-foreground transition-colors">
           {clinic.name}
         </h3>
 
@@ -134,7 +134,7 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
 
         {/* View clinic CTA */}
         <div className="pt-1.5 border-t border-border/30">
-          <span className="inline-flex items-center gap-1 text-[13px] font-medium text-[#0fbcb0] group-hover:text-[#0da399] transition-colors">
+          <span className="inline-flex items-center gap-1 text-[13px] font-medium text-primary group-hover:text-[var(--primary-hover)] transition-colors">
             View clinic
             <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </span>

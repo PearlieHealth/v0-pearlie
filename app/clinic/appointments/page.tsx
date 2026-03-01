@@ -542,7 +542,7 @@ export default function AppointmentsPage() {
               className={cn(
                 "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
                 activeTab === tab.key
-                  ? "border-[#0fbcb0] text-[#0fbcb0]"
+                  ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               )}
             >
@@ -553,7 +553,7 @@ export default function AppointmentsPage() {
                   className={cn(
                     "text-xs px-2 py-0.5 rounded-full font-medium",
                     activeTab === tab.key
-                      ? "bg-[#faf3e6] text-[#0fbcb0]"
+                      ? "bg-secondary text-primary"
                       : "bg-muted text-muted-foreground"
                   )}
                 >
@@ -581,7 +581,7 @@ export default function AppointmentsPage() {
             variant={showFilters ? "default" : "outline"}
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className={cn("gap-1.5", showFilters ? "bg-[#0fbcb0] hover:bg-[#0da399] text-white" : "bg-transparent")}
+            className={cn("gap-1.5", showFilters ? "bg-primary hover:bg-[var(--primary-hover)] text-white" : "bg-transparent")}
           >
             <Filter className="w-4 h-4" />
             Filters
@@ -787,7 +787,7 @@ export default function AppointmentsPage() {
                             {lead.first_name} {lead.last_name}
                           </p>
                           {lead.conversation?.unread_by_clinic && (
-                            <span className="w-2 h-2 rounded-full bg-[#0fbcb0] flex-shrink-0" />
+                            <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">

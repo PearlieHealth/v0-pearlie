@@ -24,7 +24,7 @@ export function NearbyBoroughs({
     <section className="py-12 sm:py-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
+          <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-2">
             {heading}
           </h2>
           <p className="text-muted-foreground mb-8">
@@ -41,16 +41,16 @@ export function NearbyBoroughs({
                 <Link
                   key={borough.slug}
                   href={href}
-                  className="group rounded-xl border border-border/50 bg-white p-5 hover:shadow-md hover:border-[#0fbcb0]/30 transition-all"
+                  className="group rounded-xl border border-border/50 bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-[#0fbcb0]" />
+                      <MapPin className="w-4 h-4 text-primary" />
                       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         {borough.region} London
                       </span>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-[#0fbcb0] transition-colors" />
+                    <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary transition-colors" />
                   </div>
                   <h3 className="text-base font-heading font-bold text-foreground mb-1.5">
                     {treatmentName

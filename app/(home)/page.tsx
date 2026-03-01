@@ -102,15 +102,15 @@ function PatientExperiences() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="py-16 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32 bg-[#f8f7f1] overflow-hidden">
+    <section ref={sectionRef} className="py-16 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32 bg-secondary overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
-            <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443] mb-4">
+            <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-foreground mb-4">
               Patient Experiences
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443] leading-[1.05]">
-              Real stories.<br />Thoughtful decisions.<br /><span className="text-[#0fbcb0]">Confident choices.</span>
+            <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-foreground leading-[1.05]">
+              Real stories.<br />Thoughtful decisions.<br /><span className="text-primary">Confident choices.</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-4">
               Real experiences from people who used Pearlie to choose with confidence.
@@ -132,14 +132,14 @@ function PatientExperiences() {
             animate={isVisible ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5, delay: i * 0.08, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            <Card className="p-5 border border-[#e8e4dc] shadow-none rounded-2xl bg-white h-full flex flex-col hover:shadow-md hover:border-[#d5cfc8] hover:-translate-y-0.5 focus-within:shadow-md focus-within:border-[#d5cfc8] focus-within:-translate-y-0.5 transition-all duration-300 ease-out">
+            <Card className="p-5 border border-border shadow-none rounded-2xl bg-card h-full flex flex-col hover:shadow-md hover:border-primary/20 hover:-translate-y-0.5 focus-within:shadow-md focus-within:border-primary/20 focus-within:-translate-y-0.5 transition-all duration-300 ease-out">
               <div className="flex items-center justify-between mb-2.5">
-                <span className="text-[9px] font-extrabold tracking-[0.1em] uppercase text-[#0fbcb0]">
+                <span className="text-[9px] font-extrabold tracking-[0.1em] uppercase text-primary">
                   {testimonial.label}
                 </span>
                 {testimonial.verified && (
                   <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <CheckCircle2 className="w-3 h-3 text-[#0fbcb0]" />
+                    <CheckCircle2 className="w-3 h-3 text-primary" />
                     Verified
                   </span>
                 )}
@@ -236,7 +236,7 @@ export default function Home() {
           <StickyMobileHomeCta />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative md:min-h-[70vh] lg:min-h-[100vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:flex lg:flex-col lg:pt-20 lg:pb-0 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
+          <section className="relative md:min-h-[70vh] lg:min-h-[100vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:flex lg:flex-col lg:pt-20 lg:pb-0 bg-gradient-to-b from-[#0e0f18] via-[#0c0d14] to-background overflow-hidden">
             <div className="px-6 md:px-14 lg:flex-1 lg:flex lg:items-center">
               <div className="max-w-7xl xl:max-w-[90rem] 2xl:max-w-[100rem] mx-auto lg:w-full">
 
@@ -276,17 +276,17 @@ export default function Home() {
                   {/* Text content — desktop left, mobile first */}
                   <div className="order-1 lg:order-1 flex-1 text-center lg:text-left">
                     <motion.h1
-                      className="text-[clamp(1.65rem,6.8vw,2.3rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-black mb-8 md:mb-14 lg:mb-24 -mx-2 md:mx-0"
+                      className="text-[clamp(1.65rem,6.8vw,2.3rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-foreground mb-8 md:mb-14 lg:mb-24 -mx-2 md:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
                     >
-                      <span className="block whitespace-nowrap">Find the <span className="text-[#0fbcb0]">right</span> dentist.</span>
+                      <span className="block whitespace-nowrap">Find the <span className="text-primary">right</span> dentist.</span>
                       <span className="block whitespace-nowrap mt-1 md:mt-2">Not just the closest one.</span>
                     </motion.h1>
 
                     <motion.p
-                      className="text-[15px] md:text-lg text-black mb-5 md:mb-6 lg:mb-8 leading-[1.5] max-w-lg mx-auto lg:mx-0"
+                      className="text-[15px] md:text-lg text-foreground mb-5 md:mb-6 lg:mb-8 leading-[1.5] max-w-lg mx-auto lg:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
@@ -305,44 +305,44 @@ export default function Home() {
                           <div className="flex flex-col lg:flex-row justify-center lg:justify-start gap-2 md:gap-3 max-w-md lg:max-w-none w-full">
                             <Link
                               href={`/match/${lastMatch.matchId}`}
-                              className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                              className="group flex items-center gap-3 bg-card border border-primary/20 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-primary/40 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
                             >
-                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                                <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-[#0fbcb0]" />
+                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm md:text-[15px] font-semibold text-black">Return to your matches</p>
-                                <p className="text-xs text-black mt-0.5 leading-snug">View the clinics we matched you with</p>
+                                <p className="text-sm md:text-[15px] font-semibold text-foreground">Return to your matches</p>
+                                <p className="text-xs text-foreground mt-0.5 leading-snug">View the clinics we matched you with</p>
                               </div>
-                              <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
+                              <ArrowRight className="w-5 h-5 text-primary group-hover:translate-x-0.5 transition-transform" />
                             </Link>
                             <Link
                               href="/intake"
-                              className="group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                              className="group flex items-center gap-3 bg-card border border-border rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-muted-foreground/30 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
                             >
-                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#f8f7f1] flex items-center justify-center flex-shrink-0">
-                                <Search className="w-4 h-4 md:w-5 md:h-5 text-[#004443]" />
+                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                                <Search className="w-4 h-4 md:w-5 md:h-5 text-foreground" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm md:text-[15px] font-semibold text-black">Start a new search</p>
-                                <p className="text-xs text-black mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
+                                <p className="text-sm md:text-[15px] font-semibold text-foreground">Start a new search</p>
+                                <p className="text-xs text-foreground mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
                               </div>
-                              <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
+                              <ArrowRight className="w-5 h-5 text-foreground group-hover:translate-x-0.5 transition-transform" />
                             </Link>
                           </div>
                           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <MapPin className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                            <span className="inline-flex items-center gap-1.5 bg-card/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <MapPin className="w-3.5 h-3.5 text-primary" />
                               <span className="font-semibold text-foreground">Trusted</span>
                               <span className="text-muted-foreground">across London</span>
                             </span>
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <Building2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                            <span className="inline-flex items-center gap-1.5 bg-card/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <Building2 className="w-3.5 h-3.5 text-primary" />
                               <span className="font-semibold text-foreground">500+</span>
                               <span className="text-muted-foreground">practices</span>
                             </span>
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <Star className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                            <span className="inline-flex items-center gap-1.5 bg-card/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <Star className="w-3.5 h-3.5 text-primary" />
                               <span className="font-semibold text-foreground">4.8★</span>
                               <span className="text-muted-foreground">avg rating</span>
                             </span>
@@ -352,18 +352,18 @@ export default function Home() {
                         <div className="flex flex-col items-center lg:items-start gap-5">
                           <HomeHeroSearch />
                           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <MapPin className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                            <span className="inline-flex items-center gap-1.5 bg-card/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <MapPin className="w-3.5 h-3.5 text-primary" />
                               <span className="font-semibold text-foreground">Trusted</span>
                               <span className="text-muted-foreground">across London</span>
                             </span>
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <Building2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                            <span className="inline-flex items-center gap-1.5 bg-card/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <Building2 className="w-3.5 h-3.5 text-primary" />
                               <span className="font-semibold text-foreground">500+</span>
                               <span className="text-muted-foreground">practices</span>
                             </span>
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <Star className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                            <span className="inline-flex items-center gap-1.5 bg-card/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
+                              <Star className="w-3.5 h-3.5 text-primary" />
                               <span className="font-semibold text-foreground">4.8★</span>
                               <span className="text-muted-foreground">avg rating</span>
                             </span>
@@ -382,12 +382,12 @@ export default function Home() {
           <ScrollingMarquee items={marqueeItems} speed={35} />
 
           {/* How it works section */}
-          <section id="how-it-works" className="py-16 md:pt-8 md:pb-11 lg:pt-10 lg:pb-13 bg-white relative overflow-hidden">
+          <section id="how-it-works" className="py-16 md:pt-8 md:pb-11 lg:pt-10 lg:pb-13 bg-card relative overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-7xl mx-auto">
                 {/* Section header */}
                 <div className="text-center mb-12 md:mb-8">
-                  <h2 className="text-[2rem] sm:text-[2.6rem] md:text-[2.6rem] lg:text-[3.25rem] font-heading font-bold tracking-[-0.03em] text-[#004443]">
+                  <h2 className="text-[2rem] sm:text-[2.6rem] md:text-[2.6rem] lg:text-[3.25rem] font-heading font-bold tracking-[-0.03em] text-foreground">
                     How It Works
                   </h2>
                 </div>
@@ -398,10 +398,10 @@ export default function Home() {
                   <div className="flex-1 flex justify-center lg:justify-end">
                     <div className="relative w-full max-w-[280px] lg:max-w-[230px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
                       {/* Step number */}
-                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">01</span>
+                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-foreground/20 select-none leading-none z-0">01</span>
                       {/* Phone mockup with form illustration */}
                       <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-4 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
-                        <div className="bg-white rounded-2xl p-4 lg:p-3 shadow-sm">
+                        <div className="bg-card rounded-2xl p-4 lg:p-3 shadow-sm">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center">
                               <Sparkles className="w-5 h-5 text-primary" />
@@ -417,11 +417,11 @@ export default function Home() {
                               </div>
                               <span className="text-sm text-primary font-medium">Dental Implants</span>
                             </div>
-                            <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border/60">
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/60">
                               <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30" />
                               <span className="text-sm text-muted-foreground">Cosmetic Dentistry</span>
                             </div>
-                            <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border/60">
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/60">
                               <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30" />
                               <span className="text-sm text-muted-foreground">General Checkup</span>
                             </div>
@@ -432,7 +432,7 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-[#004443]">
+                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-foreground">
                       Tell us what you're looking for
                     </h3>
                     <p className="text-base md:text-[0.9rem] text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
@@ -447,12 +447,12 @@ export default function Home() {
                   <div className="flex-1 flex justify-center lg:justify-start">
                     <div className="relative w-full max-w-[280px] lg:max-w-[230px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
                       {/* Step number */}
-                      <span className="absolute -top-6 -right-2 lg:-right-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">02</span>
+                      <span className="absolute -top-6 -right-2 lg:-right-8 text-8xl lg:text-8xl font-bold text-foreground/20 select-none leading-none z-0">02</span>
                       {/* Phone mockup with clinic cards */}
                       <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
                         <div className="space-y-4 lg:space-y-2">
                           {/* Clinic card 1 */}
-                          <div className="bg-white rounded-2xl p-4 shadow-sm border border-border/60">
+                          <div className="bg-card rounded-2xl p-4 shadow-sm border border-border/60">
                             <div className="flex items-start gap-3">
                               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center flex-shrink-0">
                                 <MapPin className="w-5 h-5 text-primary" />
@@ -473,7 +473,7 @@ export default function Home() {
                             </div>
                           </div>
                           {/* Clinic card 2 */}
-                          <div className="bg-white rounded-2xl p-4 shadow-sm border border-border/60">
+                          <div className="bg-card rounded-2xl p-4 shadow-sm border border-border/60">
                             <div className="flex items-start gap-3">
                               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-primary/20 flex items-center justify-center flex-shrink-0">
                                 <MapPin className="w-5 h-5 text-primary" />
@@ -499,7 +499,7 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-[#004443]">
+                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-foreground">
                       We match you with the right clinics
                     </h3>
                     <p className="text-base md:text-[0.9rem] text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
@@ -514,10 +514,10 @@ export default function Home() {
                   <div className="flex-1 flex justify-center lg:justify-end">
                     <div className="relative w-full max-w-[280px] lg:max-w-[230px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
                       {/* Step number */}
-                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">03</span>
+                      <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-foreground/20 select-none leading-none z-0">03</span>
                       {/* Phone mockup with booking */}
                       <div className="relative bg-gradient-to-br from-secondary/50 to-secondary rounded-[32px] p-6 lg:p-3 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-border">
-                        <div className="bg-white rounded-2xl p-5 lg:p-3 shadow-sm">
+                        <div className="bg-card rounded-2xl p-5 lg:p-3 shadow-sm">
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
                               <CalendarCheck className="w-5 h-5 text-primary" />
@@ -555,7 +555,7 @@ export default function Home() {
                   </div>
                   {/* Text content */}
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-[#004443]">
+                    <h3 className="text-xl sm:text-2xl md:text-2xl font-bold mb-2 text-foreground">
                       Compare. Chat. Book.
                     </h3>
                     <p className="text-base md:text-[0.9rem] text-muted-foreground leading-snug max-w-md mx-auto lg:mx-0">
@@ -581,12 +581,12 @@ export default function Home() {
                   {/* Content */}
                   <div className="lg:pl-4">
                     {/* Small accent label */}
-                    <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443] mb-4">
+                    <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-foreground mb-4">
                       Quality &amp; Trust
                     </span>
 
-                    <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443] leading-[1.05]">
-                      We shortlist.<br />You decide.<br /><span className="text-[#0fbcb0]">With confidence.</span>
+                    <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-foreground leading-[1.05]">
+                      We shortlist.<br />You decide.<br /><span className="text-primary">With confidence.</span>
                     </h2>
 
                     <p className="text-lg text-muted-foreground leading-snug mb-8">
@@ -595,7 +595,7 @@ export default function Home() {
 
                     {/* How we verify */}
                     <div className="space-y-4 mb-10">
-                      <p className="text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443]/60">How we verify clinics</p>
+                      <p className="text-xs font-extrabold tracking-[0.08em] uppercase text-foreground/60">How we verify clinics</p>
                       {[
                         {
                           step: "1",
@@ -614,8 +614,8 @@ export default function Home() {
                         },
                       ].map((item) => (
                         <div key={item.step} className="flex gap-3.5">
-                          <div className="w-7 h-7 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center shrink-0 mt-0.5">
-                            <span className="text-xs font-bold text-[#0fbcb0]">{item.step}</span>
+                          <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="text-xs font-bold text-primary">{item.step}</span>
                           </div>
                           <div>
                             <p className="text-sm font-semibold text-foreground">{item.title}</p>
@@ -627,7 +627,7 @@ export default function Home() {
 
                     <Button
                       size="lg"
-                      className="text-base px-8 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] group border-0"
+                      className="text-base px-8 h-14 bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] group border-0"
                       asChild
                     >
                       <Link href="/intake" onClick={handleFindClinicClick}>
@@ -646,15 +646,15 @@ export default function Home() {
           <ComparisonTable />
 
           {/* Pearlie Guarantee callout */}
-          <section className="py-14 md:py-20 bg-[#004443] relative overflow-hidden">
-            <div className="absolute top-0 left-1/4 w-72 h-72 rounded-full bg-[#0fbcb0]/[0.04] blur-[80px] pointer-events-none" />
+          <section className="py-14 md:py-20 bg-[#0d1019] relative overflow-hidden">
+            <div className="absolute top-0 left-1/4 w-72 h-72 rounded-full bg-primary/[0.04] blur-[80px] pointer-events-none" />
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="max-w-4xl mx-auto">
                 <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
                   {/* Icon */}
                   <div className="shrink-0">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-[#0fbcb0]/15 flex items-center justify-center">
-                      <Shield className="w-8 h-8 md:w-10 md:h-10 text-[#0fbcb0]" />
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-primary/15 flex items-center justify-center">
+                      <Shield className="w-8 h-8 md:w-10 md:h-10 text-primary" />
                     </div>
                   </div>
                   {/* Content */}
@@ -668,15 +668,15 @@ export default function Home() {
                     </p>
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
                       <div className="flex items-center gap-2 text-sm text-white/60">
-                        <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                        <CheckCircle2 className="w-4 h-4 text-primary" />
                         <span>For Pearlie Verified clinics</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-white/60">
-                        <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                        <CheckCircle2 className="w-4 h-4 text-primary" />
                         <span>Satisfaction promise</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-white/60">
-                        <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                        <CheckCircle2 className="w-4 h-4 text-primary" />
                         <span>No hidden costs</span>
                       </div>
                     </div>
@@ -685,7 +685,7 @@ export default function Home() {
                   <div className="shrink-0">
                     <Link
                       href="/about#pearlie-guarantee"
-                      className="inline-flex items-center gap-2 text-sm font-medium text-[#0fbcb0] hover:text-white transition-colors whitespace-nowrap"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-[var(--primary-hover)] transition-colors whitespace-nowrap"
                     >
                       Learn more
                       <ArrowRight className="w-4 h-4" />
@@ -700,15 +700,15 @@ export default function Home() {
           <PatientExperiences />
 
           {/* Find dentists by area */}
-          <section className="py-16 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32 bg-white">
+          <section className="py-16 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32 bg-card">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-12 md:mb-16">
-                  <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443] mb-4">
+                  <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-foreground mb-4">
                     Browse by Area
                   </span>
-                  <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443] leading-[1.05]">
-                    Find dentists across<br /><span className="text-[#0fbcb0]">London</span>
+                  <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-foreground leading-[1.05]">
+                    Find dentists across<br /><span className="text-primary">London</span>
                   </h2>
                   <p className="text-lg text-muted-foreground max-w-xl mx-auto">
                     Compare verified dental clinics in {LONDON_BOROUGHS.length} London boroughs.
@@ -721,9 +721,9 @@ export default function Home() {
                     <Link
                       key={borough.slug}
                       href={`/london/${borough.slug}`}
-                      className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors flex items-center gap-1.5 p-2 rounded-lg hover:bg-muted/50"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5 p-2 rounded-lg hover:bg-secondary/50"
                     >
-                      <MapPin className="w-3 h-3 text-[#0fbcb0] flex-shrink-0" />
+                      <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
                       {borough.name}
                     </Link>
                   ))}
@@ -732,7 +732,7 @@ export default function Home() {
                 <div className="text-center">
                   <Link
                     href="/london"
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-[#0fbcb0] hover:underline"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-[var(--primary-hover)] transition-colors"
                   >
                     View all London areas
                     <ArrowRight className="w-4 h-4" />
@@ -743,10 +743,10 @@ export default function Home() {
           </section>
 
           {/* CTA section - dark teal background */}
-          <section className="py-24 md:pt-24 md:pb-32 lg:pt-28 lg:pb-36 bg-[#004443] text-white relative overflow-hidden">
+          <section className="py-24 md:pt-24 md:pb-32 lg:pt-28 lg:pb-36 bg-[#0d1019] text-white relative overflow-hidden">
             {/* Decorative background blobs */}
             <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-white/[0.03] blur-3xl pointer-events-none" />
-            <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-[#0fbcb0]/[0.08] blur-2xl pointer-events-none" />
+            <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-primary/[0.08] blur-2xl pointer-events-none" />
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="max-w-3xl mx-auto text-center">
@@ -758,7 +758,7 @@ export default function Home() {
                 </p>
                 <Button
                   size="lg"
-                  className="text-base px-10 h-16 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] text-lg font-normal border-0"
+                  className="text-base px-10 h-16 bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] text-lg font-normal border-0"
                   asChild
                 >
                   <Link href="/intake" onClick={handleFindClinicClick}>

@@ -17,7 +17,7 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
 
   return (
     <Link href={`/clinic/${clinic.id}`} className="snap-start flex-shrink-0 w-[280px] sm:w-[300px] md:w-[320px] group">
-      <Card className="h-full overflow-hidden border border-[#e8e4dc] shadow-none rounded-2xl bg-white group-hover:shadow-lg group-hover:border-[#0fbcb0]/30 group-hover:-translate-y-1 transition-all duration-300 ease-out">
+      <Card className="h-full overflow-hidden border border-border shadow-none rounded-2xl bg-card group-hover:shadow-lg group-hover:border-primary/30 group-hover:-translate-y-1 transition-all duration-300 ease-out">
         {/* Image with gradient overlay */}
         <div className="relative w-full h-44 bg-muted">
           {clinic.images && clinic.images.length > 0 ? (
@@ -26,10 +26,10 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
               alt={clinic.name}
               fill
               className="object-cover"
-              fallbackClassName="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#004443] to-[#00625e]"
+              fallbackClassName="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0d1019] to-[#111828]"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#004443] to-[#00625e]">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0d1019] to-[#111828]">
               <span className="text-white/80 font-bold text-3xl">
                 {clinic.name.charAt(0)}
               </span>
@@ -86,15 +86,15 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
         {/* Content */}
         <div className="p-4 space-y-2">
           {/* Name */}
-          <h3 className="text-[15px] font-semibold text-foreground leading-tight line-clamp-1 group-hover:text-[#004443] transition-colors">
+          <h3 className="text-[15px] font-semibold text-foreground leading-tight line-clamp-1 group-hover:text-foreground transition-colors">
             {clinic.name}
           </h3>
 
           {/* Verified by Pearlie */}
           {clinic.verified && (
             <div className="flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] flex-shrink-0" />
-              <span className="text-[11px] font-medium text-[#0fbcb0]">Verified by Pearlie</span>
+              <CheckCircle2 className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+              <span className="text-[11px] font-medium text-primary">Verified by Pearlie</span>
             </div>
           )}
 
@@ -107,7 +107,7 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
 
           {/* View clinic CTA */}
           <div className="pt-1.5 border-t border-border/30">
-            <span className="inline-flex items-center gap-1 text-[13px] font-medium text-[#0fbcb0] group-hover:text-[#0da399] transition-colors">
+            <span className="inline-flex items-center gap-1 text-[13px] font-medium text-primary group-hover:text-[var(--primary-hover)] transition-colors">
               View clinic profile
               <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </span>

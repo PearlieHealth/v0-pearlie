@@ -10,7 +10,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-[#faf6f0]">
       <AdminNav />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-3xl">
-        <h1 className="text-2xl font-bold text-[#004443] mb-8">Settings</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-8">Settings</h1>
 
         <Card className="border-destructive/30">
           <CardHeader>

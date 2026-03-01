@@ -46,19 +46,19 @@ export function BlogHeader({ post }: BlogHeaderProps) {
 
           <Link
             href="/blog"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#0fbcb0] transition-colors mb-6"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to all articles
           </Link>
 
           {category && (
-            <span className="inline-block mb-4 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0fbcb0] bg-[#0fbcb0]/10 rounded-full">
+            <span className="inline-block mb-4 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 rounded-full">
               {category.label}
             </span>
           )}
 
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] text-[#004443] mb-6 text-balance">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] text-foreground mb-6 text-balance">
             {post.title}
           </h1>
 

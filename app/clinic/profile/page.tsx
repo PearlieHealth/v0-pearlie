@@ -382,7 +382,7 @@ export default function ClinicProfilePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0fbcb0]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     )
   }
@@ -414,7 +414,7 @@ export default function ClinicProfilePage() {
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight">{profile.name}</h1>
               {profile.verified && (
-                <Badge className="bg-[#0fbcb0] text-white border-0 text-xs">
+                <Badge className="bg-primary text-white border-0 text-xs">
                   <Shield className="w-3 h-3 mr-1" />
                   Verified
                 </Badge>
@@ -460,7 +460,7 @@ export default function ClinicProfilePage() {
           </Button>
           <Button
             size="sm"
-            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white"
+            className="bg-primary hover:bg-[var(--primary-hover)] text-white"
             onClick={handleSave}
             disabled={isSaving}
           >
@@ -674,8 +674,8 @@ export default function ClinicProfilePage() {
                       }}
                       className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
                         isSelected
-                          ? "bg-[#0fbcb0] text-white border-[#0fbcb0]"
-                          : "bg-background border-border hover:border-[#0fbcb0]/50"
+                          ? "bg-primary text-white border-primary"
+                          : "bg-background border-border hover:border-primary/50"
                       }`}
                     >
                       {lang}
@@ -750,7 +750,7 @@ export default function ClinicProfilePage() {
                       e.target.value = ""
                     }}
                   />
-                  <div className="flex items-center justify-center h-40 border-2 border-dashed rounded-lg hover:border-[#0fbcb0]/50 transition-colors">
+                  <div className="flex items-center justify-center h-40 border-2 border-dashed rounded-lg hover:border-primary/50 transition-colors">
                     <div className="text-center">
                       <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                       <p className="text-sm text-muted-foreground">Click to upload photos</p>
@@ -782,7 +782,7 @@ export default function ClinicProfilePage() {
             <CardContent className="space-y-4">
               {profile.before_after_images.length === 0 ? (
                 <div
-                  className="flex items-center justify-center h-32 border-2 border-dashed rounded-lg hover:border-[#0fbcb0]/50 transition-colors cursor-pointer"
+                  className="flex items-center justify-center h-32 border-2 border-dashed rounded-lg hover:border-primary/50 transition-colors cursor-pointer"
                   onClick={addBeforeAfterPair}
                 >
                   <div className="text-center">
@@ -845,7 +845,7 @@ export default function ClinicProfilePage() {
                                 e.target.value = ""
                               }}
                             />
-                            <div className="aspect-[4/3] rounded-lg border-2 border-dashed flex items-center justify-center hover:border-[#0fbcb0]/50 transition-colors">
+                            <div className="aspect-[4/3] rounded-lg border-2 border-dashed flex items-center justify-center hover:border-primary/50 transition-colors">
                               {isUploadingBeforeAfter === `${pairIndex}-before` ? (
                                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                               ) : (
@@ -886,7 +886,7 @@ export default function ClinicProfilePage() {
                                 e.target.value = ""
                               }}
                             />
-                            <div className="aspect-[4/3] rounded-lg border-2 border-dashed flex items-center justify-center hover:border-[#0fbcb0]/50 transition-colors">
+                            <div className="aspect-[4/3] rounded-lg border-2 border-dashed flex items-center justify-center hover:border-primary/50 transition-colors">
                               {isUploadingBeforeAfter === `${pairIndex}-after` ? (
                                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                               ) : (
@@ -1311,8 +1311,8 @@ export default function ClinicProfilePage() {
                           }}
                           className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
                             isSelected
-                              ? "bg-[#0fbcb0] text-white border-[#0fbcb0]"
-                              : "bg-background border-border hover:border-[#0fbcb0]/50"
+                              ? "bg-primary text-white border-primary"
+                              : "bg-background border-border hover:border-primary/50"
                           }`}
                         >
                           {option.label}

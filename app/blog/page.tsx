@@ -84,12 +84,12 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
       <main>
         {/* Hero */}
-        <section className="pt-28 pb-10 sm:pt-32 sm:pb-14 bg-[#004443]">
+        <section className="pt-28 pb-10 sm:pt-32 sm:pb-14 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <div className="flex items-center justify-center gap-2 mb-4">
-                <BookOpen className="w-5 h-5 text-[#0fbcb0]" />
-                <span className="text-sm font-semibold uppercase tracking-wider text-[#0fbcb0]">
+                <BookOpen className="w-5 h-5 text-primary" />
+                <span className="text-sm font-semibold uppercase tracking-wider text-primary">
                   The Pearlie Blog
                 </span>
               </div>
@@ -105,7 +105,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
         </section>
 
         {/* Category filters */}
-        <section className="border-b border-border/50 bg-white sticky top-0 z-40">
+        <section className="border-b border-border/50 bg-card sticky top-0 z-40">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-hide">
               <div className="flex items-center gap-2 py-3 min-w-max">
@@ -113,7 +113,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                   href="/blog"
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                     !activeCategory
-                      ? "bg-[#0fbcb0] text-white"
+                      ? "bg-primary text-white"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                   }`}
                 >
@@ -125,7 +125,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                     href={`/blog?category=${slug}`}
                     className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                       activeCategory === slug
-                        ? "bg-[#0fbcb0] text-white"
+                        ? "bg-primary text-white"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                     }`}
                   >
@@ -171,7 +171,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                   </p>
                   <Button
                     size="lg"
-                    className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full"
+                    className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full"
                     asChild
                   >
                     <Link href="/intake">Find my clinic</Link>
@@ -239,7 +239,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                               href={buildPageUrl(page)}
                               className={`w-10 h-10 inline-flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
                                 page === currentPage
-                                  ? "bg-[#0fbcb0] text-white"
+                                  ? "bg-primary text-white"
                                   : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                               }`}
                             >
@@ -272,7 +272,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
         </section>
 
         {/* CTA */}
-        <section className="py-12 sm:py-16 bg-[#004443]">
+        <section className="py-12 sm:py-16 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
@@ -284,7 +284,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
               </p>
               <Button
                 size="lg"
-                className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 h-12 text-base"
+                className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full px-8 h-12 text-base"
                 asChild
               >
                 <Link href="/intake">Get my clinic matches</Link>

@@ -237,8 +237,8 @@ export function PhotoUploader({ value, onChange, label, maxSizeMB = 5, type = "m
             <label
               className={cn(
                 "flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
-                "hover:bg-gray-50 hover:border-gray-400",
-                "border-gray-300 bg-white",
+                "hover:bg-secondary hover:border-border",
+                "border-border bg-card",
                 isUploading && "opacity-50 cursor-not-allowed",
               )}
             >
@@ -269,7 +269,7 @@ export function PhotoUploader({ value, onChange, label, maxSizeMB = 5, type = "m
           </TabsContent>
 
           <TabsContent value="url" className="mt-2">
-            <div className="flex flex-col items-center justify-center w-full min-h-48 border-2 border-dashed rounded-lg border-gray-300 bg-white p-6">
+            <div className="flex flex-col items-center justify-center w-full min-h-48 border-2 border-dashed rounded-lg border-gray-300 bg-card p-6">
               <LinkIcon className="w-10 h-10 mb-3 text-gray-400" />
               <p className="mb-4 text-sm text-gray-500 text-center">Enter an image URL</p>
 
@@ -292,7 +292,7 @@ export function PhotoUploader({ value, onChange, label, maxSizeMB = 5, type = "m
                   </div>
 
                   {urlPreview && (
-                    <div className="w-16 h-16 flex-shrink-0 border border-gray-300 rounded overflow-hidden bg-gray-50">
+                    <div className="w-16 h-16 flex-shrink-0 border border-border rounded overflow-hidden bg-secondary">
                       <img
                         src={urlPreview || "/placeholder.svg"}
                         alt="Preview"
@@ -302,7 +302,7 @@ export function PhotoUploader({ value, onChange, label, maxSizeMB = 5, type = "m
                   )}
 
                   {isValidatingImage && (
-                    <div className="w-16 h-16 flex-shrink-0 border border-gray-300 rounded flex items-center justify-center bg-gray-50">
+                    <div className="w-16 h-16 flex-shrink-0 border border-border rounded flex items-center justify-center bg-secondary">
                       <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
                     </div>
                   )}

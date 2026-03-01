@@ -108,7 +108,7 @@ export function SelfTestButton() {
 
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-8">
-            <Loader2 className="w-8 h-8 animate-spin text-[#004443]" />
+            <Loader2 className="w-8 h-8 animate-spin text-foreground" />
             <p className="mt-4 text-sm text-muted-foreground">Running automated tests...</p>
           </div>
         )}

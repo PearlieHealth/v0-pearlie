@@ -21,7 +21,7 @@ export function TreatmentClinicGrid({ clinics, treatmentName, heading, subheadin
     <section className="py-10 sm:py-14">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-2">
+          <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-2">
             {heading || `Clinics offering ${treatmentName}`}
           </h2>
           <p className="text-muted-foreground mb-8">

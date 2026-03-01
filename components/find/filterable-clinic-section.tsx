@@ -42,13 +42,13 @@ export function FilterableClinicSection({ clinics, areaName, variant = "area" }:
   }, [clinics, activeFilter])
 
   const nhsCount = clinics.filter((c) => c.accepts_nhs).length
-  const bgClass = variant === "region" ? "bg-white" : "bg-[#faf9f6]"
+  const bgClass = variant === "region" ? "bg-card" : "bg-secondary"
 
   return (
     <section className={`py-10 sm:py-14 ${bgClass} overflow-hidden`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-4 text-[#004443]">
+          <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] mb-4 text-foreground">
             Dental clinics {variant === "region" ? "in" : "near"} {areaName}
           </h2>
           {/* Filter tabs */}
@@ -62,11 +62,11 @@ export function FilterableClinicSection({ clinics, areaName, variant = "area" }:
                   onClick={() => setActiveFilter(filter.value)}
                   className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-all ${
                     isActive
-                      ? "bg-[#004443] text-white shadow-sm"
-                      : "bg-white border border-border/60 text-muted-foreground hover:border-[#0fbcb0]/40 hover:text-foreground"
+                      ? "bg-[#0d1019] text-white shadow-sm"
+                      : "bg-card border border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground"
                   }`}
                 >
-                  {filter.value === "all" && <Shield className={`w-3 h-3 ${isActive ? "text-[#0fbcb0]" : "text-[#0fbcb0]"}`} />}
+                  {filter.value === "all" && <Shield className={`w-3 h-3 ${isActive ? "text-primary" : "text-primary"}`} />}
                   {filter.label}
                   {count !== undefined && count > 0 && (
                     <span className={`text-[10px] ${isActive ? "text-white/70" : "text-muted-foreground/60"}`}>
@@ -90,13 +90,13 @@ export function FilterableClinicSection({ clinics, areaName, variant = "area" }:
       ) : (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
-            <div className="text-center py-10 rounded-xl bg-white border border-border/40">
+            <div className="text-center py-10 rounded-xl bg-card border border-border/40">
               <p className="text-muted-foreground text-sm mb-1">
                 No {activeFilter === "nhs" ? "NHS" : activeFilter === "denplan" ? "Denplan" : "private"} clinics found in {areaName}
               </p>
               <button
                 onClick={() => setActiveFilter("all")}
-                className="text-sm font-medium text-[#0fbcb0] hover:text-[#0da399] transition-colors"
+                className="text-sm font-medium text-primary hover:text-[var(--primary-hover)] transition-colors"
               >
                 Show all clinics
               </button>

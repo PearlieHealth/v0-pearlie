@@ -99,7 +99,7 @@ export function FlowSplitCard({ leads }: FlowSplitCardProps) {
   return (
     <Card className="p-6">
       <div className="flex items-center gap-2 mb-6">
-        <GitBranch className="h-5 w-5 text-[#004443]" />
+        <GitBranch className="h-5 w-5 text-foreground" />
         <h3 className="text-lg font-semibold">Emergency vs Planning</h3>
       </div>
 
@@ -108,7 +108,7 @@ export function FlowSplitCard({ leads }: FlowSplitCardProps) {
         <div className="flex h-8 rounded-lg overflow-hidden">
           {planningPct > 0 && (
             <div
-              className="bg-[#004443] flex items-center justify-center text-white text-xs font-medium transition-all"
+              className="bg-[#0d1019] flex items-center justify-center text-white text-xs font-medium transition-all"
               style={{ width: `${planningPct}%` }}
             >
               {planningPct >= 15 && `${planningPct.toFixed(0)}%`}

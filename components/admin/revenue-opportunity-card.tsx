@@ -77,11 +77,11 @@ export function RevenueOpportunityCard({
                   <span className="text-xs text-muted-foreground">{bookedLeadsCount} booked lead{bookedLeadsCount !== 1 ? 's' : ''}</span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl md:text-3xl font-bold text-[#004443]">
+                  <span className="text-2xl md:text-3xl font-bold text-foreground">
                     £{Math.round(totalPotentialMin).toLocaleString()}
                   </span>
                   <span className="text-lg text-muted-foreground">—</span>
-                  <span className="text-2xl md:text-3xl font-bold text-[#004443]">
+                  <span className="text-2xl md:text-3xl font-bold text-foreground">
                     £{Math.round(totalPotentialMax).toLocaleString()}
                   </span>
                 </div>

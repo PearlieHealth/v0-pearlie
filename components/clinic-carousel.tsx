@@ -122,7 +122,7 @@ export default function ClinicCarousel() {
                 alt={clinicImages[currentIndex].alt}
                 fill
                 className="object-cover w-full h-full"
-                fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
+                fallbackClassName="w-full h-full flex items-center justify-center bg-[#0d1019]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
@@ -143,14 +143,14 @@ export default function ClinicCarousel() {
 
           <button
             onClick={() => { paginate(-1); setIsAutoPlaying(false); }}
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-white transition-colors z-10"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-card/90 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-card transition-colors z-10"
             aria-label="Previous clinic"
           >
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
           <button
             onClick={() => { paginate(1); setIsAutoPlaying(false); }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-white transition-colors z-10"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-card/90 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-card transition-colors z-10"
             aria-label="Next clinic"
           >
             <ChevronRight className="w-5 h-5 text-foreground" />
@@ -181,9 +181,9 @@ export default function ClinicCarousel() {
         onMouseLeave={() => setIsPaused(false)}
       >
         {/* Top fade */}
-        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
         {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
 
         <div
           className="marquee-vertical-track flex flex-col gap-4"
@@ -203,7 +203,7 @@ export default function ClinicCarousel() {
                 alt={clinic.alt}
                 fill
                 className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
-                fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
+                fallbackClassName="w-full h-full flex items-center justify-center bg-[#0d1019]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4 text-white">

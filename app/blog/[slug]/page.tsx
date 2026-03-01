@@ -188,7 +188,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
                   {/* Inline CTA at end of article */}
                   <div className="mt-12 rounded-2xl bg-[var(--cream)] border border-border/50 p-6 md:p-8 text-center">
-                    <h3 className="text-xl font-heading font-bold text-[#004443] mb-2">
+                    <h3 className="text-xl font-heading font-bold text-foreground mb-2">
                       Looking for a dentist?
                     </h3>
                     <p className="text-muted-foreground mb-4">
@@ -197,7 +197,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     </p>
                     <Button
                       size="lg"
-                      className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8"
+                      className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full px-8"
                       asChild
                     >
                       <Link href="/intake">Find my clinic</Link>
@@ -224,13 +224,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   <div className="sticky top-24">
                     <TableOfContents headings={headings} />
                     <div className="mt-6 rounded-xl bg-[var(--cream)] border border-border/50 p-4 text-center">
-                      <p className="text-sm font-semibold text-[#004443] mb-2">Find your clinic</p>
+                      <p className="text-sm font-semibold text-foreground mb-2">Find your clinic</p>
                       <p className="text-xs text-muted-foreground mb-3">
                         Matched to your needs. Free, takes 60 secs.
                       </p>
                       <Button
                         size="sm"
-                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full text-xs px-4 w-full border-0"
+                        className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full text-xs px-4 w-full border-0"
                         asChild
                       >
                         <Link href="/intake">Get matched</Link>

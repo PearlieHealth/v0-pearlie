@@ -18,25 +18,25 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-[#f8f7f4]">
+    <div className="min-h-screen bg-background">
       <BreadcrumbSchema items={[
         { name: "Home", url: "https://pearlie.org" },
         { name: "Privacy Policy", url: "https://pearlie.org/privacy" },
       ]} />
-      <header className="border-b border-stone-200 bg-white sticky top-0 z-40">
+      <header className="border-b border-border bg-card sticky top-0 z-40">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <div className="text-2xl font-semibold tracking-tight text-stone-900">Pearlie</div>
+              <div className="text-2xl font-semibold tracking-tight text-foreground">Pearlie</div>
             </Link>
             <nav className="hidden md:flex items-center gap-6">
-              <Link href="/about" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">
+              <Link href="/about" className="text-sm text-stone-600 hover:text-foreground transition-colors">
                 About
               </Link>
-              <Link href="/faq" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">
+              <Link href="/faq" className="text-sm text-stone-600 hover:text-foreground transition-colors">
                 FAQ
               </Link>
-              <Link href="/for-clinics" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">
+              <Link href="/for-clinics" className="text-sm text-stone-600 hover:text-foreground transition-colors">
                 For Clinics
               </Link>
             </nav>
@@ -47,7 +47,7 @@ export default function PrivacyPage() {
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl font-bold text-stone-900 mb-2">Privacy Policy</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Privacy Policy</h1>
           <p className="text-stone-500 mb-10">
             Last updated: 15 January 2025
           </p>
@@ -59,7 +59,7 @@ export default function PrivacyPage() {
 
           <div className="space-y-10">
             <section>
-              <h2 className="text-xl font-semibold text-stone-900 mb-3">Who we are</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-3">Who we are</h2>
               <p className="text-stone-600 leading-relaxed">
                 Pearlie is a digital platform that helps patients find dental clinics that match their preferences,
                 needs, and circumstances. We do not provide medical advice, diagnosis, or treatment.
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-stone-900 mb-3">What data we collect</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-3">What data we collect</h2>
               <p className="text-stone-600 leading-relaxed mb-3">When you use Pearlie, we may collect:</p>
 
               <h3 className="text-base font-medium text-stone-800 mb-2">Information you provide</h3>
@@ -93,7 +93,7 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-stone-900 mb-3">Why we collect your data</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-3">Why we collect your data</h2>
               <p className="text-stone-600 leading-relaxed mb-3">We use your data to:</p>
               <ul className="list-disc pl-6 space-y-1.5 text-stone-600">
                 <li>Match you with suitable dental clinics</li>
@@ -105,7 +105,7 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-stone-900 mb-3">How clinic notifications work</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-3">How clinic notifications work</h2>
               <p className="text-stone-600 leading-relaxed mb-3">Clinics are only notified when you:</p>
               <ul className="list-disc pl-6 space-y-1.5 text-stone-600 mb-3">
                 <li>Click "Book consultation"</li>
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-stone-900 mb-3">Analytics & insights</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-3">Analytics & insights</h2>
               <p className="text-stone-600 leading-relaxed mb-3">
                 We analyse user behaviour in an aggregated and anonymised way to understand:
               </p>
@@ -134,7 +134,7 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-stone-900 mb-3">Legal basis for processing</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-3">Legal basis for processing</h2>
               <p className="text-stone-600 leading-relaxed mb-3">We process your data under:</p>
               <ul className="list-disc pl-6 space-y-1.5 text-stone-600 mb-3">
                 <li>
@@ -151,7 +151,7 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-stone-900 mb-3">How long we keep your data</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-3">How long we keep your data</h2>
               <ul className="list-disc pl-6 space-y-1.5 text-stone-600">
                 <li>Lead data is retained only as long as necessary to provide the service</li>
                 <li>Aggregated analytics may be retained longer for reporting and improvement</li>
@@ -160,7 +160,7 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-stone-900 mb-3">Who we share data with</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-3">Who we share data with</h2>
               <p className="text-stone-600 leading-relaxed mb-3">We may share data with:</p>
               <ul className="list-disc pl-6 space-y-1.5 text-stone-600 mb-3">
                 <li>Dental clinics you choose to contact</li>
@@ -170,7 +170,7 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-stone-900 mb-3">International data transfers</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-3">International data transfers</h2>
               <p className="text-stone-600 leading-relaxed">
                 Some service providers may process data outside the UK. Where this happens, we ensure appropriate
                 safeguards are in place.
@@ -178,7 +178,7 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-stone-900 mb-3">Your rights</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-3">Your rights</h2>
               <p className="text-stone-600 leading-relaxed mb-3">You have the right to:</p>
               <ul className="list-disc pl-6 space-y-1.5 text-stone-600 mb-3">
                 <li>Access your data</li>
@@ -196,7 +196,7 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-stone-900 mb-3">Contact us</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-3">Contact us</h2>
               <p className="text-stone-600 leading-relaxed">
                 If you have questions about this policy or your data:
                 <br />

@@ -11,11 +11,11 @@ interface TreatmentHeroProps {
 export function TreatmentHero({ treatment, costIntentH1, heroSubheading, ctaButtonText }: TreatmentHeroProps) {
 
   return (
-    <div className="pt-28 pb-10 sm:pt-32 sm:pb-14 bg-[#004443]">
+    <div className="pt-28 pb-10 sm:pt-32 sm:pb-14 bg-[#0d1019]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0fbcb0] bg-[#0fbcb0]/20 rounded-full">
+            <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary bg-primary/20 rounded-full">
               {treatment.category}
             </span>
             <span className="inline-block px-3 py-1 text-xs font-semibold text-white bg-white/10 rounded-full">
@@ -31,7 +31,7 @@ export function TreatmentHero({ treatment, costIntentH1, heroSubheading, ctaButt
             {heroSubheading || treatment.description}
           </p>
 
-          <div className="max-w-lg mx-auto [&_p]:text-white/60 [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-[#0fbcb0] [&_input]:focus-visible:border-[#0fbcb0] [&_.text-destructive]:text-red-300 [&_form]:mx-auto">
+          <div className="max-w-lg mx-auto [&_p]:text-white/60 [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-primary [&_input]:focus-visible:border-primary [&_.text-destructive]:text-red-300 [&_form]:mx-auto">
             <HeroPostcodeCta
               treatmentName={treatment.treatmentName}
               intakeTreatment={treatment.intakeTreatment}

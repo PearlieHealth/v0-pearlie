@@ -85,7 +85,7 @@ function HeatmapTable({
       <table className="w-full text-xs">
         <thead>
           <tr>
-            <th className="text-left py-1.5 px-2 font-medium text-muted-foreground sticky left-0 bg-white min-w-[100px]" />
+            <th className="text-left py-1.5 px-2 font-medium text-muted-foreground sticky left-0 bg-card min-w-[100px]" />
             {colKeys.map((col) => (
               <th key={col} className="text-center py-1.5 px-1.5 font-medium text-muted-foreground min-w-[60px]">
                 {colLabels[col] || col}
@@ -96,7 +96,7 @@ function HeatmapTable({
         <tbody>
           {rowKeys.map((row) => (
             <tr key={row}>
-              <td className="py-1.5 px-2 font-medium text-muted-foreground sticky left-0 bg-white truncate max-w-[140px]" title={rowLabels[row] || row}>
+              <td className="py-1.5 px-2 font-medium text-muted-foreground sticky left-0 bg-card truncate max-w-[140px]" title={rowLabels[row] || row}>
                 {rowLabels[row] || row}
               </td>
               {colKeys.map((col) => {
@@ -109,8 +109,8 @@ function HeatmapTable({
                       <div
                         className="rounded px-1.5 py-1 font-medium"
                         style={{
-                          backgroundColor: `rgba(0, 68, 67, ${0.06 + intensity * 0.35})`,
-                          color: intensity > 0.5 ? "white" : "#004443",
+                          backgroundColor: `rgba(13, 16, 25, ${0.06 + intensity * 0.35})`,
+                          color: intensity > 0.5 ? "white" : "hsl(var(--foreground))",
                         }}
                       >
                         {count}
@@ -302,7 +302,7 @@ export function CrossSegmentCard({ leads }: CrossSegmentCardProps) {
                     </div>
                     <div className="h-2.5 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#004443] rounded-full transition-all duration-500"
+                        className="h-full bg-[#0d1019] rounded-full transition-all duration-500"
                         style={{ width: `${item.rate}%` }}
                       />
                     </div>

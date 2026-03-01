@@ -166,7 +166,7 @@ export default async function AnalyticsDashboard({
         {/* Desktop header with test buttons */}
         <div className="hidden md:flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl md:text-2xl font-bold text-[#004443]">Analytics Dashboard</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Analytics Dashboard</h1>
             <Suspense fallback={null}>
               <DateRangeSelector />
             </Suspense>
@@ -181,7 +181,7 @@ export default async function AnalyticsDashboard({
         {/* Mobile header */}
         <div className="md:hidden mb-4">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-lg font-bold text-[#004443]">Analytics Dashboard</h1>
+            <h1 className="text-lg font-bold text-foreground">Analytics Dashboard</h1>
             <Suspense fallback={null}>
               <DateRangeSelector />
             </Suspense>

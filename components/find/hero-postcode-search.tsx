@@ -109,7 +109,7 @@ export function HeroPostcodeSearch({ variant = "hero", heroRef }: HeroPostcodeSe
           type="submit"
           disabled={isValidating}
           size="sm"
-          className="rounded-full bg-[#0fbcb0] hover:bg-[#0da399] text-white px-5 h-10 text-sm font-medium"
+          className="rounded-full bg-primary hover:bg-[var(--primary-hover)] text-white px-5 h-10 text-sm font-medium"
         >
           {isValidating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Find a dentist"}
         </Button>
@@ -131,7 +131,7 @@ export function HeroPostcodeSearch({ variant = "hero", heroRef }: HeroPostcodeSe
               setPostcode(e.target.value.toUpperCase())
               setError(null)
             }}
-            className="pl-12 h-14 rounded-full text-base bg-white shadow-lg border-0 focus-visible:ring-2 focus-visible:ring-[#0fbcb0]"
+            className="pl-12 h-14 rounded-full text-base bg-card shadow-lg border-0 focus-visible:ring-2 focus-visible:ring-primary"
           />
           {isValidating && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -143,7 +143,7 @@ export function HeroPostcodeSearch({ variant = "hero", heroRef }: HeroPostcodeSe
           type="submit"
           disabled={isValidating}
           size="lg"
-          className="rounded-full bg-[#0fbcb0] hover:bg-[#0da399] text-white px-8 h-14 text-base font-medium shadow-lg"
+          className="rounded-full bg-primary hover:bg-[var(--primary-hover)] text-white px-8 h-14 text-base font-medium shadow-lg"
         >
           Find a dentist
         </Button>

@@ -293,11 +293,11 @@ export default async function AreaTreatmentPage({
           <section className="py-8 sm:py-10">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-3xl mx-auto">
-                <div className="rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 p-6">
-                  <h2 className="text-lg sm:text-xl font-heading font-bold text-[#004443] mb-2">
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-6">
+                  <h2 className="text-lg sm:text-xl font-heading font-bold text-foreground mb-2">
                     Typical {meta.treatmentName.toLowerCase()} cost in {borough.name}
                   </h2>
-                  <p className="text-2xl sm:text-3xl font-heading font-bold text-[#004443] mb-3">
+                  <p className="text-2xl sm:text-3xl font-heading font-bold text-foreground mb-3">
                     {meta.priceRange}
                   </p>
                   <p className="text-base text-muted-foreground leading-relaxed mb-4">
@@ -305,7 +305,7 @@ export default async function AreaTreatmentPage({
                   </p>
                   <Link
                     href={`#clinics`}
-                    className="inline-flex items-center text-sm font-semibold text-[#0fbcb0] hover:underline"
+                    className="inline-flex items-center text-sm font-semibold text-primary hover:underline"
                   >
                     See {meta.treatmentName.toLowerCase()} clinics in {borough.name}
                   </Link>
@@ -320,7 +320,7 @@ export default async function AreaTreatmentPage({
           <section className="pb-10 sm:pb-14">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-3xl mx-auto">
-                <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-4">
+                <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-4">
                   Why choose {meta.treatmentName.toLowerCase()} in {borough.name}?
                 </h2>
                 <p className="text-base text-muted-foreground leading-relaxed mb-6">
@@ -345,7 +345,7 @@ export default async function AreaTreatmentPage({
         <TrustBadgeStrip />
 
         {/* 6. Mid-page conversion CTA */}
-        <section className="py-10 sm:py-14 bg-[#004443]">
+        <section className="py-10 sm:py-14 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-xl sm:text-2xl font-heading font-bold text-white mb-3">
@@ -354,7 +354,7 @@ export default async function AreaTreatmentPage({
               <p className="text-white/70 mb-6 leading-relaxed">
                 Enter your postcode to get matched with verified {meta.treatmentName.toLowerCase()} providers near you.
               </p>
-              <div className="[&_button]:bg-[#0fbcb0] [&_button]:hover:bg-[#0da399] [&_button]:text-white [&_p]:text-white/60 [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-[#0fbcb0] [&_input]:focus-visible:border-[#0fbcb0]">
+              <div className="[&_button]:bg-primary [&_button]:hover:bg-[var(--primary-hover)] [&_button]:text-white [&_p]:text-white/60 [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-primary [&_input]:focus-visible:border-primary">
                 <TreatmentPostcodeCta
                   treatmentName={meta.treatmentName}
                   intakeTreatment={meta.intakeTreatment}
@@ -370,7 +370,7 @@ export default async function AreaTreatmentPage({
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-3xl mx-auto space-y-8">
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-4">
+                  <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-4">
                     {meta.treatmentName} in {borough.name}
                   </h2>
                   <p className="text-base text-muted-foreground leading-relaxed">
@@ -379,7 +379,7 @@ export default async function AreaTreatmentPage({
                 </div>
 
                 {/* Internal linking block */}
-                <div className="rounded-xl border border-border/50 bg-white p-6">
+                <div className="rounded-xl border border-border/50 bg-card p-6">
                   <h3 className="text-lg font-heading font-bold text-foreground mb-3">
                     Learn more about {meta.treatmentName.toLowerCase()}
                   </h3>
@@ -387,7 +387,7 @@ export default async function AreaTreatmentPage({
                     <li>
                       <Link
                         href={`/treatments/${treatmentSlug}`}
-                        className="text-[#0fbcb0] hover:underline font-medium text-sm"
+                        className="text-primary hover:underline font-medium text-sm"
                       >
                         {meta.treatmentName} — full guide, costs &amp; what to expect
                       </Link>
@@ -399,7 +399,7 @@ export default async function AreaTreatmentPage({
                         <li key={relSlug}>
                           <Link
                             href={`/treatments/${relSlug}`}
-                            className="text-[#0fbcb0] hover:underline font-medium text-sm"
+                            className="text-primary hover:underline font-medium text-sm"
                           >
                             {related.meta.treatmentName} — guide &amp; prices
                           </Link>
@@ -417,7 +417,7 @@ export default async function AreaTreatmentPage({
                           <li key={post.slug}>
                             <Link
                               href={`/blog/${post.slug}`}
-                              className="text-[#0fbcb0] hover:underline font-medium text-sm"
+                              className="text-primary hover:underline font-medium text-sm"
                             >
                               {post.title}
                             </Link>
@@ -435,7 +435,7 @@ export default async function AreaTreatmentPage({
                         <Link
                           key={nb.slug}
                           href={`/london/${nb.slug}/${treatmentSlug}`}
-                          className="text-sm text-[#0fbcb0] hover:underline"
+                          className="text-sm text-primary hover:underline"
                         >
                           {meta.treatmentName} in {nb.name}
                         </Link>
@@ -450,17 +450,17 @@ export default async function AreaTreatmentPage({
 
         {/* 8. Educational sections (short, non-duplicate from main treatment page) */}
         {areaTreatmentData && areaTreatmentData.educationalSections.length > 0 && (
-          <section className="py-10 sm:py-14 bg-white">
+          <section className="py-10 sm:py-14 bg-card">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-3xl mx-auto">
-                <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-8">
+                <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-8">
                   What you need to know about {meta.treatmentName.toLowerCase()}
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-6">
                   {areaTreatmentData.educationalSections.map((section) => (
                     <div
                       key={section.heading}
-                      className="rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 p-5"
+                      className="rounded-xl border border-primary/20 bg-primary/5 p-5"
                     >
                       <h3 className="text-base font-heading font-bold text-foreground mb-2">
                         {section.heading}
@@ -501,7 +501,7 @@ export default async function AreaTreatmentPage({
         <RelatedTreatments treatments={relatedTreatments} />
 
         {/* 14. Bottom CTA */}
-        <section className="py-12 sm:py-16 bg-[#004443]">
+        <section className="py-12 sm:py-16 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">

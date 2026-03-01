@@ -207,7 +207,7 @@ export default function PatientLoginPage() {
   if (checkingAuth) {
     return (
       <div className="min-h-screen bg-[#ffffff] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#0fbcb0]" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     )
   }
@@ -218,14 +218,14 @@ export default function PatientLoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center justify-center gap-2.5 mb-6">
-            <div className="rounded-full bg-[#0fbcb0] p-2">
+            <div className="rounded-full bg-primary p-2">
               <Heart className="w-5 h-5 text-white fill-white" />
             </div>
-            <span className="font-semibold text-xl text-[#0fbcb0]">Pearlie</span>
+            <span className="font-semibold text-xl text-primary">Pearlie</span>
           </Link>
-          <h1 className="text-2xl font-semibold text-[#3d3838] mb-2">Welcome back</h1>
-          <p className="text-[#3d3838]/70">Sign in to view your clinic matches and conversations.</p>
-          <p className="text-[#0fbcb0] font-medium">No password needed.</p>
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Welcome back</h1>
+          <p className="text-foreground/70">Sign in to view your clinic matches and conversations.</p>
+          <p className="text-primary font-medium">No password needed.</p>
         </div>
 
         {success ? (
@@ -233,29 +233,29 @@ export default function PatientLoginPage() {
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-xl font-semibold text-[#3d3838]">Signed in</h2>
-            <p className="text-[#3d3838]/70">Redirecting to your dashboard...</p>
+            <h2 className="text-xl font-semibold text-foreground">Signed in</h2>
+            <p className="text-foreground/70">Redirecting to your dashboard...</p>
           </div>
         ) : step === "no-account" ? (
           <div className="space-y-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center mx-auto">
-              <Mail className="w-8 h-8 text-[#0fbcb0]" />
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <Mail className="w-8 h-8 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-[#3d3838] mb-2">No account found</h2>
-              <p className="text-[#3d3838]/70">
+              <h2 className="text-xl font-semibold text-foreground mb-2">No account found</h2>
+              <p className="text-foreground/70">
                 We couldn&apos;t find an account with that email. Complete our quick intake form to get matched with a clinic and create your account.
               </p>
             </div>
             <Button
-              className="w-full h-14 text-lg font-semibold rounded-2xl bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+              className="w-full h-14 text-lg font-semibold rounded-2xl bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
               asChild
             >
               <Link href="/intake">Find my clinic</Link>
             </Button>
             <button
               onClick={() => { setStep("email"); setError("") }}
-              className="text-sm text-[#3d3838]/50 hover:text-[#3d3838] transition-colors"
+              className="text-sm text-foreground/50 hover:text-foreground transition-colors"
             >
               Try a different email
             </button>
@@ -263,7 +263,7 @@ export default function PatientLoginPage() {
         ) : step === "email" ? (
           <div className="space-y-6">
             <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-medium text-[#3d3838]">
+              <Label htmlFor="email" className="text-sm font-medium text-foreground">
                 Email address
               </Label>
               <Input
@@ -279,7 +279,7 @@ export default function PatientLoginPage() {
               <Button
                 onClick={handleSendOTP}
                 disabled={!email || isSending}
-                className="w-full h-14 text-lg font-semibold rounded-2xl bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                className="w-full h-14 text-lg font-semibold rounded-2xl bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
               >
                 {isSending ? (
                   <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Sending code...</>
@@ -289,14 +289,14 @@ export default function PatientLoginPage() {
               </Button>
             </div>
 
-            <p className="text-center text-xs text-[#3d3838]/40">
+            <p className="text-center text-xs text-foreground/40">
               We&apos;ll send a 6-digit code to your email. No password needed.
             </p>
           </div>
         ) : (
           <div className="space-y-6">
             <div className="text-center">
-              <p className="text-[#3d3838]/70 mb-6">
+              <p className="text-foreground/70 mb-6">
                 Enter the 6-digit code sent to <strong>{maskedEmail}</strong>
               </p>
             </div>
@@ -328,7 +328,7 @@ export default function PatientLoginPage() {
             <Button
               onClick={() => verifyOTPWithCode(otp.join(""))}
               disabled={isLoading || otp.some((d) => !d)}
-              className="w-full h-14 text-lg font-semibold rounded-2xl bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+              className="w-full h-14 text-lg font-semibold rounded-2xl bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
             >
               {isLoading ? (
                 <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Verifying...</>
@@ -340,14 +340,14 @@ export default function PatientLoginPage() {
             <div className="flex items-center justify-between">
               <button
                 onClick={() => { setStep("email"); setOtp(["", "", "", "", "", ""]); setError("") }}
-                className="text-sm text-[#3d3838]/50 hover:text-[#3d3838] transition-colors"
+                className="text-sm text-foreground/50 hover:text-foreground transition-colors"
               >
                 Use a different email
               </button>
               <button
                 onClick={handleSendOTP}
                 disabled={isSending || cooldown > 0}
-                className="text-sm text-[#0fbcb0] hover:text-[#0da399] transition-colors disabled:opacity-50"
+                className="text-sm text-primary hover:text-[#0da399] transition-colors disabled:opacity-50"
               >
                 {cooldown > 0
                   ? `Resend in ${cooldown}s`
@@ -361,7 +361,7 @@ export default function PatientLoginPage() {
 
         {/* Back to home */}
         <div className="text-center mt-8">
-          <Link href="/" className="text-sm text-[#3d3838]/50 hover:text-[#3d3838] transition-colors">
+          <Link href="/" className="text-sm text-foreground/50 hover:text-foreground transition-colors">
             Back to home
           </Link>
         </div>

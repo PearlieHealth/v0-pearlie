@@ -93,7 +93,7 @@ export function AdminNav(_props?: { currentPath?: string }) {
   const overflowHasActive = overflowItems.some((item) => isActive(item.href))
 
   return (
-    <header className="border-b border-border bg-white sticky top-0 z-50">
+    <header className="border-b border-border bg-card sticky top-0 z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           <div className="flex items-center gap-3 lg:gap-6 min-w-0">
@@ -117,8 +117,8 @@ export function AdminNav(_props?: { currentPath?: string }) {
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all",
                       active
-                        ? "bg-[#004443] text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-[#faf3e6] hover:text-foreground",
+                        ? "bg-[#0d1019] text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     )}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -134,8 +134,8 @@ export function AdminNav(_props?: { currentPath?: string }) {
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all",
                       overflowHasActive
-                        ? "bg-[#004443] text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-[#faf3e6] hover:text-foreground",
+                        ? "bg-[#0d1019] text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     )}
                   >
                     <MoreHorizontal className="w-3.5 h-3.5" />
@@ -177,8 +177,8 @@ export function AdminNav(_props?: { currentPath?: string }) {
                     className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all",
                       active
-                        ? "bg-[#004443] text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-[#faf3e6] hover:text-foreground",
+                        ? "bg-[#0d1019] text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     )}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -193,8 +193,8 @@ export function AdminNav(_props?: { currentPath?: string }) {
                     className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all",
                       allNavItems.slice(3).some((item) => isActive(item.href))
-                        ? "bg-[#004443] text-white shadow-sm"
-                        : "text-muted-foreground hover:bg-[#faf3e6] hover:text-foreground",
+                        ? "bg-[#0d1019] text-white shadow-sm"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     )}
                   >
                     <MoreHorizontal className="w-3.5 h-3.5" />
@@ -237,15 +237,15 @@ export function AdminNav(_props?: { currentPath?: string }) {
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] bg-[#faf6f0] p-0" hideCloseButton>
+            <SheetContent side="right" className="w-[280px] bg-secondary p-0" hideCloseButton>
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between p-4 border-b border-border">
-                  <span className="text-lg font-semibold text-[#004443]">Pearlie Admin</span>
+                  <span className="text-lg font-semibold text-foreground">Pearlie Admin</span>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setOpen(false)}
-                    className="h-8 w-8 rounded-full bg-white border border-border hover:bg-[#f3ece0] transition-colors"
+                    className="h-8 w-8 rounded-full bg-card border border-border hover:bg-secondary transition-colors"
                   >
                     <span className="text-lg">&times;</span>
                     <span className="sr-only">Close menu</span>
@@ -269,8 +269,8 @@ export function AdminNav(_props?: { currentPath?: string }) {
                             className={cn(
                               "flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                               active
-                                ? "bg-[#004443] text-white shadow-sm"
-                                : "text-muted-foreground hover:bg-white hover:text-foreground",
+                                ? "bg-[#0d1019] text-white shadow-sm"
+                                : "text-muted-foreground hover:bg-card hover:text-foreground",
                             )}
                           >
                             <Icon className="w-4.5 h-4.5" />

@@ -409,7 +409,7 @@ export default function ClinicDashboardPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0fbcb0]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     )
   }
@@ -452,7 +452,7 @@ export default function ClinicDashboardPage() {
             </div>
             <div className="text-center px-3">
               <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Rate</p>
-              <p className="text-xl font-bold text-[#0fbcb0]">{stats?.conversionRate || 0}%</p>
+              <p className="text-xl font-bold text-primary">{stats?.conversionRate || 0}%</p>
             </div>
             {clinicInfo?.google_rating && (
               <div className="text-center px-3 border-l">
@@ -475,8 +475,8 @@ export default function ClinicDashboardPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total Leads
               </CardTitle>
-              <div className="h-8 w-8 rounded-lg bg-[#faf3e6] flex items-center justify-center">
-                <Users className="h-4 w-4 text-[#0fbcb0]" />
+              <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center">
+                <Users className="h-4 w-4 text-primary" />
               </div>
             </CardHeader>
             <CardContent>
@@ -543,8 +543,8 @@ export default function ClinicDashboardPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Conversion
               </CardTitle>
-              <div className="h-8 w-8 rounded-lg bg-[#faf3e6] flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 text-[#0fbcb0]" />
+              <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 text-primary" />
               </div>
             </CardHeader>
             <CardContent>
@@ -633,8 +633,8 @@ export default function ClinicDashboardPage() {
               </Link>
               <Link href={clinicHref("/clinic/profile")}>
                 <div className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
-                  <div className="h-9 w-9 rounded-lg bg-[#faf3e6] flex items-center justify-center flex-shrink-0">
-                    <Building2 className="h-4 w-4 text-[#0fbcb0]" />
+                  <div className="h-9 w-9 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                    <Building2 className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">Edit Profile</p>

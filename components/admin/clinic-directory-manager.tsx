@@ -979,7 +979,7 @@ export function ClinicDirectoryManager({ clinics: initialClinics }: ClinicDirect
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
               Refresh
             </Button>
-            <Button onClick={handleCreate} className="gap-2 bg-[#004443] hover:bg-[#00332e]">
+            <Button onClick={handleCreate} className="gap-2 bg-[#0d1019] hover:bg-[#0d1019]/90">
               <Plus className="h-4 w-4" />
               Add Clinic
             </Button>

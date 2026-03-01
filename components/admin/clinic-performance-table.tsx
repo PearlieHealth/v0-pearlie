@@ -220,7 +220,7 @@ export function ClinicPerformanceTable({ events, clinicMap, leads, matchResults 
   return (
     <div className="space-y-6">
       {/* Platform Summary Card */}
-      <Card className="bg-gradient-to-r from-[#004443] to-[#0a5c54] text-white">
+      <Card className="bg-gradient-to-r from-[#0d1019] to-[#161b26] text-white">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <Building2 className="h-5 w-5" />

@@ -118,7 +118,7 @@ export function StickyMobilePostcode({ treatmentName, intakeTreatment }: StickyM
             : "-translate-y-full opacity-0 pointer-events-none"
         }`}
       >
-        <div className="rounded-[6vw] bg-white/70 backdrop-blur-[40px] backdrop-saturate-[1.4] border border-white/30 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] px-4 py-3">
+        <div className="rounded-[6vw] bg-[#111218]/80 backdrop-blur-[40px] backdrop-saturate-[1.4] border border-[#1f2133]/60 shadow-[0_4px_24px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.04)] px-4 py-3">
           <form onSubmit={handleSubmit} className="flex gap-2.5 items-center">
             <div className="relative flex-1">
               <input
@@ -126,18 +126,18 @@ export function StickyMobilePostcode({ treatmentName, intakeTreatment }: StickyM
                 placeholder="Enter postcode"
                 value={postcode}
                 onChange={(e) => setPostcode(e.target.value.toUpperCase())}
-                className="w-full h-10 px-4 text-sm rounded-full border border-border/40 bg-white/80 focus:outline-none focus:ring-2 focus:ring-[#0fbcb0] focus:border-[#0fbcb0] placeholder:text-muted-foreground/60"
+                className="w-full h-10 px-4 text-sm rounded-full border border-border/40 bg-card focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-muted-foreground/60"
               />
               {isValidating && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <div className="w-4 h-4 border-2 border-[#0fbcb0] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
             </div>
             <Button
               type="submit"
               disabled={!postcodeValid}
-              className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-5 h-10 text-sm font-medium shrink-0 disabled:opacity-50 border-0"
+              className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full px-5 h-10 text-sm font-medium shrink-0 disabled:opacity-50 border-0"
             >
               Find my clinic
             </Button>
@@ -174,7 +174,7 @@ export function StickyMobilePostcode({ treatmentName, intakeTreatment }: StickyM
                       <Button
                         size="sm"
                         disabled={!waitlistEmail.includes("@") || waitlistSubmitting}
-                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                        className="bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
                         onClick={async () => {
                           setWaitlistSubmitting(true)
                           try {
@@ -200,7 +200,7 @@ export function StickyMobilePostcode({ treatmentName, intakeTreatment }: StickyM
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-[#0fbcb0] font-medium">
+                  <p className="text-sm text-primary font-medium">
                     You&apos;re on the list! We&apos;ll let you know when we launch near you.
                   </p>
                 )}

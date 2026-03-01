@@ -66,7 +66,7 @@ export function PreferredTimesCard({ leads }: PreferredTimesCardProps) {
   return (
     <Card className="p-6">
       <div className="flex items-center gap-2 mb-6">
-        <Clock className="h-5 w-5 text-[#004443]" />
+        <Clock className="h-5 w-5 text-foreground" />
         <h3 className="text-lg font-semibold">Preferred Appointment Times</h3>
       </div>
 

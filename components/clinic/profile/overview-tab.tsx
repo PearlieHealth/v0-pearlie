@@ -79,9 +79,9 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
 
       {/* Pearlie Guarantee */}
       {clinic.verified && (
-        <section className="rounded-2xl bg-[#004443] p-5 shadow-lg">
+        <section className="rounded-2xl bg-[#0d1019] p-5 shadow-lg">
           <div className="flex items-center gap-2.5 mb-2">
-            <ShieldCheck className="h-6 w-6 text-[#0fbcb0]" />
+            <ShieldCheck className="h-6 w-6 text-primary" />
             <h3 className="text-xl font-bold text-white">Pearlie Guarantee</h3>
           </div>
           <p className="text-xs text-white/70 leading-relaxed mb-4">
@@ -91,7 +91,7 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
           <div className="space-y-3.5">
             <div className="flex gap-2.5">
               <div className="flex-shrink-0 mt-0.5">
-                <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                <CheckCircle2 className="w-4 h-4 text-primary" />
               </div>
               <div>
                 <p className="text-[13px] font-semibold text-white">Verified for Quality</p>
@@ -103,7 +103,7 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
 
             <div className="flex gap-2.5">
               <div className="flex-shrink-0 mt-0.5">
-                <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+                <CheckCircle2 className="w-4 h-4 text-primary" />
               </div>
               <div>
                 <p className="text-[13px] font-semibold text-white">Satisfaction Promise</p>
@@ -127,7 +127,7 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
           {hasPatientSelections && (
             <div className="grid sm:grid-cols-2 gap-2 mb-3">
               {leadSelectedServices.map((treatment, idx) => (
-                <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+                <div key={idx} className="flex items-center gap-2.5 text-foreground/70 py-1.5">
                   <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
                   <span className="text-[15px] font-medium">{treatment}</span>
                 </div>
@@ -149,7 +149,7 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
               {showAllTreatments && (
                 <div className="grid sm:grid-cols-2 gap-2 mt-2">
                   {availableTreatments.map((treatment, idx) => (
-                    <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+                    <div key={idx} className="flex items-center gap-2.5 text-foreground/70 py-1.5">
                       <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
                       <span className="text-[15px]">{treatment}</span>
                     </div>
@@ -162,7 +162,7 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
             <>
               <div className="grid sm:grid-cols-2 gap-2">
                 {(showAllTreatments ? availableTreatments : availableTreatments.slice(0, 6)).map((treatment, idx) => (
-                  <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+                  <div key={idx} className="flex items-center gap-2.5 text-foreground/70 py-1.5">
                     <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
                     <span className="text-[15px]">{treatment}</span>
                   </div>
@@ -222,7 +222,7 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
                   <button
                     type="button"
                     onClick={onSwitchToDetails}
-                    className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-[#004443] hover:text-[#0fbcb0] transition-colors"
+                    className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
                   >
                     View Smile Results
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -236,11 +236,11 @@ export function OverviewTab({ clinic, matchReasons, hasLead, lead, onSwitchToDet
 
       {/* Match reasons — mobile only */}
       {hasLead && matchReasons.length > 0 && (
-        <section className="lg:hidden border border-[#0fbcb0]/30 rounded-xl p-5">
+        <section className="lg:hidden border border-primary/30 rounded-xl p-5">
           <div className="flex items-center gap-2 mb-3">
-            <h3 className="font-semibold text-[#0fbcb0]">Why we matched you</h3>
+            <h3 className="font-semibold text-primary">Why we matched you</h3>
           </div>
-          <div className="space-y-2 text-sm text-[#333] leading-relaxed">
+          <div className="space-y-2 text-sm text-foreground/70 leading-relaxed">
             {matchReasons.slice(0, 3).map((reason, idx) => (
               <p key={idx}>{reason}</p>
             ))}

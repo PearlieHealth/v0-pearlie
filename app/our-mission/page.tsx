@@ -29,8 +29,8 @@ function StatCard({
   sourceUrl: string
 }) {
   return (
-    <div className="bg-white/[0.07] backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/[0.10] transition-colors">
-      <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0] mb-2">{value}</div>
+    <div className="bg-card/[0.07] backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/[0.10] transition-colors">
+      <div className="text-3xl md:text-4xl font-bold text-primary mb-2">{value}</div>
       <div className="text-base font-semibold text-white mb-1">{label}</div>
       <p className="text-sm text-white/60 mb-3">{context}</p>
       <a
@@ -61,7 +61,7 @@ function CareTierCard({
   accentColor?: string
 }) {
   return (
-    <Card className="bg-white border-0 shadow-[0_4px_24px_rgba(0,0,0,0.06)] rounded-2xl h-full overflow-hidden">
+    <Card className="bg-card border-0 shadow-[0_4px_24px_rgba(0,0,0,0.06)] rounded-2xl h-full overflow-hidden">
       <div className="h-1" style={{ backgroundColor: accentColor }} />
       <CardHeader className="pb-4 pt-6">
         <span
@@ -70,12 +70,12 @@ function CareTierCard({
         >
           {tag}
         </span>
-        <CardTitle className="text-xl text-[#004443]">{title}</CardTitle>
+        <CardTitle className="text-xl text-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <ul className="space-y-2.5">
           {includes.map((item, i) => (
-            <li key={i} className="flex items-start gap-2.5 text-sm text-[#555]">
+            <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
               <CheckCircle2
                 className="w-4 h-4 mt-0.5 flex-shrink-0"
                 style={{ color: accentColor }}
@@ -84,8 +84,8 @@ function CareTierCard({
             </li>
           ))}
         </ul>
-        <div className="pt-4 border-t border-[#f0ede8]">
-          <p className="text-sm font-medium text-[#004443]/70 italic">&ldquo;{promise}&rdquo;</p>
+        <div className="pt-4 border-t border-border">
+          <p className="text-sm font-medium text-foreground/70 italic">&ldquo;{promise}&rdquo;</p>
         </div>
       </CardContent>
     </Card>
@@ -146,15 +146,15 @@ export default function OurMissionPage() {
       {/* ───────────────────────────────────────────────────────────────
           Section 1 — The Problem (dark teal hero with stat cards)
       ─────────────────────────────────────────────────────────────── */}
-      <section className="relative pt-32 pb-20 md:pt-32 md:pb-28 overflow-hidden bg-[#004443]">
+      <section className="relative pt-32 pb-20 md:pt-32 md:pb-28 overflow-hidden bg-[#0d1019]">
         {/* Subtle decorative glow */}
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[#0fbcb0]/[0.06] blur-[120px] pointer-events-none" />
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/[0.06] blur-[120px] pointer-events-none" />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-6xl mx-auto">
             <FadeIn>
               <div className="text-center mb-14">
-                <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-[#0fbcb0] mb-5">
+                <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-5">
                   The Problem
                 </span>
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold tracking-[-0.03em] text-white mb-5 text-balance leading-tight">
@@ -189,7 +189,7 @@ export default function OurMissionPage() {
       {/* ───────────────────────────────────────────────────────────────
           Section 2 — What Happens When Access Fails (graph cards)
       ─────────────────────────────────────────────────────────────── */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-[#f7f4f0] to-white">
+      <section className="py-16 md:py-24 bg-gradient-to-b from-[#0e0f18] to-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <FadeIn>
@@ -197,7 +197,7 @@ export default function OurMissionPage() {
                 <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-[#3c8481] mb-4">
                   When Access Fails
                 </span>
-                <h2 className="text-3xl md:text-4xl font-heading font-bold tracking-[-0.03em] text-[#004443]">
+                <h2 className="text-3xl md:text-4xl font-heading font-bold tracking-[-0.03em] text-foreground">
                   What people are forced to do
                 </h2>
               </div>
@@ -206,9 +206,9 @@ export default function OurMissionPage() {
             <FadeIn delay={0.1}>
               <div className="grid md:grid-cols-2 gap-8">
                 {/* Chart 1: What people do */}
-                <Card className="bg-white border-0 shadow-[0_4px_24px_rgba(0,0,0,0.06)] rounded-2xl">
+                <Card className="bg-card border-0 shadow-[0_4px_24px_rgba(0,0,0,0.06)] rounded-2xl">
                   <CardHeader>
-                    <CardTitle className="text-lg text-[#004443]">
+                    <CardTitle className="text-lg text-foreground">
                       What people do when they can&apos;t get NHS dental care
                     </CardTitle>
                   </CardHeader>
@@ -216,19 +216,19 @@ export default function OurMissionPage() {
                     <div className="space-y-5">
                       <div>
                         <div className="flex justify-between text-sm mb-1.5">
-                          <span className="text-[#555]">Paid privately</span>
-                          <span className="font-semibold text-[#004443]">69%</span>
+                          <span className="text-muted-foreground">Paid privately</span>
+                          <span className="font-semibold text-foreground">69%</span>
                         </div>
-                        <div className="h-8 bg-[#004443]/[0.06] rounded-full overflow-hidden">
+                        <div className="h-8 bg-[#0d1019]/[0.06] rounded-full overflow-hidden">
                           <AnimatedBar width="69%" color="#0fbcb0" />
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between text-sm mb-1.5">
-                          <span className="text-[#555]">Treated themselves</span>
-                          <span className="font-semibold text-[#004443]">26%</span>
+                          <span className="text-muted-foreground">Treated themselves</span>
+                          <span className="font-semibold text-foreground">26%</span>
                         </div>
-                        <div className="h-8 bg-[#004443]/[0.06] rounded-full overflow-hidden">
+                        <div className="h-8 bg-[#0d1019]/[0.06] rounded-full overflow-hidden">
                           <AnimatedBar width="26%" color="#dbc03a" delay={0.2} />
                         </div>
                       </div>
@@ -237,9 +237,9 @@ export default function OurMissionPage() {
                 </Card>
 
                 {/* Chart 2: Unmet need */}
-                <Card className="bg-white border-0 shadow-[0_4px_24px_rgba(0,0,0,0.06)] rounded-2xl">
+                <Card className="bg-card border-0 shadow-[0_4px_24px_rgba(0,0,0,0.06)] rounded-2xl">
                   <CardHeader>
-                    <CardTitle className="text-lg text-[#004443]">
+                    <CardTitle className="text-lg text-foreground">
                       Unmet dental need in England
                     </CardTitle>
                   </CardHeader>
@@ -247,28 +247,28 @@ export default function OurMissionPage() {
                     <div className="space-y-5">
                       <div>
                         <div className="flex justify-between text-sm mb-1.5">
-                          <span className="text-[#555]">Adults with unmet need</span>
-                          <span className="font-semibold text-[#004443]">13m (28%)</span>
+                          <span className="text-muted-foreground">Adults with unmet need</span>
+                          <span className="font-semibold text-foreground">13m (28%)</span>
                         </div>
-                        <div className="h-8 bg-[#004443]/[0.06] rounded-full overflow-hidden">
+                        <div className="h-8 bg-[#0d1019]/[0.06] rounded-full overflow-hidden">
                           <AnimatedBar width="100%" color="#0fbcb0" />
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between text-sm mb-1.5">
-                          <span className="text-[#555]">Tried &amp; failed to get appointment</span>
-                          <span className="font-semibold text-[#004443]">5.6m</span>
+                          <span className="text-muted-foreground">Tried &amp; failed to get appointment</span>
+                          <span className="font-semibold text-foreground">5.6m</span>
                         </div>
-                        <div className="h-8 bg-[#004443]/[0.06] rounded-full overflow-hidden">
+                        <div className="h-8 bg-[#0d1019]/[0.06] rounded-full overflow-hidden">
                           <AnimatedBar width="43%" color="#3c8481" delay={0.2} />
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between text-sm mb-1.5">
-                          <span className="text-[#555]">Gave up trying</span>
-                          <span className="font-semibold text-[#004443]">5.4m</span>
+                          <span className="text-muted-foreground">Gave up trying</span>
+                          <span className="font-semibold text-foreground">5.4m</span>
                         </div>
-                        <div className="h-8 bg-[#004443]/[0.06] rounded-full overflow-hidden">
+                        <div className="h-8 bg-[#0d1019]/[0.06] rounded-full overflow-hidden">
                           <AnimatedBar width="41%" color="#dbc03a" delay={0.4} />
                         </div>
                       </div>
@@ -278,14 +278,14 @@ export default function OurMissionPage() {
               </div>
             </FadeIn>
 
-            <p className="text-xs text-center text-[#999] mt-6">
+            <p className="text-xs text-center text-muted-foreground mt-6">
               Data sources: BDA, Ipsos, GOV.UK Adult Oral Health Survey |{" "}
-              <a href="https://www.dentalhealth.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#666]">Oral Health Foundation</a>
+              <a href="https://www.dentalhealth.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-muted-foreground">Oral Health Foundation</a>
             </p>
 
             {/* Framing paragraph */}
             <FadeIn delay={0.1}>
-              <p className="text-base text-[#555] text-center max-w-3xl mx-auto mt-10 leading-relaxed">
+              <p className="text-base text-muted-foreground text-center max-w-3xl mx-auto mt-10 leading-relaxed">
                 When access fails, patients are forced to choose between high private costs or unsafe self-treatment. The Pearlie Care Fund was created to respond to this gap responsibly — not emotionally, but structurally.
               </p>
             </FadeIn>
@@ -296,18 +296,18 @@ export default function OurMissionPage() {
       {/* ───────────────────────────────────────────────────────────────
           Section 3 — What the Pearlie Care Fund Covers
       ─────────────────────────────────────────────────────────────── */}
-      <section className="py-16 md:py-24 bg-[#fafaf8]">
+      <section className="py-16 md:py-24 bg-secondary">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <FadeIn>
               <div className="text-center mb-12">
-                <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-[#0fbcb0] mb-4">
+                <span className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-4">
                   The Response
                 </span>
-                <h2 className="text-3xl md:text-4xl font-heading font-bold tracking-[-0.03em] text-[#004443] mb-4">
+                <h2 className="text-3xl md:text-4xl font-heading font-bold tracking-[-0.03em] text-foreground mb-4">
                   What the Pearlie Care Fund covers
                 </h2>
-                <p className="text-lg text-[#666] max-w-2xl mx-auto">
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                   Clear, bounded care with transparent expectations. We prioritise emergency relief — not comprehensive treatment.
                 </p>
               </div>
@@ -364,14 +364,14 @@ export default function OurMissionPage() {
             <FadeIn delay={0.15}>
               <div className="max-w-2xl mx-auto mb-8">
                 <div className="flex items-center gap-2 mb-3">
-                  <AlertCircle className="w-4 h-4 text-[#999]" />
-                  <span className="text-sm font-semibold text-[#004443]">What&apos;s not included</span>
+                  <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground">What&apos;s not included</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {notIncluded.map((item, i) => (
                     <span
                       key={i}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white text-sm text-[#888] border border-[#e8e5e0]"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card text-sm text-muted-foreground border border-border"
                     >
                       <XCircle className="w-3 h-3 text-[#ccc]" />
                       {item}
@@ -382,7 +382,7 @@ export default function OurMissionPage() {
             </FadeIn>
 
             {/* Safeguarding note */}
-            <p className="text-sm text-[#888] text-center max-w-2xl mx-auto">
+            <p className="text-sm text-muted-foreground text-center max-w-2xl mx-auto">
               The Care Fund is designed for emergency stabilisation and essential treatment only. It does not replace NHS services or provide comprehensive treatment plans.
             </p>
           </div>
@@ -392,20 +392,20 @@ export default function OurMissionPage() {
       {/* ───────────────────────────────────────────────────────────────
           Section 4 — Currently in Development
       ─────────────────────────────────────────────────────────────── */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-[#edf7f6] to-[#f0f9f8]">
+      <section className="py-16 md:py-24 bg-gradient-to-b from-[#0e0f18] to-[#0c0d14]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn>
             <div className="max-w-2xl mx-auto">
-              <div className="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] p-8 md:p-12 text-center">
-                <Badge className="bg-[#004443] text-white text-xs uppercase tracking-wider mb-6">
+              <div className="bg-card rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] p-8 md:p-12 text-center">
+                <Badge className="bg-[#0d1019] text-white text-xs uppercase tracking-wider mb-6">
                   Currently in Development
                 </Badge>
 
-                <h2 className="text-2xl md:text-3xl font-bold text-[#004443] mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6">
                   The Pearlie Care Fund
                 </h2>
 
-                <p className="text-[#666] mb-8 leading-relaxed">
+                <p className="text-muted-foreground mb-8 leading-relaxed">
                   We are building this initiative in partnership with clinics and community organisations to ensure:
                 </p>
 
@@ -416,15 +416,15 @@ export default function OurMissionPage() {
                     "Transparent funding structure",
                     "Defined clinic participation standards",
                   ].map((item, i) => (
-                    <li key={i} className="flex items-start gap-3 text-[#333]">
-                      <CheckCircle2 className="w-5 h-5 text-[#0fbcb0] mt-0.5 flex-shrink-0" />
+                    <li key={i} className="flex items-start gap-3 text-foreground/70">
+                      <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                       {item}
                     </li>
                   ))}
                 </ul>
 
-                <div className="border-t border-[#f0ede8] pt-6">
-                  <p className="text-sm text-[#888] font-medium">
+                <div className="border-t border-border pt-6">
+                  <p className="text-sm text-muted-foreground font-medium">
                     This programme will launch once these safeguards are in place.
                   </p>
                 </div>
@@ -437,10 +437,10 @@ export default function OurMissionPage() {
       {/* ───────────────────────────────────────────────────────────────
           Patient CTA
       ─────────────────────────────────────────────────────────────── */}
-      <section className="py-16 md:py-20 bg-[#faf3e6]">
+      <section className="py-16 md:py-20 bg-secondary">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.03em] text-[#004443] mb-4">
+            <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.03em] text-foreground mb-4">
               Looking for a trusted dental clinic?
             </h2>
             <p className="text-muted-foreground mb-6 leading-relaxed">
@@ -449,7 +449,7 @@ export default function OurMissionPage() {
             </p>
             <Button
               size="lg"
-              className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 h-12 text-base border-0"
+              className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full px-8 h-12 text-base border-0"
               asChild
             >
               <Link href="/intake">Find my clinic</Link>
@@ -464,9 +464,9 @@ export default function OurMissionPage() {
       {/* ───────────────────────────────────────────────────────────────
           Section 5 — Soft CTA (dark teal close)
       ─────────────────────────────────────────────────────────────── */}
-      <section className="py-16 md:py-24 bg-[#004443] relative overflow-hidden">
+      <section className="py-16 md:py-24 bg-[#0d1019] relative overflow-hidden">
         {/* Decorative glow */}
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-[#0fbcb0]/[0.05] blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-primary/[0.05] blur-[100px] pointer-events-none" />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <FadeIn>
@@ -487,7 +487,7 @@ export default function OurMissionPage() {
                   "A potential funding partner",
                 ].map((item, i) => (
                   <li key={i} className="flex items-center gap-3 text-white/80">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#0fbcb0] flex-shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
                     {item}
                   </li>
                 ))}

@@ -19,7 +19,7 @@ export function LanguagesSection({ languages }: LanguagesSectionProps) {
         {languages.map((lang) => (
           <span
             key={lang}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#f5f5f5] text-[#333] text-sm font-medium"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#f5f5f5] text-foreground/70 text-sm font-medium"
           >
             {lang}
           </span>

@@ -60,15 +60,15 @@ export function PatientExperiences() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="py-16 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32 bg-[#f8f7f1] overflow-hidden">
+    <section ref={sectionRef} className="py-16 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32 bg-secondary overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
-            <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443] mb-4">
+            <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-foreground mb-4">
               Patient Experiences
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-[#004443] leading-[1.05]">
-              Real stories.<br />Thoughtful decisions.<br /><span className="text-[#0fbcb0]">Confident choices.</span>
+            <h2 className="text-3xl sm:text-4xl md:text-[3rem] font-heading font-bold tracking-[-0.03em] mb-6 text-foreground leading-[1.05]">
+              Real stories.<br />Thoughtful decisions.<br /><span className="text-primary">Confident choices.</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">
               Real experiences from people who used Pearlie to choose with confidence.
@@ -90,8 +90,8 @@ export function PatientExperiences() {
             animate={isVisible ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5, delay: i * 0.08, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            <Card className="p-5 border border-[#e8e4dc] shadow-none rounded-2xl bg-white h-full flex flex-col hover:shadow-md hover:border-[#d5cfc8] hover:-translate-y-0.5 focus-within:shadow-md focus-within:border-[#d5cfc8] focus-within:-translate-y-0.5 transition-all duration-300 ease-out">
-              <span className="text-[9px] font-extrabold tracking-[0.1em] uppercase text-[#0fbcb0] mb-2.5">
+            <Card className="p-5 border border-border shadow-none rounded-2xl bg-card h-full flex flex-col hover:shadow-md hover:border-border hover:-translate-y-0.5 focus-within:shadow-md focus-within:border-border focus-within:-translate-y-0.5 transition-all duration-300 ease-out">
+              <span className="text-[9px] font-extrabold tracking-[0.1em] uppercase text-primary mb-2.5">
                 {testimonial.label}
               </span>
               <p className="text-[14px] text-muted-foreground leading-snug mb-4 flex-1">
@@ -101,7 +101,7 @@ export function PatientExperiences() {
                 <p className="text-[13px] font-semibold text-foreground">{testimonial.name}</p>
                 <div className="flex gap-0.5">
                   {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-3 h-3 fill-[#0fbcb0]/50 text-[#0fbcb0]/50" />
+                    <Star key={j} className="w-3 h-3 fill-primary/50 text-primary/50" />
                   ))}
                 </div>
               </div>

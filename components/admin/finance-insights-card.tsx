@@ -145,17 +145,17 @@ export function FinanceInsightsCard({ leads }: FinanceInsightsCardProps) {
         {/* Headline stat */}
         <div className="bg-teal-50 rounded-lg p-4">
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-[#004443]">{costSensitivePct.toFixed(0)}%</span>
+            <span className="text-2xl font-bold text-foreground">{costSensitivePct.toFixed(0)}%</span>
             <span className="text-sm text-muted-foreground">
               of patients are cost-conscious
             </span>
           </div>
           <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
             <span>
-              <strong className="text-[#004443]">{comfortRangeCount}</strong> have a flexible range
+              <strong className="text-foreground">{comfortRangeCount}</strong> have a flexible range
             </span>
             <span>
-              <strong className="text-[#004443]">{strictBudgetCount}</strong> have strict budgets
+              <strong className="text-foreground">{strictBudgetCount}</strong> have strict budgets
             </span>
           </div>
         </div>
@@ -198,7 +198,7 @@ export function FinanceInsightsCard({ leads }: FinanceInsightsCardProps) {
                 <p className="text-[11px] text-muted-foreground">Would like monthly payments</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-3 text-center">
-                <p className="text-lg font-bold text-[#004443]">{monthlyNo}</p>
+                <p className="text-lg font-bold text-foreground">{monthlyNo}</p>
                 <p className="text-[11px] text-muted-foreground">Not important to them</p>
               </div>
             </div>
@@ -211,17 +211,17 @@ export function FinanceInsightsCard({ leads }: FinanceInsightsCardProps) {
             <p className="text-sm font-medium mb-2">Strict Budget Patients</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-muted/50 rounded-lg p-3 text-center">
-                <p className="text-lg font-bold text-[#004443]">{budgetDiscussCount}</p>
+                <p className="text-lg font-bold text-foreground">{budgetDiscussCount}</p>
                 <p className="text-[11px] text-muted-foreground">Prefer to discuss with clinic</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-3 text-center">
-                <p className="text-lg font-bold text-[#004443]">{budgetShareRangeCount}</p>
+                <p className="text-lg font-bold text-foreground">{budgetShareRangeCount}</p>
                 <p className="text-[11px] text-muted-foreground">Shared a budget range</p>
               </div>
             </div>
             {avgBudget > 0 && (
               <p className="text-xs text-muted-foreground mt-2 text-center">
-                Average entered budget: <strong className="text-[#004443]">£{Math.round(avgBudget).toLocaleString()}</strong>
+                Average entered budget: <strong className="text-foreground">£{Math.round(avgBudget).toLocaleString()}</strong>
               </p>
             )}
           </div>

@@ -14,11 +14,11 @@ type FunnelProps = {
 
 export function PatientJourneyFunnel(props: FunnelProps) {
   const stages = [
-    { label: "Leads Submitted", value: safeNumber(props.leadsSubmitted), color: "bg-[#004443]" },
-    { label: "Matches Shown", value: safeNumber(props.matchesShown), color: "bg-[#0a5c54]" },
-    { label: "Clinic Clicks", value: safeNumber(props.clinicClicks), color: "bg-[#1a6361]" },
-    { label: "Booking Requests", value: safeNumber(props.bookedConsults), color: "bg-[#3c8481]" },
-    { label: "Bookings Confirmed", value: safeNumber(props.bookingsConfirmed), color: "bg-[#5ea5a2]" },
+    { label: "Leads Submitted", value: safeNumber(props.leadsSubmitted), color: "bg-[#0d1019]" },
+    { label: "Matches Shown", value: safeNumber(props.matchesShown), color: "bg-[#161b26]" },
+    { label: "Clinic Clicks", value: safeNumber(props.clinicClicks), color: "bg-[#1f2633]" },
+    { label: "Booking Requests", value: safeNumber(props.bookedConsults), color: "bg-[#2a3140]" },
+    { label: "Bookings Confirmed", value: safeNumber(props.bookingsConfirmed), color: "bg-[#3a4250]" },
   ]
 
   const calculateConversion = (current: number, previous: number) => {

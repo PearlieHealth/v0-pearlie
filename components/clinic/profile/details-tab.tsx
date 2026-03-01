@@ -103,7 +103,7 @@ export function DetailsTab({ clinic, providers }: DetailsTabProps) {
               const hasCerts = provider.certifications && provider.certifications.length > 0
 
               return (
-                <div key={provider.id} className="bg-white rounded-xl border border-[#e5e5e5] overflow-hidden">
+                <div key={provider.id} className="bg-card rounded-xl border border-[#e5e5e5] overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="h-12 w-12 rounded-full bg-[#f0f0f0] overflow-hidden flex-shrink-0">

@@ -32,7 +32,7 @@ export function MobileNavMenu() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 rounded-full hover:bg-black/[0.04]">
+        <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 rounded-full hover:bg-white/[0.06]">
           <Menu className="h-6 w-6" />
           <span className="sr-only">Toggle menu</span>
         </Button>
@@ -40,7 +40,7 @@ export function MobileNavMenu() {
       <SheetContent
         side="right"
         hideCloseButton
-        className="w-full max-w-[300px] sm:max-w-[350px] p-0 border-l border-border/50 bg-white"
+        className="w-full max-w-[300px] sm:max-w-[350px] p-0 border-l border-border bg-card"
       >
         {/* Header with logo and custom close button */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border/50">
@@ -52,7 +52,7 @@ export function MobileNavMenu() {
           </Link>
           <button
             onClick={() => setOpen(false)}
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-white border border-border/50 text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-secondary border border-border text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
           >
             <X className="w-4 h-4" />
             <span className="sr-only">Close menu</span>
@@ -64,7 +64,7 @@ export function MobileNavMenu() {
           <div className="space-y-1">
             <Link
               href="/treatments"
-              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
               onClick={() => setOpen(false)}
             >
               Treatments
@@ -74,7 +74,7 @@ export function MobileNavMenu() {
             <div>
               <button
                 onClick={() => setResourcesOpen(!resourcesOpen)}
-                className="flex items-center justify-between w-full h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+                className="flex items-center justify-between w-full h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
               >
                 Resources
                 <ChevronDown
@@ -90,7 +90,7 @@ export function MobileNavMenu() {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className="flex items-center h-10 px-4 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+                      className="flex items-center h-10 px-4 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                       onClick={() => setOpen(false)}
                     >
                       {link.label}
@@ -102,14 +102,14 @@ export function MobileNavMenu() {
 
             <Link
               href="/our-mission"
-              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
               onClick={() => setOpen(false)}
             >
               Our Mission
             </Link>
             <Link
               href="/faq"
-              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-white transition-colors"
+              className="flex items-center h-12 px-4 rounded-xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
               onClick={() => setOpen(false)}
             >
               FAQ
@@ -121,7 +121,7 @@ export function MobileNavMenu() {
             <Button
               variant="outline"
               size="lg"
-              className="w-full text-base h-12 rounded-full border-[#0fbcb0] text-[#0fbcb0] hover:bg-[#0fbcb0]/10"
+              className="w-full text-base h-12 rounded-full border-primary text-primary hover:bg-primary/10"
               asChild
             >
               <a href="https://portal.pearlie.org" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
@@ -131,7 +131,7 @@ export function MobileNavMenu() {
             <Button
               variant="outline"
               size="lg"
-              className="w-full text-base h-12 rounded-full border-[#0a8f86] text-[#0a8f86] hover:bg-[#0a8f86]/10"
+              className="w-full text-base h-12 rounded-full border-primary/60 text-primary hover:bg-primary/10"
               asChild
             >
               <Link href={isAuthenticated ? "/patient/dashboard" : "/patient/login"} onClick={() => setOpen(false)}>

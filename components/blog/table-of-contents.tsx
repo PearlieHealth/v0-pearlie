@@ -44,9 +44,9 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
   if (validHeadings.length < 2) return null
 
   return (
-    <nav className="rounded-2xl border border-border/50 bg-white p-5 sm:p-6">
+    <nav className="rounded-2xl border border-border/50 bg-card p-5 sm:p-6">
       <div className="flex items-center gap-2 mb-4">
-        <List className="w-4 h-4 text-[#0fbcb0]" />
+        <List className="w-4 h-4 text-primary" />
         <h2 className="text-sm font-heading font-semibold text-foreground uppercase tracking-wider">
           In this article
         </h2>
@@ -60,7 +60,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                 "block text-sm leading-relaxed transition-colors duration-200",
                 heading.level === 3 && "pl-4",
                 activeId === heading.id
-                  ? "text-[#0fbcb0] font-medium"
+                  ? "text-primary font-medium"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >

@@ -88,7 +88,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
       <div className="flex-1 overflow-y-auto px-4 md:px-0 py-4 md:py-0">
         {/* Title row with clear button */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold tracking-tight text-[#004443]">Filters</h3>
+          <h3 className="text-sm font-semibold tracking-tight text-foreground">Filters</h3>
           {hasActiveFilters && (
             <Button
               variant="ghost"
@@ -116,8 +116,8 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
                     border
                     ${
                       isDistanceSelected(option)
-                        ? "bg-[#004443] text-white border-transparent"
-                        : "bg-white text-[#004443] border-[#004443]/20 hover:bg-[#004443]/5"
+                        ? "bg-[#0d1019] text-white border-transparent"
+                        : "bg-card text-foreground border-[#004443]/20 hover:bg-[#0d1019]/5"
                     }
                   `}
                 >
@@ -253,7 +253,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
     return (
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2 bg-white border-[#004443]/20 text-[#004443] hover:bg-[#004443]/5 shadow-sm">
+          <Button variant="outline" size="sm" className="gap-2 bg-card border-[#004443]/20 text-foreground hover:bg-[#0d1019]/5 shadow-sm">
             <SlidersHorizontal className="h-4 w-4" />
             Filters
             {hasActiveFilters && (
@@ -277,7 +277,7 @@ export function MatchFiltersPanel({ filters, onFiltersChange, isMobile = false }
 
   // Desktop sidebar — compact card
   return (
-    <div className="bg-white border border-border/50 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-card border border-border/50 rounded-2xl shadow-sm overflow-hidden">
       <div className="p-4">
         <FilterContent />
       </div>

@@ -51,9 +51,9 @@ export function GuideSidebar({ headings, clusterPosts }: GuideSidebarProps) {
     <div className="space-y-6">
       {/* Table of Contents */}
       {validHeadings.length >= 2 && (
-        <nav className="rounded-2xl border border-border/50 bg-white p-5 sm:p-6">
+        <nav className="rounded-2xl border border-border/50 bg-card p-5 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
-            <List className="w-4 h-4 text-[#0fbcb0]" />
+            <List className="w-4 h-4 text-primary" />
             <h2 className="text-sm font-heading font-semibold text-foreground uppercase tracking-wider">
               In this guide
             </h2>
@@ -67,7 +67,7 @@ export function GuideSidebar({ headings, clusterPosts }: GuideSidebarProps) {
                     "block text-sm leading-relaxed transition-colors duration-200",
                     heading.level === 3 && "pl-4",
                     activeId === heading.id
-                      ? "text-[#0fbcb0] font-medium"
+                      ? "text-primary font-medium"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -81,9 +81,9 @@ export function GuideSidebar({ headings, clusterPosts }: GuideSidebarProps) {
 
       {/* Related Blog Posts */}
       {clusterPosts && clusterPosts.length > 0 && (
-        <div className="rounded-2xl border border-border/50 bg-white p-5 sm:p-6">
+        <div className="rounded-2xl border border-border/50 bg-card p-5 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
-            <FileText className="w-4 h-4 text-[#0fbcb0]" />
+            <FileText className="w-4 h-4 text-primary" />
             <h2 className="text-sm font-heading font-semibold text-foreground uppercase tracking-wider">
               Related articles
             </h2>
@@ -93,7 +93,7 @@ export function GuideSidebar({ headings, clusterPosts }: GuideSidebarProps) {
               <li key={post.slug}>
                 <Link
                   href={`/blog/${post.slug}`}
-                  className="block text-sm text-muted-foreground hover:text-[#0fbcb0] transition-colors leading-relaxed"
+                  className="block text-sm text-muted-foreground hover:text-primary transition-colors leading-relaxed"
                 >
                   {post.title}
                 </Link>

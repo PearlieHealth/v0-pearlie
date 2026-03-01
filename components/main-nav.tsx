@@ -53,14 +53,14 @@ export function MainNav({ hideCta }: MainNavProps) {
 
   return (
     <header className="fixed top-3 left-3 right-3 md:top-5 md:left-8 md:right-8 z-50">
-      <div className="rounded-[6vw] md:rounded-[3.4vw] bg-white/70 backdrop-blur-[40px] backdrop-saturate-[1.4] border border-white/30 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] px-4 sm:px-6 py-3">
+      <div className="rounded-[6vw] md:rounded-[3.4vw] bg-[#111218]/80 backdrop-blur-[40px] backdrop-saturate-[1.4] border border-[#1f2133]/60 shadow-[0_4px_24px_rgba(0,0,0,0.25),0_1px_2px_rgba(0,0,0,0.15)] px-4 sm:px-6 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="rounded-full bg-[#0fbcb0] p-1.5">
+            <div className="rounded-full bg-primary p-1.5">
               <Heart className="w-4 h-4 text-white fill-white" />
             </div>
-            <span className="text-2xl font-heading font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
+            <span className="text-2xl font-heading font-bold tracking-tight text-primary">Pearlie</span>
           </Link>
 
           {/* Desktop Navigation - Center */}
@@ -71,8 +71,8 @@ export function MainNav({ hideCta }: MainNavProps) {
               className={cn(
                 "px-4 py-2 text-sm font-medium transition-all duration-200",
                 pathname === "/treatments"
-                  ? "text-[#0fbcb0]"
-                  : "text-[#333] hover:text-[#0fbcb0]",
+                  ? "text-primary"
+                  : "text-foreground/70 hover:text-primary",
               )}
             >
               Treatments
@@ -85,8 +85,8 @@ export function MainNav({ hideCta }: MainNavProps) {
                   className={cn(
                     "flex items-center gap-1 px-4 py-2 text-sm font-medium transition-all duration-200",
                     resourcesLinks.some((link) => pathname === link.href)
-                      ? "text-[#0fbcb0]"
-                      : "text-[#333] hover:text-[#0fbcb0]",
+                      ? "text-primary"
+                      : "text-foreground/70 hover:text-primary",
                   )}
                 >
                   Resources
@@ -100,7 +100,7 @@ export function MainNav({ hideCta }: MainNavProps) {
                       href={link.href}
                       className={cn(
                         "w-full cursor-pointer",
-                        pathname === link.href && "text-[#0fbcb0]",
+                        pathname === link.href && "text-primary",
                       )}
                     >
                       {link.label}
@@ -116,8 +116,8 @@ export function MainNav({ hideCta }: MainNavProps) {
               className={cn(
                 "px-4 py-2 text-sm font-medium transition-all duration-200",
                 pathname === "/our-mission"
-                  ? "text-[#0fbcb0]"
-                  : "text-[#333] hover:text-[#0fbcb0]",
+                  ? "text-primary"
+                  : "text-foreground/70 hover:text-primary",
               )}
             >
               Our Mission
@@ -129,8 +129,8 @@ export function MainNav({ hideCta }: MainNavProps) {
               className={cn(
                 "px-4 py-2 text-sm font-medium transition-all duration-200",
                 pathname === "/faq"
-                  ? "text-[#0fbcb0]"
-                  : "text-[#333] hover:text-[#0fbcb0]",
+                  ? "text-primary"
+                  : "text-foreground/70 hover:text-primary",
               )}
             >
               FAQ
@@ -143,14 +143,14 @@ export function MainNav({ hideCta }: MainNavProps) {
               <>
                 <Link
                   href={isAuthenticated ? "/patient/dashboard" : "/patient/login"}
-                  className="text-sm font-heading font-medium text-[#333] hover:text-[#0fbcb0] transition-colors"
+                  className="text-sm font-heading font-medium text-foreground/70 hover:text-primary transition-colors"
                 >
                   My account
                 </Link>
                 <Button
                   variant="outline"
                   size="lg"
-                  className="text-sm px-6 rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-[#0fbcb0] text-[#0fbcb0] hover:bg-[#0fbcb0]/10"
+                  className="text-sm px-6 rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-primary text-primary hover:bg-primary/10"
                   asChild
                 >
                   <a href="https://portal.pearlie.org" target="_blank" rel="noopener noreferrer">
@@ -163,7 +163,7 @@ export function MainNav({ hideCta }: MainNavProps) {
               <Button
                 size="lg"
                 className={cn(
-                  "text-sm bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0",
+                  "text-sm bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0 shadow-[0_0_20px_rgba(15,188,176,0.25)]",
                   hasScrolled ? "px-12" : "px-6",
                 )}
                 asChild
@@ -177,7 +177,7 @@ export function MainNav({ hideCta }: MainNavProps) {
               <Button
                 size="lg"
                 className={cn(
-                  "text-sm bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0",
+                  "text-sm bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] border-0 shadow-[0_0_20px_rgba(15,188,176,0.25)]",
                   hasScrolled ? "px-12" : "px-6",
                 )}
                 asChild
@@ -192,7 +192,7 @@ export function MainNav({ hideCta }: MainNavProps) {
             {lastMatchId ? (
               <Link
                 href={`/match/${lastMatchId}`}
-                className="flex items-center justify-center h-10 w-10 rounded-full bg-[#0fbcb0] text-white hover:bg-[#0da399] transition-colors"
+                className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-white hover:bg-[var(--primary-hover)] transition-colors shadow-[0_0_15px_rgba(15,188,176,0.3)]"
               >
                 <RotateCcw className="h-4 w-4" />
                 <span className="sr-only">Your matches</span>
@@ -200,7 +200,7 @@ export function MainNav({ hideCta }: MainNavProps) {
             ) : !hideCta ? (
               <Link
                 href="/intake"
-                className="flex items-center justify-center h-10 w-10 rounded-full bg-[#0fbcb0] text-white hover:bg-[#0da399] transition-colors"
+                className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-white hover:bg-[var(--primary-hover)] transition-colors shadow-[0_0_15px_rgba(15,188,176,0.3)]"
               >
                 <Search className="h-4 w-4" />
                 <span className="sr-only">Find my clinic</span>

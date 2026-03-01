@@ -49,7 +49,7 @@ const legalLinks = [
 
 export function SiteFooter() {
   return (
-    <footer className="bg-[#004443] text-white">
+    <footer className="bg-[#08090d] text-white border-t border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="max-w-7xl mx-auto">
           {/* Grid */}
@@ -57,7 +57,7 @@ export function SiteFooter() {
             {/* Brand */}
             <div className="col-span-2 md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <Heart className="w-5 h-5 text-[#0fbcb0] fill-[#0fbcb0]" />
+                <Heart className="w-5 h-5 text-primary fill-primary" />
                 <span className="text-lg font-heading font-bold text-white">Pearlie</span>
               </div>
               <p className="text-sm text-white/60 leading-relaxed">

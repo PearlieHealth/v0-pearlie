@@ -421,17 +421,17 @@ function BillingPageContent() {
         <TabsContent value="overview" className="space-y-6">
           {/* Subscription status alert */}
           {!sub && (
-            <Card className="border-[#0fbcb0]/30 bg-[#0fbcb0]/5">
+            <Card className="border-primary/30 bg-primary/5">
               <CardContent className="flex items-center gap-4 pt-6">
-                <Gift className="h-6 w-6 text-[#0fbcb0] flex-shrink-0" />
+                <Gift className="h-6 w-6 text-primary flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="font-medium text-[#004443]">Welcome! Your first 3 leads are free</p>
+                  <p className="font-medium text-foreground">Welcome! Your first 3 leads are free</p>
                   <p className="text-sm text-muted-foreground">
                     Start receiving patient matches right away — no subscription needed for your first 3 leads.
                     When you&apos;re ready, set up a subscription to keep receiving leads.
                   </p>
                 </div>
-                <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-[#0fbcb0] hover:bg-[#0da399] text-white">
+                <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-primary hover:bg-[var(--primary-hover)] text-white">
                   {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Set Up Subscription
                 </Button>
@@ -467,7 +467,7 @@ function BillingPageContent() {
                     It looks like you didn&apos;t finish setting up your subscription. Click below to complete the process.
                   </p>
                 </div>
-                <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-[#0fbcb0] hover:bg-[#0da399] text-white">
+                <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-primary hover:bg-[var(--primary-hover)] text-white">
                   {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Complete Setup
                 </Button>
@@ -492,11 +492,11 @@ function BillingPageContent() {
 
           {/* Free leads & trial banners */}
           {sub && sub.free_leads_used < sub.free_leads_limit && (
-            <Card className="border-[#0fbcb0]/30 bg-[#0fbcb0]/5">
+            <Card className="border-primary/30 bg-primary/5">
               <CardContent className="flex items-center gap-4 pt-6">
-                <Gift className="h-6 w-6 text-[#0fbcb0] flex-shrink-0" />
+                <Gift className="h-6 w-6 text-primary flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="font-medium text-[#004443]">
+                  <p className="font-medium text-foreground">
                     Free leads: {sub.free_leads_used} of {sub.free_leads_limit} used
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -511,7 +511,7 @@ function BillingPageContent() {
                     <div
                       key={i}
                       className={`w-3 h-3 rounded-full ${
-                        i < sub.free_leads_used ? "bg-[#0fbcb0]" : "bg-[#0fbcb0]/20"
+                        i < sub.free_leads_used ? "bg-primary" : "bg-primary/20"
                       }`}
                     />
                   ))}
@@ -593,7 +593,7 @@ function BillingPageContent() {
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 {sub.status === "incomplete" ? (
-                  <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-[#0fbcb0] hover:bg-[#0da399] text-white">
+                  <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-primary hover:bg-[var(--primary-hover)] text-white">
                     {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     <CreditCard className="h-4 w-4 mr-2" />
                     Set Up Subscription

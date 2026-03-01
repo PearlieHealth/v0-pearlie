@@ -66,7 +66,7 @@ export function HeroSection() {
         {showLoading && <LoadingAnimation onComplete={() => setShowLoading(false)} />}
       </AnimatePresence>
 
-      <section className="relative md:min-h-[70vh] lg:min-h-[100vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:flex lg:flex-col lg:pt-20 lg:pb-0 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
+      <section className="relative md:min-h-[70vh] lg:min-h-[100vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:flex lg:flex-col lg:pt-20 lg:pb-0 bg-gradient-to-b from-[#0e0f18] via-[#0c0d14] to-background overflow-hidden">
         <div className="px-6 md:px-14 lg:flex-1 lg:flex lg:items-center">
           <div className="max-w-7xl lg:w-full">
             <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8 md:gap-14 lg:gap-20">
@@ -103,18 +103,18 @@ export function HeroSection() {
               {/* Text content */}
               <div className="order-1 lg:order-1 flex-1 text-center lg:text-left">
                 <motion.h1
-                  className="text-[clamp(1.65rem,6.8vw,2.3rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-black mb-8 md:mb-14 lg:mb-24 -mx-2 md:mx-0"
+                  className="text-[clamp(1.65rem,6.8vw,2.3rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-foreground mb-8 md:mb-14 lg:mb-24 -mx-2 md:mx-0"
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.1 }}
                 >
-                  <span className="block whitespace-nowrap">Find the <span className="text-[#0fbcb0]">right</span> dentist.</span>
+                  <span className="block whitespace-nowrap">Find the <span className="text-primary">right</span> dentist.</span>
                   <span className="block whitespace-nowrap mt-1 md:mt-2">Not just the closest one.</span>
                 </motion.h1>
 
                 {!lastMatch && (
                   <motion.p
-                    className="text-[15px] md:text-lg text-black mb-5 md:mb-6 lg:mb-8 leading-[1.5] max-w-lg mx-auto lg:mx-0"
+                    className="text-[15px] md:text-lg text-foreground mb-5 md:mb-6 lg:mb-8 leading-[1.5] max-w-lg mx-auto lg:mx-0"
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
@@ -132,36 +132,36 @@ export function HeroSection() {
                     <div className="flex flex-col lg:flex-row justify-center lg:justify-start gap-2 md:gap-3 max-w-md lg:max-w-none">
                       <Link
                         href={`/match/${lastMatch.matchId}`}
-                        className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                        className="group flex items-center gap-3 bg-card border border-primary/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-primary/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
                       >
-                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                          <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-[#0fbcb0]" />
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm md:text-[15px] font-semibold text-black">Return to your matches</p>
-                          <p className="text-xs text-black mt-0.5 leading-snug">View the clinics we matched you with</p>
+                          <p className="text-sm md:text-[15px] font-semibold text-foreground">Return to your matches</p>
+                          <p className="text-xs text-foreground mt-0.5 leading-snug">View the clinics we matched you with</p>
                         </div>
-                        <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
+                        <ArrowRight className="w-5 h-5 text-primary group-hover:translate-x-0.5 transition-transform" />
                       </Link>
                       <Link
                         href="/intake"
-                        className="group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                        className="group flex items-center gap-3 bg-card border border-border rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
                       >
-                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#f8f7f1] flex items-center justify-center flex-shrink-0">
-                          <Search className="w-4 h-4 md:w-5 md:h-5 text-[#004443]" />
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                          <Search className="w-4 h-4 md:w-5 md:h-5 text-foreground" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm md:text-[15px] font-semibold text-black">Start a new search</p>
-                          <p className="text-xs text-black mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
+                          <p className="text-sm md:text-[15px] font-semibold text-foreground">Start a new search</p>
+                          <p className="text-xs text-foreground mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
                         </div>
-                        <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
+                        <ArrowRight className="w-5 h-5 text-foreground group-hover:translate-x-0.5 transition-transform" />
                       </Link>
                     </div>
                   ) : (
                     <div className="flex flex-row items-center justify-center lg:justify-start gap-4">
                       <Button
                         size="default"
-                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white px-5 md:px-7 py-2 md:py-3 h-auto rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] text-sm md:text-[15px] border-0"
+                        className="bg-primary hover:bg-[var(--primary-hover)] text-white px-5 md:px-7 py-2 md:py-3 h-auto rounded-full font-normal transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] text-sm md:text-[15px] border-0"
                         asChild
                       >
                         <Link href="/intake" onClick={handleFindClinicClick}>
@@ -174,7 +174,7 @@ export function HeroSection() {
                         onClick={() => {
                           document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
                         }}
-                        className="px-4 md:px-6 py-1.5 md:py-2.5 h-auto rounded-full font-heading font-normal text-sm md:text-[15px] text-black hover:text-black border border-[#d5cfc8] hover:border-[#bbb] bg-transparent hover:bg-white/50 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                        className="px-4 md:px-6 py-1.5 md:py-2.5 h-auto rounded-full font-heading font-normal text-sm md:text-[15px] text-foreground hover:text-foreground border border-border hover:border-[#bbb] bg-transparent hover:bg-card/50 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
                       >
                         How it works
                       </button>

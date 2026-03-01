@@ -177,22 +177,22 @@ export default async function GuidePage({ params }: GuidePageProps) {
 
               <Link
                 href="/guides"
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#0fbcb0] transition-colors mb-6"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
               >
                 <ArrowLeft className="w-4 h-4" />
                 All guides
               </Link>
 
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center">
-                  <BookOpen className="w-4 h-4 text-[#0fbcb0]" />
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <BookOpen className="w-4 h-4 text-primary" />
                 </div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#0fbcb0]">
+                <span className="text-xs font-semibold uppercase tracking-wider text-primary">
                   Complete Guide
                 </span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] text-[#004443] mb-6 text-balance">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] text-foreground mb-6 text-balance">
                 {meta.title}
               </h1>
 
@@ -240,7 +240,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
 
                   {/* Inline CTA */}
                   <div className="mt-12 rounded-2xl bg-[var(--cream)] border border-border/50 p-6 md:p-8 text-center">
-                    <h3 className="text-xl font-heading font-bold text-[#004443] mb-2">
+                    <h3 className="text-xl font-heading font-bold text-foreground mb-2">
                       Looking for a dentist?
                     </h3>
                     <p className="text-muted-foreground mb-4">
@@ -249,7 +249,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
                     </p>
                     <Button
                       size="lg"
-                      className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8"
+                      className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full px-8"
                       asChild
                     >
                       <Link href="/intake">Find my clinic</Link>

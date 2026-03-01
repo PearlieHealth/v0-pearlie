@@ -181,22 +181,22 @@ export default async function InvisalignVsSparkPage() {
 
               <Link
                 href="/treatments/invisalign"
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#0fbcb0] transition-colors mb-6"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Invisalign
               </Link>
 
               <div className="flex items-center gap-3 mb-4">
-                <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0fbcb0] bg-[#0fbcb0]/10 rounded-full">
+                <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 rounded-full">
                   Comparison
                 </span>
-                <span className="inline-block px-3 py-1 text-xs font-semibold text-[#004443] bg-[#004443]/10 rounded-full">
+                <span className="inline-block px-3 py-1 text-xs font-semibold text-foreground bg-[#0d1019]/10 rounded-full">
                   Clear aligners
                 </span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] text-[#004443] mb-6 text-balance">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold tracking-[-0.03em] text-foreground mb-6 text-balance">
                 Invisalign vs Spark — Costs, Differences & Which to Choose
               </h1>
 
@@ -226,17 +226,17 @@ export default async function InvisalignVsSparkPage() {
         <section className="py-10 sm:py-14 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-6">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-6">
                 Invisalign vs Spark: quick comparison
               </h2>
 
               <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
                 <table className="w-full text-sm border-collapse">
                   <thead>
-                    <tr className="border-b-2 border-[#004443]/10">
-                      <th className="text-left py-3 pr-4 font-semibold text-[#004443]"></th>
-                      <th className="text-left py-3 pr-4 font-semibold text-[#004443]">Invisalign</th>
-                      <th className="text-left py-3 font-semibold text-[#004443]">Spark</th>
+                    <tr className="border-b-2 border-border">
+                      <th className="text-left py-3 pr-4 font-semibold text-foreground"></th>
+                      <th className="text-left py-3 pr-4 font-semibold text-foreground">Invisalign</th>
+                      <th className="text-left py-3 font-semibold text-foreground">Spark</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -254,21 +254,21 @@ export default async function InvisalignVsSparkPage() {
               <div className="mt-6 grid sm:grid-cols-2 gap-3">
                 <Link
                   href="/blog/invisalign-vs-braces"
-                  className="flex items-center gap-3 p-4 rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all group"
+                  className="flex items-center gap-3 p-4 rounded-xl border border-primary/20 bg-primary/5 hover:border-primary/40 hover:shadow-md transition-all group"
                 >
-                  <span className="shrink-0 w-8 h-8 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center text-[#0fbcb0] group-hover:bg-[#0fbcb0]/20 transition-colors">→</span>
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">→</span>
                   <span>
-                    <span className="font-heading font-bold text-[#004443] text-sm block">Invisalign vs braces</span>
+                    <span className="font-heading font-bold text-foreground text-sm block">Invisalign vs braces</span>
                     <span className="text-xs text-muted-foreground">Compare aligners with fixed orthodontics</span>
                   </span>
                 </Link>
                 <Link
                   href="/guides/invisalign-clear-aligners"
-                  className="flex items-center gap-3 p-4 rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all group"
+                  className="flex items-center gap-3 p-4 rounded-xl border border-primary/20 bg-primary/5 hover:border-primary/40 hover:shadow-md transition-all group"
                 >
-                  <span className="shrink-0 w-8 h-8 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center text-[#0fbcb0] group-hover:bg-[#0fbcb0]/20 transition-colors">→</span>
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">→</span>
                   <span>
-                    <span className="font-heading font-bold text-[#004443] text-sm block">Complete clear aligner guide</span>
+                    <span className="font-heading font-bold text-foreground text-sm block">Complete clear aligner guide</span>
                     <span className="text-xs text-muted-foreground">Consultation to retention — everything to know</span>
                   </span>
                 </Link>
@@ -281,7 +281,7 @@ export default async function InvisalignVsSparkPage() {
         <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-4">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-4">
                 Which is cheaper: Invisalign or Spark?
               </h2>
               <div className="space-y-4 text-base text-muted-foreground leading-relaxed">
@@ -299,21 +299,21 @@ export default async function InvisalignVsSparkPage() {
               <div className="grid sm:grid-cols-2 gap-3 mt-6">
                 <Link
                   href="/treatments/invisalign"
-                  className="flex items-center gap-3 p-4 rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all group"
+                  className="flex items-center gap-3 p-4 rounded-xl border border-primary/20 bg-primary/5 hover:border-primary/40 hover:shadow-md transition-all group"
                 >
-                  <span className="shrink-0 w-8 h-8 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center text-[#0fbcb0] group-hover:bg-[#0fbcb0]/20 transition-colors">→</span>
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">→</span>
                   <span>
-                    <span className="font-heading font-bold text-[#004443] text-sm block">Invisalign cost breakdown</span>
+                    <span className="font-heading font-bold text-foreground text-sm block">Invisalign cost breakdown</span>
                     <span className="text-xs text-muted-foreground">Full pricing by tier and what affects cost</span>
                   </span>
                 </Link>
                 <Link
                   href="/guides/dental-costs-uk"
-                  className="flex items-center gap-3 p-4 rounded-xl border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all group"
+                  className="flex items-center gap-3 p-4 rounded-xl border border-primary/20 bg-primary/5 hover:border-primary/40 hover:shadow-md transition-all group"
                 >
-                  <span className="shrink-0 w-8 h-8 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center text-[#0fbcb0] group-hover:bg-[#0fbcb0]/20 transition-colors">→</span>
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">→</span>
                   <span>
-                    <span className="font-heading font-bold text-[#004443] text-sm block">UK dental costs guide</span>
+                    <span className="font-heading font-bold text-foreground text-sm block">UK dental costs guide</span>
                     <span className="text-xs text-muted-foreground">How treatment pricing works across providers</span>
                   </span>
                 </Link>
@@ -326,36 +326,36 @@ export default async function InvisalignVsSparkPage() {
         <section className="py-10 sm:py-14 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-6">
+              <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-6">
                 Which is better for your case?
               </h2>
 
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-white border border-border/50">
-                  <h3 className="font-heading font-bold text-[#004443] mb-2">Simple cases (mild crowding, minor gaps)</h3>
+                <div className="p-4 rounded-xl bg-card border border-border/50">
+                  <h3 className="font-heading font-bold text-foreground mb-2">Simple cases (mild crowding, minor gaps)</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Both systems perform equally well. Choose based on your provider&apos;s recommendation and pricing. Spark may offer slightly fewer attachments for simple movements. For very minor gaps, <Link href="/treatments/composite-bonding" className="font-semibold text-[#0fbcb0] hover:text-[#004443] transition-colors">composite bonding →</Link> can sometimes close small spaces without aligners.
+                    Both systems perform equally well. Choose based on your provider&apos;s recommendation and pricing. Spark may offer slightly fewer attachments for simple movements. For very minor gaps, <Link href="/treatments/composite-bonding" className="font-semibold text-primary hover:text-foreground transition-colors">composite bonding →</Link> can sometimes close small spaces without aligners.
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-white border border-border/50">
-                  <h3 className="font-heading font-bold text-[#004443] mb-2">Moderate cases (crowding + bite correction)</h3>
+                <div className="p-4 rounded-xl bg-card border border-border/50">
+                  <h3 className="font-heading font-bold text-foreground mb-2">Moderate cases (crowding + bite correction)</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Both systems can handle moderate cases. Invisalign has a larger evidence base and more predictable refinement processes. Your provider&apos;s experience matters more than the brand. Read our <Link href="/guides/invisalign-clear-aligners" className="font-semibold text-[#0fbcb0] hover:text-[#004443] transition-colors">complete guide to clear aligners →</Link> to understand how treatment planning works.
+                    Both systems can handle moderate cases. Invisalign has a larger evidence base and more predictable refinement processes. Your provider&apos;s experience matters more than the brand. Read our <Link href="/guides/invisalign-clear-aligners" className="font-semibold text-primary hover:text-foreground transition-colors">complete guide to clear aligners →</Link> to understand how treatment planning works.
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-white border border-border/50">
-                  <h3 className="font-heading font-bold text-[#004443] mb-2">Complex cases (severe crowding, significant bite issues)</h3>
+                <div className="p-4 rounded-xl bg-card border border-border/50">
+                  <h3 className="font-heading font-bold text-foreground mb-2">Complex cases (severe crowding, significant bite issues)</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Invisalign generally has the edge for complex cases due to its longer track record, SmartForce features, and Comprehensive plan with unlimited aligners and refinements. However, an experienced Spark provider can also achieve excellent results. If you&apos;re weighing aligners against traditional orthodontics, see our <Link href="/blog/invisalign-vs-braces" className="font-semibold text-[#0fbcb0] hover:text-[#004443] transition-colors">Invisalign vs braces comparison →</Link>
+                    Invisalign generally has the edge for complex cases due to its longer track record, SmartForce features, and Comprehensive plan with unlimited aligners and refinements. However, an experienced Spark provider can also achieve excellent results. If you&apos;re weighing aligners against traditional orthodontics, see our <Link href="/blog/invisalign-vs-braces" className="font-semibold text-primary hover:text-foreground transition-colors">Invisalign vs braces comparison →</Link>
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-white border border-border/50">
-                  <h3 className="font-heading font-bold text-[#004443] mb-2">Aesthetics-focused (minimal attachments, stain resistance)</h3>
+                <div className="p-4 rounded-xl bg-card border border-border/50">
+                  <h3 className="font-heading font-bold text-foreground mb-2">Aesthetics-focused (minimal attachments, stain resistance)</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Spark&apos;s TruGEN material is designed to be more stain-resistant and may require fewer attachments. If discreetness is your top priority, Spark could have a slight advantage. Many patients follow aligners with <Link href="/treatments/teeth-whitening" className="font-semibold text-[#0fbcb0] hover:text-[#004443] transition-colors">teeth whitening →</Link> for a complete smile refresh.
+                    Spark&apos;s TruGEN material is designed to be more stain-resistant and may require fewer attachments. If discreetness is your top priority, Spark could have a slight advantage. Many patients follow aligners with <Link href="/treatments/teeth-whitening" className="font-semibold text-primary hover:text-foreground transition-colors">teeth whitening →</Link> for a complete smile refresh.
                   </p>
                 </div>
               </div>
@@ -367,8 +367,8 @@ export default async function InvisalignVsSparkPage() {
         <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
-              <div className="p-6 sm:p-8 rounded-2xl bg-white border border-border/50 text-center">
-                <p className="text-lg font-heading font-bold text-[#004443] mb-2">
+              <div className="p-6 sm:p-8 rounded-2xl bg-card border border-border/50 text-center">
+                <p className="text-lg font-heading font-bold text-foreground mb-2">
                   Get an exact quote from clear aligner clinics near you
                 </p>
                 <p className="text-sm text-muted-foreground mb-5">
@@ -399,13 +399,13 @@ export default async function InvisalignVsSparkPage() {
         <section data-speakable="faq" className="py-12 sm:py-16 bg-[var(--cream)]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
-              <h2 id="faq" className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-8">
+              <h2 id="faq" className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-8">
                 Invisalign vs Spark: frequently asked questions
               </h2>
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
-                  <details key={i} className="group rounded-xl border border-border/50 bg-white px-5 sm:px-6">
+                  <details key={i} className="group rounded-xl border border-border/50 bg-card px-5 sm:px-6">
                     <summary className="flex items-center justify-between cursor-pointer py-5 text-base font-semibold text-foreground [&::-webkit-details-marker]:hidden list-none">
                       {faq.question}
                       <span className="ml-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180">
@@ -427,34 +427,34 @@ export default async function InvisalignVsSparkPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
               {/* Aligner guides & comparisons */}
-              <h2 className="text-xl font-heading font-bold text-[#004443] mb-4">
+              <h2 className="text-xl font-heading font-bold text-foreground mb-4">
                 Clear aligner guides
               </h2>
               <div className="grid sm:grid-cols-2 gap-3 mb-10">
                 <Link
                   href="/treatments/invisalign"
-                  className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
+                  className="p-4 rounded-xl border border-border/50 bg-card hover:border-primary/30 hover:shadow-md transition-all"
                 >
                   <p className="font-heading font-bold text-foreground mb-1">Invisalign cost & treatment guide</p>
                   <p className="text-sm text-muted-foreground">Full pricing breakdown, treatment tiers, and what affects cost.</p>
                 </Link>
                 <Link
                   href="/guides/invisalign-clear-aligners"
-                  className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
+                  className="p-4 rounded-xl border border-border/50 bg-card hover:border-primary/30 hover:shadow-md transition-all"
                 >
                   <p className="font-heading font-bold text-foreground mb-1">Complete guide to clear aligners</p>
                   <p className="text-sm text-muted-foreground">How aligners work, what to expect, and choosing a provider.</p>
                 </Link>
                 <Link
                   href="/blog/invisalign-vs-braces"
-                  className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
+                  className="p-4 rounded-xl border border-border/50 bg-card hover:border-primary/30 hover:shadow-md transition-all"
                 >
                   <p className="font-heading font-bold text-foreground mb-1">Invisalign vs braces</p>
                   <p className="text-sm text-muted-foreground">Comparing clear aligners with traditional fixed braces.</p>
                 </Link>
                 <Link
                   href="/guides/dental-costs-uk"
-                  className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
+                  className="p-4 rounded-xl border border-border/50 bg-card hover:border-primary/30 hover:shadow-md transition-all"
                 >
                   <p className="font-heading font-bold text-foreground mb-1">UK dental costs explained</p>
                   <p className="text-sm text-muted-foreground">Private vs NHS pricing and what drives treatment costs.</p>
@@ -462,27 +462,27 @@ export default async function InvisalignVsSparkPage() {
               </div>
 
               {/* Treatments patients combine with aligners */}
-              <h2 className="text-xl font-heading font-bold text-[#004443] mb-4">
+              <h2 className="text-xl font-heading font-bold text-foreground mb-4">
                 Treatments to combine with aligners
               </h2>
               <div className="grid sm:grid-cols-3 gap-3 mb-10">
                 <Link
                   href="/treatments/teeth-whitening"
-                  className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
+                  className="p-4 rounded-xl border border-border/50 bg-card hover:border-primary/30 hover:shadow-md transition-all"
                 >
                   <p className="font-heading font-bold text-foreground mb-1">Teeth whitening</p>
                   <p className="text-sm text-muted-foreground">Whiten after aligners for maximum impact. From £250.</p>
                 </Link>
                 <Link
                   href="/treatments/composite-bonding"
-                  className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
+                  className="p-4 rounded-xl border border-border/50 bg-card hover:border-primary/30 hover:shadow-md transition-all"
                 >
                   <p className="font-heading font-bold text-foreground mb-1">Composite bonding</p>
                   <p className="text-sm text-muted-foreground">Finishing touches after alignment. From £250 per tooth.</p>
                 </Link>
                 <Link
                   href="/treatments/veneers"
-                  className="p-4 rounded-xl border border-border/50 bg-white hover:border-[#0fbcb0]/30 hover:shadow-md transition-all"
+                  className="p-4 rounded-xl border border-border/50 bg-card hover:border-primary/30 hover:shadow-md transition-all"
                 >
                   <p className="font-heading font-bold text-foreground mb-1">Porcelain veneers</p>
                   <p className="text-sm text-muted-foreground">Full smile transformation after straightening. From £700.</p>
@@ -490,7 +490,7 @@ export default async function InvisalignVsSparkPage() {
               </div>
 
               {/* Find clinics by area */}
-              <h2 className="text-xl font-heading font-bold text-[#004443] mb-4">
+              <h2 className="text-xl font-heading font-bold text-foreground mb-4">
                 Find aligner clinics by area
               </h2>
               <div className="flex flex-wrap gap-2">
@@ -510,7 +510,7 @@ export default async function InvisalignVsSparkPage() {
                   <Link
                     key={area.href}
                     href={area.href}
-                    className="px-3 py-1.5 text-sm rounded-full border border-border/50 bg-white text-muted-foreground hover:border-[#0fbcb0]/30 hover:text-[#004443] transition-all"
+                    className="px-3 py-1.5 text-sm rounded-full border border-border/50 bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground transition-all"
                   >
                     {area.label}
                   </Link>
@@ -521,7 +521,7 @@ export default async function InvisalignVsSparkPage() {
         </section>
 
         {/* Bottom CTA */}
-        <section className="py-12 sm:py-16 bg-[#004443]">
+        <section className="py-12 sm:py-16 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">

@@ -44,7 +44,7 @@ export function TreatmentPostcodeCta({ treatmentName, intakeTreatment }: Treatme
     <>
       <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
         <div className="space-y-4">
-          <div className="[&_input]:h-12 [&_input]:text-base [&_input]:rounded-full [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-[#0fbcb0] [&_input]:focus-visible:border-[#0fbcb0] [&_.text-destructive]:text-red-300">
+          <div className="[&_input]:h-12 [&_input]:text-base [&_input]:rounded-full [&_input]:bg-white/10 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/40 [&_input]:focus-visible:ring-primary [&_input]:focus-visible:border-primary [&_.text-destructive]:text-red-300">
             <PostcodeInput
               value={postcode}
               onChange={setPostcode}
@@ -56,7 +56,7 @@ export function TreatmentPostcodeCta({ treatmentName, intakeTreatment }: Treatme
             type="submit"
             size="lg"
             disabled={!postcodeValid}
-            className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 h-12 text-base disabled:opacity-50"
+            className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full px-8 h-12 text-base disabled:opacity-50"
           >
             Find my {treatmentName.toLowerCase()} clinic
           </Button>
@@ -92,7 +92,7 @@ export function TreatmentPostcodeCta({ treatmentName, intakeTreatment }: Treatme
                       <Button
                         size="sm"
                         disabled={!waitlistEmail.includes("@") || waitlistSubmitting}
-                        className="bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                        className="bg-primary hover:bg-[var(--primary-hover)] text-white border-0"
                         onClick={async () => {
                           setWaitlistSubmitting(true)
                           try {
@@ -118,7 +118,7 @@ export function TreatmentPostcodeCta({ treatmentName, intakeTreatment }: Treatme
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-[#0fbcb0] font-medium">
+                  <p className="text-sm text-primary font-medium">
                     You&apos;re on the list! We&apos;ll let you know when we launch near you.
                   </p>
                 )}

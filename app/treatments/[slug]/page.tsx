@@ -424,7 +424,7 @@ export default async function TreatmentPage({ params }: TreatmentPageProps) {
         <RelatedTreatments treatments={relatedTreatments} />
 
         {/* 17. CTA — Bottom CTA with postcode input */}
-        <section className="py-12 sm:py-16 bg-[#004443]">
+        <section className="py-12 sm:py-16 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">

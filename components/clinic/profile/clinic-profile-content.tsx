@@ -466,7 +466,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-card flex items-center justify-center p-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a1a1a] mx-auto mb-4" />
           <p className="text-[#666]">Loading clinic details...</p>
@@ -477,8 +477,8 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
 
   if (!clinic) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <Card className="p-8 text-center max-w-md bg-white border-[#e5e5e5]">
+      <div className="min-h-screen bg-card flex items-center justify-center p-4">
+        <Card className="p-8 text-center max-w-md bg-card border-[#e5e5e5]">
           <h1 className="text-2xl font-bold text-[#1a1a1a] mb-2">Clinic not found</h1>
           <p className="text-[#666] mb-4">We couldn&apos;t find the clinic you&apos;re looking for</p>
           <Button onClick={() => router.back()} className="bg-[#1a1a1a] hover:bg-[#333] text-white">
@@ -490,10 +490,10 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
   }
 
   return (
-    <div className="min-h-screen bg-white pb-24 lg:pb-8">
+    <div className="min-h-screen bg-card pb-24 lg:pb-8">
       {/* Preview banner */}
       {isPreview && (
-        <div className="bg-[#0fbcb0] text-white sticky top-0 z-30">
+        <div className="bg-primary text-white sticky top-0 z-30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
@@ -503,7 +503,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
             <Button
               size="sm"
               variant="secondary"
-              className="h-7 text-xs bg-white text-[#0fbcb0] hover:bg-white/90"
+              className="h-7 text-xs bg-card text-primary hover:bg-white/90"
               onClick={() => { window.location.href = clinicHref("/clinic/profile") }}
             >
               <Pencil className="h-3 w-3 mr-1.5" />
@@ -514,7 +514,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
       )}
 
       {/* Back button header */}
-      <div className="bg-white border-b border-[#e5e5e5] sticky top-0 z-20" style={isPreview ? { top: "44px" } : undefined}>
+      <div className="bg-card border-b border-[#e5e5e5] sticky top-0 z-20" style={isPreview ? { top: "44px" } : undefined}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <button
             onClick={() => router.back()}
@@ -571,10 +571,10 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
                     alt={clinic.name}
                     fill
                     className="object-cover"
-                    fallbackClassName="w-full h-full flex items-center justify-center bg-[#004443]"
+                    fallbackClassName="w-full h-full flex items-center justify-center bg-[#0d1019]"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-[#004443]">
+                  <div className="w-full h-full flex items-center justify-center bg-[#0d1019]">
                     <span className="text-white font-bold text-lg drop-shadow-sm">
                       {clinic.name.charAt(0).toUpperCase()}
                     </span>
@@ -614,9 +614,9 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
               <button
                 type="button"
                 onClick={() => setActiveTab("details")}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#0fbcb0]/20 bg-[#0fbcb0]/5 text-sm font-medium text-[#004443] hover:bg-[#0fbcb0]/10 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-sm font-medium text-foreground hover:bg-primary/10 transition-colors"
               >
-                <ImageIcon className="h-3.5 w-3.5 text-[#0fbcb0]" />
+                <ImageIcon className="h-3.5 w-3.5 text-primary" />
                 Before &amp; After Cases Available
               </button>
             )}
@@ -679,8 +679,8 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
           {/* RIGHT COLUMN - Sticky Sidebar */}
           <div className="hidden lg:block">
             <div className="sticky top-24 space-y-4">
-              <Card className="bg-white border-[#e5e5e5] overflow-hidden shadow-sm">
-                <div className="bg-[#004443] px-5 py-3.5">
+              <Card className="bg-card border-[#e5e5e5] overflow-hidden shadow-sm">
+                <div className="bg-[#0d1019] px-5 py-3.5">
                   <h2 className="text-base font-bold text-white text-center">
                     Request an appointment
                   </h2>
@@ -690,10 +690,10 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
                 </div>
 
                 {clinic.offers_free_consultation && (
-                  <div className="bg-[#0fbcb0]/10 px-4 py-3 border-b border-[#0fbcb0]/20">
+                  <div className="bg-primary/10 px-4 py-3 border-b border-primary/20">
                     <div>
-                      <p className="text-sm font-semibold text-[#004443]">Free Consultation</p>
-                      <p className="text-xs text-[#004443]/70 mt-0.5 leading-relaxed">
+                      <p className="text-sm font-semibold text-foreground">Free Consultation</p>
+                      <p className="text-xs text-foreground/70 mt-0.5 leading-relaxed">
                         Free initial consultation for cosmetic treatments and Invisalign.
                       </p>
                     </div>
@@ -713,10 +713,10 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
 
                     {/* Inline confirmation step */}
                     {pendingAppointment && !bookingConfirmed && (
-                      <div className="rounded-xl border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-4 animate-in fade-in duration-200">
+                      <div className="rounded-xl border-2 border-primary bg-primary/5 p-4 animate-in fade-in duration-200">
                         <div className="flex items-start justify-between gap-2 mb-3">
                           <div>
-                            <p className="text-xs font-semibold text-[#004443] uppercase tracking-wide">
+                            <p className="text-xs font-semibold text-foreground uppercase tracking-wide">
                               Confirm your request
                             </p>
                             <p className="text-sm text-[#1a1a1a] mt-1">
@@ -739,7 +739,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
                         )}
                         <div className="flex gap-2">
                           <Button
-                            className="flex-1 h-10 rounded-full text-sm font-semibold bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
+                            className="flex-1 h-10 rounded-full text-sm font-semibold bg-[#0d1019] hover:bg-[#0d1019]/90 text-white border-0"
                             disabled={isBookingRequesting}
                             onClick={handleConfirmBooking}
                           >
@@ -783,7 +783,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
 
                   <Button
                     size="lg"
-                    className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white"
+                    className="w-full bg-primary hover:bg-[var(--primary-hover)] text-white"
                     onClick={() => {
                       if (showChat) {
                         setShowChat(false)
@@ -819,8 +819,8 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
 
               {/* Match reasons card — mirrors match results page card */}
               {matchId && matchReasons.length > 0 && (
-                <div className="rounded-xl p-3.5 border border-[#0fbcb0]/30">
-                  <h3 className="font-semibold text-sm text-[#0fbcb0] mb-1.5">Why we matched you</h3>
+                <div className="rounded-xl p-3.5 border border-primary/30">
+                  <h3 className="font-semibold text-sm text-primary mb-1.5">Why we matched you</h3>
                   <div className="space-y-1.5 text-sm text-[#1a1a1a] leading-relaxed">
                     {matchReasons.slice(0, 3).map((reason, idx) => (
                       <p key={idx}>{reason}</p>
@@ -845,7 +845,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
             onKeyDown={() => {}}
             role="presentation"
           />
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[75dvh] h-[75vh] flex flex-col animate-in slide-in-from-bottom duration-300">
+          <div className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl max-h-[75dvh] h-[75vh] flex flex-col animate-in slide-in-from-bottom duration-300">
             <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
               <h3 className="font-semibold text-[#1a1a1a]">Message {clinic.name}</h3>
               <button type="button" onClick={() => setShowMobileChat(false)} className="p-2 rounded-full hover:bg-[#f5f5f5]">
@@ -877,7 +877,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
             onKeyDown={() => {}}
             role="presentation"
           />
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
+          <div className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
             <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
               <h3 className="font-semibold text-[#1a1a1a]">Request a Visit</h3>
               <button type="button" onClick={() => setShowMobilePicker(false)} className="p-1 rounded-full hover:bg-[#f5f5f5]">
@@ -907,7 +907,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
             onKeyDown={() => {}}
             role="presentation"
           />
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl animate-in slide-in-from-bottom duration-300">
+          <div className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl animate-in slide-in-from-bottom duration-300">
             <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
               <h3 className="font-semibold text-[#1a1a1a]">Confirm Your Request</h3>
               <button
@@ -919,8 +919,8 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
               </button>
             </div>
             <div className="p-4 space-y-4">
-              <div className="rounded-xl border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-4">
-                <p className="text-xs font-semibold text-[#004443] uppercase tracking-wide">
+              <div className="rounded-xl border-2 border-primary bg-primary/5 p-4">
+                <p className="text-xs font-semibold text-foreground uppercase tracking-wide">
                   Appointment details
                 </p>
                 <p className="text-sm text-[#1a1a1a] mt-1">
@@ -938,7 +938,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
               )}
               <div className="flex gap-2">
                 <Button
-                  className="flex-1 h-12 rounded-full text-sm font-semibold bg-[#004443] hover:bg-[#004443]/90 text-white border-0 touch-manipulation"
+                  className="flex-1 h-12 rounded-full text-sm font-semibold bg-[#0d1019] hover:bg-[#0d1019]/90 text-white border-0 touch-manipulation"
                   disabled={isBookingRequesting}
                   onClick={handleConfirmBooking}
                 >
@@ -974,7 +974,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
               onKeyDown={() => {}}
               role="presentation"
             />
-            <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
+            <div className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
               <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
                 <h3 className="font-semibold text-[#1a1a1a]">
                   {showQuickFormAppointment
@@ -1016,7 +1016,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
               onKeyDown={() => {}}
               role="presentation"
             />
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative bg-card rounded-2xl shadow-xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
               <div className="flex items-center justify-between px-5 py-4 border-b border-[#e5e5e5]">
                 <h3 className="font-semibold text-[#1a1a1a]">
                   {showQuickFormAppointment
@@ -1054,12 +1054,12 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
 
       {/* Mobile sticky CTA */}
       {!showMobileChat && !showMobilePicker && !pendingAppointment && !bookingConfirmed && !showDirectForm && (
-        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-[#faf3e6] to-white border-t border-[#0fbcb0]/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(15,188,176,0.12)]">
+        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-gradient-to-t from-secondary to-card border-t border-primary/20 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] z-50 pointer-events-auto shadow-[0_-4px_20px_rgba(15,188,176,0.12)]">
           <p className="text-xs text-[#666] text-center mb-2">No booking fees on Pearlie</p>
           <div className="flex gap-3 max-w-lg mx-auto">
             <Button
               size="lg"
-              className="flex-1 bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation"
+              className="flex-1 bg-primary hover:bg-[var(--primary-hover)] text-white min-h-[48px] touch-manipulation"
               onClick={handleOpenChat}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
@@ -1068,7 +1068,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
             <Button
               size="lg"
               variant="outline"
-              className="flex-1 border-[#0fbcb0]/30 bg-white hover:bg-[#faf3e6] text-[#1a1a1a] min-h-[48px] touch-manipulation"
+              className="flex-1 border-primary/30 bg-card hover:bg-secondary text-[#1a1a1a] min-h-[48px] touch-manipulation"
               onClick={() => setShowMobilePicker(true)}
             >
               <Calendar className="h-4 w-4 mr-2" />
@@ -1097,7 +1097,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
           <div className="max-w-lg mx-auto">
             <Button
               size="lg"
-              className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white min-h-[48px] touch-manipulation"
+              className="w-full bg-primary hover:bg-[var(--primary-hover)] text-white min-h-[48px] touch-manipulation"
               onClick={handleOpenChat}
             >
               <MessageCircle className="h-4 w-4 mr-2" />

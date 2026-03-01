@@ -25,20 +25,20 @@ const traditionalFeatures = [
 
 export function ComparisonTable() {
   return (
-    <section className="py-16 md:py-28 lg:py-32 bg-[#004443]">
+    <section className="py-16 md:py-28 lg:py-32 bg-[#0d1019]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12 md:mb-16">
             {/* Small accent label */}
-            <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#0fbcb0] mb-4">
+            <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-primary mb-4">
               Why Pearlie
             </span>
 
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-4 text-white leading-[1.1]">
               Clarity before commitment.<br />
               Confidence before booking.<br />
-              <span className="text-[#0fbcb0]">Peace of mind.</span>
+              <span className="text-primary">Peace of mind.</span>
             </h2>
 
             <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
@@ -49,10 +49,10 @@ export function ComparisonTable() {
           {/* Side by Side Comparison Cards */}
           <div className="grid md:grid-cols-2 gap-6 mb-12">
             {/* With Pearlie Card */}
-            <div className="relative rounded-3xl border-2 border-[#0fbcb0] bg-white/10 backdrop-blur-sm p-5 sm:p-8 shadow-lg overflow-hidden h-full">
+            <div className="relative rounded-3xl border-2 border-primary bg-white/10 backdrop-blur-sm p-5 sm:p-8 shadow-lg overflow-hidden h-full">
               {/* Badge */}
               <div className="absolute top-4 right-4">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0fbcb0] text-white text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-white text-xs font-semibold">
                   <Sparkles className="w-3 h-3" />
                   Recommended
                 </span>
@@ -60,7 +60,7 @@ export function ComparisonTable() {
 
               {/* Header */}
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-full bg-[#0fbcb0] shadow-lg flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-primary shadow-lg flex items-center justify-center">
                   <Check className="w-7 h-7 text-white" strokeWidth={3} />
                 </div>
                 <div>
@@ -124,7 +124,7 @@ export function ComparisonTable() {
           <div className="text-center">
             <Button
               size="lg"
-              className="text-base px-10 h-14 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full shadow-lg hover:shadow-xl transition-all border-0"
+              className="text-base px-10 h-14 bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full shadow-lg hover:shadow-xl transition-all border-0"
               asChild
             >
               <Link href="/intake">Get my clinic matches</Link>

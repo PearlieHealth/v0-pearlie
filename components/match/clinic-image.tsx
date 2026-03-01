@@ -54,7 +54,7 @@ export function ClinicImage(props: ClinicImageProps) {
   if (hasError || !src || !src.trim()) {
     const letter = alt?.charAt(0)?.toUpperCase() || "?"
     return (
-      <div className={fallbackClassName || "w-full h-full flex items-center justify-center bg-[#004443]"}>
+      <div className={fallbackClassName || "w-full h-full flex items-center justify-center bg-[#0d1019]"}>
         <span className="text-white font-bold text-lg drop-shadow-sm">{letter}</span>
       </div>
     )

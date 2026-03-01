@@ -22,7 +22,7 @@ export default async function DiagnosticsPage() {
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#004443] mb-2">Analytics Diagnostics</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Analytics Diagnostics</h1>
           <p className="text-muted-foreground">Automated checks to ensure data integrity and metric accuracy</p>
         </div>
 

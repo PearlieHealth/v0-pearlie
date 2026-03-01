@@ -140,8 +140,8 @@ export function ReviewsTab({ clinic, clinicId }: ReviewsTabProps) {
                         className="h-10 w-10 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="h-10 w-10 rounded-full bg-[#0fbcb0]/20 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-semibold text-[#004443]">
+                      <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-semibold text-foreground">
                           {review.authorName.charAt(0).toUpperCase()}
                         </span>
                       </div>
@@ -192,7 +192,7 @@ export function ReviewsTab({ clinic, clinicId }: ReviewsTabProps) {
           href={googleReviewsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl border border-[#e5e5e5] text-[#333] font-medium hover:bg-[#fafafa] transition-colors"
+          className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl border border-[#e5e5e5] text-foreground/70 font-medium hover:bg-[#fafafa] transition-colors"
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5 flex-shrink-0" aria-hidden="true">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />

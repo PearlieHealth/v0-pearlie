@@ -85,14 +85,14 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
         <div className="grid sm:grid-cols-2 gap-2">
           {hasPatientSelections ? (
             matchedPatientTreatments.map((treatment, idx) => (
-              <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+              <div key={idx} className="flex items-center gap-2.5 text-foreground/70 py-1.5">
                 <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
                 <span className="text-[15px] font-medium">{treatment}</span>
               </div>
             ))
           ) : (
             availableTreatments.slice(0, 6).map((treatment, idx) => (
-              <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+              <div key={idx} className="flex items-center gap-2.5 text-foreground/70 py-1.5">
                 <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
                 <span className="text-[15px]">{treatment}</span>
               </div>
@@ -105,7 +105,7 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
           <div className="mt-4 pt-4 border-t border-[#f0f0f0]">
             <div className="grid sm:grid-cols-2 gap-2">
               {(hasPatientSelections ? otherTreatments : availableTreatments.slice(6)).map((treatment, idx) => (
-                <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+                <div key={idx} className="flex items-center gap-2.5 text-foreground/70 py-1.5">
                   <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
                   <span className="text-[15px]">{treatment}</span>
                 </div>
@@ -119,21 +119,21 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
       {clinic.show_treatment_prices && pricedCategories.length > 0 && (
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-[#004443]/10 flex items-center justify-center">
-              <PoundSterling className="h-4 w-4 text-[#004443]" />
+            <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-[#0d1019]/10 flex items-center justify-center">
+              <PoundSterling className="h-4 w-4 text-foreground" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#004443]">Treatment Prices</h2>
+              <h2 className="text-lg font-bold text-foreground">Treatment Prices</h2>
               <p className="text-xs text-[#666]">Prices are a guide. Your dentist will confirm costs before treatment.</p>
             </div>
           </div>
           <Accordion type="multiple" className="w-full">
             {pricedCategories.map((category, catIdx) => (
               <AccordionItem key={catIdx} value={`pricing-${catIdx}`}>
-                <AccordionTrigger className="text-[15px] font-semibold text-[#004443] hover:no-underline py-3 [&>svg]:text-[#004443] [&>svg]:bg-[#004443]/10 [&>svg]:rounded-full [&>svg]:p-0.5 [&>svg]:size-5">
+                <AccordionTrigger className="text-[15px] font-semibold text-foreground hover:no-underline py-3 [&>svg]:text-foreground [&>svg]:bg-[#0d1019]/10 [&>svg]:rounded-full [&>svg]:p-0.5 [&>svg]:size-5">
                   <span className="flex items-center gap-2">
                     {category.category}
-                    <span className="text-xs text-[#004443]/60 font-normal">
+                    <span className="text-xs text-foreground/60 font-normal">
                       {category.treatments.length}
                     </span>
                   </span>
@@ -178,7 +178,7 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
             <AccordionContent>
               <div className="grid sm:grid-cols-2 gap-2">
                 {availableFacilities.map((facility, idx) => (
-                  <div key={idx} className="flex items-center gap-2.5 text-[#333] py-1.5">
+                  <div key={idx} className="flex items-center gap-2.5 text-foreground/70 py-1.5">
                     <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
                     <span className="text-[15px]">{facility}</span>
                   </div>

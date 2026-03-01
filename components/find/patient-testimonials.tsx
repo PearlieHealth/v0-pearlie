@@ -11,7 +11,7 @@ export function PatientTestimonials({ areaName, testimonials }: PatientTestimoni
   if (testimonials.length === 0) return null
 
   return (
-    <section className="py-14 sm:py-18 bg-white overflow-hidden">
+    <section className="py-14 sm:py-18 bg-card overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-center gap-2 mb-3">
@@ -21,7 +21,7 @@ export function PatientTestimonials({ areaName, testimonials }: PatientTestimoni
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
-            <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] text-center">
+            <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground text-center">
               What patients are saying
             </h2>
           </div>
@@ -36,9 +36,9 @@ export function PatientTestimonials({ areaName, testimonials }: PatientTestimoni
           <Link
             key={idx}
             href={`/clinic/${t.clinicId}`}
-            className="snap-start flex-shrink-0 w-[280px] sm:w-[300px] group relative p-6 rounded-2xl bg-[#faf9f6] border border-border/40 hover:border-[#0fbcb0]/40 hover:shadow-md transition-all"
+            className="snap-start flex-shrink-0 w-[280px] sm:w-[300px] group relative p-6 rounded-2xl bg-secondary border border-border/40 hover:border-primary/40 hover:shadow-md transition-all"
           >
-            <Quote className="w-7 h-7 text-[#0fbcb0]/20 mb-2.5" />
+            <Quote className="w-7 h-7 text-primary/20 mb-2.5" />
             <p className="text-sm text-foreground leading-relaxed mb-4 line-clamp-5">
               &ldquo;{t.text}&rdquo;
             </p>

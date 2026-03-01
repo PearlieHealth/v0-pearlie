@@ -70,12 +70,12 @@ export default function TreatmentsPage() {
 
       <main>
         {/* Hero */}
-        <section className="pt-28 pb-10 sm:pt-32 sm:pb-14 bg-[#004443]">
+        <section className="pt-28 pb-10 sm:pt-32 sm:pb-14 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <div className="flex items-center justify-center gap-2 mb-4">
-                <Stethoscope className="w-5 h-5 text-[#0fbcb0]" />
-                <span className="text-sm font-semibold uppercase tracking-wider text-[#0fbcb0]">
+                <Stethoscope className="w-5 h-5 text-primary" />
+                <span className="text-sm font-semibold uppercase tracking-wider text-primary">
                   Treatments
                 </span>
               </div>
@@ -121,7 +121,7 @@ export default function TreatmentsPage() {
                   </p>
                   <Button
                     size="lg"
-                    className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full"
+                    className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full"
                     asChild
                   >
                     <Link href="/intake">Find my clinic</Link>
@@ -137,8 +137,8 @@ export default function TreatmentsPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <div className="flex items-center gap-2 mb-2">
-                <MapPin className="w-5 h-5 text-[#0fbcb0]" />
-                <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-[#004443]">
+                <MapPin className="w-5 h-5 text-primary" />
+                <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-[-0.02em] text-foreground">
                   Find treatment clinics by area
                 </h2>
               </div>
@@ -151,9 +151,9 @@ export default function TreatmentsPage() {
                   <Link
                     key={borough.slug}
                     href={`/london/${borough.slug}`}
-                    className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors flex items-center gap-1.5 p-2 rounded-lg hover:bg-muted/50"
+                    className="text-sm text-foreground hover:text-primary transition-colors flex items-center gap-1.5 p-2 rounded-lg hover:bg-muted/50"
                   >
-                    <MapPin className="w-3 h-3 text-[#0fbcb0] flex-shrink-0" />
+                    <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
                     {borough.name}
                   </Link>
                 ))}
@@ -162,7 +162,7 @@ export default function TreatmentsPage() {
               <div className="mt-6">
                 <Link
                   href="/london"
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0fbcb0] hover:underline"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
                 >
                   View all London areas
                   <ArrowRight className="w-4 h-4" />
@@ -173,7 +173,7 @@ export default function TreatmentsPage() {
         </section>
 
         {/* CTA */}
-        <section className="py-12 sm:py-16 bg-[#004443]">
+        <section className="py-12 sm:py-16 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
@@ -185,7 +185,7 @@ export default function TreatmentsPage() {
               </p>
               <Button
                 size="lg"
-                className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 h-12 text-base"
+                className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full px-8 h-12 text-base"
                 asChild
               >
                 <Link href="/intake">Get my clinic matches</Link>

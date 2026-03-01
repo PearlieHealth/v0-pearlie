@@ -25,7 +25,7 @@ interface ChipData {
   icon: ReactNode
 }
 
-const iconClass = "w-3.5 h-3.5 text-[#004443]"
+const iconClass = "w-3.5 h-3.5 text-foreground"
 
 export function getChipData(chip: string): ChipData {
   const chipMap: Record<string, ChipData> = {

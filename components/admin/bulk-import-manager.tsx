@@ -375,7 +375,7 @@ export function BulkImportManager() {
             <div className="flex gap-3">
               <Button
                 onClick={startImport}
-                className="bg-[#004443] hover:bg-[#003332]"
+                className="bg-[#0d1019] hover:bg-[#0d1019]/90"
               >
                 <Play className="w-4 h-4 mr-2" />
                 Start Import
@@ -613,9 +613,9 @@ export function BulkImportManager() {
             <CardTitle className="text-lg">Activity Log</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="bg-gray-50 rounded-lg p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-0.5">
+            <div className="bg-secondary rounded-lg p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-0.5">
               {batchLog.map((line, i) => (
-                <div key={i} className="text-gray-700">
+                <div key={i} className="text-foreground/70">
                   {line}
                 </div>
               ))}
@@ -731,7 +731,7 @@ function StatCard({
   total?: number
 }) {
   return (
-    <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+    <div className="bg-secondary rounded-lg p-3 space-y-1">
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         {icon}
         {label}

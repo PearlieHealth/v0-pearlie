@@ -137,12 +137,12 @@ export default function MatchingAlgorithmPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#faf3e6]">
+    <div className="min-h-screen bg-secondary">
       <AdminNav />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#004443]">Matching Algorithm</h1>
+          <h1 className="text-2xl font-bold text-foreground">Matching Algorithm</h1>
           <p className="text-muted-foreground">
             Visualize and configure how patient form answers connect to clinic tags and match reasons.
           </p>
@@ -358,7 +358,7 @@ export default function MatchingAlgorithmPage() {
                             <Input
                               value={editedTemplates[tagKey] ?? firstTemplate}
                               onChange={(e) => handleTemplateChange(tagKey, e.target.value)}
-                              className="bg-white"
+                              className="bg-card"
                               placeholder="Enter reason text..."
                             />
                             <p className="text-xs text-muted-foreground mt-1">

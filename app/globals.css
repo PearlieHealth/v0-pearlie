@@ -4,35 +4,35 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Teal & Cream color palette — cream inspired by Yorkshire Dental Suite */
+  /* Dark Premium palette — luxurious, high contrast, easy to read */
   --primary: #0fbcb0;
-  --primary-hover: #0da399;
+  --primary-hover: #14d4c6;
   --primary-foreground: #ffffff;
-  --secondary: #f8f7f1;
-  --secondary-foreground: #3d3838;
-  --foreground: #3d3838;
-  --muted-foreground: #666666;
-  --background: #fdfdf4;
-  --border: #e2dada;
-  --card: #ffffff;
-  --card-foreground: #3d3838;
-  --popover: #fdfdf4;
-  --popover-foreground: #3d3838;
-  --muted: #f8f7f1;
-  --accent: #f8f7f1;
-  --accent-foreground: #3d3838;
+  --secondary: #161822;
+  --secondary-foreground: #c8c6d4;
+  --foreground: #eeedf2;
+  --muted-foreground: #7c7a8e;
+  --background: #0a0b10;
+  --border: #1f2133;
+  --card: #111218;
+  --card-foreground: #eeedf2;
+  --popover: #131420;
+  --popover-foreground: #eeedf2;
+  --muted: #161822;
+  --accent: #161822;
+  --accent-foreground: #eeedf2;
 
   /* Teal palette */
   --teal: #0fbcb0;
-  --teal-dark: #3c8481;
-  --teal-hover: #0da399;
-  --cream: #faf3e6;
-  --dark-teal-bg: #004443;
+  --teal-dark: #0a8f86;
+  --teal-hover: #14d4c6;
+  --cream: #161822;
+  --dark-teal-bg: #0d1019;
 
   --deep-teal: #0fbcb0;
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: #e5484d;
   --destructive-foreground: #ffffff;
-  --input: #e2dada;
+  --input: #1a1c2a;
   --ring: #0fbcb0;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -40,71 +40,71 @@
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 1rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #0e0f16;
+  --sidebar-foreground: #eeedf2;
+  --sidebar-primary: #0fbcb0;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #161822;
+  --sidebar-accent-foreground: #eeedf2;
+  --sidebar-border: #1f2133;
+  --sidebar-ring: #0fbcb0;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
+  --background: #08090d;
+  --foreground: #eeedf2;
+  --card: #0f1017;
+  --card-foreground: #eeedf2;
+  --popover: #111219;
+  --popover-foreground: #eeedf2;
+  --primary: #0fbcb0;
+  --primary-foreground: #ffffff;
+  --secondary: #141520;
+  --secondary-foreground: #c8c6d4;
+  --muted: #141520;
+  --muted-foreground: #7c7a8e;
+  --accent: #141520;
+  --accent-foreground: #eeedf2;
+  --destructive: #e5484d;
+  --destructive-foreground: #ffffff;
+  --border: #1c1d2e;
+  --input: #181a28;
+  --ring: #0fbcb0;
+  --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --sidebar: #0c0d14;
+  --sidebar-foreground: #eeedf2;
+  --sidebar-primary: #0fbcb0;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #141520;
+  --sidebar-accent-foreground: #eeedf2;
+  --sidebar-border: #1c1d2e;
+  --sidebar-ring: #0fbcb0;
 }
 
 /* Dashboard dark theme — Pearlie-branded, Netflix-inspired */
 .dashboard-dark {
-  --background: #0d1117;
-  --foreground: #e6edf3;
-  --card: #161b22;
-  --card-foreground: #e6edf3;
-  --popover: #1c2333;
-  --popover-foreground: #e6edf3;
+  --background: #08090d;
+  --foreground: #eeedf2;
+  --card: #111218;
+  --card-foreground: #eeedf2;
+  --popover: #131420;
+  --popover-foreground: #eeedf2;
   --primary: #0fbcb0;
   --primary-foreground: #ffffff;
-  --secondary: #1c2333;
-  --secondary-foreground: #c9d1d9;
-  --muted: #1c2333;
-  --muted-foreground: #8b949e;
-  --accent: #1c2333;
-  --accent-foreground: #c9d1d9;
-  --border: #2d3748;
-  --input: #2d3748;
+  --secondary: #161822;
+  --secondary-foreground: #c8c6d4;
+  --muted: #161822;
+  --muted-foreground: #7c7a8e;
+  --accent: #161822;
+  --accent-foreground: #c8c6d4;
+  --border: #1f2133;
+  --input: #1a1c2a;
   --ring: #0fbcb0;
-  --cream: #1c2333;
+  --cream: #161822;
   --dark-teal-bg: #0fbcb0;
 }
 

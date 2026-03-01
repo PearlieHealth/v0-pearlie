@@ -398,14 +398,14 @@ export default function TestMatchPage() {
 
 
   return (
-    <div className="min-h-screen bg-[#faf3e6]">
+    <div className="min-h-screen bg-secondary">
       <AdminNav />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <FlaskConical className="w-5 h-5 text-[#004443]" />
+              <FlaskConical className="w-5 h-5 text-foreground" />
               <h2 className="text-2xl font-bold">Test Matching Algorithm</h2>
             </div>
             <div className="flex items-center gap-2">
@@ -469,7 +469,7 @@ export default function TestMatchPage() {
                         key={treatment}
                         className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
                           formData.treatments.includes(treatment)
-                            ? "border-[#004443] bg-[#004443]/5"
+                            ? "border-[#004443] bg-[#0d1019]/5"
                             : "border-gray-200 hover:border-gray-300"
                         }`}
                         onClick={() => toggleTreatment(treatment)}
@@ -522,7 +522,7 @@ export default function TestMatchPage() {
                         key={value}
                         className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
                           formData.decisionValues.includes(value)
-                            ? "border-[#004443] bg-[#004443]/5"
+                            ? "border-[#004443] bg-[#0d1019]/5"
                             : formData.decisionValues.length >= 2
                               ? "border-gray-200 opacity-50 cursor-not-allowed"
                               : "border-gray-200 hover:border-gray-300"
@@ -693,7 +693,7 @@ export default function TestMatchPage() {
                         key={blocker.code}
                         className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
                           formData.conversionBlockerCodes.includes(blocker.code)
-                            ? "border-[#004443] bg-[#004443]/5"
+                            ? "border-[#004443] bg-[#0d1019]/5"
                             : "border-gray-200 hover:border-gray-300"
                         }`}
                         onClick={() => selectBlocker(blocker.code)}
@@ -704,7 +704,7 @@ export default function TestMatchPage() {
                             : "border-gray-300"
                         }`}>
                           {formData.conversionBlockerCodes.includes(blocker.code) && (
-                            <div className="w-2 h-2 rounded-full bg-[#004443]" />
+                            <div className="w-2 h-2 rounded-full bg-[#0d1019]" />
                           )}
                         </div>
                         <span className="text-sm">{blocker.label}</span>
@@ -764,7 +764,7 @@ export default function TestMatchPage() {
 
                 {isLoading && (
                   <div className="text-center py-12">
-                    <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-[#004443]" />
+                    <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-foreground" />
                     <p className="text-muted-foreground">Running matching algorithm...</p>
                   </div>
                 )}

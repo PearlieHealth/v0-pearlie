@@ -138,7 +138,7 @@ export default function DemoDashboardPage() {
 
       {/* Sidebar placeholder */}
       <div className="flex">
-        <aside className="w-64 min-h-[calc(100vh-52px)] bg-white border-r p-4 hidden lg:block">
+        <aside className="w-64 min-h-[calc(100vh-52px)] bg-card border-r p-4 hidden lg:block">
           <div className="flex items-center gap-2 mb-8">
             <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-bold">P</span>

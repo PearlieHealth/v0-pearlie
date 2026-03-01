@@ -27,10 +27,10 @@ export function TreatmentFAQ({ faqs, treatmentName }: TreatmentFAQProps) {
   if (faqs.length === 0) return null
 
   return (
-    <section data-speakable="faq" className="py-12 sm:py-16 bg-[var(--cream)]">
+    <section data-speakable="faq" className="py-12 sm:py-16 bg-secondary">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          <h2 id="faq" className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-8">
+          <h2 id="faq" className="text-2xl sm:text-3xl font-heading font-bold tracking-[-0.02em] text-foreground mb-8">
             Frequently asked questions about {treatmentName.toLowerCase()}
           </h2>
 
@@ -42,7 +42,7 @@ export function TreatmentFAQ({ faqs, treatmentName }: TreatmentFAQProps) {
                   key={index}
                   id={anchorId}
                   value={`faq-${index}`}
-                  className="rounded-xl border border-border/50 bg-white px-5 sm:px-6 scroll-mt-24"
+                  className="rounded-xl border border-border/50 bg-card px-5 sm:px-6 scroll-mt-24"
                 >
                   <AccordionTrigger className="text-base font-semibold text-foreground text-left py-5 hover:no-underline">
                     {faq.question}

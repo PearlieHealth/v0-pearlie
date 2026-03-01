@@ -273,7 +273,7 @@ export default function FAQPage() {
         </section>
 
         {/* Conversion CTA */}
-        <section className="py-16 sm:py-20 bg-[#004443]">
+        <section className="py-16 sm:py-20 bg-[#0d1019]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl sm:text-3xl font-heading font-bold text-white mb-4">
@@ -285,7 +285,7 @@ export default function FAQPage() {
               </p>
               <Button
                 size="lg"
-                className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-full px-8 h-12 text-base border-0"
+                className="bg-primary hover:bg-[var(--primary-hover)] text-white rounded-full px-8 h-12 text-base border-0"
                 asChild
               >
                 <Link href="/intake">Get my clinic matches</Link>

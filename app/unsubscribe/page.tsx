@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export default function UnsubscribePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-sm p-8 text-center">
+      <div className="max-w-md w-full bg-card rounded-xl shadow-sm p-8 text-center">
         <h1 className="text-2xl font-semibold text-gray-900 mb-4">
           You&apos;ve been unsubscribed
         </h1>

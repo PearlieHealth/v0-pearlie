@@ -225,13 +225,13 @@ export function DentistNearMeClient({
     <>
       {/* ─── STICKY TOP BAR (mobile) ──────────────────────── */}
       <div
-        className={`fixed top-0 left-0 right-0 z-50 bg-[#004443] text-white transition-transform duration-300 md:hidden ${
+        className={`fixed top-0 left-0 right-0 z-50 bg-[#0d1019] text-white transition-transform duration-300 md:hidden ${
           showStickyTop ? "translate-y-0" : "-translate-y-full"
         }`}
       >
         <div className="flex items-center justify-between px-4 py-2.5">
           <div className="flex items-center gap-1.5 text-sm min-w-0">
-            <MapPin className="w-3.5 h-3.5 text-[#0fbcb0] flex-shrink-0" />
+            <MapPin className="w-3.5 h-3.5 text-primary flex-shrink-0" />
             <span className="truncate">
               {detectedBorough
                 ? `Clinics near ${postcode || detectedBorough}`
@@ -241,7 +241,7 @@ export function DentistNearMeClient({
           <button
             onClick={handleUseLocation}
             disabled={isLocating}
-            className="text-xs font-medium text-[#0fbcb0] hover:text-white transition-colors flex-shrink-0 ml-2"
+            className="text-xs font-medium text-primary hover:text-white transition-colors flex-shrink-0 ml-2"
           >
             {isLocating ? "Locating..." : detectedBorough ? "Update" : "Enable location"}
           </button>
@@ -251,7 +251,7 @@ export function DentistNearMeClient({
       {/* ─── HERO (Compact mobile, expanded desktop) ──────── */}
       <section
         ref={heroRef}
-        className="relative bg-gradient-to-b from-[#004443] to-[#00625e] text-white pt-28 pb-10 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 overflow-hidden"
+        className="relative bg-gradient-to-b from-[#0d1019] to-[#111828] text-white pt-28 pb-10 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 overflow-hidden"
       >
         <div className="absolute top-10 right-10 w-72 h-72 rounded-full bg-white/[0.03] blur-3xl pointer-events-none hidden sm:block" />
 
@@ -286,13 +286,13 @@ export function DentistNearMeClient({
                       setPostcodeError("")
                     }}
                     placeholder="Enter your postcode"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold px-5 sm:px-6 rounded-xl h-[44px]"
+                  className="bg-primary hover:bg-[var(--primary-hover)] text-white font-semibold px-5 sm:px-6 rounded-xl h-[44px]"
                 >
                   {isSubmitting ? "Finding..." : "Find"}
                 </Button>
@@ -331,11 +331,11 @@ export function DentistNearMeClient({
               <span className="font-semibold text-foreground">{avgRating}</span> avg
             </div>
             <div className="flex items-center gap-1">
-              <Shield className="w-3.5 h-3.5 text-[#0fbcb0]" />
+              <Shield className="w-3.5 h-3.5 text-primary" />
               <span className="font-semibold text-foreground">100+</span> clinics
             </div>
             <div className="flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
               Free matching
             </div>
           </div>
@@ -343,7 +343,7 @@ export function DentistNearMeClient({
       </section>
 
       {/* ─── TREATMENT SHORTCUTS (horizontal scroll mobile) ─ */}
-      <section className="py-3 sm:py-4 bg-[#004443]">
+      <section className="py-3 sm:py-4 bg-[#0d1019]">
         <div className="overflow-x-auto scrollbar-none">
           <div className="flex gap-2 px-4 sm:px-6 lg:px-8 sm:justify-center min-w-max sm:min-w-0 sm:flex-wrap">
             {treatmentShortcuts.map((t) => (
@@ -352,7 +352,7 @@ export function DentistNearMeClient({
                 href={`${treatmentLinkBase}/${t.slug}`}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/10 border border-white/15 hover:bg-white/20 text-xs sm:text-sm font-medium text-white whitespace-nowrap min-h-[36px] transition-colors"
               >
-                <Stethoscope className="w-3 h-3 text-[#0fbcb0]" />
+                <Stethoscope className="w-3 h-3 text-primary" />
                 {t.label}
               </Link>
             ))}
@@ -367,7 +367,7 @@ export function DentistNearMeClient({
             <div className="max-w-5xl mx-auto">
               <div className="flex items-end justify-between mb-4 sm:mb-6">
                 <div>
-                  <h2 className="text-lg sm:text-2xl font-heading font-bold tracking-[-0.02em] text-[#004443]">
+                  <h2 className="text-lg sm:text-2xl font-heading font-bold tracking-[-0.02em] text-foreground">
                     {detectedBorough
                       ? `Clinics near ${detectedBorough}`
                       : "Top-rated clinics"}
@@ -386,7 +386,7 @@ export function DentistNearMeClient({
                     {/* Distance badge overlay */}
                     {clinic.distance_miles != null && (
                       <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
-                        <MapPin className="w-3 h-3 text-[#0fbcb0]" />
+                        <MapPin className="w-3 h-3 text-primary" />
                         <span className="text-[11px] font-semibold text-foreground">
                           {clinic.distance_miles.toFixed(1)} mi
                         </span>
@@ -410,7 +410,7 @@ export function DentistNearMeClient({
                 onClick={() => setSeoExpanded(!seoExpanded)}
                 className="flex items-center justify-between w-full text-left min-h-[44px]"
               >
-                <span className="text-sm font-semibold text-[#004443]">
+                <span className="text-sm font-semibold text-foreground">
                   Why use Pearlie to find a dentist?
                 </span>
                 <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${seoExpanded ? "rotate-180" : ""}`} />
@@ -462,7 +462,7 @@ export function DentistNearMeClient({
       <section className="py-8 sm:py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-lg sm:text-2xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-4 sm:mb-6 text-center">
+            <h2 className="text-lg sm:text-2xl font-heading font-bold tracking-[-0.02em] text-foreground mb-4 sm:mb-6 text-center">
               Why use Pearlie?
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
@@ -474,10 +474,10 @@ export function DentistNearMeClient({
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="flex flex-col items-center text-center p-3 sm:p-4 rounded-xl bg-white border border-border/50"
+                  className="flex flex-col items-center text-center p-3 sm:p-4 rounded-xl bg-card border border-border/50"
                 >
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[#0fbcb0]/10 flex items-center justify-center mb-2">
-                    <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#0fbcb0]" />
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                    <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   </div>
                   <h3 className="font-semibold text-foreground text-xs sm:text-sm">{item.title}</h3>
                   <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">{item.desc}</p>
@@ -492,7 +492,7 @@ export function DentistNearMeClient({
       <section className="py-8 sm:py-12 bg-[#faf9f6]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-lg sm:text-xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-3 sm:mb-4">
+            <h2 className="text-lg sm:text-xl font-heading font-bold tracking-[-0.02em] text-foreground mb-3 sm:mb-4">
               {detectedBorough ? "Areas near you" : "Browse by borough"}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-3">
@@ -500,9 +500,9 @@ export function DentistNearMeClient({
                 <Link
                   key={borough.slug}
                   href={`/london/${borough.slug}`}
-                  className="text-sm text-foreground hover:text-[#0fbcb0] transition-colors flex items-center gap-1.5 p-2.5 rounded-lg hover:bg-white min-h-[44px]"
+                  className="text-sm text-foreground hover:text-primary transition-colors flex items-center gap-1.5 p-2.5 rounded-lg hover:bg-white min-h-[44px]"
                 >
-                  <MapPin className="w-3 h-3 text-[#0fbcb0] flex-shrink-0" />
+                  <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
                   {borough.name}
                 </Link>
               ))}
@@ -511,7 +511,7 @@ export function DentistNearMeClient({
               <div className="mt-3 text-center">
                 <Link
                   href="/london"
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0fbcb0] hover:underline min-h-[44px]"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline min-h-[44px]"
                 >
                   View all {boroughs.length} boroughs
                   <ArrowRight className="w-4 h-4" />
@@ -526,20 +526,20 @@ export function DentistNearMeClient({
       <section className="py-8 sm:py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-lg sm:text-2xl font-heading font-bold tracking-[-0.02em] text-[#004443] mb-4 sm:mb-6 text-center">
+            <h2 className="text-lg sm:text-2xl font-heading font-bold tracking-[-0.02em] text-foreground mb-4 sm:mb-6 text-center">
               Common questions
             </h2>
             <div className="space-y-2 sm:space-y-3">
               {faqs.map((faq) => (
                 <details
                   key={faq.question}
-                  className="group bg-white rounded-xl border border-border/50 overflow-hidden"
+                  className="group bg-card rounded-xl border border-border/50 overflow-hidden"
                 >
                   <summary className="flex items-center justify-between gap-3 p-4 sm:p-5 cursor-pointer list-none [&::-webkit-details-marker]:hidden min-h-[44px]">
                     <h3 className="font-semibold text-foreground text-sm sm:text-base text-left">
                       {faq.question}
                     </h3>
-                    <ChevronDown className="w-4 h-4 text-[#0fbcb0] flex-shrink-0 group-open:rotate-180 transition-transform" />
+                    <ChevronDown className="w-4 h-4 text-primary flex-shrink-0 group-open:rotate-180 transition-transform" />
                   </summary>
                   <div className="px-4 pb-4 sm:px-5 sm:pb-5">
                     <p className="text-sm text-muted-foreground leading-relaxed">
@@ -554,7 +554,7 @@ export function DentistNearMeClient({
       </section>
 
       {/* ─── BOTTOM CTA (desktop) ─────────────────────────── */}
-      <section className="py-12 sm:py-16 bg-[#004443] text-white mb-16 sm:mb-0">
+      <section className="py-12 sm:py-16 bg-[#0d1019] text-white mb-16 sm:mb-0">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-xl sm:text-3xl md:text-4xl font-heading font-bold tracking-[-0.03em] mb-3 sm:mb-4">
@@ -566,7 +566,7 @@ export function DentistNearMeClient({
             <Link href="/intake">
               <Button
                 size="lg"
-                className="bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold px-8 py-3 rounded-xl text-base min-h-[48px]"
+                className="bg-primary hover:bg-[var(--primary-hover)] text-white font-semibold px-8 py-3 rounded-xl text-base min-h-[48px]"
               >
                 Get matched now
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -577,10 +577,10 @@ export function DentistNearMeClient({
       </section>
 
       {/* ─── STICKY BOTTOM CTA (mobile only) ──────────────── */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border/50 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-4 py-2.5 md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border/50 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-4 py-2.5 md:hidden">
         <div className="flex gap-2">
           <Link href="/intake" className="flex-1">
-            <Button className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold rounded-full h-10 text-sm">
+            <Button className="w-full bg-primary hover:bg-[var(--primary-hover)] text-white font-semibold rounded-full h-10 text-sm">
               <CalendarCheck className="w-3.5 h-3.5 mr-1.5" />
               Get matched free
             </Button>
@@ -588,10 +588,10 @@ export function DentistNearMeClient({
           <button
             onClick={handleUseLocation}
             disabled={isLocating}
-            className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-white hover:bg-muted/50 transition-colors"
+            className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-card hover:bg-muted/50 transition-colors"
             aria-label="Use my location"
           >
-            <Navigation className="w-4 h-4 text-[#0fbcb0]" />
+            <Navigation className="w-4 h-4 text-primary" />
           </button>
         </div>
       </div>
