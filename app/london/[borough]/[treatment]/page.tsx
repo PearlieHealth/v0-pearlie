@@ -102,7 +102,6 @@ async function getClinicsForAreaTreatment(
       .from("clinics")
       .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .overlaps("treatments", filterTags)
       .or(postcodeFilters)
       .order("rating", { ascending: false })
@@ -115,7 +114,6 @@ async function getClinicsForAreaTreatment(
       .from("clinics")
       .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .overlaps("treatments", filterTags)
       .order("rating", { ascending: false })
       .limit(6)
@@ -128,7 +126,6 @@ async function getClinicsForAreaTreatment(
       .from("clinics")
       .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .order("rating", { ascending: false })
       .limit(6)
 

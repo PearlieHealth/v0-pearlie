@@ -86,7 +86,6 @@ async function getClinicsInArea(postcodes: string[]) {
       .from("clinics")
       .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .or(postcodeFilters)
       .order("rating", { ascending: false })
       .limit(12)
@@ -98,7 +97,6 @@ async function getClinicsInArea(postcodes: string[]) {
       .from("clinics")
       .select(CLINIC_CARD_SELECT)
       .eq("is_archived", false)
-      .eq("is_live", true)
       .order("rating", { ascending: false })
       .limit(6)
 

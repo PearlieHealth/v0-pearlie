@@ -26,9 +26,9 @@ const LANGUAGES_FIELDS = "languages"
 
 /**
  * Fetch a single clinic by ID or slug for server-side rendering.
- * Returns null if the clinic is not found, archived, or not live.
+ * Returns null if the clinic is not found or archived.
  */
-export async function getClinicByIdOrSlug(clinicId: string, options?: { skipLiveCheck?: boolean }) {
+export async function getClinicByIdOrSlug(clinicId: string) {
   const supabase = createAdminClient()
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clinicId)
 
@@ -56,9 +56,8 @@ export async function getClinicByIdOrSlug(clinicId: string, options?: { skipLive
     if (langData) Object.assign(clinicData, langData)
   } catch {}
 
-  // Don't expose archived or non-live clinics
+  // Don't expose archived clinics
   if (clinicData.is_archived === true) return null
-  if (!options?.skipLiveCheck && clinicData.is_live !== true) return null
 
   return clinicData
 }
@@ -71,7 +70,6 @@ export async function getAllPublicClinicIds(): Promise<{ id: string; slug: strin
   const { data, error } = await supabase
     .from("clinics")
     .select("id, slug, updated_at")
-    .eq("is_live", true)
     .eq("is_archived", false)
 
   if (error || !data) return []
