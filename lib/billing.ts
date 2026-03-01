@@ -1,32 +1,39 @@
 /**
  * Billing utilities for Pearlie clinic billing.
  *
- * Billing model:
- * - Monthly membership subscription via Stripe
- * - Per-booking fee charged when patient match is created
+ * Billing model (tiered):
+ * - Clinics choose a plan: Starter (£99), Standard (£247), Premium (£486)
+ * - Each plan includes N confirmed bookings per month
+ * - 0 bookings = £0 (no charge)
+ * - Proportional: each booking = base_price / included_bookings
+ * - Over included: base price + £35 per extra booking
+ * - 30-day free trial capped at 3 confirmed bookings
  * - 7-day dispute window for clinics to mark "not attended" or "exempt"
  * - After 7 days, charge is auto-finalised
+ * - Monthly invoice generated at end of billing period
  */
 
 /**
- * Returns the current billing period (7th of prev month to 6th of current month).
+ * Returns the current billing period (1st to last day of month).
  */
 export function getCurrentBillingPeriod(): { start: Date; end: Date } {
   const now = new Date()
   const year = now.getFullYear()
-  const month = now.getMonth() // 0-indexed
+  const month = now.getMonth()
+  const start = new Date(year, month, 1)
+  const end = new Date(year, month + 1, 0, 23, 59, 59, 999)
+  return { start, end }
+}
 
-  if (now.getDate() <= 6) {
-    // First 6 days of month: period is prev-month 7th to this-month 6th
-    const start = new Date(year, month - 1, 7)
-    const end = new Date(year, month, 6)
-    return { start, end }
-  } else {
-    // After 6th: period is this-month 7th to next-month 6th
-    const start = new Date(year, month, 7)
-    const end = new Date(year, month + 1, 6)
-    return { start, end }
-  }
+/**
+ * Returns the billing period for a given date.
+ */
+export function getBillingPeriodForDate(date: Date): { start: Date; end: Date } {
+  const year = date.getFullYear()
+  const month = date.getMonth()
+  const start = new Date(year, month, 1)
+  const end = new Date(year, month + 1, 0, 23, 59, 59, 999)
+  return { start, end }
 }
 
 /**
@@ -43,6 +50,14 @@ export function getDisputeWindowEnd(): Date {
   const end = new Date()
   end.setDate(end.getDate() + 7)
   return end
+}
+
+/**
+ * Check if a clinic is currently in their trial period.
+ */
+export function isInTrialPeriod(trialEndsAt: string | null): boolean {
+  if (!trialEndsAt) return false
+  return new Date(trialEndsAt) > new Date()
 }
 
 /**

@@ -36,7 +36,6 @@ import { Input } from "@/components/ui/input"
 import {
   CreditCard,
   Receipt,
-  Calendar,
   Users,
   Banknote,
   ExternalLink,
@@ -52,18 +51,42 @@ import {
   FileDown,
   Filter,
   Gift,
+  TrendingUp,
+  Calendar,
 } from "lucide-react"
 import { toast } from "sonner"
 
 interface Subscription {
   status: string
   plan_type: string
+  plan_name: string
+  base_price_pence: number
+  included_bookings: number
+  extra_booking_fee_pence: number
   current_period_start: string | null
   current_period_end: string | null
   cancel_at_period_end: boolean
   has_stripe_customer: boolean
+  in_trial: boolean
+  trial_ends_at: string | null
+  trial_days_remaining: number
+  trial_bookings_used: number
+  trial_booking_cap: number
   free_leads_used: number
   free_leads_limit: number
+}
+
+interface Estimate {
+  confirmed_bookings: number
+  included_bookings: number
+  overage_bookings: number
+  base_amount_pence: number
+  base_amount_formatted: string
+  overage_amount_pence: number
+  overage_amount_formatted: string
+  total_pence: number
+  total_formatted: string
+  plan_base_formatted: string
 }
 
 interface BookingCharge {
@@ -79,6 +102,7 @@ interface BookingCharge {
   charge_created_at: string
   dispute_window_ends_at: string
   is_finalised: boolean
+  is_trial_booking: boolean
   stripe_payment_intent_id: string | null
   refund_status: string | null
   refund_amount: number | null
@@ -86,15 +110,12 @@ interface BookingCharge {
 }
 
 interface BillingSummary {
-  total_charges_formatted: string
-  total_charges_pence: number
-  total_refunds_formatted: string
-  total_refunds_pence: number
-  net_charges_formatted: string
-  net_charges_pence: number
-  confirmed_count: number
-  disputed_count: number
   total_count: number
+  billable_count: number
+  trial_count: number
+  disputed_count: number
+  estimated_bill_formatted: string
+  estimated_bill_pence: number
 }
 
 interface PaymentMethod {
@@ -102,6 +123,22 @@ interface PaymentMethod {
   last4: string
   exp_month: number
   exp_year: number
+}
+
+interface MonthlyInvoice {
+  id: string
+  billing_period: string
+  plan_type: string
+  confirmed_bookings: number
+  included_bookings: number
+  overage_bookings: number
+  base_amount: number
+  overage_amount: number
+  total_amount: number
+  stripe_invoice_url: string | null
+  stripe_invoice_pdf: string | null
+  status: string
+  created_at: string
 }
 
 interface Invoice {
@@ -118,9 +155,11 @@ interface Invoice {
 interface BillingData {
   clinic_id: string
   subscription: Subscription | null
+  estimate: Estimate
   charges: BookingCharge[]
   summary: BillingSummary
   payment_method: PaymentMethod | null
+  monthly_invoices: MonthlyInvoice[]
   invoices: Invoice[]
 }
 
@@ -143,7 +182,7 @@ function getDaysRemaining(endDate: string): number {
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; className: string }> = {
     active: { label: "Active", className: "bg-green-100 text-green-700 border-green-200" },
-    trialing: { label: "Trial", className: "bg-blue-100 text-blue-700 border-blue-200" },
+    trialing: { label: "Free Trial", className: "bg-blue-100 text-blue-700 border-blue-200" },
     past_due: { label: "Past Due", className: "bg-red-100 text-red-700 border-red-200" },
     cancelled: { label: "Cancelled", className: "bg-gray-100 text-gray-700 border-gray-200" },
     incomplete: { label: "Incomplete", className: "bg-yellow-100 text-yellow-700 border-yellow-200" },
@@ -167,6 +206,12 @@ function AttendanceBadge({ status, isFinalised }: { status: string; isFinalised:
   return <Badge className={c.className}>{c.icon}{c.label}</Badge>
 }
 
+const PLAN_OPTIONS = [
+  { value: "starter", label: "Starter", price: "£99/mo", included: 2 },
+  { value: "standard", label: "Standard", price: "£247/mo", included: 4, recommended: true },
+  { value: "premium", label: "Premium", price: "£486/mo", included: 8 },
+]
+
 export default function BillingPage() {
   return (
     <Suspense fallback={
@@ -187,15 +232,7 @@ function BillingPageContent() {
   const [clinicId, setClinicId] = useState<string | null>(null)
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [showSetupSuccess, setShowSetupSuccess] = useState(false)
-
-  // Detect ?setup=success from Stripe redirect
-  useEffect(() => {
-    if (searchParams.get("setup") === "success") {
-      setShowSetupSuccess(true)
-      // Clean up URL without reload
-      router.replace("/clinic/billing", { scroll: false })
-    }
-  }, [searchParams, router])
+  const [selectedPlan, setSelectedPlan] = useState<string>("standard")
 
   // Dispute dialog state
   const [disputeCharge, setDisputeCharge] = useState<BookingCharge | null>(null)
@@ -211,6 +248,14 @@ function BillingPageContent() {
   const [chargesPage, setChargesPage] = useState(0)
   const CHARGES_PER_PAGE = 10
 
+  // Detect ?setup=success from Stripe redirect
+  useEffect(() => {
+    if (searchParams.get("setup") === "success") {
+      setShowSetupSuccess(true)
+      router.replace("/clinic/billing", { scroll: false })
+    }
+  }, [searchParams, router])
+
   const fetchBilling = useCallback(async () => {
     const supabase = createBrowserClient()
     const { data: { session } } = await supabase.auth.getSession()
@@ -219,7 +264,6 @@ function BillingPageContent() {
       return
     }
 
-    // Get clinic ID
     const meRes = await fetch("/api/clinic/me", {
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
@@ -235,7 +279,6 @@ function BillingPageContent() {
     }
     setClinicId(cId)
 
-    // Fetch billing data
     const billingRes = await fetch("/api/clinic/billing", {
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
@@ -251,7 +294,7 @@ function BillingPageContent() {
     fetchBilling()
   }, [fetchBilling])
 
-  const handleSetupSubscription = async () => {
+  const handleSetupSubscription = async (planType?: string) => {
     if (!clinicId) return
     setIsRedirecting(true)
     try {
@@ -263,7 +306,7 @@ function BillingPageContent() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token}`,
         },
-        body: JSON.stringify({ clinicId }),
+        body: JSON.stringify({ clinicId, planType: planType || selectedPlan }),
       })
       const data = await res.json()
       if (data.url) {
@@ -325,11 +368,7 @@ function BillingPageContent() {
       })
       const data = await res.json()
       if (data.success) {
-        toast.success(
-          data.refunded
-            ? "Attendance updated. Refund has been issued."
-            : "Attendance updated successfully."
-        )
+        toast.success("Attendance updated successfully.")
         setDisputeCharge(null)
         setDisputeStatus("not_attended")
         setExemptionReason("")
@@ -344,7 +383,6 @@ function BillingPageContent() {
     setIsDisputing(false)
   }
 
-  // Filtered charges for the booking charges tab
   const getFilteredCharges = useCallback(() => {
     if (!billing) return []
     let filtered = billing.charges
@@ -387,7 +425,7 @@ function BillingPageContent() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Billing</h1>
         <p className="text-muted-foreground">
-          Manage your subscription, payment method, and booking charges
+          Manage your plan, view your estimated monthly bill, and track bookings
         </p>
       </div>
 
@@ -399,11 +437,116 @@ function BillingPageContent() {
             <div className="flex-1">
               <p className="font-medium text-green-800">Welcome! Your subscription is all set up</p>
               <p className="text-sm text-green-700">
-                You&apos;re ready to start receiving patient matches. We&apos;ll bill per confirmed booking — your first {billing?.subscription?.free_leads_limit || 3} leads are free.
+                Your 30-day free trial has started. You can confirm up to 3 bookings during your trial at no cost. After that, billing is based on your plan tier.
               </p>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setShowSetupSuccess(false)} className="text-green-700 hover:text-green-800 hover:bg-green-100">
               Dismiss
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Trial banner */}
+      {sub?.in_trial && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="flex items-center gap-4 pt-6">
+            <Gift className="h-6 w-6 text-blue-600 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-medium text-blue-800">
+                Free trial — {sub.trial_days_remaining} day{sub.trial_days_remaining !== 1 ? "s" : ""} remaining
+              </p>
+              <p className="text-sm text-blue-700">
+                Trial bookings used: {sub.trial_bookings_used} of {sub.trial_booking_cap}. No charges during your trial.
+              </p>
+            </div>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: sub.trial_booking_cap }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-3 h-3 rounded-full ${
+                    i < sub.trial_bookings_used ? "bg-blue-500" : "bg-blue-200"
+                  }`}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* No subscription — plan selection */}
+      {!sub && (
+        <Card className="border-[#0fbcb0]/30 bg-[#0fbcb0]/5">
+          <CardHeader>
+            <CardTitle>Choose your plan</CardTitle>
+            <CardDescription>30-day free trial with up to 3 confirmed bookings. No card charged during trial.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid sm:grid-cols-3 gap-4">
+              {PLAN_OPTIONS.map((plan) => (
+                <button
+                  key={plan.value}
+                  onClick={() => setSelectedPlan(plan.value)}
+                  className={`relative p-4 rounded-lg border-2 text-left transition-all ${
+                    selectedPlan === plan.value
+                      ? "border-[#0fbcb0] bg-[#0fbcb0]/5"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  {plan.recommended && (
+                    <span className="absolute -top-2.5 left-4 bg-[#0fbcb0] text-white text-xs font-medium px-2 py-0.5 rounded-full">
+                      Best Value
+                    </span>
+                  )}
+                  <p className="font-semibold text-lg">{plan.label}</p>
+                  <p className="text-2xl font-bold mt-1">{plan.price}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {plan.included} confirmed bookings included
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    then £35 per extra booking
+                  </p>
+                </button>
+              ))}
+            </div>
+            <Button onClick={() => handleSetupSubscription()} disabled={isRedirecting} className="bg-[#0fbcb0] hover:bg-[#0da399] text-white">
+              {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Start Free Trial
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Incomplete subscription */}
+      {sub?.status === "incomplete" && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardContent className="flex items-center gap-4 pt-6">
+            <AlertCircle className="h-6 w-6 text-yellow-600 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-medium text-yellow-800">Subscription setup incomplete</p>
+              <p className="text-sm text-yellow-700">
+                It looks like you didn&apos;t finish setting up your subscription. Click below to complete the process.
+              </p>
+            </div>
+            <Button onClick={() => handleSetupSubscription(sub.plan_type)} disabled={isRedirecting} className="bg-[#0fbcb0] hover:bg-[#0da399] text-white">
+              {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Complete Setup
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Past due */}
+      {sub?.status === "past_due" && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="flex items-center gap-4 pt-6">
+            <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-medium text-red-800">Payment overdue</p>
+              <p className="text-sm text-red-700">Your payment has failed. Please update your payment method.</p>
+            </div>
+            <Button variant="destructive" onClick={handleManagePayment} disabled={isRedirecting}>
+              Update Payment
             </Button>
           </CardContent>
         </Card>
@@ -419,107 +562,6 @@ function BillingPageContent() {
 
         {/* ── Overview Tab ── */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Subscription status alert */}
-          {!sub && (
-            <Card className="border-[#0fbcb0]/30 bg-[#0fbcb0]/5">
-              <CardContent className="flex items-center gap-4 pt-6">
-                <Gift className="h-6 w-6 text-[#0fbcb0] flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="font-medium text-[#004443]">Welcome! Your first 3 leads are free</p>
-                  <p className="text-sm text-muted-foreground">
-                    Start receiving patient matches right away — no subscription needed for your first 3 leads.
-                    When you&apos;re ready, set up a subscription to keep receiving leads.
-                  </p>
-                </div>
-                <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-[#0fbcb0] hover:bg-[#0da399] text-white">
-                  {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Set Up Subscription
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {sub && !sub.has_stripe_customer && sub.free_leads_used >= sub.free_leads_limit && (
-            <Card className="border-yellow-200 bg-yellow-50">
-              <CardContent className="flex items-center gap-4 pt-6">
-                <AlertCircle className="h-6 w-6 text-yellow-600 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="font-medium text-yellow-800">Free leads used up</p>
-                  <p className="text-sm text-yellow-700">
-                    You&apos;ve used all {sub.free_leads_limit} free leads. Set up a subscription to continue receiving patient matches.
-                  </p>
-                </div>
-                <Button onClick={handleSetupSubscription} disabled={isRedirecting}>
-                  {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Set Up Subscription
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {sub?.status === "incomplete" && (
-            <Card className="border-yellow-200 bg-yellow-50">
-              <CardContent className="flex items-center gap-4 pt-6">
-                <AlertCircle className="h-6 w-6 text-yellow-600 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="font-medium text-yellow-800">Subscription setup incomplete</p>
-                  <p className="text-sm text-yellow-700">
-                    It looks like you didn&apos;t finish setting up your subscription. Click below to complete the process.
-                  </p>
-                </div>
-                <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-[#0fbcb0] hover:bg-[#0da399] text-white">
-                  {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Complete Setup
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {sub?.status === "past_due" && (
-            <Card className="border-red-200 bg-red-50">
-              <CardContent className="flex items-center gap-4 pt-6">
-                <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="font-medium text-red-800">Payment overdue</p>
-                  <p className="text-sm text-red-700">Your subscription payment has failed. Please update your payment method to continue receiving patient matches.</p>
-                </div>
-                <Button variant="destructive" onClick={handleManagePayment} disabled={isRedirecting}>
-                  Update Payment
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Free leads & trial banners */}
-          {sub && sub.free_leads_used < sub.free_leads_limit && (
-            <Card className="border-[#0fbcb0]/30 bg-[#0fbcb0]/5">
-              <CardContent className="flex items-center gap-4 pt-6">
-                <Gift className="h-6 w-6 text-[#0fbcb0] flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="font-medium text-[#004443]">
-                    Free leads: {sub.free_leads_used} of {sub.free_leads_limit} used
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Your first {sub.free_leads_limit} patient leads are completely free — no booking fee charged.
-                    {sub.free_leads_limit - sub.free_leads_used === 1
-                      ? " You have 1 free lead remaining."
-                      : ` You have ${sub.free_leads_limit - sub.free_leads_used} free leads remaining.`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: sub.free_leads_limit }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={`w-3 h-3 rounded-full ${
-                        i < sub.free_leads_used ? "bg-[#0fbcb0]" : "bg-[#0fbcb0]/20"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
@@ -530,25 +572,13 @@ function BillingPageContent() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold capitalize">{sub?.plan_type || "None"}</p>
+                <p className="text-2xl font-bold">{sub?.plan_name || "None"}</p>
                 {sub && <StatusBadge status={sub.status} />}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription className="flex items-center gap-1.5">
-                  <Gift className="h-4 w-4" />
-                  Free Leads
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">
-                  {sub ? `${sub.free_leads_limit - sub.free_leads_used}` : "3"} <span className="text-base font-normal text-muted-foreground">remaining</span>
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {sub ? `${sub.free_leads_used} of ${sub.free_leads_limit} used` : "0 of 3 used"}
-                </p>
+                {sub && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {formatAmount(sub.base_price_pence)}/mo &middot; {sub.included_bookings} bookings included
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -560,50 +590,106 @@ function BillingPageContent() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">{billing.summary.total_count}</p>
+                <p className="text-2xl font-bold">{billing.summary.billable_count}</p>
                 <p className="text-sm text-muted-foreground">
-                  {billing.summary.confirmed_count} confirmed, {billing.summary.disputed_count} disputed
+                  confirmed booking{billing.summary.billable_count !== 1 ? "s" : ""}
+                  {sub && ` of ${sub.included_bookings} included`}
                 </p>
+                {billing.summary.trial_count > 0 && (
+                  <p className="text-sm text-blue-600">+ {billing.summary.trial_count} trial (free)</p>
+                )}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription className="flex items-center gap-1.5">
-                  <Banknote className="h-4 w-4" />
-                  Net Charges
+                  <TrendingUp className="h-4 w-4" />
+                  Estimated Bill
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">{billing.summary.net_charges_formatted}</p>
-                {billing.summary.total_refunds_pence > 0 && (
-                  <p className="text-sm text-green-600">
-                    {billing.summary.total_refunds_formatted} refunded
+                <p className="text-2xl font-bold">{billing.summary.estimated_bill_formatted}</p>
+                {billing.estimate.overage_bookings > 0 && (
+                  <p className="text-sm text-orange-600">
+                    includes {billing.estimate.overage_bookings} extra at £35 each
                   </p>
+                )}
+                {sub?.in_trial && (
+                  <p className="text-sm text-blue-600">No charge during trial</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4" />
+                  Next Billing
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {sub?.in_trial && sub.trial_ends_at ? (
+                  <>
+                    <p className="text-2xl font-bold">{sub.trial_days_remaining} days</p>
+                    <p className="text-sm text-muted-foreground">Trial ends {formatDate(sub.trial_ends_at)}</p>
+                  </>
+                ) : sub?.current_period_end ? (
+                  <>
+                    <p className="text-2xl font-bold">{formatDate(sub.current_period_end)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {getDaysRemaining(sub.current_period_end)} days away
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No active subscription</p>
                 )}
               </CardContent>
             </Card>
           </div>
 
+          {/* Billing breakdown */}
+          {sub && !sub.in_trial && billing.estimate.confirmed_bookings > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Current Month Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      {Math.min(billing.estimate.confirmed_bookings, sub.included_bookings)} of {sub.included_bookings} included bookings
+                    </span>
+                    <span className="font-medium">{billing.estimate.base_amount_formatted}</span>
+                  </div>
+                  {billing.estimate.overage_bookings > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {billing.estimate.overage_bookings} extra booking{billing.estimate.overage_bookings !== 1 ? "s" : ""} x £35
+                      </span>
+                      <span className="font-medium">{billing.estimate.overage_amount_formatted}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-2 border-t font-semibold">
+                    <span>Estimated total</span>
+                    <span>{billing.estimate.total_formatted}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Quick actions */}
-          {sub && (
+          {sub && sub.status !== "incomplete" && (
             <Card>
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
-                {sub.status === "incomplete" ? (
-                  <Button onClick={handleSetupSubscription} disabled={isRedirecting} className="bg-[#0fbcb0] hover:bg-[#0da399] text-white">
-                    {isRedirecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Set Up Subscription
-                  </Button>
-                ) : (
-                  <Button variant="outline" onClick={handleManagePayment} disabled={isRedirecting}>
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Manage Subscription
-                  </Button>
-                )}
+                <Button variant="outline" onClick={handleManagePayment} disabled={isRedirecting}>
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Manage Subscription
+                </Button>
               </CardContent>
             </Card>
           )}
@@ -646,99 +732,74 @@ function BillingPageContent() {
                   <div className="flex-1">
                     <p className="font-medium text-yellow-800">No payment method on file</p>
                     <p className="text-sm text-yellow-700">
-                      {sub ? "Add a payment method to keep your subscription active." : "Set up a subscription to add a payment method."}
+                      {sub ? "Your card will be collected at end of trial." : "Set up a subscription to add a payment method."}
                     </p>
                   </div>
-                  {sub ? (
-                    <Button onClick={handleManagePayment} disabled={isRedirecting}>
-                      Add Payment Method
-                    </Button>
-                  ) : (
-                    <Button onClick={handleSetupSubscription} disabled={isRedirecting}>
-                      Set Up Subscription
-                    </Button>
-                  )}
                 </div>
               )}
-
-              <div className="rounded-lg border p-4 bg-muted/30">
-                <p className="text-sm text-muted-foreground">
-                  Payment details are handled securely by Stripe. Pearlie never stores your card information.
-                  Clicking &ldquo;Update&rdquo; will redirect you to Stripe&apos;s secure portal.
-                </p>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* ── Invoices Tab ── */}
         <TabsContent value="invoices" className="space-y-6">
+          {/* Monthly invoices */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Receipt className="h-5 w-5" />
-                Invoice History
+                Monthly Invoices
               </CardTitle>
               <CardDescription>
-                View and download your past invoices
+                Your monthly billing summaries based on confirmed bookings
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {billing.invoices.length > 0 ? (
+              {billing.monthly_invoices.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Invoice</TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Period</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Bookings</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {billing.invoices.map((inv) => (
+                    {billing.monthly_invoices.map((inv) => (
                       <TableRow key={inv.id}>
-                        <TableCell className="font-medium">
-                          {inv.number || inv.id.slice(0, 12)}
-                        </TableCell>
-                        <TableCell>{formatDate(inv.created)}</TableCell>
-                        <TableCell>{formatAmount(inv.amount_due)}</TableCell>
+                        <TableCell className="font-medium">{inv.billing_period}</TableCell>
+                        <TableCell className="capitalize">{inv.plan_type}</TableCell>
                         <TableCell>
-                          <Badge
-                            className={
-                              inv.status === "paid"
-                                ? "bg-green-100 text-green-700 border-green-200"
-                                : inv.status === "open"
-                                  ? "bg-yellow-100 text-yellow-700 border-yellow-200"
-                                  : "bg-gray-100 text-gray-700 border-gray-200"
-                            }
-                          >
-                            {inv.status === "paid" ? "Paid" : inv.status === "open" ? "Open" : inv.status || "Unknown"}
+                          {inv.confirmed_bookings}
+                          {inv.overage_bookings > 0 && (
+                            <span className="text-orange-600 text-xs ml-1">(+{inv.overage_bookings} extra)</span>
+                          )}
+                        </TableCell>
+                        <TableCell>{formatAmount(inv.total_amount)}</TableCell>
+                        <TableCell>
+                          <Badge className={
+                            inv.status === "paid" ? "bg-green-100 text-green-700 border-green-200" :
+                            inv.status === "sent" ? "bg-yellow-100 text-yellow-700 border-yellow-200" :
+                            inv.status === "void" ? "bg-gray-100 text-gray-500 border-gray-200" :
+                            "bg-red-100 text-red-700 border-red-200"
+                          }>
+                            {inv.status === "void" ? "No charge" : inv.status}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {inv.hosted_invoice_url && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => window.open(inv.hosted_invoice_url!, "_blank")}
-                              >
-                                <ExternalLink className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
-                            )}
-                            {inv.invoice_pdf && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => window.open(inv.invoice_pdf!, "_blank")}
-                              >
-                                <Download className="h-4 w-4 mr-1" />
-                                PDF
-                              </Button>
-                            )}
-                          </div>
+                          {inv.stripe_invoice_url && (
+                            <Button variant="ghost" size="sm" onClick={() => window.open(inv.stripe_invoice_url!, "_blank")}>
+                              <ExternalLink className="h-4 w-4 mr-1" /> View
+                            </Button>
+                          )}
+                          {inv.stripe_invoice_pdf && (
+                            <Button variant="ghost" size="sm" onClick={() => window.open(inv.stripe_invoice_pdf!, "_blank")}>
+                              <Download className="h-4 w-4 mr-1" /> PDF
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -748,7 +809,7 @@ function BillingPageContent() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Receipt className="h-12 w-12 mx-auto mb-3 opacity-30" />
                   <p>No invoices yet</p>
-                  <p className="text-sm">Invoices will appear here after your first billing cycle.</p>
+                  <p className="text-sm">Your first invoice will be generated at the end of the billing period.</p>
                 </div>
               )}
             </CardContent>
@@ -766,25 +827,23 @@ function BillingPageContent() {
                     Booking Charges
                   </CardTitle>
                   <CardDescription>
-                    Per-appointment charges for confirmed patient bookings. You have 7 days to dispute each charge.
+                    Confirmed patient bookings this month. You have 7 days to dispute each charge.
                   </CardDescription>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    // CSV export of filtered charges
                     const filtered = getFilteredCharges()
                     const csvRows = [
-                      ["Date", "Patient", "Treatment", "Amount", "Status", "Refund Status", "Dispute Window"].join(","),
+                      ["Date", "Patient", "Treatment", "Type", "Status", "Dispute Window"].join(","),
                       ...filtered.map(c =>
                         [
                           formatDate(c.created_at),
                           `"${(c.patient_name || "Unknown").replace(/"/g, '""')}"`,
                           `"${(c.treatment || "—").replace(/"/g, '""')}"`,
-                          formatAmount(c.amount),
+                          c.is_trial_booking ? "Trial (free)" : "Billable",
                           c.attendance_status,
-                          c.refund_status || "none",
                           c.is_finalised ? "Closed" : `${getDaysRemaining(c.dispute_window_ends_at)} days left`,
                         ].join(",")
                       ),
@@ -809,28 +868,16 @@ function BillingPageContent() {
               <div className="flex flex-wrap items-end gap-3 pb-2">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground flex items-center gap-1"><Filter className="h-3 w-3" />From</Label>
-                  <Input
-                    type="date"
-                    value={chargesDateFrom}
-                    onChange={e => { setChargesDateFrom(e.target.value); setChargesPage(0) }}
-                    className="w-[150px] h-9 text-sm"
-                  />
+                  <Input type="date" value={chargesDateFrom} onChange={e => { setChargesDateFrom(e.target.value); setChargesPage(0) }} className="w-[150px] h-9 text-sm" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">To</Label>
-                  <Input
-                    type="date"
-                    value={chargesDateTo}
-                    onChange={e => { setChargesDateTo(e.target.value); setChargesPage(0) }}
-                    className="w-[150px] h-9 text-sm"
-                  />
+                  <Input type="date" value={chargesDateTo} onChange={e => { setChargesDateTo(e.target.value); setChargesPage(0) }} className="w-[150px] h-9 text-sm" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Status</Label>
                   <Select value={chargesStatusFilter} onValueChange={v => { setChargesStatusFilter(v); setChargesPage(0) }}>
-                    <SelectTrigger className="w-[160px] h-9 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
+                    <SelectTrigger className="w-[160px] h-9 text-sm"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
                       <SelectItem value="auto_confirmed">Pending</SelectItem>
@@ -841,12 +888,7 @@ function BillingPageContent() {
                   </Select>
                 </div>
                 {(chargesDateFrom || chargesDateTo || chargesStatusFilter !== "all") && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-9 text-xs"
-                    onClick={() => { setChargesDateFrom(""); setChargesDateTo(""); setChargesStatusFilter("all"); setChargesPage(0) }}
-                  >
+                  <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => { setChargesDateFrom(""); setChargesDateTo(""); setChargesStatusFilter("all"); setChargesPage(0) }}>
                     Clear filters
                   </Button>
                 )}
@@ -877,7 +919,7 @@ function BillingPageContent() {
                           <TableHead>Patient</TableHead>
                           <TableHead>Treatment</TableHead>
                           <TableHead>Date</TableHead>
-                          <TableHead>Amount</TableHead>
+                          <TableHead>Type</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Dispute Window</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
@@ -886,24 +928,18 @@ function BillingPageContent() {
                       <TableBody>
                         {paged.map((charge) => {
                           const daysLeft = getDaysRemaining(charge.dispute_window_ends_at)
-                          const canDispute = !charge.is_finalised &&
-                            daysLeft > 0 &&
-                            charge.attendance_status === "auto_confirmed"
+                          const canDispute = !charge.is_finalised && daysLeft > 0 && charge.attendance_status === "auto_confirmed"
 
                           return (
                             <TableRow key={charge.id}>
-                              <TableCell className="font-medium">
-                                {charge.patient_name || "Unknown Patient"}
-                              </TableCell>
+                              <TableCell className="font-medium">{charge.patient_name || "Unknown Patient"}</TableCell>
                               <TableCell>{charge.treatment || "—"}</TableCell>
                               <TableCell>{formatDate(charge.created_at)}</TableCell>
                               <TableCell>
-                                {charge.refund_status === "refunded" ? (
-                                  <span className="line-through text-muted-foreground">
-                                    {formatAmount(charge.amount)}
-                                  </span>
+                                {charge.is_trial_booking ? (
+                                  <Badge className="bg-blue-100 text-blue-700 border-blue-200">Trial</Badge>
                                 ) : (
-                                  formatAmount(charge.amount)
+                                  <Badge className="bg-gray-100 text-gray-700 border-gray-200">Billable</Badge>
                                 )}
                               </TableCell>
                               <TableCell>
@@ -914,36 +950,15 @@ function BillingPageContent() {
                                   <span className="text-sm text-muted-foreground">Closed</span>
                                 ) : daysLeft > 0 && charge.attendance_status === "auto_confirmed" ? (
                                   <span className={`text-sm font-medium ${daysLeft <= 2 ? "text-red-600" : "text-orange-600"}`}>
-                                    {daysLeft === 1 ? "Last day to dispute" : `${daysLeft} days remaining`}
+                                    {daysLeft === 1 ? "Last day" : `${daysLeft} days left`}
                                   </span>
-                                ) : charge.attendance_status === "auto_confirmed" ? (
-                                  <span className="text-sm text-muted-foreground">Expired</span>
                                 ) : (
                                   <span className="text-sm text-muted-foreground">—</span>
                                 )}
                               </TableCell>
                               <TableCell className="text-right">
                                 {canDispute ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      setDisputeCharge(charge)
-                                      setDisputeStatus("not_attended")
-                                      setExemptionReason("")
-                                      setExemptionDetails("")
-                                    }}
-                                  >
-                                    Dispute
-                                  </Button>
-                                ) : charge.refund_status === "refunded" ? (
-                                  <Badge className="bg-green-100 text-green-700 border-green-200">
-                                    Refunded
-                                  </Badge>
-                                ) : charge.attendance_status === "auto_confirmed" && !charge.is_finalised ? (
-                                  <span className="text-xs text-muted-foreground">Window expired</span>
-                                ) : charge.is_finalised && charge.attendance_status === "confirmed" ? (
-                                  <Button variant="outline" size="sm" disabled title="Dispute window closed — contact support">
+                                  <Button variant="outline" size="sm" onClick={() => { setDisputeCharge(charge); setDisputeStatus("not_attended"); setExemptionReason(""); setExemptionDetails("") }}>
                                     Dispute
                                   </Button>
                                 ) : null}
@@ -954,30 +969,17 @@ function BillingPageContent() {
                       </TableBody>
                     </Table>
 
-                    {/* Pagination */}
                     {totalPages > 1 && (
                       <div className="flex items-center justify-between pt-2">
                         <p className="text-sm text-muted-foreground">
                           Showing {chargesPage * CHARGES_PER_PAGE + 1}–{Math.min((chargesPage + 1) * CHARGES_PER_PAGE, filtered.length)} of {filtered.length}
                         </p>
                         <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={chargesPage === 0}
-                            onClick={() => setChargesPage(p => p - 1)}
-                          >
+                          <Button variant="outline" size="sm" disabled={chargesPage === 0} onClick={() => setChargesPage(p => p - 1)}>
                             <ChevronLeft className="h-4 w-4" />
                           </Button>
-                          <span className="text-sm text-muted-foreground">
-                            Page {chargesPage + 1} of {totalPages}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={chargesPage >= totalPages - 1}
-                            onClick={() => setChargesPage(p => p + 1)}
-                          >
+                          <span className="text-sm text-muted-foreground">Page {chargesPage + 1} of {totalPages}</span>
+                          <Button variant="outline" size="sm" disabled={chargesPage >= totalPages - 1} onClick={() => setChargesPage(p => p + 1)}>
                             <ChevronRight className="h-4 w-4" />
                           </Button>
                         </div>
@@ -996,9 +998,10 @@ function BillingPageContent() {
                 <Shield className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p className="font-medium text-foreground">Billing Policy</p>
-                  <p>Your first <strong>3 patient leads are free</strong> — no booking fee charged. After that, each confirmed patient appointment incurs a £75 booking fee.</p>
-                  <p>You have <strong>7 days</strong> from each charge date to report if a patient did not attend or is exempt (NHS, under 18, cancellation, duplicate, etc.).</p>
-                  <p>After the 7-day window closes, the charge is automatically finalised. If you need help with a finalised charge, contact <a href="mailto:billing@pearlie.org" className="text-primary hover:underline">billing@pearlie.org</a>.</p>
+                  <p>Your plan includes a set number of confirmed bookings each month. You only pay for what you use — 0 bookings = £0.</p>
+                  <p>Extra confirmed bookings beyond your plan are charged at <strong>£35 each</strong>.</p>
+                  <p>You have <strong>7 days</strong> from each booking to report if a patient did not attend or is exempt (NHS, under 18, cancellation, duplicate, etc.).</p>
+                  <p>After the 7-day window closes, the booking is automatically finalised and counts toward your monthly bill.</p>
                 </div>
               </div>
             </CardContent>
@@ -1010,10 +1013,10 @@ function BillingPageContent() {
       <Dialog open={!!disputeCharge} onOpenChange={(open) => { if (!open) setDisputeCharge(null) }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Dispute Booking Charge</DialogTitle>
+            <DialogTitle>Dispute Booking</DialogTitle>
             <DialogDescription>
               {disputeCharge && (
-                <>Report that {disputeCharge.patient_name || "the patient"} did not attend or is exempt from the {formatAmount(disputeCharge.amount)} charge.</>
+                <>Report that {disputeCharge.patient_name || "the patient"} did not attend or is exempt.</>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -1022,9 +1025,7 @@ function BillingPageContent() {
             <div className="space-y-2">
               <Label>Reason</Label>
               <Select value={disputeStatus} onValueChange={setDisputeStatus}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="not_attended">Patient did not attend</SelectItem>
                   <SelectItem value="exempt">Patient is exempt</SelectItem>
@@ -1036,9 +1037,7 @@ function BillingPageContent() {
               <div className="space-y-2">
                 <Label>Exemption Reason</Label>
                 <Select value={exemptionReason} onValueChange={setExemptionReason}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select reason..." />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select reason..." /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="nhs">NHS Patient</SelectItem>
                     <SelectItem value="under_18">Under 18</SelectItem>
@@ -1053,32 +1052,13 @@ function BillingPageContent() {
 
             <div className="space-y-2">
               <Label>Additional Details (optional)</Label>
-              <Textarea
-                placeholder="Provide any additional context..."
-                value={exemptionDetails}
-                onChange={(e) => setExemptionDetails(e.target.value)}
-                rows={3}
-              />
+              <Textarea placeholder="Provide any additional context..." value={exemptionDetails} onChange={(e) => setExemptionDetails(e.target.value)} rows={3} />
             </div>
-
-            {disputeCharge?.stripe_payment_intent_id && (
-              <div className="rounded-lg border p-3 bg-green-50">
-                <p className="text-sm text-green-700">
-                  <CheckCircle2 className="inline h-4 w-4 mr-1" />
-                  A refund of {disputeCharge ? formatAmount(disputeCharge.amount) : ""} will be issued to your card. Refunds typically take 5-10 business days.
-                </p>
-              </div>
-            )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDisputeCharge(null)} disabled={isDisputing}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleDispute}
-              disabled={isDisputing || (disputeStatus === "exempt" && !exemptionReason)}
-            >
+            <Button variant="outline" onClick={() => setDisputeCharge(null)} disabled={isDisputing}>Cancel</Button>
+            <Button onClick={handleDispute} disabled={isDisputing || (disputeStatus === "exempt" && !exemptionReason)}>
               {isDisputing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               {isDisputing ? "Submitting..." : "Submit Dispute"}
             </Button>

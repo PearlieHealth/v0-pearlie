@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getStripe, BOOKING_FEE_AMOUNT, CURRENCY, FREE_LEADS_LIMIT } from "@/lib/stripe"
+import { PLANS, TRIAL_BOOKING_CAP, type PlanType } from "@/lib/stripe"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { getDisputeWindowEnd } from "@/lib/billing"
+import { getDisputeWindowEnd, getCurrentBillingPeriod, isInTrialPeriod } from "@/lib/billing"
 
 /**
  * POST /api/stripe/charge-booking
  *
- * Auto-charges the clinic for a confirmed booking.
- * Called internally when a patient booking is confirmed (ATTENDED status).
+ * Records a confirmed booking for the clinic's monthly billing calculation.
+ * No immediate Stripe charge — charges are calculated at end of billing period.
  *
- * First 3 leads are free (no charge). After that, £75 per booking.
+ * Trial: first 30 days, capped at 3 confirmed bookings (free).
+ * After trial: bookings count toward the monthly tiered invoice.
  *
  * Body: { bookingId?, leadId, clinicId, patientName, treatment }
  */
@@ -19,7 +20,6 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get("authorization")
     const isInternalCall = authHeader === `Bearer ${process.env.CRON_SECRET}`
 
-    // Also allow authenticated clinic users (for attendance-triggered charges)
     let userId: string | null = null
     if (!isInternalCall) {
       const { getAuthUser } = await import("@/lib/supabase/get-clinic-user")
@@ -72,34 +72,45 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Get clinic subscription (or create a placeholder if none exists)
+    // Get clinic subscription
     let { data: sub } = await supabase
       .from("clinic_subscriptions")
-      .select("stripe_customer_id, status, free_leads_used, free_leads_limit")
+      .select("stripe_customer_id, status, plan_type, trial_ends_at, trial_bookings_used, free_leads_used, free_leads_limit")
       .eq("clinic_id", clinicId)
       .single()
 
-    // If no subscription record at all, create one (no-leads-no-sub: we track free leads even before Stripe setup)
+    // If no subscription record, create one with trial
     if (!sub) {
+      const trialEnd = new Date()
+      trialEnd.setDate(trialEnd.getDate() + 30)
+
       const { data: newSub } = await supabase
         .from("clinic_subscriptions")
         .insert({
           clinic_id: clinicId,
-          status: "incomplete",
+          status: "trialing",
+          plan_type: "starter",
+          trial_ends_at: trialEnd.toISOString(),
+          trial_bookings_used: 0,
           free_leads_used: 0,
-          free_leads_limit: FREE_LEADS_LIMIT,
+          free_leads_limit: TRIAL_BOOKING_CAP,
         })
-        .select("stripe_customer_id, status, free_leads_used, free_leads_limit")
+        .select("stripe_customer_id, status, plan_type, trial_ends_at, trial_bookings_used, free_leads_used, free_leads_limit")
         .single()
       sub = newSub
     }
 
-    const freeLeadsUsed = sub?.free_leads_used ?? 0
-    const freeLeadsLimit = sub?.free_leads_limit ?? FREE_LEADS_LIMIT
+    const planType = (sub?.plan_type || "starter") as PlanType
+    const plan = PLANS[planType] || PLANS.starter
+    const { start: periodStart } = getCurrentBillingPeriod()
+    const billingPeriod = `${periodStart.getFullYear()}-${String(periodStart.getMonth() + 1).padStart(2, "0")}`
 
-    // ── FREE LEAD: first N leads are free ──
-    if (freeLeadsUsed < freeLeadsLimit) {
-      // Record as a £0 charge (free lead)
+    // ── Check if in trial period ──
+    const inTrial = isInTrialPeriod(sub?.trial_ends_at ?? null)
+    const trialBookingsUsed = sub?.trial_bookings_used ?? 0
+
+    if (inTrial && trialBookingsUsed < TRIAL_BOOKING_CAP) {
+      // TRIAL BOOKING — free, no charge
       const { data: charge } = await supabase
         .from("booking_charges")
         .insert({
@@ -109,27 +120,32 @@ export async function POST(request: NextRequest) {
           patient_name: patientName || null,
           treatment: treatment || null,
           amount: 0,
-          currency: CURRENCY,
-          attendance_status: "confirmed",
-          is_finalised: true,
-          dispute_window_ends_at: new Date().toISOString(),
+          currency: "gbp",
+          attendance_status: "auto_confirmed",
+          is_trial_booking: true,
+          billing_period: billingPeriod,
+          dispute_window_ends_at: getDisputeWindowEnd().toISOString(),
         })
         .select("id")
         .single()
 
-      // Increment free leads counter
+      // Increment trial bookings counter
       await supabase
         .from("clinic_subscriptions")
-        .update({ free_leads_used: freeLeadsUsed + 1, updated_at: new Date().toISOString() })
+        .update({
+          trial_bookings_used: trialBookingsUsed + 1,
+          free_leads_used: (sub?.free_leads_used ?? 0) + 1,
+          updated_at: new Date().toISOString(),
+        })
         .eq("clinic_id", clinicId)
 
       await supabase.from("billing_events").insert({
-        event_type: "free_lead_used",
+        event_type: "trial_booking_recorded",
         clinic_id: clinicId,
         booking_charge_id: charge?.id,
         metadata: {
-          free_lead_number: freeLeadsUsed + 1,
-          free_leads_limit: freeLeadsLimit,
+          trial_booking_number: trialBookingsUsed + 1,
+          trial_cap: TRIAL_BOOKING_CAP,
           patient_name: patientName,
           treatment,
         },
@@ -138,199 +154,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         chargeId: charge?.id,
-        freeLead: true,
-        freeLeadsRemaining: freeLeadsLimit - (freeLeadsUsed + 1),
-        message: `Free lead ${freeLeadsUsed + 1} of ${freeLeadsLimit}. No charge applied.`,
+        trialBooking: true,
+        trialBookingsRemaining: TRIAL_BOOKING_CAP - (trialBookingsUsed + 1),
+        message: `Trial booking ${trialBookingsUsed + 1} of ${TRIAL_BOOKING_CAP}. No charge.`,
       })
     }
 
-    // ── PAID LEADS: check subscription & charge ──
+    // ── Trial cap reached or trial expired — record for monthly billing ──
+    // Estimated amount per booking for dashboard display
+    const estimatedAmount = Math.round(plan.basePricePence / plan.includedBookings)
 
-    if (!sub?.stripe_customer_id) {
-      // No Stripe customer — create booking_charges record without charging
-      const { data: charge } = await supabase
-        .from("booking_charges")
-        .insert({
-          booking_id: bookingId || null,
-          lead_id: leadId || null,
-          clinic_id: clinicId,
-          patient_name: patientName || null,
-          treatment: treatment || null,
-          amount: BOOKING_FEE_AMOUNT,
-          currency: CURRENCY,
-          attendance_status: "auto_confirmed",
-          dispute_window_ends_at: getDisputeWindowEnd().toISOString(),
-        })
-        .select("id")
-        .single()
-
-      await supabase.from("billing_events").insert({
-        event_type: "booking_charged",
-        clinic_id: clinicId,
-        booking_charge_id: charge?.id,
-        metadata: {
-          amount: BOOKING_FEE_AMOUNT,
-          patient_name: patientName,
-          treatment,
-          payment_deferred: true,
-        },
-      })
-
-      return NextResponse.json({
-        success: true,
-        chargeId: charge?.id,
-        paymentDeferred: true,
-        message: "Booking charge recorded. Payment will be collected when billing is set up.",
-      })
-    }
-
-    // Check subscription is active or trialing
-    if (sub.status !== "active" && sub.status !== "trialing") {
-      const { data: charge } = await supabase
-        .from("booking_charges")
-        .insert({
-          booking_id: bookingId || null,
-          lead_id: leadId || null,
-          clinic_id: clinicId,
-          patient_name: patientName || null,
-          treatment: treatment || null,
-          amount: BOOKING_FEE_AMOUNT,
-          currency: CURRENCY,
-          attendance_status: "auto_confirmed",
-          dispute_window_ends_at: getDisputeWindowEnd().toISOString(),
-        })
-        .select("id")
-        .single()
-
-      await supabase.from("billing_events").insert({
-        event_type: "booking_charged",
-        clinic_id: clinicId,
-        booking_charge_id: charge?.id,
-        metadata: {
-          amount: BOOKING_FEE_AMOUNT,
-          patient_name: patientName,
-          treatment,
-          subscription_inactive: true,
-        },
-      })
-
-      return NextResponse.json({
-        success: true,
-        chargeId: charge?.id,
-        paymentDeferred: true,
-        message: "Booking charge recorded. Subscription is not active.",
-      })
-    }
-
-    // Attempt Stripe charge
-    const stripe = getStripe()
-
-    let paymentIntentId: string | null = null
-    let chargeId: string | null = null
-
-    try {
-      // Get customer's default payment method
-      const customer = await stripe.customers.retrieve(sub.stripe_customer_id)
-      if (customer.deleted) {
-        throw new Error("Stripe customer has been deleted")
-      }
-
-      const defaultPaymentMethod =
-        typeof customer.invoice_settings?.default_payment_method === "string"
-          ? customer.invoice_settings.default_payment_method
-          : customer.invoice_settings?.default_payment_method?.id
-
-      if (!defaultPaymentMethod) {
-        // No payment method on file — record charge without payment
-        const { data: charge } = await supabase
-          .from("booking_charges")
-          .insert({
-            booking_id: bookingId || null,
-            lead_id: leadId || null,
-            clinic_id: clinicId,
-            patient_name: patientName || null,
-            treatment: treatment || null,
-            amount: BOOKING_FEE_AMOUNT,
-            currency: CURRENCY,
-            attendance_status: "auto_confirmed",
-            dispute_window_ends_at: getDisputeWindowEnd().toISOString(),
-          })
-          .select("id")
-          .single()
-
-        await supabase.from("billing_events").insert({
-          event_type: "booking_charged",
-          clinic_id: clinicId,
-          booking_charge_id: charge?.id,
-          metadata: { amount: BOOKING_FEE_AMOUNT, no_payment_method: true },
-        })
-
-        return NextResponse.json({
-          success: true,
-          chargeId: charge?.id,
-          paymentDeferred: true,
-          message: "Booking charge recorded. No payment method on file.",
-        })
-      }
-
-      // Create and confirm payment intent
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: BOOKING_FEE_AMOUNT,
-        currency: CURRENCY,
-        customer: sub.stripe_customer_id,
-        payment_method: defaultPaymentMethod,
-        off_session: true,
-        confirm: true,
-        description: `Pearlie booking fee: ${patientName || "Patient"} - ${treatment || "Treatment"}`,
-        metadata: {
-          clinic_id: clinicId,
-          lead_id: leadId || "",
-          booking_id: bookingId || "",
-          type: "booking_fee",
-        },
-      })
-
-      paymentIntentId = paymentIntent.id
-      chargeId = paymentIntent.latest_charge as string | null
-    } catch (stripeError: unknown) {
-      console.error("[stripe/charge-booking] Stripe charge failed:", stripeError)
-      // Record the charge without payment — will need manual resolution
-      const { data: charge } = await supabase
-        .from("booking_charges")
-        .insert({
-          booking_id: bookingId || null,
-          lead_id: leadId || null,
-          clinic_id: clinicId,
-          patient_name: patientName || null,
-          treatment: treatment || null,
-          amount: BOOKING_FEE_AMOUNT,
-          currency: CURRENCY,
-          attendance_status: "auto_confirmed",
-          dispute_window_ends_at: getDisputeWindowEnd().toISOString(),
-        })
-        .select("id")
-        .single()
-
-      await supabase.from("billing_events").insert({
-        event_type: "booking_charged",
-        clinic_id: clinicId,
-        booking_charge_id: charge?.id,
-        metadata: {
-          amount: BOOKING_FEE_AMOUNT,
-          charge_failed: true,
-          error: stripeError instanceof Error ? stripeError.message : "Unknown error",
-        },
-      })
-
-      return NextResponse.json({
-        success: true,
-        chargeId: charge?.id,
-        paymentDeferred: true,
-        message: "Booking charge recorded but payment failed. Will retry.",
-      })
-    }
-
-    // Payment successful — create booking_charges record
     const { data: charge } = await supabase
       .from("booking_charges")
       .insert({
@@ -339,24 +172,24 @@ export async function POST(request: NextRequest) {
         clinic_id: clinicId,
         patient_name: patientName || null,
         treatment: treatment || null,
-        amount: BOOKING_FEE_AMOUNT,
-        currency: CURRENCY,
-        stripe_payment_intent_id: paymentIntentId,
-        stripe_charge_id: chargeId,
+        amount: estimatedAmount,
+        currency: "gbp",
         attendance_status: "auto_confirmed",
+        is_trial_booking: false,
+        billing_period: billingPeriod,
         dispute_window_ends_at: getDisputeWindowEnd().toISOString(),
       })
       .select("id")
       .single()
 
-    // Log billing event
     await supabase.from("billing_events").insert({
-      event_type: "booking_charged",
+      event_type: "booking_recorded",
       clinic_id: clinicId,
       booking_charge_id: charge?.id,
       metadata: {
-        amount: BOOKING_FEE_AMOUNT,
-        stripe_payment_intent_id: paymentIntentId,
+        estimated_amount: estimatedAmount,
+        plan_type: planType,
+        billing_period: billingPeriod,
         patient_name: patientName,
         treatment,
       },
@@ -365,10 +198,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       chargeId: charge?.id,
-      paymentIntentId,
+      billingPeriod,
+      message: "Booking recorded. Charge will be calculated at end of billing period.",
     })
   } catch (error) {
     console.error("[stripe/charge-booking] Error:", error)
-    return NextResponse.json({ error: "Failed to charge booking" }, { status: 500 })
+    return NextResponse.json({ error: "Failed to record booking" }, { status: 500 })
   }
 }

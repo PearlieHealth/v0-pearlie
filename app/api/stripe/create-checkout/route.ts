@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getStripe } from "@/lib/stripe"
+import { getStripe, PLANS, TRIAL_DURATION_DAYS, type PlanType } from "@/lib/stripe"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 
+/**
+ * POST /api/stripe/create-checkout
+ *
+ * Creates a Stripe Checkout session for the selected plan.
+ * Includes a 30-day free trial. No card charged during trial.
+ *
+ * Body: { clinicId, planType: "starter" | "standard" | "premium", successUrl?, cancelUrl? }
+ */
 export async function POST(request: NextRequest) {
   try {
     const user = await getAuthUser()
@@ -11,15 +19,20 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { clinicId, successUrl, cancelUrl } = body
+    const { clinicId, planType = "starter", successUrl, cancelUrl } = body
 
     if (!clinicId) {
       return NextResponse.json({ error: "clinicId is required" }, { status: 400 })
     }
 
+    // Validate plan type
+    const validPlans: PlanType[] = ["starter", "standard", "premium"]
+    const selectedPlan = validPlans.includes(planType) ? planType as PlanType : "starter"
+    const plan = PLANS[selectedPlan]
+
     const supabase = createAdminClient()
 
-    // Verify user owns this clinic
+    // Verify user belongs to this clinic
     const { data: clinicUser } = await supabase
       .from("clinic_users")
       .select("clinic_id, role")
@@ -62,11 +75,16 @@ export async function POST(request: NextRequest) {
       })
       stripeCustomerId = customer.id
 
-      // Create subscription record with customer ID
+      const trialEnd = new Date()
+      trialEnd.setDate(trialEnd.getDate() + TRIAL_DURATION_DAYS)
+
       await supabase.from("clinic_subscriptions").upsert({
         clinic_id: clinicId,
         stripe_customer_id: stripeCustomerId,
         status: "incomplete",
+        plan_type: selectedPlan,
+        trial_ends_at: trialEnd.toISOString(),
+        trial_bookings_used: 0,
       })
     }
 
@@ -93,10 +111,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const priceId = process.env.STRIPE_MEMBERSHIP_PRICE_ID
+    // Use plan-specific Stripe price ID from env, or create a price dynamically
+    const priceEnvKey = `STRIPE_PRICE_ID_${selectedPlan.toUpperCase()}`
+    let priceId = process.env[priceEnvKey] || process.env.STRIPE_MEMBERSHIP_PRICE_ID
+
+    // If no price ID configured, create an ad-hoc price
     if (!priceId) {
-      console.error("[stripe/create-checkout] Missing STRIPE_MEMBERSHIP_PRICE_ID")
-      return NextResponse.json({ error: "Billing not configured" }, { status: 500 })
+      const product = await stripe.products.create({
+        name: `Pearlie ${plan.name} Plan`,
+        metadata: { plan_type: selectedPlan },
+      })
+      const price = await stripe.prices.create({
+        product: product.id,
+        unit_amount: plan.basePricePence,
+        currency: "gbp",
+        recurring: { interval: "month" },
+        metadata: { plan_type: selectedPlan },
+      })
+      priceId = price.id
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://pearlie.org"
@@ -104,19 +136,27 @@ export async function POST(request: NextRequest) {
       customer: stripeCustomerId,
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: successUrl || `${appUrl}/clinic/billing?setup=success`,
+      success_url: successUrl || `${appUrl}/clinic/billing?setup=success&plan=${selectedPlan}`,
       cancel_url: cancelUrl || `${appUrl}/clinic/billing?setup=cancelled`,
       allow_promotion_codes: true,
       subscription_data: {
+        trial_period_days: TRIAL_DURATION_DAYS,
         metadata: {
           clinic_id: clinicId,
-          plan_type: "basic",
+          plan_type: selectedPlan,
         },
       },
       metadata: {
         clinic_id: clinicId,
+        plan_type: selectedPlan,
       },
     })
+
+    // Update subscription record with selected plan
+    await supabase
+      .from("clinic_subscriptions")
+      .update({ plan_type: selectedPlan, updated_at: new Date().toISOString() })
+      .eq("clinic_id", clinicId)
 
     return NextResponse.json({ url: session.url })
   } catch (error) {

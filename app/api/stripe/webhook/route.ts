@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getStripe } from "@/lib/stripe"
+import { getStripe, TRIAL_DURATION_DAYS } from "@/lib/stripe"
 import { createAdminClient } from "@/lib/supabase/admin"
 import Stripe from "stripe"
 
@@ -59,7 +59,17 @@ export async function POST(request: NextRequest) {
 
         if (subscriptionId) {
           // Fetch subscription details from Stripe
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId) as unknown as {
+            id: string; status: string; metadata: Record<string, string>;
+            current_period_start: number; current_period_end: number;
+            cancel_at_period_end: boolean;
+          }
+          const planType = subscription.metadata?.plan_type || session.metadata?.plan_type || "starter"
+          const isTrialing = subscription.status === "trialing"
+
+          const trialEnd = isTrialing
+            ? new Date(Date.now() + TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString()
+            : null
 
           await supabase
             .from("clinic_subscriptions")
@@ -67,11 +77,12 @@ export async function POST(request: NextRequest) {
               clinic_id: clinicId,
               stripe_customer_id: typeof session.customer === "string" ? session.customer : session.customer?.id || "",
               stripe_subscription_id: subscriptionId,
-              plan_type: subscription.metadata?.plan_type || "basic",
-              status: "active",
+              plan_type: planType,
+              status: isTrialing ? "trialing" : "active",
               current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
               current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
               cancel_at_period_end: subscription.cancel_at_period_end,
+              trial_ends_at: trialEnd,
               updated_at: new Date().toISOString(),
             }, { onConflict: "clinic_id" })
 
@@ -81,7 +92,9 @@ export async function POST(request: NextRequest) {
             stripe_event_id: event.id,
             metadata: {
               subscription_id: subscriptionId,
-              plan_type: subscription.metadata?.plan_type || "basic",
+              plan_type: planType,
+              is_trialing: isTrialing,
+              trial_ends_at: trialEnd,
             },
           })
         }
@@ -171,7 +184,11 @@ export async function POST(request: NextRequest) {
 
       // ── Subscription updated ──
       case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription
+        const subscription = event.data.object as unknown as {
+          id: string; status: string; metadata: Record<string, string>;
+          current_period_start: number; current_period_end: number;
+          cancel_at_period_end: boolean; customer: string | { id: string };
+        }
         const customerId = typeof subscription.customer === "string"
           ? subscription.customer
           : subscription.customer?.id
@@ -196,15 +213,22 @@ export async function POST(request: NextRequest) {
             paused: "cancelled",
           }
 
+          const updateData: Record<string, unknown> = {
+            status: statusMap[subscription.status] || subscription.status,
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            updated_at: new Date().toISOString(),
+          }
+
+          // Sync plan_type from Stripe metadata if available
+          if (subscription.metadata?.plan_type) {
+            updateData.plan_type = subscription.metadata.plan_type
+          }
+
           await supabase
             .from("clinic_subscriptions")
-            .update({
-              status: statusMap[subscription.status] || subscription.status,
-              cancel_at_period_end: subscription.cancel_at_period_end,
-              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-              updated_at: new Date().toISOString(),
-            })
+            .update(updateData)
             .eq("clinic_id", sub.clinic_id)
         }
         break
@@ -212,7 +236,9 @@ export async function POST(request: NextRequest) {
 
       // ── Subscription deleted/cancelled ──
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription
+        const subscription = event.data.object as unknown as {
+          id: string; customer: string | { id: string };
+        }
         const customerId = typeof subscription.customer === "string"
           ? subscription.customer
           : subscription.customer?.id

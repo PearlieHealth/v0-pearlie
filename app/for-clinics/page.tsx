@@ -269,8 +269,115 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
+      {/* PRICING SECTION */}
+      <section id="pricing" className="py-20 bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-4 text-center">
+              Simple, transparent pricing
+            </h2>
+            <p className="text-muted-foreground text-center mb-4 max-w-2xl mx-auto">
+              Pay only for confirmed bookings. 0 bookings = £0. No hidden fees.
+            </p>
+            <p className="text-sm text-muted-foreground text-center mb-12 max-w-xl mx-auto">
+              All plans include a <strong>30-day free trial</strong> with up to 3 confirmed bookings at no cost.
+            </p>
+
+            <div className="grid sm:grid-cols-3 gap-6">
+              {/* Starter */}
+              <Card className="p-6 border-border bg-white">
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-semibold text-foreground">Starter</h3>
+                  <p className="text-4xl font-bold text-foreground mt-2">£99<span className="text-base font-normal text-muted-foreground">/mo</span></p>
+                  <p className="text-sm text-muted-foreground mt-1">For clinics starting with Pearlie</p>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span><strong>2</strong> confirmed bookings included</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>£35 per extra confirmed booking</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>Unlimited patient enquiries</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>7-day dispute window</span>
+                  </li>
+                </ul>
+              </Card>
+
+              {/* Standard — Best Value */}
+              <Card className="p-6 border-2 border-primary bg-white relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-primary text-white text-xs font-semibold px-3 py-1 rounded-full">Best Value</span>
+                </div>
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-semibold text-foreground">Standard</h3>
+                  <p className="text-4xl font-bold text-foreground mt-2">£247<span className="text-base font-normal text-muted-foreground">/mo</span></p>
+                  <p className="text-sm text-muted-foreground mt-1">For growing clinics</p>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span><strong>4</strong> confirmed bookings included</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>£35 per extra confirmed booking</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>Unlimited patient enquiries</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>7-day dispute window</span>
+                  </li>
+                </ul>
+              </Card>
+
+              {/* Premium */}
+              <Card className="p-6 border-border bg-white">
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-semibold text-foreground">Premium</h3>
+                  <p className="text-4xl font-bold text-foreground mt-2">£486<span className="text-base font-normal text-muted-foreground">/mo</span></p>
+                  <p className="text-sm text-muted-foreground mt-1">Multi-practice clinics</p>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span><strong>8</strong> confirmed bookings included (across all locations)</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>£35 per extra confirmed booking</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>Unlimited patient enquiries</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>7-day dispute window</span>
+                  </li>
+                </ul>
+              </Card>
+            </div>
+
+            <p className="text-center text-sm text-muted-foreground mt-8">
+              All plans: 0 confirmed bookings in a month = £0. You only pay for results.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Clinic Waitlist Form Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-secondary/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto">
             <ClinicWaitlistForm />
