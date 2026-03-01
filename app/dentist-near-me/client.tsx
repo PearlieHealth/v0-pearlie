@@ -251,7 +251,7 @@ export function DentistNearMeClient({
       {/* ─── HERO (Compact mobile, expanded desktop) ──────── */}
       <section
         ref={heroRef}
-        className="relative bg-gradient-to-b from-[#004443] to-[#00625e] text-white py-8 sm:py-16 lg:py-20 overflow-hidden"
+        className="relative bg-gradient-to-b from-[#004443] to-[#00625e] text-white pt-20 pb-8 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 overflow-hidden"
       >
         <div className="absolute top-10 right-10 w-72 h-72 rounded-full bg-white/[0.03] blur-3xl pointer-events-none hidden sm:block" />
 
