@@ -22,7 +22,7 @@ Pearlie matches patients with trusted, GDC-registered dental clinics based on tr
 - 20+ London boroughs covered
 - 50+ registered dental professionals
 - 10+ treatment categories available
-- Expanding toward 500+ clinics across the UK
+- Expanding toward 100+ clinics across the UK
 
 ## How It Works
 

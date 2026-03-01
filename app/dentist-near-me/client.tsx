@@ -332,7 +332,7 @@ export function DentistNearMeClient({
             </div>
             <div className="flex items-center gap-1">
               <Shield className="w-3.5 h-3.5 text-[#0fbcb0]" />
-              <span className="font-semibold text-foreground">{totalClinics}+</span> clinics
+              <span className="font-semibold text-foreground">100+</span> clinics
             </div>
             <div className="flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
