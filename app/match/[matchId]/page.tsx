@@ -1019,8 +1019,12 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                   </Button>
                                 )}
                                 <Button
-                                  variant="outline"
-                                  className="flex-1 h-11 lg:h-10 rounded-full font-medium text-sm text-[#004443] border-[#004443]/20 hover:bg-[#004443]/5"
+                                  variant={clinic.tier === "directory" || clinic.is_directory_listing ? "default" : "outline"}
+                                  className={`flex-1 h-11 lg:h-10 rounded-full font-medium text-sm ${
+                                    clinic.tier === "directory" || clinic.is_directory_listing
+                                      ? "bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
+                                      : "text-[#004443] border-[#004443]/20 hover:bg-[#004443]/5"
+                                  }`}
                                   asChild
                                 >
                                   <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}`}>
