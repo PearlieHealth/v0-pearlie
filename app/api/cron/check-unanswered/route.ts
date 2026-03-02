@@ -26,14 +26,42 @@ import { EMAIL_TYPE } from "@/lib/email/registry"
 import { generateUnsubscribeFooterHtml } from "@/lib/unsubscribe"
 import { escapeHtml } from "@/lib/escape-html"
 
-// Stage 1: Nudge the clinic after this many hours
-const NUDGE_THRESHOLD_HOURS = 2
-// Stage 2: Email the patient after this many hours (must be > NUDGE_THRESHOLD_HOURS)
-const ALT_CLINICS_THRESHOLD_HOURS = 4
+// Defaults (overridden by admin settings in matching_config)
+const DEFAULT_NUDGE_THRESHOLD_HOURS = 2
+const DEFAULT_ALT_CLINICS_THRESHOLD_HOURS = 4
 // Max conversations to process per cron run
 const BATCH_SIZE = 25
 // Max alternative clinics to suggest in the patient email
 const MAX_ALT_CLINICS = 3
+
+interface ResponseTrackingSettings {
+  clinicNudgeEnabled: boolean
+  altClinicsEmailEnabled: boolean
+  nudgeThresholdHours: number
+  altClinicsThresholdHours: number
+}
+
+async function loadSettings(supabase: ReturnType<typeof createAdminClient>): Promise<ResponseTrackingSettings> {
+  const defaults: ResponseTrackingSettings = {
+    clinicNudgeEnabled: false,
+    altClinicsEmailEnabled: false,
+    nudgeThresholdHours: DEFAULT_NUDGE_THRESHOLD_HOURS,
+    altClinicsThresholdHours: DEFAULT_ALT_CLINICS_THRESHOLD_HOURS,
+  }
+  try {
+    const { data } = await supabase
+      .from("matching_config")
+      .select("config_value")
+      .eq("config_key", "response_tracking_settings")
+      .maybeSingle()
+    if (data?.config_value) {
+      return { ...defaults, ...data.config_value }
+    }
+  } catch (err) {
+    console.warn("[check-unanswered] Failed to load settings, using defaults:", err)
+  }
+  return defaults
+}
 
 export async function GET(request: Request) {
   try {
@@ -47,11 +75,18 @@ export async function GET(request: Request) {
     const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://pearlie.org"
     const now = Date.now()
 
-    let clinicNudgesSent = 0
-    let patientEmailsSent = 0
+    // Load admin-controlled settings
+    const settings = await loadSettings(supabase)
 
-    // ─── Stage 1: Nudge clinics (2+ hours, not yet nudged) ──────────────
-    const nudgeCutoff = new Date(now - NUDGE_THRESHOLD_HOURS * 60 * 60 * 1000).toISOString()
+    let clinicNudgesSent = 0
+    let clinicNudgesProcessed = 0
+    let patientEmailsSent = 0
+    let patientEmailsProcessed = 0
+
+    // ─── Stage 1: Nudge clinics ─────────────────────────────────────────
+    // Only runs if clinicNudgeEnabled is toggled ON in admin
+    if (settings.clinicNudgeEnabled) {
+    const nudgeCutoff = new Date(now - settings.nudgeThresholdHours * 60 * 60 * 1000).toISOString()
 
     const { data: needsNudge } = await supabase
       .from("conversations")
@@ -62,6 +97,8 @@ export async function GET(request: Request) {
       .neq("conversation_state", "closed")
       .order("awaiting_clinic_reply_since", { ascending: true })
       .limit(BATCH_SIZE)
+
+    clinicNudgesProcessed = (needsNudge || []).length
 
     // Track clinics we've already nudged this batch to avoid duplicates
     const clinicNudgedThisBatch = new Set<string>()
@@ -161,9 +198,12 @@ export async function GET(request: Request) {
         console.error(`[check-unanswered] Nudge error for conversation ${convo.id}:`, err)
       }
     }
+    } // end if (settings.clinicNudgeEnabled)
 
-    // ─── Stage 2: Email patients alternatives (4+ hours, nudge already sent) ──
-    const altCutoff = new Date(now - ALT_CLINICS_THRESHOLD_HOURS * 60 * 60 * 1000).toISOString()
+    // ─── Stage 2: Email patients alternatives ───────────────────────────
+    // Only runs if altClinicsEmailEnabled is toggled ON in admin
+    if (settings.altClinicsEmailEnabled) {
+    const altCutoff = new Date(now - settings.altClinicsThresholdHours * 60 * 60 * 1000).toISOString()
 
     const { data: needsAltEmail } = await supabase
       .from("conversations")
@@ -176,6 +216,7 @@ export async function GET(request: Request) {
       .order("awaiting_clinic_reply_since", { ascending: true })
       .limit(BATCH_SIZE)
 
+    patientEmailsProcessed = (needsAltEmail || []).length
     const patientEmailedThisBatch = new Set<string>()
 
     for (const convo of needsAltEmail || []) {
@@ -287,13 +328,18 @@ export async function GET(request: Request) {
         console.error(`[check-unanswered] Alt email error for conversation ${convo.id}:`, err)
       }
     }
+    } // end if (settings.altClinicsEmailEnabled)
 
-    // ─── 3. Recompute clinic response stats ─────────────────────────────
+    // ─── 3. Recompute clinic response stats (always runs) ───────────────
     await recomputeClinicStats(supabase)
 
     return NextResponse.json({
-      clinicNudges: { processed: (needsNudge || []).length, sent: clinicNudgesSent },
-      altClinicEmails: { processed: (needsAltEmail || []).length, sent: patientEmailsSent },
+      settings: {
+        clinicNudgeEnabled: settings.clinicNudgeEnabled,
+        altClinicsEmailEnabled: settings.altClinicsEmailEnabled,
+      },
+      clinicNudges: { processed: clinicNudgesProcessed, sent: clinicNudgesSent },
+      altClinicEmails: { processed: patientEmailsProcessed, sent: patientEmailsSent },
     })
   } catch (error) {
     console.error("[check-unanswered] Error:", error)

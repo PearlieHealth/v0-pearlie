@@ -22,6 +22,25 @@ export async function GET(request: NextRequest) {
     const supabase = createAdminClient()
     const searchParams = request.nextUrl.searchParams
     const clinicId = searchParams.get("clinicId")
+
+    // ─── 0. Load admin settings ─────────────────────────────────────────
+    let settings = {
+      clinicNudgeEnabled: false,
+      altClinicsEmailEnabled: false,
+      nudgeThresholdHours: 2,
+      altClinicsThresholdHours: 4,
+    }
+    try {
+      const { data: configRow } = await supabase
+        .from("matching_config")
+        .select("config_value")
+        .eq("config_key", "response_tracking_settings")
+        .maybeSingle()
+      if (configRow?.config_value) {
+        settings = { ...settings, ...configRow.config_value }
+      }
+    } catch {}
+
     const sort = searchParams.get("sort") || "avg_time"
     const order = searchParams.get("order") || "asc"
 
@@ -104,6 +123,7 @@ export async function GET(request: NextRequest) {
     const { data: recentLogs } = await recentLogsQuery
 
     return NextResponse.json({
+      settings,
       summary: {
         totalClinicsTracked: totalClinics,
         totalResponses: totalResponsesAll,

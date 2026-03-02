@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -19,7 +19,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Clock, AlertTriangle, CheckCircle, TrendingUp, Users, Mail } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Clock, AlertTriangle, CheckCircle, TrendingUp, Users, Mail, Settings, Bell, BellOff } from "lucide-react"
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+interface Settings {
+  clinicNudgeEnabled: boolean
+  altClinicsEmailEnabled: boolean
+  nudgeThresholdHours: number
+  altClinicsThresholdHours: number
+}
 
 interface Summary {
   totalClinicsTracked: number
@@ -71,6 +84,8 @@ interface RecentLog {
   status: "replied" | "waiting"
 }
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
 function formatResponseTime(mins: number | null): string {
   if (mins === null) return "—"
   if (mins < 1) return "<1 min"
@@ -103,8 +118,18 @@ function responseRateBadge(rate: number): "default" | "secondary" | "destructive
   return "destructive"
 }
 
+// ── Component ────────────────────────────────────────────────────────────────
+
 export function ResponseMetricsPanel() {
   const [loading, setLoading] = useState(true)
+  const [settings, setSettings] = useState<Settings>({
+    clinicNudgeEnabled: false,
+    altClinicsEmailEnabled: false,
+    nudgeThresholdHours: 2,
+    altClinicsThresholdHours: 4,
+  })
+  const [saving, setSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle")
   const [summary, setSummary] = useState<Summary | null>(null)
   const [clinicStats, setClinicStats] = useState<ClinicStat[]>([])
   const [unanswered, setUnanswered] = useState<UnansweredConvo[]>([])
@@ -119,6 +144,7 @@ export function ResponseMetricsPanel() {
       const res = await fetch(`/api/admin/response-metrics?${params}`)
       if (!res.ok) throw new Error("Failed to fetch")
       const data = await res.json()
+      if (data.settings) setSettings(data.settings)
       setSummary(data.summary)
       setClinicStats(data.clinicStats || [])
       setUnanswered(data.unansweredConversations || [])
@@ -134,6 +160,35 @@ export function ResponseMetricsPanel() {
     fetchData()
   }, [fetchData])
 
+  const saveSettings = async (newSettings: Settings) => {
+    setSaving(true)
+    setSaveStatus("idle")
+    try {
+      const res = await fetch("/api/admin/response-tracking-settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: newSettings }),
+      })
+      if (!res.ok) throw new Error("Failed to save")
+      const data = await res.json()
+      if (data.settings) setSettings(data.settings)
+      setSaveStatus("saved")
+      setTimeout(() => setSaveStatus("idle"), 2000)
+    } catch (err) {
+      console.error("Failed to save settings:", err)
+      setSaveStatus("error")
+      setTimeout(() => setSaveStatus("idle"), 3000)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const toggleSetting = (key: keyof Settings, value: boolean) => {
+    const updated = { ...settings, [key]: value }
+    setSettings(updated)
+    saveSettings(updated)
+  }
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -146,7 +201,132 @@ export function ResponseMetricsPanel() {
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
+      {/* ── Email Automation Controls ──────────────────────────────────── */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Email Automation
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Control whether automated nudge and alternative-clinic emails are sent.
+                Tracking always runs — only email sending is toggled.
+              </CardDescription>
+            </div>
+            {saveStatus === "saved" && (
+              <span className="text-xs text-green-600 font-medium">Saved</span>
+            )}
+            {saveStatus === "error" && (
+              <span className="text-xs text-red-600 font-medium">Failed to save</span>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Clinic Nudge Toggle */}
+            <div className="flex items-start gap-4 p-4 rounded-lg border bg-muted/30">
+              <div className="pt-0.5">
+                {settings.clinicNudgeEnabled
+                  ? <Bell className="w-5 h-5 text-amber-600" />
+                  : <BellOff className="w-5 h-5 text-muted-foreground" />
+                }
+              </div>
+              <div className="flex-1 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="nudge-toggle" className="text-sm font-medium cursor-pointer">
+                      Clinic nudge emails
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Remind clinics when a patient is waiting for their reply
+                    </p>
+                  </div>
+                  <Switch
+                    id="nudge-toggle"
+                    checked={settings.clinicNudgeEnabled}
+                    onCheckedChange={(checked) => toggleSetting("clinicNudgeEnabled", checked)}
+                    disabled={saving}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="nudge-hours" className="text-xs text-muted-foreground whitespace-nowrap">
+                    Send after
+                  </Label>
+                  <Input
+                    id="nudge-hours"
+                    type="number"
+                    min={1}
+                    max={48}
+                    className="w-16 h-7 text-xs"
+                    value={settings.nudgeThresholdHours}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value)
+                      if (val >= 1 && val <= 48) {
+                        setSettings(s => ({ ...s, nudgeThresholdHours: val }))
+                      }
+                    }}
+                    onBlur={() => saveSettings(settings)}
+                  />
+                  <span className="text-xs text-muted-foreground">hours</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Alt Clinics Email Toggle */}
+            <div className="flex items-start gap-4 p-4 rounded-lg border bg-muted/30">
+              <div className="pt-0.5">
+                {settings.altClinicsEmailEnabled
+                  ? <Mail className="w-5 h-5 text-teal-600" />
+                  : <BellOff className="w-5 h-5 text-muted-foreground" />
+                }
+              </div>
+              <div className="flex-1 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="alt-toggle" className="text-sm font-medium cursor-pointer">
+                      Alternative clinics email
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Suggest other clinics to patients still waiting for a reply
+                    </p>
+                  </div>
+                  <Switch
+                    id="alt-toggle"
+                    checked={settings.altClinicsEmailEnabled}
+                    onCheckedChange={(checked) => toggleSetting("altClinicsEmailEnabled", checked)}
+                    disabled={saving}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="alt-hours" className="text-xs text-muted-foreground whitespace-nowrap">
+                    Send after
+                  </Label>
+                  <Input
+                    id="alt-hours"
+                    type="number"
+                    min={1}
+                    max={72}
+                    className="w-16 h-7 text-xs"
+                    value={settings.altClinicsThresholdHours}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value)
+                      if (val >= 1 && val <= 72) {
+                        setSettings(s => ({ ...s, altClinicsThresholdHours: val }))
+                      }
+                    }}
+                    onBlur={() => saveSettings(settings)}
+                  />
+                  <span className="text-xs text-muted-foreground">hours</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Summary Cards ─────────────────────────────────────────────── */}
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card>
@@ -219,10 +399,9 @@ export function ResponseMetricsPanel() {
         </div>
       )}
 
-      {/* Tabs */}
-      <Tabs defaultValue="clinics">
+      {/* ── Data Tabs ─────────────────────────────────────────────────── */}
+      <Tabs defaultValue="unanswered">
         <TabsList>
-          <TabsTrigger value="clinics">Clinic Rankings</TabsTrigger>
           <TabsTrigger value="unanswered">
             Unanswered
             {unanswered.length > 0 && (
@@ -231,15 +410,112 @@ export function ResponseMetricsPanel() {
               </span>
             )}
           </TabsTrigger>
+          <TabsTrigger value="clinics">Clinic Rankings</TabsTrigger>
           <TabsTrigger value="recent">Recent Activity</TabsTrigger>
         </TabsList>
 
-        {/* Clinic Rankings Tab */}
+        {/* ── Unanswered ──────────────────────────────────────────────── */}
+        <TabsContent value="unanswered" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Patients Waiting for Replies</CardTitle>
+              <CardDescription>
+                Conversations where a patient messaged but the clinic hasn't responded yet.
+                {!settings.clinicNudgeEnabled && !settings.altClinicsEmailEnabled && (
+                  <span className="block mt-1 text-amber-600 font-medium">
+                    Automated emails are currently OFF. Toggle them above to start sending.
+                  </span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {unanswered.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-500 opacity-70" />
+                  <p className="text-sm">All patients have been responded to!</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Patient</TableHead>
+                        <TableHead>Clinic</TableHead>
+                        <TableHead>Treatment</TableHead>
+                        <TableHead className="text-right">Waiting</TableHead>
+                        <TableHead>Clinic Nudge</TableHead>
+                        <TableHead>Alt Email</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {unanswered.map(convo => (
+                        <TableRow key={convo.conversationId} className={convo.waitingHours >= 4 ? "bg-red-50/50" : convo.waitingHours >= 2 ? "bg-amber-50/50" : ""}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-sm">{convo.patientName}</p>
+                              <p className="text-xs text-muted-foreground">{convo.patientEmail}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm">{convo.clinicName}</TableCell>
+                          <TableCell className="text-sm">{convo.treatment || "—"}</TableCell>
+                          <TableCell className="text-right">
+                            <span className={`text-sm font-medium ${convo.waitingHours >= 4 ? "text-red-600" : convo.waitingHours >= 2 ? "text-amber-600" : "text-muted-foreground"}`}>
+                              {formatWaitTime(convo.waitingHours)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {convo.clinicNudgeSent ? (
+                              <Badge variant="secondary" className="text-xs">
+                                Sent {convo.clinicNudgeSentAt
+                                  ? new Date(convo.clinicNudgeSentAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+                                  : ""}
+                              </Badge>
+                            ) : !settings.clinicNudgeEnabled ? (
+                              <span className="text-xs text-muted-foreground">Off</span>
+                            ) : convo.waitingHours >= settings.nudgeThresholdHours ? (
+                              <span className="text-xs text-amber-600 font-medium">Due</span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                {formatWaitTime(settings.nudgeThresholdHours - convo.waitingHours)}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {convo.altEmailSent ? (
+                              <Badge variant="secondary" className="text-xs">
+                                Sent {convo.altEmailSentAt
+                                  ? new Date(convo.altEmailSentAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+                                  : ""}
+                              </Badge>
+                            ) : !settings.altClinicsEmailEnabled ? (
+                              <span className="text-xs text-muted-foreground">Off</span>
+                            ) : convo.waitingHours >= settings.altClinicsThresholdHours ? (
+                              <span className="text-xs text-amber-600 font-medium">Due</span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                {formatWaitTime(settings.altClinicsThresholdHours - convo.waitingHours)}
+                              </span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── Clinic Rankings ─────────────────────────────────────────── */}
         <TabsContent value="clinics" className="mt-4">
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Clinic Response Performance</CardTitle>
+                <div>
+                  <CardTitle className="text-base">Clinic Response Performance</CardTitle>
+                  <CardDescription>Aggregated response metrics per clinic, recomputed every cron cycle.</CardDescription>
+                </div>
                 <div className="flex items-center gap-2">
                   <Select value={sortBy} onValueChange={setSortBy}>
                     <SelectTrigger className="w-[160px] h-8 text-xs">
@@ -314,86 +590,12 @@ export function ResponseMetricsPanel() {
           </Card>
         </TabsContent>
 
-        {/* Unanswered Conversations Tab */}
-        <TabsContent value="unanswered" className="mt-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Patients Waiting for Replies</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {unanswered.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-500 opacity-70" />
-                  <p className="text-sm">All patients have been responded to!</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Patient</TableHead>
-                        <TableHead>Clinic</TableHead>
-                        <TableHead>Treatment</TableHead>
-                        <TableHead className="text-right">Waiting</TableHead>
-                        <TableHead>Clinic Nudge</TableHead>
-                        <TableHead>Alt Email</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {unanswered.map(convo => (
-                        <TableRow key={convo.conversationId}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium text-sm">{convo.patientName}</p>
-                              <p className="text-xs text-muted-foreground">{convo.patientEmail}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm">{convo.clinicName}</TableCell>
-                          <TableCell className="text-sm">{convo.treatment || "—"}</TableCell>
-                          <TableCell className="text-right">
-                            <span className={`text-sm font-medium ${convo.waitingHours >= 4 ? "text-red-600" : convo.waitingHours >= 2 ? "text-amber-600" : "text-muted-foreground"}`}>
-                              {formatWaitTime(convo.waitingHours)}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            {convo.clinicNudgeSent ? (
-                              <Badge variant="secondary" className="text-xs">
-                                Sent {convo.clinicNudgeSentAt
-                                  ? new Date(convo.clinicNudgeSentAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
-                                  : ""}
-                              </Badge>
-                            ) : convo.waitingHours >= 2 ? (
-                              <span className="text-xs text-amber-600 font-medium">Due soon</span>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">Pending</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {convo.altEmailSent ? (
-                              <Badge variant="secondary" className="text-xs">
-                                Sent {convo.altEmailSentAt
-                                  ? new Date(convo.altEmailSentAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
-                                  : ""}
-                              </Badge>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">Pending</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Recent Activity Tab */}
+        {/* ── Recent Activity ─────────────────────────────────────────── */}
         <TabsContent value="recent" className="mt-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Recent Response Activity</CardTitle>
+              <CardDescription>Individual patient-message to clinic-reply tracking log.</CardDescription>
             </CardHeader>
             <CardContent>
               {recentLogs.length === 0 ? (
