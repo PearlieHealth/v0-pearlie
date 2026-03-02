@@ -134,10 +134,41 @@ export async function POST(request: NextRequest) {
       updateData.clinic_first_reply_at = new Date().toISOString()
     }
 
+    // Response tracking: clinic has replied, clear the awaiting flag
+    updateData.awaiting_clinic_reply = false
+    updateData.awaiting_clinic_reply_since = null
+
     await supabaseAdmin
       .from("conversations")
       .update(updateData)
       .eq("id", conversationId)
+
+    // Resolve all pending response_time_log entries for this conversation
+    try {
+      const replyTime = new Date(message.created_at)
+      const { data: pendingLogs } = await supabaseAdmin
+        .from("response_time_log")
+        .select("id, patient_message_at")
+        .eq("conversation_id", conversationId)
+        .is("clinic_replied_at", null)
+
+      if (pendingLogs && pendingLogs.length > 0) {
+        for (const log of pendingLogs) {
+          const patientTime = new Date(log.patient_message_at)
+          const responseTimeSecs = Math.round((replyTime.getTime() - patientTime.getTime()) / 1000)
+          await supabaseAdmin
+            .from("response_time_log")
+            .update({
+              clinic_reply_id: message.id,
+              clinic_replied_at: message.created_at,
+              response_time_seconds: Math.max(0, responseTimeSecs),
+            })
+            .eq("id", log.id)
+        }
+      }
+    } catch (rtlError) {
+      console.error("[Chat] Failed to update response_time_log:", rtlError)
+    }
 
     // Insert bot "clinic has replied" message before the first clinic reply
     let botMessage = null

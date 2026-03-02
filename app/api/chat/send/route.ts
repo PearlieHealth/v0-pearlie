@@ -338,14 +338,38 @@ export async function POST(request: NextRequest) {
     // Reset notification cycle tracking when patient replies,
     // so the clinic's next message will trigger a fresh notification.
     if (senderType === "patient") {
+      const now = new Date().toISOString()
       await supabase
         .from("conversations")
         .update({
           notification_cycles_used: 0,
           current_notification_cycle_start: null,
-          last_patient_reply_at: new Date().toISOString(),
+          last_patient_reply_at: now,
+          // Response tracking: mark conversation as awaiting clinic reply
+          // Reset nudge/alt-email flags so a new tracking cycle can begin
+          awaiting_clinic_reply: true,
+          awaiting_clinic_reply_since: now,
+          clinic_nudge_sent: false,
+          clinic_nudge_sent_at: null,
+          alt_clinics_email_sent: false,
+          alt_clinics_email_sent_at: null,
         })
         .eq("id", conversation.id)
+
+      // Log this patient message for response time tracking
+      try {
+        await supabase
+          .from("response_time_log")
+          .insert({
+            conversation_id: conversation.id,
+            clinic_id: clinicId,
+            lead_id: leadId,
+            patient_message_id: message.id,
+            patient_message_at: message.created_at,
+          })
+      } catch (rtlError) {
+        console.error("[Chat] Failed to insert response_time_log:", rtlError)
+      }
     }
 
     // Broadcast the new message for real-time delivery (bypasses RLS)

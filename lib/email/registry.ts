@@ -38,6 +38,8 @@ import {
   renderBillingReminderEmail,
   renderDisputeReminderEmail,
   renderBookingRequestSentEmail,
+  renderAlternativeClinicsEmail,
+  renderClinicResponseNudgeEmail,
   renderDirectLeadNotificationEmail,
 } from "./templates/notification-templates"
 
@@ -68,6 +70,8 @@ export const EMAIL_TYPE = {
   BILLING_REMINDER: "billing_reminder",
   DISPUTE_REMINDER: "dispute_reminder",
   BOOKING_REQUEST_SENT: "booking_request_sent",
+  ALTERNATIVE_CLINICS: "alternative_clinics",
+  CLINIC_RESPONSE_NUDGE: "clinic_response_nudge",
   DIRECT_LEAD_NOTIFICATION: "direct_lead_notification",
 } as const
 
@@ -272,6 +276,29 @@ const bookingRequestSentSchema = z.object({
   clinicName: z.string(),
   formattedDate: z.string(),
   timeLabel: z.string(),
+  dashboardUrl: z.string(),
+  unsubscribeFooterHtml: z.string(),
+})
+
+const clinicResponseNudgeSchema = z.object({
+  clinicName: z.string(),
+  patientName: z.string(),
+  waitTimeHours: z.number(),
+  messagePreview: z.string(),
+  inboxUrl: z.string(),
+  unsubscribeFooterHtml: z.string(),
+})
+
+const alternativeClinicsSchema = z.object({
+  firstName: z.string(),
+  originalClinicName: z.string(),
+  waitTimeHours: z.number(),
+  alternativeClinics: z.array(z.object({
+    name: z.string(),
+    avgResponseMins: z.number().nullable(),
+    treatments: z.array(z.string()),
+    viewUrl: z.string(),
+  })),
   dashboardUrl: z.string(),
   unsubscribeFooterHtml: z.string(),
 })
@@ -588,6 +615,36 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
     idempotencyKey: (data) => `booking_request:${data._leadId}:${data._clinicId}`,
   },
 
+  // --- Clinic Response Nudge (to clinic — remind them to reply) ---
+
+  [EMAIL_TYPE.CLINIC_RESPONSE_NUDGE]: {
+    type: EMAIL_TYPE.CLINIC_RESPONSE_NUDGE,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: "clinic_notifications",
+    notificationPreferenceKey: null,
+    defaultSubject: (data) => `${data.patientName} is waiting for your reply`,
+    payloadSchema: clinicResponseNudgeSchema,
+    generateHtml: renderClinicResponseNudgeEmail,
+    // One nudge per conversation (never re-send for the same stale conversation)
+    idempotencyKey: (data) => `clinic_nudge:${data._conversationId}`,
+  },
+
+  // --- Alternative Clinics (to patient — when clinic is slow to respond) ---
+
+  [EMAIL_TYPE.ALTERNATIVE_CLINICS]: {
+    type: EMAIL_TYPE.ALTERNATIVE_CLINICS,
+    fromAddress: "NOTIFICATIONS",
+    category: "notification",
+    unsubscribeCategory: "patient_notifications",
+    notificationPreferenceKey: null,
+    defaultSubject: (data) => `Other clinics near you while you wait for ${data.originalClinicName}`,
+    payloadSchema: alternativeClinicsSchema,
+    generateHtml: renderAlternativeClinicsEmail,
+    // One email per conversation (never re-send for the same stale conversation)
+    idempotencyKey: (data) => `alt_clinics:${data._conversationId}`,
+  },
+
   // --- Direct Lead Notification (to clinic — from profile enquiry) ---
 
   [EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION]: {
@@ -630,5 +687,7 @@ export const EMAIL_TYPE_LABELS: Record<EmailType, string> = {
   [EMAIL_TYPE.BILLING_REMINDER]: "Billing Reminder → Clinic",
   [EMAIL_TYPE.DISPUTE_REMINDER]: "Dispute Reminder → Clinic",
   [EMAIL_TYPE.BOOKING_REQUEST_SENT]: "Booking Request Sent → Patient",
+  [EMAIL_TYPE.ALTERNATIVE_CLINICS]: "Alternative Clinics → Patient",
+  [EMAIL_TYPE.CLINIC_RESPONSE_NUDGE]: "Response Nudge → Clinic",
   [EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION]: "Direct Lead → Clinic",
 }
