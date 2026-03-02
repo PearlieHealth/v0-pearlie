@@ -665,7 +665,7 @@ export default function AppointmentDetailPage() {
                                 {msg.content}
                               </p>
                               {msg.sender_type === "bot" && (
-                                <p className="text-[9px] text-[#0fbcb0]/70 mt-1 italic">Automated message</p>
+                                <p className="text-[11px] text-[#0fbcb0]/70 mt-1 italic">Automated message</p>
                               )}
                               <p
                                 className={cn(

@@ -173,10 +173,10 @@ export function SiteFooter() {
           {/* Divider */}
           <div className="border-t border-white/10 mt-10 pt-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-xs text-white/40">
+              <p className="text-xs text-white/60">
                 &copy; {new Date().getFullYear()} Pearlie. All rights reserved.
               </p>
-              <p className="text-xs text-white/40 text-center sm:text-right max-w-md">
+              <p className="text-xs text-white/60 text-center sm:text-right max-w-md">
                 Pearlie is an independent matching service. We do not provide dental treatment or medical advice.
                 <br />
                 Pearlie Ltd — Company No. 16234337

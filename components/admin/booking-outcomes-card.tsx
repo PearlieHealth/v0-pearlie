@@ -175,7 +175,7 @@ export function BookingOutcomesCard({ leads, clinicMap }: BookingOutcomesCardPro
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-muted/50 rounded-lg p-3 text-center">
             <p className="text-lg font-bold text-green-600">{confirmationRate.toFixed(0)}%</p>
-            <p className="text-[11px] text-muted-foreground">Confirmation Rate</p>
+            <p className="text-xs text-muted-foreground">Confirmation Rate</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3 text-center">
             <p className="text-lg font-bold text-[#004443]">
@@ -187,11 +187,11 @@ export function BookingOutcomesCard({ leads, clinicMap }: BookingOutcomesCardPro
                     : `${(avgConfirmHours / 24).toFixed(1)}d`
                 : "—"}
             </p>
-            <p className="text-[11px] text-muted-foreground">Avg. Time to Confirm</p>
+            <p className="text-xs text-muted-foreground">Avg. Time to Confirm</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3 text-center">
             <p className="text-lg font-bold text-red-500">{declineRate.toFixed(0)}%</p>
-            <p className="text-[11px] text-muted-foreground">Decline Rate</p>
+            <p className="text-xs text-muted-foreground">Decline Rate</p>
           </div>
         </div>
 

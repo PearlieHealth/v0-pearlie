@@ -91,7 +91,7 @@ export function PatientExperiences() {
             transition={{ duration: 0.5, delay: i * 0.08, ease: [0.25, 0.1, 0.25, 1] }}
           >
             <Card className="p-5 border border-[#e8e4dc] shadow-none rounded-2xl bg-white h-full flex flex-col hover:shadow-md hover:border-[#d5cfc8] hover:-translate-y-0.5 focus-within:shadow-md focus-within:border-[#d5cfc8] focus-within:-translate-y-0.5 transition-all duration-300 ease-out">
-              <span className="text-[9px] font-extrabold tracking-[0.1em] uppercase text-[#0fbcb0] mb-2.5">
+              <span className="text-[11px] font-extrabold tracking-[0.1em] uppercase text-[#0fbcb0] mb-2.5">
                 {testimonial.label}
               </span>
               <p className="text-[14px] text-muted-foreground leading-snug mb-4 flex-1">

@@ -366,7 +366,7 @@ export function ClinicChatWidget({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold">{clinicName}</h3>
-                <p className="text-xs text-teal-100">Usually replies within a few hours</p>
+                <p className="text-xs text-white/80">Usually replies within a few hours</p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
@@ -376,7 +376,7 @@ export function ClinicChatWidget({
               </button>
             </div>
             {leadInfo && (
-              <div className="mt-2 pt-2 border-t border-teal-500 text-xs text-teal-100">
+              <div className="mt-2 pt-2 border-t border-teal-500 text-xs text-white/80">
                 <p>Chatting as: <span className="font-medium text-white">{leadInfo.name}</span></p>
                 <p className="truncate">{leadInfo.email}</p>
               </div>
@@ -399,7 +399,7 @@ export function ClinicChatWidget({
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             {isLoading && messages.length === 0 ? (
               <div className="flex h-full items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
+                <Loader2 className="h-6 w-6 animate-spin text-neutral-500" />
               </div>
             ) : messages.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center text-center text-neutral-500">
@@ -412,7 +412,7 @@ export function ClinicChatWidget({
                 {Object.entries(groupedMessages).map(([date, dateMessages]) => (
                   <div key={date}>
                     <div className="flex items-center justify-center mb-3">
-                      <span className="text-xs text-neutral-400 bg-neutral-100 px-2 py-1 rounded-full">
+                      <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded-full">
                         {date}
                       </span>
                     </div>
@@ -431,7 +431,7 @@ export function ClinicChatWidget({
                         >
                           {message.sender_type === "bot" ? (
                             <div className="max-w-[90%] bg-[#faf3e6] border border-[#faf3e6] rounded-xl px-3 py-2">
-                              <p className="text-[9px] text-[#0fbcb0] font-medium mb-0.5 flex items-center gap-1">
+                              <p className="text-[11px] text-[#0fbcb0] font-medium mb-0.5 flex items-center gap-1">
                                 <Heart className="w-2.5 h-2.5 fill-[#0fbcb0] text-[#0fbcb0]" />
                                 Pearlie AI
                               </p>
@@ -452,11 +452,11 @@ export function ClinicChatWidget({
                                   "flex items-center gap-1 mt-1",
                                   message.sender_type === "patient"
                                     ? "text-teal-100 justify-end"
-                                    : "text-neutral-400"
+                                    : "text-neutral-500"
                                 )}
                               >
                                 {message.sent_via === "email" && (
-                                  <span className="inline-flex items-center gap-0.5 text-[10px] opacity-70">
+                                  <span className="inline-flex items-center gap-0.5 text-[11px] opacity-70">
                                     <Mail className="w-2.5 h-2.5" />
                                     via email
                                   </span>
@@ -480,7 +480,7 @@ export function ClinicChatWidget({
           {/* Typing indicator */}
           {(clinicTyping || botTyping) && (
             <div className="px-4 py-2">
-              <div className="flex items-center gap-2 text-xs text-neutral-400">
+              <div className="flex items-center gap-2 text-xs text-neutral-500">
                 <span className="flex gap-0.5">
                   <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                   <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />

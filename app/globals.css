@@ -11,7 +11,7 @@
   --secondary: #f8f7f1;
   --secondary-foreground: #3d3838;
   --foreground: #3d3838;
-  --muted-foreground: #666666;
+  --muted-foreground: #555555;
   --background: #fdfdf4;
   --border: #e2dada;
   --card: #ffffff;
@@ -239,7 +239,7 @@
 
 /* Section overline label */
 .overline {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;

@@ -255,7 +255,7 @@ export function AdminNav(_props?: { currentPath?: string }) {
                   {navGroups.map((group, groupIdx) => (
                     <div key={group.label}>
                       {groupIdx > 0 && <div className="mx-4 my-2 border-t border-border" />}
-                      <p className="px-4 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                      <p className="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         {group.label}
                       </p>
                       {group.items.map((item) => {

@@ -134,11 +134,11 @@ function PatientExperiences() {
           >
             <Card className="p-5 border border-[#e8e4dc] shadow-none rounded-2xl bg-white h-full flex flex-col hover:shadow-md hover:border-[#d5cfc8] hover:-translate-y-0.5 focus-within:shadow-md focus-within:border-[#d5cfc8] focus-within:-translate-y-0.5 transition-all duration-300 ease-out">
               <div className="flex items-center justify-between mb-2.5">
-                <span className="text-[9px] font-extrabold tracking-[0.1em] uppercase text-[#0fbcb0]">
+                <span className="text-[11px] font-extrabold tracking-[0.1em] uppercase text-[#0fbcb0]">
                   {testimonial.label}
                 </span>
                 {testimonial.verified && (
-                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <CheckCircle2 className="w-3 h-3 text-[#0fbcb0]" />
                     Verified
                   </span>
@@ -669,15 +669,15 @@ export default function Home() {
                       If your experience doesn&apos;t meet expectations, we&apos;ll cover your next consultation — free.
                     </p>
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-                      <div className="flex items-center gap-2 text-sm text-white/60">
+                      <div className="flex items-center gap-2 text-sm text-white/70">
                         <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
                         <span>For Pearlie Verified clinics</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-white/60">
+                      <div className="flex items-center gap-2 text-sm text-white/70">
                         <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
                         <span>Satisfaction promise</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-white/60">
+                      <div className="flex items-center gap-2 text-sm text-white/70">
                         <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
                         <span>No hidden costs</span>
                       </div>
