@@ -69,7 +69,7 @@ export function FilterableClinicSection({ clinics, areaName, variant = "area" }:
                   {filter.value === "all" && <Shield className={`w-3 h-3 ${isActive ? "text-[#0fbcb0]" : "text-[#0fbcb0]"}`} />}
                   {filter.label}
                   {count !== undefined && count > 0 && (
-                    <span className={`text-[10px] ${isActive ? "text-white/70" : "text-muted-foreground/60"}`}>
+                    <span className={`text-[11px] ${isActive ? "text-white/70" : "text-muted-foreground"}`}>
                       ({count})
                     </span>
                   )}

@@ -64,7 +64,7 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
         {/* Top badges */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5">
           {isVerified && (
-            <span className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold bg-[#0fbcb0] text-white rounded-full shadow-sm">
+            <span className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold bg-[#0fbcb0] text-white rounded-full shadow-sm">
               <CheckCircle2 className="w-3 h-3" />
               Verified by Pearlie
             </span>
@@ -102,12 +102,12 @@ export function TreatmentClinicCard({ clinic }: TreatmentClinicCardProps) {
           )}
           {/* Feature pills */}
           {freeConsult && (
-            <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#004443]/90 text-white rounded-full">
+            <span className="px-2 py-0.5 text-xs font-semibold bg-[#004443]/90 text-white rounded-full">
               Free consultation
             </span>
           )}
           {hasFinance && (
-            <span className="px-2 py-0.5 text-[10px] font-semibold bg-[#0fbcb0]/90 text-white rounded-full">
+            <span className="px-2 py-0.5 text-xs font-semibold bg-[#0fbcb0]/90 text-white rounded-full">
               Finance available
             </span>
           )}

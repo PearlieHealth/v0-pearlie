@@ -378,7 +378,7 @@ export default function AboutPage() {
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mt-10">
                 <div>
-                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">500+</div>
+                  <div className="text-3xl md:text-4xl font-bold text-[#0fbcb0]">100+</div>
                   <p className="text-sm text-muted-foreground mt-2">Practices across London</p>
                 </div>
                 <div>

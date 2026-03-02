@@ -332,20 +332,20 @@ export default function Home() {
                               <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
                             </Link>
                           </div>
-                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <MapPin className="w-3.5 h-3.5 text-[#0fbcb0]" />
-                              <span className="font-semibold text-foreground">Trusted</span>
+                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                            <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
+                              <MapPin className="w-4 h-4 text-[#0fbcb0]" />
+                              <span className="font-bold text-foreground">Trusted</span>
                               <span className="text-muted-foreground">across London</span>
                             </span>
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <Building2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
-                              <span className="font-semibold text-foreground">500+</span>
+                            <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
+                              <Building2 className="w-4 h-4 text-[#0fbcb0]" />
+                              <span className="font-bold text-foreground">100+</span>
                               <span className="text-muted-foreground">practices</span>
                             </span>
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <Star className="w-3.5 h-3.5 text-[#0fbcb0]" />
-                              <span className="font-semibold text-foreground">4.8★</span>
+                            <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
+                              <Star className="w-4 h-4 text-[#0fbcb0]" />
+                              <span className="font-bold text-foreground">4.8★</span>
                               <span className="text-muted-foreground">avg rating</span>
                             </span>
                           </div>
@@ -353,20 +353,20 @@ export default function Home() {
                       ) : (
                         <div className="flex flex-col items-center lg:items-start gap-5">
                           <HomeHeroSearch />
-                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <MapPin className="w-3.5 h-3.5 text-[#0fbcb0]" />
-                              <span className="font-semibold text-foreground">Trusted</span>
+                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                            <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
+                              <MapPin className="w-4 h-4 text-[#0fbcb0]" />
+                              <span className="font-bold text-foreground">Trusted</span>
                               <span className="text-muted-foreground">across London</span>
                             </span>
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <Building2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
-                              <span className="font-semibold text-foreground">500+</span>
+                            <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
+                              <Building2 className="w-4 h-4 text-[#0fbcb0]" />
+                              <span className="font-bold text-foreground">100+</span>
                               <span className="text-muted-foreground">practices</span>
                             </span>
-                            <span className="inline-flex items-center gap-1.5 bg-white/60 backdrop-blur-sm border border-border/30 rounded-full px-3.5 py-1.5 text-xs">
-                              <Star className="w-3.5 h-3.5 text-[#0fbcb0]" />
-                              <span className="font-semibold text-foreground">4.8★</span>
+                            <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
+                              <Star className="w-4 h-4 text-[#0fbcb0]" />
+                              <span className="font-bold text-foreground">4.8★</span>
                               <span className="text-muted-foreground">avg rating</span>
                             </span>
                           </div>
