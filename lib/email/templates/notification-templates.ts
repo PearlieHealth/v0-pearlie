@@ -963,3 +963,123 @@ export function renderClinicReplyToPatientEmail(data: ClinicReplyToPatientPayloa
   ${threadMarker}
 </div>`
 }
+
+// ---------------------------------------------------------------------------
+// 22. Alternative Clinics (to patient — cron: when clinic is slow to respond)
+// ---------------------------------------------------------------------------
+
+export interface AlternativeClinicsPayload {
+  firstName: string
+  originalClinicName: string
+  waitTimeHours: number
+  alternativeClinics: {
+    name: string
+    avgResponseMins: number | null
+    treatments: string[]
+    viewUrl: string
+  }[]
+  dashboardUrl: string
+  unsubscribeFooterHtml: string
+}
+
+export function renderAlternativeClinicsEmail(data: AlternativeClinicsPayload): string {
+  const waitLabel = data.waitTimeHours >= 24
+    ? `${Math.round(data.waitTimeHours / 24)} day${Math.round(data.waitTimeHours / 24) !== 1 ? "s" : ""}`
+    : `${data.waitTimeHours} hour${data.waitTimeHours !== 1 ? "s" : ""}`
+
+  const clinicCards = data.alternativeClinics.map(c => {
+    const responseLabel = c.avgResponseMins !== null
+      ? (c.avgResponseMins < 60
+        ? `Avg. reply: ${Math.round(c.avgResponseMins)} min`
+        : `Avg. reply: ${Math.round(c.avgResponseMins / 60)} hr${Math.round(c.avgResponseMins / 60) !== 1 ? "s" : ""}`)
+      : ""
+    const treatmentList = c.treatments.slice(0, 3).join(", ")
+    return `<div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 12px;">
+      <p style="margin: 0 0 4px; font-size: 16px; font-weight: 600; color: #1a1a1a;">${c.name}</p>
+      ${responseLabel ? `<p style="margin: 0 0 4px; font-size: 13px; color: #059669; font-weight: 500;">${responseLabel}</p>` : ""}
+      ${treatmentList ? `<p style="margin: 0 0 12px; font-size: 13px; color: #666;">${treatmentList}</p>` : ""}
+      <a href="${c.viewUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-weight: 600; font-size: 13px;">
+        View &amp; Message
+      </a>
+    </div>`
+  }).join("")
+
+  return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+  <div style="text-align: center; margin-bottom: 32px;">
+    <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">Still waiting for a reply?</h1>
+  </div>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 8px;">
+    Hi ${data.firstName},
+  </p>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    It's been <strong>${waitLabel}</strong> since you messaged <strong>${data.originalClinicName}</strong>
+    and they haven't replied yet. In the meantime, here are some other clinics near you that may be a great fit:
+  </p>
+  ${clinicCards}
+  <div style="text-align: center; margin: 28px 0;">
+    <a href="${data.dashboardUrl}" style="display: inline-block; background: #1a1a1a; color: white; padding: 14px 36px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 16px;">
+      View all your matches
+    </a>
+  </div>
+  <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <p style="margin: 0; font-size: 14px; color: #166534; line-height: 1.5;">
+      We've also notified <strong>${data.originalClinicName}</strong> again. If they reply, we'll let you know immediately.
+    </p>
+  </div>
+  <p style="font-size: 12px; color: #999; text-align: center; margin-top: 32px;">
+    Pearlie &mdash; Finding your perfect dental match
+  </p>
+  ${data.unsubscribeFooterHtml}
+</div>`
+}
+
+// ---------------------------------------------------------------------------
+// 23. Clinic Response Nudge (to clinic — cron: patient waiting for reply)
+// ---------------------------------------------------------------------------
+
+export interface ClinicResponseNudgePayload {
+  clinicName: string
+  patientName: string
+  waitTimeHours: number
+  messagePreview: string
+  inboxUrl: string
+  unsubscribeFooterHtml: string
+}
+
+export function renderClinicResponseNudgeEmail(data: ClinicResponseNudgePayload): string {
+  const waitLabel = data.waitTimeHours >= 24
+    ? `${Math.round(data.waitTimeHours / 24)} day${Math.round(data.waitTimeHours / 24) !== 1 ? "s" : ""}`
+    : `${data.waitTimeHours} hour${data.waitTimeHours !== 1 ? "s" : ""}`
+
+  return `<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px;">
+  <div style="text-align: center; margin-bottom: 32px;">
+    <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0;">A patient is waiting for your reply</h1>
+  </div>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 8px;">
+    Hi ${data.clinicName},
+  </p>
+  <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 24px;">
+    <strong>${data.patientName}</strong> messaged you <strong>${waitLabel} ago</strong> and is still waiting for a reply.
+    Quick responses help you win more patients!
+  </p>
+  <div style="background: #f5f5f5; border-radius: 12px; padding: 16px; margin-bottom: 24px; border-left: 4px solid #f59e0b;">
+    <p style="margin: 0 0 4px 0; font-size: 13px; color: #666;">Their message</p>
+    <p style="margin: 0; font-size: 14px; color: #333; line-height: 1.5; white-space: pre-wrap;">${data.messagePreview}</p>
+  </div>
+  <div style="background: #FFF8E1; border: 1px solid #FFE082; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+    <p style="margin: 0; font-size: 14px; color: #6D4C00; line-height: 1.5;">
+      Patients who don't hear back within a few hours often start looking at other clinics.
+      Replying now greatly increases your chance of converting this enquiry.
+    </p>
+  </div>
+  <div style="text-align: center; margin-bottom: 24px;">
+    <a href="${data.inboxUrl}" style="display: inline-block; background: #0fbcb0; color: white; padding: 14px 36px; border-radius: 24px; text-decoration: none; font-weight: 600; font-size: 16px;">
+      Reply now
+    </a>
+  </div>
+  <p style="font-size: 12px; color: #999; text-align: center; margin-top: 32px;">
+    Pearlie &mdash; Your dental clinic partner
+  </p>
+  ${data.unsubscribeFooterHtml}
+</div>`
+}
