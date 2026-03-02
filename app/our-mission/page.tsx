@@ -37,7 +37,7 @@ function StatCard({
         href={sourceUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-xs text-white/40 hover:text-white/70 inline-flex items-center gap-1 transition-colors"
+        className="text-xs text-white/60 hover:text-white/80 inline-flex items-center gap-1 transition-colors"
       >
         Source: {sourceName}
         <ExternalLink className="w-3 h-3" />
@@ -493,7 +493,7 @@ export default function OurMissionPage() {
                 ))}
               </ul>
 
-              <p className="text-base text-white/50 mb-10 max-w-lg mx-auto">
+              <p className="text-base text-white/70 mb-10 max-w-lg mx-auto">
                 And would like to contribute to the development of the Pearlie Care Fund, we would welcome a conversation.
               </p>
 

@@ -387,7 +387,7 @@ export function DentistNearMeClient({
                     {clinic.distance_miles != null && (
                       <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
                         <MapPin className="w-3 h-3 text-[#0fbcb0]" />
-                        <span className="text-[11px] font-semibold text-foreground">
+                        <span className="text-xs font-semibold text-foreground">
                           {clinic.distance_miles.toFixed(1)} mi
                         </span>
                       </div>
@@ -480,7 +480,7 @@ export function DentistNearMeClient({
                     <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#0fbcb0]" />
                   </div>
                   <h3 className="font-semibold text-foreground text-xs sm:text-sm">{item.title}</h3>
-                  <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">{item.desc}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
                 </div>
               ))}
             </div>

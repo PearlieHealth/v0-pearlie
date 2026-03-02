@@ -221,8 +221,8 @@ export default function ForClinicsPage() {
           .fc-stats-bar > div { min-width: 0 !important; flex: 1 1 40% !important; }
           .fc-cta-btns { flex-direction: column !important; align-items: stretch !important; }
           .fc-cta-btns > a, .fc-cta-btns > button { width: 100% !important; justify-content: center !important; text-align: center !important; }
-          .fc-table { min-width: 440px !important; font-size: 13px !important; }
-          .fc-table th, .fc-table td { padding: 12px 10px !important; font-size: 12px !important; }
+          .fc-table { min-width: 440px !important; font-size: 14px !important; }
+          .fc-table th, .fc-table td { padding: 12px 10px !important; font-size: 13px !important; }
           .fc-steps-grid { grid-template-columns: 1fr !important; }
           .fc-insights-grid { grid-template-columns: 1fr !important; }
           .fc-pricing-grid { grid-template-columns: 1fr !important; }

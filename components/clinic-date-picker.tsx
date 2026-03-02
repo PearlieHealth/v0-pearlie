@@ -155,9 +155,9 @@ export function ClinicDatePicker({
                     : "border-muted bg-muted/30 text-muted-foreground cursor-not-allowed opacity-60"
                 )}
               >
-                <div className="text-[10px] text-muted-foreground leading-tight">{dayShort}</div>
+                <div className="text-[11px] text-muted-foreground leading-tight">{dayShort}</div>
                 <div className={cn("text-base font-semibold leading-tight", isSelected ? "text-primary" : "text-foreground")}>{dateNum}</div>
-                <div className="text-[10px] text-muted-foreground leading-tight">{monthShort}</div>
+                <div className="text-[11px] text-muted-foreground leading-tight">{monthShort}</div>
               </button>
             )
           })}

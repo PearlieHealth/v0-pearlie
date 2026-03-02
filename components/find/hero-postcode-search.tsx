@@ -151,7 +151,7 @@ export function HeroPostcodeSearch({ variant = "hero", heroRef }: HeroPostcodeSe
       {error && (
         <p className="text-sm text-red-300 mt-3 text-center">{error}</p>
       )}
-      <p className="text-sm text-white/50 mt-3 text-center">
+      <p className="text-sm text-white/70 mt-3 text-center">
         Takes 60 seconds &middot; Free &middot; No obligation
       </p>
     </div>

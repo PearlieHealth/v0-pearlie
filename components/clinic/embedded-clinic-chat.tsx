@@ -331,7 +331,7 @@ export function EmbeddedClinicChat({
           Object.entries(groupedMessages).map(([date, dateMessages]) => (
             <div key={date}>
               <div className="flex items-center justify-center mb-3">
-                <span className="text-[10px] text-[#999] bg-[#eee] px-2 py-0.5 rounded-full">
+                <span className="text-[11px] text-[#999] bg-[#eee] px-2 py-0.5 rounded-full">
                   {date}
                 </span>
               </div>
@@ -349,7 +349,7 @@ export function EmbeddedClinicChat({
                   >
                     {msg.sender_type === "bot" ? (
                       <div className="max-w-[90%] bg-[#faf3e6] border border-[#faf3e6] rounded-xl px-3 py-2">
-                        <p className="text-[9px] text-[#0fbcb0] font-medium mb-0.5 flex items-center gap-1">
+                        <p className="text-[11px] text-[#0fbcb0] font-medium mb-0.5 flex items-center gap-1">
                           <Heart className="w-2.5 h-2.5 fill-[#0fbcb0] text-[#0fbcb0]" />
                           Pearlie AI
                         </p>
@@ -370,12 +370,12 @@ export function EmbeddedClinicChat({
                           }`}
                         >
                           {msg.sent_via === "email" && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] opacity-70">
+                            <span className="inline-flex items-center gap-0.5 text-[11px] opacity-70">
                               <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                               via email ·
                             </span>
                           )}
-                          <span className="text-[10px]">{formatTime(msg.created_at)}</span>
+                          <span className="text-[11px]">{formatTime(msg.created_at)}</span>
                           {msg.sender_type === "patient" && (
                             <StatusIcon status={msg.status} />
                           )}

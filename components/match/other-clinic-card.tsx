@@ -63,14 +63,14 @@ export function OtherClinicCard({ clinic, isSelected, onClick }: OtherClinicCard
           <div className="flex items-start justify-between gap-1">
             <h3 className="font-semibold text-xs text-foreground truncate">{clinic.name}</h3>
             {isSelected && (
-              <span className="text-[9px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex-shrink-0">
+              <span className="text-[11px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex-shrink-0">
                 Selected
               </span>
             )}
           </div>
 
           {/* Match % + meta inline */}
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap">
             {showMatchPercent && (
               <span className="flex items-center gap-0.5 text-primary font-semibold">
                 <Sparkles className="w-3 h-3" />
@@ -105,7 +105,7 @@ export function OtherClinicCard({ clinic, isSelected, onClick }: OtherClinicCard
                 return (
                   <span
                     key={chip}
-                    className="inline-flex items-center gap-0.5 text-[9px] font-medium text-foreground bg-muted/60 px-1 py-0.5 rounded"
+                    className="inline-flex items-center gap-0.5 text-[11px] font-medium text-foreground bg-muted/60 px-1 py-0.5 rounded"
                   >
                     {chipData.label}
                   </span>

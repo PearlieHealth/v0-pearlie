@@ -238,7 +238,7 @@ export function DirectEnquiryForm({ clinicId, clinicName, onLeadCreated }: Direc
           )}
         </Button>
 
-        <p className="text-[10px] text-[#999] text-center flex items-center justify-center gap-1">
+        <p className="text-xs text-[#999] text-center flex items-center justify-center gap-1">
           <Shield className="w-3 h-3" />
           Your details are only shared with {clinicName}
         </p>

@@ -41,13 +41,13 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
           {/* Top-left badges */}
           <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
             {clinic.featured && (
-              <span className="flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
+              <span className="flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
                 <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
                 Featured
               </span>
             )}
             {showNhsBadge && (
-              <span className="text-[10px] font-semibold text-blue-700 bg-blue-50/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
+              <span className="text-xs font-semibold text-blue-700 bg-blue-50/95 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
                 NHS
               </span>
             )}
@@ -59,9 +59,9 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
               {clinic.rating > 0 && (
                 <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm">
                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  <span className="font-semibold text-[11px] text-foreground">{clinic.rating}</span>
+                  <span className="font-semibold text-xs text-foreground">{clinic.rating}</span>
                   {clinic.review_count > 0 && (
-                    <span className="text-[11px] text-muted-foreground">({clinic.review_count})</span>
+                    <span className="text-xs text-muted-foreground">({clinic.review_count})</span>
                   )}
                 </div>
               )}
@@ -73,9 +73,9 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                   </svg>
-                  <span className="font-semibold text-[11px] text-foreground">{clinic.google_rating}</span>
+                  <span className="font-semibold text-xs text-foreground">{clinic.google_rating}</span>
                   {clinic.google_review_count != null && clinic.google_review_count > 0 && (
-                    <span className="text-[11px] text-muted-foreground">({clinic.google_review_count})</span>
+                    <span className="text-xs text-muted-foreground">({clinic.google_review_count})</span>
                   )}
                 </div>
               )}
@@ -94,7 +94,7 @@ export function LocationClinicCard({ clinic }: LocationClinicCardProps) {
           {clinic.verified && (
             <div className="flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0] flex-shrink-0" />
-              <span className="text-[11px] font-medium text-[#0fbcb0]">Verified by Pearlie</span>
+              <span className="text-xs font-medium text-[#0fbcb0]">Verified by Pearlie</span>
             </div>
           )}
 

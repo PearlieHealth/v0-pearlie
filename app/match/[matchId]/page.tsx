@@ -895,7 +895,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                           </p>
                                         )}
                                         <div className="pt-2 border-t border-border">
-                                          <p className="text-[10px] text-muted-foreground">
+                                          <p className="text-xs text-muted-foreground">
                                             {clinic.is_directory_listing || clinic.tier === "directory" || !clinic.verified
                                               ? "Based on proximity, reviews, and treatment match."
                                               : "More stars = stronger match to what you told us matters."}
@@ -1121,7 +1121,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                             </div>
 
                             <div className="mt-4 pt-3.5 border-t border-white/10">
-                              <p className="text-xs text-white/50 leading-relaxed italic">
+                              <p className="text-xs text-white/70 leading-relaxed italic">
                                 We prioritise quality and fit over quantity — so you can feel confident in your choice.
                               </p>
                             </div>
@@ -1225,7 +1225,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                     </div>
 
                     <div className="mt-4 pt-3.5 border-t border-white/10">
-                      <p className="text-xs text-white/50 leading-relaxed italic">
+                      <p className="text-xs text-white/70 leading-relaxed italic">
                         We prioritise quality and fit over quantity — so you can feel confident in your choice.
                       </p>
                     </div>

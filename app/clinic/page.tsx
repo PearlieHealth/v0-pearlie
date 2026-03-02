@@ -443,20 +443,20 @@ export default function ClinicDashboardPage() {
           {/* Performance Mini Widget */}
           <div className="hidden lg:flex items-center gap-3 bg-card border rounded-xl p-3">
             <div className="text-center px-3 border-r">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Leads</p>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Leads</p>
               <p className="text-xl font-bold">{stats?.totalLeads || 0}</p>
             </div>
             <div className="text-center px-3 border-r">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Booked</p>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Booked</p>
               <p className="text-xl font-bold text-green-600">{stats?.bookedLeads || 0}</p>
             </div>
             <div className="text-center px-3">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Rate</p>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Rate</p>
               <p className="text-xl font-bold text-[#0fbcb0]">{stats?.conversionRate || 0}%</p>
             </div>
             {clinicInfo?.google_rating && (
               <div className="text-center px-3 border-l">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Rating</p>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Rating</p>
                 <div className="flex items-center gap-1">
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                   <span className="text-xl font-bold">{clinicInfo.google_rating}</span>

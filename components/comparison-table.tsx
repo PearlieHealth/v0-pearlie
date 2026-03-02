@@ -82,7 +82,7 @@ export function ComparisonTable() {
                       {isLink ? (
                         <Link href={feature.href} className="text-white font-medium hover:underline inline-flex items-center gap-1.5">
                           {text}
-                          <Info className="w-4 h-4 text-white/50" />
+                          <Info className="w-4 h-4 text-white/70" />
                         </Link>
                       ) : (
                         <span className="text-white font-medium">{text}</span>
@@ -98,11 +98,11 @@ export function ComparisonTable() {
               {/* Header */}
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
-                  <Clock className="w-7 h-7 text-white/50" strokeWidth={2} />
+                  <Clock className="w-7 h-7 text-white/70" strokeWidth={2} />
                 </div>
                 <div>
                   <h4 className="text-xl font-bold text-white/60">The traditional way</h4>
-                  <p className="text-sm text-white/40">Less clarity. More pressure.</p>
+                  <p className="text-sm text-white/60">Less clarity. More pressure.</p>
                 </div>
               </div>
 

@@ -67,8 +67,8 @@ export function TrustBadgeStrip({ variant = "light", inline = false }: TrustBadg
               {badge.label}
             </p>
             <p
-              className={`text-[10px] leading-tight ${
-                isDark ? "text-white/50" : "text-muted-foreground"
+              className={`text-xs leading-tight ${
+                isDark ? "text-white/70" : "text-muted-foreground"
               }`}
             >
               {badge.sublabel}

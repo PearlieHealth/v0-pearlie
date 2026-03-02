@@ -529,7 +529,7 @@ export default async function LondonPage() {
                           {treatment.price}
                         </span>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-[#0fbcb0] transition-colors" />
+                      <ArrowRight className="w-4 h-4 text-white/50 group-hover:text-[#0fbcb0] transition-colors" />
                     </div>
                     <h3 className="text-base font-heading font-bold text-white">
                       {treatment.name} in London

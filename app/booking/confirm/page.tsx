@@ -493,7 +493,7 @@ export default function BookingConfirmPage() {
                 )}
                 <div className="min-w-0">
                   <p className="font-semibold text-foreground text-sm truncate leading-tight">{clinic?.name || "Clinic"}</p>
-                  <p className="text-[10px] text-primary font-medium leading-tight">Chat with clinic</p>
+                  <p className="text-xs text-primary font-medium leading-tight">Chat with clinic</p>
                 </div>
               </div>
 
@@ -535,7 +535,7 @@ export default function BookingConfirmPage() {
                           }`}
                         >
                           {msg.sender_type === "bot" && (
-                            <p className="text-[9px] text-muted-foreground/60 mb-0.5 flex items-center gap-1">
+                            <p className="text-[11px] text-muted-foreground/60 mb-0.5 flex items-center gap-1">
                               <Heart className="w-2.5 h-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
                               Pearlie AI
                             </p>
@@ -543,7 +543,7 @@ export default function BookingConfirmPage() {
                           <p className={`text-[15px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
                             {msg.content}
                           </p>
-                          <p className={`text-[10px] mt-0.5 ${
+                          <p className={`text-[11px] mt-0.5 ${
                             msg.sender_type === "patient" ? "text-white/60" : "text-muted-foreground"
                           }`}>
                             {formatTime(msg.created_at)}
@@ -554,7 +554,7 @@ export default function BookingConfirmPage() {
                     {(otherTyping || botTyping) && (
                       <div className="flex justify-start">
                         <div className="bg-secondary border border-border rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm">
-                          <p className="text-[9px] text-muted-foreground/60 mb-1 flex items-center gap-1">
+                          <p className="text-[11px] text-muted-foreground/60 mb-1 flex items-center gap-1">
                             <Heart className="w-2.5 h-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
                             Pearlie AI
                           </p>

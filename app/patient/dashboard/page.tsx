@@ -1174,17 +1174,17 @@ export default function PatientDashboard() {
                           <p className={`text-[13px] truncate ${conv.unread_by_patient ? "font-bold text-foreground" : "font-semibold text-foreground/80"}`}>
                             {conv.clinics?.name || "Clinic"}
                           </p>
-                          <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                          <span className="text-[11px] text-muted-foreground flex-shrink-0">
                             {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
                           </span>
                         </div>
                         <div className="flex items-center justify-between mt-0.5">
-                          <p className="text-xs text-muted-foreground/70 truncate pr-2 leading-snug">
+                          <p className="text-xs text-muted-foreground truncate pr-2 leading-snug">
                             {conv.latest_message || "No messages yet"}
                           </p>
                           <div className="flex items-center gap-1.5 flex-shrink-0">
                             {status && (
-                              <span className={`text-[9px] font-medium ${status.color}`}>{status.label}</span>
+                              <span className={`text-[11px] font-medium ${status.color}`}>{status.label}</span>
                             )}
                             {conv.unread_by_patient && conv.unread_count_patient > 0 && (
                               <span className="bg-primary text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full inline-flex items-center justify-center">
@@ -1228,7 +1228,7 @@ export default function PatientDashboard() {
                     )}
                     <div className="min-w-0">
                       <p className="font-semibold text-foreground text-sm truncate leading-tight">{chatHeaderName || "Clinic"}</p>
-                      <p className={`text-[10px] font-medium leading-tight ${isClosed ? "text-muted-foreground" : "text-primary"}`}>
+                      <p className={`text-[11px] font-medium leading-tight ${isClosed ? "text-muted-foreground" : "text-primary"}`}>
                         {isClosed ? "Conversation closed" : isMuted ? "Notifications muted" : "Chatting now"}
                       </p>
                     </div>
@@ -1313,7 +1313,7 @@ export default function PatientDashboard() {
                             }`}
                           >
                             {msg.sender_type === "bot" && (
-                              <p className="text-[9px] text-muted-foreground/60 mb-0.5 flex items-center gap-1">
+                              <p className="text-[11px] text-muted-foreground/60 mb-0.5 flex items-center gap-1">
                                 <Heart className="w-2.5 h-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
                                 Pearlie AI
                               </p>
@@ -1321,7 +1321,7 @@ export default function PatientDashboard() {
                             <p className={`text-[15px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
                               {msg.content}
                             </p>
-                            <p className={`text-[10px] mt-0.5 flex items-center gap-1 ${
+                            <p className={`text-[11px] mt-0.5 flex items-center gap-1 ${
                               msg.sender_type === "patient" ? "text-white/60" : "text-muted-foreground"
                             }`}>
                               {msg.sent_via === "email" && (
@@ -1338,7 +1338,7 @@ export default function PatientDashboard() {
                       {(otherTyping || botTyping) && (
                         <div className="flex justify-start">
                           <div className="bg-secondary border border-border rounded-lg rounded-bl-sm px-3.5 py-2">
-                            <p className="text-[9px] text-muted-foreground/60 mb-1 flex items-center gap-1">
+                            <p className="text-[11px] text-muted-foreground/60 mb-1 flex items-center gap-1">
                               <Heart className="w-2.5 h-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
                               Pearlie AI
                             </p>
@@ -1471,13 +1471,13 @@ export default function PatientDashboard() {
                     className="w-full text-left px-2.5 py-2 rounded-md flex gap-2.5 bg-primary/5 border border-primary/30 active:scale-[0.99] transition-transform"
                   >
                     <div className="w-8 h-8 rounded bg-primary flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-[10px] font-semibold">
+                      <span className="text-white text-[11px] font-semibold">
                         {pendingChatClinic.clinicName.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[13px] font-bold text-foreground truncate">{pendingChatClinic.clinicName}</p>
-                      <p className="text-[10px] text-primary font-medium">New conversation — tap to chat</p>
+                      <p className="text-[11px] text-primary font-medium">New conversation — tap to chat</p>
                     </div>
                     <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 self-center flex-shrink-0" />
                   </button>
@@ -1509,7 +1509,7 @@ export default function PatientDashboard() {
                           </div>
                         ) : (
                           <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
-                            <span className="text-white text-[10px] font-semibold">
+                            <span className="text-white text-[11px] font-semibold">
                               {(conv.clinics?.name || "C").charAt(0).toUpperCase()}
                             </span>
                           </div>
@@ -1522,15 +1522,15 @@ export default function PatientDashboard() {
                           </p>
                           <div className="flex items-center gap-1.5 flex-shrink-0">
                             {convStatus && (
-                              <span className={`text-[9px] font-medium ${convStatus.color}`}>{convStatus.label}</span>
+                              <span className={`text-[11px] font-medium ${convStatus.color}`}>{convStatus.label}</span>
                             )}
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-[11px] text-muted-foreground">
                               {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
                             </span>
                           </div>
                         </div>
                         <div className="flex items-center justify-between mt-0.5">
-                          <p className="text-[11px] text-muted-foreground/70 truncate pr-2 leading-snug">
+                          <p className="text-[11px] text-muted-foreground truncate pr-2 leading-snug">
                             {conv.latest_message || "No messages yet"}
                           </p>
                           {conv.unread_by_patient && conv.unread_count_patient > 0 && (
@@ -1615,7 +1615,7 @@ export default function PatientDashboard() {
           ) : latestMatch ? (
             <Link href={`/match/${latestMatch.id}`}>
               <Card className="p-4 hover:shadow-sm transition-shadow cursor-pointer border-border bg-card rounded-lg">
-                <span className="text-[10px] font-medium text-white bg-primary px-2 py-0.5 rounded">Your latest match</span>
+                <span className="text-[11px] font-medium text-white bg-primary px-2 py-0.5 rounded">Your latest match</span>
                 <p className="font-semibold text-foreground text-sm mt-1.5">{latestMatchLead?.treatment_interest || "Dental enquiry"}</p>
                 <p className="text-xs text-muted-foreground font-medium mt-0.5">View your {latestMatch.clinic_ids?.length || 0} matched clinics &rarr;</p>
               </Card>
@@ -1667,7 +1667,7 @@ export default function PatientDashboard() {
                         {clinic.name}
                       </p>
                       {clinic.distance_miles !== undefined && (
-                        <p className="text-[9px] lg:text-[10px] text-muted-foreground mt-0.5">
+                        <p className="text-[11px] lg:text-xs text-muted-foreground mt-0.5">
                           ~{clinic.distance_miles.toFixed(1)} mi
                         </p>
                       )}
@@ -1726,11 +1726,11 @@ export default function PatientDashboard() {
                       >
                         <div className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-muted-foreground text-[10px] w-11 flex-shrink-0">
+                            <span className="text-muted-foreground text-[11px] w-11 flex-shrink-0">
                               {new Date(match.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                             </span>
                             <span className="text-foreground font-medium text-xs truncate">{lead?.treatment_interest || "Dental enquiry"}</span>
-                            {isCurrent && <span className="text-[9px] text-[#0fbcb0] font-semibold flex-shrink-0">Current</span>}
+                            {isCurrent && <span className="text-[11px] text-[#0fbcb0] font-semibold flex-shrink-0">Current</span>}
                           </div>
                           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                         </div>
@@ -1777,7 +1777,7 @@ export default function PatientDashboard() {
                 )}
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate text-left">{chatHeaderName || "Clinic"}</p>
-                  <p className={`text-[10px] font-medium ${isClosed ? "text-muted-foreground" : isMuted ? "text-muted-foreground" : "text-primary"}`}>
+                  <p className={`text-[11px] font-medium ${isClosed ? "text-muted-foreground" : isMuted ? "text-muted-foreground" : "text-primary"}`}>
                     {isClosed ? "Conversation closed" : isMuted ? "Notifications muted" : "Chatting now"}
                   </p>
                 </div>
@@ -1880,7 +1880,7 @@ export default function PatientDashboard() {
                       }`}
                     >
                       {msg.sender_type === "bot" && (
-                        <p className="text-[9px] text-muted-foreground/60 mb-0.5 flex items-center gap-1">
+                        <p className="text-[11px] text-muted-foreground/60 mb-0.5 flex items-center gap-1">
                           <Heart className="w-2.5 h-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
                           Pearlie AI
                         </p>
@@ -1888,7 +1888,7 @@ export default function PatientDashboard() {
                       <p className={`text-[15px] leading-relaxed whitespace-pre-wrap ${msg.sender_type === "bot" ? "text-foreground/70" : ""}`}>
                         {msg.content}
                       </p>
-                      <p className={`text-[10px] mt-0.5 flex items-center gap-1 ${
+                      <p className={`text-[11px] mt-0.5 flex items-center gap-1 ${
                         msg.sender_type === "patient" ? "text-white/50 justify-end" : "text-muted-foreground/60"
                       }`}>
                         {msg.sent_via === "email" && (
@@ -1905,7 +1905,7 @@ export default function PatientDashboard() {
                 {(otherTyping || botTyping) && (
                   <div className="flex justify-start">
                     <div className="bg-secondary border border-border rounded-lg rounded-bl-sm px-3.5 py-2">
-                      <p className="text-[9px] text-muted-foreground/60 mb-1 flex items-center gap-1">
+                      <p className="text-[11px] text-muted-foreground/60 mb-1 flex items-center gap-1">
                         <Heart className="w-2.5 h-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
                         Pearlie AI
                       </p>
@@ -2082,12 +2082,12 @@ export default function PatientDashboard() {
                         <p className={`text-[13px] truncate ${conv.unread_by_patient ? "font-bold text-foreground" : "font-semibold text-foreground/80"}`}>
                           {conv.clinics?.name || "Clinic"}
                         </p>
-                        <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                        <span className="text-[11px] text-muted-foreground flex-shrink-0">
                           {conv.last_message_at ? formatTime(conv.last_message_at) : ""}
                         </span>
                       </div>
                       <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-xs text-muted-foreground/70 truncate pr-2 leading-snug">
+                        <p className="text-xs text-muted-foreground truncate pr-2 leading-snug">
                           {conv.latest_message || "No messages yet"}
                         </p>
                         {conv.unread_by_patient && conv.unread_count_patient > 0 && (

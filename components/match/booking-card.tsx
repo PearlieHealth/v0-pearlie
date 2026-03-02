@@ -191,7 +191,7 @@ export function BookingCard({
           {/* Name + badge + address */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
-              <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${badgeStyle}`}>
+              <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${badgeStyle}`}>
                 {badge}
               </span>
               {clinic.match_percentage && clinic.tier !== "directory" && !clinic.is_directory_listing && (
@@ -199,7 +199,7 @@ export function BookingCard({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="flex-shrink-0 flex items-center gap-1 font-bold text-[10px] cursor-pointer px-1.5 py-0.5 rounded bg-[#0fbcb0]/10 text-foreground hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
+                      className="flex-shrink-0 flex items-center gap-1 font-bold text-xs cursor-pointer px-1.5 py-0.5 rounded bg-[#0fbcb0]/10 text-foreground hover:bg-[#0fbcb0]/20 transition-colors touch-manipulation"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Sparkles className="w-3 h-3 text-[#0fbcb0]" />
@@ -245,7 +245,7 @@ export function BookingCard({
                         </p>
                       )}
                       <div className="pt-2 border-t border-border">
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           More stars = stronger match to what you told us matters.
                         </p>
                       </div>
@@ -257,7 +257,7 @@ export function BookingCard({
             <h2 className="text-sm sm:text-base font-bold text-foreground leading-tight truncate">
               {clinic.name}
             </h2>
-            <p className="text-[11px] text-muted-foreground mt-0.5 truncate flex items-center gap-1">
+            <p className="text-xs text-muted-foreground mt-0.5 truncate flex items-center gap-1">
               <MapPin className="w-3 h-3 flex-shrink-0" />
               {clinic.address}{clinic.postcode ? `, ${clinic.postcode}` : ""}
             </p>
@@ -293,7 +293,7 @@ export function BookingCard({
             {clinic.highlight_chips.slice(0, 4).map((chip: string) => {
               const chipData = getChipData(chip)
               return (
-                <span key={chip} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border border-primary/15 text-foreground bg-primary/5">
+                <span key={chip} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-primary/15 text-foreground bg-primary/5">
                   {chipData.icon}
                   {chipData.label}
                 </span>
@@ -337,7 +337,7 @@ export function BookingCard({
             <div className="rounded-lg border-2 border-[#0fbcb0] bg-[#0fbcb0]/5 p-3 animate-in fade-in duration-200">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
-                  <p className="text-[10px] font-semibold text-foreground uppercase tracking-wide">Confirm your request</p>
+                  <p className="text-xs font-semibold text-foreground uppercase tracking-wide">Confirm your request</p>
                   {pendingAppointment.dateLabel ? (
                     <p className="text-xs text-foreground mt-0.5">
                       <span className="font-semibold">{pendingAppointment.dateLabel}</span>
@@ -354,7 +354,7 @@ export function BookingCard({
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <p className="text-[11px] text-muted-foreground mb-2">
+              <p className="text-xs text-muted-foreground mb-2">
                 This will send a message to {clinic.name} requesting this appointment.
               </p>
               <div className="flex gap-2">
@@ -412,7 +412,7 @@ export function BookingCard({
               return (
                 <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-2.5 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-green-500/30 bg-green-500/15 text-[11px] font-semibold text-green-600">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-green-500/30 bg-green-500/15 text-xs font-semibold text-green-600">
                       <CheckCircle2 className="w-3 h-3" />
                       Confirmed
                     </span>
@@ -438,15 +438,15 @@ export function BookingCard({
               return (
                 <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-2.5 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-red-500/30 bg-red-500/15 text-[11px] font-semibold text-red-600">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-red-500/30 bg-red-500/15 text-xs font-semibold text-red-600">
                       <X className="w-3 h-3" />
                       Declined
                     </span>
                   </div>
                   {bookingDeclineReason && (
-                    <p className="text-[11px] text-red-500/80">{bookingDeclineReason}</p>
+                    <p className="text-xs text-red-500/80">{bookingDeclineReason}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground">You can request a new appointment date.</p>
+                  <p className="text-xs text-muted-foreground">You can request a new appointment date.</p>
                   <Button
                     className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
                     onClick={onMessageClick}
@@ -463,15 +463,15 @@ export function BookingCard({
               return (
                 <div className="rounded-lg border border-border bg-muted p-2.5 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-border bg-muted text-[11px] font-semibold text-muted-foreground">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-border bg-muted text-xs font-semibold text-muted-foreground">
                       <X className="w-3 h-3" />
                       Cancelled
                     </span>
                   </div>
                   {bookingCancelReason && (
-                    <p className="text-[11px] text-muted-foreground/80">{bookingCancelReason}</p>
+                    <p className="text-xs text-muted-foreground/80">{bookingCancelReason}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground">You can request a new appointment date.</p>
+                  <p className="text-xs text-muted-foreground">You can request a new appointment date.</p>
                   <Button
                     className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
                     onClick={onMessageClick}
@@ -488,7 +488,7 @@ export function BookingCard({
               return (
                 <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-2.5 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-green-500/30 bg-green-500/15 text-[11px] font-semibold text-green-600">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-green-500/30 bg-green-500/15 text-xs font-semibold text-green-600">
                       <CheckCircle2 className="w-3 h-3" />
                       Completed
                     </span>
@@ -511,7 +511,7 @@ export function BookingCard({
             return (
               <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-2.5 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-blue-500/30 bg-blue-500/15 text-[11px] font-semibold text-blue-600">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-blue-500/30 bg-blue-500/15 text-xs font-semibold text-blue-600">
                     <CalendarCheck className="w-3 h-3" />
                     Pending confirmation
                   </span>
@@ -522,9 +522,9 @@ export function BookingCard({
                   )}
                 </div>
                 {formattedRequestedAt && (
-                  <p className="text-[11px] text-blue-500/70">Requested {formattedRequestedAt}</p>
+                  <p className="text-xs text-blue-500/70">Requested {formattedRequestedAt}</p>
                 )}
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   The clinic will get back to you shortly.
                 </p>
                 <Button
@@ -589,12 +589,12 @@ export function BookingCard({
                       return (
                         <div
                           key={label}
-                          className={`flex justify-between text-[11px] py-0.5 ${isToday ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+                          className={`flex justify-between text-xs py-0.5 ${isToday ? "font-semibold text-foreground" : "text-muted-foreground"}`}
                         >
                           <span>
                             {label}
                             {isToday && (
-                              <span className="ml-1 text-[9px] font-medium text-emerald-500 bg-emerald-500/10 px-1 py-0.5 rounded-full">
+                              <span className="ml-1 text-[11px] font-medium text-emerald-500 bg-emerald-500/10 px-1 py-0.5 rounded-full">
                                 Today
                               </span>
                             )}
@@ -652,7 +652,7 @@ export function BookingCard({
                               <button
                                 type="button"
                                 onClick={() => setExpandedProvider(isExpanded ? null : provider.id)}
-                                className="text-[10px] font-medium text-muted-foreground border border-border/50 rounded-full px-2 py-0.5 hover:bg-muted/40 transition-colors flex items-center gap-0.5 flex-shrink-0"
+                                className="text-xs font-medium text-muted-foreground border border-border/50 rounded-full px-2 py-0.5 hover:bg-muted/40 transition-colors flex items-center gap-0.5 flex-shrink-0"
                               >
                                 {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                                 {isExpanded ? "Less" : "More"}
@@ -663,7 +663,7 @@ export function BookingCard({
                           {isExpanded && (
                             <div className="px-2.5 pb-2.5 border-t border-border/20 pt-2 space-y-2 animate-in slide-in-from-top-1 duration-150">
                               {hasBio && (
-                                <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-3">{provider.bio}</p>
+                                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">{provider.bio}</p>
                               )}
                               {(hasEducation || hasCerts) && (
                                 <div className="space-y-1.5">
@@ -673,8 +673,8 @@ export function BookingCard({
                                         <GraduationCap className="h-3 w-3 text-[#3b6fcf]" />
                                       </div>
                                       <div className="min-w-0">
-                                        <p className="text-[11px] font-medium text-foreground">{edu.degree}</p>
-                                        {edu.institution && <p className="text-[10px] text-muted-foreground">{edu.institution}</p>}
+                                        <p className="text-xs font-medium text-foreground">{edu.degree}</p>
+                                        {edu.institution && <p className="text-xs text-muted-foreground">{edu.institution}</p>}
                                       </div>
                                     </div>
                                   ))}
@@ -684,8 +684,8 @@ export function BookingCard({
                                         <Award className="h-3 w-3 text-[#3b6fcf]" />
                                       </div>
                                       <div className="min-w-0">
-                                        <p className="text-[11px] font-medium text-foreground">{cert.name}</p>
-                                        {cert.date && <p className="text-[10px] text-muted-foreground">{cert.date}</p>}
+                                        <p className="text-xs font-medium text-foreground">{cert.name}</p>
+                                        {cert.date && <p className="text-xs text-muted-foreground">{cert.date}</p>}
                                       </div>
                                     </div>
                                   ))}
@@ -700,7 +700,7 @@ export function BookingCard({
                       <button
                         type="button"
                         onClick={() => setShowAllProviders(true)}
-                        className="text-[11px] text-[#0fbcb0] font-medium hover:underline"
+                        className="text-xs text-[#0fbcb0] font-medium hover:underline"
                       >
                         View all {providers.length} providers
                       </button>
@@ -720,7 +720,7 @@ export function BookingCard({
                 {clinic.treatments && clinic.treatments.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
                     {clinic.treatments.map((t) => (
-                      <span key={t} className="text-[11px] bg-primary/5 px-2 py-0.5 rounded-full text-foreground capitalize">
+                      <span key={t} className="text-xs bg-primary/5 px-2 py-0.5 rounded-full text-foreground capitalize">
                         {t.replace(/_/g, " ")}
                       </span>
                     ))}
@@ -748,12 +748,12 @@ export function BookingCard({
                         />
                       ))}
                     </div>
-                    <span className="text-[11px] text-muted-foreground">({clinic.review_count})</span>
+                    <span className="text-xs text-muted-foreground">({clinic.review_count})</span>
                   </div>
                 )}
                 {/* Featured review */}
                 {clinic.featured_review && (
-                  <p className="text-[11px] text-muted-foreground italic leading-relaxed line-clamp-2 mb-2">
+                  <p className="text-xs text-muted-foreground italic leading-relaxed line-clamp-2 mb-2">
                     &ldquo;{clinic.featured_review}&rdquo;
                   </p>
                 )}
@@ -768,8 +768,8 @@ export function BookingCard({
                     </svg>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1">
-                        <span className="text-[11px] font-semibold text-foreground">{clinic.google_rating}</span>
-                        <span className="text-[10px] text-muted-foreground">({clinic.google_review_count})</span>
+                        <span className="text-xs font-semibold text-foreground">{clinic.google_rating}</span>
+                        <span className="text-xs text-muted-foreground">({clinic.google_review_count})</span>
                       </div>
                     </div>
                     {clinic.google_place_id && (
@@ -777,7 +777,7 @@ export function BookingCard({
                         href={`https://search.google.com/local/reviews?placeid=${clinic.google_place_id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[10px] font-medium text-[#4285F4] hover:text-[#1a73e8] flex items-center gap-0.5"
+                        className="text-xs font-medium text-[#4285F4] hover:text-[#1a73e8] flex items-center gap-0.5"
                       >
                         See
                         <ExternalLink className="h-2.5 w-2.5" />
