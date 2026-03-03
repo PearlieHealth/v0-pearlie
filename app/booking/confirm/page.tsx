@@ -10,6 +10,7 @@ import Image from "next/image"
 import { ClinicImage } from "@/components/match/clinic-image"
 import Link from "next/link"
 import { trackTikTokEvent } from "@/lib/tiktok-pixel"
+import { trackGoogleAdsConversion } from "@/lib/google-ads"
 import { createClient } from "@/lib/supabase/client"
 import { useChatChannel, type RealtimeMessage } from "@/hooks/use-chat-channel"
 import { AppointmentBanner } from "@/components/appointment-banner"
@@ -232,6 +233,7 @@ export default function BookingConfirmPage() {
 
       setConfirmed(true)
       trackTikTokEvent("PlaceAnOrder", { content_name: "booking_confirmed_standalone" })
+      trackGoogleAdsConversion("booking_request")
 
       // Store conversationId for chat
       if (data.conversationId) {

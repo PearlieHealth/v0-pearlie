@@ -31,6 +31,7 @@ import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent } from "
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { trackEvent, setMatchContext, setMatchId } from "@/lib/analytics"
 import { identifyForTikTok, trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
+import { trackGoogleAdsConversion } from "@/lib/google-ads"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { MatchFiltersPanel } from "@/components/match-filters-panel"
 import { OTPVerification } from "@/components/otp-verification"
@@ -1023,6 +1024,7 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                         clinic_id: clinic.id,
                                         properties: { content_name: "message_clinic_match_page" },
                                       })
+                                      trackGoogleAdsConversion("chat_start")
                                     }}
                                   >
                                     <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>

@@ -29,6 +29,7 @@ import { getChipData } from "@/lib/chipData"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { HOURLY_SLOTS } from "@/lib/constants"
 import { pushToDataLayer } from "@/lib/gtm"
+import { trackGoogleAdsConversion } from "@/lib/google-ads"
 
 interface Clinic {
   id: string
@@ -165,6 +166,7 @@ export function BookingCard({
 
   const handleMessageClick = () => {
     pushToDataLayer("chat_start")
+    trackGoogleAdsConversion("chat_start")
     onMessageClick()
   }
 
@@ -815,6 +817,7 @@ export function BookingCard({
                   className="flex-1 h-8 rounded-md text-xs font-medium bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
                   onClick={() => {
                     pushToDataLayer("booking_request")
+                    trackGoogleAdsConversion("booking_request")
                     setPendingAppointment({
                       message: "Hi! I'd like to request an appointment. What dates do you have available?",
                     })
