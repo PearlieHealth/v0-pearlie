@@ -1075,34 +1075,30 @@ export default function IntakePage() {
                   <StepHeader
                     icon={<AlertCircle className="w-10 h-10" />}
                     title="Is there anything you're unsure or concerned about right now?"
-                    subtitle="Select up to 2."
                   />
 
                   <div className="grid grid-cols-1 gap-2.5">
-                    {BLOCKER_OPTIONS.map((option, index) => {
-                      const isSelected = formData.conversionBlockerCodes.includes(option.code)
-                      const isNoConcernSelected = formData.conversionBlockerCodes.includes("NO_CONCERN")
-                      const isDisabled = !isSelected && option.code !== "NO_CONCERN" && (
-                        isNoConcernSelected || formData.conversionBlockerCodes.length >= 2
-                      )
-                      return (
-                        <motion.div key={option.code} {...fadeUp(0.1 * index + 0.3)}>
-                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                            <OptionCard
-                              selected={isSelected}
-                              onClick={() => handleBlockerToggle(option.code)}
-                              disabled={isDisabled}
-                              hasCheckbox
-                            >
-                              {option.label}
-                            </OptionCard>
-                          </motion.div>
+                    {BLOCKER_OPTIONS.map((option, index) => (
+                      <motion.div key={option.code} {...fadeUp(0.1 * index + 0.3)}>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <OptionCard
+                            selected={formData.conversionBlockerCodes.includes(option.code)}
+                            onClick={() => {
+                              const isSelected = formData.conversionBlockerCodes.includes(option.code)
+                              if (isSelected) {
+                                setFormData((prev) => ({ ...prev, conversionBlockerCodes: [] }))
+                                return
+                              }
+                              setFormData((prev) => ({ ...prev, conversionBlockerCodes: [option.code] }))
+                              setTimeout(() => handleStepForward(5, getNextStep(5)), 300)
+                            }}
+                          >
+                            {option.label}
+                          </OptionCard>
                         </motion.div>
-                      )
-                    })}
+                      </motion.div>
+                    ))}
                   </div>
-
-                  <ContinueButton onClick={() => handleStepForward(5, getNextStep(5))} disabled={!canContinueStep5} />
                 </motion.div>
               )}
 
