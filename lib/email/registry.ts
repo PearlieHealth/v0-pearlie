@@ -43,7 +43,11 @@ import {
   renderDirectLeadNotificationEmail,
 } from "./templates/notification-templates"
 
-import { renderNaturalEmail } from "./templates/natural-email-template"
+import {
+  renderNaturalEmail,
+  renderNaturalChatToClinicEmail,
+  renderNaturalClinicNudgeEmail,
+} from "./templates/natural-email-template"
 import {
   generateNaturalEmail,
   generateNaturalSubject,
@@ -564,13 +568,13 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
 
   [EMAIL_TYPE.CHAT_NOTIFICATION_TO_CLINIC]: {
     type: EMAIL_TYPE.CHAT_NOTIFICATION_TO_CLINIC,
-    fromAddress: "NOTIFICATIONS",
+    fromAddress: "PATIENT_ENQUIRY",
     category: "notification",
     unsubscribeCategory: "clinic_notifications",
     notificationPreferenceKey: null,
-    defaultSubject: (data) => `New message from ${data.patientName}`,
+    defaultSubject: (data) => `Message from ${data.patientName}`,
     payloadSchema: chatToClinicSchema,
-    generateHtml: renderChatToClinicEmail,
+    generateHtml: renderNaturalChatToClinicEmail,
     idempotencyKey: (data) => `chat_clinic:${data._conversationId}:${tenMinBucket()}`,
   },
 
@@ -711,13 +715,13 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
 
   [EMAIL_TYPE.CLINIC_RESPONSE_NUDGE]: {
     type: EMAIL_TYPE.CLINIC_RESPONSE_NUDGE,
-    fromAddress: "NOTIFICATIONS",
+    fromAddress: "PATIENT_ENQUIRY",
     category: "notification",
     unsubscribeCategory: "clinic_notifications",
     notificationPreferenceKey: null,
-    defaultSubject: (data) => `${data.patientName} is waiting for your reply`,
+    defaultSubject: (data) => `Following up – ${data.patientName}`,
     payloadSchema: clinicResponseNudgeSchema,
-    generateHtml: renderClinicResponseNudgeEmail,
+    generateHtml: renderNaturalClinicNudgeEmail,
     // One nudge per conversation (never re-send for the same stale conversation)
     idempotencyKey: (data) => `clinic_nudge:${data._conversationId}`,
   },

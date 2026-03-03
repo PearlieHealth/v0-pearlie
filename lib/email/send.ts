@@ -144,8 +144,14 @@ export async function sendRegisteredEmail(
 
   // 8. Compute from address (dynamic for patient enquiry emails)
   let fromAddress: string = EMAIL_FROM[entry.fromAddress]
-  if (entry.fromAddress === "PATIENT_ENQUIRY" && params.data.firstName) {
-    fromAddress = patientFromAddress(params.data.firstName, params.data.lastName || "")
+  if (entry.fromAddress === "PATIENT_ENQUIRY") {
+    if (params.data.firstName) {
+      fromAddress = patientFromAddress(params.data.firstName, params.data.lastName || "")
+    } else if (params.data.patientName) {
+      // Chat/nudge emails have patientName instead of firstName/lastName
+      const parts = params.data.patientName.split(" ")
+      fromAddress = patientFromAddress(parts[0] || "", parts.slice(1).join(" ") || "")
+    }
   }
 
   // 9. Send via Resend
