@@ -759,42 +759,43 @@ export default function IntakePage() {
 
   return (
     <div className="min-h-screen bg-[#0d3d3a] flex flex-col relative overflow-hidden">
-      {/* Header with progress */}
-      <header className="sticky top-0 z-50">
-        {/* Full-width progress bar */}
-        <div className="w-full h-1 bg-[#0a302d]">
-          <motion.div
-            className="h-full bg-[#0fbcb0] rounded-r-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
-        </div>
+      {/* Top bar — Pearlie logo */}
+      <div className="bg-[#faf3e6] border-b border-[#e8dfd3]">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="rounded-full bg-[#0fbcb0] p-1.5">
+              <Heart className="w-4 h-4 text-white fill-white" />
+            </div>
+            <span className="text-xl font-heading font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
+          </div>
           <button
             type="button"
             onClick={handleStepBack}
             disabled={currentStepIndex === 0}
-            className="flex items-center text-[#faf5ef] hover:text-white transition-colors disabled:opacity-0"
+            className="flex items-center text-[#3d3838]/60 hover:text-[#3d3838] transition-colors disabled:opacity-0"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-sm font-medium text-[#faf5ef]/70">{progressPercent}%</span>
         </div>
-      </header>
+      </div>
 
-      {/* Headline banner — logo + tagline on cream bg with shadow */}
-      <div className="bg-[#faf3e6] text-center py-5 px-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] relative z-10">
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <div className="rounded-full bg-[#0fbcb0] p-1.5">
-            <Heart className="w-4 h-4 text-white fill-white" />
-          </div>
-          <span className="text-xl font-heading font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
-        </div>
+      {/* Headline banner — tagline + progress on cream bg with shadow */}
+      <div className="bg-[#faf3e6] text-center pt-2 pb-5 px-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] relative z-10">
         <h2 className="text-2xl md:text-3xl font-heading font-medium text-[#3d3838] leading-tight">
           Help us match you to the{" "}
           <span className="text-[#0fbcb0] font-bold">right dentist</span>
         </h2>
+        <div className="flex items-center justify-center gap-2 mt-3">
+          <div className="w-28 h-1.5 bg-[#e8dfd3] rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-[#0fbcb0] rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercent}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
+          <span className="text-xs font-medium text-[#3d3838]/50">{progressPercent}%</span>
+        </div>
       </div>
 
       {/* Main content */}
