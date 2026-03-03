@@ -697,7 +697,7 @@ export default function IntakePage() {
           </div>
         )}
         <div className="flex-1">
-          <span className="text-base font-medium block text-[#2d2d2d]">
+          <span className="text-base font-normal block text-[#2d2d2d]">
             {children}
           </span>
           {hint && (
@@ -731,9 +731,9 @@ export default function IntakePage() {
   // Reusable step header component - only animates on first render of step
   // Uses `hasAnimated` from closure to skip intro animation on re-renders
   const StepHeader = ({ icon: _icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) => (
-    <div className="text-center space-y-2">
+    <div className="text-center space-y-3">
       <motion.h1
-        className="text-2xl md:text-3xl font-bold text-[#2d2d2d] tracking-tight text-balance"
+        className="text-2xl md:text-3xl font-semibold text-[#2d2d2d] tracking-tight text-balance"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.1 }}
@@ -852,14 +852,14 @@ export default function IntakePage() {
               {/* Q1: TREATMENT SELECTION (Both flows)         */}
               {/* ============================================ */}
               {step === 1 && (
-                <motion.div key="step1" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step1" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Smile className="w-10 h-10" />}
                     title="What are you looking for help with?"
                     subtitle="Select all that apply. You do not need to be certain."
                   />
 
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {[
                       "General Check-up & Clean",
                       ...TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT && t !== "General Check-up & Clean"),
@@ -904,7 +904,7 @@ export default function IntakePage() {
               {/* Q2: POSTCODE (Both flows)                    */}
               {/* ============================================ */}
               {step === 2 && (
-                <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<MapPin className="w-10 h-10" />}
                     title="What is your postcode?"
@@ -933,13 +933,13 @@ export default function IntakePage() {
               {/* Q2.5 EMERGENCY: HOW SOON DO YOU NEED TO BE SEEN? */}
               {/* ============================================ */}
               {step === 2.5 && !isEmergency && (
-                <motion.div key="step2.5-planning" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step2.5-planning" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<MapPin className="w-10 h-10" />}
                     title="How far are you willing to travel?"
                   />
 
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {LOCATION_PREFERENCE_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -955,22 +955,22 @@ export default function IntakePage() {
                     ))}
                   </div>
 
-                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#0a302d] text-[#faf5ef]/60 text-sm">
-                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0fbcb0]" />
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#eaf6f4] text-[#0d3d3a] text-sm">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
                     <span>This helps us balance convenience with finding the right clinic.</span>
                   </div>
                 </motion.div>
               )}
 
               {step === 2.5 && isEmergency && (
-                <motion.div key="step2.5-emergency" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step2.5-emergency" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Zap className="w-10 h-10" />}
                     title="How soon do you need to be seen?"
                     subtitle="We will prioritise clinics with the right availability."
                   />
 
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {URGENCY_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -991,14 +991,14 @@ export default function IntakePage() {
               {/* Q3: CLINIC PRIORITIES (Planning only, up to 2) */}
               {/* ============================================ */}
               {step === 3 && !isEmergency && (
-                <motion.div key="step3" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step3" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Heart className="w-10 h-10" />}
                     title="When choosing a clinic, what would you prioritise most?"
                     subtitle="Pick up to 2."
                   />
 
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {DECISION_VALUE_OPTIONS.map((option, index) => {
                       const isSelected = formData.decisionValues.includes(option)
                       const isDisabled = !isSelected && formData.decisionValues.length >= 2
@@ -1027,13 +1027,13 @@ export default function IntakePage() {
               {/* Q3.5 / Q4E: DENTAL ANXIETY (Both flows)     */}
               {/* ============================================ */}
               {step === 3.5 && (
-                <motion.div key="step3.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step3.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Shield className="w-10 h-10" />}
                     title="How do you feel about dental visits?"
                   />
 
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {ANXIETY_LEVEL_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -1048,8 +1048,8 @@ export default function IntakePage() {
                     ))}
                   </div>
 
-                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#0a302d] text-[#faf5ef]/60 text-sm">
-                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0fbcb0]" />
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#eaf6f4] text-[#0d3d3a] text-sm">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
                     <span>We will match you with clinics experienced with patients like you.</span>
                   </div>
                 </motion.div>
@@ -1059,14 +1059,14 @@ export default function IntakePage() {
               {/* Q5: CONCERNS (Planning only, multi max 2)    */}
               {/* ============================================ */}
               {step === 5 && !isEmergency && (
-                <motion.div key="step5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<AlertCircle className="w-10 h-10" />}
                     title="Is there anything you're unsure or concerned about right now?"
                     subtitle="Select up to 2."
                   />
 
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {BLOCKER_OPTIONS.map((option, index) => {
                       const isSelected = formData.conversionBlockerCodes.includes(option.code)
                       const isNoConcernSelected = formData.conversionBlockerCodes.includes("NO_CONCERN")
@@ -1098,14 +1098,13 @@ export default function IntakePage() {
               {/* Q5.5 / Q5E: BEST TIME (Both flows)          */}
               {/* ============================================ */}
               {step === 5.5 && (
-                <motion.div key="step5.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step5.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Sun className="w-10 h-10" />}
                     title="When works best for you?"
-                    subtitle="Choose all the times that suit you."
                   />
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                     {PREFERRED_TIME_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.button
@@ -1113,11 +1112,13 @@ export default function IntakePage() {
                           whileHover={{ scale: 1.04 }}
                           whileTap={{ scale: 0.97 }}
                           onClick={() => {
-                            const current = formData.preferred_times
-                            const updated = current.includes(option.value)
-                              ? current.filter((t) => t !== option.value)
-                              : [...current, option.value]
-                            setFormData({ ...formData, preferred_times: updated })
+                            const isSelected = formData.preferred_times.includes(option.value) && formData.preferred_times.length === 1
+                            if (isSelected) {
+                              setFormData({ ...formData, preferred_times: [] })
+                              return
+                            }
+                            setFormData({ ...formData, preferred_times: [option.value] })
+                            setTimeout(() => handleStepForward(5.5, getNextStep(5.5)), 300)
                           }}
                           className={`
                             w-full p-3.5 rounded-2xl border-2 transition-all duration-200 text-center
@@ -1132,15 +1133,13 @@ export default function IntakePage() {
                             <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#d4edea] text-[#0fbcb0]"}`}>
                               {option.value === "weekend" ? <Calendar className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                             </div>
-                            <span className="font-semibold text-[#2d2d2d] text-sm">{option.label}</span>
+                            <span className="font-medium text-[#2d2d2d] text-sm">{option.label}</span>
                             <span className="text-xs text-[#2d2d2d]/60">{option.time}</span>
                           </div>
                         </motion.button>
                       </motion.div>
                     ))}
                   </div>
-
-                  <ContinueButton onClick={() => handleStepForward(5.5, getNextStep(5.5))} disabled={!canContinueStep5_5} />
                 </motion.div>
               )}
 
@@ -1148,13 +1147,13 @@ export default function IntakePage() {
               {/* Q6: WHEN TO START (Planning only)            */}
               {/* ============================================ */}
               {step === 6 && !isEmergency && (
-                <motion.div key="step6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Calendar className="w-10 h-10" />}
                     title="When are you looking to start?"
                   />
 
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {TIMING_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -1169,8 +1168,8 @@ export default function IntakePage() {
                     ))}
                   </div>
 
-                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#0a302d] text-[#faf5ef]/60 text-sm">
-                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0fbcb0]" />
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#eaf6f4] text-[#0d3d3a] text-sm">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
                     <span>This helps us find clinics with the right availability.</span>
                   </div>
                 </motion.div>
@@ -1180,13 +1179,13 @@ export default function IntakePage() {
               {/* Q7: COST / DECISION MINDSET (Planning only)  */}
               {/* ============================================ */}
               {step === 7 && !isEmergency && (
-                <motion.div key="step7" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step7" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
                     title="How do you usually think about investing in dental treatment?"
                   />
 
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {COST_APPROACH_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -1216,8 +1215,8 @@ export default function IntakePage() {
                     ))}
                   </div>
 
-                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#0a302d] text-[#faf5ef]/60 text-sm">
-                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0fbcb0]" />
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#eaf6f4] text-[#0d3d3a] text-sm">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
                     <span>This helps us match you with clinics that fit your approach.</span>
                   </div>
                 </motion.div>
@@ -1228,14 +1227,14 @@ export default function IntakePage() {
               {/* Shown only if Q7 = comfort_range             */}
               {/* ============================================ */}
               {step === 7.5 && formData.costApproach === "comfort_range" && (
-                <motion.div key="step7.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step7.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
                     title="Would spreading the cost into monthly payments make treatment easier for you?"
                     subtitle="This is informational only — it won't affect your matches."
                   />
 
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {MONTHLY_PAYMENT_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -1257,14 +1256,14 @@ export default function IntakePage() {
               {/* Shown only if Q7 = strict_budget             */}
               {/* ============================================ */}
               {step === 7.6 && formData.costApproach === "strict_budget" && (
-                <motion.div key="step7.6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step7.6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
                     title="How would you prefer to handle costs with the clinic?"
                     subtitle="This is informational only — it won't affect your matches."
                   />
 
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-2.5">
                     <motion.div {...fadeUp(0.3)}>
                       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         <OptionCard
@@ -1306,7 +1305,7 @@ export default function IntakePage() {
                         {...fadeUp(0.1)}
                         className="p-4 md:p-5 rounded-2xl border-2 border-[#0fbcb0] bg-[#eaf6f4]"
                       >
-                        <Label className="text-base font-medium text-[#2d2d2d]">Enter your approximate budget or range (optional)</Label>
+                        <Label className="text-base font-normal text-[#2d2d2d]">Enter your approximate budget or range (optional)</Label>
                         <div className="relative mt-3">
                           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2d2d2d]/50 text-base">£</span>
                           <Input
@@ -1337,7 +1336,7 @@ export default function IntakePage() {
               {/* Q8: CONTACT DETAILS (Both flows)             */}
               {/* ============================================ */}
               {step === 8 && (
-                <motion.div key="step8" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
+                <motion.div key="step8" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Mail className="w-10 h-10" />}
                     title="Almost there! How can clinics reach you?"
@@ -1399,7 +1398,7 @@ export default function IntakePage() {
                   <motion.div className="space-y-5" {...fadeUp(0.3)}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="firstName" className="text-sm font-medium text-[#2d2d2d]">
+                        <Label htmlFor="firstName" className="text-sm font-normal text-[#2d2d2d]">
                           First name
                         </Label>
                         <Input
@@ -1411,7 +1410,7 @@ export default function IntakePage() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="lastName" className="text-sm font-medium text-[#2d2d2d]">
+                        <Label htmlFor="lastName" className="text-sm font-normal text-[#2d2d2d]">
                           Last name
                         </Label>
                         <Input
@@ -1425,7 +1424,7 @@ export default function IntakePage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="email" className="text-sm font-medium text-[#2d2d2d]">
+                      <Label htmlFor="email" className="text-sm font-normal text-[#2d2d2d]">
                         Email address
                       </Label>
                       <Input
@@ -1442,7 +1441,7 @@ export default function IntakePage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="phone" className="text-sm font-medium text-[#2d2d2d]">
+                      <Label htmlFor="phone" className="text-sm font-normal text-[#2d2d2d]">
                         Phone number <span className="text-[#2d2d2d]/50 font-normal">(optional)</span>
                       </Label>
                       <Input
