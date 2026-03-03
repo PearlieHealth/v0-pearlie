@@ -770,20 +770,21 @@ export default function IntakePage() {
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
-        <div className="max-w-2xl mx-auto px-4 py-3">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <button
             type="button"
             onClick={handleStepBack}
             disabled={currentStepIndex === 0}
-            className="flex items-center gap-1 text-[#faf5ef] hover:text-white transition-colors disabled:opacity-0"
+            className="flex items-center text-[#faf5ef] hover:text-white transition-colors disabled:opacity-0"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
+          <span className="text-sm font-medium text-[#faf5ef]/70">{progressPercent}%</span>
         </div>
       </header>
 
       {/* Headline banner */}
-      <div className="text-center pt-6 pb-2 px-4">
+      <div className="bg-[#0a302d] text-center py-5 px-4">
         <h2 className="text-2xl md:text-3xl font-bold text-[#faf5ef] leading-tight">
           Help us match you to the{" "}
           <span className="text-[#0fbcb0]">right dentist</span>
