@@ -196,6 +196,7 @@ const leadActionSchema = z.object({
   decisionValues: z.array(z.string()),
   conversionBlocker: z.string(),
   rawAnswers: z.record(z.any()),
+  messageContent: z.string().optional(),
 })
 
 const bookingConfirmationSchema = z.object({
@@ -326,6 +327,18 @@ const directLeadNotificationSchema = z.object({
   treatment: z.string(),
   urgency: z.string(),
   inboxUrl: z.string(),
+  // Optional intake form fields — passed when available
+  postcode: z.string().optional(),
+  preferredTimes: z.array(z.string()).optional(),
+  bookingDate: z.string().nullable().optional(),
+  anxietyLevel: z.string().optional(),
+  decisionValues: z.array(z.string()).optional(),
+  conversionBlocker: z.string().optional(),
+  costApproach: z.string().optional(),
+  strictBudgetAmount: z.number().nullable().optional(),
+  blockerLabels: z.array(z.string()).optional(),
+  rawAnswers: z.record(z.any()).optional(),
+  messageContent: z.string().optional(),
 })
 
 const appointmentNotificationSchema = z.object({
@@ -363,6 +376,7 @@ function leadActionToNaturalInput(data: z.infer<typeof leadActionSchema>): Natur
     strictBudgetAmount: rawAnswers.strict_budget_amount || null,
     blockerLabels: rawAnswers.blocker_labels || (data.conversionBlocker ? [data.conversionBlocker] : []),
     clinicName: data.clinicName,
+    messageContent: data.messageContent || null,
   }
 }
 
@@ -391,25 +405,27 @@ function bookingToNaturalInput(data: z.infer<typeof bookingConfirmationSchema>):
 }
 
 function directLeadToNaturalInput(data: z.infer<typeof directLeadNotificationSchema>): NaturalEmailInput {
+  const rawAnswers = data.rawAnswers || {}
   return {
     firstName: data.firstName,
     lastName: data.lastName,
     email: data.email,
     phone: data.phone,
     treatment: data.treatment,
-    postcode: "",
-    timing: data.urgency,
-    preferredTimes: [],
-    bookingDate: null,
+    postcode: data.postcode || rawAnswers.postcode || "",
+    timing: rawAnswers.timing || data.urgency,
+    preferredTimes: data.preferredTimes || rawAnswers.preferred_times || [],
+    bookingDate: data.bookingDate || null,
     bookingTime: null,
-    locationPreference: "",
-    anxietyLevel: "",
-    decisionValues: [],
-    conversionBlocker: "",
-    costApproach: "",
-    strictBudgetAmount: null,
-    blockerLabels: [],
+    locationPreference: rawAnswers.location_preference || "",
+    anxietyLevel: data.anxietyLevel || rawAnswers.anxiety_level || "",
+    decisionValues: data.decisionValues || rawAnswers.values || [],
+    conversionBlocker: data.conversionBlocker || rawAnswers.conversion_blocker || "",
+    costApproach: data.costApproach || rawAnswers.cost_approach || "",
+    strictBudgetAmount: data.strictBudgetAmount || rawAnswers.strict_budget_amount || null,
+    blockerLabels: data.blockerLabels || rawAnswers.blocker_labels || [],
     clinicName: data.clinicName,
+    messageContent: data.messageContent || null,
   }
 }
 

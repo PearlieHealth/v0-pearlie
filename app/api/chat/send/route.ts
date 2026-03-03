@@ -147,6 +147,7 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     let conversation = convData?.[0] as { id: string; bot_greeted?: boolean; unread_count_clinic?: number; unread_count_patient?: number; conversation_state?: string } | undefined
+    let isNewConversation = false
 
     // Block messages on closed conversations
     if (conversation?.conversation_state === "closed") {
@@ -189,6 +190,7 @@ export async function POST(request: NextRequest) {
         }
       } else {
         conversation = newConversation
+        isNewConversation = true
 
         // Ensure match_results entry exists so the clinic sees this lead in their
         // appointments dashboard. Uses ignoreDuplicates to avoid overwriting existing
@@ -390,59 +392,102 @@ export async function POST(request: NextRequest) {
     const clinicNotificationEmail = clinic.notification_email || clinic.email
     if (senderType === "patient" && clinicNotificationEmail) {
       try {
-        const safeName = escapeHtml(`${lead.first_name} ${lead.last_name}`)
-        const safeContent = escapeHtml(trimmedContent.substring(0, 500)) + (trimmedContent.length > 500 ? "..." : "")
-        const unsubFooter = generateUnsubscribeFooterHtml(
-          generateUnsubscribeHeaders(clinicNotificationEmail, "clinic_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
-        )
+        if (isNewConversation) {
+          // First message in a new conversation — send full lead notification
+          // with the patient's message woven in (instead of a bare chat notification)
+          const { data: fullLead } = await supabase
+            .from("leads")
+            .select("first_name, last_name, email, phone, treatment_interest, postcode, budget_range, preferred_timing, preferred_times, booking_token, booking_date, booking_time, created_at, location_preference, anxiety_level, decision_values, conversion_blocker, raw_answers")
+            .eq("id", leadId)
+            .maybeSingle()
 
-        // Generate reply-to token so the clinic can reply directly from email
-        // This is REQUIRED — if EMAIL_REPLY_SECRET is not set, the email will
-        // fail and the error will be logged. Set the env var to fix.
-        const replyTo = generateReplyToAddress(conversation.id, "clinic", clinicNotificationEmail)
-        const threadMarker = generateThreadMarker(conversation.id)
-
-        // Fetch recent messages for thread context (last 3, excluding current)
-        let recentMessages: Array<{ sender: string; content: string; timestamp?: string }> | undefined
-        try {
-          const { data: recent } = await supabase
-            .from("messages")
-            .select("sender_type, content, created_at")
-            .eq("conversation_id", conversation.id)
-            .neq("id", message.id)
-            .not("message_type", "in", '("bot-greeting","bot-follow-up","bot-clinic-replied")')
-            .order("created_at", { ascending: false })
-            .limit(3)
-
-          if (recent && recent.length > 0) {
-            recentMessages = recent.reverse().map((m: any) => ({
-              sender: m.sender_type === "patient" ? escapeHtml(`${lead.first_name}`) : m.sender_type === "bot" ? "Pearlie" : escapeHtml(clinic.name),
-              content: escapeHtml(m.content.substring(0, 200)) + (m.content.length > 200 ? "..." : ""),
-              timestamp: new Date(m.created_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
-            }))
+          if (fullLead) {
+            await sendRegisteredEmail({
+              type: EMAIL_TYPE.LEAD_ACTION_NOTIFICATION,
+              to: clinicNotificationEmail,
+              data: {
+                clinicName: clinic.name,
+                clinicId,
+                actionType: "click_book",
+                firstName: fullLead.first_name || "",
+                lastName: fullLead.last_name || "",
+                email: fullLead.email || "",
+                phone: fullLead.phone || "",
+                treatment: fullLead.treatment_interest || "",
+                postcode: fullLead.postcode || "",
+                budget: fullLead.budget_range || "",
+                timing: fullLead.preferred_timing || "",
+                preferredTimes: fullLead.preferred_times || [],
+                bookingToken: fullLead.booking_token || "",
+                bookingDate: fullLead.booking_date || null,
+                bookingTime: fullLead.booking_time || null,
+                submittedAt: fullLead.created_at || new Date().toISOString(),
+                locationPreference: fullLead.location_preference || "",
+                anxietyLevel: fullLead.anxiety_level || "",
+                decisionValues: fullLead.decision_values || [],
+                conversionBlocker: fullLead.conversion_blocker || "",
+                rawAnswers: fullLead.raw_answers || {},
+                messageContent: trimmedContent,
+                _leadId: leadId,
+                _clinicId: clinicId,
+              },
+              clinicId,
+              leadId,
+            })
           }
-        } catch (recentErr) {
-          console.warn("[Chat] Failed to fetch recent messages:", recentErr)
-        }
+        } else {
+          // Subsequent message — send standard chat notification
+          const safeName = escapeHtml(`${lead.first_name} ${lead.last_name}`)
+          const safeContent = escapeHtml(trimmedContent.substring(0, 500)) + (trimmedContent.length > 500 ? "..." : "")
+          const unsubFooter = generateUnsubscribeFooterHtml(
+            generateUnsubscribeHeaders(clinicNotificationEmail, "clinic_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
+          )
 
-        await sendRegisteredEmail({
-          type: EMAIL_TYPE.CHAT_NOTIFICATION_TO_CLINIC,
-          to: clinicNotificationEmail,
-          data: {
-            patientName: safeName,
-            messagePreview: safeContent,
-            inboxUrl: portalUrl("/clinic/appointments"),
-            unsubscribeFooterHtml: unsubFooter,
-            _conversationId: conversation.id,
-            replyToAddress: replyTo,
-            threadMarker,
-            recentMessages,
-          },
-          headers: generateUnsubscribeHeaders(clinicNotificationEmail, "clinic_notifications"),
-          replyTo,
-          clinicId,
-          leadId,
-        })
+          const replyTo = generateReplyToAddress(conversation.id, "clinic", clinicNotificationEmail)
+          const threadMarker = generateThreadMarker(conversation.id)
+
+          // Fetch recent messages for thread context (last 3, excluding current)
+          let recentMessages: Array<{ sender: string; content: string; timestamp?: string }> | undefined
+          try {
+            const { data: recent } = await supabase
+              .from("messages")
+              .select("sender_type, content, created_at")
+              .eq("conversation_id", conversation.id)
+              .neq("id", message.id)
+              .not("message_type", "in", '("bot-greeting","bot-follow-up","bot-clinic-replied")')
+              .order("created_at", { ascending: false })
+              .limit(3)
+
+            if (recent && recent.length > 0) {
+              recentMessages = recent.reverse().map((m: any) => ({
+                sender: m.sender_type === "patient" ? escapeHtml(`${lead.first_name}`) : m.sender_type === "bot" ? "Pearlie" : escapeHtml(clinic.name),
+                content: escapeHtml(m.content.substring(0, 200)) + (m.content.length > 200 ? "..." : ""),
+                timestamp: new Date(m.created_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
+              }))
+            }
+          } catch (recentErr) {
+            console.warn("[Chat] Failed to fetch recent messages:", recentErr)
+          }
+
+          await sendRegisteredEmail({
+            type: EMAIL_TYPE.CHAT_NOTIFICATION_TO_CLINIC,
+            to: clinicNotificationEmail,
+            data: {
+              patientName: safeName,
+              messagePreview: safeContent,
+              inboxUrl: portalUrl("/clinic/appointments"),
+              unsubscribeFooterHtml: unsubFooter,
+              _conversationId: conversation.id,
+              replyToAddress: replyTo,
+              threadMarker,
+              recentMessages,
+            },
+            headers: generateUnsubscribeHeaders(clinicNotificationEmail, "clinic_notifications"),
+            replyTo,
+            clinicId,
+            leadId,
+          })
+        }
       } catch (emailError) {
         // Don't fail the message send if email notification fails
         console.error("[Chat] Failed to send email notification:", emailError)
