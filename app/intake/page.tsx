@@ -26,7 +26,7 @@ import { pushToDataLayer } from "@/lib/gtm"
 import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { slideVariants, slideTransition } from "@/lib/slide-variants"
-import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap } from "lucide-react"
+import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap, Info } from "lucide-react"
 import {
   FORM_VERSION,
   SCHEMA_VERSION,
@@ -259,8 +259,11 @@ export default function IntakePage() {
 
   const handleBlockerToggle = (code: string) => {
     setFormData((prev) => {
-      // "Nothing in particular" is exclusive
+      // "Nothing in particular" is exclusive — toggle off if already selected
       if (code === "NO_CONCERN") {
+        if (prev.conversionBlockerCodes.includes("NO_CONCERN")) {
+          return { ...prev, conversionBlockerCodes: [] }
+        }
         return { ...prev, conversionBlockerCodes: ["NO_CONCERN"] }
       }
       // Selecting a real concern removes "Nothing in particular"
@@ -452,6 +455,12 @@ export default function IntakePage() {
   }
 
   const handleSingleSelect = (field: string, value: string, nextStep: number) => {
+    const currentValue = (formData as Record<string, unknown>)[field]
+    if (currentValue === value) {
+      // Deselect — toggle off
+      setFormData((prev) => ({ ...prev, [field]: "" }))
+      return
+    }
     setFormData((prev) => ({ ...prev, [field]: value }))
     setTimeout(() => handleStepForward(step, nextStep), 300)
   }
@@ -661,38 +670,38 @@ export default function IntakePage() {
       onClick={onClick}
       disabled={disabled}
       className={`
-        group relative w-full p-4 sm:p-5 md:p-6 rounded-2xl border-2 text-left ${className}
+        group relative w-full px-4 py-2.5 sm:px-5 sm:py-3 rounded-full border-2 text-left ${className}
         transition-all duration-200 ease-out
         ${selected
-          ? "border-[#0fbcb0] bg-[#faf3e6] shadow-md"
+          ? "border-[#0fbcb0] bg-[#d4edea] shadow-md"
           : disabled
-            ? "border-border/50 bg-muted/30 opacity-50 cursor-not-allowed"
-            : "border-border bg-white hover:border-[#0fbcb0]/50 hover:shadow-md active:scale-[0.98]"
+            ? "border-transparent bg-[#eaf6f4]/50 opacity-50 cursor-not-allowed"
+            : "border-transparent bg-[#eaf6f4] hover:bg-[#dff2ef] hover:shadow-md active:scale-[0.98]"
         }
       `}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {hasCheckbox && (
           <div
             className={`
-              w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0
+              w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0
               transition-all duration-200
-              ${selected ? "border-[#0fbcb0] bg-[#0fbcb0]" : "border-input group-hover:border-[#0fbcb0]/50"}
+              ${selected ? "border-[#0fbcb0] bg-[#0fbcb0]" : "border-[#a8d5cf] group-hover:border-[#0fbcb0]/50"}
             `}
           >
             {selected && (
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
             )}
           </div>
         )}
         <div className="flex-1">
-          <span className={`text-lg md:text-xl font-medium block ${selected ? "text-[#3d3838]" : "text-[#3d3838]"}`}>
+          <span className="text-base font-normal block text-[#2d2d2d]">
             {children}
           </span>
           {hint && (
-            <span className={`text-sm mt-1 block ${selected ? "text-[#0fbcb0]" : "text-[#3d3838]/50"}`}>
+            <span className={`text-xs mt-0.5 block ${selected ? "text-[#0fbcb0]" : "text-[#2d2d2d]/50"}`}>
               {hint}
             </span>
           )}
@@ -700,12 +709,12 @@ export default function IntakePage() {
         {!hasCheckbox && (
           <div
             className={`
-              w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0
+              w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
               transition-all duration-200
-              ${selected ? "border-[#0fbcb0] bg-[#0fbcb0]" : "border-input group-hover:border-[#0fbcb0]/50"}
+              ${selected ? "border-[#0fbcb0] bg-[#0fbcb0]" : "border-[#a8d5cf] group-hover:border-[#0fbcb0]/50"}
             `}
           >
-            {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+            {selected && <div className="w-2 h-2 rounded-full bg-white" />}
           </div>
         )}
       </div>
@@ -721,32 +730,26 @@ export default function IntakePage() {
 
   // Reusable step header component - only animates on first render of step
   // Uses `hasAnimated` from closure to skip intro animation on re-renders
-  const StepHeader = ({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) => (
-    <div className="text-center space-y-4">
-      <motion.div
-        className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[#0fbcb0] text-white mb-2 shadow-2xl"
-        initial={hasAnimated ? false : { scale: 0, rotate: -180 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: "spring", duration: 0.6 }}
-      >
-        {icon}
-      </motion.div>
+  const StepHeader = ({ icon: _icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) => (
+    <div className="text-center space-y-3">
       <motion.h1
-        className="text-3xl md:text-4xl font-bold text-[#3d3838] tracking-tight text-balance"
+        className="text-2xl md:text-3xl font-semibold text-[#2d2d2d] tracking-tight text-balance"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.1 }}
       >
         {title}
       </motion.h1>
-      <motion.p
-        className="text-[#3d3838]/70 text-lg"
-        initial={hasAnimated ? false : { opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: hasAnimated ? 0 : 0.2 }}
-      >
-        {subtitle}
-      </motion.p>
+      {subtitle && (
+        <motion.p
+          className="text-[#2d2d2d]/60 text-base"
+          initial={hasAnimated ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: hasAnimated ? 0 : 0.2 }}
+        >
+          {subtitle}
+        </motion.p>
+      )}
     </div>
   )
 
@@ -757,7 +760,7 @@ export default function IntakePage() {
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
+        className="w-full h-11 text-base font-semibold rounded-full shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
         size="lg"
       >
         {label}
@@ -766,62 +769,55 @@ export default function IntakePage() {
   )
 
   return (
-    <div className="min-h-screen bg-[#ffffff] flex flex-col relative overflow-hidden">
-      {/* Header with progress */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-white flex flex-col relative overflow-hidden">
+      {/* Top bar — Pearlie logo */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="rounded-full bg-[#0fbcb0] p-1.5">
+              <Heart className="w-4 h-4 text-white fill-white" />
+            </div>
+            <span className="text-xl font-heading font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
+          </div>
           <button
             type="button"
             onClick={handleStepBack}
             disabled={currentStepIndex === 0}
-            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-0"
+            className="flex items-center text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-0"
           >
             <ChevronLeft className="w-5 h-5" />
-            <span className="text-sm font-medium">Back</span>
           </button>
-
-          <div className="flex items-center gap-3">
-            <div className="w-32 h-2 bg-[#faf3e6] rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-[#0fbcb0] hover:bg-[#0da399] rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-              />
-            </div>
-            <span className="text-sm font-medium text-[#3d3838]/70">{progressPercent}%</span>
-          </div>
-
-          <div className="w-16" />
         </div>
-      </header>
+      </div>
 
-      {/* Floating background orb */}
-      <motion.div
-        className="fixed -top-40 -right-40 w-[500px] h-[500px] rounded-full opacity-20 pointer-events-none blur-[100px] hidden md:block"
-        style={{
-          background: "radial-gradient(circle, rgba(15, 188, 176, 0.3) 0%, transparent 70%)"
-        }}
-        animate={{
-          x: [0, 30, -20, 0],
-          y: [0, -20, 10, 0],
-        }}
-        transition={{
-          duration: 15,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut",
-        }}
-      />
+      {/* Headline banner — tagline + progress on dark teal bg with shadow */}
+      <div className="bg-[#0d3d3a] text-center pt-2 pb-4 px-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] relative z-10">
+        <h2 className="text-2xl md:text-3xl font-heading font-medium text-[#faf5ef] leading-tight">
+          Help us match you to the{" "}
+          <span className="text-[#0fbcb0] font-bold whitespace-nowrap">right dentist</span>
+        </h2>
+        <div className="flex items-center justify-center gap-2 mt-2.5">
+          <div className="w-28 h-1.5 bg-[#faf5ef]/20 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-[#0fbcb0] rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercent}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
+          <span className="text-xs font-medium text-[#faf5ef]/50">{progressPercent}%</span>
+        </div>
+      </div>
 
       {/* Main content */}
       <main className="flex-1 flex flex-col">
-        <div className="flex-1 max-w-2xl w-full mx-auto px-4 py-8 md:py-12">
+        <div className="flex-1 max-w-2xl w-full mx-auto px-4 py-4 md:py-5">
           {/* Match failure inline card */}
           {matchFailed && (
             <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-4">
               <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
-              <h2 className="text-lg font-semibold text-[#3d3838]">We couldn&apos;t find your matches</h2>
-              <p className="text-sm text-[#3d3838]/70">{matchFailed}</p>
+              <h2 className="text-lg font-semibold text-[#2d2d2d]">We couldn&apos;t find your matches</h2>
+              <p className="text-sm text-[#2d2d2d]/60">{matchFailed}</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
                   onClick={handleMatchRetry}
@@ -856,22 +852,31 @@ export default function IntakePage() {
               {/* Q1: TREATMENT SELECTION (Both flows)         */}
               {/* ============================================ */}
               {step === 1 && (
-                <motion.div key="step1" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step1" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Smile className="w-10 h-10" />}
                     title="What are you looking for help with?"
-                    subtitle="Select all that apply. You do not need to be certain."
+                    subtitle="You do not need to be certain."
                   />
 
-                  <div className="grid grid-cols-1 gap-3">
-                    {TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT).map((treatment, index) => (
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {[
+                      "Check up and/or hygiene clean",
+                      ...TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT && t !== "General Check-up & Clean"),
+                    ].map((treatment, index) => (
                       <motion.div key={treatment} {...fadeUp(0.05 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <OptionCard
                             selected={formData.treatments.includes(treatment)}
-                            onClick={() => handleTreatmentToggle(treatment)}
-                            hasCheckbox
-                            disabled={isEmergency}
+                            onClick={() => {
+                              const isSelected = formData.treatments.includes(treatment)
+                              if (isSelected) {
+                                setFormData((prev) => ({ ...prev, treatments: [] }))
+                                return
+                              }
+                              setFormData((prev) => ({ ...prev, treatments: [treatment] }))
+                              setTimeout(() => handleStepForward(1, 2), 300)
+                            }}
                           >
                             {treatment}
                           </OptionCard>
@@ -881,11 +886,19 @@ export default function IntakePage() {
 
                     {/* Emergency option - visually separated */}
                     <motion.div {...fadeUp(0.05 * TREATMENT_OPTIONS.length + 0.3)}>
-                      <div className="pt-2 border-t border-border/50 mt-2">
+                      <div className="pt-2 border-t border-[#2d2d2d]/10 mt-1">
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <OptionCard
                             selected={isEmergency}
-                            onClick={() => handleTreatmentToggle(EMERGENCY_TREATMENT)}
+                            onClick={() => {
+                              const isSelected = formData.treatments.includes(EMERGENCY_TREATMENT)
+                              if (isSelected) {
+                                setFormData((prev) => ({ ...prev, treatments: [] }))
+                                return
+                              }
+                              setFormData((prev) => ({ ...prev, treatments: [EMERGENCY_TREATMENT] }))
+                              setTimeout(() => handleStepForward(1, 2), 300)
+                            }}
                           >
                             <div className="flex items-center gap-3">
                               <Zap className="w-5 h-5 text-amber-500 flex-shrink-0" />
@@ -896,8 +909,6 @@ export default function IntakePage() {
                       </div>
                     </motion.div>
                   </div>
-
-                  <ContinueButton onClick={() => handleStepForward(1, 2)} disabled={!canContinueStep1} />
                 </motion.div>
               )}
 
@@ -905,7 +916,7 @@ export default function IntakePage() {
               {/* Q2: POSTCODE (Both flows)                    */}
               {/* ============================================ */}
               {step === 2 && (
-                <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<MapPin className="w-10 h-10" />}
                     title="What is your postcode?"
@@ -921,6 +932,7 @@ export default function IntakePage() {
                         setOutsideLondonArea(area)
                         trackEvent("postcode_outside_london", { meta: { area, postcode: formData.postcode } })
                       }}
+                      inputClassName="bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                     />
                   </motion.div>
 
@@ -933,14 +945,13 @@ export default function IntakePage() {
               {/* Q2.5 EMERGENCY: HOW SOON DO YOU NEED TO BE SEEN? */}
               {/* ============================================ */}
               {step === 2.5 && !isEmergency && (
-                <motion.div key="step2.5-planning" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step2.5-planning" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<MapPin className="w-10 h-10" />}
                     title="How far are you willing to travel?"
-                    subtitle="This helps us balance convenience with finding the right clinic."
                   />
 
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {LOCATION_PREFERENCE_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -955,18 +966,23 @@ export default function IntakePage() {
                       </motion.div>
                     ))}
                   </div>
+
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#faf5ef] text-[#0d3d3a] text-sm">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
+                    <span>This helps us balance convenience with finding the right clinic.</span>
+                  </div>
                 </motion.div>
               )}
 
               {step === 2.5 && isEmergency && (
-                <motion.div key="step2.5-emergency" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step2.5-emergency" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Zap className="w-10 h-10" />}
                     title="How soon do you need to be seen?"
                     subtitle="We will prioritise clinics with the right availability."
                   />
 
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {URGENCY_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -987,14 +1003,14 @@ export default function IntakePage() {
               {/* Q3: CLINIC PRIORITIES (Planning only, up to 2) */}
               {/* ============================================ */}
               {step === 3 && !isEmergency && (
-                <motion.div key="step3" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step3" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Heart className="w-10 h-10" />}
                     title="When choosing a clinic, what would you prioritise most?"
                     subtitle="Pick up to 2."
                   />
 
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {DECISION_VALUE_OPTIONS.map((option, index) => {
                       const isSelected = formData.decisionValues.includes(option)
                       const isDisabled = !isSelected && formData.decisionValues.length >= 2
@@ -1023,14 +1039,13 @@ export default function IntakePage() {
               {/* Q3.5 / Q4E: DENTAL ANXIETY (Both flows)     */}
               {/* ============================================ */}
               {step === 3.5 && (
-                <motion.div key="step3.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step3.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Shield className="w-10 h-10" />}
                     title="How do you feel about dental visits?"
-                    subtitle="We will match you with clinics experienced with patients like you."
                   />
 
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {ANXIETY_LEVEL_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -1044,6 +1059,11 @@ export default function IntakePage() {
                       </motion.div>
                     ))}
                   </div>
+
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#faf5ef] text-[#0d3d3a] text-sm">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
+                    <span>We will match you with clinics experienced with patients like you.</span>
+                  </div>
                 </motion.div>
               )}
 
@@ -1051,38 +1071,34 @@ export default function IntakePage() {
               {/* Q5: CONCERNS (Planning only, multi max 2)    */}
               {/* ============================================ */}
               {step === 5 && !isEmergency && (
-                <motion.div key="step5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<AlertCircle className="w-10 h-10" />}
                     title="Is there anything you're unsure or concerned about right now?"
-                    subtitle="Select up to 2."
                   />
 
-                  <div className="grid grid-cols-1 gap-3">
-                    {BLOCKER_OPTIONS.map((option, index) => {
-                      const isSelected = formData.conversionBlockerCodes.includes(option.code)
-                      const isNoConcernSelected = formData.conversionBlockerCodes.includes("NO_CONCERN")
-                      const isDisabled = !isSelected && option.code !== "NO_CONCERN" && (
-                        isNoConcernSelected || formData.conversionBlockerCodes.length >= 2
-                      )
-                      return (
-                        <motion.div key={option.code} {...fadeUp(0.1 * index + 0.3)}>
-                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                            <OptionCard
-                              selected={isSelected}
-                              onClick={() => handleBlockerToggle(option.code)}
-                              disabled={isDisabled}
-                              hasCheckbox
-                            >
-                              {option.label}
-                            </OptionCard>
-                          </motion.div>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {BLOCKER_OPTIONS.map((option, index) => (
+                      <motion.div key={option.code} {...fadeUp(0.1 * index + 0.3)}>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <OptionCard
+                            selected={formData.conversionBlockerCodes.includes(option.code)}
+                            onClick={() => {
+                              const isSelected = formData.conversionBlockerCodes.includes(option.code)
+                              if (isSelected) {
+                                setFormData((prev) => ({ ...prev, conversionBlockerCodes: [] }))
+                                return
+                              }
+                              setFormData((prev) => ({ ...prev, conversionBlockerCodes: [option.code] }))
+                              setTimeout(() => handleStepForward(5, getNextStep(5)), 300)
+                            }}
+                          >
+                            {option.label}
+                          </OptionCard>
                         </motion.div>
-                      )
-                    })}
+                      </motion.div>
+                    ))}
                   </div>
-
-                  <ContinueButton onClick={() => handleStepForward(5, getNextStep(5))} disabled={!canContinueStep5} />
                 </motion.div>
               )}
 
@@ -1090,14 +1106,13 @@ export default function IntakePage() {
               {/* Q5.5 / Q5E: BEST TIME (Both flows)          */}
               {/* ============================================ */}
               {step === 5.5 && (
-                <motion.div key="step5.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step5.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Sun className="w-10 h-10" />}
                     title="When works best for you?"
-                    subtitle="Choose all the times that suit you."
                   />
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                     {PREFERRED_TIME_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.button
@@ -1105,34 +1120,34 @@ export default function IntakePage() {
                           whileHover={{ scale: 1.04 }}
                           whileTap={{ scale: 0.97 }}
                           onClick={() => {
-                            const current = formData.preferred_times
-                            const updated = current.includes(option.value)
-                              ? current.filter((t) => t !== option.value)
-                              : [...current, option.value]
-                            setFormData({ ...formData, preferred_times: updated })
+                            const isSelected = formData.preferred_times.includes(option.value) && formData.preferred_times.length === 1
+                            if (isSelected) {
+                              setFormData({ ...formData, preferred_times: [] })
+                              return
+                            }
+                            setFormData({ ...formData, preferred_times: [option.value] })
+                            setTimeout(() => handleStepForward(5.5, getNextStep(5.5)), 300)
                           }}
                           className={`
-                            w-full p-5 rounded-2xl border-2 transition-all duration-200 text-center
+                            w-full p-3.5 rounded-2xl border-2 transition-all duration-200 text-center
                             ${
                               formData.preferred_times.includes(option.value)
-                                ? "border-[#0fbcb0] bg-[#faf3e6] ring-1 ring-[#0fbcb0]/20"
-                                : "border-border bg-card hover:border-[#0fbcb0]/50 hover:bg-[#faf3e6]/50"
+                                ? "border-[#0fbcb0] bg-[#d4edea] shadow-md"
+                                : "border-transparent bg-[#eaf6f4] hover:bg-[#dff2ef] hover:shadow-md"
                             }
                           `}
                         >
                           <div className="flex flex-col items-center gap-2">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#faf3e6] text-[#0fbcb0]"}`}>
-                              {option.value === "weekend" ? <Calendar className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#d4edea] text-[#0fbcb0]"}`}>
+                              {option.value === "weekend" ? <Calendar className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                             </div>
-                            <span className="font-semibold text-[#3d3838]">{option.label}</span>
-                            <span className="text-sm text-[#3d3838]/60">{option.time}</span>
+                            <span className="font-medium text-[#2d2d2d] text-sm">{option.label}</span>
+                            <span className="text-xs text-[#2d2d2d]/60">{option.time}</span>
                           </div>
                         </motion.button>
                       </motion.div>
                     ))}
                   </div>
-
-                  <ContinueButton onClick={() => handleStepForward(5.5, getNextStep(5.5))} disabled={!canContinueStep5_5} />
                 </motion.div>
               )}
 
@@ -1140,14 +1155,13 @@ export default function IntakePage() {
               {/* Q6: WHEN TO START (Planning only)            */}
               {/* ============================================ */}
               {step === 6 && !isEmergency && (
-                <motion.div key="step6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Calendar className="w-10 h-10" />}
                     title="When are you looking to start?"
-                    subtitle="This helps us find clinics with the right availability."
                   />
 
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {TIMING_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -1161,6 +1175,11 @@ export default function IntakePage() {
                       </motion.div>
                     ))}
                   </div>
+
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#faf5ef] text-[#0d3d3a] text-sm">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
+                    <span>This helps us find clinics with the right availability.</span>
+                  </div>
                 </motion.div>
               )}
 
@@ -1168,20 +1187,24 @@ export default function IntakePage() {
               {/* Q7: COST / DECISION MINDSET (Planning only)  */}
               {/* ============================================ */}
               {step === 7 && !isEmergency && (
-                <motion.div key="step7" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step7" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
                     title="How do you usually think about investing in dental treatment?"
-                    subtitle="This helps us match you with clinics that fit your approach."
                   />
 
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {COST_APPROACH_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <OptionCard
                             selected={formData.costApproach === option.value}
                             onClick={() => {
+                              if (formData.costApproach === option.value) {
+                                // Deselect — toggle off
+                                setFormData((prev) => ({ ...prev, costApproach: "" }))
+                                return
+                              }
                               setFormData((prev) => ({ ...prev, costApproach: option.value }))
                               // Conditional next step based on selection
                               if (option.value === "comfort_range") {
@@ -1199,6 +1222,11 @@ export default function IntakePage() {
                       </motion.div>
                     ))}
                   </div>
+
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#faf5ef] text-[#0d3d3a] text-sm">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
+                    <span>This helps us match you with clinics that fit your approach.</span>
+                  </div>
                 </motion.div>
               )}
 
@@ -1207,14 +1235,14 @@ export default function IntakePage() {
               {/* Shown only if Q7 = comfort_range             */}
               {/* ============================================ */}
               {step === 7.5 && formData.costApproach === "comfort_range" && (
-                <motion.div key="step7.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step7.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
                     title="Would spreading the cost into monthly payments make treatment easier for you?"
                     subtitle="This is informational only — it won't affect your matches."
                   />
 
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-2.5">
                     {MONTHLY_PAYMENT_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -1236,19 +1264,23 @@ export default function IntakePage() {
               {/* Shown only if Q7 = strict_budget             */}
               {/* ============================================ */}
               {step === 7.6 && formData.costApproach === "strict_budget" && (
-                <motion.div key="step7.6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step7.6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
                     title="How would you prefer to handle costs with the clinic?"
                     subtitle="This is informational only — it won't affect your matches."
                   />
 
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-2.5">
                     <motion.div {...fadeUp(0.3)}>
                       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         <OptionCard
                           selected={formData.strictBudgetMode === "discuss_with_clinic"}
                           onClick={() => {
+                            if (formData.strictBudgetMode === "discuss_with_clinic") {
+                              setFormData((prev) => ({ ...prev, strictBudgetMode: "" }))
+                              return
+                            }
                             setFormData((prev) => ({ ...prev, strictBudgetMode: "discuss_with_clinic", strictBudgetAmount: "" }))
                             setTimeout(() => handleStepForward(7.6, 8), 300)
                           }}
@@ -1263,6 +1295,10 @@ export default function IntakePage() {
                         <OptionCard
                           selected={formData.strictBudgetMode === "share_range"}
                           onClick={() => {
+                            if (formData.strictBudgetMode === "share_range") {
+                              setFormData((prev) => ({ ...prev, strictBudgetMode: "", strictBudgetAmount: "" }))
+                              return
+                            }
                             setFormData((prev) => ({ ...prev, strictBudgetMode: "share_range" }))
                           }}
                         >
@@ -1275,11 +1311,11 @@ export default function IntakePage() {
                     {formData.strictBudgetMode === "share_range" && (
                       <motion.div
                         {...fadeUp(0.1)}
-                        className="p-5 md:p-6 rounded-2xl border-2 border-[#0fbcb0] bg-[#faf3e6]"
+                        className="p-4 md:p-5 rounded-2xl border-2 border-[#0fbcb0] bg-[#eaf6f4]"
                       >
-                        <Label className="text-lg font-medium text-foreground">Enter your approximate budget or range (optional)</Label>
+                        <Label className="text-base font-normal text-[#2d2d2d]">Enter your approximate budget or range (optional)</Label>
                         <div className="relative mt-3">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">£</span>
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2d2d2d]/50 text-base">£</span>
                           <Input
                             type="text"
                             inputMode="numeric"
@@ -1289,7 +1325,7 @@ export default function IntakePage() {
                               const value = e.target.value.replace(/[^\d,]/g, "")
                               setFormData((prev) => ({ ...prev, strictBudgetAmount: value }))
                             }}
-                            className="pl-8 h-14 text-lg rounded-xl"
+                            className="pl-8 h-12 text-base rounded-xl bg-white border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                           />
                         </div>
                       </motion.div>
@@ -1308,7 +1344,7 @@ export default function IntakePage() {
               {/* Q8: CONTACT DETAILS (Both flows)             */}
               {/* ============================================ */}
               {step === 8 && (
-                <motion.div key="step8" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-8">
+                <motion.div key="step8" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Mail className="w-10 h-10" />}
                     title="Almost there! How can clinics reach you?"
@@ -1335,14 +1371,14 @@ export default function IntakePage() {
                           }, 50)
                         }}
                         disabled={isSubmitting}
-                        className="w-full p-5 sm:p-6 rounded-2xl border-2 border-[#0fbcb0] bg-[#faf3e6] text-left transition-all duration-200 hover:shadow-md active:scale-[0.98]"
+                        className="w-full p-4 sm:p-5 rounded-2xl border-2 border-[#0fbcb0] bg-[#eaf6f4] text-left transition-all duration-200 hover:shadow-md active:scale-[0.98]"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-[#0fbcb0] flex items-center justify-center flex-shrink-0">
-                            <CheckCircle2 className="w-6 h-6 text-white" />
+                          <div className="w-10 h-10 rounded-full bg-[#0fbcb0] flex items-center justify-center flex-shrink-0">
+                            <CheckCircle2 className="w-5 h-5 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <span className="text-lg font-semibold text-[#3d3838] block">
+                            <span className="text-base font-semibold text-[#2d2d2d] block">
                               {isSubmitting ? "Finding your matches..." : "Continue as"}
                             </span>
                             <span className="text-[#0fbcb0] font-medium truncate block">{authUser.email}</span>
@@ -1359,7 +1395,7 @@ export default function IntakePage() {
                           setAuthUser(null)
                           setContinueAsSomeoneElse(true)
                         }}
-                        className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+                        className="w-full text-center text-sm text-[#2d2d2d]/50 hover:text-[#2d2d2d] transition-colors py-2"
                       >
                         Continue as someone else
                       </button>
@@ -1370,33 +1406,33 @@ export default function IntakePage() {
                   <motion.div className="space-y-5" {...fadeUp(0.3)}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="firstName" className="text-sm font-medium text-foreground">
+                        <Label htmlFor="firstName" className="text-sm font-normal text-[#2d2d2d]">
                           First name
                         </Label>
                         <Input
                           id="firstName"
                           value={formData.firstName}
                           onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          className="mt-2 h-14 text-lg rounded-xl"
+                          className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                           placeholder="John"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="lastName" className="text-sm font-medium text-foreground">
+                        <Label htmlFor="lastName" className="text-sm font-normal text-[#2d2d2d]">
                           Last name
                         </Label>
                         <Input
                           id="lastName"
                           value={formData.lastName}
                           onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          className="mt-2 h-14 text-lg rounded-xl"
+                          className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                           placeholder="Smith"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                      <Label htmlFor="email" className="text-sm font-normal text-[#2d2d2d]">
                         Email address
                       </Label>
                       <Input
@@ -1404,7 +1440,7 @@ export default function IntakePage() {
                         type="email"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="mt-2 h-14 text-lg rounded-xl"
+                        className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                         placeholder="john@example.com"
                       />
                       {formData.email && !EMAIL_REGEX.test(formData.email.trim()) && (
@@ -1413,15 +1449,15 @@ export default function IntakePage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="phone" className="text-sm font-medium text-foreground">
-                        Phone number <span className="text-muted-foreground font-normal">(optional)</span>
+                      <Label htmlFor="phone" className="text-sm font-normal text-[#2d2d2d]">
+                        Phone number <span className="text-[#2d2d2d]/50 font-normal">(optional)</span>
                       </Label>
                       <Input
                         id="phone"
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="mt-2 h-14 text-lg rounded-xl"
+                        className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                         placeholder="07123 456789"
                       />
                     </div>
@@ -1432,15 +1468,15 @@ export default function IntakePage() {
                           id="consent"
                           checked={formData.consentContact}
                           onCheckedChange={(checked) => setFormData({ ...formData, consentContact: checked === true })}
-                          className="mt-0.5"
+                          className="mt-0.5 border-[#2d2d2d]/30 data-[state=checked]:bg-[#0fbcb0] data-[state=checked]:border-[#0fbcb0]"
                         />
-                        <span className="text-sm text-foreground leading-relaxed">
+                        <span className="text-sm text-[#2d2d2d] leading-relaxed">
                           I agree to be contacted by matched clinics about my enquiry and accept the{" "}
-                          <a href="/terms" className="text-[#3c8481] underline hover:text-[#0fbcb0]">
+                          <a href="/terms" className="text-[#0fbcb0] underline hover:text-[#0da399]">
                             Terms
                           </a>{" "}
                           and{" "}
-                          <a href="/privacy" className="text-[#3c8481] underline hover:text-[#0fbcb0]">
+                          <a href="/privacy" className="text-[#0fbcb0] underline hover:text-[#0da399]">
                             Privacy Policy
                           </a>
                           .
@@ -1452,9 +1488,9 @@ export default function IntakePage() {
                           id="marketing"
                           checked={formData.consentMarketing}
                           onCheckedChange={(checked) => setFormData({ ...formData, consentMarketing: checked === true })}
-                          className="mt-0.5"
+                          className="mt-0.5 border-[#2d2d2d]/30 data-[state=checked]:bg-[#0fbcb0] data-[state=checked]:border-[#0fbcb0]"
                         />
-                        <span className="text-sm text-muted-foreground leading-relaxed">
+                        <span className="text-sm text-[#2d2d2d]/60 leading-relaxed">
                           Send me helpful dental care tips and offers (optional).
                         </span>
                       </label>
@@ -1466,7 +1502,7 @@ export default function IntakePage() {
                     <Button
                       type="submit"
                       disabled={!canContinueStep8 || isSubmitting}
-                      className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
+                      className="w-full h-11 text-base font-semibold rounded-full shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
                       size="lg"
                     >
                       {isSubmitting ? "Finding your matches..." : "Get my clinic matches"}
@@ -1477,7 +1513,7 @@ export default function IntakePage() {
 
                   {/* Trust indicators */}
                   <motion.div
-                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#3d3838]/50"
+                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#2d2d2d]/40"
                     initial={hasAnimated ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: hasAnimated ? 0 : 0.7 }}
