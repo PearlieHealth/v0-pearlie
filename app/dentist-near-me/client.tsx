@@ -15,7 +15,6 @@ import {
   Navigation,
   AlertCircle,
   ChevronDown,
-  CalendarCheck,
 } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -272,13 +271,13 @@ export function DentistNearMeClient({
       {/* ─── HERO (Compact mobile, expanded desktop) ──────── */}
       <section
         ref={heroRef}
-        className="relative bg-gradient-to-b from-[#004443] to-[#00625e] text-white pt-28 pb-10 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 overflow-hidden"
+        className="relative bg-gradient-to-b from-[#004443] to-[#00625e] text-white pt-20 pb-8 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 overflow-hidden"
       >
         <div className="absolute top-10 right-10 w-72 h-72 rounded-full bg-white/[0.03] blur-3xl pointer-events-none hidden sm:block" />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-3 sm:mb-4">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-2 sm:mb-4">
               <span className="block">
                 {detectedBorough
                   ? `Dentist Near Me in ${detectedBorough}`
@@ -309,28 +308,27 @@ export function DentistNearMeClient({
 
             {/* Postcode search */}
             <form onSubmit={handlePostcodeSubmit} className="max-w-md mx-auto mb-3">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={postcode}
-                    onChange={(e) => {
-                      setPostcode(e.target.value)
-                      setPostcodeError("")
-                    }}
-                    placeholder="Enter your postcode"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold px-5 sm:px-6 rounded-xl h-[44px]"
-                >
-                  {isSubmitting ? "Finding..." : "Find"}
-                </Button>
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={postcode}
+                  onChange={(e) => {
+                    setPostcode(e.target.value)
+                    setPostcodeError("")
+                  }}
+                  placeholder="Enter your postcode"
+                  className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-white text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]"
+                />
               </div>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full mt-3 bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold rounded-xl h-[48px] text-base"
+              >
+                {isSubmitting ? "Finding..." : "Find my dentist now"}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </form>
 
             <button
@@ -349,7 +347,7 @@ export function DentistNearMeClient({
               </p>
             )}
 
-            <p className="text-xs text-white/60 mt-4 sm:mt-5">
+            <p className="text-xs text-white/60 mt-3 sm:mt-5">
               Free &bull; No booking fees &bull; Verified clinics only
             </p>
           </div>
@@ -602,7 +600,7 @@ export function DentistNearMeClient({
                 size="lg"
                 className="bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold px-8 py-3 rounded-xl text-base min-h-[48px]"
               >
-                Get matched now
+                Find my dentist now
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
@@ -615,8 +613,7 @@ export function DentistNearMeClient({
         <div className="flex gap-2">
           <Link href="/intake" className="flex-1">
             <Button className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold rounded-full h-10 text-sm">
-              <CalendarCheck className="w-3.5 h-3.5 mr-1.5" />
-              Get matched free
+              Find my dentist now
             </Button>
           </Link>
           <button
