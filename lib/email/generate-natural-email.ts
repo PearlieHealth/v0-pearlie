@@ -60,14 +60,21 @@ const TIME_PREF_LABELS: Record<string, string> = {
 }
 
 export function generateNaturalSubject(data: NaturalEmailInput): string {
-  const parts: string[] = []
-
-  // Treatment
+  const fullName = `${data.firstName} ${data.lastName}`.trim()
   const shortTreatment = data.treatment
     ? data.treatment.replace(" / ", "/")
     : "Dental"
 
-  // Booking date
+  // Direct enquiries (no postcode, no booking date, no preferred times) = general enquiry
+  const isDirect = !data.postcode && !data.bookingDate && (!data.preferredTimes || data.preferredTimes.length === 0)
+
+  if (isDirect) {
+    return `Enquiry about ${shortTreatment} – ${fullName}`
+  }
+
+  // Full intake leads: include date/time details
+  const parts: string[] = []
+
   if (data.bookingDate) {
     try {
       const d = new Date(data.bookingDate)
@@ -80,7 +87,6 @@ export function generateNaturalSubject(data: NaturalEmailInput): string {
     }
   }
 
-  // Time preference
   if (data.preferredTimes?.length > 0) {
     const timeLabel = data.preferredTimes
       .map(t => TIME_PREF_LABELS[t] || t)
@@ -89,7 +95,7 @@ export function generateNaturalSubject(data: NaturalEmailInput): string {
   }
 
   const detail = parts.length > 0 ? ` (${parts.join(", ")})` : ""
-  return `Appointment Request – ${shortTreatment} Consultation${detail}`
+  return `Enquiry about ${shortTreatment} – ${fullName}${detail}`
 }
 
 // ---------------------------------------------------------------------------
@@ -111,7 +117,7 @@ RULES:
 - If a specific booking date is provided, request that date
 - End with "Kind regards," followed by the patient's full name and email on separate lines
 - If they have a phone number, include it after the email
-- Do NOT use any greeting beyond "Dear [Clinic Name] Team," or "Dear Team,"
+- Choose a natural greeting that fits the tone — "Hi," or "Hello," for a warm conversational feel, or "Dear [Clinic Name] Team," for a more formal enquiry. Use your judgement based on the treatment and urgency.
 - Do NOT include a subject line — only the body
 - Keep it concise (150-250 words)
 - Do NOT use bullet points or structured lists — write flowing prose paragraphs
@@ -246,11 +252,10 @@ async function callGroqForEmail(data: NaturalEmailInput): Promise<string | null>
 
 export function generateFallbackEmailBody(data: NaturalEmailInput): string {
   const fullName = `${data.firstName} ${data.lastName}`.trim()
-  const clinicGreeting = data.clinicName ? `Dear ${data.clinicName} Team` : "Dear Team"
 
   // Treatment
   const treatmentLine = data.treatment
-    ? `I'd like to book a consultation for ${data.treatment}.`
+    ? `I'm looking into ${data.treatment} and wanted to get in touch about availability and pricing.`
     : "I'd like to book a dental consultation."
 
   // Location
@@ -374,8 +379,7 @@ export function generateFallbackEmailBody(data: NaturalEmailInput): string {
   // Assemble
   const paragraphs: string[] = []
 
-  paragraphs.push(`${clinicGreeting},`)
-  paragraphs.push("I hope you're well.")
+  paragraphs.push("Hi,")
 
   // Main intro
   const intro = [`My name is ${fullName} and ${treatmentLine}`]
@@ -400,9 +404,15 @@ export function generateFallbackEmailBody(data: NaturalEmailInput): string {
   }
 
   // Closing
-  paragraphs.push(
-    "Please let me know if the requested date and time are available, or suggest the nearest alternative."
-  )
+  if (data.bookingDate) {
+    paragraphs.push(
+      "Please let me know if the requested date and time are available, or suggest the nearest alternative."
+    )
+  } else {
+    paragraphs.push(
+      "Please let me know the next steps or any availability you have."
+    )
+  }
 
   // Signature
   const sigParts = [`Kind regards,\n${fullName}`, data.email]
