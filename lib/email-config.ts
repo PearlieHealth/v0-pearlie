@@ -10,16 +10,16 @@ export const EMAIL_FROM = {
   /** Clinic-facing communications (waitlist, invites) */
   CLINICS: "Pearlie <clinics@pearlie.org>",
   /** Patient enquiry emails — dynamic name applied at send time via patientFromAddress() */
-  PATIENT_ENQUIRY: "enquiries@pearlie.org",
+  PATIENT_ENQUIRY: "enquiry@reply.pearlie.org",
 } as const
 
 /**
  * Build a from-address that displays the patient's name.
- * e.g. "Hannan Saleem <enquiries@pearlie.org>"
+ * e.g. "Hannan Saleem <enquiry@reply.pearlie.org>"
  */
 export function patientFromAddress(firstName: string, lastName: string): string {
   const name = `${firstName} ${lastName}`.trim()
   // Sanitise: strip characters that could break email headers
   const safe = name.replace(/[<>"]/g, "").trim()
-  return safe ? `${safe} <enquiries@pearlie.org>` : EMAIL_FROM.PATIENT_ENQUIRY
+  return safe ? `${safe} <enquiry@reply.pearlie.org>` : EMAIL_FROM.PATIENT_ENQUIRY
 }
