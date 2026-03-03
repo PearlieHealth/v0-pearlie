@@ -783,11 +783,17 @@ export default function IntakePage() {
         </div>
       </header>
 
-      {/* Headline banner */}
-      <div className="bg-[#0a302d] text-center py-5 px-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-[#faf5ef] leading-tight">
+      {/* Headline banner — logo + tagline on cream bg with shadow */}
+      <div className="bg-[#faf3e6] text-center py-5 px-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] relative z-10">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <div className="rounded-full bg-[#0fbcb0] p-1.5">
+            <Heart className="w-4 h-4 text-white fill-white" />
+          </div>
+          <span className="text-xl font-heading font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
+        </div>
+        <h2 className="text-2xl md:text-3xl font-heading font-medium text-[#3d3838] leading-tight">
           Help us match you to the{" "}
-          <span className="text-[#0fbcb0]">right dentist</span>
+          <span className="text-[#0fbcb0] font-bold">right dentist</span>
         </h2>
       </div>
 
