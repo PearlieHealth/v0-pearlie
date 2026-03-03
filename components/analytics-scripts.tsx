@@ -25,19 +25,20 @@ export function AnalyticsScripts() {
 
   return (
     <>
-      {/* Google Analytics - only load if analytics consent given */}
-      {analyticsConsent && process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+      {/* Google tag (GA4 + Google Ads) - load gtag.js if either is needed */}
+      {((analyticsConsent && process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID) || (marketingConsent && process.env.NEXT_PUBLIC_GOOGLE_ADS_ID)) && (
         <>
           <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
+            src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GOOGLE_ADS_ID}`}
             strategy="afterInteractive"
           />
-          <Script id="google-analytics" strategy="afterInteractive">
+          <Script id="google-tag" strategy="afterInteractive">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');
+              ${analyticsConsent && process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ? `gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');` : ""}
+              ${marketingConsent && process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ? `gtag('config', '${process.env.NEXT_PUBLIC_GOOGLE_ADS_ID}');` : ""}
             `}
           </Script>
         </>
