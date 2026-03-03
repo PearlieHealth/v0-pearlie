@@ -261,22 +261,22 @@ export function DentistNearMeClient({
         </div>
       </div>
 
-      {/* ─── HERO (Compact mobile, expanded desktop) ──────── */}
+      {/* ─── HERO (Full-screen mobile, expanded desktop) ──── */}
       <section
         ref={heroRef}
-        className="relative bg-gradient-to-b from-[#004443] to-[#00625e] text-white pt-20 pb-8 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 overflow-hidden"
+        className="relative bg-gradient-to-b from-[#004443] to-[#00625e] text-white min-h-[100svh] sm:min-h-0 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 overflow-hidden flex flex-col justify-center"
       >
         <div className="absolute top-10 right-10 w-72 h-72 rounded-full bg-white/[0.03] blur-3xl pointer-events-none hidden sm:block" />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-2 sm:mb-4">
+            <h1 className="text-[2rem] sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-4 sm:mb-4">
               <span className="block">
                 {detectedBorough
                   ? `Dentist Near Me in ${detectedBorough}`
                   : "Dentist Near Me"}
               </span>
-              <span className="block mt-1 sm:mt-2 relative h-[1.2em] overflow-hidden">
+              <span className="block mt-2 sm:mt-2 relative h-[1.2em] overflow-hidden">
                 <AnimatePresence mode="wait">
                   <motion.span
                     key={benefitIndex}
@@ -300,9 +300,9 @@ export function DentistNearMeClient({
             )}
 
             {/* Postcode search */}
-            <form onSubmit={handlePostcodeSubmit} className="max-w-md mx-auto mb-3">
+            <form onSubmit={handlePostcodeSubmit} className="max-w-md mx-auto mb-4 mt-2">
               <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="text"
                   value={postcode}
@@ -311,13 +311,13 @@ export function DentistNearMeClient({
                     setPostcodeError("")
                   }}
                   placeholder="Enter your postcode"
-                  className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-white text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]"
+                  className="w-full pl-12 pr-4 py-4 rounded-xl bg-white text-foreground text-base placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]"
                 />
               </div>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-3 bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold rounded-xl h-[48px] text-base"
+                className="w-full mt-3 bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold rounded-xl h-[52px] text-base sm:text-lg"
               >
                 {isSubmitting ? "Finding..." : "Find my dentist now"}
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -340,7 +340,7 @@ export function DentistNearMeClient({
               </p>
             )}
 
-            <p className="text-xs text-white/60 mt-3 sm:mt-5">
+            <p className="text-xs text-white/60 mt-4 sm:mt-5">
               Free &bull; No booking fees &bull; Verified clinics only
             </p>
           </div>
