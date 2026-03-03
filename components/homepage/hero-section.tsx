@@ -19,6 +19,7 @@ const heroRotatingBenefits = [
   "near your workplace",
   "known for Invisalign",
   "known for implants",
+  "known for composite bonding",
 ]
 
 export function HeroSection() {

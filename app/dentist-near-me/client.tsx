@@ -30,6 +30,7 @@ const heroRotatingBenefits = [
   "near your workplace",
   "known for Invisalign",
   "known for implants",
+  "known for composite bonding",
 ]
 
 // Extend ClinicData with optional distance from nearby API
