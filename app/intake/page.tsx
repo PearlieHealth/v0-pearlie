@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { trackEvent } from "@/lib/analytics"
+import { pushToDataLayer } from "@/lib/gtm"
 import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { slideVariants, slideTransition } from "@/lib/slide-variants"
@@ -558,6 +559,7 @@ export default function IntakePage() {
           cost_approach: formData.costApproach || null,
         },
       })
+      pushToDataLayer("lead_submit")
 
       // M3: Match creation with retry (3 attempts, exponential backoff)
       let matchData = null
