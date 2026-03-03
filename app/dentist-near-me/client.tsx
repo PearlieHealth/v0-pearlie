@@ -276,7 +276,7 @@ export function DentistNearMeClient({
                   ? `Dentist Near Me in ${detectedBorough}`
                   : "Dentist Near Me"}
               </span>
-              <span className="block mt-0 sm:mt-1 relative h-[2.5em] sm:h-[1.5em] overflow-hidden">
+              <span className="block mt-0 sm:mt-1 relative h-[2.5em] overflow-hidden">
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.span
                     key={benefitIndex}
