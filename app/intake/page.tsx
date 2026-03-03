@@ -782,20 +782,13 @@ export default function IntakePage() {
         </div>
       </header>
 
-      {/* Headline — only on step 1, large and prominent */}
-      {step === 1 && (
-        <motion.div
-          className="text-center pt-8 pb-2 px-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-[#faf5ef] leading-tight">
-            Help us match you to the{" "}
-            <span className="text-[#0fbcb0]">right dentist</span>
-          </h2>
-        </motion.div>
-      )}
+      {/* Headline banner */}
+      <div className="text-center pt-6 pb-2 px-4">
+        <h2 className="text-2xl md:text-3xl font-bold text-[#faf5ef] leading-tight">
+          Help us match you to the{" "}
+          <span className="text-[#0fbcb0]">right dentist</span>
+        </h2>
+      </div>
 
       {/* Main content */}
       <main className="flex-1 flex flex-col">
