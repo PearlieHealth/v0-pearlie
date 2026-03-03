@@ -303,7 +303,7 @@ export default function Home() {
                       transition={{ duration: 0.8, delay: 0.1 }}
                     >
                       <span className="block">Find dentists</span>
-                      <span className="block mt-1 md:mt-2 relative h-[1.2em] overflow-hidden">
+                      <span className="block mt-1 md:mt-2 relative h-[2.4em] md:h-[1.2em] overflow-hidden">
                         <AnimatePresence mode="wait">
                           <motion.span
                             key={benefitIndex}
