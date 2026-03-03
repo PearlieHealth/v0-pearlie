@@ -673,10 +673,10 @@ export default function IntakePage() {
         group relative w-full px-4 py-2.5 sm:px-5 sm:py-3 rounded-full border-2 text-left ${className}
         transition-all duration-200 ease-out
         ${selected
-          ? "border-[#0fbcb0] bg-[#e8dfd3] shadow-md"
+          ? "border-[#0fbcb0] bg-[#d4edea] shadow-md"
           : disabled
-            ? "border-transparent bg-[#f5efe6]/50 opacity-50 cursor-not-allowed"
-            : "border-transparent bg-[#f5efe6] hover:bg-[#ede6d9] hover:shadow-md active:scale-[0.98]"
+            ? "border-transparent bg-[#eaf6f4]/50 opacity-50 cursor-not-allowed"
+            : "border-transparent bg-[#eaf6f4] hover:bg-[#dff2ef] hover:shadow-md active:scale-[0.98]"
         }
       `}
     >
@@ -686,7 +686,7 @@ export default function IntakePage() {
             className={`
               w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0
               transition-all duration-200
-              ${selected ? "border-[#0fbcb0] bg-[#0fbcb0]" : "border-[#c5bfb4] group-hover:border-[#0fbcb0]/50"}
+              ${selected ? "border-[#0fbcb0] bg-[#0fbcb0]" : "border-[#a8d5cf] group-hover:border-[#0fbcb0]/50"}
             `}
           >
             {selected && (
@@ -711,7 +711,7 @@ export default function IntakePage() {
             className={`
               w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
               transition-all duration-200
-              ${selected ? "border-[#0fbcb0] bg-[#0fbcb0]" : "border-[#c5bfb4] group-hover:border-[#0fbcb0]/50"}
+              ${selected ? "border-[#0fbcb0] bg-[#0fbcb0]" : "border-[#a8d5cf] group-hover:border-[#0fbcb0]/50"}
             `}
           >
             {selected && <div className="w-2 h-2 rounded-full bg-white" />}
@@ -918,7 +918,7 @@ export default function IntakePage() {
                         setOutsideLondonArea(area)
                         trackEvent("postcode_outside_london", { meta: { area, postcode: formData.postcode } })
                       }}
-                      inputClassName="bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                      inputClassName="bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                     />
                   </motion.div>
 
@@ -1113,13 +1113,13 @@ export default function IntakePage() {
                             w-full p-3.5 rounded-2xl border-2 transition-all duration-200 text-center
                             ${
                               formData.preferred_times.includes(option.value)
-                                ? "border-[#0fbcb0] bg-[#e8dfd3] ring-1 ring-[#0fbcb0]/20"
-                                : "border-transparent bg-[#f5efe6] hover:bg-[#ede6d9] hover:shadow-md"
+                                ? "border-[#0fbcb0] bg-[#d4edea] ring-1 ring-[#0fbcb0]/20"
+                                : "border-transparent bg-[#eaf6f4] hover:bg-[#dff2ef] hover:shadow-md"
                             }
                           `}
                         >
                           <div className="flex flex-col items-center gap-2">
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#e8dfd3] text-[#0fbcb0]"}`}>
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#d4edea] text-[#0fbcb0]"}`}>
                               {option.value === "weekend" ? <Calendar className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                             </div>
                             <span className="font-semibold text-[#2d2d2d] text-sm">{option.label}</span>
@@ -1286,7 +1286,7 @@ export default function IntakePage() {
                     {formData.strictBudgetMode === "share_range" && (
                       <motion.div
                         {...fadeUp(0.1)}
-                        className="p-4 md:p-5 rounded-2xl border-2 border-[#0fbcb0] bg-[#f5efe6]"
+                        className="p-4 md:p-5 rounded-2xl border-2 border-[#0fbcb0] bg-[#eaf6f4]"
                       >
                         <Label className="text-base font-medium text-[#2d2d2d]">Enter your approximate budget or range (optional)</Label>
                         <div className="relative mt-3">
@@ -1300,7 +1300,7 @@ export default function IntakePage() {
                               const value = e.target.value.replace(/[^\d,]/g, "")
                               setFormData((prev) => ({ ...prev, strictBudgetAmount: value }))
                             }}
-                            className="pl-8 h-12 text-base rounded-xl bg-white border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                            className="pl-8 h-12 text-base rounded-xl bg-white border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                           />
                         </div>
                       </motion.div>
@@ -1346,7 +1346,7 @@ export default function IntakePage() {
                           }, 50)
                         }}
                         disabled={isSubmitting}
-                        className="w-full p-4 sm:p-5 rounded-2xl border-2 border-[#0fbcb0] bg-[#f5efe6] text-left transition-all duration-200 hover:shadow-md active:scale-[0.98]"
+                        className="w-full p-4 sm:p-5 rounded-2xl border-2 border-[#0fbcb0] bg-[#eaf6f4] text-left transition-all duration-200 hover:shadow-md active:scale-[0.98]"
                       >
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-full bg-[#0fbcb0] flex items-center justify-center flex-shrink-0">
@@ -1388,7 +1388,7 @@ export default function IntakePage() {
                           id="firstName"
                           value={formData.firstName}
                           onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          className="mt-2 h-11 text-base rounded-xl bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                          className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                           placeholder="John"
                         />
                       </div>
@@ -1400,7 +1400,7 @@ export default function IntakePage() {
                           id="lastName"
                           value={formData.lastName}
                           onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          className="mt-2 h-11 text-base rounded-xl bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                          className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                           placeholder="Smith"
                         />
                       </div>
@@ -1415,7 +1415,7 @@ export default function IntakePage() {
                         type="email"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="mt-2 h-11 text-base rounded-xl bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                        className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                         placeholder="john@example.com"
                       />
                       {formData.email && !EMAIL_REGEX.test(formData.email.trim()) && (
@@ -1432,7 +1432,7 @@ export default function IntakePage() {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="mt-2 h-11 text-base rounded-xl bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                        className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                         placeholder="07123 456789"
                       />
                     </div>
