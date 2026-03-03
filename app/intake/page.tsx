@@ -856,21 +856,27 @@ export default function IntakePage() {
                   <StepHeader
                     icon={<Smile className="w-10 h-10" />}
                     title="What are you looking for help with?"
-                    subtitle="Select all that apply. You do not need to be certain."
+                    subtitle="You do not need to be certain."
                   />
 
                   <div className="grid grid-cols-1 gap-2.5">
                     {[
-                      "General Check-up & Clean",
+                      "Check up and/or hygiene clean",
                       ...TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT && t !== "General Check-up & Clean"),
                     ].map((treatment, index) => (
                       <motion.div key={treatment} {...fadeUp(0.05 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <OptionCard
                             selected={formData.treatments.includes(treatment)}
-                            onClick={() => handleTreatmentToggle(treatment)}
-                            hasCheckbox
-                            disabled={isEmergency}
+                            onClick={() => {
+                              const isSelected = formData.treatments.includes(treatment)
+                              if (isSelected) {
+                                setFormData((prev) => ({ ...prev, treatments: [] }))
+                                return
+                              }
+                              setFormData((prev) => ({ ...prev, treatments: [treatment] }))
+                              setTimeout(() => handleStepForward(1, 2), 300)
+                            }}
                           >
                             {treatment}
                           </OptionCard>
@@ -884,7 +890,15 @@ export default function IntakePage() {
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <OptionCard
                             selected={isEmergency}
-                            onClick={() => handleTreatmentToggle(EMERGENCY_TREATMENT)}
+                            onClick={() => {
+                              const isSelected = formData.treatments.includes(EMERGENCY_TREATMENT)
+                              if (isSelected) {
+                                setFormData((prev) => ({ ...prev, treatments: [] }))
+                                return
+                              }
+                              setFormData((prev) => ({ ...prev, treatments: [EMERGENCY_TREATMENT] }))
+                              setTimeout(() => handleStepForward(1, 2), 300)
+                            }}
                           >
                             <div className="flex items-center gap-3">
                               <Zap className="w-5 h-5 text-amber-500 flex-shrink-0" />
@@ -895,8 +909,6 @@ export default function IntakePage() {
                       </div>
                     </motion.div>
                   </div>
-
-                  <ContinueButton onClick={() => handleStepForward(1, 2)} disabled={!canContinueStep1} />
                 </motion.div>
               )}
 
