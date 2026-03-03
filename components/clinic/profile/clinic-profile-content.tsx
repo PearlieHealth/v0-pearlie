@@ -26,6 +26,7 @@ import { clinicHref } from "@/lib/clinic-url"
 import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
 import { pushToDataLayer } from "@/lib/gtm"
+import { trackGoogleAdsConversion } from "@/lib/google-ads"
 import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
@@ -289,6 +290,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
     })
     trackTikTokEvent("PlaceAnOrder", { content_name: "confirm_request" })
     pushToDataLayer("booking_request")
+    trackGoogleAdsConversion("booking_request")
 
     if (date && (lead?.id || leadIdParam || directLeadId)) {
       const dateLabel = date.toLocaleDateString("en-GB", {
@@ -368,6 +370,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
         },
       })
       trackTikTokEvent("PlaceAnOrder", { content_name: "booking_confirmed_inline" })
+      trackGoogleAdsConversion("booking_request")
     } catch (error) {
       console.error("Error submitting booking:", error)
       setBookingError(
@@ -440,6 +443,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
         clinic_id: clinic?.id,
         properties: { content_name: "message_clinic_profile" },
       })
+      trackGoogleAdsConversion("chat_start")
       setShowChat(true)
       setShowMobileChat(true)
     } else {
