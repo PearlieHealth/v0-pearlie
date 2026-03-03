@@ -17,9 +17,21 @@ import {
   ChevronDown,
   CalendarCheck,
 } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { TreatmentClinicCard, type ClinicData } from "@/components/treatments/treatment-clinic-card"
 import { validateUKPostcode } from "@/lib/postcodes-io"
+
+const heroRotatingBenefits = [
+  "with availability",
+  "open on weekends",
+  "with transparent pricing",
+  "with the best reviews",
+  "accepting new patients",
+  "near your workplace",
+  "known for Invisalign",
+  "known for implants",
+]
 
 // Extend ClinicData with optional distance from nearby API
 type ClinicWithDistance = ClinicData & { distance_miles?: number }
@@ -51,6 +63,15 @@ export function DentistNearMeClient({
   const [isLoadingClinics, setIsLoadingClinics] = useState(false)
   const [showStickyTop, setShowStickyTop] = useState(false)
   const [seoExpanded, setSeoExpanded] = useState(false)
+
+  // Rotating hero benefit phrases
+  const [benefitIndex, setBenefitIndex] = useState(0)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBenefitIndex((prev) => (prev + 1) % heroRotatingBenefits.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Sticky top bar: show when hero scrolls out of view
   useEffect(() => {
@@ -257,14 +278,27 @@ export function DentistNearMeClient({
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-3 sm:mb-4 text-balance">
-              {detectedBorough
-                ? `Dentists Near You in ${detectedBorough}`
-                : "Dentists Near Me"}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-3 sm:mb-4">
+              <span className="block">
+                {detectedBorough
+                  ? `Dentist Near Me in ${detectedBorough}`
+                  : "Dentist Near Me"}
+              </span>
+              <span className="block mt-1 sm:mt-2 relative h-[1.2em] overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={benefitIndex}
+                    className="absolute inset-x-0 top-0 text-[#0fbcb0]"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+                  >
+                    {heroRotatingBenefits[benefitIndex]}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-white/80 mb-5 sm:mb-6 max-w-2xl mx-auto leading-relaxed">
-              Compare verified clinics near you.
-            </p>
 
             {detectedBorough && (
               <p className="flex items-center justify-center gap-1.5 text-sm opacity-75 mb-4 sm:mb-5">
