@@ -733,7 +733,7 @@ export default function IntakePage() {
   const StepHeader = ({ icon: _icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) => (
     <div className="text-center space-y-2">
       <motion.h1
-        className="text-2xl md:text-3xl font-bold text-[#faf5ef] tracking-tight text-balance"
+        className="text-2xl md:text-3xl font-bold text-[#2d2d2d] tracking-tight text-balance"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.1 }}
@@ -741,7 +741,7 @@ export default function IntakePage() {
         {title}
       </motion.h1>
       <motion.p
-        className="text-[#faf5ef]/70 text-base"
+        className="text-[#2d2d2d]/60 text-base"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.2 }}
@@ -767,7 +767,7 @@ export default function IntakePage() {
   )
 
   return (
-    <div className="min-h-screen bg-[#0d3d3a] flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-white flex flex-col relative overflow-hidden">
       {/* Top bar — Pearlie logo */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between">
@@ -788,14 +788,14 @@ export default function IntakePage() {
         </div>
       </div>
 
-      {/* Headline banner — tagline + progress on cream bg with shadow */}
-      <div className="bg-[#faf3e6] text-center pt-2 pb-4 px-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] relative z-10">
-        <h2 className="text-2xl md:text-3xl font-heading font-medium text-[#3d3838] leading-tight">
+      {/* Headline banner — tagline + progress on dark teal bg with shadow */}
+      <div className="bg-[#0d3d3a] text-center pt-2 pb-4 px-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] relative z-10">
+        <h2 className="text-2xl md:text-3xl font-heading font-medium text-[#faf5ef] leading-tight">
           Help us match you to the{" "}
           <span className="text-[#0fbcb0] font-bold">right dentist</span>
         </h2>
         <div className="flex items-center justify-center gap-2 mt-2.5">
-          <div className="w-28 h-1.5 bg-[#e8dfd3] rounded-full overflow-hidden">
+          <div className="w-28 h-1.5 bg-[#faf5ef]/20 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-[#0fbcb0] rounded-full"
               initial={{ width: 0 }}
@@ -803,7 +803,7 @@ export default function IntakePage() {
               transition={{ duration: 0.5, ease: "easeOut" }}
             />
           </div>
-          <span className="text-xs font-medium text-[#3d3838]/50">{progressPercent}%</span>
+          <span className="text-xs font-medium text-[#faf5ef]/50">{progressPercent}%</span>
         </div>
       </div>
 
@@ -812,10 +812,10 @@ export default function IntakePage() {
         <div className="flex-1 max-w-2xl w-full mx-auto px-4 py-4 md:py-5">
           {/* Match failure inline card */}
           {matchFailed && (
-            <div className="mb-8 p-6 bg-red-900/20 border border-red-400/30 rounded-2xl text-center space-y-4">
+            <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-2xl text-center space-y-4">
               <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
-              <h2 className="text-lg font-semibold text-[#faf5ef]">We couldn&apos;t find your matches</h2>
-              <p className="text-sm text-[#faf5ef]/70">{matchFailed}</p>
+              <h2 className="text-lg font-semibold text-[#2d2d2d]">We couldn&apos;t find your matches</h2>
+              <p className="text-sm text-[#2d2d2d]/60">{matchFailed}</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
                   onClick={handleMatchRetry}
@@ -878,7 +878,7 @@ export default function IntakePage() {
 
                     {/* Emergency option - visually separated */}
                     <motion.div {...fadeUp(0.05 * TREATMENT_OPTIONS.length + 0.3)}>
-                      <div className="pt-2 border-t border-[#faf5ef]/20 mt-1">
+                      <div className="pt-2 border-t border-[#2d2d2d]/10 mt-1">
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <OptionCard
                             selected={isEmergency}
@@ -1370,7 +1370,7 @@ export default function IntakePage() {
                           setAuthUser(null)
                           setContinueAsSomeoneElse(true)
                         }}
-                        className="w-full text-center text-sm text-[#faf5ef]/60 hover:text-[#faf5ef] transition-colors py-2"
+                        className="w-full text-center text-sm text-[#2d2d2d]/50 hover:text-[#2d2d2d] transition-colors py-2"
                       >
                         Continue as someone else
                       </button>
@@ -1381,7 +1381,7 @@ export default function IntakePage() {
                   <motion.div className="space-y-5" {...fadeUp(0.3)}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="firstName" className="text-sm font-medium text-[#faf5ef]">
+                        <Label htmlFor="firstName" className="text-sm font-medium text-[#2d2d2d]">
                           First name
                         </Label>
                         <Input
@@ -1393,7 +1393,7 @@ export default function IntakePage() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="lastName" className="text-sm font-medium text-[#faf5ef]">
+                        <Label htmlFor="lastName" className="text-sm font-medium text-[#2d2d2d]">
                           Last name
                         </Label>
                         <Input
@@ -1407,7 +1407,7 @@ export default function IntakePage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="email" className="text-sm font-medium text-[#faf5ef]">
+                      <Label htmlFor="email" className="text-sm font-medium text-[#2d2d2d]">
                         Email address
                       </Label>
                       <Input
@@ -1424,8 +1424,8 @@ export default function IntakePage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="phone" className="text-sm font-medium text-[#faf5ef]">
-                        Phone number <span className="text-[#faf5ef]/50 font-normal">(optional)</span>
+                      <Label htmlFor="phone" className="text-sm font-medium text-[#2d2d2d]">
+                        Phone number <span className="text-[#2d2d2d]/50 font-normal">(optional)</span>
                       </Label>
                       <Input
                         id="phone"
@@ -1443,15 +1443,15 @@ export default function IntakePage() {
                           id="consent"
                           checked={formData.consentContact}
                           onCheckedChange={(checked) => setFormData({ ...formData, consentContact: checked === true })}
-                          className="mt-0.5 border-[#faf5ef]/60 data-[state=checked]:bg-[#0fbcb0] data-[state=checked]:border-[#0fbcb0]"
+                          className="mt-0.5 border-[#2d2d2d]/30 data-[state=checked]:bg-[#0fbcb0] data-[state=checked]:border-[#0fbcb0]"
                         />
-                        <span className="text-sm text-[#faf5ef] leading-relaxed">
+                        <span className="text-sm text-[#2d2d2d] leading-relaxed">
                           I agree to be contacted by matched clinics about my enquiry and accept the{" "}
-                          <a href="/terms" className="text-[#4dd9ce] underline hover:text-[#0fbcb0]">
+                          <a href="/terms" className="text-[#0fbcb0] underline hover:text-[#0da399]">
                             Terms
                           </a>{" "}
                           and{" "}
-                          <a href="/privacy" className="text-[#4dd9ce] underline hover:text-[#0fbcb0]">
+                          <a href="/privacy" className="text-[#0fbcb0] underline hover:text-[#0da399]">
                             Privacy Policy
                           </a>
                           .
@@ -1463,9 +1463,9 @@ export default function IntakePage() {
                           id="marketing"
                           checked={formData.consentMarketing}
                           onCheckedChange={(checked) => setFormData({ ...formData, consentMarketing: checked === true })}
-                          className="mt-0.5 border-[#faf5ef]/60 data-[state=checked]:bg-[#0fbcb0] data-[state=checked]:border-[#0fbcb0]"
+                          className="mt-0.5 border-[#2d2d2d]/30 data-[state=checked]:bg-[#0fbcb0] data-[state=checked]:border-[#0fbcb0]"
                         />
-                        <span className="text-sm text-[#faf5ef]/60 leading-relaxed">
+                        <span className="text-sm text-[#2d2d2d]/60 leading-relaxed">
                           Send me helpful dental care tips and offers (optional).
                         </span>
                       </label>
@@ -1488,7 +1488,7 @@ export default function IntakePage() {
 
                   {/* Trust indicators */}
                   <motion.div
-                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#faf5ef]/50"
+                    className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-[#2d2d2d]/40"
                     initial={hasAnimated ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: hasAnimated ? 0 : 0.7 }}
