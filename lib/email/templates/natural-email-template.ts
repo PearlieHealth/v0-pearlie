@@ -111,7 +111,6 @@ export function renderNaturalChatToClinicEmail(data: NaturalChatToClinicData): s
       ${replyCta}
       <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e5e5; font-size: 11px; color: #999;">
         <a href="${data.inboxUrl}" style="color: #999; text-decoration: underline;">View in clinic dashboard</a>
-        ${data.unsubscribeFooterHtml}
       </div>
     </div>
     ${threadMarker}
@@ -129,7 +128,6 @@ export interface NaturalClinicNudgeData {
   waitTimeHours: number
   messagePreview: string
   inboxUrl: string
-  unsubscribeFooterHtml: string
 }
 
 export function renderNaturalClinicNudgeEmail(data: NaturalClinicNudgeData): string {
@@ -154,7 +152,6 @@ export function renderNaturalClinicNudgeEmail(data: NaturalClinicNudgeData): str
       </div>
       <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e5e5; font-size: 11px; color: #999;">
         <a href="${data.inboxUrl}" style="color: #999; text-decoration: underline;">View in clinic dashboard</a>
-        ${data.unsubscribeFooterHtml}
       </div>
     </div>
   </body>

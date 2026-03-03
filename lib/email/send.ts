@@ -120,9 +120,17 @@ export async function sendRegisteredEmail(
   }
 
   // 5. Render HTML (use async generator for AI-powered emails, sync fallback otherwise)
-  const html = entry.generateHtmlAsync
-    ? await entry.generateHtmlAsync(parseResult.data)
-    : entry.generateHtml(parseResult.data)
+  let html: string
+  if (entry.generateHtmlAsync) {
+    try {
+      html = await entry.generateHtmlAsync(parseResult.data)
+    } catch (err) {
+      console.error(`[Email] Async HTML generation failed for ${params.type}, falling back to sync:`, err)
+      html = entry.generateHtml(parseResult.data)
+    }
+  } else {
+    html = entry.generateHtml(parseResult.data)
+  }
 
   // 6. Compute subject
   const subject =
