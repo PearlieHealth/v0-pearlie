@@ -1,10 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { sendEmailWithRetry } from "@/lib/email-send"
-import { EMAIL_FROM } from "@/lib/email-config"
+import { sendRegisteredEmail } from "@/lib/email/send"
+import { EMAIL_TYPE } from "@/lib/email/registry"
 import { portalUrl } from "@/lib/clinic-url"
-import { escapeHtml } from "@/lib/escape-html"
 
 /**
  * POST /api/leads/direct-auto
@@ -181,7 +180,8 @@ export async function POST(request: NextRequest) {
 
 /**
  * Send a notification email to the clinic when an auto-created lead is generated.
- * Mirrors the notification in /api/otp/verify for manually-created direct leads.
+ * Uses the registered DIRECT_LEAD_NOTIFICATION email type for AI-generated natural
+ * email formatting, full logging, idempotency, and notification preference checks.
  */
 async function sendDirectLeadClinicNotification(
   supabase: ReturnType<typeof createAdminClient>,
@@ -190,61 +190,31 @@ async function sendDirectLeadClinicNotification(
 ) {
   const { data: clinic } = await supabase
     .from("clinics")
-    .select("name, notification_email, email, notification_preferences")
+    .select("name, notification_email, email")
     .eq("id", clinicId)
     .single()
 
   if (!clinic) return
 
-  const prefs = (clinic.notification_preferences as Record<string, boolean> | null) || {}
-  if (prefs.new_leads === false) return
-
   const recipientEmail = clinic.notification_email || clinic.email
   if (!recipientEmail) return
 
-  const safeName = escapeHtml(`${lead.first_name} ${lead.last_name}`.trim() || "A patient")
-  const safeTreatment = escapeHtml(lead.treatment_interest || "Not specified")
-  const safeEmail = escapeHtml(lead.email)
-  const safePhone = escapeHtml(lead.phone || "")
-  const safeTiming = escapeHtml(lead.preferred_timing || "Flexible")
-
-  await sendEmailWithRetry({
-    from: EMAIL_FROM.NOTIFICATIONS,
+  await sendRegisteredEmail({
+    type: EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION,
     to: recipientEmail,
-    subject: `New enquiry from ${lead.first_name} ${lead.last_name} via your profile`,
-    html: `
-      <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #0fbcb0 0%, #0da399 100%); color: white; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="margin: 0; font-size: 20px;">New Direct Enquiry</h1>
-          <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">A verified patient enquired from your profile</p>
-        </div>
-        <div style="padding: 30px; background-color: #f9fafb;">
-          <div style="background: white; border-radius: 8px; padding: 20px; border-left: 4px solid #0fbcb0; margin-bottom: 20px;">
-            <h2 style="margin: 0 0 12px; font-size: 16px; color: #1a1a1a;">Patient Details</h2>
-            <table style="width: 100%; font-size: 14px; color: #4b5563;">
-              <tr><td style="padding: 4px 0; font-weight: 600; width: 120px;">Name</td><td>${safeName}</td></tr>
-              <tr><td style="padding: 4px 0; font-weight: 600;">Email</td><td><a href="mailto:${safeEmail}" style="color: #0fbcb0;">${safeEmail}</a></td></tr>
-              <tr><td style="padding: 4px 0; font-weight: 600;">Phone</td><td><a href="tel:${safePhone}" style="color: #0fbcb0;">${safePhone}</a></td></tr>
-              <tr><td style="padding: 4px 0; font-weight: 600;">Treatment</td><td>${safeTreatment}</td></tr>
-              <tr><td style="padding: 4px 0; font-weight: 600;">Timing</td><td>${safeTiming}</td></tr>
-            </table>
-          </div>
-          <div style="background: #fffbeb; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
-            <p style="margin: 0; font-size: 13px; color: #92400e;">
-              <strong>Tip:</strong> Patients who enquire directly from your profile are highly interested. Respond quickly to maximise your chance of booking.
-            </p>
-          </div>
-          <div style="text-align: center;">
-            <a href="${portalUrl("/clinic/appointments")}"
-               style="background-color: #0fbcb0; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-size: 14px; font-weight: 600;">
-              View in Inbox
-            </a>
-          </div>
-        </div>
-        <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
-          <p>This patient found your clinic on Pearlie and submitted an enquiry directly.</p>
-        </div>
-      </div>
-    `,
+    data: {
+      clinicName: clinic.name || "",
+      firstName: lead.first_name || "",
+      lastName: lead.last_name || "",
+      email: lead.email || "",
+      phone: lead.phone || "",
+      treatment: lead.treatment_interest || "Not specified",
+      urgency: lead.preferred_timing || "flexible",
+      inboxUrl: portalUrl("/clinic/appointments"),
+      _leadId: lead.id,
+      _clinicId: clinicId,
+    },
+    clinicId,
+    leadId: lead.id,
   })
 }
