@@ -348,20 +348,20 @@ export function DentistNearMeClient({
       </section>
 
       {/* ─── SOCIAL PROOF BAR ─────────────────────────────── */}
-      <section className="border-b border-border/50 bg-white">
+      <section className="bg-[#004443] border-b border-white/10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center gap-4 sm:gap-10 py-3 text-xs sm:text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-              <span className="font-semibold text-foreground">4.8</span> avg
+          <div className="flex items-center justify-center gap-5 sm:gap-10 py-3.5 text-sm sm:text-base text-white/80">
+            <div className="flex items-center gap-1.5">
+              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+              <span className="font-bold text-white">4.8</span> avg
             </div>
-            <div className="flex items-center gap-1">
-              <Shield className="w-3.5 h-3.5 text-[#0fbcb0]" />
-              <span className="font-semibold text-foreground">100+</span> clinics
+            <div className="flex items-center gap-1.5">
+              <Shield className="w-4 h-4 text-[#0fbcb0]" />
+              <span className="font-bold text-white">100+</span> clinics
             </div>
-            <div className="flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
-              Trusted across London
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
+              <span className="text-white">Trusted across London</span>
             </div>
           </div>
         </div>
