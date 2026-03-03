@@ -15,11 +15,23 @@ import {
   Navigation,
   AlertCircle,
   ChevronDown,
-  CalendarCheck,
 } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { TreatmentClinicCard, type ClinicData } from "@/components/treatments/treatment-clinic-card"
 import { validateUKPostcode } from "@/lib/postcodes-io"
+
+const heroRotatingBenefits = [
+  "with availability",
+  "open on weekends",
+  "with transparent pricing",
+  "with the best reviews",
+  "accepting new patients",
+  "near your workplace",
+  "known for Invisalign",
+  "known for implants",
+  "known for composite bonding",
+]
 
 // Extend ClinicData with optional distance from nearby API
 type ClinicWithDistance = ClinicData & { distance_miles?: number }
@@ -51,6 +63,15 @@ export function DentistNearMeClient({
   const [isLoadingClinics, setIsLoadingClinics] = useState(false)
   const [showStickyTop, setShowStickyTop] = useState(false)
   const [seoExpanded, setSeoExpanded] = useState(false)
+
+  // Rotating hero benefit phrases
+  const [benefitIndex, setBenefitIndex] = useState(0)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBenefitIndex((prev) => (prev + 1) % heroRotatingBenefits.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Sticky top bar: show when hero scrolls out of view
   useEffect(() => {
@@ -212,14 +233,6 @@ export function DentistNearMeClient({
     ? `/london/${detectedBoroughSlug}`
     : "/london"
 
-  const ratedClinics = displayedClinics.filter((c) => (c.rating as number) > 0)
-  const avgRating =
-    ratedClinics.length > 0
-      ? (
-          ratedClinics.reduce((sum, c) => sum + ((c.rating as number) || 0), 0) /
-          ratedClinics.length
-        ).toFixed(1)
-      : "4.8"
 
   return (
     <>
@@ -248,23 +261,36 @@ export function DentistNearMeClient({
         </div>
       </div>
 
-      {/* ─── HERO (Compact mobile, expanded desktop) ──────── */}
+      {/* ─── HERO (Full-screen mobile, expanded desktop) ──── */}
       <section
         ref={heroRef}
-        className="relative bg-gradient-to-b from-[#004443] to-[#00625e] text-white pt-28 pb-10 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 overflow-hidden"
+        className="relative bg-gradient-to-b from-[#004443] to-[#00625e] text-white min-h-[100svh] sm:min-h-0 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 overflow-hidden flex flex-col justify-center"
       >
         <div className="absolute top-10 right-10 w-72 h-72 rounded-full bg-white/[0.03] blur-3xl pointer-events-none hidden sm:block" />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-3 sm:mb-4 text-balance">
-              {detectedBorough
-                ? `Dentists Near You in ${detectedBorough}`
-                : "Dentists Near Me"}
+            <h1 className="text-[2rem] sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-2 sm:mb-4">
+              <span className="block">
+                {detectedBorough
+                  ? `Dentist Near Me in ${detectedBorough}`
+                  : "Dentist Near Me"}
+              </span>
+              <span className="block mt-0 sm:mt-1 relative h-[1.2em] overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={benefitIndex}
+                    className="absolute inset-x-0 top-0 text-[#0fbcb0]"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+                  >
+                    {heroRotatingBenefits[benefitIndex]}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-white/80 mb-5 sm:mb-6 max-w-2xl mx-auto leading-relaxed">
-              Compare verified clinics near you.
-            </p>
 
             {detectedBorough && (
               <p className="flex items-center justify-center gap-1.5 text-sm opacity-75 mb-4 sm:mb-5">
@@ -274,29 +300,28 @@ export function DentistNearMeClient({
             )}
 
             {/* Postcode search */}
-            <form onSubmit={handlePostcodeSubmit} className="max-w-md mx-auto mb-3">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={postcode}
-                    onChange={(e) => {
-                      setPostcode(e.target.value)
-                      setPostcodeError("")
-                    }}
-                    placeholder="Enter your postcode"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold px-5 sm:px-6 rounded-xl h-[44px]"
-                >
-                  {isSubmitting ? "Finding..." : "Find"}
-                </Button>
+            <form onSubmit={handlePostcodeSubmit} className="max-w-[21rem] sm:max-w-[21rem] mx-auto mb-4">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={postcode}
+                  onChange={(e) => {
+                    setPostcode(e.target.value)
+                    setPostcodeError("")
+                  }}
+                  placeholder="Enter your postcode"
+                  className="w-full pl-12 pr-4 py-4 rounded-xl bg-white text-foreground text-base placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#0fbcb0]"
+                />
               </div>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full mt-3 bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold rounded-xl h-[52px] text-base sm:text-lg"
+              >
+                {isSubmitting ? "Finding..." : "Find my dentist now"}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </form>
 
             <button
@@ -315,28 +340,19 @@ export function DentistNearMeClient({
               </p>
             )}
 
-            <p className="text-xs text-white/60 mt-4 sm:mt-5">
-              Free &bull; No booking fees &bull; Verified clinics only
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── SOCIAL PROOF BAR ─────────────────────────────── */}
-      <section className="border-b border-border/50 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center gap-4 sm:gap-10 py-3 text-xs sm:text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-              <span className="font-semibold text-foreground">{avgRating}</span> avg
-            </div>
-            <div className="flex items-center gap-1">
-              <Shield className="w-3.5 h-3.5 text-[#0fbcb0]" />
-              <span className="font-semibold text-foreground">100+</span> clinics
-            </div>
-            <div className="flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
-              Free matching
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-4 sm:mt-5">
+              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs sm:text-sm text-white">
+                <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                <span className="font-semibold">4.8</span> avg
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs sm:text-sm text-white">
+                <Shield className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                <span className="font-semibold">100+</span> clinics
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs sm:text-sm text-white">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                Trusted across London
+              </span>
             </div>
           </div>
         </div>
@@ -568,7 +584,7 @@ export function DentistNearMeClient({
                 size="lg"
                 className="bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold px-8 py-3 rounded-xl text-base min-h-[48px]"
               >
-                Get matched now
+                Find my dentist now
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
@@ -581,8 +597,7 @@ export function DentistNearMeClient({
         <div className="flex gap-2">
           <Link href="/intake" className="flex-1">
             <Button className="w-full bg-[#0fbcb0] hover:bg-[#0da399] text-white font-semibold rounded-full h-10 text-sm">
-              <CalendarCheck className="w-3.5 h-3.5 mr-1.5" />
-              Get matched free
+              Find my dentist now
             </Button>
           </Link>
           <button

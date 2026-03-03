@@ -29,6 +29,18 @@ import { useLastMatch } from "@/hooks/use-last-match"
 // Homepage treatment list derived from the canonical config (not hardcoded)
 const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT)
 
+const heroRotatingBenefits = [
+  "nearby with availability",
+  "open on weekends",
+  "with transparent pricing",
+  "with the best reviews",
+  "accepting new patients",
+  "near your workplace",
+  "known for Invisalign",
+  "known for implants",
+  "known for composite bonding",
+]
+
 const marqueeItems = [
   { text: "Trusted UK Clinics", icon: <Shield className="w-3.5 h-3.5" /> },
   { text: "Free to Use", icon: <Sparkles className="w-3.5 h-3.5" /> },
@@ -177,6 +189,15 @@ export default function Home() {
 
   const lastMatch = useLastMatch()
 
+  // Rotating hero benefit phrases
+  const [benefitIndex, setBenefitIndex] = useState(0)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBenefitIndex((prev) => (prev + 1) % heroRotatingBenefits.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
   // iOS Safari: resume video on return from background.
   // iOS pauses the video when backgrounded and sometimes doesn't auto-resume.
   // Tries play() automatically; if that fails, shows a subtle "Tap to resume" overlay.
@@ -276,13 +297,26 @@ export default function Home() {
                   {/* Text content — desktop left, mobile first */}
                   <div className="order-1 lg:order-1 flex-1 text-center lg:text-left">
                     <motion.h1
-                      className="text-[clamp(1.65rem,6.8vw,2.3rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[0.95] font-heading font-bold tracking-[-0.03em] text-black mb-8 md:mb-14 lg:mb-24 -mx-2 md:mx-0"
+                      className="text-[clamp(2.1rem,8vw,2.75rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[1.1] font-heading font-bold tracking-[-0.03em] text-black mb-8 md:mb-14 lg:mb-24 -mx-2 md:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
                     >
-                      <span className="block whitespace-nowrap">Find the <span className="text-[#0fbcb0]">right</span> dentist.</span>
-                      <span className="block whitespace-nowrap mt-1 md:mt-2">Not just the closest one.</span>
+                      <span className="block">Find dentists</span>
+                      <span className="block mt-1 md:mt-2 relative h-[2.4em] md:h-[1.2em] overflow-hidden">
+                        <AnimatePresence mode="wait">
+                          <motion.span
+                            key={benefitIndex}
+                            className="absolute inset-x-0 top-0 text-[#0fbcb0]"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+                          >
+                            {heroRotatingBenefits[benefitIndex]}
+                          </motion.span>
+                        </AnimatePresence>
+                      </span>
                     </motion.h1>
 
                     {!lastMatch && (
@@ -292,7 +326,7 @@ export default function Home() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.2 }}
                       >
-                        Matching you with carefully reviewed clinics based on your budget, needs, preferences, and timing — so you can choose with confidence.
+                        Pearlie is a curated network of best dentists. Find one perfect for you and book online instantly.
                       </motion.p>
                     )}
 
