@@ -92,7 +92,7 @@ export function PostcodeInput({ value, onChange, onValidChange, onOutsideLondon,
             const upper = e.target.value.toUpperCase()
             onChange(upper)
           }}
-          className={`h-14 text-lg rounded-xl ${inputClassName || ""} ${error ? "border-destructive focus-visible:ring-destructive" : ""}`}
+          className={`h-12 text-base rounded-xl ${inputClassName || ""} ${error ? "border-destructive focus-visible:ring-destructive" : ""}`}
         />
         {isValidating && (
           <div className="absolute right-4 top-1/2 -translate-y-1/2">
