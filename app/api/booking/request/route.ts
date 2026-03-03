@@ -2,13 +2,11 @@ import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { randomBytes } from "crypto"
 import { createRateLimiter } from "@/lib/rate-limit"
-import { generateUnsubscribeFooterHtml, generateUnsubscribeUrl, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
+import { generateUnsubscribeFooterHtml, generateUnsubscribeUrl } from "@/lib/unsubscribe"
 import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
 import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
-import { escapeHtml } from "@/lib/escape-html"
 import { portalUrl } from "@/lib/clinic-url"
-import { generateReplyToAddress, generateThreadMarker } from "@/lib/email-reply-token"
 
 // 10 booking requests per IP per hour
 const bookingIpLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, maxAttempts: 10 })
@@ -124,10 +122,19 @@ export async function POST(request: Request) {
       console.error("[booking-request] Error updating lead:", updateError)
     }
 
-    // Send the direct lead notification email to the clinic
+    // Format date for messages (no year — keeps it natural)
+    const formattedDate = new Date(date + "T00:00:00").toLocaleDateString("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    })
+    const bookingMessageContent = `Hi, I'd like to book an appointment on ${formattedDate}. Would this date work?`
+
+    // Send the lead notification email to the clinic with full intake data + booking message
     const clinicNotificationEmail = clinic.notification_email || clinic.email
     if (clinicNotificationEmail) {
       try {
+        const rawAnswers = lead.raw_answers || {}
         await sendRegisteredEmail({
           type: EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION,
           to: clinicNotificationEmail,
@@ -140,6 +147,17 @@ export async function POST(request: Request) {
             treatment: lead.treatment_interest || "Not specified",
             urgency: lead.preferred_timing || "flexible",
             inboxUrl: portalUrl("/clinic/appointments"),
+            postcode: lead.postcode || "",
+            preferredTimes: lead.preferred_times || rawAnswers.preferred_times || [],
+            bookingDate: date || null,
+            anxietyLevel: lead.anxiety_level || rawAnswers.anxiety_level || "",
+            decisionValues: lead.decision_values || rawAnswers.values || [],
+            conversionBlocker: lead.conversion_blocker || rawAnswers.conversion_blocker || "",
+            costApproach: rawAnswers.cost_approach || lead.budget_range || "",
+            strictBudgetAmount: rawAnswers.strict_budget_amount || null,
+            blockerLabels: rawAnswers.blocker_labels || [],
+            rawAnswers,
+            messageContent: bookingMessageContent,
             _leadId: leadId,
             _clinicId: clinicId,
           },
@@ -162,14 +180,6 @@ export async function POST(request: Request) {
 
     // Auto-create a chat conversation with the booking request so both patient
     // (in their dashboard) and clinic (in their inbox) can see and continue it.
-    const formattedDate = new Date(date + "T00:00:00").toLocaleDateString("en-GB", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    })
-    const bookingMessageContent = `Hi! I'd like to request an appointment on ${formattedDate}. Would this date work?`
-
     // Hoist conversationId, tokenHash, and bookingMessage so they're accessible in the final response
     let conversationId: string | null = null
     let tokenHash: string | null = null
@@ -295,7 +305,7 @@ export async function POST(request: Request) {
         }
 
         // Insert bot acknowledgement so the patient knows why there's no immediate reply
-        const botAckContent = `Thanks for your appointment request! 🗓️\n\n${clinic.name} will review your request for ${formattedDate} and get back to you shortly.\n\nIn the meantime, feel free to send any questions or additional details here.`
+        const botAckContent = `Your appointment request for ${formattedDate} has been sent to ${clinic.name}. They'll get back to you shortly.\n\nFeel free to send any questions or additional details here in the meantime.`
         const { data: botMsg, error: botMsgError } = await supabase.from("messages").insert({
           conversation_id: conversationId,
           sender_type: "bot",
@@ -322,38 +332,8 @@ export async function POST(request: Request) {
           })
           .eq("id", conversationId)
 
-        // Send chat notification email to clinic about the booking request message
-        if (clinicNotificationEmail && bookingMessage) {
-          try {
-            const safeName = escapeHtml(`${lead.first_name || ""} ${lead.last_name || ""}`.trim() || "A patient")
-            const safeContent = escapeHtml(bookingMessageContent.substring(0, 500))
-            const unsubFooterClinic = generateUnsubscribeFooterHtml(
-              generateUnsubscribeHeaders(clinicNotificationEmail, "clinic_notifications")["List-Unsubscribe"].replace(/[<>]/g, "")
-            )
-            const replyTo = generateReplyToAddress(conversationId, "clinic", clinicNotificationEmail)
-            const threadMarker = generateThreadMarker(conversationId)
-
-            await sendRegisteredEmail({
-              type: EMAIL_TYPE.CHAT_NOTIFICATION_TO_CLINIC,
-              to: clinicNotificationEmail,
-              data: {
-                patientName: safeName,
-                messagePreview: safeContent,
-                inboxUrl: portalUrl("/clinic/appointments"),
-                unsubscribeFooterHtml: unsubFooterClinic,
-                _conversationId: conversationId,
-                replyToAddress: replyTo,
-                threadMarker,
-              },
-              headers: generateUnsubscribeHeaders(clinicNotificationEmail, "clinic_notifications"),
-              replyTo,
-              clinicId,
-              leadId,
-            })
-          } catch (chatEmailErr) {
-            console.error("[booking-request] Chat notification email to clinic failed:", chatEmailErr)
-          }
-        }
+        // Note: clinic notification email (DIRECT_LEAD_NOTIFICATION) is already sent
+        // above with the booking message woven in — no separate chat email needed.
       }
     } catch (convError) {
       // Don't fail the booking if conversation creation fails

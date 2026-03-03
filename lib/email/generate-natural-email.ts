@@ -40,6 +40,8 @@ export interface NaturalEmailInput {
   strictBudgetAmount?: number | null
   blockerLabels?: string[]
   clinicName: string
+  /** Patient's own message (chat or booking request) to weave into the email body. */
+  messageContent?: string | null
 }
 
 export interface NaturalEmailResult {
@@ -102,24 +104,27 @@ export function generateNaturalSubject(data: NaturalEmailInput): string {
 // Groq AI call
 // ---------------------------------------------------------------------------
 
-const SYSTEM_PROMPT = `You are writing an email FROM a dental patient TO a dental clinic to request an appointment. The email should read as if the patient wrote it themselves — natural, polite, and professional.
+const SYSTEM_PROMPT = `You are writing an email FROM a dental patient TO a dental clinic to enquire about an appointment. The email should read as if the patient wrote it themselves — natural, casual, and straightforward.
 
 RULES:
 - Write in first person as the patient
-- Use a warm, professional British English tone
+- Keep the tone casual and matter-of-fact — like a real person writing a quick email, not a marketing pitch
+- Do NOT embellish, exaggerate, or add enthusiasm that isn't in the source data (e.g. never write "I'm looking for a brighter, whiter smile" unless the patient literally said that)
+- Simply state what the patient wants — treatment, timing, date — without dressing it up
 - Never mention "Pearlie", "platform", "matching", "lead", or any technology/service
 - Never say "I was matched with you" or "I found you on a website"
 - Weave ALL the provided patient details naturally into the prose
 - Include their name, treatment interest, location/postcode, timing preference, preferred appointment times, and any concerns
-- If they have dental anxiety, mention it naturally (e.g. "I tend to feel quite nervous at the dentist")
-- If they care about pricing, mention it naturally (e.g. "It's important to me to understand costs clearly before starting")
+- If they have dental anxiety, mention it briefly and naturally (e.g. "I'm a bit nervous about dental visits")
+- If they care about pricing, mention it simply (e.g. "I'd like to understand costs upfront")
 - If they have specific concerns/blockers, weave them in naturally
 - If a specific booking date is provided, request that date
+- If the patient wrote their own message, incorporate its intent and key points naturally — do NOT quote it verbatim, but make sure the email reflects what they said
 - End with "Kind regards," followed by the patient's full name and email on separate lines
 - If they have a phone number, include it after the email
-- Choose a natural greeting that fits the tone — "Hi," or "Hello," for a warm conversational feel, or "Dear [Clinic Name] Team," for a more formal enquiry. Use your judgement based on the treatment and urgency.
+- Start with "Hi," — keep it simple
 - Do NOT include a subject line — only the body
-- Keep it concise (150-250 words)
+- Keep it concise (100-200 words)
 - Do NOT use bullet points or structured lists — write flowing prose paragraphs
 - Do NOT add fake details or embellish beyond what's provided`
 
@@ -173,7 +178,7 @@ Cost approach: ${costLabel || "not specified"}
 ${data.strictBudgetAmount ? `Budget: £${data.strictBudgetAmount}` : ""}
 What matters to them: ${data.decisionValues?.join(", ") || "not specified"}
 Their concerns: ${blockerStr || "none"}
-
+${data.messageContent ? `\nPatient's own message: "${data.messageContent}"` : ""}
 Write the email body only (no subject line).`
 }
 
@@ -401,6 +406,11 @@ export function generateFallbackEmailBody(data: NaturalEmailInput): string {
   // Anxiety
   if (anxietyLine) {
     paragraphs.push(anxietyLine)
+  }
+
+  // Patient's own message
+  if (data.messageContent) {
+    paragraphs.push(data.messageContent)
   }
 
   // Closing

@@ -1,7 +1,6 @@
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAuthUser } from "@/lib/supabase/get-clinic-user"
 import { NextResponse } from "next/server"
@@ -46,16 +45,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const supabase = await createClient()
-
-    const { data: lead, error: leadError } = await supabase.from("leads").select("id").eq("id", leadId).maybeSingle()
-
-    if (!lead || leadError) {
-      console.error("[lead-actions] Lead not found:", leadId, leadError)
-      return NextResponse.json({ error: "Lead not found" }, { status: 400 })
-    }
-
-    const { data: actionRecord, error: insertError } = await supabase
+    // Use admin client for data queries — ownership already verified above
+    const { data: actionRecord, error: insertError } = await supabaseAdmin
       .from("lead_actions")
       .insert({
         lead_id: leadId,
@@ -88,7 +79,7 @@ export async function POST(request: Request) {
     // Send email notification in background (non-blocking)
     const emailPromise = (async () => {
       try {
-        const { data: leadData, error: leadDataError } = await supabase
+        const { data: leadData, error: leadDataError } = await supabaseAdmin
           .from("leads")
           .select(
             "first_name, last_name, email, phone, treatment_interest, postcode, budget_range, preferred_timing, preferred_times, booking_token, booking_date, booking_time, created_at, location_preference, anxiety_level, decision_values, conversion_blocker, raw_answers",
@@ -96,7 +87,7 @@ export async function POST(request: Request) {
           .eq("id", leadId)
           .maybeSingle()
 
-        const { data: clinic, error: clinicError } = await supabase
+        const { data: clinic, error: clinicError } = await supabaseAdmin
           .from("clinics")
           .select("name, notification_email, email, notification_preferences")
           .eq("id", clinicId)
