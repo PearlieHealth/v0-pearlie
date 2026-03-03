@@ -340,28 +340,19 @@ export function DentistNearMeClient({
               </p>
             )}
 
-            <p className="text-xs text-white/60 mt-4 sm:mt-5">
-              Free &bull; No booking fees &bull; Verified clinics only
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── SOCIAL PROOF BAR ─────────────────────────────── */}
-      <section className="bg-[#004443] border-b border-white/10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center gap-5 sm:gap-10 py-3.5 text-sm sm:text-base text-white/80">
-            <div className="flex items-center gap-1.5">
-              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-              <span className="font-bold text-white">4.8</span> avg
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Shield className="w-4 h-4 text-[#0fbcb0]" />
-              <span className="font-bold text-white">100+</span> clinics
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-[#0fbcb0]" />
-              <span className="text-white">Trusted across London</span>
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-4 sm:mt-5">
+              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs sm:text-sm text-white">
+                <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                <span className="font-semibold">4.8</span> avg
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs sm:text-sm text-white">
+                <Shield className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                <span className="font-semibold">100+</span> clinics
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs sm:text-sm text-white">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
+                Trusted across London
+              </span>
             </div>
           </div>
         </div>
