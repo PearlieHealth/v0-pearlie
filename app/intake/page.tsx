@@ -26,7 +26,7 @@ import { pushToDataLayer } from "@/lib/gtm"
 import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { slideVariants, slideTransition } from "@/lib/slide-variants"
-import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap } from "lucide-react"
+import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap, Info } from "lucide-react"
 import {
   FORM_VERSION,
   SCHEMA_VERSION,
@@ -730,7 +730,7 @@ export default function IntakePage() {
 
   // Reusable step header component - only animates on first render of step
   // Uses `hasAnimated` from closure to skip intro animation on re-renders
-  const StepHeader = ({ icon: _icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) => (
+  const StepHeader = ({ icon: _icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) => (
     <div className="text-center space-y-2">
       <motion.h1
         className="text-2xl md:text-3xl font-bold text-[#2d2d2d] tracking-tight text-balance"
@@ -740,14 +740,16 @@ export default function IntakePage() {
       >
         {title}
       </motion.h1>
-      <motion.p
-        className="text-[#2d2d2d]/60 text-base"
-        initial={hasAnimated ? false : { opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: hasAnimated ? 0 : 0.2 }}
-      >
-        {subtitle}
-      </motion.p>
+      {subtitle && (
+        <motion.p
+          className="text-[#2d2d2d]/60 text-base"
+          initial={hasAnimated ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: hasAnimated ? 0 : 0.2 }}
+        >
+          {subtitle}
+        </motion.p>
+      )}
     </div>
   )
 
@@ -792,7 +794,7 @@ export default function IntakePage() {
       <div className="bg-[#0d3d3a] text-center pt-2 pb-4 px-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] relative z-10">
         <h2 className="text-2xl md:text-3xl font-heading font-medium text-[#faf5ef] leading-tight">
           Help us match you to the{" "}
-          <span className="text-[#0fbcb0] font-bold">right dentist</span>
+          <span className="text-[#0fbcb0] font-bold whitespace-nowrap">right dentist</span>
         </h2>
         <div className="flex items-center justify-center gap-2 mt-2.5">
           <div className="w-28 h-1.5 bg-[#faf5ef]/20 rounded-full overflow-hidden">
@@ -935,7 +937,6 @@ export default function IntakePage() {
                   <StepHeader
                     icon={<MapPin className="w-10 h-10" />}
                     title="How far are you willing to travel?"
-                    subtitle="This helps us balance convenience with finding the right clinic."
                   />
 
                   <div className="grid grid-cols-1 gap-2">
@@ -952,6 +953,11 @@ export default function IntakePage() {
                         </motion.div>
                       </motion.div>
                     ))}
+                  </div>
+
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#0a302d] text-[#faf5ef]/60 text-sm">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0fbcb0]" />
+                    <span>This helps us balance convenience with finding the right clinic.</span>
                   </div>
                 </motion.div>
               )}
@@ -1025,7 +1031,6 @@ export default function IntakePage() {
                   <StepHeader
                     icon={<Shield className="w-10 h-10" />}
                     title="How do you feel about dental visits?"
-                    subtitle="We will match you with clinics experienced with patients like you."
                   />
 
                   <div className="grid grid-cols-1 gap-2">
@@ -1041,6 +1046,11 @@ export default function IntakePage() {
                         </motion.div>
                       </motion.div>
                     ))}
+                  </div>
+
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#0a302d] text-[#faf5ef]/60 text-sm">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0fbcb0]" />
+                    <span>We will match you with clinics experienced with patients like you.</span>
                   </div>
                 </motion.div>
               )}
@@ -1142,7 +1152,6 @@ export default function IntakePage() {
                   <StepHeader
                     icon={<Calendar className="w-10 h-10" />}
                     title="When are you looking to start?"
-                    subtitle="This helps us find clinics with the right availability."
                   />
 
                   <div className="grid grid-cols-1 gap-2">
@@ -1159,6 +1168,11 @@ export default function IntakePage() {
                       </motion.div>
                     ))}
                   </div>
+
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#0a302d] text-[#faf5ef]/60 text-sm">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0fbcb0]" />
+                    <span>This helps us find clinics with the right availability.</span>
+                  </div>
                 </motion.div>
               )}
 
@@ -1170,7 +1184,6 @@ export default function IntakePage() {
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
                     title="How do you usually think about investing in dental treatment?"
-                    subtitle="This helps us match you with clinics that fit your approach."
                   />
 
                   <div className="grid grid-cols-1 gap-2">
@@ -1201,6 +1214,11 @@ export default function IntakePage() {
                         </motion.div>
                       </motion.div>
                     ))}
+                  </div>
+
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#0a302d] text-[#faf5ef]/60 text-sm">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0fbcb0]" />
+                    <span>This helps us match you with clinics that fit your approach.</span>
                   </div>
                 </motion.div>
               )}
