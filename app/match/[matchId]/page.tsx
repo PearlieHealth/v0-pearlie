@@ -1002,6 +1002,16 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                     acceptsSameDay={clinic.accepts_same_day || false}
                                     onSelectDate={(date) => {
                                       trackTikTokEvent("InitiateCheckout", { content_name: "select_date" })
+                                      // Notify clinic of new lead (keepalive survives page navigation)
+                                      const actualLeadId = leadId || match.lead_id
+                                      if (actualLeadId) {
+                                        fetch("/api/lead-actions", {
+                                          method: "POST",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({ leadId: actualLeadId, clinicId: clinic.id, actionType: "click_book" }),
+                                          keepalive: true,
+                                        }).catch(() => {})
+                                      }
                                       const dateStr = date.toISOString().split("T")[0]
                                       window.location.href = `/booking/confirm?clinicId=${clinic.id}&leadId=${match.lead_id}&date=${dateStr}&matchId=${matchId}`
                                     }}
@@ -1025,6 +1035,16 @@ clinic.tier === "directory" || clinic.tier === "nearby" || clinic.is_directory_l
                                         properties: { content_name: "message_clinic_match_page" },
                                       })
                                       trackGoogleAdsConversion("chat_start")
+                                      // Notify clinic of new lead (keepalive survives page navigation)
+                                      const actualLeadId = leadId || match.lead_id
+                                      if (actualLeadId) {
+                                        fetch("/api/lead-actions", {
+                                          method: "POST",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({ leadId: actualLeadId, clinicId: clinic.id, actionType: "click_book" }),
+                                          keepalive: true,
+                                        }).catch(() => {})
+                                      }
                                     }}
                                   >
                                     <Link href={`/clinic/${clinic.slug || clinic.id}?matchId=${matchId}&leadId=${leadId || match.lead_id}&chat=open`}>
