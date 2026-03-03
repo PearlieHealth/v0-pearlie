@@ -233,14 +233,6 @@ export function DentistNearMeClient({
     ? `/london/${detectedBoroughSlug}`
     : "/london"
 
-  const ratedClinics = displayedClinics.filter((c) => (c.rating as number) > 0)
-  const avgRating =
-    ratedClinics.length > 0
-      ? (
-          ratedClinics.reduce((sum, c) => sum + ((c.rating as number) || 0), 0) /
-          ratedClinics.length
-        ).toFixed(1)
-      : "4.8"
 
   return (
     <>
@@ -361,7 +353,7 @@ export function DentistNearMeClient({
           <div className="flex items-center justify-center gap-4 sm:gap-10 py-3 text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-              <span className="font-semibold text-foreground">{avgRating}</span> avg
+              <span className="font-semibold text-foreground">4.8</span> avg
             </div>
             <div className="flex items-center gap-1">
               <Shield className="w-3.5 h-3.5 text-[#0fbcb0]" />
@@ -369,7 +361,7 @@ export function DentistNearMeClient({
             </div>
             <div className="flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5 text-[#0fbcb0]" />
-              Free matching
+              Trusted across London
             </div>
           </div>
         </div>
