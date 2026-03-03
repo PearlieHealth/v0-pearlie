@@ -11,9 +11,10 @@ interface PostcodeInputProps {
   onChange: (value: string) => void
   onValidChange?: (isValid: boolean) => void
   onOutsideLondon?: (area: string) => void
+  inputClassName?: string
 }
 
-export function PostcodeInput({ value, onChange, onValidChange, onOutsideLondon }: PostcodeInputProps) {
+export function PostcodeInput({ value, onChange, onValidChange, onOutsideLondon, inputClassName }: PostcodeInputProps) {
   const [error, setError] = useState<string | null>(null)
   const [isValidating, setIsValidating] = useState(false)
   const onValidChangeRef = useRef(onValidChange)
@@ -91,16 +92,16 @@ export function PostcodeInput({ value, onChange, onValidChange, onOutsideLondon 
             const upper = e.target.value.toUpperCase()
             onChange(upper)
           }}
-          className={`h-14 text-lg rounded-xl ${error ? "border-destructive focus-visible:ring-destructive" : ""}`}
+          className={`h-14 text-lg rounded-xl ${inputClassName || ""} ${error ? "border-destructive focus-visible:ring-destructive" : ""}`}
         />
         {isValidating && (
           <div className="absolute right-4 top-1/2 -translate-y-1/2">
-            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-[#0fbcb0] border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>
       {error && (
-        <div className="flex items-center gap-2 text-sm text-destructive">
+        <div className="flex items-center gap-2 text-sm text-red-400">
           <AlertCircle className="w-4 h-4" />
           <span>{error}</span>
         </div>
