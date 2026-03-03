@@ -673,10 +673,10 @@ export default function IntakePage() {
         group relative w-full px-4 py-2.5 sm:px-5 sm:py-3 rounded-full border-2 text-left ${className}
         transition-all duration-200 ease-out
         ${selected
-          ? "border-[#0fbcb0] bg-white shadow-md"
+          ? "border-[#0fbcb0] bg-[#d4edea] shadow-md"
           : disabled
-            ? "border-[#a8d5cf]/50 bg-white opacity-50 cursor-not-allowed"
-            : "border-[#a8d5cf] bg-white hover:border-[#0fbcb0]/60 hover:shadow-md active:scale-[0.98]"
+            ? "border-transparent bg-[#eaf6f4]/50 opacity-50 cursor-not-allowed"
+            : "border-transparent bg-[#eaf6f4] hover:bg-[#dff2ef] hover:shadow-md active:scale-[0.98]"
         }
       `}
     >
@@ -967,7 +967,7 @@ export default function IntakePage() {
                     ))}
                   </div>
 
-                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#eaf6f4] text-[#0d3d3a] text-sm">
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#faf5ef] text-[#0d3d3a] text-sm">
                     <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
                     <span>This helps us balance convenience with finding the right clinic.</span>
                   </div>
@@ -1060,7 +1060,7 @@ export default function IntakePage() {
                     ))}
                   </div>
 
-                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#eaf6f4] text-[#0d3d3a] text-sm">
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#faf5ef] text-[#0d3d3a] text-sm">
                     <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
                     <span>We will match you with clinics experienced with patients like you.</span>
                   </div>
@@ -1132,8 +1132,8 @@ export default function IntakePage() {
                             w-full p-3.5 rounded-2xl border-2 transition-all duration-200 text-center
                             ${
                               formData.preferred_times.includes(option.value)
-                                ? "border-[#0fbcb0] bg-white shadow-md"
-                                : "border-[#a8d5cf] bg-white hover:border-[#0fbcb0]/60 hover:shadow-md"
+                                ? "border-[#0fbcb0] bg-[#d4edea] shadow-md"
+                                : "border-transparent bg-[#eaf6f4] hover:bg-[#dff2ef] hover:shadow-md"
                             }
                           `}
                         >
@@ -1176,7 +1176,7 @@ export default function IntakePage() {
                     ))}
                   </div>
 
-                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#eaf6f4] text-[#0d3d3a] text-sm">
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#faf5ef] text-[#0d3d3a] text-sm">
                     <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
                     <span>This helps us find clinics with the right availability.</span>
                   </div>
@@ -1223,7 +1223,7 @@ export default function IntakePage() {
                     ))}
                   </div>
 
-                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#eaf6f4] text-[#0d3d3a] text-sm">
+                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#faf5ef] text-[#0d3d3a] text-sm">
                     <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
                     <span>This helps us match you with clinics that fit your approach.</span>
                   </div>
