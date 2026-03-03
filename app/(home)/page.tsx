@@ -9,7 +9,6 @@ import { MainNav } from "@/components/main-nav"
 import Image from "next/image"
 import { ComparisonTable } from "@/components/comparison-table"
 import { Badge } from "@/components/ui/badge"
-import { LoadingAnimation } from "@/components/loading-animation"
 import StatsCard from "@/components/stats-card"
 import ClinicCarousel from "@/components/clinic-carousel"
 import { ScrollingMarquee } from "@/components/scrolling-marquee"
@@ -181,10 +180,6 @@ function PatientExperiences() {
 }
 
 export default function Home() {
-  const [showLoading, setShowLoading] = useState(() => {
-    if (typeof window === 'undefined') return true
-    return window.innerWidth >= 768 // Skip animation on mobile for instant content
-  })
   const treatments = HOMEPAGE_TREATMENTS
 
   const lastMatch = useLastMatch()
@@ -247,12 +242,7 @@ export default function Home() {
 
   return (
     <>
-      <AnimatePresence>
-        {showLoading && <LoadingAnimation onComplete={() => setShowLoading(false)} />}
-      </AnimatePresence>
-
-      {/* Content is always rendered underneath - loading screen slides up like a curtain to reveal it */}
-      <div className={`min-h-screen ${showLoading ? 'invisible' : 'visible'}`}>
+      <div className="min-h-screen">
           <MainNav hideCta={!!lastMatch} />
           <StickyMobileHomeCta />
 
@@ -303,11 +293,11 @@ export default function Home() {
                       transition={{ duration: 0.8, delay: 0.1 }}
                     >
                       <span className="block">Find dentists</span>
-                      <span className="block mt-1 md:mt-2 relative h-[2.4em] md:h-[1.2em] overflow-hidden">
-                        <AnimatePresence mode="wait">
+                      <span className="block mt-1 md:mt-2 relative h-[2.4em] md:h-[1.3em] overflow-hidden">
+                        <AnimatePresence mode="wait" initial={false}>
                           <motion.span
                             key={benefitIndex}
-                            className="absolute inset-x-0 top-0 text-[#0fbcb0]"
+                            className="absolute inset-x-0 top-0 block text-[#0fbcb0]"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}

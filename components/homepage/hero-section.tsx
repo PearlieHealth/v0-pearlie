@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, RotateCcw, Search } from "lucide-react"
 import Link from "next/link"
-import { LoadingAnimation } from "@/components/loading-animation"
 import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { useLastMatch } from "@/hooks/use-last-match"
@@ -23,11 +22,6 @@ const heroRotatingBenefits = [
 ]
 
 export function HeroSection() {
-  const [showLoading, setShowLoading] = useState(() => {
-    if (typeof window === 'undefined') return true
-    return window.innerWidth >= 768
-  })
-
   const lastMatch = useLastMatch()
 
   // Rotating hero benefit phrases
@@ -83,10 +77,6 @@ export function HeroSection() {
 
   return (
     <>
-      <AnimatePresence>
-        {showLoading && <LoadingAnimation onComplete={() => setShowLoading(false)} />}
-      </AnimatePresence>
-
       <section className="relative md:min-h-[70vh] lg:min-h-[100vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:flex lg:flex-col lg:pt-20 lg:pb-0 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
         <div className="px-6 md:px-14 lg:flex-1 lg:flex lg:items-center">
           <div className="max-w-7xl lg:w-full">
@@ -130,11 +120,11 @@ export function HeroSection() {
                   transition={{ duration: 0.8, delay: 0.1 }}
                 >
                   <span className="block">Find dentists</span>
-                  <span className="block mt-1 md:mt-2 relative h-[2.4em] md:h-[1.2em] overflow-hidden">
-                    <AnimatePresence mode="wait">
+                  <span className="block mt-1 md:mt-2 relative h-[2.4em] md:h-[1.3em] overflow-hidden">
+                    <AnimatePresence mode="wait" initial={false}>
                       <motion.span
                         key={benefitIndex}
-                        className="absolute inset-x-0 top-0 text-[#0fbcb0]"
+                        className="absolute inset-x-0 top-0 block text-[#0fbcb0]"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
