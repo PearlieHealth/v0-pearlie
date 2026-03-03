@@ -11,7 +11,7 @@
  * 7. Universal logging to email_logs (every email, with idempotency key)
  */
 import { EMAIL_REGISTRY, type EmailType } from "./registry"
-import { EMAIL_FROM } from "@/lib/email-config"
+import { EMAIL_FROM, patientFromAddress } from "@/lib/email-config"
 import { sendEmailWithRetry } from "@/lib/email-send"
 import { isUnsubscribed, generateUnsubscribeHeaders } from "@/lib/unsubscribe"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -119,8 +119,10 @@ export async function sendRegisteredEmail(
     }
   }
 
-  // 5. Render HTML
-  const html = entry.generateHtml(parseResult.data)
+  // 5. Render HTML (use async generator for AI-powered emails, sync fallback otherwise)
+  const html = entry.generateHtmlAsync
+    ? await entry.generateHtmlAsync(parseResult.data)
+    : entry.generateHtml(parseResult.data)
 
   // 6. Compute subject
   const subject =
@@ -140,9 +142,21 @@ export async function sendRegisteredEmail(
     Object.assign(allHeaders, generateEmailThreadHeaders(params.data._conversationId))
   }
 
-  // 8. Send via Resend
+  // 8. Compute from address (dynamic for patient enquiry emails)
+  let fromAddress: string = EMAIL_FROM[entry.fromAddress]
+  if (entry.fromAddress === "PATIENT_ENQUIRY") {
+    if (params.data.firstName) {
+      fromAddress = patientFromAddress(params.data.firstName, params.data.lastName || "")
+    } else if (params.data.patientName) {
+      // Chat/nudge emails have patientName instead of firstName/lastName
+      const parts = params.data.patientName.split(" ")
+      fromAddress = patientFromAddress(parts[0] || "", parts.slice(1).join(" ") || "")
+    }
+  }
+
+  // 9. Send via Resend
   const result = await sendEmailWithRetry({
-    from: EMAIL_FROM[entry.fromAddress],
+    from: fromAddress,
     to: params.to,
     subject,
     html,
@@ -150,7 +164,7 @@ export async function sendRegisteredEmail(
     replyTo: params.replyTo,
   })
 
-  // 9. Log to email_logs (always, with idempotency key)
+  // 10. Log to email_logs (always, with idempotency key)
   try {
     const supabase = createAdminClient()
     await supabase.from("email_logs").insert({
@@ -160,7 +174,7 @@ export async function sendRegisteredEmail(
       status: result.success ? "sent" : "failed",
       error: result.error || null,
       provider_message_id: result.messageId || null,
-      from_address: EMAIL_FROM[entry.fromAddress],
+      from_address: fromAddress,
       clinic_id: params.clinicId || null,
       lead_id: params.leadId || null,
       idempotency_key: idempotencyKey,

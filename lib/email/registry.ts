@@ -43,6 +43,18 @@ import {
   renderDirectLeadNotificationEmail,
 } from "./templates/notification-templates"
 
+import {
+  renderNaturalEmail,
+  renderNaturalChatToClinicEmail,
+  renderNaturalClinicNudgeEmail,
+} from "./templates/natural-email-template"
+import {
+  generateNaturalEmail,
+  generateNaturalSubject,
+  generateFallbackEmailBody,
+  type NaturalEmailInput,
+} from "./generate-natural-email"
+
 // ---------------------------------------------------------------------------
 // Email type constants
 // ---------------------------------------------------------------------------
@@ -92,6 +104,8 @@ export interface EmailRegistryEntry {
   defaultSubject: string | ((data: any) => string)
   payloadSchema: z.ZodSchema
   generateHtml: (data: any) => string
+  /** Async HTML generator (e.g. for AI-generated content). Used instead of generateHtml when present. */
+  generateHtmlAsync?: (data: any) => Promise<string>
   /** Generates a deterministic idempotency key from the payload. null means no dedup. */
   idempotencyKey: ((data: any) => string) | null
 }
@@ -325,6 +339,89 @@ const appointmentNotificationSchema = z.object({
 })
 
 // ---------------------------------------------------------------------------
+// Natural email helpers — build NaturalEmailInput from schema-validated data
+// ---------------------------------------------------------------------------
+
+function leadActionToNaturalInput(data: z.infer<typeof leadActionSchema>): NaturalEmailInput {
+  const rawAnswers = data.rawAnswers || {}
+  return {
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    phone: data.phone,
+    treatment: data.treatment,
+    postcode: data.postcode,
+    timing: rawAnswers.timing || data.timing,
+    preferredTimes: rawAnswers.preferred_times || data.preferredTimes || [],
+    bookingDate: data.bookingDate || null,
+    bookingTime: data.bookingTime || null,
+    locationPreference: rawAnswers.location_preference || data.locationPreference,
+    anxietyLevel: rawAnswers.anxiety_level || data.anxietyLevel,
+    decisionValues: rawAnswers.values || data.decisionValues || [],
+    conversionBlocker: data.conversionBlocker,
+    costApproach: rawAnswers.cost_approach || data.budget,
+    strictBudgetAmount: rawAnswers.strict_budget_amount || null,
+    blockerLabels: rawAnswers.blocker_labels || (data.conversionBlocker ? [data.conversionBlocker] : []),
+    clinicName: data.clinicName,
+  }
+}
+
+function bookingToNaturalInput(data: z.infer<typeof bookingConfirmationSchema>): NaturalEmailInput {
+  const rawAnswers = data.rawAnswers || {}
+  return {
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    phone: data.phone,
+    treatment: data.treatment,
+    postcode: data.postcode,
+    timing: rawAnswers.timing || data.preferredTiming,
+    preferredTimes: data.preferredTimes || rawAnswers.preferred_times || [],
+    bookingDate: null,
+    bookingTime: null,
+    locationPreference: rawAnswers.location_preference || "",
+    anxietyLevel: rawAnswers.anxiety_level || "",
+    decisionValues: rawAnswers.values || [],
+    conversionBlocker: rawAnswers.conversion_blocker || "",
+    costApproach: rawAnswers.cost_approach || "",
+    strictBudgetAmount: rawAnswers.strict_budget_amount || null,
+    blockerLabels: rawAnswers.blocker_labels || [],
+    clinicName: data.clinicName,
+  }
+}
+
+function directLeadToNaturalInput(data: z.infer<typeof directLeadNotificationSchema>): NaturalEmailInput {
+  return {
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    phone: data.phone,
+    treatment: data.treatment,
+    postcode: "",
+    timing: data.urgency,
+    preferredTimes: [],
+    bookingDate: null,
+    bookingTime: null,
+    locationPreference: "",
+    anxietyLevel: "",
+    decisionValues: [],
+    conversionBlocker: "",
+    costApproach: "",
+    strictBudgetAmount: null,
+    blockerLabels: [],
+    clinicName: data.clinicName,
+  }
+}
+
+async function generateNaturalHtml(input: NaturalEmailInput): Promise<string> {
+  const result = await generateNaturalEmail(input)
+  return renderNaturalEmail({
+    emailBody: result.body,
+    aiGenerated: result.aiGenerated,
+  })
+}
+
+// ---------------------------------------------------------------------------
 // The Registry
 // ---------------------------------------------------------------------------
 
@@ -445,40 +542,39 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
 
   [EMAIL_TYPE.LEAD_ACTION_NOTIFICATION]: {
     type: EMAIL_TYPE.LEAD_ACTION_NOTIFICATION,
-    fromAddress: "NOTIFICATIONS",
+    fromAddress: "PATIENT_ENQUIRY",
     category: "notification",
     unsubscribeCategory: null, // Controlled by notification_preferences instead
     notificationPreferenceKey: "new_leads",
-    defaultSubject: (data) => {
-      const actionLabel = data.actionType === "click_book" ? "Book Consultation" : "Call Clinic"
-      return `New ${actionLabel} Request - ${data.firstName} ${data.lastName}`
-    },
+    defaultSubject: (data) => generateNaturalSubject(leadActionToNaturalInput(data)),
     payloadSchema: leadActionSchema,
-    generateHtml: renderLeadActionEmail,
+    generateHtml: renderLeadActionEmail, // sync fallback (used if generateHtmlAsync missing)
+    generateHtmlAsync: (data) => generateNaturalHtml(leadActionToNaturalInput(data)),
     idempotencyKey: (data) => `lead_action:${data._leadId}:${data._clinicId}:${data.actionType}`,
   },
 
   [EMAIL_TYPE.BOOKING_CONFIRMATION]: {
     type: EMAIL_TYPE.BOOKING_CONFIRMATION,
-    fromAddress: "NOTIFICATIONS",
+    fromAddress: "PATIENT_ENQUIRY",
     category: "notification",
     unsubscribeCategory: null,
     notificationPreferenceKey: "booking_confirmations",
-    defaultSubject: (data) => `Booking Request from ${data.firstName} ${data.lastName}`,
+    defaultSubject: (data) => generateNaturalSubject(bookingToNaturalInput(data)),
     payloadSchema: bookingConfirmationSchema,
-    generateHtml: renderBookingConfirmationEmail,
+    generateHtml: renderBookingConfirmationEmail, // sync fallback
+    generateHtmlAsync: (data) => generateNaturalHtml(bookingToNaturalInput(data)),
     idempotencyKey: (data) => `booking:${data._leadId}:${data._clinicId}`,
   },
 
   [EMAIL_TYPE.CHAT_NOTIFICATION_TO_CLINIC]: {
     type: EMAIL_TYPE.CHAT_NOTIFICATION_TO_CLINIC,
-    fromAddress: "NOTIFICATIONS",
+    fromAddress: "PATIENT_ENQUIRY",
     category: "notification",
     unsubscribeCategory: "clinic_notifications",
     notificationPreferenceKey: null,
-    defaultSubject: (data) => `New message from ${data.patientName}`,
+    defaultSubject: (data) => `Message from ${data.patientName}`,
     payloadSchema: chatToClinicSchema,
-    generateHtml: renderChatToClinicEmail,
+    generateHtml: renderNaturalChatToClinicEmail,
     idempotencyKey: (data) => `chat_clinic:${data._conversationId}:${tenMinBucket()}`,
   },
 
@@ -619,13 +715,13 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
 
   [EMAIL_TYPE.CLINIC_RESPONSE_NUDGE]: {
     type: EMAIL_TYPE.CLINIC_RESPONSE_NUDGE,
-    fromAddress: "NOTIFICATIONS",
+    fromAddress: "PATIENT_ENQUIRY",
     category: "notification",
     unsubscribeCategory: "clinic_notifications",
     notificationPreferenceKey: null,
-    defaultSubject: (data) => `${data.patientName} is waiting for your reply`,
+    defaultSubject: (data) => `Following up – ${data.patientName}`,
     payloadSchema: clinicResponseNudgeSchema,
-    generateHtml: renderClinicResponseNudgeEmail,
+    generateHtml: renderNaturalClinicNudgeEmail,
     // One nudge per conversation (never re-send for the same stale conversation)
     idempotencyKey: (data) => `clinic_nudge:${data._conversationId}`,
   },
@@ -649,14 +745,14 @@ export const EMAIL_REGISTRY: Record<EmailType, EmailRegistryEntry> = {
 
   [EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION]: {
     type: EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION,
-    fromAddress: "NOTIFICATIONS",
+    fromAddress: "PATIENT_ENQUIRY",
     category: "notification",
     unsubscribeCategory: null, // Controlled by notification_preferences instead
     notificationPreferenceKey: "new_leads",
-    defaultSubject: (data) =>
-      `New enquiry from ${data.firstName} ${data.lastName} via your profile`,
+    defaultSubject: (data) => generateNaturalSubject(directLeadToNaturalInput(data)),
     payloadSchema: directLeadNotificationSchema,
-    generateHtml: renderDirectLeadNotificationEmail,
+    generateHtml: renderDirectLeadNotificationEmail, // sync fallback
+    generateHtmlAsync: (data) => generateNaturalHtml(directLeadToNaturalInput(data)),
     idempotencyKey: (data) => `direct_lead:${data._leadId}:${data._clinicId}`,
   },
 }
