@@ -167,7 +167,7 @@ export async function POST(request: Request) {
       day: "numeric",
       month: "long",
     })
-    const bookingMessageContent = `Hi, I'd like to book an appointment on ${formattedDate} please.`
+    const bookingMessageContent = `Hi, I'd like to book an appointment on ${formattedDate}. Would this date work?`
 
     // Hoist conversationId, tokenHash, and bookingMessage so they're accessible in the final response
     let conversationId: string | null = null
