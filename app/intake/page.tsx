@@ -670,7 +670,7 @@ export default function IntakePage() {
       onClick={onClick}
       disabled={disabled}
       className={`
-        group relative w-full px-3 py-2 sm:px-4 sm:py-2.5 rounded-full border-2 text-left ${className}
+        group relative w-full px-4 py-2.5 sm:px-5 sm:py-3 rounded-full border-2 text-left ${className}
         transition-all duration-200 ease-out
         ${selected
           ? "border-[#0fbcb0] bg-[#e8dfd3] shadow-md"
@@ -697,7 +697,7 @@ export default function IntakePage() {
           </div>
         )}
         <div className="flex-1">
-          <span className="text-sm font-medium block text-[#2d2d2d]">
+          <span className="text-base font-medium block text-[#2d2d2d]">
             {children}
           </span>
           {hint && (
@@ -731,9 +731,9 @@ export default function IntakePage() {
   // Reusable step header component - only animates on first render of step
   // Uses `hasAnimated` from closure to skip intro animation on re-renders
   const StepHeader = ({ icon: _icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) => (
-    <div className="text-center space-y-1.5">
+    <div className="text-center space-y-2">
       <motion.h1
-        className="text-xl md:text-2xl font-bold text-[#faf5ef] tracking-tight text-balance"
+        className="text-2xl md:text-3xl font-bold text-[#faf5ef] tracking-tight text-balance"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.1 }}
@@ -741,7 +741,7 @@ export default function IntakePage() {
         {title}
       </motion.h1>
       <motion.p
-        className="text-[#faf5ef]/70 text-sm"
+        className="text-[#faf5ef]/70 text-base"
         initial={hasAnimated ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: hasAnimated ? 0 : 0.2 }}
@@ -758,7 +758,7 @@ export default function IntakePage() {
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="w-full h-10 text-sm font-semibold rounded-full shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
+        className="w-full h-11 text-base font-semibold rounded-full shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
         size="lg"
       >
         {label}
@@ -770,12 +770,12 @@ export default function IntakePage() {
     <div className="min-h-screen bg-[#0d3d3a] flex flex-col relative overflow-hidden">
       {/* Top bar — Pearlie logo */}
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-2xl mx-auto px-4 py-2 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="rounded-full bg-[#0fbcb0] p-1">
-              <Heart className="w-3.5 h-3.5 text-white fill-white" />
+            <div className="rounded-full bg-[#0fbcb0] p-1.5">
+              <Heart className="w-4 h-4 text-white fill-white" />
             </div>
-            <span className="text-lg font-heading font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
+            <span className="text-xl font-heading font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
           </div>
           <button
             type="button"
@@ -789,13 +789,13 @@ export default function IntakePage() {
       </div>
 
       {/* Headline banner — tagline + progress on cream bg with shadow */}
-      <div className="bg-[#faf3e6] text-center pt-1 pb-3 px-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] relative z-10">
-        <h2 className="text-xl md:text-2xl font-heading font-medium text-[#3d3838] leading-tight">
+      <div className="bg-[#faf3e6] text-center pt-2 pb-4 px-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] relative z-10">
+        <h2 className="text-2xl md:text-3xl font-heading font-medium text-[#3d3838] leading-tight">
           Help us match you to the{" "}
           <span className="text-[#0fbcb0] font-bold">right dentist</span>
         </h2>
-        <div className="flex items-center justify-center gap-2 mt-2">
-          <div className="w-24 h-1.5 bg-[#e8dfd3] rounded-full overflow-hidden">
+        <div className="flex items-center justify-center gap-2 mt-2.5">
+          <div className="w-28 h-1.5 bg-[#e8dfd3] rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-[#0fbcb0] rounded-full"
               initial={{ width: 0 }}
@@ -809,7 +809,7 @@ export default function IntakePage() {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col">
-        <div className="flex-1 max-w-2xl w-full mx-auto px-4 py-3 md:py-4">
+        <div className="flex-1 max-w-2xl w-full mx-auto px-4 py-4 md:py-5">
           {/* Match failure inline card */}
           {matchFailed && (
             <div className="mb-8 p-6 bg-red-900/20 border border-red-400/30 rounded-2xl text-center space-y-4">
@@ -850,14 +850,14 @@ export default function IntakePage() {
               {/* Q1: TREATMENT SELECTION (Both flows)         */}
               {/* ============================================ */}
               {step === 1 && (
-                <motion.div key="step1" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step1" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<Smile className="w-10 h-10" />}
                     title="What are you looking for help with?"
                     subtitle="Select all that apply. You do not need to be certain."
                   />
 
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {[
                       "General Check-up & Clean",
                       ...TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT && t !== "General Check-up & Clean"),
@@ -902,7 +902,7 @@ export default function IntakePage() {
               {/* Q2: POSTCODE (Both flows)                    */}
               {/* ============================================ */}
               {step === 2 && (
-                <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<MapPin className="w-10 h-10" />}
                     title="What is your postcode?"
@@ -931,14 +931,14 @@ export default function IntakePage() {
               {/* Q2.5 EMERGENCY: HOW SOON DO YOU NEED TO BE SEEN? */}
               {/* ============================================ */}
               {step === 2.5 && !isEmergency && (
-                <motion.div key="step2.5-planning" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step2.5-planning" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<MapPin className="w-10 h-10" />}
                     title="How far are you willing to travel?"
                     subtitle="This helps us balance convenience with finding the right clinic."
                   />
 
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {LOCATION_PREFERENCE_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -957,14 +957,14 @@ export default function IntakePage() {
               )}
 
               {step === 2.5 && isEmergency && (
-                <motion.div key="step2.5-emergency" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step2.5-emergency" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<Zap className="w-10 h-10" />}
                     title="How soon do you need to be seen?"
                     subtitle="We will prioritise clinics with the right availability."
                   />
 
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {URGENCY_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -985,14 +985,14 @@ export default function IntakePage() {
               {/* Q3: CLINIC PRIORITIES (Planning only, up to 2) */}
               {/* ============================================ */}
               {step === 3 && !isEmergency && (
-                <motion.div key="step3" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step3" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<Heart className="w-10 h-10" />}
                     title="When choosing a clinic, what would you prioritise most?"
                     subtitle="Pick up to 2."
                   />
 
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {DECISION_VALUE_OPTIONS.map((option, index) => {
                       const isSelected = formData.decisionValues.includes(option)
                       const isDisabled = !isSelected && formData.decisionValues.length >= 2
@@ -1021,14 +1021,14 @@ export default function IntakePage() {
               {/* Q3.5 / Q4E: DENTAL ANXIETY (Both flows)     */}
               {/* ============================================ */}
               {step === 3.5 && (
-                <motion.div key="step3.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step3.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<Shield className="w-10 h-10" />}
                     title="How do you feel about dental visits?"
                     subtitle="We will match you with clinics experienced with patients like you."
                   />
 
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {ANXIETY_LEVEL_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -1049,14 +1049,14 @@ export default function IntakePage() {
               {/* Q5: CONCERNS (Planning only, multi max 2)    */}
               {/* ============================================ */}
               {step === 5 && !isEmergency && (
-                <motion.div key="step5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<AlertCircle className="w-10 h-10" />}
                     title="Is there anything you're unsure or concerned about right now?"
                     subtitle="Select up to 2."
                   />
 
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {BLOCKER_OPTIONS.map((option, index) => {
                       const isSelected = formData.conversionBlockerCodes.includes(option.code)
                       const isNoConcernSelected = formData.conversionBlockerCodes.includes("NO_CONCERN")
@@ -1088,14 +1088,14 @@ export default function IntakePage() {
               {/* Q5.5 / Q5E: BEST TIME (Both flows)          */}
               {/* ============================================ */}
               {step === 5.5 && (
-                <motion.div key="step5.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step5.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<Sun className="w-10 h-10" />}
                     title="When works best for you?"
                     subtitle="Choose all the times that suit you."
                   />
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {PREFERRED_TIME_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.button
@@ -1110,7 +1110,7 @@ export default function IntakePage() {
                             setFormData({ ...formData, preferred_times: updated })
                           }}
                           className={`
-                            w-full p-3 rounded-xl border-2 transition-all duration-200 text-center
+                            w-full p-3.5 rounded-2xl border-2 transition-all duration-200 text-center
                             ${
                               formData.preferred_times.includes(option.value)
                                 ? "border-[#0fbcb0] bg-[#e8dfd3] ring-1 ring-[#0fbcb0]/20"
@@ -1118,12 +1118,12 @@ export default function IntakePage() {
                             }
                           `}
                         >
-                          <div className="flex flex-col items-center gap-1.5">
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#e8dfd3] text-[#0fbcb0]"}`}>
-                              {option.value === "weekend" ? <Calendar className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
+                          <div className="flex flex-col items-center gap-2">
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#e8dfd3] text-[#0fbcb0]"}`}>
+                              {option.value === "weekend" ? <Calendar className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                             </div>
-                            <span className="font-semibold text-[#2d2d2d] text-xs">{option.label}</span>
-                            <span className="text-[10px] text-[#2d2d2d]/60">{option.time}</span>
+                            <span className="font-semibold text-[#2d2d2d] text-sm">{option.label}</span>
+                            <span className="text-xs text-[#2d2d2d]/60">{option.time}</span>
                           </div>
                         </motion.button>
                       </motion.div>
@@ -1138,14 +1138,14 @@ export default function IntakePage() {
               {/* Q6: WHEN TO START (Planning only)            */}
               {/* ============================================ */}
               {step === 6 && !isEmergency && (
-                <motion.div key="step6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<Calendar className="w-10 h-10" />}
                     title="When are you looking to start?"
                     subtitle="This helps us find clinics with the right availability."
                   />
 
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {TIMING_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -1166,14 +1166,14 @@ export default function IntakePage() {
               {/* Q7: COST / DECISION MINDSET (Planning only)  */}
               {/* ============================================ */}
               {step === 7 && !isEmergency && (
-                <motion.div key="step7" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step7" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
                     title="How do you usually think about investing in dental treatment?"
                     subtitle="This helps us match you with clinics that fit your approach."
                   />
 
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {COST_APPROACH_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -1210,14 +1210,14 @@ export default function IntakePage() {
               {/* Shown only if Q7 = comfort_range             */}
               {/* ============================================ */}
               {step === 7.5 && formData.costApproach === "comfort_range" && (
-                <motion.div key="step7.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step7.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
                     title="Would spreading the cost into monthly payments make treatment easier for you?"
                     subtitle="This is informational only — it won't affect your matches."
                   />
 
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {MONTHLY_PAYMENT_OPTIONS.map((option, index) => (
                       <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -1239,14 +1239,14 @@ export default function IntakePage() {
               {/* Shown only if Q7 = strict_budget             */}
               {/* ============================================ */}
               {step === 7.6 && formData.costApproach === "strict_budget" && (
-                <motion.div key="step7.6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step7.6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
                     title="How would you prefer to handle costs with the clinic?"
                     subtitle="This is informational only — it won't affect your matches."
                   />
 
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="grid grid-cols-1 gap-2">
                     <motion.div {...fadeUp(0.3)}>
                       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         <OptionCard
@@ -1319,7 +1319,7 @@ export default function IntakePage() {
               {/* Q8: CONTACT DETAILS (Both flows)             */}
               {/* ============================================ */}
               {step === 8 && (
-                <motion.div key="step8" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-3">
+                <motion.div key="step8" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-4">
                   <StepHeader
                     icon={<Mail className="w-10 h-10" />}
                     title="Almost there! How can clinics reach you?"
@@ -1378,36 +1378,36 @@ export default function IntakePage() {
                   ) : (
                     /* Anonymous user or "someone else": normal contact form */
                     <>
-                  <motion.div className="space-y-4" {...fadeUp(0.3)}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <motion.div className="space-y-5" {...fadeUp(0.3)}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="firstName" className="text-xs font-medium text-[#faf5ef]">
+                        <Label htmlFor="firstName" className="text-sm font-medium text-[#faf5ef]">
                           First name
                         </Label>
                         <Input
                           id="firstName"
                           value={formData.firstName}
                           onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          className="mt-1.5 h-10 text-sm rounded-xl bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                          className="mt-2 h-11 text-base rounded-xl bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                           placeholder="John"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="lastName" className="text-xs font-medium text-[#faf5ef]">
+                        <Label htmlFor="lastName" className="text-sm font-medium text-[#faf5ef]">
                           Last name
                         </Label>
                         <Input
                           id="lastName"
                           value={formData.lastName}
                           onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          className="mt-1.5 h-10 text-sm rounded-xl bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                          className="mt-2 h-11 text-base rounded-xl bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                           placeholder="Smith"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <Label htmlFor="email" className="text-xs font-medium text-[#faf5ef]">
+                      <Label htmlFor="email" className="text-sm font-medium text-[#faf5ef]">
                         Email address
                       </Label>
                       <Input
@@ -1415,7 +1415,7 @@ export default function IntakePage() {
                         type="email"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="mt-1.5 h-10 text-sm rounded-xl bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                        className="mt-2 h-11 text-base rounded-xl bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                         placeholder="john@example.com"
                       />
                       {formData.email && !EMAIL_REGEX.test(formData.email.trim()) && (
@@ -1424,7 +1424,7 @@ export default function IntakePage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="phone" className="text-xs font-medium text-[#faf5ef]">
+                      <Label htmlFor="phone" className="text-sm font-medium text-[#faf5ef]">
                         Phone number <span className="text-[#faf5ef]/50 font-normal">(optional)</span>
                       </Label>
                       <Input
@@ -1432,12 +1432,12 @@ export default function IntakePage() {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="mt-1.5 h-10 text-sm rounded-xl bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                        className="mt-2 h-11 text-base rounded-xl bg-[#f5efe6] border-[#c5bfb4] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                         placeholder="07123 456789"
                       />
                     </div>
 
-                    <div className="pt-3 space-y-3">
+                    <div className="pt-4 space-y-4">
                       <label className="flex items-start gap-3 cursor-pointer group">
                         <Checkbox
                           id="consent"
@@ -1477,7 +1477,7 @@ export default function IntakePage() {
                     <Button
                       type="submit"
                       disabled={!canContinueStep8 || isSubmitting}
-                      className="w-full h-10 text-sm font-semibold rounded-full shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
+                      className="w-full h-11 text-base font-semibold rounded-full shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
                       size="lg"
                     >
                       {isSubmitting ? "Finding your matches..." : "Get my clinic matches"}
