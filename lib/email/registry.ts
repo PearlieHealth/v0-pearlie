@@ -289,7 +289,7 @@ const bookingRequestSentSchema = z.object({
   firstName: z.string(),
   clinicName: z.string(),
   formattedDate: z.string(),
-  timeLabel: z.string(),
+  timeLabel: z.string().optional(),
   dashboardUrl: z.string(),
   unsubscribeFooterHtml: z.string(),
 })

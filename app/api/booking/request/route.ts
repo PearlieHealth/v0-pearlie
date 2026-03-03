@@ -166,9 +166,8 @@ export async function POST(request: Request) {
       weekday: "long",
       day: "numeric",
       month: "long",
-      year: "numeric",
     })
-    const bookingMessageContent = `Hi! I'd like to request an appointment on ${formattedDate}. Would this date work?`
+    const bookingMessageContent = `Hi, I'd like to book an appointment on ${formattedDate} please.`
 
     // Hoist conversationId, tokenHash, and bookingMessage so they're accessible in the final response
     let conversationId: string | null = null
@@ -295,7 +294,7 @@ export async function POST(request: Request) {
         }
 
         // Insert bot acknowledgement so the patient knows why there's no immediate reply
-        const botAckContent = `Thanks for your appointment request! 🗓️\n\n${clinic.name} will review your request for ${formattedDate} and get back to you shortly.\n\nIn the meantime, feel free to send any questions or additional details here.`
+        const botAckContent = `Your appointment request for ${formattedDate} has been sent to ${clinic.name}. They'll get back to you shortly.\n\nFeel free to send any questions or additional details here in the meantime.`
         const { data: botMsg, error: botMsgError } = await supabase.from("messages").insert({
           conversation_id: conversationId,
           sender_type: "bot",
