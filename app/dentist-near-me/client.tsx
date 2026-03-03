@@ -270,7 +270,7 @@ export function DentistNearMeClient({
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-[2rem] sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-4 sm:mb-4">
+            <h1 className="text-[2rem] sm:text-4xl md:text-5xl lg:text-[3.5rem] font-heading font-bold tracking-[-0.03em] mb-2 sm:mb-4">
               <span className="block">
                 {detectedBorough
                   ? `Dentist Near Me in ${detectedBorough}`
@@ -300,7 +300,7 @@ export function DentistNearMeClient({
             )}
 
             {/* Postcode search */}
-            <form onSubmit={handlePostcodeSubmit} className="max-w-md mx-auto mb-4 mt-2">
+            <form onSubmit={handlePostcodeSubmit} className="max-w-[21rem] sm:max-w-[21rem] mx-auto mb-4">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
