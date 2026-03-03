@@ -28,6 +28,7 @@ import { ClinicImage } from "@/components/match/clinic-image"
 import { getChipData } from "@/lib/chipData"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
 import { HOURLY_SLOTS } from "@/lib/constants"
+import { pushToDataLayer } from "@/lib/gtm"
 
 interface Clinic {
   id: string
@@ -161,6 +162,11 @@ export function BookingCard({
       ? clinic.match_reasons
       : []
   const maxReasons = clinic.is_emergency ? 2 : 3
+
+  const handleMessageClick = () => {
+    pushToDataLayer("chat_start")
+    onMessageClick()
+  }
 
   return (
     <Card className="overflow-hidden transition-all duration-200 ease-out hover:shadow-md border border-border shadow-sm bg-card rounded-lg">
@@ -424,7 +430,7 @@ export function BookingCard({
                   </div>
                   <Button
                     className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
-                    onClick={onMessageClick}
+                    onClick={handleMessageClick}
                   >
                     <MessageCircle className="w-3.5 h-3.5 mr-1" />
                     Message Clinic
@@ -449,7 +455,7 @@ export function BookingCard({
                   <p className="text-xs text-muted-foreground">You can request a new appointment date.</p>
                   <Button
                     className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
-                    onClick={onMessageClick}
+                    onClick={handleMessageClick}
                   >
                     <MessageCircle className="w-3.5 h-3.5 mr-1" />
                     Message Clinic
@@ -474,7 +480,7 @@ export function BookingCard({
                   <p className="text-xs text-muted-foreground">You can request a new appointment date.</p>
                   <Button
                     className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
-                    onClick={onMessageClick}
+                    onClick={handleMessageClick}
                   >
                     <MessageCircle className="w-3.5 h-3.5 mr-1" />
                     Message Clinic
@@ -498,7 +504,7 @@ export function BookingCard({
                   </div>
                   <Button
                     className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
-                    onClick={onMessageClick}
+                    onClick={handleMessageClick}
                   >
                     <MessageCircle className="w-3.5 h-3.5 mr-1" />
                     Message Clinic
@@ -529,7 +535,7 @@ export function BookingCard({
                 </p>
                 <Button
                   className="w-full h-8 rounded-md text-xs font-semibold bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0"
-                  onClick={onMessageClick}
+                  onClick={handleMessageClick}
                 >
                   <MessageCircle className="w-3.5 h-3.5 mr-1" />
                   Message Clinic
@@ -799,7 +805,7 @@ export function BookingCard({
             <div className="flex items-center gap-2">
               <Button
                 className="flex-1 h-8 bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded font-medium text-xs border-0"
-                onClick={onMessageClick}
+                onClick={handleMessageClick}
               >
                 <MessageCircle className="w-3.5 h-3.5 mr-1" />
                 Message Clinic
@@ -808,6 +814,7 @@ export function BookingCard({
                 <Button
                   className="flex-1 h-8 rounded-md text-xs font-medium bg-[#004443] hover:bg-[#004443]/90 text-white border-0"
                   onClick={() => {
+                    pushToDataLayer("booking_request")
                     setPendingAppointment({
                       message: "Hi! I'd like to request an appointment. What dates do you have available?",
                     })

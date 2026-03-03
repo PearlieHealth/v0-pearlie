@@ -25,6 +25,7 @@ import { createClient } from "@/lib/supabase/client"
 import { clinicHref } from "@/lib/clinic-url"
 import { calculateDistance } from "@/lib/matching/reasons"
 import { trackEvent, addOpenedClinic } from "@/lib/analytics"
+import { pushToDataLayer } from "@/lib/gtm"
 import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { ClinicDatePicker } from "@/components/clinic-date-picker"
@@ -287,6 +288,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
       },
     })
     trackTikTokEvent("PlaceAnOrder", { content_name: "confirm_request" })
+    pushToDataLayer("booking_request")
 
     if (date && (lead?.id || leadIdParam || directLeadId)) {
       const dateLabel = date.toLocaleDateString("en-GB", {
@@ -400,6 +402,7 @@ export function ClinicProfileContent({ initialClinic }: { initialClinic?: Clinic
       clinicId: clinic?.id,
       meta: { trigger: directFormTrigger, source: "direct_profile_inline" },
     })
+    pushToDataLayer("lead_submit")
 
     if (directFormTrigger === "message") {
       setShowChat(true)

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Loader2, ArrowRight, User, Mail, Phone, Shield } from "lucide-react"
 import { OTPVerification } from "@/components/otp-verification"
 import { trackEvent, setLeadId as setAnalyticsLeadId } from "@/lib/analytics"
+import { pushToDataLayer } from "@/lib/gtm"
 import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
 import { TREATMENT_OPTIONS } from "@/lib/intake-form-config"
 
@@ -69,6 +70,7 @@ export function DirectEnquiryForm({ clinicId, clinicName, onLeadCreated }: Direc
         clinicId,
         meta: { source: "direct_profile", treatment: treatment || null },
       })
+      pushToDataLayer("lead_submit")
       setStep("verify")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.")
