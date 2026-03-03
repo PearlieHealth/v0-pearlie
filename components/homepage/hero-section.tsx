@@ -152,7 +152,7 @@ export function HeroSection() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
                   >
-                    Matching you with carefully reviewed clinics based on your budget, needs, preferences, and timing — so you can choose with confidence.
+                    Pearlie is a curated network of best dentists. Find one perfect for you and book online instantly.
                   </motion.p>
                 )}
 
