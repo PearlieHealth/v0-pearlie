@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { timingSafeEqual } from "crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 export const runtime = "nodejs"
@@ -37,7 +38,11 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  if (!token || token !== secret) {
+  if (
+    !token ||
+    token.length !== secret.length ||
+    !timingSafeEqual(Buffer.from(token), Buffer.from(secret))
+  ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -64,8 +69,26 @@ export async function POST(request: NextRequest) {
 
   const supabase = createAdminClient()
 
+  const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,198}[a-z0-9]$/
+  const MAX_TITLE = 300
+  const MAX_CONTENT = 500_000 // ~500 KB
+
   const results = await Promise.allSettled(
     articles.map(async (article) => {
+      // Validate required fields
+      if (!article.id || typeof article.id !== "string") {
+        throw new Error("Missing or invalid article id")
+      }
+      if (!article.title || article.title.length > MAX_TITLE) {
+        throw new Error(`Invalid title for article ${article.id}`)
+      }
+      if (!article.slug || !SLUG_RE.test(article.slug)) {
+        throw new Error(`Invalid slug for article ${article.id}: ${article.slug}`)
+      }
+      if (!article.content_markdown || article.content_markdown.length > MAX_CONTENT) {
+        throw new Error(`Invalid or oversized content for article ${article.id}`)
+      }
+
       const { error } = await supabase.from("seo_articles").upsert(
         {
           id: article.id,

@@ -24,6 +24,9 @@ interface BlogPostPageProps {
   params: Promise<{ slug: string }>
 }
 
+export const dynamicParams = true
+export const revalidate = 3600 // Re-validate Outrank articles every hour
+
 export async function generateStaticParams() {
   const posts = getAllBlogPosts()
   return posts.map((post) => ({ slug: post.slug }))
@@ -159,13 +162,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       {/* Article Schema */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema).replace(/</g, "\\u003c") }}
       />
 
       {/* MedicalWebPage Schema */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(medicalPageSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(medicalPageSchema).replace(/</g, "\\u003c") }}
       />
 
       <MainNav />
