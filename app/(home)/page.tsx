@@ -248,21 +248,25 @@ export default function Home() {
 
           {/* Hero section — calm, split layout */}
           <section className="relative min-h-[100svh] flex flex-col pt-28 pb-8 md:pt-24 md:pb-10 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
-            <div className="flex-1 flex items-center px-6 md:px-14">
+            {/* Decorative background elements */}
+            <div className="absolute top-20 right-[10%] w-[500px] h-[500px] rounded-full bg-[#0fbcb0]/[0.04] blur-[100px] pointer-events-none" />
+            <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full bg-[#f5e6d0]/40 blur-[80px] pointer-events-none" />
+
+            <div className="flex-1 flex items-center px-6 md:px-14 relative z-10">
               <div className="max-w-7xl xl:max-w-[90rem] 2xl:max-w-[100rem] mx-auto w-full">
 
                 {/* Desktop: Text LEFT, Video RIGHT */}
-                <div className="flex flex-col lg:flex-row items-center gap-10 md:gap-14 lg:gap-16">
+                <div className="flex flex-col lg:flex-row items-center gap-10 md:gap-14 lg:gap-20">
 
                   {/* Video — desktop right, mobile below text */}
                   <motion.div
                     className="order-2 lg:order-2 flex-1 w-full max-w-[18rem] md:max-w-[26rem] lg:max-w-none mx-auto lg:mx-0"
-                    initial={{ opacity: 0, scale: 0.97 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 1.1, delay: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
                   >
-                    {/* relative wrapper for tap overlay — no layout impact */}
-                    <div className="relative rounded-[2rem] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.08)]" onClick={handleHeroVideoTap}>
+                    {/* Video container with polished presentation */}
+                    <div className="relative rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,68,67,0.12)] border-2 border-white/40 lg:-rotate-1" onClick={handleHeroVideoTap}>
                       <video
                         ref={heroVideoRef}
                         autoPlay
@@ -285,15 +289,25 @@ export default function Home() {
                   </motion.div>
 
                   {/* Text content — desktop left, mobile first */}
-                  <div className="order-1 lg:order-1 flex-1 text-center lg:text-left">
+                  <div className="order-1 lg:order-1 flex-[1.2] text-center lg:text-left">
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 0.05 }}
+                    >
+                      <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443]/60 mb-3">
+                        London&apos;s dental matching platform
+                      </span>
+                    </motion.div>
+
                     <motion.h1
-                      className="text-[clamp(2.1rem,8vw,2.75rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4rem] leading-[1.08] font-heading font-bold tracking-[-0.03em] text-black mb-4 md:mb-5 lg:mb-7 -mx-2 md:mx-0"
+                      className="text-[clamp(2.1rem,8vw,2.75rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.5rem] 2xl:text-[5rem] leading-[1.08] font-heading font-bold tracking-[-0.03em] text-black mb-4 md:mb-5 lg:mb-7 -mx-2 md:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
                     >
                       <span className="block">Find dentists</span>
-                      <span className="block mt-1 md:mt-2 relative h-[2.4em] overflow-hidden">
+                      <span className="block mt-1 md:mt-2 relative h-[1.3em] overflow-hidden">
                         <AnimatePresence mode="wait" initial={false}>
                           <motion.span
                             key={benefitIndex}
@@ -311,7 +325,7 @@ export default function Home() {
 
                     {!lastMatch && (
                       <motion.p
-                        className="text-[15px] md:text-lg text-black/80 mb-5 md:mb-6 lg:mb-7 leading-[1.55] max-w-lg mx-auto lg:mx-0"
+                        className="text-[15px] md:text-lg text-black/70 mb-5 md:mb-6 lg:mb-7 leading-[1.55] max-w-lg mx-auto lg:mx-0"
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.2 }}
@@ -357,17 +371,17 @@ export default function Home() {
                             </Link>
                           </div>
                           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-                            <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
+                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
                               <MapPin className="w-4 h-4 text-[#0fbcb0]" />
                               <span className="font-bold text-foreground">Trusted</span>
                               <span className="text-muted-foreground">across London</span>
                             </span>
-                            <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
+                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
                               <Building2 className="w-4 h-4 text-[#0fbcb0]" />
                               <span className="font-bold text-foreground">100+</span>
                               <span className="text-muted-foreground">practices</span>
                             </span>
-                            <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
+                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
                               <Star className="w-4 h-4 text-[#0fbcb0]" />
                               <span className="font-bold text-foreground">4.8★</span>
                               <span className="text-muted-foreground">avg rating</span>
@@ -378,17 +392,17 @@ export default function Home() {
                         <div className="flex flex-col items-center lg:items-start gap-4">
                           <HomeHeroSearch />
                           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-                            <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
+                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
                               <MapPin className="w-4 h-4 text-[#0fbcb0]" />
                               <span className="font-bold text-foreground">Trusted</span>
                               <span className="text-muted-foreground">across London</span>
                             </span>
-                            <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
+                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
                               <Building2 className="w-4 h-4 text-[#0fbcb0]" />
                               <span className="font-bold text-foreground">100+</span>
                               <span className="text-muted-foreground">practices</span>
                             </span>
-                            <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
+                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
                               <Star className="w-4 h-4 text-[#0fbcb0]" />
                               <span className="font-bold text-foreground">4.8★</span>
                               <span className="text-muted-foreground">avg rating</span>
