@@ -12,9 +12,9 @@ import { TableOfContents } from "@/components/blog/table-of-contents"
 import { RelatedPosts } from "@/components/blog/related-posts"
 import { useMDXComponents } from "@/components/blog/mdx-components"
 import {
-  getBlogPostBySlug,
+  getBlogPostBySlugAsync,
   getAllBlogPosts,
-  getRelatedPosts,
+  getRelatedPostsAsync,
   BLOG_CATEGORIES,
   type BlogCategory,
 } from "@/lib/content/blog"
@@ -33,7 +33,7 @@ export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params
-  const post = getBlogPostBySlug(slug)
+  const post = await getBlogPostBySlugAsync(slug)
 
   if (!post) {
     return { title: "Post Not Found" }
@@ -78,7 +78,7 @@ export async function generateMetadata({
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params
-  const post = getBlogPostBySlug(slug)
+  const post = await getBlogPostBySlugAsync(slug)
 
   if (!post) {
     notFound()
@@ -86,7 +86,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const { meta, content } = post
   const headings = extractHeadings(content)
-  const relatedPosts = getRelatedPosts(slug, 3)
+  const relatedPosts = await getRelatedPostsAsync(slug, 3)
   const components = useMDXComponents()
   const category = BLOG_CATEGORIES[meta.category as BlogCategory]
 

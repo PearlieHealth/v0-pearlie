@@ -8,8 +8,8 @@ import { BreadcrumbSchema } from "@/components/breadcrumb-schema"
 import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav"
 import { BlogCard } from "@/components/blog/blog-card"
 import {
-  getAllBlogPosts,
-  getPaginatedBlogPosts,
+  getAllBlogPostsAsync,
+  getPaginatedBlogPostsAsync,
   BLOG_CATEGORIES,
   POSTS_PER_PAGE,
   type BlogCategory,
@@ -45,12 +45,12 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   const { category: activeCategory, page: pageParam } = await searchParams
   const currentPage = Math.max(1, parseInt(pageParam || "1", 10) || 1)
 
-  const { posts: paginatedPosts, totalPages, totalPosts } = getPaginatedBlogPosts(
+  const { posts: paginatedPosts, totalPages, totalPosts } = await getPaginatedBlogPostsAsync(
     currentPage,
     activeCategory
   )
 
-  const allPosts = getAllBlogPosts()
+  const allPosts = await getAllBlogPostsAsync()
   const featuredPost = allPosts.find((post) => post.featured) || allPosts[0]
 
   // On the first page with no category filter, show featured separately
