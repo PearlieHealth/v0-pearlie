@@ -3,9 +3,12 @@ import readingTime from "reading-time"
 import fs from "fs"
 import path from "path"
 import matter from "gray-matter"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 export interface BlogPost extends ContentMeta {
   readingTime: string
+  /** Source of the article: 'mdx' (file-based) or 'outrank' (webhook) */
+  source?: "mdx" | "outrank"
 }
 
 export const BLOG_CATEGORIES = {
@@ -151,6 +154,151 @@ export function getRelatedPosts(currentSlug: string, limit = 3): BlogPost[] {
   }
 
   // Fallback: same category posts
+  return allPosts
+    .filter((p) => p.category === current.meta.category)
+    .slice(0, limit)
+}
+
+// ── Async variants that merge file-based MDX + Supabase seo_articles ──
+
+async function getOutrankArticles(): Promise<BlogPost[]> {
+  try {
+    const supabase = createAdminClient()
+    const { data, error } = await supabase
+      .from("seo_articles")
+      .select("*")
+      .order("published_at", { ascending: false })
+
+    if (error || !data) return []
+
+    return data.map((article) => {
+      const stats = readingTime(article.content_markdown)
+      return {
+        title: article.title,
+        slug: article.slug,
+        description: article.meta_description || "",
+        category: "news-trends",
+        tags: article.tags || [],
+        author: "Pearlie Editorial",
+        publishedAt: article.published_at,
+        updatedAt: article.updated_at,
+        heroImage: article.image_url || undefined,
+        readingTime: stats.text,
+        source: "outrank" as const,
+      }
+    })
+  } catch (err) {
+    console.error("[blog] Failed to fetch outrank articles:", err)
+    return []
+  }
+}
+
+export async function getAllBlogPostsAsync(): Promise<BlogPost[]> {
+  const mdxPosts = getAllBlogPosts().map((p) => ({
+    ...p,
+    source: "mdx" as const,
+  }))
+  const outrankPosts = await getOutrankArticles()
+
+  // Deduplicate by slug (MDX takes priority)
+  const slugSet = new Set(mdxPosts.map((p) => p.slug))
+  const uniqueOutrank = outrankPosts.filter((p) => !slugSet.has(p.slug))
+
+  return [...mdxPosts, ...uniqueOutrank].sort(
+    (a, b) =>
+      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+  )
+}
+
+export async function getPaginatedBlogPostsAsync(
+  page: number,
+  category?: string
+): Promise<{ posts: BlogPost[]; totalPages: number; totalPosts: number }> {
+  let allPosts = await getAllBlogPostsAsync()
+
+  if (category) {
+    allPosts = allPosts.filter((post) => post.category === category)
+  }
+
+  const totalPosts = allPosts.length
+  const totalPages = Math.max(1, Math.ceil(totalPosts / POSTS_PER_PAGE))
+  const start = (page - 1) * POSTS_PER_PAGE
+  const posts = allPosts.slice(start, start + POSTS_PER_PAGE)
+
+  return { posts, totalPages, totalPosts }
+}
+
+export async function getBlogPostBySlugAsync(
+  slug: string
+): Promise<{ meta: BlogPost; content: string } | null> {
+  // Try file-based MDX first
+  const mdxResult = getBlogPostBySlug(slug)
+  if (mdxResult) return mdxResult
+
+  // Fall back to Supabase seo_articles
+  try {
+    const supabase = createAdminClient()
+    const { data, error } = await supabase
+      .from("seo_articles")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle()
+
+    if (error || !data) return null
+
+    const stats = readingTime(data.content_markdown)
+
+    return {
+      meta: {
+        title: data.title,
+        slug: data.slug,
+        description: data.meta_description || "",
+        category: "news-trends",
+        tags: data.tags || [],
+        author: "Pearlie Editorial",
+        publishedAt: data.published_at,
+        updatedAt: data.updated_at,
+        heroImage: data.image_url || undefined,
+        readingTime: stats.text,
+        source: "outrank",
+      },
+      content: data.content_markdown,
+    }
+  } catch (err) {
+    console.error("[blog] Failed to fetch outrank article by slug:", err)
+    return null
+  }
+}
+
+export async function getRelatedPostsAsync(
+  currentSlug: string,
+  limit = 3
+): Promise<BlogPost[]> {
+  const current = await getBlogPostBySlugAsync(currentSlug)
+  if (!current) return []
+
+  const allPosts = (await getAllBlogPostsAsync()).filter(
+    (p) => p.slug !== currentSlug
+  )
+
+  if (current.meta.relatedSlugs?.length) {
+    const explicit = current.meta.relatedSlugs
+      .map((slug) => allPosts.find((p) => p.slug === slug))
+      .filter(Boolean) as BlogPost[]
+
+    if (explicit.length >= limit) return explicit.slice(0, limit)
+
+    const remaining = allPosts
+      .filter(
+        (p) =>
+          p.category === current.meta.category &&
+          !current.meta.relatedSlugs!.includes(p.slug)
+      )
+      .slice(0, limit - explicit.length)
+
+    return [...explicit, ...remaining]
+  }
+
   return allPosts
     .filter((p) => p.category === current.meta.category)
     .slice(0, limit)

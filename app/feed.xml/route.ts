@@ -1,8 +1,8 @@
-import { getAllBlogPosts } from "@/lib/content/blog"
+import { getAllBlogPostsAsync } from "@/lib/content/blog"
 import { getAllGuides } from "@/lib/content/guides"
 
 export async function GET() {
-  const posts = getAllBlogPosts()
+  const posts = await getAllBlogPostsAsync()
   const guides = getAllGuides()
   const siteUrl = "https://pearlie.org"
 
