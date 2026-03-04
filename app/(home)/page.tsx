@@ -247,35 +247,35 @@ export default function Home() {
           <StickyMobileHomeCta />
 
           {/* Hero section — calm, split layout */}
-          <section className="relative md:min-h-[70vh] lg:min-h-[100vh] pt-32 pb-8 md:pt-28 md:pb-14 lg:flex lg:flex-col lg:pt-20 lg:pb-0 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
-            <div className="px-6 md:px-14 lg:flex-1 lg:flex lg:items-center">
-              <div className="max-w-7xl xl:max-w-[90rem] 2xl:max-w-[100rem] mx-auto lg:w-full">
+          <section className="relative min-h-[100svh] flex flex-col pt-28 pb-8 md:pt-24 md:pb-10 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
+            <div className="flex-1 flex items-center px-6 md:px-14">
+              <div className="max-w-7xl xl:max-w-[90rem] 2xl:max-w-[100rem] mx-auto w-full">
 
                 {/* Desktop: Text LEFT, Video RIGHT */}
-                <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8 md:gap-14 lg:gap-20">
+                <div className="flex flex-col lg:flex-row items-center gap-10 md:gap-14 lg:gap-16">
 
                   {/* Video — desktop right, mobile below text */}
                   <motion.div
-                    className="order-2 lg:order-2 flex-1 w-full max-w-[17rem] md:max-w-[24rem] lg:max-w-[78%] mx-auto lg:mx-0 lg:ml-auto"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
+                    className="order-2 lg:order-2 flex-1 w-full max-w-[18rem] md:max-w-[26rem] lg:max-w-none mx-auto lg:mx-0"
+                    initial={{ opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
                   >
                     {/* relative wrapper for tap overlay — no layout impact */}
-                    <div className="relative" onClick={handleHeroVideoTap}>
+                    <div className="relative rounded-[2rem] overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.08)]" onClick={handleHeroVideoTap}>
                       <video
                         ref={heroVideoRef}
                         autoPlay
                         muted
                         playsInline
                         aria-label="Short video clip showcasing Pearlie dental clinic matching"
-                        className="w-full h-auto rounded-3xl shadow-[0_4px_30px_rgba(0,0,0,0.04)] scale-x-[-1]"
+                        className="w-full h-auto scale-x-[-1]"
                       >
                         <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
                       </video>
                       {/* Subtle resume hint — mobile only, shown when video is stuck */}
                       {showResumeHint && (
-                        <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-black/10 lg:hidden">
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/10 lg:hidden">
                           <span className="text-white/90 text-sm font-medium px-4 py-2 rounded-full bg-black/30 backdrop-blur-sm">
                             Tap to resume
                           </span>
@@ -287,7 +287,7 @@ export default function Home() {
                   {/* Text content — desktop left, mobile first */}
                   <div className="order-1 lg:order-1 flex-1 text-center lg:text-left">
                     <motion.h1
-                      className="text-[clamp(2.1rem,8vw,2.75rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.05rem] leading-[1.1] font-heading font-bold tracking-[-0.03em] text-black mb-4 md:mb-6 lg:mb-8 -mx-2 md:mx-0"
+                      className="text-[clamp(2.1rem,8vw,2.75rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4rem] leading-[1.08] font-heading font-bold tracking-[-0.03em] text-black mb-4 md:mb-5 lg:mb-7 -mx-2 md:mx-0"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.1 }}
@@ -311,7 +311,7 @@ export default function Home() {
 
                     {!lastMatch && (
                       <motion.p
-                        className="text-[15px] md:text-lg text-black mb-5 md:mb-6 lg:mb-8 leading-[1.5] max-w-lg mx-auto lg:mx-0"
+                        className="text-[15px] md:text-lg text-black/80 mb-5 md:mb-6 lg:mb-7 leading-[1.55] max-w-lg mx-auto lg:mx-0"
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.2 }}
@@ -375,9 +375,9 @@ export default function Home() {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center lg:items-start gap-5">
+                        <div className="flex flex-col items-center lg:items-start gap-4">
                           <HomeHeroSearch />
-                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
                             <span className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-border/40 rounded-full px-4 py-2 text-sm shadow-sm">
                               <MapPin className="w-4 h-4 text-[#0fbcb0]" />
                               <span className="font-bold text-foreground">Trusted</span>
@@ -408,21 +408,24 @@ export default function Home() {
           <ScrollingMarquee items={marqueeItems} speed={35} />
 
           {/* How it works section */}
-          <section id="how-it-works" className="py-16 md:pt-8 md:pb-11 lg:pt-10 lg:pb-13 bg-white relative overflow-hidden">
+          <section id="how-it-works" className="py-16 md:pt-12 md:pb-16 lg:pt-16 lg:pb-20 bg-white relative overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-7xl mx-auto">
                 {/* Section header */}
-                <div className="text-center mb-12 md:mb-8">
+                <div className="text-center mb-12 md:mb-14">
+                  <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443]/60 mb-3">
+                    Simple process
+                  </span>
                   <h2 className="text-[2rem] sm:text-[2.6rem] md:text-[2.6rem] lg:text-[3.25rem] font-heading font-bold tracking-[-0.03em] text-[#004443]">
                     How It Works
                   </h2>
                 </div>
 
                 {/* Step 1 - Image Left, Text Right */}
-                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8 mb-14 md:mb-10">
+                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-12 mb-14 md:mb-14">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-end">
-                    <div className="relative w-full max-w-[280px] lg:max-w-[230px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
+                    <div className="relative w-full max-w-[280px] lg:max-w-[250px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
                       {/* Step number */}
                       <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">01</span>
                       {/* Phone mockup with form illustration */}
@@ -468,10 +471,10 @@ export default function Home() {
                 </div>
 
                 {/* Step 2 - Text Left, Image Right */}
-                <div className="flex flex-col lg:flex-row-reverse items-center gap-6 lg:gap-8 mb-14 md:mb-10">
+                <div className="flex flex-col lg:flex-row-reverse items-center gap-6 lg:gap-12 mb-14 md:mb-14">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-start">
-                    <div className="relative w-full max-w-[280px] lg:max-w-[230px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
+                    <div className="relative w-full max-w-[280px] lg:max-w-[250px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
                       {/* Step number */}
                       <span className="absolute -top-6 -right-2 lg:-right-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">02</span>
                       {/* Phone mockup with clinic cards */}
@@ -535,10 +538,10 @@ export default function Home() {
                 </div>
 
                 {/* Step 3 - Image Left, Text Right */}
-                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
+                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-12">
                   {/* Illustration */}
                   <div className="flex-1 flex justify-center lg:justify-end">
-                    <div className="relative w-full max-w-[280px] lg:max-w-[230px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
+                    <div className="relative w-full max-w-[280px] lg:max-w-[250px] scale-[0.7] lg:scale-100 origin-top -mb-[80px] lg:mb-0">
                       {/* Step number */}
                       <span className="absolute -top-6 -left-2 lg:-left-8 text-8xl lg:text-8xl font-bold text-[#004443]/20 select-none leading-none z-0">03</span>
                       {/* Phone mockup with booking */}
@@ -769,7 +772,7 @@ export default function Home() {
           </section>
 
           {/* CTA section - dark teal background */}
-          <section className="py-24 md:pt-24 md:pb-32 lg:pt-28 lg:pb-36 bg-[#004443] text-white relative overflow-hidden">
+          <section className="py-20 md:pt-24 md:pb-28 lg:pt-28 lg:pb-32 bg-[#004443] text-white relative overflow-hidden">
             {/* Decorative background blobs */}
             <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-white/[0.03] blur-3xl pointer-events-none" />
             <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-[#0fbcb0]/[0.08] blur-2xl pointer-events-none" />
