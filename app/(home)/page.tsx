@@ -193,47 +193,6 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [])
 
-  // iOS Safari: resume video on return from background.
-  // iOS pauses the video when backgrounded and sometimes doesn't auto-resume.
-  // Tries play() automatically; if that fails, shows a subtle "Tap to resume" overlay.
-  const heroVideoRef = useRef<HTMLVideoElement>(null)
-  const [showResumeHint, setShowResumeHint] = useState(false)
-
-  useEffect(() => {
-    if (typeof window === "undefined" || window.innerWidth >= 1024) return
-    const v = heroVideoRef.current
-    if (!v) return
-
-    const hideHint = () => setShowResumeHint(false)
-
-    const onVisible = () => {
-      if (document.visibilityState !== "visible") return
-      if (!v || v.ended) return
-      // Try auto-resuming; if blocked, show tap hint
-      v.play().then(hideHint).catch(() => {
-        if (!v.ended) setShowResumeHint(true)
-      })
-    }
-
-    // Hide hint whenever playback actually starts
-    v.addEventListener("playing", hideHint)
-    document.addEventListener("visibilitychange", onVisible)
-    window.addEventListener("pageshow", onVisible)
-    return () => {
-      v.removeEventListener("playing", hideHint)
-      document.removeEventListener("visibilitychange", onVisible)
-      window.removeEventListener("pageshow", onVisible)
-    }
-  }, [])
-
-  const handleHeroVideoTap = useCallback(() => {
-    const v = heroVideoRef.current
-    if (!v) return
-    if (v.ended) return // already finished — stay on last frame
-    v.play().catch(() => {})
-    setShowResumeHint(false)
-  }, [])
-
   const handleFindClinicClick = useCallback(() => {
     const eventId = generateTikTokEventId()
     trackTikTokEvent("Search", { content_name: "find_my_clinic" }, eventId)
@@ -246,174 +205,138 @@ export default function Home() {
           <MainNav hideCta={!!lastMatch} />
           <StickyMobileHomeCta />
 
-          {/* Hero section — calm, split layout */}
-          <section className="relative min-h-[100svh] flex flex-col pt-28 pb-8 md:pt-24 md:pb-10 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
+          {/* Hero section — centered, text-only layout */}
+          <section className="relative min-h-[100svh] flex flex-col pt-32 pb-10 md:pt-36 md:pb-14 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
             {/* Decorative background elements */}
             <div className="absolute top-20 right-[10%] w-[500px] h-[500px] rounded-full bg-[#0fbcb0]/[0.04] blur-[100px] pointer-events-none" />
             <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full bg-[#f5e6d0]/40 blur-[80px] pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#0fbcb0]/[0.02] blur-[120px] pointer-events-none" />
 
-            <div className="flex-1 flex items-center px-6 md:px-14 relative z-10">
-              <div className="max-w-7xl xl:max-w-[90rem] 2xl:max-w-[100rem] mx-auto w-full">
+            <div className="flex-1 flex items-center justify-center px-6 md:px-14 relative z-10">
+              <div className="max-w-3xl mx-auto w-full text-center">
 
-                {/* Desktop: Text LEFT, Video RIGHT */}
-                <div className="flex flex-col lg:flex-row items-center gap-10 md:gap-14 lg:gap-20">
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.05 }}
+                >
+                  <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443]/60 mb-4">
+                    London&apos;s dental matching platform
+                  </span>
+                </motion.div>
 
-                  {/* Video — desktop right, mobile below text */}
-                  <motion.div
-                    className="order-2 lg:order-2 flex-1 w-full max-w-[18rem] md:max-w-[26rem] lg:max-w-none mx-auto lg:mx-0"
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ duration: 1.1, delay: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+                <motion.h1
+                  className="text-[clamp(2.4rem,8vw,3rem)] md:text-[3.2rem] lg:text-[4rem] xl:text-[4.75rem] leading-[1.08] font-heading font-bold tracking-[-0.03em] text-black mb-5 md:mb-6"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.1 }}
+                >
+                  <span className="block">Find dentists</span>
+                  <span className="block mt-1 md:mt-2 relative h-[1.2em] overflow-hidden">
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.span
+                        key={benefitIndex}
+                        className="absolute inset-x-0 top-0 block text-[#0fbcb0]"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+                      >
+                        {heroRotatingBenefits[benefitIndex]}
+                      </motion.span>
+                    </AnimatePresence>
+                  </span>
+                </motion.h1>
+
+                {!lastMatch && (
+                  <motion.p
+                    className="text-base md:text-lg text-black/70 mb-8 md:mb-10 leading-[1.6] max-w-xl mx-auto"
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
                   >
-                    {/* Video container with polished presentation */}
-                    <div className="relative rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,68,67,0.12)] border-2 border-white/40 lg:-rotate-1" onClick={handleHeroVideoTap}>
-                      <video
-                        ref={heroVideoRef}
-                        autoPlay
-                        muted
-                        playsInline
-                        aria-label="Short video clip showcasing Pearlie dental clinic matching"
-                        className="w-full h-auto scale-x-[-1]"
-                      >
-                        <source src="/images/Short Clip Smile Pearlie.mp4" type="video/mp4" />
-                      </video>
-                      {/* Subtle resume hint — mobile only, shown when video is stuck */}
-                      {showResumeHint && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/10 lg:hidden">
-                          <span className="text-white/90 text-sm font-medium px-4 py-2 rounded-full bg-black/30 backdrop-blur-sm">
-                            Tap to resume
-                          </span>
-                        </div>
-                      )}
+                    Pearlie is a curated network of best dentists. Find one perfect for you and book online instantly.
+                  </motion.p>
+                )}
+
+                <motion.div
+                  id="home-hero-cta"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                >
+                  {lastMatch ? (
+                    <div className="flex flex-col items-center gap-5">
+                      <div className="flex flex-col sm:flex-row justify-center gap-3 max-w-xl w-full">
+                        <Link
+                          href={`/match/${lastMatch.matchId}`}
+                          className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
+                            <RotateCcw className="w-5 h-5 text-[#0fbcb0]" />
+                          </div>
+                          <div className="flex-1 min-w-0 text-left">
+                            <p className="text-[15px] font-semibold text-black">Return to your matches</p>
+                            <p className="text-xs text-black/60 mt-0.5 leading-snug">View the clinics we matched you with</p>
+                          </div>
+                          <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+                        <Link
+                          href="/intake"
+                          className="group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-[#f8f7f1] flex items-center justify-center flex-shrink-0">
+                            <Search className="w-5 h-5 text-[#004443]" />
+                          </div>
+                          <div className="flex-1 min-w-0 text-left">
+                            <p className="text-[15px] font-semibold text-black">Start a new search</p>
+                            <p className="text-xs text-black/60 mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
+                          </div>
+                          <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-center gap-3">
+                        <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+                          <MapPin className="w-4 h-4 text-[#0fbcb0]" />
+                          <span className="font-bold text-foreground">Trusted</span>
+                          <span className="text-muted-foreground">across London</span>
+                        </span>
+                        <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+                          <Building2 className="w-4 h-4 text-[#0fbcb0]" />
+                          <span className="font-bold text-foreground">100+</span>
+                          <span className="text-muted-foreground">practices</span>
+                        </span>
+                        <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+                          <Star className="w-4 h-4 text-[#0fbcb0]" />
+                          <span className="font-bold text-foreground">4.8★</span>
+                          <span className="text-muted-foreground">avg rating</span>
+                        </span>
+                      </div>
                     </div>
-                  </motion.div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-5">
+                      <HomeHeroSearch />
+                      <div className="flex flex-wrap items-center justify-center gap-3">
+                        <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+                          <MapPin className="w-4 h-4 text-[#0fbcb0]" />
+                          <span className="font-bold text-foreground">Trusted</span>
+                          <span className="text-muted-foreground">across London</span>
+                        </span>
+                        <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+                          <Building2 className="w-4 h-4 text-[#0fbcb0]" />
+                          <span className="font-bold text-foreground">100+</span>
+                          <span className="text-muted-foreground">practices</span>
+                        </span>
+                        <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+                          <Star className="w-4 h-4 text-[#0fbcb0]" />
+                          <span className="font-bold text-foreground">4.8★</span>
+                          <span className="text-muted-foreground">avg rating</span>
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
 
-                  {/* Text content — desktop left, mobile first */}
-                  <div className="order-1 lg:order-1 flex-[1.2] text-center lg:text-left">
-                    <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.8, delay: 0.05 }}
-                    >
-                      <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443]/60 mb-3">
-                        London&apos;s dental matching platform
-                      </span>
-                    </motion.div>
-
-                    <motion.h1
-                      className="text-[clamp(2.1rem,8vw,2.75rem)] md:text-[2.7rem] lg:text-[3.375rem] xl:text-[4.5rem] 2xl:text-[5rem] leading-[1.08] font-heading font-bold tracking-[-0.03em] text-black mb-4 md:mb-5 lg:mb-7 -mx-2 md:mx-0"
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.8, delay: 0.1 }}
-                    >
-                      <span className="block">Find dentists</span>
-                      <span className="block mt-1 md:mt-2 relative h-[1.3em] overflow-hidden">
-                        <AnimatePresence mode="wait" initial={false}>
-                          <motion.span
-                            key={benefitIndex}
-                            className="absolute inset-x-0 top-0 block text-[#0fbcb0]"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-                          >
-                            {heroRotatingBenefits[benefitIndex]}
-                          </motion.span>
-                        </AnimatePresence>
-                      </span>
-                    </motion.h1>
-
-                    {!lastMatch && (
-                      <motion.p
-                        className="text-[15px] md:text-lg text-black/70 mb-5 md:mb-6 lg:mb-7 leading-[1.55] max-w-lg mx-auto lg:mx-0"
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                      >
-                        Pearlie is a curated network of best dentists. Find one perfect for you and book online instantly.
-                      </motion.p>
-                    )}
-
-                    <motion.div
-                      id="home-hero-cta"
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.8, delay: 0.3 }}
-                    >
-                      {lastMatch ? (
-                        <div className="flex flex-col items-center lg:items-start gap-4">
-                          <div className="flex flex-col lg:flex-row justify-center lg:justify-start gap-2 md:gap-3 max-w-md lg:max-w-none w-full">
-                            <Link
-                              href={`/match/${lastMatch.matchId}`}
-                              className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
-                            >
-                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                                <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-[#0fbcb0]" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm md:text-[15px] font-semibold text-black">Return to your matches</p>
-                                <p className="text-xs text-black mt-0.5 leading-snug">View the clinics we matched you with</p>
-                              </div>
-                              <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
-                            </Link>
-                            <Link
-                              href="/intake"
-                              className="group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
-                            >
-                              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#f8f7f1] flex items-center justify-center flex-shrink-0">
-                                <Search className="w-4 h-4 md:w-5 md:h-5 text-[#004443]" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm md:text-[15px] font-semibold text-black">Start a new search</p>
-                                <p className="text-xs text-black mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
-                              </div>
-                              <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
-                            </Link>
-                          </div>
-                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                              <MapPin className="w-4 h-4 text-[#0fbcb0]" />
-                              <span className="font-bold text-foreground">Trusted</span>
-                              <span className="text-muted-foreground">across London</span>
-                            </span>
-                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                              <Building2 className="w-4 h-4 text-[#0fbcb0]" />
-                              <span className="font-bold text-foreground">100+</span>
-                              <span className="text-muted-foreground">practices</span>
-                            </span>
-                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                              <Star className="w-4 h-4 text-[#0fbcb0]" />
-                              <span className="font-bold text-foreground">4.8★</span>
-                              <span className="text-muted-foreground">avg rating</span>
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center lg:items-start gap-4">
-                          <HomeHeroSearch />
-                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                              <MapPin className="w-4 h-4 text-[#0fbcb0]" />
-                              <span className="font-bold text-foreground">Trusted</span>
-                              <span className="text-muted-foreground">across London</span>
-                            </span>
-                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                              <Building2 className="w-4 h-4 text-[#0fbcb0]" />
-                              <span className="font-bold text-foreground">100+</span>
-                              <span className="text-muted-foreground">practices</span>
-                            </span>
-                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                              <Star className="w-4 h-4 text-[#0fbcb0]" />
-                              <span className="font-bold text-foreground">4.8★</span>
-                              <span className="text-muted-foreground">avg rating</span>
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </motion.div>
-                  </div>
-
-                </div>
               </div>
             </div>
           </section>
