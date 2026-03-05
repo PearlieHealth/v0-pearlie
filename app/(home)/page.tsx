@@ -369,10 +369,10 @@ export default function Home() {
                     </motion.div>
                   </div>
 
-                  {/* --- RIGHT COLUMN (desktop only - search form card) --- */}
-                  <div className="hidden lg:block lg:col-span-5 space-y-6 lg:mt-12">
-                    {/* Intake Form Card */}
-                    <div className="hero-fade-in hero-delay-500 relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 backdrop-blur-xl shadow-2xl">
+                  {/* --- RIGHT COLUMN (desktop: search form card + marquee) --- */}
+                  <div className="col-span-1 lg:col-span-5 space-y-4 lg:mt-12">
+                    {/* Intake Form Card — desktop only */}
+                    <div className="hidden lg:block hero-fade-in hero-delay-500 relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 backdrop-blur-xl shadow-2xl">
                       {/* Glow effect */}
                       <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#0fbcb0]/10 blur-3xl pointer-events-none" />
                       <div className="relative z-10">
@@ -382,28 +382,28 @@ export default function Home() {
                         <HomeHeroSearch variant="card" />
                       </div>
                     </div>
-                  </div>
 
-                  {/* Trusted-by Marquee Card — full width, visible on all screens */}
-                  <div className="col-span-1 lg:col-span-12 hero-fade-in hero-delay-500 relative overflow-hidden rounded-3xl border border-white/30 bg-white/50 py-8 backdrop-blur-xl">
-                    <h3 className="mb-6 px-8 text-sm font-medium text-black/50">Trusted by Industry Leaders</h3>
-                    <div
-                      className="relative flex overflow-hidden"
-                      style={{
-                        maskImage: "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
-                        WebkitMaskImage: "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
-                      }}
-                    >
-                      <div className="hero-marquee flex items-center gap-14 whitespace-nowrap px-4">
-                        {[...CLIENTS, ...CLIENTS, ...CLIENTS].map((client, i) => (
-                          <div
-                            key={i}
-                            className="flex-shrink-0 opacity-80 transition-all hover:opacity-100 hover:scale-105 cursor-default contrast-125 brightness-75 hover:contrast-100 hover:brightness-100"
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={client.src} alt={client.name} className="h-7 w-auto max-w-[140px] object-contain" />
-                          </div>
-                        ))}
+                    {/* Trusted-by Marquee — sits below CTA, same width */}
+                    <div className="hero-fade-in hero-delay-500 relative overflow-hidden rounded-2xl border border-white/30 bg-white/50 py-3 backdrop-blur-xl">
+                      <h3 className="mb-2 px-5 text-xs font-medium text-black/40">Trusted by Industry Leaders</h3>
+                      <div
+                        className="relative flex overflow-hidden"
+                        style={{
+                          maskImage: "linear-gradient(to right, transparent, black 15%, black 85%, transparent)",
+                          WebkitMaskImage: "linear-gradient(to right, transparent, black 15%, black 85%, transparent)",
+                        }}
+                      >
+                        <div className="hero-marquee flex items-center gap-8 whitespace-nowrap px-3">
+                          {[...CLIENTS, ...CLIENTS, ...CLIENTS].map((client, i) => (
+                            <div
+                              key={i}
+                              className="flex-shrink-0 opacity-80 transition-all hover:opacity-100 hover:scale-105 cursor-default contrast-125 brightness-75 hover:contrast-100 hover:brightness-100"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={client.src} alt={client.name} className="h-5 w-auto max-w-[100px] object-contain" />
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
