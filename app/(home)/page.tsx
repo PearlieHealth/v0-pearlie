@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { MeshGradient } from "@paper-design/shaders-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, RotateCcw, Search, MessageCircle } from "lucide-react"
+import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, RotateCcw, Search, MessageCircle, Hexagon, Triangle, Command, Ghost, Gem, Cpu, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import Image from "next/image"
@@ -47,6 +47,17 @@ const marqueeItems = [
   { text: "Independent Platform", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
   { text: "Live Chat with Clinics", icon: <MessageCircle className="w-3.5 h-3.5" /> },
   { text: "Book Directly Online", icon: <CalendarCheck className="w-3.5 h-3.5" /> },
+]
+
+// --- TRUSTED-BY BRANDS ---
+// Easily editable: add `src` for an <img> logo, or use `icon` for a Lucide placeholder
+const CLIENTS: { name: string; icon?: LucideIcon; src?: string }[] = [
+  { name: "Acme Corp", icon: Hexagon },
+  { name: "Quantum", icon: Triangle },
+  { name: "Command+Z", icon: Command },
+  { name: "Phantom", icon: Ghost },
+  { name: "Ruby", icon: Gem },
+  { name: "Chipset", icon: Cpu },
 ]
 
 
@@ -210,7 +221,29 @@ export default function Home() {
           <MainNav hideCta={!!lastMatch} />
           <StickyMobileHomeCta />
 
-          {/* Hero section — centered layout with animated mesh gradient */}
+          {/* Hero section — 2-column grid with animated mesh gradient */}
+          <style>{`
+            @keyframes heroFadeSlideIn {
+              from { opacity: 0; transform: translateY(20px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes heroMarquee {
+              from { transform: translateX(0); }
+              to { transform: translateX(-50%); }
+            }
+            .hero-fade-in {
+              animation: heroFadeSlideIn 0.8s ease-out forwards;
+              opacity: 0;
+            }
+            .hero-marquee {
+              animation: heroMarquee 40s linear infinite;
+            }
+            .hero-delay-100 { animation-delay: 0.1s; }
+            .hero-delay-200 { animation-delay: 0.2s; }
+            .hero-delay-300 { animation-delay: 0.3s; }
+            .hero-delay-400 { animation-delay: 0.4s; }
+            .hero-delay-500 { animation-delay: 0.5s; }
+          `}</style>
           <section className="relative min-h-[100svh] flex flex-col pt-32 pb-10 md:pt-36 md:pb-14 bg-[#e8f0ef] overflow-hidden">
             {/* Animated mesh gradient background */}
             {mounted && (
@@ -230,138 +263,186 @@ export default function Home() {
             {/* Veil overlay for text readability */}
             <div className="absolute inset-0 z-[1] bg-white/45 pointer-events-none" />
 
-            <div className="flex-1 flex items-center justify-center px-6 md:px-14 relative z-10">
-              <div className="max-w-3xl mx-auto w-full text-center">
+            <div className="flex-1 flex items-center px-6 md:px-14 relative z-10">
+              <div className="max-w-7xl mx-auto w-full px-4 lg:px-8">
+                <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-8 items-start">
 
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.05 }}
-                >
-                  <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443] mb-4">
-                    London&apos;s dental matching platform
-                  </span>
-                </motion.div>
+                  {/* --- LEFT COLUMN --- */}
+                  <div className="lg:col-span-7 flex flex-col justify-center space-y-8 pt-8 text-center lg:text-left">
+                    {/* Badge */}
+                    <div className="hero-fade-in hero-delay-100">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-[#004443]/10 bg-white/50 px-3 py-1.5 backdrop-blur-md">
+                        <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-[#004443] flex items-center gap-2">
+                          London&apos;s dental matching platform
+                          <Star className="w-3.5 h-3.5 text-[#0fbcb0] fill-[#0fbcb0]" />
+                        </span>
+                      </div>
+                    </div>
 
-                <motion.h1
-                  className="text-[clamp(2.4rem,8vw,3rem)] md:text-[3.2rem] lg:text-[4rem] xl:text-[4.75rem] leading-[1.08] font-heading font-bold tracking-[-0.03em] text-black mb-5 md:mb-6"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.1 }}
-                >
-                  <span className="block">Find dentists</span>
-                  <span className="block mt-1 md:mt-2 relative grid">
-                    {/* Invisible sizers: all overlap in same grid cell, tallest wins */}
-                    {heroRotatingBenefits.map((text) => (
-                      <span key={text} className="invisible col-start-1 row-start-1" aria-hidden="true">
-                        {text}
+                    {/* Heading */}
+                    <motion.h1
+                      className="text-[clamp(2.4rem,8vw,3rem)] md:text-[3.2rem] lg:text-[4rem] xl:text-[4.75rem] leading-[1.08] font-heading font-bold tracking-[-0.03em] text-black"
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 0.1 }}
+                    >
+                      <span className="block">Find dentists</span>
+                      <span className="block mt-1 md:mt-2 relative grid">
+                        {heroRotatingBenefits.map((text) => (
+                          <span key={text} className="invisible col-start-1 row-start-1" aria-hidden="true">
+                            {text}
+                          </span>
+                        ))}
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.span
+                            key={benefitIndex}
+                            className="col-start-1 row-start-1 text-[#004d47]"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+                          >
+                            {heroRotatingBenefits[benefitIndex]}
+                          </motion.span>
+                        </AnimatePresence>
                       </span>
-                    ))}
-                    {/* Visible rotating phrase overlaid in same grid cell */}
-                    <AnimatePresence mode="wait" initial={false}>
-                      <motion.span
-                        key={benefitIndex}
-                        className="col-start-1 row-start-1 text-[#004d47]"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+                    </motion.h1>
+
+                    {/* Description */}
+                    {!lastMatch && (
+                      <p className="hero-fade-in hero-delay-300 max-w-xl text-base md:text-lg text-black/80 leading-relaxed mx-auto lg:mx-0">
+                        Pearlie is a curated network of best dentists. Find one perfect for you and book online instantly.
+                      </p>
+                    )}
+
+                    {/* CTA Buttons */}
+                    <motion.div
+                      id="home-hero-cta"
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 0.3 }}
+                    >
+                      {lastMatch ? (
+                        <div className="flex flex-col gap-5">
+                          <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-3 max-w-xl w-full">
+                            <Link
+                              href={`/match/${lastMatch.matchId}`}
+                              className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                            >
+                              <div className="w-10 h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
+                                <RotateCcw className="w-5 h-5 text-[#0fbcb0]" />
+                              </div>
+                              <div className="flex-1 min-w-0 text-left">
+                                <p className="text-[15px] font-semibold text-black">Return to your matches</p>
+                                <p className="text-xs text-black/60 mt-0.5 leading-snug">View the clinics we matched you with</p>
+                              </div>
+                              <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
+                            </Link>
+                            <Link
+                              href="/intake"
+                              className="group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
+                            >
+                              <div className="w-10 h-10 rounded-full bg-[#f8f7f1] flex items-center justify-center flex-shrink-0">
+                                <Search className="w-5 h-5 text-[#004443]" />
+                              </div>
+                              <div className="flex-1 min-w-0 text-left">
+                                <p className="text-[15px] font-semibold text-black">Start a new search</p>
+                                <p className="text-xs text-black/60 mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
+                              </div>
+                              <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
+                            </Link>
+                          </div>
+                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+                              <MapPin className="w-4 h-4 text-[#0fbcb0]" />
+                              <span className="font-bold text-foreground">Trusted</span>
+                              <span className="text-muted-foreground">across London</span>
+                            </span>
+                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+                              <Building2 className="w-4 h-4 text-[#0fbcb0]" />
+                              <span className="font-bold text-foreground">100+</span>
+                              <span className="text-muted-foreground">practices</span>
+                            </span>
+                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+                              <Star className="w-4 h-4 text-[#0fbcb0]" />
+                              <span className="font-bold text-foreground">4.8★</span>
+                              <span className="text-muted-foreground">avg rating</span>
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                          <Button
+                            size="default"
+                            className="group bg-[#0fbcb0] hover:bg-[#0da399] text-white px-8 py-4 h-auto rounded-full font-semibold transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] text-sm border-0 hover:scale-[1.02] active:scale-[0.98]"
+                            asChild
+                          >
+                            <Link href="/intake" onClick={handleFindClinicClick}>
+                              Find my clinic
+                              <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                            </Link>
+                          </Button>
+                          <button
+                            onClick={() => {
+                              document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
+                            }}
+                            className="inline-flex items-center justify-center gap-2 rounded-full border border-[#004443]/10 bg-white/50 px-8 py-4 text-sm font-semibold text-[#004443] backdrop-blur-sm transition-colors hover:bg-white/70 hover:border-[#004443]/20"
+                          >
+                            How it works
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  </div>
+
+                  {/* --- RIGHT COLUMN --- */}
+                  <div className="lg:col-span-5 space-y-6 lg:mt-12">
+                    {/* Intake Form Card */}
+                    <div className="hero-fade-in hero-delay-500 relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 backdrop-blur-xl shadow-2xl">
+                      {/* Glow effect */}
+                      <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#0fbcb0]/10 blur-3xl pointer-events-none" />
+                      <div className="relative z-10">
+                        <div className="mb-6">
+                          <h2 className="text-xl font-heading font-bold text-[#004443]">Find your perfect dentist</h2>
+                          <p className="text-sm text-black/60 mt-1">Tell us what you need and we&apos;ll match you instantly</p>
+                        </div>
+                        <HomeHeroSearch variant="card" />
+                      </div>
+                    </div>
+
+                    {/* Trusted-by Marquee Card */}
+                    <div className="hero-fade-in hero-delay-500 relative overflow-hidden rounded-3xl border border-white/30 bg-white/50 py-8 backdrop-blur-xl">
+                      <h3 className="mb-6 px-8 text-sm font-medium text-black/50">Trusted by Industry Leaders</h3>
+                      <div
+                        className="relative flex overflow-hidden"
+                        style={{
+                          maskImage: "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
+                          WebkitMaskImage: "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
+                        }}
                       >
-                        {heroRotatingBenefits[benefitIndex]}
-                      </motion.span>
-                    </AnimatePresence>
-                  </span>
-                </motion.h1>
-
-                {!lastMatch && (
-                  <motion.p
-                    className="text-base md:text-lg text-black/90 mb-8 md:mb-10 leading-[1.6] max-w-xl mx-auto"
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                  >
-                    Pearlie is a curated network of best dentists. Find one perfect for you and book online instantly.
-                  </motion.p>
-                )}
-
-                <motion.div
-                  id="home-hero-cta"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
-                >
-                  {lastMatch ? (
-                    <div className="flex flex-col items-center gap-5">
-                      <div className="flex flex-col sm:flex-row justify-center gap-3 max-w-xl w-full">
-                        <Link
-                          href={`/match/${lastMatch.matchId}`}
-                          className="group flex items-center gap-3 bg-white border border-[#0fbcb0]/30 rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#0fbcb0]/60 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
-                        >
-                          <div className="w-10 h-10 rounded-full bg-[#0fbcb0]/10 flex items-center justify-center flex-shrink-0">
-                            <RotateCcw className="w-5 h-5 text-[#0fbcb0]" />
-                          </div>
-                          <div className="flex-1 min-w-0 text-left">
-                            <p className="text-[15px] font-semibold text-black">Return to your matches</p>
-                            <p className="text-xs text-black/60 mt-0.5 leading-snug">View the clinics we matched you with</p>
-                          </div>
-                          <ArrowRight className="w-5 h-5 text-[#0fbcb0] group-hover:translate-x-0.5 transition-transform" />
-                        </Link>
-                        <Link
-                          href="/intake"
-                          className="group flex items-center gap-3 bg-white border border-[#d5cfc8] rounded-2xl px-5 py-4 hover:shadow-md hover:border-[#bbb] transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)]"
-                        >
-                          <div className="w-10 h-10 rounded-full bg-[#f8f7f1] flex items-center justify-center flex-shrink-0">
-                            <Search className="w-5 h-5 text-[#004443]" />
-                          </div>
-                          <div className="flex-1 min-w-0 text-left">
-                            <p className="text-[15px] font-semibold text-black">Start a new search</p>
-                            <p className="text-xs text-black/60 mt-0.5 leading-snug">Answer new questions and get fresh matches</p>
-                          </div>
-                          <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
-                        </Link>
-                      </div>
-                      <div className="flex flex-wrap items-center justify-center gap-3">
-                        <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                          <MapPin className="w-4 h-4 text-[#0fbcb0]" />
-                          <span className="font-bold text-foreground">Trusted</span>
-                          <span className="text-muted-foreground">across London</span>
-                        </span>
-                        <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                          <Building2 className="w-4 h-4 text-[#0fbcb0]" />
-                          <span className="font-bold text-foreground">100+</span>
-                          <span className="text-muted-foreground">practices</span>
-                        </span>
-                        <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                          <Star className="w-4 h-4 text-[#0fbcb0]" />
-                          <span className="font-bold text-foreground">4.8★</span>
-                          <span className="text-muted-foreground">avg rating</span>
-                        </span>
+                        <div className="hero-marquee flex gap-12 whitespace-nowrap px-4">
+                          {[...CLIENTS, ...CLIENTS, ...CLIENTS].map((client, i) => (
+                            <div
+                              key={i}
+                              className="flex items-center gap-2 opacity-40 transition-all hover:opacity-80 hover:scale-105 cursor-default grayscale hover:grayscale-0"
+                            >
+                              {client.src ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={client.src} alt={client.name} className="h-6 w-auto" />
+                              ) : client.icon ? (
+                                <client.icon className="h-6 w-6 text-[#004443]" />
+                              ) : null}
+                              <span className="text-lg font-bold text-[#004443] tracking-tight">
+                                {client.name}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-5">
-                      <HomeHeroSearch />
-                      <div className="flex flex-wrap items-center justify-center gap-3">
-                        <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                          <MapPin className="w-4 h-4 text-[#0fbcb0]" />
-                          <span className="font-bold text-foreground">Trusted</span>
-                          <span className="text-muted-foreground">across London</span>
-                        </span>
-                        <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                          <Building2 className="w-4 h-4 text-[#0fbcb0]" />
-                          <span className="font-bold text-foreground">100+</span>
-                          <span className="text-muted-foreground">practices</span>
-                        </span>
-                        <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                          <Star className="w-4 h-4 text-[#0fbcb0]" />
-                          <span className="font-bold text-foreground">4.8★</span>
-                          <span className="text-muted-foreground">avg rating</span>
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
+                  </div>
 
+                </div>
               </div>
             </div>
           </section>
