@@ -250,11 +250,11 @@ export default function Home() {
                   transition={{ duration: 0.8, delay: 0.1 }}
                 >
                   <span className="block">Find dentists</span>
-                  <span className="block mt-1 md:mt-2 relative h-[3.6em] md:h-[2.4em] lg:h-[1.2em] overflow-hidden">
+                  <span className="block mt-1 md:mt-2">
                     <AnimatePresence mode="wait" initial={false}>
                       <motion.span
                         key={benefitIndex}
-                        className="absolute inset-x-0 top-0 block text-[#006b64]"
+                        className="block text-[#006b64]"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
