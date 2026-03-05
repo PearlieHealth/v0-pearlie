@@ -384,9 +384,9 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Trusted-by Marquee Card — full width, visible on all screens */}
-                  <div className="col-span-1 lg:col-span-12 hero-fade-in hero-delay-500 relative overflow-hidden rounded-3xl border border-white/30 bg-white/50 py-8 backdrop-blur-xl">
-                    <h3 className="mb-6 px-8 text-sm font-medium text-black/50">Trusted by Industry Leaders</h3>
+                  {/* Trusted-by Marquee Card — full width, compact */}
+                  <div className="col-span-1 lg:col-span-12 hero-fade-in hero-delay-500 relative overflow-hidden rounded-2xl border border-white/30 bg-white/50 py-4 backdrop-blur-xl">
+                    <h3 className="mb-3 px-6 text-xs font-medium text-black/40">Trusted by Industry Leaders</h3>
                     <div
                       className="relative flex overflow-hidden"
                       style={{
@@ -394,14 +394,14 @@ export default function Home() {
                         WebkitMaskImage: "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
                       }}
                     >
-                      <div className="hero-marquee flex items-center gap-14 whitespace-nowrap px-4">
+                      <div className="hero-marquee flex items-center gap-10 whitespace-nowrap px-4">
                         {[...CLIENTS, ...CLIENTS, ...CLIENTS].map((client, i) => (
                           <div
                             key={i}
                             className="flex-shrink-0 opacity-80 transition-all hover:opacity-100 hover:scale-105 cursor-default contrast-125 brightness-75 hover:contrast-100 hover:brightness-100"
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={client.src} alt={client.name} className="h-7 w-auto max-w-[140px] object-contain" />
+                            <img src={client.src} alt={client.name} className="h-5 w-auto max-w-[110px] object-contain" />
                           </div>
                         ))}
                       </div>
