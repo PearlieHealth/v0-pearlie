@@ -360,8 +360,9 @@ export default function Home() {
                         </div>
                       ) : (
                         <div className="flex flex-col gap-4">
-                          {/* Mobile: show search form inline */}
-                          <div className="lg:hidden">
+                          {/* Mobile: show heading + search form inline */}
+                          <div className="lg:hidden space-y-4">
+                            <h2 className="text-xl font-heading font-bold text-[#004443]">Get the care you deserve</h2>
                             <HomeHeroSearch variant="inline" />
                           </div>
                           {/* Trust pills - hidden on mobile to make room for search */}
