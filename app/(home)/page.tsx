@@ -392,8 +392,21 @@ export default function Home() {
 
                   {/* --- RIGHT COLUMN --- */}
                   <div className="lg:col-span-5 space-y-6 lg:mt-12">
-                    {/* Trust signals — mobile only */}
-                    <div className="flex lg:hidden flex-wrap items-center justify-center gap-3 hero-fade-in hero-delay-400">
+                    {/* Intake Form Card */}
+                    <div className="hero-fade-in hero-delay-500 relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 backdrop-blur-xl shadow-2xl">
+                      {/* Glow effect */}
+                      <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#0fbcb0]/10 blur-3xl pointer-events-none" />
+                      <div className="relative z-10">
+                        <div className="mb-6">
+                          <h2 className="text-xl font-heading font-bold text-[#004443]">Find your perfect dentist</h2>
+                          <p className="text-sm text-black/60 mt-1">Tell us what you need and we&apos;ll match you instantly</p>
+                        </div>
+                        <HomeHeroSearch variant="card" />
+                      </div>
+                    </div>
+
+                    {/* Trust signals — mobile only, below intake card */}
+                    <div className="flex lg:hidden flex-wrap items-center justify-center gap-3 hero-fade-in hero-delay-500">
                       <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
                         <MapPin className="w-4 h-4 text-[#0fbcb0]" />
                         <span className="font-bold text-foreground">Trusted</span>
@@ -409,19 +422,6 @@ export default function Home() {
                         <span className="font-bold text-foreground">4.8★</span>
                         <span className="text-muted-foreground">avg rating</span>
                       </span>
-                    </div>
-
-                    {/* Intake Form Card */}
-                    <div className="hero-fade-in hero-delay-500 relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 backdrop-blur-xl shadow-2xl">
-                      {/* Glow effect */}
-                      <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#0fbcb0]/10 blur-3xl pointer-events-none" />
-                      <div className="relative z-10">
-                        <div className="mb-6">
-                          <h2 className="text-xl font-heading font-bold text-[#004443]">Find your perfect dentist</h2>
-                          <p className="text-sm text-black/60 mt-1">Tell us what you need and we&apos;ll match you instantly</p>
-                        </div>
-                        <HomeHeroSearch variant="card" />
-                      </div>
                     </div>
 
                     {/* Trusted-by Marquee Card */}
