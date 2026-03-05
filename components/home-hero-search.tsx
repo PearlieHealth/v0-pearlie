@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { PostcodeInput } from "@/components/postcode-input"
-import { TREATMENT_OPTIONS, SUPPORTED_REGION } from "@/lib/intake-form-config"
+import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT, SUPPORTED_REGION } from "@/lib/intake-form-config"
 import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { ArrowRight } from "lucide-react"
@@ -20,7 +20,12 @@ import {
 } from "@/components/ui/alert-dialog"
 
 // All treatment options including emergency — shown in hero dropdown
-const ALL_TREATMENTS = [...TREATMENT_OPTIONS]
+const CHECKUP = "General Check-up & Clean"
+const ALL_TREATMENTS = [
+  CHECKUP,
+  EMERGENCY_TREATMENT,
+  ...TREATMENT_OPTIONS.filter((t) => t !== CHECKUP && t !== EMERGENCY_TREATMENT),
+]
 
 export function HomeHeroSearch({ variant = "inline" }: { variant?: "inline" | "card" }) {
   const isCard = variant === "card"
