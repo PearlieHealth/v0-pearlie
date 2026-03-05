@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect, useCallback, useRef } from "react"
 import { AnimatePresence, motion } from "framer-motion"
+import { MeshGradient } from "@paper-design/shaders-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, RotateCcw, Search, MessageCircle } from "lucide-react"
@@ -184,6 +185,10 @@ export default function Home() {
 
   const lastMatch = useLastMatch()
 
+  // Client-side mount flag for WebGL MeshGradient
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
   // Rotating hero benefit phrases
   const [benefitIndex, setBenefitIndex] = useState(0)
   useEffect(() => {
@@ -205,12 +210,25 @@ export default function Home() {
           <MainNav hideCta={!!lastMatch} />
           <StickyMobileHomeCta />
 
-          {/* Hero section — centered, text-only layout */}
-          <section className="relative min-h-[100svh] flex flex-col pt-32 pb-10 md:pt-36 md:pb-14 bg-gradient-to-b from-[#f2f0e8] via-[#f5f3ec] to-[#f8f7f1] overflow-hidden">
-            {/* Decorative background elements */}
-            <div className="absolute top-20 right-[10%] w-[500px] h-[500px] rounded-full bg-[#0fbcb0]/[0.04] blur-[100px] pointer-events-none" />
-            <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full bg-[#f5e6d0]/40 blur-[80px] pointer-events-none" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#0fbcb0]/[0.02] blur-[120px] pointer-events-none" />
+          {/* Hero section — centered layout with animated mesh gradient */}
+          <section className="relative min-h-[100svh] flex flex-col pt-32 pb-10 md:pt-36 md:pb-14 bg-[#e8f0ef] overflow-hidden">
+            {/* Animated mesh gradient background */}
+            {mounted && (
+              <div className="absolute inset-0 z-0">
+                <MeshGradient
+                  colors={["#0fbcb0", "#72b9bb", "#b5d9d9", "#f5e6d0", "#ffebe0", "#004443"]}
+                  distortion={0.8}
+                  swirl={0.6}
+                  speed={0.42}
+                  offsetX={0.08}
+                  grainMixer={0}
+                  grainOverlay={0}
+                  style={{ width: "100%", height: "100%" }}
+                />
+              </div>
+            )}
+            {/* Veil overlay for text readability */}
+            <div className="absolute inset-0 z-[1] bg-white/30 pointer-events-none" />
 
             <div className="flex-1 flex items-center justify-center px-6 md:px-14 relative z-10">
               <div className="max-w-3xl mx-auto w-full text-center">
@@ -220,7 +238,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.05 }}
                 >
-                  <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443]/60 mb-4">
+                  <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443]/80 mb-4">
                     London&apos;s dental matching platform
                   </span>
                 </motion.div>
@@ -236,7 +254,7 @@ export default function Home() {
                     <AnimatePresence mode="wait" initial={false}>
                       <motion.span
                         key={benefitIndex}
-                        className="absolute inset-x-0 top-0 block text-[#0fbcb0]"
+                        className="absolute inset-x-0 top-0 block text-[#006b64]"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -250,7 +268,7 @@ export default function Home() {
 
                 {!lastMatch && (
                   <motion.p
-                    className="text-base md:text-lg text-black/70 mb-8 md:mb-10 leading-[1.6] max-w-xl mx-auto"
+                    className="text-base md:text-lg text-black/80 mb-8 md:mb-10 leading-[1.6] max-w-xl mx-auto"
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
