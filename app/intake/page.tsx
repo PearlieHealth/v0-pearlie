@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -773,12 +774,12 @@ export default function IntakePage() {
       {/* Top bar — Pearlie logo */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <div className="rounded-full bg-[#0fbcb0] p-1.5">
               <Heart className="w-4 h-4 text-white fill-white" />
             </div>
             <span className="text-xl font-heading font-bold tracking-tight text-[#0fbcb0]">Pearlie</span>
-          </div>
+          </Link>
           <button
             type="button"
             onClick={handleStepBack}
