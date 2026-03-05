@@ -228,7 +228,7 @@ export default function Home() {
               </div>
             )}
             {/* Veil overlay for text readability */}
-            <div className="absolute inset-0 z-[1] bg-white/30 pointer-events-none" />
+            <div className="absolute inset-0 z-[1] bg-white/45 pointer-events-none" />
 
             <div className="flex-1 flex items-center justify-center px-6 md:px-14 relative z-10">
               <div className="max-w-3xl mx-auto w-full text-center">
@@ -238,7 +238,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.05 }}
                 >
-                  <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443]/80 mb-4">
+                  <span className="inline-block text-xs font-extrabold tracking-[0.08em] uppercase text-[#004443] mb-4">
                     London&apos;s dental matching platform
                   </span>
                 </motion.div>
@@ -250,11 +250,18 @@ export default function Home() {
                   transition={{ duration: 0.8, delay: 0.1 }}
                 >
                   <span className="block">Find dentists</span>
-                  <span className="block mt-1 md:mt-2">
+                  <span className="block mt-1 md:mt-2 relative">
+                    {/* Invisible sizer: tallest phrase determines container height */}
+                    {heroRotatingBenefits.map((text) => (
+                      <span key={text} className="block invisible" aria-hidden="true">
+                        {text}
+                      </span>
+                    ))}
+                    {/* Visible rotating phrase, absolutely positioned over sizer */}
                     <AnimatePresence mode="wait" initial={false}>
                       <motion.span
                         key={benefitIndex}
-                        className="block text-[#006b64]"
+                        className="absolute inset-0 block text-[#004d47]"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -268,7 +275,7 @@ export default function Home() {
 
                 {!lastMatch && (
                   <motion.p
-                    className="text-base md:text-lg text-black/80 mb-8 md:mb-10 leading-[1.6] max-w-xl mx-auto"
+                    className="text-base md:text-lg text-black/90 mb-8 md:mb-10 leading-[1.6] max-w-xl mx-auto"
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
