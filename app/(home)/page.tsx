@@ -419,7 +419,7 @@ export default function Home() {
                           {[...CLIENTS, ...CLIENTS, ...CLIENTS].map((client, i) => (
                             <div
                               key={i}
-                              className="flex-shrink-0 opacity-50 transition-all hover:opacity-90 hover:scale-105 cursor-default grayscale hover:grayscale-0"
+                              className="flex-shrink-0 opacity-80 transition-all hover:opacity-100 hover:scale-105 cursor-default contrast-125 brightness-75 hover:contrast-100 hover:brightness-100"
                             >
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={client.src} alt={client.name} className="h-7 w-auto max-w-[140px] object-contain" />
