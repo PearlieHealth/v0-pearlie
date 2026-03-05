@@ -267,8 +267,8 @@ export default function Home() {
 
                   {/* --- LEFT COLUMN --- */}
                   <div className="lg:col-span-7 flex flex-col justify-center space-y-8 pt-8 text-center lg:text-left">
-                    {/* Badge */}
-                    <div className="hero-fade-in hero-delay-100">
+                    {/* Badge — desktop only */}
+                    <div className="hero-fade-in hero-delay-100 hidden lg:block">
                       <div className="inline-flex items-center gap-2 rounded-full border border-[#004443]/10 bg-white/50 px-3 py-1.5 backdrop-blur-md">
                         <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-[#004443] flex items-center gap-2">
                           London&apos;s dental matching platform
@@ -369,7 +369,7 @@ export default function Home() {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                        <div className="hidden lg:flex flex-wrap items-center justify-start gap-3">
                           <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
                             <MapPin className="w-4 h-4 text-[#0fbcb0]" />
                             <span className="font-bold text-foreground">Trusted</span>
@@ -392,6 +392,25 @@ export default function Home() {
 
                   {/* --- RIGHT COLUMN --- */}
                   <div className="lg:col-span-5 space-y-6 lg:mt-12">
+                    {/* Trust signals — mobile only */}
+                    <div className="flex lg:hidden flex-wrap items-center justify-center gap-3 hero-fade-in hero-delay-400">
+                      <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
+                        <MapPin className="w-4 h-4 text-[#0fbcb0]" />
+                        <span className="font-bold text-foreground">Trusted</span>
+                        <span className="text-muted-foreground">across London</span>
+                      </span>
+                      <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
+                        <Building2 className="w-4 h-4 text-[#0fbcb0]" />
+                        <span className="font-bold text-foreground">100+</span>
+                        <span className="text-muted-foreground">verified practices</span>
+                      </span>
+                      <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
+                        <Star className="w-4 h-4 text-[#0fbcb0] fill-[#0fbcb0]" />
+                        <span className="font-bold text-foreground">4.8★</span>
+                        <span className="text-muted-foreground">avg rating</span>
+                      </span>
+                    </div>
+
                     {/* Intake Form Card */}
                     <div className="hero-fade-in hero-delay-500 relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 backdrop-blur-xl shadow-2xl">
                       {/* Glow effect */}
