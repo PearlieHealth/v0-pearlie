@@ -340,55 +340,36 @@ export default function Home() {
                               <ArrowRight className="w-5 h-5 text-[#004443] group-hover:translate-x-0.5 transition-transform" />
                             </Link>
                           </div>
-                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                              <MapPin className="w-4 h-4 text-[#0fbcb0]" />
-                              <span className="font-bold text-foreground">Trusted</span>
-                              <span className="text-muted-foreground">across London</span>
-                            </span>
-                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                              <Building2 className="w-4 h-4 text-[#0fbcb0]" />
-                              <span className="font-bold text-foreground">100+</span>
-                              <span className="text-muted-foreground">practices</span>
-                            </span>
-                            <span className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 text-sm shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                              <Star className="w-4 h-4 text-[#0fbcb0]" />
-                              <span className="font-bold text-foreground">4.8★</span>
-                              <span className="text-muted-foreground">avg rating</span>
-                            </span>
-                          </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col gap-4">
-                          {/* Mobile: show heading + search form inline */}
-                          <div className="lg:hidden space-y-4">
-                            <h2 className="text-xl font-heading font-bold text-[#004443]">Get the care you deserve</h2>
-                            <HomeHeroSearch variant="inline" />
-                          </div>
-                          {/* Trust pills */}
-                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-                            <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
-                              <MapPin className="w-4 h-4 text-[#0fbcb0]" />
-                              <span className="font-bold text-foreground">Trusted</span>
-                              <span className="text-muted-foreground">across London</span>
-                            </span>
-                            <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
-                              <Building2 className="w-4 h-4 text-[#0fbcb0]" />
-                              <span className="font-bold text-foreground">100+</span>
-                              <span className="text-muted-foreground">verified practices</span>
-                            </span>
-                            <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
-                              <Star className="w-4 h-4 text-[#0fbcb0] fill-[#0fbcb0]" />
-                              <span className="font-bold text-foreground">4.8★</span>
-                              <span className="text-muted-foreground">avg rating</span>
-                            </span>
-                          </div>
+                        <div className="lg:hidden space-y-4">
+                          <h2 className="text-xl font-heading font-bold text-[#004443]">Get the care you deserve</h2>
+                          <HomeHeroSearch variant="inline" />
                         </div>
                       )}
+
+                      {/* Trust pills — always visible */}
+                      <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mt-4">
+                        <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
+                          <MapPin className="w-4 h-4 text-[#0fbcb0]" />
+                          <span className="font-bold text-foreground">Trusted</span>
+                          <span className="text-muted-foreground">across London</span>
+                        </span>
+                        <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
+                          <Building2 className="w-4 h-4 text-[#0fbcb0]" />
+                          <span className="font-bold text-foreground">100+</span>
+                          <span className="text-muted-foreground">verified practices</span>
+                        </span>
+                        <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
+                          <Star className="w-4 h-4 text-[#0fbcb0] fill-[#0fbcb0]" />
+                          <span className="font-bold text-foreground">4.8★</span>
+                          <span className="text-muted-foreground">avg rating</span>
+                        </span>
+                      </div>
                     </motion.div>
                   </div>
 
-                  {/* --- RIGHT COLUMN (hidden on mobile - search is inline above) --- */}
+                  {/* --- RIGHT COLUMN (desktop only - search form card) --- */}
                   <div className="hidden lg:block lg:col-span-5 space-y-6 lg:mt-12">
                     {/* Intake Form Card */}
                     <div className="hero-fade-in hero-delay-500 relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 backdrop-blur-xl shadow-2xl">
@@ -401,28 +382,28 @@ export default function Home() {
                         <HomeHeroSearch variant="card" />
                       </div>
                     </div>
+                  </div>
 
-                    {/* Trusted-by Marquee Card */}
-                    <div className="hero-fade-in hero-delay-500 relative overflow-hidden rounded-3xl border border-white/30 bg-white/50 py-8 backdrop-blur-xl">
-                      <h3 className="mb-6 px-8 text-sm font-medium text-black/50">Trusted by Industry Leaders</h3>
-                      <div
-                        className="relative flex overflow-hidden"
-                        style={{
-                          maskImage: "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
-                          WebkitMaskImage: "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
-                        }}
-                      >
-                        <div className="hero-marquee flex items-center gap-14 whitespace-nowrap px-4">
-                          {[...CLIENTS, ...CLIENTS, ...CLIENTS].map((client, i) => (
-                            <div
-                              key={i}
-                              className="flex-shrink-0 opacity-80 transition-all hover:opacity-100 hover:scale-105 cursor-default contrast-125 brightness-75 hover:contrast-100 hover:brightness-100"
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={client.src} alt={client.name} className="h-7 w-auto max-w-[140px] object-contain" />
-                            </div>
-                          ))}
-                        </div>
+                  {/* Trusted-by Marquee Card — full width, visible on all screens */}
+                  <div className="col-span-1 lg:col-span-12 hero-fade-in hero-delay-500 relative overflow-hidden rounded-3xl border border-white/30 bg-white/50 py-8 backdrop-blur-xl">
+                    <h3 className="mb-6 px-8 text-sm font-medium text-black/50">Trusted by Industry Leaders</h3>
+                    <div
+                      className="relative flex overflow-hidden"
+                      style={{
+                        maskImage: "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
+                        WebkitMaskImage: "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
+                      }}
+                    >
+                      <div className="hero-marquee flex items-center gap-14 whitespace-nowrap px-4">
+                        {[...CLIENTS, ...CLIENTS, ...CLIENTS].map((client, i) => (
+                          <div
+                            key={i}
+                            className="flex-shrink-0 opacity-80 transition-all hover:opacity-100 hover:scale-105 cursor-default contrast-125 brightness-75 hover:contrast-100 hover:brightness-100"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={client.src} alt={client.name} className="h-7 w-auto max-w-[140px] object-contain" />
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
