@@ -365,8 +365,8 @@ export default function Home() {
                             <h2 className="text-xl font-heading font-bold text-[#004443]">Get the care you deserve</h2>
                             <HomeHeroSearch variant="inline" />
                           </div>
-                          {/* Trust pills - hidden on mobile to make room for search */}
-                          <div className="hidden lg:flex flex-wrap items-center justify-start gap-3">
+                          {/* Trust pills */}
+                          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
                             <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
                               <MapPin className="w-4 h-4 text-[#0fbcb0]" />
                               <span className="font-bold text-foreground">Trusted</span>
