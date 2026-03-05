@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { PostcodeInput } from "@/components/postcode-input"
-import { TREATMENT_OPTIONS, SUPPORTED_REGION } from "@/lib/intake-form-config"
+import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT, SUPPORTED_REGION } from "@/lib/intake-form-config"
 import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { ArrowRight } from "lucide-react"
@@ -20,9 +20,15 @@ import {
 } from "@/components/ui/alert-dialog"
 
 // All treatment options including emergency — shown in hero dropdown
-const ALL_TREATMENTS = [...TREATMENT_OPTIONS]
+const CHECKUP = "General Check-up & Clean"
+const ALL_TREATMENTS = [
+  CHECKUP,
+  EMERGENCY_TREATMENT,
+  ...TREATMENT_OPTIONS.filter((t) => t !== CHECKUP && t !== EMERGENCY_TREATMENT),
+]
 
-export function HomeHeroSearch() {
+export function HomeHeroSearch({ variant = "inline" }: { variant?: "inline" | "card" }) {
+  const isCard = variant === "card"
   const router = useRouter()
   const [treatment, setTreatment] = useState("")
   const [postcode, setPostcode] = useState("")
@@ -60,16 +66,24 @@ export function HomeHeroSearch() {
       <form
         id="home-hero-search"
         onSubmit={handleSubmit}
-        className="w-full max-w-xl lg:max-w-2xl bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.04)] p-4 sm:p-5 border border-border/30"
+        className={
+          isCard
+            ? "w-full space-y-4"
+            : "w-full max-w-xl lg:max-w-2xl bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.04)] p-4 sm:p-5 border border-border/30"
+        }
       >
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-start">
+        <div className={isCard ? "flex flex-col gap-4" : "flex flex-col sm:flex-row gap-3 items-stretch sm:items-start"}>
           {/* Treatment selector */}
-          <div className="flex-1 min-w-0">
-            <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 pl-1">Treatment</label>
+          <div className={isCard ? "" : "flex-1 min-w-0"}>
+            <label className={`block text-[11px] font-semibold uppercase tracking-wider mb-1.5 pl-1 ${isCard ? "text-black/50" : "text-muted-foreground"}`}>Treatment</label>
             <select
               value={treatment}
               onChange={(e) => setTreatment(e.target.value)}
-              className="w-full h-12 px-4 text-sm rounded-xl border border-border/60 bg-[#f8f7f1] focus:outline-none focus:ring-2 focus:ring-[#0fbcb0] focus:border-[#0fbcb0] text-foreground appearance-none cursor-pointer"
+              className={`w-full h-12 px-4 text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0fbcb0] focus:border-[#0fbcb0] appearance-none cursor-pointer ${
+                isCard
+                  ? "bg-white/60 border-white/40 text-foreground backdrop-blur-sm"
+                  : "border-border/60 bg-[#f8f7f1] text-foreground"
+              }`}
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
                 backgroundRepeat: "no-repeat",
@@ -87,9 +101,13 @@ export function HomeHeroSearch() {
           </div>
 
           {/* Postcode input */}
-          <div className="flex-1 min-w-0">
-            <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 pl-1">Postcode</label>
-            <div className="[&_input]:h-12 [&_input]:rounded-xl [&_input]:text-sm [&_input]:bg-[#f8f7f1] [&_input]:border-border/60">
+          <div className={isCard ? "" : "flex-1 min-w-0"}>
+            <label className={`block text-[11px] font-semibold uppercase tracking-wider mb-1.5 pl-1 ${isCard ? "text-black/50" : "text-muted-foreground"}`}>Postcode</label>
+            <div className={
+              isCard
+                ? "[&_input]:h-12 [&_input]:rounded-xl [&_input]:text-sm [&_input]:bg-white/60 [&_input]:border-white/40 [&_input]:backdrop-blur-sm"
+                : "[&_input]:h-12 [&_input]:rounded-xl [&_input]:text-sm [&_input]:bg-[#f8f7f1] [&_input]:border-border/60"
+            }>
               <PostcodeInput
                 value={postcode}
                 onChange={setPostcode}
@@ -100,14 +118,18 @@ export function HomeHeroSearch() {
           </div>
 
           {/* Submit button */}
-          <div className="flex flex-col justify-end">
-            <label className="hidden sm:block text-[11px] font-semibold uppercase tracking-wider text-transparent mb-1.5 select-none">&nbsp;</label>
+          <div className={isCard ? "" : "flex flex-col justify-end"}>
+            {!isCard && (
+              <label className="hidden sm:block text-[11px] font-semibold uppercase tracking-wider text-transparent mb-1.5 select-none">&nbsp;</label>
+            )}
             <Button
               type="submit"
               disabled={!postcodeValid}
-              className="bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-xl px-6 h-12 text-sm font-semibold shrink-0 disabled:opacity-50 border-0 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] shadow-sm"
+              className={`bg-[#0fbcb0] hover:bg-[#0da399] text-white rounded-xl h-12 text-sm font-semibold disabled:opacity-50 border-0 transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] shadow-sm ${
+                isCard ? "w-full" : "px-6 shrink-0"
+              }`}
             >
-              Find my clinic
+              {isCard ? "Get Started" : "Find my clinic"}
               <ArrowRight className="ml-1.5 w-4 h-4" />
             </Button>
           </div>
