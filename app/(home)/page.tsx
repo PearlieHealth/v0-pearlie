@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { MeshGradient } from "@paper-design/shaders-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, RotateCcw, Search, MessageCircle, Hexagon, Triangle, Command, Ghost, Gem, Cpu, type LucideIcon } from "lucide-react"
+import { Star, CheckCircle2, ArrowRight, Shield, Sparkles, Heart, MapPin, CalendarCheck, Building2, RotateCcw, Search, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { MainNav } from "@/components/main-nav"
 import Image from "next/image"
@@ -49,15 +49,13 @@ const marqueeItems = [
   { text: "Book Directly Online", icon: <CalendarCheck className="w-3.5 h-3.5" /> },
 ]
 
-// --- TRUSTED-BY BRANDS ---
-// Easily editable: add `src` for an <img> logo, or use `icon` for a Lucide placeholder
-const CLIENTS: { name: string; icon?: LucideIcon; src?: string }[] = [
-  { name: "Acme Corp", icon: Hexagon },
-  { name: "Quantum", icon: Triangle },
-  { name: "Command+Z", icon: Command },
-  { name: "Phantom", icon: Ghost },
-  { name: "Ruby", icon: Gem },
-  { name: "Chipset", icon: Cpu },
+// --- TRUSTED-BY CLINIC LOGOS ---
+const CLIENTS: { name: string; src: string }[] = [
+  { name: "FT Associates", src: "https://www.ft-associates.com/wp-content/uploads/2016/10/logo.jpg?v=10001" },
+  { name: "Ten Dental", src: "https://images.squarespace-cdn.com/content/v1/5d7bafb2d4f5e4735f21b5cc/8c5f5d2f-957b-403a-9403-9bec057add03/Web+elements+%281920+x+500+px%29.png?format=1500w" },
+  { name: "Siha Dental", src: "https://cdn.prod.website-files.com/68a843fdba26c88bef387bdc/68a843fdba26c88bef387d9b_Siha%20Dental_Logo.svg" },
+  { name: "Kensington Dental", src: "https://cdn.prod.website-files.com/67163c8a1296ee10c03f4ab3/67f4ed5c1cf06beff9b5f819_Logo.webp" },
+  { name: "Gold Dental", src: "https://static.wixstatic.com/media/b16d2b_0c87f7b19a0640c099dd2e2317ceffe7~mv2.png/v1/fill/w_558,h_86,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Gold-Text-Cropped.png" },
 ]
 
 
@@ -371,25 +369,22 @@ export default function Home() {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                          <Button
-                            size="default"
-                            className="group bg-[#0fbcb0] hover:bg-[#0da399] text-white px-8 py-4 h-auto rounded-full font-semibold transition-all duration-700 ease-[cubic-bezier(0.66,0,0.1,1)] text-sm border-0 hover:scale-[1.02] active:scale-[0.98]"
-                            asChild
-                          >
-                            <Link href="/intake" onClick={handleFindClinicClick}>
-                              Find my clinic
-                              <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
-                            </Link>
-                          </Button>
-                          <button
-                            onClick={() => {
-                              document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })
-                            }}
-                            className="inline-flex items-center justify-center gap-2 rounded-full border border-[#004443]/10 bg-white/50 px-8 py-4 text-sm font-semibold text-[#004443] backdrop-blur-sm transition-colors hover:bg-white/70 hover:border-[#004443]/20"
-                          >
-                            How it works
-                          </button>
+                        <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                          <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
+                            <MapPin className="w-4 h-4 text-[#0fbcb0]" />
+                            <span className="font-bold text-foreground">Trusted</span>
+                            <span className="text-muted-foreground">across London</span>
+                          </span>
+                          <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
+                            <Building2 className="w-4 h-4 text-[#0fbcb0]" />
+                            <span className="font-bold text-foreground">100+</span>
+                            <span className="text-muted-foreground">verified practices</span>
+                          </span>
+                          <span className="inline-flex items-center gap-2 bg-white/60 border border-white/40 rounded-full px-4 py-2 text-sm backdrop-blur-sm">
+                            <Star className="w-4 h-4 text-[#0fbcb0] fill-[#0fbcb0]" />
+                            <span className="font-bold text-foreground">4.8★</span>
+                            <span className="text-muted-foreground">avg rating</span>
+                          </span>
                         </div>
                       )}
                     </motion.div>
@@ -420,21 +415,14 @@ export default function Home() {
                           WebkitMaskImage: "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
                         }}
                       >
-                        <div className="hero-marquee flex gap-12 whitespace-nowrap px-4">
+                        <div className="hero-marquee flex items-center gap-14 whitespace-nowrap px-4">
                           {[...CLIENTS, ...CLIENTS, ...CLIENTS].map((client, i) => (
                             <div
                               key={i}
-                              className="flex items-center gap-2 opacity-40 transition-all hover:opacity-80 hover:scale-105 cursor-default grayscale hover:grayscale-0"
+                              className="flex-shrink-0 opacity-50 transition-all hover:opacity-90 hover:scale-105 cursor-default grayscale hover:grayscale-0"
                             >
-                              {client.src ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={client.src} alt={client.name} className="h-6 w-auto" />
-                              ) : client.icon ? (
-                                <client.icon className="h-6 w-6 text-[#004443]" />
-                              ) : null}
-                              <span className="text-lg font-bold text-[#004443] tracking-tight">
-                                {client.name}
-                              </span>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={client.src} alt={client.name} className="h-7 w-auto max-w-[140px] object-contain" />
                             </div>
                           ))}
                         </div>
