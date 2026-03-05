@@ -250,18 +250,18 @@ export default function Home() {
                   transition={{ duration: 0.8, delay: 0.1 }}
                 >
                   <span className="block">Find dentists</span>
-                  <span className="block mt-1 md:mt-2 relative">
-                    {/* Invisible sizer: tallest phrase determines container height */}
+                  <span className="block mt-1 md:mt-2 relative grid">
+                    {/* Invisible sizers: all overlap in same grid cell, tallest wins */}
                     {heroRotatingBenefits.map((text) => (
-                      <span key={text} className="block invisible" aria-hidden="true">
+                      <span key={text} className="invisible col-start-1 row-start-1" aria-hidden="true">
                         {text}
                       </span>
                     ))}
-                    {/* Visible rotating phrase, absolutely positioned over sizer */}
+                    {/* Visible rotating phrase overlaid in same grid cell */}
                     <AnimatePresence mode="wait" initial={false}>
                       <motion.span
                         key={benefitIndex}
-                        className="absolute inset-0 block text-[#004d47]"
+                        className="col-start-1 row-start-1 text-[#004d47]"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
