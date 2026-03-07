@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
 import { portalUrl } from "@/lib/clinic-url"
+import { generateReplyToAddress } from "@/lib/email-reply-token"
 
 /**
  * POST /api/leads/direct-auto
@@ -199,6 +200,20 @@ async function sendDirectLeadClinicNotification(
   const recipientEmail = clinic.notification_email || clinic.email
   if (!recipientEmail) return
 
+  // Look up existing conversation so clinic can reply via email
+  let replyTo: string | undefined
+  const { data: conv } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("lead_id", lead.id)
+    .eq("clinic_id", clinicId)
+    .limit(1)
+    .maybeSingle()
+
+  if (conv?.id) {
+    replyTo = generateReplyToAddress(conv.id, "clinic", recipientEmail)
+  }
+
   await sendRegisteredEmail({
     type: EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION,
     to: recipientEmail,
@@ -214,6 +229,7 @@ async function sendDirectLeadClinicNotification(
       _leadId: lead.id,
       _clinicId: clinicId,
     },
+    replyTo,
     clinicId,
     leadId: lead.id,
   })

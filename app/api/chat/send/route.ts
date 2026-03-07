@@ -402,6 +402,9 @@ export async function POST(request: NextRequest) {
             .maybeSingle()
 
           if (fullLead) {
+            const replyTo = generateReplyToAddress(conversation.id, "clinic", clinicNotificationEmail)
+            const threadMarker = generateThreadMarker(conversation.id)
+
             await sendRegisteredEmail({
               type: EMAIL_TYPE.LEAD_ACTION_NOTIFICATION,
               to: clinicNotificationEmail,
@@ -431,6 +434,7 @@ export async function POST(request: NextRequest) {
                 _leadId: leadId,
                 _clinicId: clinicId,
               },
+              replyTo,
               clinicId,
               leadId,
             })
