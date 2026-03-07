@@ -1367,92 +1367,80 @@ export default function IntakePage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.15 }}
                     className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
                   >
                     {/* Backdrop */}
-                    <div className="absolute inset-0 bg-black/40" onClick={() => setTreatmentInfoPopup(null)} />
+                    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setTreatmentInfoPopup(null)} />
 
                     {/* Modal */}
                     <motion.div
-                      initial={{ y: 100, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: 100, opacity: 0 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                      className="relative w-full sm:max-w-lg max-h-[85vh] overflow-y-auto bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl"
+                      initial={{ y: 60, scale: 0.97, opacity: 0 }}
+                      animate={{ y: 0, scale: 1, opacity: 1 }}
+                      exit={{ y: 40, scale: 0.97, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                      className="relative w-full sm:max-w-md max-h-[80vh] overflow-y-auto bg-white rounded-t-2xl sm:rounded-2xl"
                     >
-                      {/* Header */}
-                      <div className="sticky top-0 bg-white rounded-t-3xl sm:rounded-t-3xl px-5 pt-5 pb-3 border-b border-gray-100 flex items-start justify-between z-10">
-                        <div>
-                          <h3 className="text-xl font-semibold text-[#2d2d2d]">{treatmentInfoPopup.name}</h3>
-                          <p className="text-xs text-[#2d2d2d]/50 mt-0.5">BDA/GDC compliant information</p>
+                      {/* Close bar (mobile drag hint + close) */}
+                      <div className="sticky top-0 bg-white rounded-t-2xl z-10 px-4 pt-3 pb-2">
+                        <div className="w-8 h-1 rounded-full bg-gray-200 mx-auto mb-3 sm:hidden" />
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-semibold text-[#2d2d2d]">{treatmentInfoPopup.name}</h3>
+                          <button
+                            type="button"
+                            onClick={() => setTreatmentInfoPopup(null)}
+                            className="text-[#2d2d2d]/40 hover:text-[#2d2d2d]/70 transition-colors p-1"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setTreatmentInfoPopup(null)}
-                          className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors flex-shrink-0"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
                       </div>
 
                       {/* Body */}
-                      <div className="px-5 py-4 space-y-5">
-                        {/* Description */}
-                        <p className="text-sm text-[#2d2d2d]/80 leading-relaxed">{treatmentInfoPopup.description}</p>
+                      <div className="px-4 pb-5 space-y-4">
+                        <p className="text-[13px] text-[#2d2d2d]/70 leading-relaxed">{treatmentInfoPopup.description}</p>
 
-                        {/* What to Expect */}
-                        <div>
-                          <div className="flex items-center gap-2 mb-3">
-                            <AlertCircle className="w-4 h-4 text-[#e07a4a]" />
-                            <h4 className="text-sm font-semibold text-[#2d2d2d]">What to Expect</h4>
-                          </div>
-                          <ol className="space-y-2.5">
-                            {treatmentInfoPopup.whatToExpect.map((item, i) => (
-                              <li key={i} className="flex items-start gap-3">
-                                <span className="w-5 h-5 rounded-md bg-[#eaf6f4] text-[#0fbcb0] text-xs font-semibold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
-                                <span className="text-sm text-[#2d2d2d]/70">{item}</span>
-                              </li>
-                            ))}
-                          </ol>
+                        {/* Duration & Recovery inline */}
+                        <div className="flex items-center gap-4 text-[12px] text-[#2d2d2d]/55">
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            {treatmentInfoPopup.duration}
+                          </span>
+                          <span className="w-px h-3 bg-gray-200" />
+                          <span className="flex items-center gap-1.5">
+                            <Shield className="w-3.5 h-3.5" />
+                            {treatmentInfoPopup.recovery}
+                          </span>
                         </div>
 
-                        {/* Duration & Recovery cards */}
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-gray-50 rounded-xl p-3">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <Clock className="w-3.5 h-3.5 text-[#e07a4a]" />
-                              <span className="text-xs font-semibold text-[#2d2d2d]">Duration</span>
-                            </div>
-                            <p className="text-xs text-[#2d2d2d]/60 leading-relaxed">{treatmentInfoPopup.duration}</p>
-                          </div>
-                          <div className="bg-gray-50 rounded-xl p-3">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <Shield className="w-3.5 h-3.5 text-[#e07a4a]" />
-                              <span className="text-xs font-semibold text-[#2d2d2d]">Recovery</span>
-                            </div>
-                            <p className="text-xs text-[#2d2d2d]/60 leading-relaxed">{treatmentInfoPopup.recovery}</p>
-                          </div>
+                        {/* What to Expect */}
+                        <div className="border border-gray-100 rounded-xl p-3.5">
+                          <h4 className="text-[13px] font-medium text-[#2d2d2d] mb-2.5">What to expect</h4>
+                          <ul className="space-y-2">
+                            {treatmentInfoPopup.whatToExpect.map((item, i) => (
+                              <li key={i} className="flex items-start gap-2.5 text-[13px] text-[#2d2d2d]/65 leading-snug">
+                                <span className="text-[#0fbcb0] mt-0.5 text-xs">&#x2022;</span>
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
 
                         {/* Benefits */}
                         <div>
-                          <h4 className="text-sm font-semibold text-[#2d2d2d] mb-2">Benefits</h4>
-                          <div className="flex flex-wrap gap-2">
+                          <h4 className="text-[13px] font-medium text-[#2d2d2d] mb-2">Benefits</h4>
+                          <div className="flex flex-wrap gap-1.5">
                             {treatmentInfoPopup.benefits.map((benefit, i) => (
-                              <span key={i} className="px-3 py-1 rounded-full bg-[#eaf6f4] text-[#0fbcb0] text-xs font-medium">
+                              <span key={i} className="px-2.5 py-1 rounded-lg bg-[#f5f5f5] text-[#2d2d2d]/60 text-[12px]">
                                 {benefit}
                               </span>
                             ))}
                           </div>
                         </div>
 
-                        {/* Disclaimer */}
-                        <div className="bg-gray-50 rounded-xl px-4 py-3">
-                          <p className="text-xs text-[#2d2d2d]/50 text-center leading-relaxed">
-                            This information is for general guidance only. Your dentist will discuss your specific treatment plan.
-                          </p>
-                        </div>
+                        <p className="text-[11px] text-[#2d2d2d]/35 leading-relaxed">
+                          General guidance only — your dentist will discuss your specific treatment plan.
+                        </p>
                       </div>
                     </motion.div>
                   </motion.div>
