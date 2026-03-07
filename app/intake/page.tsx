@@ -823,7 +823,7 @@ export default function IntakePage() {
   const WhatsAppBar = () => (
     <div className="bg-[#e8faf8] text-center py-1.5 px-4">
       <a
-        href="https://wa.me/447000000000"
+        href="https://wa.me/447377967481"
         target="_blank"
         rel="noopener noreferrer"
         className="text-xs text-[#0d3d3a] hover:text-[#0fbcb0] transition-colors inline-flex items-center gap-1.5"
