@@ -827,6 +827,15 @@ export default function IntakePage() {
         target="_blank"
         rel="noopener noreferrer"
         className="text-xs text-[#0d3d3a] hover:text-[#0fbcb0] transition-colors inline-flex items-center gap-1.5"
+        onClick={() => {
+          const sessionId = localStorage.getItem("pearlie_session_id") || crypto.randomUUID()
+          navigator.sendBeacon?.("/api/track", new Blob([JSON.stringify({
+            session_id: sessionId,
+            event_name: "whatsapp_clicked",
+            page: "intake",
+            meta: { step, step_name: getStepName(step), flow: isEmergency ? "emergency" : "planning" },
+          })], { type: "application/json" }))
+        }}
       >
         <MessageCircle className="w-3.5 h-3.5" />
         Prefer to talk? Chat with us on WhatsApp
