@@ -1001,7 +1001,7 @@ export default function IntakePage() {
                 <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Mail className="w-10 h-10" />}
-                    title="Where should we send your matches?"
+                    title="Where should we send your results?"
                     subtitle="We'll save your progress so you can continue any time."
                   />
 
