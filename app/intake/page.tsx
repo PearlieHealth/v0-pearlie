@@ -33,6 +33,7 @@ import {
   SCHEMA_VERSION,
   TREATMENT_OPTIONS,
   EMERGENCY_TREATMENT,
+  TREATMENT_CATEGORIES,
   DECISION_VALUE_OPTIONS,
   BLOCKER_OPTIONS,
   COST_APPROACH_OPTIONS,
@@ -47,6 +48,7 @@ import {
   SOCIAL_PROOF_MESSAGES,
   SUPPORTED_REGION,
 } from "@/lib/intake-form-config"
+import type { TreatmentCategory, TreatmentInfo } from "@/lib/intake-form-config"
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -119,6 +121,10 @@ export default function IntakePage() {
 
   // FAQ accordion state
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+
+  // Treatment category tabs + info popup state
+  const [activeCategory, setActiveCategory] = useState<TreatmentCategory>("general")
+  const [treatmentInfoPopup, setTreatmentInfoPopup] = useState<TreatmentInfo | null>(null)
 
   // Pre-select treatment from URL param (?treatment=) and skip step 1
   useEffect(() => {
@@ -208,7 +214,7 @@ export default function IntakePage() {
   const isAnxious = formData.anxiety_level === "quite_anxious" || formData.anxiety_level === "very_anxious"
 
   // Is treatment a checkup?
-  const isCheckup = formData.treatments.includes("Check up and/or hygiene clean")
+  const isCheckup = formData.treatments.includes("Check up and/or hygiene clean") || formData.treatments.includes("Check-ups")
 
   // Dynamic step order based on flow
   // ORDER: 1(postcode) -> 3(travel) -> 2(email) -> 4(priorities) -> 5(anxiety) -> 8(treatment) -> 6(comfort, conditional) -> 7(concerns, skip if checkup) -> 9(timing+avail) -> 10(budget) -> 11(contact)
@@ -223,10 +229,15 @@ export default function IntakePage() {
     }
     if (!isEmergency) {
       order.push(9, 10)
+      if (formData.costApproach === "comfort_range") {
+        order.push(10.5)
+      } else if (formData.costApproach === "strict_budget") {
+        order.push(10.6)
+      }
     }
     order.push(11)
     return order
-  }, [isAnxious, isEmergency, isCheckup])
+  }, [isAnxious, isEmergency, isCheckup, formData.costApproach])
 
   const currentStepIndex = stepOrder.indexOf(step)
   const totalSteps = stepOrder.length
@@ -241,7 +252,7 @@ export default function IntakePage() {
   const canContinueStep8 = formData.treatments.length > 0
   const canContinueStep9 = formData.readiness !== "" && formData.preferred_times.length > 0
   const canContinueStep11 =
-    formData.firstName && formData.phone && formData.consentContact
+    formData.firstName && formData.consentContact
 
   // Treatment toggle with emergency exclusivity
   const handleTreatmentToggle = (treatment: string) => {
@@ -452,6 +463,8 @@ export default function IntakePage() {
       8: "Treatment Selection",
       9: "Timing & Availability",
       10: "Budget Mindset",
+      10.5: "Monthly Payments",
+      10.6: "Budget Handling",
       11: "Contact Details",
     }
     return names[stepNum] || "Unknown"
@@ -1246,76 +1259,98 @@ export default function IntakePage() {
               )}
 
               {/* ============================================ */}
-              {/* STEP 8: TREATMENT SELECTION (moved from Q1)  */}
+              {/* STEP 8: TREATMENT SELECTION (category tabs)  */}
               {/* ============================================ */}
               {step === 8 && (
                 <motion.div key="step8" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Smile className="w-10 h-10" />}
-                    title="What are you looking to get done?"
-                    subtitle="You don't need to know exactly — pick what feels closest."
+                    title="What services do you need?"
                   />
 
-                  <div className="grid grid-cols-1 gap-2.5">
-                    {[
-                      "Check up and/or hygiene clean",
-                      ...TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT && t !== "General Check-up & Clean"),
-                    ].map((treatment, index) => (
-                      <motion.div key={treatment} {...fadeUp(0.05 * index + 0.3)}>
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <OptionCard
-                            selected={formData.treatments.includes(treatment)}
-                            onClick={() => {
-                              const isSelected = formData.treatments.includes(treatment)
-                              if (isSelected) {
-                                setFormData((prev) => ({ ...prev, treatments: [] }))
-                                return
-                              }
-                              setFormData((prev) => ({ ...prev, treatments: [treatment] }))
-                            }}
-                          >
-                            {treatment}
-                          </OptionCard>
-                        </motion.div>
-                      </motion.div>
-                    ))}
-
-                    {/* Emergency option - visually separated */}
-                    <motion.div {...fadeUp(0.05 * TREATMENT_OPTIONS.length + 0.3)}>
-                      <div className="pt-2 border-t border-[#2d2d2d]/10 mt-1">
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <OptionCard
-                            selected={isEmergency}
-                            onClick={() => {
-                              const isSelected = formData.treatments.includes(EMERGENCY_TREATMENT)
-                              if (isSelected) {
-                                setFormData((prev) => ({ ...prev, treatments: [] }))
-                                return
-                              }
-                              setFormData((prev) => ({ ...prev, treatments: [EMERGENCY_TREATMENT] }))
-                            }}
-                          >
-                            <div className="flex items-center gap-3">
-                              <Zap className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                              <span>{EMERGENCY_TREATMENT}</span>
-                            </div>
-                          </OptionCard>
-                        </motion.div>
-                      </div>
-                    </motion.div>
-
-                    {/* Emergency fast-track message */}
-                    {isEmergency && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 text-amber-800 text-sm"
+                  {/* Category tabs */}
+                  <motion.div {...fadeUp(0.2)} className="flex flex-wrap gap-2">
+                    {TREATMENT_CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setActiveCategory(cat.id)}
+                        className={`
+                          px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2
+                          ${activeCategory === cat.id
+                            ? "border-[#0fbcb0] bg-white text-[#0fbcb0] shadow-sm"
+                            : "border-transparent bg-[#eaf6f4] text-[#2d2d2d] hover:bg-[#dff2ef]"
+                          }
+                        `}
                       >
-                        <Zap className="w-4 h-4 mt-0.5 shrink-0" />
-                        <span>We&apos;ll fast-track your match — just add your details on the next screen.</span>
-                      </motion.div>
-                    )}
-                  </div>
+                        {cat.label}
+                      </button>
+                    ))}
+                  </motion.div>
+
+                  {/* Divider */}
+                  <div className="border-t border-gray-200" />
+
+                  {/* Treatment pills for active category */}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeCategory}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex flex-wrap gap-2.5"
+                    >
+                      {TREATMENT_CATEGORIES.find((c) => c.id === activeCategory)?.treatments.map((treatment) => {
+                        const isSelected = formData.treatments.includes(treatment.value)
+                        return (
+                          <div key={treatment.value} className="flex items-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  setFormData((prev) => ({ ...prev, treatments: [] }))
+                                  return
+                                }
+                                setFormData((prev) => ({ ...prev, treatments: [treatment.value] }))
+                              }}
+                              className={`
+                                inline-flex items-center gap-1.5 pl-4 pr-2 py-2 rounded-full text-sm transition-all duration-200 border-2
+                                ${isSelected
+                                  ? "border-[#0fbcb0] bg-[#d4edea] text-[#0d3d3a] shadow-sm"
+                                  : "border-gray-200 bg-white text-[#2d2d2d] hover:border-gray-300 hover:shadow-sm"
+                                }
+                              `}
+                            >
+                              <span>{treatment.name}</span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setTreatmentInfoPopup(treatment)
+                                }}
+                                className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 hover:text-[#0fbcb0] hover:border-[#0fbcb0] transition-colors flex-shrink-0"
+                              >
+                                <Info className="w-3 h-3" />
+                              </button>
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* Emergency fast-track message */}
+                  {isEmergency && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 text-amber-800 text-sm"
+                    >
+                      <Zap className="w-4 h-4 mt-0.5 shrink-0" />
+                      <span>We&apos;ll fast-track your match — just add your details on the next screen.</span>
+                    </motion.div>
+                  )}
 
                   <ContinueButton
                     onClick={() => handleStepForward(8, getNextStep(8))}
@@ -1323,6 +1358,105 @@ export default function IntakePage() {
                   />
                 </motion.div>
               )}
+
+              {/* Treatment info popup/modal */}
+              <AnimatePresence>
+                {treatmentInfoPopup && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+                  >
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-black/40" onClick={() => setTreatmentInfoPopup(null)} />
+
+                    {/* Modal */}
+                    <motion.div
+                      initial={{ y: 100, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 100, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      className="relative w-full sm:max-w-lg max-h-[85vh] overflow-y-auto bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl"
+                    >
+                      {/* Header */}
+                      <div className="sticky top-0 bg-white rounded-t-3xl sm:rounded-t-3xl px-5 pt-5 pb-3 border-b border-gray-100 flex items-start justify-between z-10">
+                        <div>
+                          <h3 className="text-xl font-semibold text-[#2d2d2d]">{treatmentInfoPopup.name}</h3>
+                          <p className="text-xs text-[#2d2d2d]/50 mt-0.5">BDA/GDC compliant information</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setTreatmentInfoPopup(null)}
+                          className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors flex-shrink-0"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Body */}
+                      <div className="px-5 py-4 space-y-5">
+                        {/* Description */}
+                        <p className="text-sm text-[#2d2d2d]/80 leading-relaxed">{treatmentInfoPopup.description}</p>
+
+                        {/* What to Expect */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <AlertCircle className="w-4 h-4 text-[#e07a4a]" />
+                            <h4 className="text-sm font-semibold text-[#2d2d2d]">What to Expect</h4>
+                          </div>
+                          <ol className="space-y-2.5">
+                            {treatmentInfoPopup.whatToExpect.map((item, i) => (
+                              <li key={i} className="flex items-start gap-3">
+                                <span className="w-5 h-5 rounded-md bg-[#eaf6f4] text-[#0fbcb0] text-xs font-semibold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                                <span className="text-sm text-[#2d2d2d]/70">{item}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+
+                        {/* Duration & Recovery cards */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-gray-50 rounded-xl p-3">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <Clock className="w-3.5 h-3.5 text-[#e07a4a]" />
+                              <span className="text-xs font-semibold text-[#2d2d2d]">Duration</span>
+                            </div>
+                            <p className="text-xs text-[#2d2d2d]/60 leading-relaxed">{treatmentInfoPopup.duration}</p>
+                          </div>
+                          <div className="bg-gray-50 rounded-xl p-3">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <Shield className="w-3.5 h-3.5 text-[#e07a4a]" />
+                              <span className="text-xs font-semibold text-[#2d2d2d]">Recovery</span>
+                            </div>
+                            <p className="text-xs text-[#2d2d2d]/60 leading-relaxed">{treatmentInfoPopup.recovery}</p>
+                          </div>
+                        </div>
+
+                        {/* Benefits */}
+                        <div>
+                          <h4 className="text-sm font-semibold text-[#2d2d2d] mb-2">Benefits</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {treatmentInfoPopup.benefits.map((benefit, i) => (
+                              <span key={i} className="px-3 py-1 rounded-full bg-[#eaf6f4] text-[#0fbcb0] text-xs font-medium">
+                                {benefit}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Disclaimer */}
+                        <div className="bg-gray-50 rounded-xl px-4 py-3">
+                          <p className="text-xs text-[#2d2d2d]/50 text-center leading-relaxed">
+                            This information is for general guidance only. Your dentist will discuss your specific treatment plan.
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* ============================================ */}
               {/* STEP 9: TIMING + AVAILABILITY (combined)     */}
@@ -1389,7 +1523,7 @@ export default function IntakePage() {
                         >
                           <div className="flex flex-col items-center gap-2">
                             <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${formData.preferred_times.includes(option.value) ? "bg-[#0fbcb0] text-white" : "bg-[#d4edea] text-[#0fbcb0]"}`}>
-                              {option.value === "weekend" ? <Calendar className="w-4 h-4" /> : option.value === "evening" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                              {option.value === "weekend" ? <Calendar className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                             </div>
                             <span className="font-medium text-[#2d2d2d] text-sm">{option.label}</span>
                             <span className="text-xs text-[#2d2d2d]/60">{option.time}</span>
@@ -1432,13 +1566,67 @@ export default function IntakePage() {
               )}
 
               {/* ============================================ */}
+              {/* STEP 10.5: MONTHLY PAYMENTS (conditional)    */}
+              {/* ============================================ */}
+              {step === 10.5 && (
+                <motion.div key="step10_5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+                  <StepHeader
+                    icon={<CreditCard className="w-10 h-10" />}
+                    title="Would spreading the cost into monthly payments make treatment easier for you?"
+                  />
+
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {MONTHLY_PAYMENT_OPTIONS.map((option, index) => (
+                      <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <OptionCard
+                            selected={formData.monthlyPaymentRange === option.value}
+                            onClick={() => handleSingleSelect("monthlyPaymentRange", option.value, getNextStep(10.5))}
+                          >
+                            {option.label}
+                          </OptionCard>
+                        </motion.div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ============================================ */}
+              {/* STEP 10.6: BUDGET HANDLING (conditional)     */}
+              {/* ============================================ */}
+              {step === 10.6 && (
+                <motion.div key="step10_6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+                  <StepHeader
+                    icon={<CreditCard className="w-10 h-10" />}
+                    title="How would you prefer to handle costs with the clinic?"
+                  />
+
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {BUDGET_HANDLING_OPTIONS.map((option, index) => (
+                      <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <OptionCard
+                            selected={formData.strictBudgetMode === option.value}
+                            onClick={() => handleSingleSelect("strictBudgetMode", option.value, getNextStep(10.6))}
+                          >
+                            {option.label}
+                          </OptionCard>
+                        </motion.div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ============================================ */}
               {/* STEP 11: CONTACT DETAILS (Final step)        */}
               {/* ============================================ */}
               {step === 11 && (
                 <motion.div key="step11" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<CheckCircle2 className="w-10 h-10" />}
-                    title="Last step — then we'll show you your matches."
+                    title="Almost there! What's your name?"
                     subtitle="Your details are only shared with clinics you choose to contact."
                   />
 
@@ -1506,36 +1694,27 @@ export default function IntakePage() {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="firstName" className="text-sm font-normal text-[#2d2d2d]">
-                          First name
-                        </Label>
-                        <Input
-                          id="firstName"
-                          value={formData.firstName}
-                          onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
-                          placeholder="John"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="lastName" className="text-sm font-normal text-[#2d2d2d]">
-                          Last name <span className="text-[#2d2d2d]/50 font-normal">(optional)</span>
-                        </Label>
-                        <Input
-                          id="lastName"
-                          value={formData.lastName}
-                          onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
-                          placeholder="Smith"
-                        />
-                      </div>
+                    <div>
+                      <Label htmlFor="fullName" className="text-sm font-normal text-[#2d2d2d]">
+                        Full name
+                      </Label>
+                      <Input
+                        id="fullName"
+                        value={`${formData.firstName}${formData.lastName ? ` ${formData.lastName}` : ""}`}
+                        onChange={(e) => {
+                          const parts = e.target.value.split(" ")
+                          const first = parts[0] || ""
+                          const last = parts.slice(1).join(" ")
+                          setFormData({ ...formData, firstName: first, lastName: last })
+                        }}
+                        className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                        placeholder="John Smith"
+                      />
                     </div>
 
                     <div>
                       <Label htmlFor="phone" className="text-sm font-normal text-[#2d2d2d]">
-                        Phone number
+                        Phone number <span className="text-[#2d2d2d]/50 font-normal">(optional)</span>
                       </Label>
                       <Input
                         id="phone"

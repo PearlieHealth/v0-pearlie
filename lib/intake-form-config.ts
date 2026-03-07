@@ -35,11 +35,310 @@ export const TREATMENT_OPTIONS = [
   "Dental Implants",
   "General Check-up & Clean",
   "Emergency dental issue (pain, swelling, broken tooth)",
+  // New categorised treatments
+  "Check-ups",
+  "Crowns",
+  "Dental Hygienist",
+  "Dentures",
+  "Extractions",
+  "Fillings",
+  "Root Canal",
+  "Facial Aesthetics",
+  "Orthodontist",
+  "Periodontist",
 ] as const
 
 export type Treatment = (typeof TREATMENT_OPTIONS)[number]
 
 export const EMERGENCY_TREATMENT = "Emergency dental issue (pain, swelling, broken tooth)" as const
+
+// =============================================================================
+// TREATMENT CATEGORIES (for step 8 category tabs UI)
+// =============================================================================
+export type TreatmentCategory = "general" | "cosmetic" | "specialist" | "emergency"
+
+export interface TreatmentInfo {
+  name: string
+  value: string
+  description: string
+  whatToExpect: string[]
+  duration: string
+  recovery: string
+  benefits: string[]
+}
+
+export interface TreatmentCategoryConfig {
+  id: TreatmentCategory
+  label: string
+  treatments: TreatmentInfo[]
+}
+
+export const TREATMENT_CATEGORIES: TreatmentCategoryConfig[] = [
+  {
+    id: "general",
+    label: "General Dentistry",
+    treatments: [
+      {
+        name: "Check-ups",
+        value: "Check-ups",
+        description: "A thorough examination of your teeth, gums, and mouth. It's the foundation of preventive care and helps catch problems early.",
+        whatToExpect: [
+          "Visual examination of teeth, gums, and soft tissues",
+          "X-rays if needed to check for hidden issues",
+          "Assessment of existing fillings, crowns, or other work",
+          "Discussion of any concerns or symptoms",
+          "Personalised advice and a treatment plan if needed",
+        ],
+        duration: "15-30 minutes, single appointment",
+        recovery: "No recovery needed — completely non-invasive",
+        benefits: ["Early detection of decay or gum disease", "Peace of mind", "Preventive care"],
+      },
+      {
+        name: "Crowns",
+        value: "Crowns",
+        description: "A custom-made cap placed over a damaged tooth to restore its shape, strength, and appearance. Protects and strengthens weakened teeth.",
+        whatToExpect: [
+          "Initial consultation and X-rays",
+          "Tooth preparation and reshaping",
+          "Impressions or digital scan taken",
+          "Temporary crown fitted while permanent one is made",
+          "Final crown cemented in place at follow-up visit",
+        ],
+        duration: "2 appointments over 1-2 weeks",
+        recovery: "Mild sensitivity for a few days; normal eating within 24 hours",
+        benefits: ["Restores damaged teeth", "Natural appearance", "Long-lasting protection"],
+      },
+      {
+        name: "Dental Hygienist",
+        value: "Dental Hygienist",
+        description: "A professional clean to remove plaque and tartar build-up that regular brushing can't reach. Essential for maintaining healthy gums.",
+        whatToExpect: [
+          "Assessment of gum health",
+          "Scaling to remove tartar above and below the gumline",
+          "Polishing to remove surface stains",
+          "Personalised oral hygiene advice",
+          "Recommendations for follow-up if needed",
+        ],
+        duration: "30-45 minutes, single appointment",
+        recovery: "No recovery needed; gums may feel sensitive for a day",
+        benefits: ["Prevents gum disease", "Fresher breath", "Brighter smile"],
+      },
+      {
+        name: "Dentures",
+        value: "Dentures",
+        description: "Custom-made removable replacements for missing teeth. Modern dentures look natural and restore your ability to eat and speak comfortably.",
+        whatToExpect: [
+          "Initial consultation and impressions",
+          "Try-in appointment to check fit and appearance",
+          "Final denture fitting and adjustments",
+          "Follow-up appointments for fine-tuning",
+          "Advice on care and maintenance",
+        ],
+        duration: "Multiple appointments over 3-6 weeks",
+        recovery: "Adjustment period of a few weeks; follow-up visits as needed",
+        benefits: ["Restores smile and confidence", "Improves eating and speech", "Affordable tooth replacement"],
+      },
+      {
+        name: "Extractions",
+        value: "Extractions",
+        description: "Safe removal of a tooth that is severely damaged, decayed, or causing problems. Performed under local anaesthetic for comfort.",
+        whatToExpect: [
+          "X-ray to assess the tooth and surrounding bone",
+          "Local anaesthetic to numb the area",
+          "Gentle loosening and removal of the tooth",
+          "Gauze placed to control bleeding",
+          "Aftercare instructions for healing",
+        ],
+        duration: "20-40 minutes, single appointment",
+        recovery: "1-3 days rest; soft foods recommended; full healing in 1-2 weeks",
+        benefits: ["Relieves pain", "Prevents infection spreading", "Makes room for future treatment"],
+      },
+      {
+        name: "Fillings",
+        value: "Fillings",
+        description: "Repair for teeth damaged by decay. Modern tooth-coloured fillings blend seamlessly with your natural teeth.",
+        whatToExpect: [
+          "Local anaesthetic to numb the area",
+          "Removal of decayed tooth material",
+          "Cleaning and preparation of the cavity",
+          "Filling material placed and shaped",
+          "Polishing for a smooth, natural finish",
+        ],
+        duration: "20-40 minutes per filling",
+        recovery: "Numbness wears off in 1-2 hours; normal eating same day",
+        benefits: ["Stops decay progressing", "Restores tooth function", "Natural appearance"],
+      },
+    ],
+  },
+  {
+    id: "cosmetic",
+    label: "Cosmetic",
+    treatments: [
+      {
+        name: "Teeth Whitening",
+        value: "Teeth Whitening",
+        description: "Professional whitening to brighten your smile by several shades. Safer and more effective than over-the-counter products.",
+        whatToExpect: [
+          "Consultation to assess suitability",
+          "Custom trays made from impressions of your teeth",
+          "Professional-grade whitening gel provided",
+          "At-home treatment over 1-2 weeks (or in-chair option)",
+          "Follow-up to check results",
+        ],
+        duration: "1-2 weeks at home, or 1 hour in-chair",
+        recovery: "Temporary sensitivity for 1-2 days; avoid staining foods",
+        benefits: ["Noticeably whiter smile", "Boosts confidence", "Safe and supervised"],
+      },
+      {
+        name: "Composite Bonding",
+        value: "Composite Bonding",
+        description: "A tooth-coloured resin applied to repair chips, gaps, or discolouration. A minimally invasive way to improve your smile.",
+        whatToExpect: [
+          "Shade matching to your natural teeth",
+          "Light roughening of tooth surface",
+          "Application and shaping of composite resin",
+          "Hardening with special light",
+          "Final polishing for natural appearance",
+        ],
+        duration: "30-60 minutes per tooth, single appointment",
+        recovery: "No recovery needed; normal activities immediately",
+        benefits: ["Quick results", "Preserves natural tooth", "Cost-effective"],
+      },
+      {
+        name: "Veneers",
+        value: "Veneers",
+        description: "Thin porcelain or composite shells bonded to the front of teeth to transform their appearance. Ideal for a complete smile makeover.",
+        whatToExpect: [
+          "Consultation and smile design planning",
+          "Minimal tooth preparation (thin layer removed)",
+          "Impressions or digital scan taken",
+          "Temporary veneers while permanent ones are crafted",
+          "Final veneers bonded in place",
+        ],
+        duration: "2-3 appointments over 2-3 weeks",
+        recovery: "Mild sensitivity for a few days; avoid hard foods initially",
+        benefits: ["Dramatic smile transformation", "Stain-resistant", "Long-lasting results"],
+      },
+      {
+        name: "Invisalign / Clear Aligners",
+        value: "Invisalign / Clear Aligners",
+        description: "Nearly invisible removable aligners that gradually straighten your teeth. A discreet alternative to traditional braces.",
+        whatToExpect: [
+          "3D scan and treatment plan creation",
+          "Custom aligners made for each stage",
+          "Wear aligners 20-22 hours per day",
+          "Switch to new aligners every 1-2 weeks",
+          "Regular check-ups to monitor progress",
+        ],
+        duration: "3-18 months depending on complexity",
+        recovery: "No recovery; mild pressure when switching aligners",
+        benefits: ["Nearly invisible", "Removable for eating", "Comfortable to wear"],
+      },
+    ],
+  },
+  {
+    id: "specialist",
+    label: "Specialist",
+    treatments: [
+      {
+        name: "Root Canal",
+        value: "Root Canal",
+        description: "Treatment to save a badly infected or damaged tooth by removing the infected pulp inside. Relieves pain and preserves the natural tooth.",
+        whatToExpect: [
+          "X-ray to assess infection extent",
+          "Local anaesthetic for complete numbness",
+          "Removal of infected pulp from inside the tooth",
+          "Cleaning and shaping of the root canals",
+          "Filling and sealing; crown usually recommended after",
+        ],
+        duration: "1-2 appointments, 60-90 minutes each",
+        recovery: "Mild discomfort for a few days; pain relief with over-the-counter medication",
+        benefits: ["Saves your natural tooth", "Relieves severe pain", "Prevents extraction"],
+      },
+      {
+        name: "Dental Implants",
+        value: "Dental Implants",
+        description: "A permanent replacement for missing teeth. A titanium post is placed in the jawbone to support a natural-looking crown.",
+        whatToExpect: [
+          "Comprehensive assessment with 3D imaging",
+          "Implant post placed into the jawbone under local anaesthetic",
+          "Healing period for bone integration (3-6 months)",
+          "Abutment attached to the implant",
+          "Custom crown fitted for a natural look",
+        ],
+        duration: "3-6 months total; multiple appointments",
+        recovery: "1-2 weeks initial healing; full integration over several months",
+        benefits: ["Permanent solution", "Looks and feels natural", "Preserves jawbone"],
+      },
+      {
+        name: "Facial Aesthetics",
+        value: "Facial Aesthetics",
+        description: "Non-surgical treatments such as anti-wrinkle injections and dermal fillers, delivered by dental professionals with expert knowledge of facial anatomy.",
+        whatToExpect: [
+          "Consultation to discuss goals and options",
+          "Assessment of facial anatomy",
+          "Treatment with fine needles (minimal discomfort)",
+          "Immediate or gradual results depending on treatment",
+          "Follow-up to review results",
+        ],
+        duration: "15-45 minutes per session",
+        recovery: "Minimal downtime; mild redness or swelling for 1-2 days",
+        benefits: ["Refreshed appearance", "Quick treatment", "Expert anatomical knowledge"],
+      },
+      {
+        name: "Orthodontist",
+        value: "Orthodontist",
+        description: "Specialist treatment to correct misaligned teeth and bite issues using braces, aligners, or other appliances.",
+        whatToExpect: [
+          "Detailed assessment with X-rays and scans",
+          "Customised treatment plan",
+          "Fitting of braces or aligners",
+          "Regular adjustment appointments",
+          "Retainers provided after treatment to maintain results",
+        ],
+        duration: "6-24 months depending on complexity",
+        recovery: "Mild discomfort after adjustments; normal activities throughout",
+        benefits: ["Straighter teeth", "Improved bite function", "Specialist expertise"],
+      },
+      {
+        name: "Periodontist",
+        value: "Periodontist",
+        description: "Specialist treatment for gum disease and conditions affecting the tissues supporting your teeth. Essential for long-term dental health.",
+        whatToExpect: [
+          "Comprehensive gum assessment and probing",
+          "Deep cleaning below the gumline if needed",
+          "Treatment plan for any gum disease",
+          "Possible surgical intervention for advanced cases",
+          "Ongoing maintenance plan",
+        ],
+        duration: "Varies by treatment; initial appointment 45-60 minutes",
+        recovery: "Varies by procedure; gums may be tender for a few days",
+        benefits: ["Saves teeth at risk", "Treats gum disease", "Specialist gum care"],
+      },
+    ],
+  },
+  {
+    id: "emergency",
+    label: "Emergency",
+    treatments: [
+      {
+        name: "Emergency / Same-Day",
+        value: EMERGENCY_TREATMENT,
+        description: "Urgent dental care for pain, swelling, broken teeth, or other dental emergencies. We'll fast-track you to a clinic that can see you quickly.",
+        whatToExpect: [
+          "Rapid assessment of your emergency",
+          "Pain relief and stabilisation",
+          "X-rays to diagnose the issue",
+          "Immediate treatment where possible",
+          "Follow-up plan for any further treatment needed",
+        ],
+        duration: "Same-day appointment; treatment time varies",
+        recovery: "Depends on the emergency; your dentist will advise",
+        benefits: ["Fast-tracked appointment", "Pain relief", "Expert emergency care"],
+      },
+    ],
+  },
+]
 
 // =============================================================================
 // LOCATION PREFERENCE / TRAVEL DISTANCE (time-based)
