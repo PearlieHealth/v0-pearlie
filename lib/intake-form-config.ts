@@ -15,8 +15,8 @@
 // =============================================================================
 // FORM VERSION - Update when making breaking changes
 // =============================================================================
-export const FORM_VERSION = "v6_blocker_multiselect_2026-02-14"
-export const SCHEMA_VERSION = 6
+export const FORM_VERSION = "v7_reorder_2026-03-07"
+export const SCHEMA_VERSION = 7
 
 // =============================================================================
 // SERVICE REGION — Change here when expanding beyond London
@@ -42,59 +42,61 @@ export type Treatment = (typeof TREATMENT_OPTIONS)[number]
 export const EMERGENCY_TREATMENT = "Emergency dental issue (pain, swelling, broken tooth)" as const
 
 // =============================================================================
-// LOCATION PREFERENCE (Q3 - Planning only)
+// LOCATION PREFERENCE / TRAVEL DISTANCE (time-based)
 // =============================================================================
 export const LOCATION_PREFERENCE_OPTIONS = [
-  { value: "near_home_work", label: "Close to home or work", hint: "Within 1.5 miles" },
-  { value: "travel_a_bit", label: "Willing to travel a bit", hint: "Up to 5 miles" },
-  { value: "travel_further", label: "Happy to travel further for the right clinic", hint: "5+ miles" },
+  { value: "near_home_work", label: "Just a short trip", hint: "Up to 10 minutes" },
+  { value: "travel_a_bit", label: "Happy to travel a bit", hint: "Around 20 minutes" },
+  { value: "travel_further", label: "I'll travel for the right clinic", hint: "20+ minutes" },
 ] as const
 
 export const LOCATION_PREFERENCE_LABELS: Record<string, string> = {
-  near_home_work: "Close to home or work",
-  travel_a_bit: "Willing to travel a bit",
-  travel_further: "Happy to travel further for the right clinic",
+  near_home_work: "Just a short trip",
+  travel_a_bit: "Happy to travel a bit",
+  travel_further: "I'll travel for the right clinic",
 }
 
 // =============================================================================
 // DECISION VALUES / CLINIC PRIORITIES (Q4 - Planning only, pick up to 2)
 // =============================================================================
 export const DECISION_VALUE_OPTIONS = [
-  "Specialist-level experience",
-  "Flexible appointments (late afternoons or weekends)",
-  "Clear pricing before treatment",
-  "A calm, reassuring environment",
+  "They're highly skilled and experienced",
+  "Flexible hours — evenings or weekends",
+  "Clear pricing before I commit",
+  "A calm, relaxed environment",
   "Strong reputation and reviews",
-  "Seeing the same dentist and building long-term trust",
+  "Seeing the same dentist every time",
+  "Just find me someone great",
 ] as const
 
 export type DecisionValue = (typeof DECISION_VALUE_OPTIONS)[number]
 
 // Short labels for badges/compact display
 export const DECISION_VALUE_SHORT_LABELS: Record<string, string> = {
-  "Specialist-level experience": "Specialist Experience",
-  "Flexible appointments (late afternoons or weekends)": "Flexible Hours",
-  "Clear pricing before treatment": "Clear Pricing",
-  "A calm, reassuring environment": "Calm Environment",
+  "They're highly skilled and experienced": "Specialist Experience",
+  "Flexible hours — evenings or weekends": "Flexible Hours",
+  "Clear pricing before I commit": "Clear Pricing",
+  "A calm, relaxed environment": "Calm Environment",
   "Strong reputation and reviews": "Good Reviews",
-  "Seeing the same dentist and building long-term trust": "Continuity of Care",
+  "Seeing the same dentist every time": "Continuity of Care",
+  "Just find me someone great": "Someone Great",
 }
 
 // =============================================================================
 // ANXIETY LEVEL (Q5 Planning / Q4 Emergency)
 // =============================================================================
 export const ANXIETY_LEVEL_OPTIONS = [
-  { value: "comfortable", label: "I'm comfortable with dental visits" },
-  { value: "slightly_anxious", label: "A little nervous, but I manage" },
-  { value: "quite_anxious", label: "Quite anxious — I'd appreciate a gentle approach" },
-  { value: "very_anxious", label: "Very anxious — I may need sedation or extra support" },
+  { value: "comfortable", label: "I'm comfortable — no issues" },
+  { value: "slightly_anxious", label: "A little nervous, but I get through it" },
+  { value: "quite_anxious", label: "Quite anxious — a gentle approach really helps" },
+  { value: "very_anxious", label: "Very anxious — I might need sedation or extra help" },
 ] as const
 
 export const ANXIETY_LEVEL_LABELS: Record<string, string> = {
-  comfortable: "I'm comfortable with dental visits",
-  slightly_anxious: "A little nervous, but I manage",
-  quite_anxious: "Quite anxious — I'd appreciate a gentle approach",
-  very_anxious: "Very anxious — I may need sedation or extra support",
+  comfortable: "I'm comfortable — no issues",
+  slightly_anxious: "A little nervous, but I get through it",
+  quite_anxious: "Quite anxious — a gentle approach really helps",
+  very_anxious: "Very anxious — I might need sedation or extra help",
 }
 
 export const ANXIETY_LEVEL_SHORT_LABELS: Record<string, string> = {
@@ -109,12 +111,13 @@ export const ANXIETY_LEVEL_SHORT_LABELS: Record<string, string> = {
 // Informational only — does NOT affect scoring (except WORRIED_COMPLEX penalty)
 // =============================================================================
 export const BLOCKER_OPTIONS = [
-  { code: "NOT_WORTH_COST", label: "I'm unsure how much this might cost and whether it's the right investment" },
-  { code: "NEED_MORE_TIME", label: "I'd like to understand everything clearly and take my time before deciding" },
-  { code: "UNSURE_OPTION", label: "I'm not sure which treatment option is right for me" },
-  { code: "WORRIED_COMPLEX", label: "I'm concerned it might be more complicated than I expect" },
+  { code: "NOT_WORTH_COST", label: "I'm not sure how much this will cost" },
+  { code: "NEED_MORE_TIME", label: "I want to take my time before deciding anything" },
+  { code: "UNSURE_OPTION", label: "I don't know which treatment I actually need" },
+  { code: "WORRIED_COMPLEX", label: "I'm worried it might be more complicated than I expect" },
   { code: "BAD_EXPERIENCE", label: "I've had a bad dental experience before" },
-  { code: "NO_CONCERN", label: "Nothing in particular — I just want the right clinic" },
+  { code: "EMBARRASSED", label: "I feel embarrassed about my teeth" },
+  { code: "NO_CONCERN", label: "Nothing — I just want to find the right clinic" },
 ] as const
 
 export type BlockerCode = (typeof BLOCKER_OPTIONS)[number]["code"]
@@ -129,6 +132,7 @@ export const BLOCKER_SHORT_LABELS: Record<string, string> = {
   UNSURE_OPTION: "Unsure Options",
   WORRIED_COMPLEX: "Complexity Concern",
   BAD_EXPERIENCE: "Past Bad Experience",
+  EMBARRASSED: "Embarrassed",
   NO_CONCERN: "No Concern",
 }
 
@@ -138,6 +142,7 @@ export const BLOCKER_SHORT_LABELS: Record<string, string> = {
 export const PREFERRED_TIME_OPTIONS = [
   { value: "morning", label: "Morning", time: "Before 12pm" },
   { value: "afternoon", label: "Afternoon", time: "12pm - 5pm" },
+  { value: "evening", label: "Evening", time: "After 5pm" },
   { value: "weekend", label: "Weekends", time: "Saturday / Sunday" },
 ] as const
 
@@ -170,9 +175,9 @@ export const TIMING_SHORT_LABELS: Record<string, string> = {
 // Question: "How do you usually think about investing in dental treatment?"
 // =============================================================================
 export const COST_APPROACH_OPTIONS = [
-  { value: "best_outcome", label: "I'm looking for the best possible result and long-term outcome" },
-  { value: "understand_value", label: "I want to clearly understand the options and why one might be worth more than another" },
-  { value: "comfort_range", label: "I have a rough comfort range, but I'm flexible if the plan makes sense" },
+  { value: "best_outcome", label: "I want the best result and I'm willing to invest in it" },
+  { value: "understand_value", label: "I want to understand my options and what makes them worth it" },
+  { value: "comfort_range", label: "I have a rough budget in mind but I'm open if it makes sense" },
   { value: "strict_budget", label: "I have a strict budget I need to stay within" },
 ] as const
 
@@ -231,6 +236,29 @@ export const MONTHLY_PAYMENT_OPTIONS = [
 export const BUDGET_HANDLING_OPTIONS = [
   { value: "discuss_with_clinic", label: "I'd prefer to discuss costs directly with the clinic" },
   { value: "share_range", label: "I can share a rough budget range" },
+] as const
+
+// =============================================================================
+// COMFORT PREFERENCES (Conditional — only for anxious patients)
+// =============================================================================
+export const COMFORT_PREFERENCE_OPTIONS = [
+  { value: "pause_break", label: "Being able to pause or signal for a break" },
+  { value: "explains_everything", label: "A dentist who explains everything as they go" },
+  { value: "sedation_available", label: "Sedation options available" },
+  { value: "music_headphones", label: "Music or headphones during treatment" },
+  { value: "dimmed_lighting", label: "Softer or dimmed lighting" },
+  { value: "shorter_first_visit", label: "A shorter first visit to ease in gently" },
+  { value: "nervous_experience", label: "Someone who's worked with nervous patients a lot" },
+] as const
+
+// =============================================================================
+// SOCIAL PROOF MESSAGES (displayed on travel distance step)
+// =============================================================================
+export const SOCIAL_PROOF_MESSAGES = [
+  "Emma from SW6 found her match 9 minutes ago",
+  "James from E1 was matched with a clinic today",
+  "Priya from N4 just completed her match",
+  "Over 40 patients matched this week",
 ] as const
 
 // =============================================================================
