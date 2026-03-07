@@ -16,7 +16,6 @@ import { ScrollingMarquee } from "@/components/scrolling-marquee"
 import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { SiteFooter } from "@/components/site-footer"
-import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT } from "@/lib/intake-form-config"
 import {
   LONDON_BOROUGHS,
 } from "@/lib/data/london-boroughs"
@@ -26,9 +25,6 @@ import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { useLastMatch } from "@/hooks/use-last-match"
 import { trackEvent } from "@/lib/analytics"
 
-
-// Homepage treatment list derived from the canonical config (not hardcoded)
-const HOMEPAGE_TREATMENTS = TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT)
 
 const heroRotatingBenefits = [
   "nearby with availability",
@@ -191,8 +187,6 @@ function PatientExperiences() {
 }
 
 export default function Home() {
-  const treatments = HOMEPAGE_TREATMENTS
-
   const lastMatch = useLastMatch()
 
   // Client-side mount flag for WebGL MeshGradient

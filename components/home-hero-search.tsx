@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { PostcodeInput } from "@/components/postcode-input"
-import { TREATMENT_OPTIONS, EMERGENCY_TREATMENT, SUPPORTED_REGION } from "@/lib/intake-form-config"
+import { SUPPORTED_REGION } from "@/lib/intake-form-config"
 import { trackTikTokEvent, trackTikTokServerRelay } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { ArrowRight } from "lucide-react"
@@ -19,18 +19,9 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 
-// All treatment options including emergency — shown in hero dropdown
-const CHECKUP = "General Check-up & Clean"
-const ALL_TREATMENTS = [
-  CHECKUP,
-  EMERGENCY_TREATMENT,
-  ...TREATMENT_OPTIONS.filter((t) => t !== CHECKUP && t !== EMERGENCY_TREATMENT),
-]
-
 export function HomeHeroSearch({ variant = "inline" }: { variant?: "inline" | "card" }) {
   const isCard = variant === "card"
   const router = useRouter()
-  const [treatment, setTreatment] = useState("")
   const [postcode, setPostcode] = useState("")
   const [postcodeValid, setPostcodeValid] = useState(false)
   const [outsideArea, setOutsideArea] = useState<string | null>(null)
@@ -51,14 +42,11 @@ export function HomeHeroSearch({ variant = "inline" }: { variant?: "inline" | "c
       })
 
       const params = new URLSearchParams()
-      if (treatment) {
-        params.set("treatment", treatment)
-      }
       params.set("postcode", postcode.trim().toUpperCase())
 
       router.push(`/intake?${params.toString()}`)
     },
-    [postcodeValid, treatment, postcode, router]
+    [postcodeValid, postcode, router]
   )
 
   return (
@@ -73,33 +61,6 @@ export function HomeHeroSearch({ variant = "inline" }: { variant?: "inline" | "c
         }
       >
         <div className={isCard ? "flex flex-col gap-4" : "flex flex-col sm:flex-row gap-3 items-stretch sm:items-start"}>
-          {/* Treatment selector */}
-          <div className={isCard ? "" : "flex-1 min-w-0"}>
-            <label className={`block text-[11px] font-semibold uppercase tracking-wider mb-1.5 pl-1 ${isCard ? "text-black/50" : "text-muted-foreground"}`}>Treatment</label>
-            <select
-              value={treatment}
-              onChange={(e) => setTreatment(e.target.value)}
-              className={`w-full h-12 px-4 text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0fbcb0] focus:border-[#0fbcb0] appearance-none cursor-pointer ${
-                isCard
-                  ? "bg-white/60 border-white/40 text-foreground backdrop-blur-sm"
-                  : "border-border/60 bg-[#f8f7f1] text-foreground"
-              }`}
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "right 14px center",
-                paddingRight: "40px",
-              }}
-            >
-              <option value="">Select treatment</option>
-              {ALL_TREATMENTS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Postcode input */}
           <div className={isCard ? "" : "flex-1 min-w-0"}>
             <label className={`block text-[11px] font-semibold uppercase tracking-wider mb-1.5 pl-1 ${isCard ? "text-black/50" : "text-muted-foreground"}`}>Postcode</label>
