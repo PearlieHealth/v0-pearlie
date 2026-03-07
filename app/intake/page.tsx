@@ -1607,7 +1607,6 @@ export default function IntakePage() {
                   <StepHeader
                     icon={<CheckCircle2 className="w-10 h-10" />}
                     title="Almost there! What's your name?"
-                    subtitle="Your details are only shared with clinics you choose to contact."
                   />
 
                   {/* Logged-in user: "Continue as" shortcut */}
