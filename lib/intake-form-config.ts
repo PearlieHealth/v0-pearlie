@@ -142,7 +142,6 @@ export const BLOCKER_SHORT_LABELS: Record<string, string> = {
 export const PREFERRED_TIME_OPTIONS = [
   { value: "morning", label: "Morning", time: "Before 12pm" },
   { value: "afternoon", label: "Afternoon", time: "12pm - 5pm" },
-  { value: "evening", label: "Evening", time: "After 5pm" },
   { value: "weekend", label: "Weekends", time: "Saturday / Sunday" },
 ] as const
 
