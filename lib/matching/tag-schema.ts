@@ -331,6 +331,11 @@ export const TREATMENT_REASON_TEMPLATES: Record<string, string[]> = {
     "Strong portfolio in {treatment}.",
     "A focused match for your chosen treatment.",
   ],
+  restorative: [
+    "Experienced in {treatment} and restorative dental care.",
+    "A strong match for {treatment}.",
+    "Well equipped to handle {treatment} with confidence.",
+  ],
   checkup: [
     "Well suited for ongoing general dental care.",
     "A good match for preventative and routine care.",

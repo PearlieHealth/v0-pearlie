@@ -590,14 +590,19 @@ function scoreBlockerSupport(
 /**
  * Detect treatment category from the treatment string
  */
-function detectTreatmentCategory(treatment: string): "cosmetic" | "checkup" | "emergency" {
+function detectTreatmentCategory(treatment: string): "cosmetic" | "restorative" | "checkup" | "emergency" {
   const lower = treatment.toLowerCase()
   if (lower.includes("emergency") || lower.includes("pain") || lower.includes("swelling") || lower.includes("broken")) {
     return "emergency"
   }
-  if (lower.includes("check-up") || lower.includes("checkup") || lower.includes("check up") || lower.includes("general") || lower.includes("clean")) {
+  if (lower.includes("check-up") || lower.includes("checkup") || lower.includes("check up") || lower.includes("general") || lower.includes("clean") || lower.includes("hygien")) {
     return "checkup"
   }
+  // Restorative treatments (implants, crowns, root canal, fillings, extractions, dentures, bridges)
+  if (lower.includes("implant") || lower.includes("crown") || lower.includes("root canal") || lower.includes("filling") || lower.includes("extraction") || lower.includes("denture") || lower.includes("bridge") || lower.includes("wisdom")) {
+    return "restorative"
+  }
+  // Cosmetic: whitening, bonding, veneers, invisalign, orthodontics
   return "cosmetic"
 }
 
