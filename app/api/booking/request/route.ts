@@ -7,6 +7,7 @@ import { sendRegisteredEmail } from "@/lib/email/send"
 import { EMAIL_TYPE } from "@/lib/email/registry"
 import { trackTikTokServerEvent, extractIp, extractUserAgent } from "@/lib/tiktok-events-api"
 import { portalUrl } from "@/lib/clinic-url"
+import { generateReplyToAddress } from "@/lib/email-reply-token"
 
 // 10 booking requests per IP per hour
 const bookingIpLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, maxAttempts: 10 })
@@ -130,44 +131,9 @@ export async function POST(request: Request) {
     })
     const bookingMessageContent = `Hi, I'd like to book an appointment on ${formattedDate}. Would this date work?`
 
-    // Send the lead notification email to the clinic with full intake data + booking message
+    // Clinic notification email is sent below after conversation creation
+    // so we can include a reply-to address for email-reply-chat sync.
     const clinicNotificationEmail = clinic.notification_email || clinic.email
-    if (clinicNotificationEmail) {
-      try {
-        const rawAnswers = lead.raw_answers || {}
-        await sendRegisteredEmail({
-          type: EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION,
-          to: clinicNotificationEmail,
-          data: {
-            clinicName: clinic.name || "",
-            firstName: lead.first_name || "",
-            lastName: lead.last_name || "",
-            email: lead.email || "",
-            phone: lead.phone || "",
-            treatment: lead.treatment_interest || "Not specified",
-            urgency: lead.preferred_timing || "flexible",
-            inboxUrl: portalUrl("/clinic/appointments"),
-            postcode: lead.postcode || "",
-            preferredTimes: lead.preferred_times || rawAnswers.preferred_times || [],
-            bookingDate: date || null,
-            anxietyLevel: lead.anxiety_level || rawAnswers.anxiety_level || "",
-            decisionValues: lead.decision_values || rawAnswers.values || [],
-            conversionBlocker: lead.conversion_blocker || rawAnswers.conversion_blocker || "",
-            costApproach: rawAnswers.cost_approach || lead.budget_range || "",
-            strictBudgetAmount: rawAnswers.strict_budget_amount || null,
-            blockerLabels: rawAnswers.blocker_labels || [],
-            rawAnswers,
-            messageContent: bookingMessageContent,
-            _leadId: leadId,
-            _clinicId: clinicId,
-          },
-          clinicId,
-          leadId,
-        })
-      } catch (emailError) {
-        console.error("[booking-request] Clinic notification email failed:", emailError)
-      }
-    }
 
     // Track the booking request event in analytics_events table
     await supabase.from("analytics_events").insert({
@@ -332,8 +298,47 @@ export async function POST(request: Request) {
           })
           .eq("id", conversationId)
 
-        // Note: clinic notification email (DIRECT_LEAD_NOTIFICATION) is already sent
-        // above with the booking message woven in — no separate chat email needed.
+        // Send the lead notification email now that we have a conversation ID
+        // for reply-to routing (email-reply-chat sync)
+        if (clinicNotificationEmail) {
+          try {
+            const rawAnswers = lead.raw_answers || {}
+            const replyTo = generateReplyToAddress(conversationId, "clinic", clinicNotificationEmail)
+
+            await sendRegisteredEmail({
+              type: EMAIL_TYPE.DIRECT_LEAD_NOTIFICATION,
+              to: clinicNotificationEmail,
+              data: {
+                clinicName: clinic.name || "",
+                firstName: lead.first_name || "",
+                lastName: lead.last_name || "",
+                email: lead.email || "",
+                phone: lead.phone || "",
+                treatment: lead.treatment_interest || "Not specified",
+                urgency: lead.preferred_timing || "flexible",
+                inboxUrl: portalUrl("/clinic/appointments"),
+                postcode: lead.postcode || "",
+                preferredTimes: lead.preferred_times || rawAnswers.preferred_times || [],
+                bookingDate: date || null,
+                anxietyLevel: lead.anxiety_level || rawAnswers.anxiety_level || "",
+                decisionValues: lead.decision_values || rawAnswers.values || [],
+                conversionBlocker: lead.conversion_blocker || rawAnswers.conversion_blocker || "",
+                costApproach: rawAnswers.cost_approach || lead.budget_range || "",
+                strictBudgetAmount: rawAnswers.strict_budget_amount || null,
+                blockerLabels: rawAnswers.blocker_labels || [],
+                rawAnswers,
+                messageContent: bookingMessageContent,
+                _leadId: leadId,
+                _clinicId: clinicId,
+              },
+              replyTo,
+              clinicId,
+              leadId,
+            })
+          } catch (emailError) {
+            console.error("[booking-request] Clinic notification email failed:", emailError)
+          }
+        }
       }
     } catch (convError) {
       // Don't fail the booking if conversation creation fails
