@@ -201,27 +201,32 @@ export default function IntakePage() {
     return () => clearTimeout(timeout)
   }, [formData, step])
 
-  // Derived: is the user on the emergency flow? (now detected at step 8)
+  // Derived: is the user on the emergency flow? (detected at treatment step)
   const isEmergency = formData.treatments.includes(EMERGENCY_TREATMENT)
 
   // Is the patient anxious? (determines if step 6 is shown)
   const isAnxious = formData.anxiety_level === "quite_anxious" || formData.anxiety_level === "very_anxious"
 
+  // Is treatment a checkup?
+  const isCheckup = formData.treatments.includes("Check up and/or hygiene clean")
+
   // Dynamic step order based on flow
-  // NEW ORDER: 1(postcode) -> 2(email) -> 3(travel) -> 4(priorities) -> 5(anxiety) -> 6(comfort, conditional) -> 7(concerns) -> 8(treatment) -> 9(timing+avail) -> 10(budget) -> 11(contact)
-  // Emergency shortcut: if treatment = emergency at step 8, skip 9 & 10 -> go to 11
+  // ORDER: 1(postcode) -> 3(travel) -> 2(email) -> 4(priorities) -> 5(anxiety) -> 8(treatment) -> 6(comfort, conditional) -> 7(concerns, skip if checkup) -> 9(timing+avail) -> 10(budget) -> 11(contact)
+  // Emergency: skip 9 & 10 -> go to 11
   const stepOrder = useMemo(() => {
-    const order: number[] = [1, 3, 2, 4, 5]
+    const order: number[] = [1, 3, 2, 4, 5, 8]
     if (isAnxious) {
       order.push(6)
     }
-    order.push(7, 8)
+    if (!isCheckup && !isEmergency) {
+      order.push(7)
+    }
     if (!isEmergency) {
       order.push(9, 10)
     }
     order.push(11)
     return order
-  }, [isAnxious, isEmergency])
+  }, [isAnxious, isEmergency, isCheckup])
 
   const currentStepIndex = stepOrder.indexOf(step)
   const totalSteps = stepOrder.length
