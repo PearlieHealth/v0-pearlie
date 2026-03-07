@@ -60,6 +60,7 @@ export default function IntakePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formStarted, setFormStarted] = useState(false)
   const formStartTimeRef = useRef<number>(Date.now())
+  const stepStartTimeRef = useRef<number>(Date.now())
   const [animatedSteps, setAnimatedSteps] = useState<Set<number>>(new Set())
   const [outsideLondonArea, setOutsideLondonArea] = useState<string | null>(null)
   const [matchFailed, setMatchFailed] = useState<string | null>(null)
@@ -354,6 +355,7 @@ export default function IntakePage() {
   const hasAnimated = animatedSteps.has(step)
 
   useEffect(() => {
+    stepStartTimeRef.current = Date.now()
     trackEvent("form_step_viewed", { meta: { step_name: getStepName(step), step_number: step, flow: isEmergency ? "emergency" : "planning" } })
   }, [step, isEmergency])
 
@@ -362,6 +364,7 @@ export default function IntakePage() {
       if (step < 11) {
         const sessionId = localStorage.getItem("pearlie_session_id") || crypto.randomUUID()
         const timeSpentSeconds = Math.round((Date.now() - formStartTimeRef.current) / 1000)
+        const stepTimeSeconds = Math.round((Date.now() - stepStartTimeRef.current) / 1000)
         const stepsCompleted = stepOrder.indexOf(step)
         const completionPercent = Math.round(((stepsCompleted + 1) / stepOrder.length) * 100)
         const payload = JSON.stringify({
@@ -373,6 +376,7 @@ export default function IntakePage() {
             step_name: getStepName(step),
             flow: isEmergency ? "emergency" : "planning",
             time_spent_seconds: timeSpentSeconds,
+            step_time_seconds: stepTimeSeconds,
             completion_percent: completionPercent,
             treatments_count: formData.treatments.length,
             postcode_entered: !!formData.postcode,
@@ -477,7 +481,8 @@ export default function IntakePage() {
   }
 
   const handleStepForward = (fromStep: number, toStep: number) => {
-    trackEvent("form_step_completed", { meta: { step_name: getStepName(fromStep), step_number: fromStep, flow: isEmergency ? "emergency" : "planning" } })
+    const stepTimeSeconds = Math.round((Date.now() - stepStartTimeRef.current) / 1000)
+    trackEvent("form_step_completed", { meta: { step_name: getStepName(fromStep), step_number: fromStep, step_time_seconds: stepTimeSeconds, flow: isEmergency ? "emergency" : "planning" } })
     animateToStep(toStep, 1)
   }
 
