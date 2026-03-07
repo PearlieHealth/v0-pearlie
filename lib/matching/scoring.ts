@@ -127,7 +127,13 @@ const TREATMENT_ALIASES: Record<string, string[]> = {
   "composite bonding": ["bonding", "composite bonding", "composite", "dental bonding"],
   "veneers": ["veneers", "veneer", "porcelain veneers", "porcelain veneer"],
   "dental implants": ["implants", "dental implants", "implant", "dental implant"],
-  "general check-up & clean": ["check-up", "checkup", "check up", "clean", "hygiene", "general dentistry", "routine", "preventative"],
+  // All General Dentistry sub-options match against the "General Dentistry" clinic tag
+  "check-ups": ["check-up", "checkup", "check up", "clean", "hygiene", "general dentistry", "routine", "preventative"],
+  "crowns": ["crown", "crowns", "general dentistry"],
+  "dental hygienist": ["dental hygienist", "hygienist", "hygiene", "clean", "general dentistry"],
+  "dentures": ["dentures", "denture", "general dentistry"],
+  "extractions": ["extraction", "extractions", "general dentistry"],
+  "fillings": ["filling", "fillings", "general dentistry"],
   "emergency dental issue (pain, swelling, broken tooth)": ["emergency", "urgent", "pain", "swelling", "broken tooth", "toothache", "abscess"],
 }
 
@@ -232,7 +238,29 @@ function scorePriorities(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: num
   const matchedPriorities: string[] = []
   const matchedTags: string[] = []
 
-  for (const priority of lead.priorities) {
+  // "Just find me someone great" is a catch-all — auto full score, all clinics qualify
+  const CATCH_ALL_PRIORITY = "Just find me someone great"
+  const isCatchAll = lead.priorities.length === 1 && lead.priorities[0] === CATCH_ALL_PRIORITY
+
+  if (isCatchAll) {
+    return {
+      category: "priorities",
+      points: maxPoints,
+      maxPoints,
+      weight: 0,
+      facts: {
+        leadPriorities: lead.priorities,
+        matchedPriorities: [CATCH_ALL_PRIORITY],
+        matchedTags: ["TAG_RIGHT_FIT_FOCUSED"],
+        matchCount: 1,
+      },
+    }
+  }
+
+  // Filter out catch-all from mixed selections before scoring specific priorities
+  const specificPriorities = lead.priorities.filter((p) => p !== CATCH_ALL_PRIORITY)
+
+  for (const priority of specificPriorities) {
     const tagKey = Q4_PRIORITY_TAG_MAP[priority]
     if (tagKey && clinic.filterKeys.includes(tagKey)) {
       matchedPriorities.push(priority)
@@ -240,13 +268,13 @@ function scorePriorities(lead: LeadAnswer, clinic: ClinicProfile, maxPoints: num
     }
   }
 
-  const totalPriorities = lead.priorities.length
+  const totalPriorities = specificPriorities.length
   const matchCount = matchedPriorities.length
   let points = 0
 
   // Simple tiered scoring based on how many priorities match
   if (totalPriorities === 0) {
-    points = 0
+    points = maxPoints // No specific priorities = full score
   } else if (matchCount === totalPriorities) {
     points = maxPoints // All priorities matched = 100%
   } else if (matchCount >= totalPriorities * 0.75) {
@@ -584,14 +612,19 @@ function scoreBlockerSupport(
 /**
  * Detect treatment category from the treatment string
  */
-function detectTreatmentCategory(treatment: string): "cosmetic" | "checkup" | "emergency" {
+function detectTreatmentCategory(treatment: string): "cosmetic" | "restorative" | "checkup" | "emergency" {
   const lower = treatment.toLowerCase()
   if (lower.includes("emergency") || lower.includes("pain") || lower.includes("swelling") || lower.includes("broken")) {
     return "emergency"
   }
-  if (lower.includes("check-up") || lower.includes("checkup") || lower.includes("check up") || lower.includes("general") || lower.includes("clean")) {
+  if (lower.includes("check-up") || lower.includes("checkup") || lower.includes("check up") || lower.includes("general") || lower.includes("clean") || lower.includes("hygien")) {
     return "checkup"
   }
+  // Restorative treatments (implants, crowns, root canal, fillings, extractions, dentures, bridges)
+  if (lower.includes("implant") || lower.includes("crown") || lower.includes("root canal") || lower.includes("filling") || lower.includes("extraction") || lower.includes("denture") || lower.includes("bridge") || lower.includes("wisdom")) {
+    return "restorative"
+  }
+  // Cosmetic: whitening, bonding, veneers, invisalign, orthodontics
   return "cosmetic"
 }
 

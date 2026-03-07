@@ -138,7 +138,7 @@ export interface MatchFacts {
     requested: string
     clinicOffers: boolean
     matchedTreatments: string[]
-    treatmentCategory: "cosmetic" | "checkup" | "emergency"
+    treatmentCategory: "cosmetic" | "restorative" | "checkup" | "emergency"
   }
 
   // Q4: Priorities (what patient values most)

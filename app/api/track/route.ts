@@ -18,6 +18,7 @@ const VALID_EVENT_NAMES = [
   "email_verified",
   "otp_sent",
   "otp_resent",
+  "whatsapp_clicked",
 ]
 
 // Events that should be deduplicated (only count once per session/lead/clinic combo)
@@ -29,6 +30,7 @@ const DEDUPE_EVENTS = [
   "clinic_opened",
   "book_clicked",
   "call_clicked",
+  "whatsapp_clicked",
 ]
 
 /**

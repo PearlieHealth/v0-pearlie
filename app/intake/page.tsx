@@ -27,12 +27,13 @@ import { pushToDataLayer } from "@/lib/gtm"
 import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { slideVariants, slideTransition } from "@/lib/slide-variants"
-import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap, Info } from "lucide-react"
+import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap, Info, ChevronRight, X, MessageCircle } from "lucide-react"
 import {
   FORM_VERSION,
   SCHEMA_VERSION,
   TREATMENT_OPTIONS,
   EMERGENCY_TREATMENT,
+  TREATMENT_CATEGORIES,
   DECISION_VALUE_OPTIONS,
   BLOCKER_OPTIONS,
   COST_APPROACH_OPTIONS,
@@ -43,8 +44,11 @@ import {
   MONTHLY_PAYMENT_OPTIONS,
   BUDGET_HANDLING_OPTIONS,
   PREFERRED_TIME_OPTIONS,
+  COMFORT_PREFERENCE_OPTIONS,
+  SOCIAL_PROOF_MESSAGES,
   SUPPORTED_REGION,
 } from "@/lib/intake-form-config"
+import type { TreatmentCategory, TreatmentInfo } from "@/lib/intake-form-config"
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -56,6 +60,7 @@ export default function IntakePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formStarted, setFormStarted] = useState(false)
   const formStartTimeRef = useRef<number>(Date.now())
+  const stepStartTimeRef = useRef<number>(Date.now())
   const [animatedSteps, setAnimatedSteps] = useState<Set<number>>(new Set())
   const [outsideLondonArea, setOutsideLondonArea] = useState<string | null>(null)
   const [matchFailed, setMatchFailed] = useState<string | null>(null)
@@ -97,6 +102,7 @@ export default function IntakePage() {
     monthlyPaymentRange: "",
     strictBudgetMode: "",
     strictBudgetAmount: "",
+    comfortPreferences: [] as string[],
     // Emergency-only fields
     urgency: "",
     // Shared fields
@@ -109,6 +115,17 @@ export default function IntakePage() {
     consentContact: false,
     consentMarketing: false,
   })
+
+  // Social proof notification state
+  const [showSocialProof, setShowSocialProof] = useState(false)
+  const [socialProofMessage, setSocialProofMessage] = useState("")
+
+  // FAQ accordion state
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+
+  // Treatment category tabs + info popup state
+  const [activeCategory, setActiveCategory] = useState<TreatmentCategory>("general")
+  const [treatmentInfoPopup, setTreatmentInfoPopup] = useState<TreatmentInfo | null>(null)
 
   // Pre-select treatment from URL param (?treatment=) and skip step 1
   useEffect(() => {
@@ -123,19 +140,20 @@ export default function IntakePage() {
       )
       if (!matched) return
 
+      // Map legacy treatment names to current category values
+      const treatmentValue = matched === "General Check-up & Clean" ? "Check-ups" : matched
+
       // Check if there's also a pre-filled postcode
       const postcodeParam = params.get("postcode")
 
       setFormData((prev) => ({
         ...prev,
-        treatments: matched === EMERGENCY_TREATMENT ? [EMERGENCY_TREATMENT] : [matched],
+        treatments: treatmentValue === EMERGENCY_TREATMENT ? [EMERGENCY_TREATMENT] : [treatmentValue],
         ...(postcodeParam ? { postcode: postcodeParam.toUpperCase() } : {}),
       }))
 
-      // Skip step 1 since treatment is already selected
-      // If postcode is provided, it will be validated by PostcodeInput and
-      // the user can continue from step 2 with it pre-filled
-      setStep(2)
+      // Treatment is pre-selected but form still starts at step 1 (postcode)
+      // Treatment will be pre-filled when they reach step 7
     } catch {}
   }, [])
 
@@ -193,68 +211,81 @@ export default function IntakePage() {
     return () => clearTimeout(timeout)
   }, [formData, step])
 
-  // Derived: is the user on the emergency flow?
+  // Derived: is the user on the emergency flow? (detected at treatment step)
   const isEmergency = formData.treatments.includes(EMERGENCY_TREATMENT)
 
+  // Is the patient anxious? (determines if step 6 is shown)
+  const isAnxious = formData.anxiety_level === "quite_anxious" || formData.anxiety_level === "very_anxious"
+
+  // Is treatment a checkup?
+  const isCheckup = formData.treatments.includes("Check up and/or hygiene clean") || formData.treatments.includes("Check-ups") || formData.treatments.includes("Dental Hygienist")
+
   // Dynamic step order based on flow
-  // PLANNING: 1 -> 2 -> 2.5 -> 3 -> 3.5 -> 5 -> 5.5 -> 6 -> 7 -> 7.5(cond) -> 7.6(cond) -> 8
-  // EMERGENCY: 1 -> 2 -> 2.5E -> 3.5 -> 5.5 -> 8
+  // ORDER: 1(postcode) -> 2(travel) -> 3(email) -> 4(priorities) -> 5(anxiety) -> 6(comfort, conditional) -> 7(treatment) -> 8(concerns, skip if checkup) -> 9(timing+avail) -> 10(budget) -> 11(contact)
+  // Emergency: skip 9 & 10 -> go to 11
   const stepOrder = useMemo(() => {
-    if (isEmergency) {
-      return [1, 2, 2.5, 3.5, 5.5, 8]
+    const order: number[] = [1, 2, 3, 4, 5]
+    if (isAnxious) {
+      order.push(6)
     }
-    // Planning flow - 7.5 and 7.6 are conditionally shown
-    const order = [1, 2, 2.5, 3, 3.5, 5, 5.5, 6, 7]
-    if (formData.costApproach === "comfort_range") {
-      order.push(7.5)
-    } else if (formData.costApproach === "strict_budget") {
-      order.push(7.6)
+    order.push(7)
+    if (!isCheckup && !isEmergency) {
+      order.push(8)
     }
-    order.push(8)
+    if (!isEmergency) {
+      order.push(9, 10)
+      if (formData.costApproach === "comfort_range") {
+        order.push(10.5)
+      } else if (formData.costApproach === "strict_budget") {
+        order.push(10.6)
+      }
+    }
+    order.push(11)
     return order
-  }, [isEmergency, formData.costApproach])
+  }, [isAnxious, isEmergency, isCheckup, formData.costApproach])
 
   const currentStepIndex = stepOrder.indexOf(step)
   const totalSteps = stepOrder.length
   const progressPercent = Math.round(((currentStepIndex + 1) / totalSteps) * 100)
 
-  // Validation checks
-  const canContinueStep1 = formData.treatments.length > 0
-  const canContinueStep2 = formData.postcode !== "" && formData.postcodeValid
-  const canContinueStep3 = formData.decisionValues.length > 0
-  const canContinueStep5 = formData.conversionBlockerCodes.length > 0
-  const canContinueStep5_5 = formData.preferred_times.length > 0
-  const isEmailValid = EMAIL_REGEX.test(formData.email.trim())
-  const canContinueStep8 =
-    formData.firstName && formData.lastName && formData.email && isEmailValid && formData.consentContact
+  // Safety: if current step is not in stepOrder, navigate to nearest valid step
+  useEffect(() => {
+    if (currentStepIndex === -1) {
+      // Find the closest step in stepOrder that comes after the current step
+      const nextValid = stepOrder.find((s) => s > step)
+      // Or fall back to the last step in the order, or step 1
+      setStep(nextValid ?? stepOrder[stepOrder.length - 1] ?? 1)
+    }
+  }, [currentStepIndex, step, stepOrder])
 
-  // Treatment toggle with emergency exclusivity
-  const handleTreatmentToggle = (treatment: string) => {
-    setFormData((prev) => {
-      if (treatment === EMERGENCY_TREATMENT) {
-        // Emergency selected: deselect everything else, only emergency
-        if (prev.treatments.includes(EMERGENCY_TREATMENT)) {
-          return { ...prev, treatments: [] }
-        }
-        return { ...prev, treatments: [EMERGENCY_TREATMENT] }
-      }
-      // Non-emergency selected: remove emergency if present, toggle treatment
-      const withoutEmergency = prev.treatments.filter((t) => t !== EMERGENCY_TREATMENT)
-      if (withoutEmergency.includes(treatment)) {
-        return { ...prev, treatments: withoutEmergency.filter((t) => t !== treatment) }
-      }
-      return { ...prev, treatments: [...withoutEmergency, treatment] }
-    })
-  }
+  // Validation checks
+  const canContinueStep1 = formData.postcode !== "" && formData.postcodeValid
+  const isEmailValid = EMAIL_REGEX.test(formData.email.trim())
+  const canContinueStep3 = formData.email !== "" && isEmailValid
+  const canContinueStep4 = formData.decisionValues.length > 0
+  const canContinueStep8 = formData.conversionBlockerCodes.length > 0
+  const canContinueStep7 = formData.treatments.length > 0
+  const canContinueStep9 = formData.readiness !== "" && formData.preferred_times.length > 0
+  const canContinueStep11 =
+    formData.firstName && formData.consentContact
 
   const handleDecisionValueToggle = (value: string) => {
     setFormData((prev) => {
-      const isSelected = prev.decisionValues.includes(value)
-      if (isSelected) {
-        return { ...prev, decisionValues: prev.decisionValues.filter((v) => v !== value) }
+      // "Just find me someone great" is exclusive
+      if (value === "Just find me someone great") {
+        if (prev.decisionValues.includes(value)) {
+          return { ...prev, decisionValues: [] }
+        }
+        return { ...prev, decisionValues: [value] }
       }
-      if (prev.decisionValues.length >= 2) return prev
-      return { ...prev, decisionValues: [...prev.decisionValues, value] }
+      // Selecting a real value removes "Just find me someone great"
+      const withoutGreat = prev.decisionValues.filter((v) => v !== "Just find me someone great")
+      const isSelected = withoutGreat.includes(value)
+      if (isSelected) {
+        return { ...prev, decisionValues: withoutGreat.filter((v) => v !== value) }
+      }
+      if (withoutGreat.length >= 2) return prev
+      return { ...prev, decisionValues: [...withoutGreat, value] }
     })
   }
 
@@ -274,6 +305,17 @@ export default function IntakePage() {
       }
       if (withoutNoConcern.length >= 2) return prev // Max 2
       return { ...prev, conversionBlockerCodes: [...withoutNoConcern, code] }
+    })
+  }
+
+  // Comfort preference toggle (multi-select, no max)
+  const handleComfortToggle = (value: string) => {
+    setFormData((prev) => {
+      const isSelected = prev.comfortPreferences.includes(value)
+      if (isSelected) {
+        return { ...prev, comfortPreferences: prev.comfortPreferences.filter((v) => v !== value) }
+      }
+      return { ...prev, comfortPreferences: [...prev.comfortPreferences, value] }
     })
   }
 
@@ -313,14 +355,16 @@ export default function IntakePage() {
   const hasAnimated = animatedSteps.has(step)
 
   useEffect(() => {
+    stepStartTimeRef.current = Date.now()
     trackEvent("form_step_viewed", { meta: { step_name: getStepName(step), step_number: step, flow: isEmergency ? "emergency" : "planning" } })
   }, [step, isEmergency])
 
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (step < 8) {
+      if (step < 11) {
         const sessionId = localStorage.getItem("pearlie_session_id") || crypto.randomUUID()
         const timeSpentSeconds = Math.round((Date.now() - formStartTimeRef.current) / 1000)
+        const stepTimeSeconds = Math.round((Date.now() - stepStartTimeRef.current) / 1000)
         const stepsCompleted = stepOrder.indexOf(step)
         const completionPercent = Math.round(((stepsCompleted + 1) / stepOrder.length) * 100)
         const payload = JSON.stringify({
@@ -332,6 +376,7 @@ export default function IntakePage() {
             step_name: getStepName(step),
             flow: isEmergency ? "emergency" : "planning",
             time_spent_seconds: timeSpentSeconds,
+            step_time_seconds: stepTimeSeconds,
             completion_percent: completionPercent,
             treatments_count: formData.treatments.length,
             postcode_entered: !!formData.postcode,
@@ -406,32 +451,22 @@ export default function IntakePage() {
   }, [formData, step, formStarted])
 
   const getStepName = (stepNum: number) => {
-    if (isEmergency) {
-      const emergencyNames: Record<number, string> = {
-        1: "Treatment Selection",
-        2: "Postcode",
-        2.5: "Urgency",
-        3.5: "Dental Anxiety",
-        5.5: "Best Time",
-        8: "Contact Details",
-      }
-      return emergencyNames[stepNum] || "Unknown"
+    const names: Record<number, string> = {
+      1: "Postcode",
+      2: "Travel Distance",
+      3: "Email Capture",
+      4: "Clinic Priorities",
+      5: "Dental Anxiety",
+      6: "Comfort Preferences",
+      7: "Treatment Selection",
+      8: "Concerns",
+      9: "Timing & Availability",
+      10: "Budget Mindset",
+      10.5: "Monthly Payments",
+      10.6: "Budget Handling",
+      11: "Contact Details",
     }
-    const planningNames: Record<number, string> = {
-      1: "Treatment Selection",
-      2: "Postcode",
-      2.5: "Travel Distance",
-      3: "Clinic Priorities",
-      3.5: "Dental Anxiety",
-      5: "Concerns",
-      5.5: "Best Time",
-      6: "When to Start",
-      7: "Cost Mindset",
-      7.5: "Monthly Payments",
-      7.6: "Budget Handling",
-      8: "Contact Details",
-    }
-    return planningNames[stepNum] || "Unknown"
+    return names[stepNum] || "Unknown"
   }
 
   const animateToStep = useCallback((toStep: number, dir: number) => {
@@ -446,7 +481,8 @@ export default function IntakePage() {
   }
 
   const handleStepForward = (fromStep: number, toStep: number) => {
-    trackEvent("form_step_completed", { meta: { step_name: getStepName(fromStep), step_number: fromStep, flow: isEmergency ? "emergency" : "planning" } })
+    const stepTimeSeconds = Math.round((Date.now() - stepStartTimeRef.current) / 1000)
+    trackEvent("form_step_completed", { meta: { step_name: getStepName(fromStep), step_number: fromStep, step_time_seconds: stepTimeSeconds, flow: isEmergency ? "emergency" : "planning" } })
     animateToStep(toStep, 1)
   }
 
@@ -492,6 +528,7 @@ export default function IntakePage() {
           ? Number.parseFloat(formData.strictBudgetAmount.replace(/,/g, ""))
           : null,
         anxiety_level: formData.anxiety_level || null,
+        comfort_preferences: formData.comfortPreferences.length > 0 ? formData.comfortPreferences : null,
         contact_method: formData.email ? "email" : "phone",
         contact_value: formData.email || formData.phone || null,
         first_name: formData.firstName,
@@ -754,8 +791,26 @@ export default function IntakePage() {
     </div>
   )
 
+  // CTA labels per step
+  const getCtaLabel = (stepNum: number) => {
+    const labels: Record<number, string> = {
+      1: "Continue \u2192",
+      2: "Save & continue \u2192",
+      3: "Continue \u2192",
+      4: "Continue \u2192",
+      5: "Keep going \u2192",
+      6: "Keep going \u2192",
+      7: "Keep going \u2192",
+      8: "Almost there \u2192",
+      9: "Almost there \u2192",
+      10: "One more \u2192",
+      11: "See my matches \u2192",
+    }
+    return labels[stepNum] || "Continue \u2192"
+  }
+
   // Reusable continue button - uses `hasAnimated` from closure
-  const ContinueButton = ({ onClick, disabled, delay = 0.5, label = "Continue" }: { onClick: () => void; disabled: boolean; delay?: number; label?: string }) => (
+  const ContinueButton = ({ onClick, disabled, delay = 0.5, label }: { onClick: () => void; disabled: boolean; delay?: number; label?: string }) => (
     <motion.div initial={hasAnimated ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: hasAnimated ? 0 : delay }}>
       <Button
         type="button"
@@ -764,10 +819,47 @@ export default function IntakePage() {
         className="w-full h-11 text-base font-semibold rounded-full shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
         size="lg"
       >
-        {label}
+        {label || getCtaLabel(step)}
       </Button>
     </motion.div>
   )
+
+  // WhatsApp bar component
+  const WhatsAppBar = () => (
+    <div className="bg-[#e8faf8] text-center py-1.5 px-4">
+      <a
+        href="https://wa.me/447377967481"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-xs text-[#0d3d3a] hover:text-[#0fbcb0] transition-colors inline-flex items-center gap-1.5"
+        onClick={() => {
+          const sessionId = localStorage.getItem("pearlie_session_id") || crypto.randomUUID()
+          navigator.sendBeacon?.("/api/track", new Blob([JSON.stringify({
+            session_id: sessionId,
+            event_name: "whatsapp_clicked",
+            page: "intake",
+            meta: { step, step_name: getStepName(step), flow: isEmergency ? "emergency" : "planning" },
+          })], { type: "application/json" }))
+        }}
+      >
+        <MessageCircle className="w-3.5 h-3.5" />
+        Prefer to talk? Chat with us on WhatsApp
+      </a>
+    </div>
+  )
+
+  // Social proof effect for step 4
+  useEffect(() => {
+    if (step === 4) {
+      const msg = SOCIAL_PROOF_MESSAGES[Math.floor(Math.random() * SOCIAL_PROOF_MESSAGES.length)]
+      setSocialProofMessage(msg)
+      const showTimer = setTimeout(() => setShowSocialProof(true), 1500)
+      const hideTimer = setTimeout(() => setShowSocialProof(false), 5500)
+      return () => { clearTimeout(showTimer); clearTimeout(hideTimer) }
+    } else {
+      setShowSocialProof(false)
+    }
+  }, [step])
 
   return (
     <div className="min-h-screen bg-white flex flex-col relative overflow-hidden">
@@ -787,17 +879,22 @@ export default function IntakePage() {
             className="flex items-center text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-0"
           >
             <ChevronLeft className="w-5 h-5" />
+            <span className="text-sm">Previous</span>
           </button>
         </div>
       </div>
 
+      {/* WhatsApp bar */}
+      <WhatsAppBar />
+
       {/* Headline banner — tagline + progress on dark teal bg with shadow */}
       <div className="bg-[#0d3d3a] text-center pt-2 pb-4 px-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] relative z-10">
         <h2 className="text-2xl md:text-3xl font-heading font-medium text-[#faf5ef] leading-tight">
-          Help us match you to the{" "}
-          <span className="text-[#0fbcb0] font-bold whitespace-nowrap">right dentist</span>
+          Find the best dentist{" "}
+          <span className="text-[#0fbcb0] font-bold whitespace-nowrap">for you.</span>
         </h2>
         <div className="flex items-center justify-center gap-2 mt-2.5">
+          <span className="text-xs font-medium text-[#faf5ef]/50">Step {currentStepIndex + 1} of {totalSteps}</span>
           <div className="w-28 h-1.5 bg-[#faf5ef]/20 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-[#0fbcb0] rounded-full"
@@ -806,7 +903,6 @@ export default function IntakePage() {
               transition={{ duration: 0.5, ease: "easeOut" }}
             />
           </div>
-          <span className="text-xs font-medium text-[#faf5ef]/50">{progressPercent}%</span>
         </div>
       </div>
 
@@ -844,84 +940,20 @@ export default function IntakePage() {
           <form
             onSubmit={(e) => {
               e.preventDefault()
-              if (step === 8) handleSubmit()
+              if (step === 11) handleSubmit()
             }}
           >
             <AnimatePresence mode="wait" custom={direction}>
 
               {/* ============================================ */}
-              {/* Q1: TREATMENT SELECTION (Both flows)         */}
+              {/* STEP 1: POSTCODE (was Q2)                    */}
               {/* ============================================ */}
               {step === 1 && (
                 <motion.div key="step1" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
-                    icon={<Smile className="w-10 h-10" />}
-                    title="What are you looking for help with?"
-                    subtitle="You do not need to be certain."
-                  />
-
-                  <div className="grid grid-cols-1 gap-2.5">
-                    {[
-                      "Check up and/or hygiene clean",
-                      ...TREATMENT_OPTIONS.filter((t) => t !== EMERGENCY_TREATMENT && t !== "General Check-up & Clean"),
-                    ].map((treatment, index) => (
-                      <motion.div key={treatment} {...fadeUp(0.05 * index + 0.3)}>
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <OptionCard
-                            selected={formData.treatments.includes(treatment)}
-                            onClick={() => {
-                              const isSelected = formData.treatments.includes(treatment)
-                              if (isSelected) {
-                                setFormData((prev) => ({ ...prev, treatments: [] }))
-                                return
-                              }
-                              setFormData((prev) => ({ ...prev, treatments: [treatment] }))
-                              setTimeout(() => handleStepForward(1, 2), 300)
-                            }}
-                          >
-                            {treatment}
-                          </OptionCard>
-                        </motion.div>
-                      </motion.div>
-                    ))}
-
-                    {/* Emergency option - visually separated */}
-                    <motion.div {...fadeUp(0.05 * TREATMENT_OPTIONS.length + 0.3)}>
-                      <div className="pt-2 border-t border-[#2d2d2d]/10 mt-1">
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <OptionCard
-                            selected={isEmergency}
-                            onClick={() => {
-                              const isSelected = formData.treatments.includes(EMERGENCY_TREATMENT)
-                              if (isSelected) {
-                                setFormData((prev) => ({ ...prev, treatments: [] }))
-                                return
-                              }
-                              setFormData((prev) => ({ ...prev, treatments: [EMERGENCY_TREATMENT] }))
-                              setTimeout(() => handleStepForward(1, 2), 300)
-                            }}
-                          >
-                            <div className="flex items-center gap-3">
-                              <Zap className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                              <span>{EMERGENCY_TREATMENT}</span>
-                            </div>
-                          </OptionCard>
-                        </motion.div>
-                      </div>
-                    </motion.div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* ============================================ */}
-              {/* Q2: POSTCODE (Both flows)                    */}
-              {/* ============================================ */}
-              {step === 2 && (
-                <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
-                  <StepHeader
                     icon={<MapPin className="w-10 h-10" />}
-                    title="What is your postcode?"
-                    subtitle="We will find clinics near you."
+                    title="Where are you based?"
+                    subtitle=""
                   />
 
                   <motion.div {...fadeUp(0.3)}>
@@ -937,19 +969,66 @@ export default function IntakePage() {
                     />
                   </motion.div>
 
-                  <ContinueButton onClick={() => handleStepForward(2, 2.5)} disabled={!canContinueStep2} delay={0.4} />
+                  <ContinueButton onClick={() => handleStepForward(1, getNextStep(1))} disabled={!canContinueStep1} delay={0.4} />
+
+                  <motion.p {...fadeUp(0.5)} className="text-sm text-[#2d2d2d]/60 text-center leading-relaxed">
+                    We&apos;ll find clinics near you.
+                  </motion.p>
+
+                  {/* FAQ / Trust section below the fold */}
+                  <motion.div {...fadeUp(0.6)} className="pt-6 space-y-6">
+                    <div className="border-t border-gray-200" />
+
+                    {/* About Pearlie */}
+                    <div className="bg-gray-50 rounded-2xl p-5">
+                      <h3 className="text-base font-semibold text-[#2d2d2d] mb-2">About Pearlie</h3>
+                      <p className="text-sm text-[#2d2d2d]/70 leading-relaxed">
+                        Pearlie is a curated network of best dentists. Find one perfect for you and book online instantly. Free for patients, always.
+                      </p>
+                    </div>
+
+                    <div className="border-t border-gray-200" />
+
+                    {/* Common Questions accordion */}
+                    <div>
+                      <h3 className="text-base font-semibold text-[#2d2d2d] mb-3">Common Questions</h3>
+                      <div className="space-y-0">
+                        {[
+                          { q: "What is Pearlie?", a: "Pearlie is a curated network of top-rated dental clinics. We match you with the right dentist based on your specific needs, preferences, and how you feel about dental visits — so you can book with confidence. It's completely free for patients." },
+                          { q: "How does the matching work?", a: "We ask you a short set of questions about what matters most to you — things like your comfort level, priorities in a dentist, budget, and location. Our algorithm then scores and ranks clinics based on how well they match your answers, not just who's closest. You'll receive personalised recommendations with clear reasons why each clinic is a good fit for you." },
+                          { q: "Is it free for patients?", a: "Yes, 100% free. Pearlie is funded by the clinics in our network — they pay a small fee when they successfully connect with a new patient. You will never be charged anything for using Pearlie, browsing your matches, or booking an appointment." },
+                          { q: "How quickly will I hear back from a clinic?", a: "Most matched clinics respond within 24–48 hours. If you indicate that you're in pain or need urgent care, we flag your enquiry as a priority so clinics can get back to you even faster. You'll receive updates by email so you never miss a response." },
+                          { q: "Will my details be shared without my permission?", a: "No, never. Your personal details are only shared with clinics that you actively choose to contact. We don't sell your data or share it with third parties. You're always in control of who sees your information." },
+                        ].map((faq, idx) => (
+                          <div key={idx} className="border-b border-gray-100 last:border-b-0">
+                            <button
+                              type="button"
+                              onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                              className="w-full flex items-center justify-between py-3 text-left text-sm text-[#2d2d2d] hover:text-[#0fbcb0] transition-colors"
+                            >
+                              <span>{faq.q}</span>
+                              <ChevronRight className={`w-4 h-4 flex-shrink-0 transition-transform ${openFaq === idx ? "rotate-90" : ""}`} />
+                            </button>
+                            {openFaq === idx && (
+                              <p className="text-sm text-[#2d2d2d]/60 pb-3 leading-relaxed">{faq.a}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                  </motion.div>
                 </motion.div>
               )}
 
               {/* ============================================ */}
-              {/* Q2.5 PLANNING: TRAVEL DISTANCE               */}
-              {/* Q2.5 EMERGENCY: HOW SOON DO YOU NEED TO BE SEEN? */}
+              {/* STEP 2: TRAVEL DISTANCE (time-based)         */}
               {/* ============================================ */}
-              {step === 2.5 && !isEmergency && (
-                <motion.div key="step2.5-planning" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+              {step === 2 && (
+                <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<MapPin className="w-10 h-10" />}
-                    title="How far are you willing to travel?"
+                    title="How long are you happy to travel?"
                   />
 
                   <div className="grid grid-cols-1 gap-2.5">
@@ -958,7 +1037,7 @@ export default function IntakePage() {
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <OptionCard
                             selected={formData.location_preference === option.value}
-                            onClick={() => handleSingleSelect("location_preference", option.value, getNextStep(2.5))}
+                            onClick={() => handleSingleSelect("location_preference", option.value, getNextStep(2))}
                             hint={option.hint}
                           >
                             {option.label}
@@ -967,54 +1046,54 @@ export default function IntakePage() {
                       </motion.div>
                     ))}
                   </div>
-
-                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#faf5ef] text-[#0d3d3a] text-sm">
-                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
-                    <span>This helps us balance convenience with finding the right clinic.</span>
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 2.5 && isEmergency && (
-                <motion.div key="step2.5-emergency" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
-                  <StepHeader
-                    icon={<Zap className="w-10 h-10" />}
-                    title="How soon do you need to be seen?"
-                    subtitle="We will prioritise clinics with the right availability."
-                  />
-
-                  <div className="grid grid-cols-1 gap-2.5">
-                    {URGENCY_OPTIONS.map((option, index) => (
-                      <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <OptionCard
-                            selected={formData.urgency === option.value}
-                            onClick={() => handleSingleSelect("urgency", option.value, getNextStep(2.5))}
-                          >
-                            {option.label}
-                          </OptionCard>
-                        </motion.div>
-                      </motion.div>
-                    ))}
-                  </div>
                 </motion.div>
               )}
 
               {/* ============================================ */}
-              {/* Q3: CLINIC PRIORITIES (Planning only, up to 2) */}
+              {/* STEP 3: EMAIL CAPTURE                        */}
               {/* ============================================ */}
-              {step === 3 && !isEmergency && (
+              {step === 3 && (
                 <motion.div key="step3" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
+                    icon={<Mail className="w-10 h-10" />}
+                    title="Where should we send your results?"
+                    subtitle="We'll save your progress so you can continue any time."
+                  />
+
+                  <motion.div {...fadeUp(0.3)} className="space-y-2">
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="h-12 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                      placeholder="your@email.com"
+                    />
+                    {formData.email && !isEmailValid && (
+                      <p className="text-sm text-red-500">Please enter a valid email address</p>
+                    )}
+                    <p className="text-xs text-[#2d2d2d]/40">No spam, ever.</p>
+                  </motion.div>
+
+                  <ContinueButton onClick={() => handleStepForward(3, getNextStep(3))} disabled={!canContinueStep3} delay={0.4} />
+                </motion.div>
+              )}
+
+              {/* ============================================ */}
+              {/* STEP 4: PRIORITIES (pick up to 2)            */}
+              {/* ============================================ */}
+              {step === 4 && (
+                <motion.div key="step4" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+                  <StepHeader
                     icon={<Heart className="w-10 h-10" />}
-                    title="When choosing a clinic, what would you prioritise most?"
-                    subtitle="Pick up to 2."
+                    title="What matters most to you in a dentist?"
+                    subtitle=""
                   />
 
                   <div className="grid grid-cols-1 gap-2.5">
                     {DECISION_VALUE_OPTIONS.map((option, index) => {
                       const isSelected = formData.decisionValues.includes(option)
-                      const isDisabled = !isSelected && formData.decisionValues.length >= 2
+                      const isGreatSelected = formData.decisionValues.includes("Just find me someone great")
+                      const isDisabled = !isSelected && (isGreatSelected || (!isSelected && formData.decisionValues.length >= 2)) && option !== "Just find me someone great"
                       return (
                         <motion.div key={option} {...fadeUp(0.05 * index + 0.3)}>
                           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -1022,7 +1101,7 @@ export default function IntakePage() {
                               selected={isSelected}
                               onClick={() => handleDecisionValueToggle(option)}
                               disabled={isDisabled}
-                              hasCheckbox
+                              hasCheckbox={option !== "Just find me someone great"}
                             >
                               {option}
                             </OptionCard>
@@ -1032,18 +1111,38 @@ export default function IntakePage() {
                     })}
                   </div>
 
-                  <ContinueButton onClick={() => handleStepForward(3, getNextStep(3))} disabled={!canContinueStep3} />
+                  <ContinueButton onClick={() => handleStepForward(4, getNextStep(4))} disabled={!canContinueStep4} />
+
+                  {/* Social proof notification */}
+                  <AnimatePresence>
+                    {showSocialProof && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}
+                        className="fixed bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:w-80 z-50"
+                      >
+                        <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-3 flex items-center gap-3">
+                          <span className="text-lg">&#10024;</span>
+                          <span className="text-sm text-[#2d2d2d] flex-1">{socialProofMessage}</span>
+                          <button type="button" onClick={() => setShowSocialProof(false)} className="text-gray-400 hover:text-gray-600">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )}
 
               {/* ============================================ */}
-              {/* Q3.5 / Q4E: DENTAL ANXIETY (Both flows)     */}
+              {/* STEP 5: ANXIETY LEVEL                        */}
               {/* ============================================ */}
-              {step === 3.5 && (
-                <motion.div key="step3.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+              {step === 5 && (
+                <motion.div key="step5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Shield className="w-10 h-10" />}
-                    title="How do you feel about dental visits?"
+                    title="How do you feel about going to the dentist?"
                   />
 
                   <div className="grid grid-cols-1 gap-2.5">
@@ -1052,7 +1151,16 @@ export default function IntakePage() {
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <OptionCard
                             selected={formData.anxiety_level === option.value}
-                            onClick={() => handleSingleSelect("anxiety_level", option.value, getNextStep(3.5))}
+                            onClick={() => {
+                              if (formData.anxiety_level === option.value) {
+                                setFormData((prev) => ({ ...prev, anxiety_level: "" }))
+                                return
+                              }
+                              setFormData((prev) => ({ ...prev, anxiety_level: option.value }))
+                              // Route to comfort preferences (step 6) if anxious, otherwise skip to treatment (step 7)
+                              const isAnxiousChoice = option.value === "quite_anxious" || option.value === "very_anxious"
+                              setTimeout(() => handleStepForward(5, isAnxiousChoice ? 6 : 7), 300)
+                            }}
                           >
                             {option.label}
                           </OptionCard>
@@ -1063,19 +1171,68 @@ export default function IntakePage() {
 
                   <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#faf5ef] text-[#0d3d3a] text-sm">
                     <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
-                    <span>We will match you with clinics experienced with patients like you.</span>
+                    <span>We&apos;ll only match you with dentists who&apos;ve helped patients in exactly your situation.</span>
                   </div>
                 </motion.div>
               )}
 
               {/* ============================================ */}
-              {/* Q5: CONCERNS (Planning only, multi max 2)    */}
+              {/* STEP 6: COMFORT PREFERENCES (CONDITIONAL)    */}
+              {/* Only shown if anxiety = quite/very anxious   */}
               {/* ============================================ */}
-              {step === 5 && !isEmergency && (
-                <motion.div key="step5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+              {step === 6 && isAnxious && (
+                <motion.div key="step6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+                  <StepHeader
+                    icon={<Heart className="w-10 h-10" />}
+                    title="What would help you feel at ease?"
+                    subtitle="Pick as many as feel right. You can skip if you're not sure."
+                  />
+
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {COMFORT_PREFERENCE_OPTIONS.map((option, index) => (
+                      <motion.div key={option.value} {...fadeUp(0.05 * index + 0.3)}>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <OptionCard
+                            selected={formData.comfortPreferences.includes(option.value)}
+                            onClick={() => handleComfortToggle(option.value)}
+                            hasCheckbox
+                          >
+                            {option.label}
+                          </OptionCard>
+                        </motion.div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <ContinueButton onClick={() => handleStepForward(6, getNextStep(6))} disabled={false} />
+                    </div>
+                    <motion.div initial={hasAnimated ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: hasAnimated ? 0 : 0.5 }}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          setFormData((prev) => ({ ...prev, comfortPreferences: [] }))
+                          handleStepForward(6, getNextStep(6))
+                        }}
+                        className="h-11 text-base text-[#2d2d2d]/50 hover:text-[#2d2d2d]"
+                      >
+                        Skip &rarr;
+                      </Button>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ============================================ */}
+              {/* STEP 8: CONCERNS                             */}
+              {/* ============================================ */}
+              {step === 8 && (
+                <motion.div key="step8" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<AlertCircle className="w-10 h-10" />}
-                    title="Is there anything you're unsure or concerned about right now?"
+                    title="Is there anything on your mind about this?"
                   />
 
                   <div className="grid grid-cols-1 gap-2.5">
@@ -1087,11 +1244,249 @@ export default function IntakePage() {
                             onClick={() => {
                               const isSelected = formData.conversionBlockerCodes.includes(option.code)
                               if (isSelected) {
-                                setFormData((prev) => ({ ...prev, conversionBlockerCodes: [] }))
+                                setFormData((prev) => ({ ...prev, conversionBlockerCodes: prev.conversionBlockerCodes.filter((c) => c !== option.code) }))
                                 return
                               }
-                              setFormData((prev) => ({ ...prev, conversionBlockerCodes: [option.code] }))
-                              setTimeout(() => handleStepForward(5, getNextStep(5)), 300)
+                              // NO_CONCERN is exclusive
+                              if (option.code === "NO_CONCERN") {
+                                setFormData((prev) => ({ ...prev, conversionBlockerCodes: ["NO_CONCERN"] }))
+                              } else {
+                                setFormData((prev) => ({ ...prev, conversionBlockerCodes: [option.code] }))
+                              }
+                              setTimeout(() => handleStepForward(8, getNextStep(8)), 300)
+                            }}
+                          >
+                            {option.label}
+                          </OptionCard>
+                        </motion.div>
+                        {/* Inline reassurance for "embarrassed" */}
+                        {option.code === "EMBARRASSED" && formData.conversionBlockerCodes.includes("EMBARRASSED") && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            className="mt-2 flex items-start gap-2 px-4 py-2 rounded-xl bg-[#eaf6f4] text-sm text-[#0d3d3a]"
+                          >
+                            <Info className="w-4 h-4 mt-0.5 shrink-0" />
+                            <span>Every dentist we work with has seen it all — and won&apos;t judge you.</span>
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ============================================ */}
+              {/* STEP 7: TREATMENT SELECTION (category tabs)  */}
+              {/* ============================================ */}
+              {step === 7 && (
+                <motion.div key="step7" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+                  <StepHeader
+                    icon={<Smile className="w-10 h-10" />}
+                    title="What services do you need?"
+                  />
+
+                  {/* Category tabs */}
+                  <motion.div {...fadeUp(0.2)} className="flex flex-wrap gap-2">
+                    {TREATMENT_CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setActiveCategory(cat.id)}
+                        className={`
+                          px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2
+                          ${activeCategory === cat.id
+                            ? "border-[#0fbcb0] bg-white text-[#0fbcb0] shadow-sm"
+                            : "border-transparent bg-[#eaf6f4] text-[#2d2d2d] hover:bg-[#dff2ef]"
+                          }
+                        `}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </motion.div>
+
+                  {/* Divider */}
+                  <div className="border-t border-gray-200" />
+
+                  {/* Treatment pills for active category */}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeCategory}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex flex-wrap gap-2.5"
+                    >
+                      {TREATMENT_CATEGORIES.find((c) => c.id === activeCategory)?.treatments.map((treatment) => {
+                        const isSelected = formData.treatments.includes(treatment.value)
+                        return (
+                          <div key={treatment.value} className="flex items-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  setFormData((prev) => ({ ...prev, treatments: [] }))
+                                  return
+                                }
+                                setFormData((prev) => ({ ...prev, treatments: [treatment.value] }))
+                              }}
+                              className={`
+                                inline-flex items-center gap-1.5 pl-4 pr-2 py-2 rounded-full text-sm transition-all duration-200 border-2
+                                ${isSelected
+                                  ? "border-[#0fbcb0] bg-[#d4edea] text-[#0d3d3a] shadow-sm"
+                                  : "border-gray-200 bg-white text-[#2d2d2d] hover:border-gray-300 hover:shadow-sm"
+                                }
+                              `}
+                            >
+                              <span>{treatment.name}</span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setTreatmentInfoPopup(treatment)
+                                }}
+                                className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 hover:text-[#0fbcb0] hover:border-[#0fbcb0] transition-colors flex-shrink-0"
+                              >
+                                <Info className="w-3 h-3" />
+                              </button>
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* Emergency fast-track message */}
+                  {isEmergency && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 text-amber-800 text-sm"
+                    >
+                      <Zap className="w-4 h-4 mt-0.5 shrink-0" />
+                      <span>We&apos;ll fast-track your match — just add your details on the next screen.</span>
+                    </motion.div>
+                  )}
+
+                  <ContinueButton
+                    onClick={() => handleStepForward(7, getNextStep(7))}
+                    disabled={!canContinueStep7}
+                  />
+                </motion.div>
+              )}
+
+              {/* Treatment info popup/modal */}
+              <AnimatePresence>
+                {treatmentInfoPopup && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+                  >
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setTreatmentInfoPopup(null)} />
+
+                    {/* Modal */}
+                    <motion.div
+                      initial={{ y: 60, scale: 0.97, opacity: 0 }}
+                      animate={{ y: 0, scale: 1, opacity: 1 }}
+                      exit={{ y: 40, scale: 0.97, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                      className="relative w-full sm:max-w-md max-h-[80vh] overflow-y-auto bg-white rounded-t-2xl sm:rounded-2xl"
+                    >
+                      {/* Close bar (mobile drag hint + close) */}
+                      <div className="sticky top-0 bg-white rounded-t-2xl z-10 px-4 pt-3 pb-2">
+                        <div className="w-8 h-1 rounded-full bg-gray-200 mx-auto mb-3 sm:hidden" />
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-semibold text-[#2d2d2d]">{treatmentInfoPopup.name}</h3>
+                          <button
+                            type="button"
+                            onClick={() => setTreatmentInfoPopup(null)}
+                            className="text-[#2d2d2d]/40 hover:text-[#2d2d2d]/70 transition-colors p-1"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Body */}
+                      <div className="px-4 pb-5 space-y-4">
+                        <p className="text-[13px] text-[#2d2d2d]/70 leading-relaxed">{treatmentInfoPopup.description}</p>
+
+                        {/* Duration & Recovery inline */}
+                        <div className="flex items-center gap-4 text-[12px] text-[#2d2d2d]/55">
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            {treatmentInfoPopup.duration}
+                          </span>
+                          <span className="w-px h-3 bg-gray-200" />
+                          <span className="flex items-center gap-1.5">
+                            <Shield className="w-3.5 h-3.5" />
+                            {treatmentInfoPopup.recovery}
+                          </span>
+                        </div>
+
+                        {/* What to Expect */}
+                        <div className="border border-gray-100 rounded-xl p-3.5">
+                          <h4 className="text-[13px] font-medium text-[#2d2d2d] mb-2.5">What to expect</h4>
+                          <ul className="space-y-2">
+                            {treatmentInfoPopup.whatToExpect.map((item, i) => (
+                              <li key={i} className="flex items-start gap-2.5 text-[13px] text-[#2d2d2d]/65 leading-snug">
+                                <span className="text-[#0fbcb0] mt-0.5 text-xs">&#x2022;</span>
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* Benefits */}
+                        <div>
+                          <h4 className="text-[13px] font-medium text-[#2d2d2d] mb-2">Benefits</h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            {treatmentInfoPopup.benefits.map((benefit, i) => (
+                              <span key={i} className="px-2.5 py-1 rounded-lg bg-[#f5f5f5] text-[#2d2d2d]/60 text-[12px]">
+                                {benefit}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <p className="text-[11px] text-[#2d2d2d]/35 leading-relaxed">
+                          General guidance only — your dentist will discuss your specific treatment plan.
+                        </p>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* ============================================ */}
+              {/* STEP 9: TIMING + AVAILABILITY (combined)     */}
+              {/* ============================================ */}
+              {step === 9 && !isEmergency && (
+                <motion.div key="step9" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+                  <StepHeader
+                    icon={<Calendar className="w-10 h-10" />}
+                    title="When are you looking to start?"
+                  />
+
+                  {/* Part A — Urgency (single select) */}
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {TIMING_OPTIONS.map((option, index) => (
+                      <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <OptionCard
+                            selected={formData.readiness === option.value}
+                            onClick={() => {
+                              if (formData.readiness === option.value) {
+                                setFormData((prev) => ({ ...prev, readiness: "" }))
+                              } else {
+                                setFormData((prev) => ({ ...prev, readiness: option.value }))
+                              }
                             }}
                           >
                             {option.label}
@@ -1100,34 +1495,28 @@ export default function IntakePage() {
                       </motion.div>
                     ))}
                   </div>
-                </motion.div>
-              )}
 
-              {/* ============================================ */}
-              {/* Q5.5 / Q5E: BEST TIME (Both flows)          */}
-              {/* ============================================ */}
-              {step === 5.5 && (
-                <motion.div key="step5.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
-                  <StepHeader
-                    icon={<Sun className="w-10 h-10" />}
-                    title="When works best for you?"
-                  />
+                  {/* Divider */}
+                  <div className="border-t border-gray-200 pt-4">
+                    <p className="text-sm text-[#2d2d2d]/60 mb-3">When works best for appointments?</p>
+                  </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {/* Part B — Availability (multi-select cards) */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                     {PREFERRED_TIME_OPTIONS.map((option, index) => (
-                      <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
+                      <motion.div key={option.value} {...fadeUp(0.15 * index + 0.6)}>
                         <motion.button
                           type="button"
                           whileHover={{ scale: 1.04 }}
                           whileTap={{ scale: 0.97 }}
                           onClick={() => {
-                            const isSelected = formData.preferred_times.includes(option.value) && formData.preferred_times.length === 1
-                            if (isSelected) {
-                              setFormData({ ...formData, preferred_times: [] })
-                              return
-                            }
-                            setFormData({ ...formData, preferred_times: [option.value] })
-                            setTimeout(() => handleStepForward(5.5, getNextStep(5.5)), 300)
+                            setFormData((prev) => {
+                              const isSelected = prev.preferred_times.includes(option.value)
+                              if (isSelected) {
+                                return { ...prev, preferred_times: prev.preferred_times.filter((t) => t !== option.value) }
+                              }
+                              return { ...prev, preferred_times: [...prev.preferred_times, option.value] }
+                            })
                           }}
                           className={`
                             w-full p-3.5 rounded-2xl border-2 transition-all duration-200 text-center
@@ -1149,49 +1538,20 @@ export default function IntakePage() {
                       </motion.div>
                     ))}
                   </div>
+
+                  <ContinueButton onClick={() => handleStepForward(9, getNextStep(9))} disabled={!canContinueStep9} />
                 </motion.div>
               )}
 
               {/* ============================================ */}
-              {/* Q6: WHEN TO START (Planning only)            */}
+              {/* STEP 10: BUDGET MINDSET                      */}
               {/* ============================================ */}
-              {step === 6 && !isEmergency && (
-                <motion.div key="step6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
-                  <StepHeader
-                    icon={<Calendar className="w-10 h-10" />}
-                    title="When are you looking to start?"
-                  />
-
-                  <div className="grid grid-cols-1 gap-2.5">
-                    {TIMING_OPTIONS.map((option, index) => (
-                      <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <OptionCard
-                            selected={formData.readiness === option.value}
-                            onClick={() => handleSingleSelect("readiness", option.value, getNextStep(6))}
-                          >
-                            {option.label}
-                          </OptionCard>
-                        </motion.div>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#faf5ef] text-[#0d3d3a] text-sm">
-                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
-                    <span>This helps us find clinics with the right availability.</span>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* ============================================ */}
-              {/* Q7: COST / DECISION MINDSET (Planning only)  */}
-              {/* ============================================ */}
-              {step === 7 && !isEmergency && (
-                <motion.div key="step7" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+              {step === 10 && !isEmergency && (
+                <motion.div key="step10" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
-                    title="How do you usually think about investing in dental treatment?"
+                    title="How do you think about paying for dental treatment?"
+                    subtitle="There's no right answer — this just helps us find the right fit."
                   />
 
                   <div className="grid grid-cols-1 gap-2.5">
@@ -1202,18 +1562,17 @@ export default function IntakePage() {
                             selected={formData.costApproach === option.value}
                             onClick={() => {
                               if (formData.costApproach === option.value) {
-                                // Deselect — toggle off
                                 setFormData((prev) => ({ ...prev, costApproach: "" }))
                                 return
                               }
                               setFormData((prev) => ({ ...prev, costApproach: option.value }))
-                              // Conditional next step based on selection
+                              // Route to the appropriate follow-up based on selection
                               if (option.value === "comfort_range") {
-                                setTimeout(() => handleStepForward(7, 7.5), 300)
+                                setTimeout(() => handleStepForward(10, 10.5), 300)
                               } else if (option.value === "strict_budget") {
-                                setTimeout(() => handleStepForward(7, 7.6), 300)
+                                setTimeout(() => handleStepForward(10, 10.6), 300)
                               } else {
-                                setTimeout(() => handleStepForward(7, 8), 300)
+                                setTimeout(() => handleStepForward(10, 11), 300)
                               }
                             }}
                           >
@@ -1223,24 +1582,17 @@ export default function IntakePage() {
                       </motion.div>
                     ))}
                   </div>
-
-                  <div className="flex items-start gap-2 px-4 py-2.5 rounded-2xl bg-[#faf5ef] text-[#0d3d3a] text-sm">
-                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-[#0d3d3a]" />
-                    <span>This helps us match you with clinics that fit your approach.</span>
-                  </div>
                 </motion.div>
               )}
 
               {/* ============================================ */}
-              {/* Q7.5 (Q9A): MONTHLY PAYMENTS (Planning only) */}
-              {/* Shown only if Q7 = comfort_range             */}
+              {/* STEP 10.5: MONTHLY PAYMENTS (conditional)    */}
               {/* ============================================ */}
-              {step === 7.5 && formData.costApproach === "comfort_range" && (
-                <motion.div key="step7.5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+              {step === 10.5 && (
+                <motion.div key="step10_5" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
                     title="Would spreading the cost into monthly payments make treatment easier for you?"
-                    subtitle="This is informational only — it won't affect your matches."
                   />
 
                   <div className="grid grid-cols-1 gap-2.5">
@@ -1249,7 +1601,7 @@ export default function IntakePage() {
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <OptionCard
                             selected={formData.monthlyPaymentRange === option.value}
-                            onClick={() => handleSingleSelect("monthlyPaymentRange", option.value, 8)}
+                            onClick={() => handleSingleSelect("monthlyPaymentRange", option.value, getNextStep(10.5))}
                           >
                             {option.label}
                           </OptionCard>
@@ -1261,15 +1613,13 @@ export default function IntakePage() {
               )}
 
               {/* ============================================ */}
-              {/* Q7.6 (Q9B): BUDGET HANDLING (Planning only)  */}
-              {/* Shown only if Q7 = strict_budget             */}
+              {/* STEP 10.6: BUDGET HANDLING (conditional)     */}
               {/* ============================================ */}
-              {step === 7.6 && formData.costApproach === "strict_budget" && (
-                <motion.div key="step7.6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+              {step === 10.6 && (
+                <motion.div key="step10_6" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<CreditCard className="w-10 h-10" />}
                     title="How would you prefer to handle costs with the clinic?"
-                    subtitle="This is informational only — it won't affect your matches."
                   />
 
                   <div className="grid grid-cols-1 gap-2.5">
@@ -1283,10 +1633,10 @@ export default function IntakePage() {
                               return
                             }
                             setFormData((prev) => ({ ...prev, strictBudgetMode: "discuss_with_clinic", strictBudgetAmount: "" }))
-                            setTimeout(() => handleStepForward(7.6, 8), 300)
+                            setTimeout(() => handleStepForward(10.6, 11), 300)
                           }}
                         >
-                          I'd prefer to discuss costs directly with the clinic
+                          I&apos;d prefer to discuss costs directly with the clinic
                         </OptionCard>
                       </motion.div>
                     </motion.div>
@@ -1334,7 +1684,7 @@ export default function IntakePage() {
                   </div>
 
                   <ContinueButton
-                    onClick={() => handleStepForward(7.6, 8)}
+                    onClick={() => handleStepForward(10.6, 11)}
                     disabled={!formData.strictBudgetMode}
                     delay={0.6}
                   />
@@ -1342,14 +1692,13 @@ export default function IntakePage() {
               )}
 
               {/* ============================================ */}
-              {/* Q8: CONTACT DETAILS (Both flows)             */}
+              {/* STEP 11: CONTACT DETAILS (Final step)        */}
               {/* ============================================ */}
-              {step === 8 && (
-                <motion.div key="step8" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+              {step === 11 && (
+                <motion.div key="step11" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
-                    icon={<Mail className="w-10 h-10" />}
-                    title="Almost there! How can clinics reach you?"
-                    subtitle="Your details are only shared with clinics you choose to contact."
+                    icon={<CheckCircle2 className="w-10 h-10" />}
+                    title="Almost there! What's your name?"
                   />
 
                   {/* Logged-in user: "Continue as" shortcut */}
@@ -1365,7 +1714,6 @@ export default function IntakePage() {
                             email: authUser.email,
                             consentContact: true,
                           }))
-                          // Submit after state update
                           setTimeout(() => {
                             const form = document.querySelector("form")
                             if (form) form.requestSubmit()
@@ -1390,7 +1738,6 @@ export default function IntakePage() {
                       <button
                         type="button"
                         onClick={async () => {
-                          // Sign out current session before showing form
                           const supabase = createClient()
                           await supabase.auth.signOut()
                           setAuthUser(null)
@@ -1402,51 +1749,38 @@ export default function IntakePage() {
                       </button>
                     </motion.div>
                   ) : (
-                    /* Anonymous user or "someone else": normal contact form */
                     <>
                   <motion.div className="space-y-5" {...fadeUp(0.3)}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="firstName" className="text-sm font-normal text-[#2d2d2d]">
-                          First name
-                        </Label>
-                        <Input
-                          id="firstName"
-                          value={formData.firstName}
-                          onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
-                          placeholder="John"
-                        />
+                    {/* Email confirmation */}
+                    {formData.email && (
+                      <div className="flex items-center gap-2 text-sm text-[#2d2d2d]/60">
+                        <span>Matches will be sent to <span className="font-medium text-[#2d2d2d]">{formData.email}</span></span>
+                        <button
+                          type="button"
+                          onClick={() => animateToStep(3, -1)}
+                          className="text-[#0fbcb0] hover:text-[#0da399] text-xs underline"
+                        >
+                          change
+                        </button>
                       </div>
-                      <div>
-                        <Label htmlFor="lastName" className="text-sm font-normal text-[#2d2d2d]">
-                          Last name
-                        </Label>
-                        <Input
-                          id="lastName"
-                          value={formData.lastName}
-                          onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
-                          placeholder="Smith"
-                        />
-                      </div>
-                    </div>
+                    )}
 
                     <div>
-                      <Label htmlFor="email" className="text-sm font-normal text-[#2d2d2d]">
-                        Email address
+                      <Label htmlFor="fullName" className="text-sm font-normal text-[#2d2d2d]">
+                        Full name
                       </Label>
                       <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        id="fullName"
+                        value={`${formData.firstName}${formData.lastName ? ` ${formData.lastName}` : ""}`}
+                        onChange={(e) => {
+                          const parts = e.target.value.split(" ")
+                          const first = parts[0] || ""
+                          const last = parts.slice(1).join(" ")
+                          setFormData({ ...formData, firstName: first, lastName: last })
+                        }}
                         className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
-                        placeholder="john@example.com"
+                        placeholder="John Smith"
                       />
-                      {formData.email && !EMAIL_REGEX.test(formData.email.trim()) && (
-                        <p className="text-sm text-red-500 mt-1">Please enter a valid email address</p>
-                      )}
                     </div>
 
                     <div>
@@ -1461,6 +1795,7 @@ export default function IntakePage() {
                         className="mt-2 h-11 text-base rounded-xl bg-[#eaf6f4] border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
                         placeholder="07123 456789"
                       />
+                      <p className="text-xs text-[#2d2d2d]/40 mt-1">Only used if you request a call-back. Never shared without your permission.</p>
                     </div>
 
                     <div className="pt-4 space-y-4">
@@ -1498,15 +1833,14 @@ export default function IntakePage() {
                     </div>
                   </motion.div>
 
-
                   <motion.div {...fadeUp(0.55)}>
                     <Button
                       type="submit"
-                      disabled={!canContinueStep8 || isSubmitting}
+                      disabled={!canContinueStep11 || isSubmitting}
                       className="w-full h-11 text-base font-semibold rounded-full shadow-lg bg-[#0fbcb0] hover:bg-[#0da399] text-white border-0 hover:shadow-xl transition-all"
                       size="lg"
                     >
-                      {isSubmitting ? "Finding your matches..." : "Get my clinic matches"}
+                      {isSubmitting ? "Finding your matches..." : "See my matches \u2192"}
                     </Button>
                   </motion.div>
                     </>

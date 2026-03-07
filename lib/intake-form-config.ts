@@ -15,8 +15,8 @@
 // =============================================================================
 // FORM VERSION - Update when making breaking changes
 // =============================================================================
-export const FORM_VERSION = "v6_blocker_multiselect_2026-02-14"
-export const SCHEMA_VERSION = 6
+export const FORM_VERSION = "v7_reorder_2026-03-07"
+export const SCHEMA_VERSION = 7
 
 // =============================================================================
 // SERVICE REGION — Change here when expanding beyond London
@@ -35,6 +35,13 @@ export const TREATMENT_OPTIONS = [
   "Dental Implants",
   "General Check-up & Clean",
   "Emergency dental issue (pain, swelling, broken tooth)",
+  // General Dentistry sub-options
+  "Check-ups",
+  "Crowns",
+  "Dental Hygienist",
+  "Dentures",
+  "Extractions",
+  "Fillings",
 ] as const
 
 export type Treatment = (typeof TREATMENT_OPTIONS)[number]
@@ -42,59 +49,306 @@ export type Treatment = (typeof TREATMENT_OPTIONS)[number]
 export const EMERGENCY_TREATMENT = "Emergency dental issue (pain, swelling, broken tooth)" as const
 
 // =============================================================================
-// LOCATION PREFERENCE (Q3 - Planning only)
+// TREATMENT CATEGORIES (for step 8 category tabs UI)
+// =============================================================================
+export type TreatmentCategory = "general" | "cosmetic" | "emergency"
+
+export interface TreatmentInfo {
+  name: string
+  value: string
+  description: string
+  whatToExpect: string[]
+  duration: string
+  recovery: string
+  benefits: string[]
+}
+
+export interface TreatmentCategoryConfig {
+  id: TreatmentCategory
+  label: string
+  treatments: TreatmentInfo[]
+}
+
+export const TREATMENT_CATEGORIES: TreatmentCategoryConfig[] = [
+  {
+    id: "general",
+    label: "General Dentistry",
+    treatments: [
+      {
+        name: "Check-ups",
+        value: "Check-ups",
+        description: "A thorough examination of your teeth, gums, and mouth. It's the foundation of preventive care and helps catch problems early.",
+        whatToExpect: [
+          "Visual examination of teeth, gums, and soft tissues",
+          "X-rays if needed to check for hidden issues",
+          "Assessment of existing fillings, crowns, or other work",
+          "Discussion of any concerns or symptoms",
+          "Personalised advice and a treatment plan if needed",
+        ],
+        duration: "15-30 minutes, single appointment",
+        recovery: "No recovery needed — completely non-invasive",
+        benefits: ["Early detection of decay or gum disease", "Peace of mind", "Preventive care"],
+      },
+      {
+        name: "Crowns",
+        value: "Crowns",
+        description: "A custom-made cap placed over a damaged tooth to restore its shape, strength, and appearance. Protects and strengthens weakened teeth.",
+        whatToExpect: [
+          "Initial consultation and X-rays",
+          "Tooth preparation and reshaping",
+          "Impressions or digital scan taken",
+          "Temporary crown fitted while permanent one is made",
+          "Final crown cemented in place at follow-up visit",
+        ],
+        duration: "2 appointments over 1-2 weeks",
+        recovery: "Mild sensitivity for a few days; normal eating within 24 hours",
+        benefits: ["Restores damaged teeth", "Natural appearance", "Long-lasting protection"],
+      },
+      {
+        name: "Dental Hygienist",
+        value: "Dental Hygienist",
+        description: "A professional clean to remove plaque and tartar build-up that regular brushing can't reach. Essential for maintaining healthy gums.",
+        whatToExpect: [
+          "Assessment of gum health",
+          "Scaling to remove tartar above and below the gumline",
+          "Polishing to remove surface stains",
+          "Personalised oral hygiene advice",
+          "Recommendations for follow-up if needed",
+        ],
+        duration: "30-45 minutes, single appointment",
+        recovery: "No recovery needed; gums may feel sensitive for a day",
+        benefits: ["Prevents gum disease", "Fresher breath", "Brighter smile"],
+      },
+      {
+        name: "Dentures",
+        value: "Dentures",
+        description: "Custom-made removable replacements for missing teeth. Modern dentures look natural and restore your ability to eat and speak comfortably.",
+        whatToExpect: [
+          "Initial consultation and impressions",
+          "Try-in appointment to check fit and appearance",
+          "Final denture fitting and adjustments",
+          "Follow-up appointments for fine-tuning",
+          "Advice on care and maintenance",
+        ],
+        duration: "Multiple appointments over 3-6 weeks",
+        recovery: "Adjustment period of a few weeks; follow-up visits as needed",
+        benefits: ["Restores smile and confidence", "Improves eating and speech", "Affordable tooth replacement"],
+      },
+      {
+        name: "Extractions",
+        value: "Extractions",
+        description: "Safe removal of a tooth that is severely damaged, decayed, or causing problems. Performed under local anaesthetic for comfort.",
+        whatToExpect: [
+          "X-ray to assess the tooth and surrounding bone",
+          "Local anaesthetic to numb the area",
+          "Gentle loosening and removal of the tooth",
+          "Gauze placed to control bleeding",
+          "Aftercare instructions for healing",
+        ],
+        duration: "20-40 minutes, single appointment",
+        recovery: "1-3 days rest; soft foods recommended; full healing in 1-2 weeks",
+        benefits: ["Relieves pain", "Prevents infection spreading", "Makes room for future treatment"],
+      },
+      {
+        name: "Fillings",
+        value: "Fillings",
+        description: "Repair for teeth damaged by decay. Modern tooth-coloured fillings blend seamlessly with your natural teeth.",
+        whatToExpect: [
+          "Local anaesthetic to numb the area",
+          "Removal of decayed tooth material",
+          "Cleaning and preparation of the cavity",
+          "Filling material placed and shaped",
+          "Polishing for a smooth, natural finish",
+        ],
+        duration: "20-40 minutes per filling",
+        recovery: "Numbness wears off in 1-2 hours; normal eating same day",
+        benefits: ["Stops decay progressing", "Restores tooth function", "Natural appearance"],
+      },
+      {
+        name: "Dental Implants",
+        value: "Dental Implants",
+        description: "A permanent replacement for missing teeth. A titanium post is placed in the jawbone and topped with a natural-looking crown.",
+        whatToExpect: [
+          "Initial consultation with X-rays and 3D scans",
+          "Implant placement under local anaesthetic",
+          "Healing period for the implant to fuse with the bone",
+          "Abutment and crown fitted at follow-up appointments",
+          "Final adjustments for comfort and appearance",
+        ],
+        duration: "3-6 months total (multiple appointments)",
+        recovery: "A few days rest after surgery; full healing over 3-6 months",
+        benefits: ["Permanent solution", "Looks and feels like a natural tooth", "Preserves jawbone health"],
+      },
+    ],
+  },
+  {
+    id: "cosmetic",
+    label: "Cosmetic",
+    treatments: [
+      {
+        name: "Teeth Whitening",
+        value: "Teeth Whitening",
+        description: "Professional whitening to brighten your smile by several shades. Safer and more effective than over-the-counter products.",
+        whatToExpect: [
+          "Consultation to assess suitability",
+          "Custom trays made from impressions of your teeth",
+          "Professional-grade whitening gel provided",
+          "At-home treatment over 1-2 weeks (or in-chair option)",
+          "Follow-up to check results",
+        ],
+        duration: "1-2 weeks at home, or 1 hour in-chair",
+        recovery: "Temporary sensitivity for 1-2 days; avoid staining foods",
+        benefits: ["Noticeably whiter smile", "Boosts confidence", "Safe and supervised"],
+      },
+      {
+        name: "Composite Bonding",
+        value: "Composite Bonding",
+        description: "A tooth-coloured resin applied to repair chips, gaps, or discolouration. A minimally invasive way to improve your smile.",
+        whatToExpect: [
+          "Shade matching to your natural teeth",
+          "Light roughening of tooth surface",
+          "Application and shaping of composite resin",
+          "Hardening with special light",
+          "Final polishing for natural appearance",
+        ],
+        duration: "30-60 minutes per tooth, single appointment",
+        recovery: "No recovery needed; normal activities immediately",
+        benefits: ["Quick results", "Preserves natural tooth", "Cost-effective"],
+      },
+      {
+        name: "Veneers",
+        value: "Veneers",
+        description: "Thin porcelain or composite shells bonded to the front of teeth to transform their appearance. Ideal for a complete smile makeover.",
+        whatToExpect: [
+          "Consultation and smile design planning",
+          "Minimal tooth preparation (thin layer removed)",
+          "Impressions or digital scan taken",
+          "Temporary veneers while permanent ones are crafted",
+          "Final veneers bonded in place",
+        ],
+        duration: "2-3 appointments over 2-3 weeks",
+        recovery: "Mild sensitivity for a few days; avoid hard foods initially",
+        benefits: ["Dramatic smile transformation", "Stain-resistant", "Long-lasting results"],
+      },
+      {
+        name: "Invisalign / Clear Aligners",
+        value: "Invisalign / Clear Aligners",
+        description: "Nearly invisible removable aligners that gradually straighten your teeth. A discreet alternative to traditional braces.",
+        whatToExpect: [
+          "3D scan and treatment plan creation",
+          "Custom aligners made for each stage",
+          "Wear aligners 20-22 hours per day",
+          "Switch to new aligners every 1-2 weeks",
+          "Regular check-ups to monitor progress",
+        ],
+        duration: "3-18 months depending on complexity",
+        recovery: "No recovery; mild pressure when switching aligners",
+        benefits: ["Nearly invisible", "Removable for eating", "Comfortable to wear"],
+      },
+    ],
+  },
+  {
+    id: "emergency",
+    label: "Emergency",
+    treatments: [
+      {
+        name: "Emergency / Same-Day",
+        value: EMERGENCY_TREATMENT,
+        description: "Urgent dental care for pain, swelling, broken teeth, or other dental emergencies. We'll fast-track you to a clinic that can see you quickly.",
+        whatToExpect: [
+          "Rapid assessment of your emergency",
+          "Pain relief and stabilisation",
+          "X-rays to diagnose the issue",
+          "Immediate treatment where possible",
+          "Follow-up plan for any further treatment needed",
+        ],
+        duration: "Same-day appointment; treatment time varies",
+        recovery: "Depends on the emergency; your dentist will advise",
+        benefits: ["Fast-tracked appointment", "Pain relief", "Expert emergency care"],
+      },
+    ],
+  },
+]
+
+// =============================================================================
+// GENERAL DENTISTRY TREATMENTS — map sub-options to the "General Dentistry" clinic tag
+// =============================================================================
+export const GENERAL_DENTISTRY_TREATMENTS = [
+  "Check-ups",
+  "Crowns",
+  "Dental Hygienist",
+  "Dentures",
+  "Extractions",
+  "Fillings",
+  // Legacy values
+  "Check up and/or hygiene clean",
+]
+
+/**
+ * Returns true if the patient's treatment selection falls under General Dentistry.
+ */
+export function isGeneralDentistryTreatment(treatment: string): boolean {
+  return GENERAL_DENTISTRY_TREATMENTS.some(
+    (t) => t.toLowerCase() === treatment.toLowerCase()
+  )
+}
+
+// =============================================================================
+// LOCATION PREFERENCE / TRAVEL DISTANCE (time-based)
 // =============================================================================
 export const LOCATION_PREFERENCE_OPTIONS = [
-  { value: "near_home_work", label: "Close to home or work", hint: "Within 1.5 miles" },
-  { value: "travel_a_bit", label: "Willing to travel a bit", hint: "Up to 5 miles" },
-  { value: "travel_further", label: "Happy to travel further for the right clinic", hint: "5+ miles" },
+  { value: "near_home_work", label: "Just a short trip", hint: "Up to 15 minutes" },
+  { value: "travel_a_bit", label: "Happy to travel a bit", hint: "Up to 30 minutes" },
+  { value: "travel_further", label: "I'll travel for the right clinic", hint: "30+ minutes" },
 ] as const
 
 export const LOCATION_PREFERENCE_LABELS: Record<string, string> = {
-  near_home_work: "Close to home or work",
-  travel_a_bit: "Willing to travel a bit",
-  travel_further: "Happy to travel further for the right clinic",
+  near_home_work: "Just a short trip",
+  travel_a_bit: "Happy to travel a bit",
+  travel_further: "I'll travel for the right clinic",
 }
 
 // =============================================================================
 // DECISION VALUES / CLINIC PRIORITIES (Q4 - Planning only, pick up to 2)
 // =============================================================================
 export const DECISION_VALUE_OPTIONS = [
-  "Specialist-level experience",
-  "Flexible appointments (late afternoons or weekends)",
-  "Clear pricing before treatment",
-  "A calm, reassuring environment",
+  "They're highly skilled and experienced",
+  "Flexible hours — evenings or weekends",
+  "Clear pricing before I commit",
+  "A calm, relaxed environment",
   "Strong reputation and reviews",
-  "Seeing the same dentist and building long-term trust",
+  "Seeing the same dentist every time",
+  "Just find me someone great",
 ] as const
 
 export type DecisionValue = (typeof DECISION_VALUE_OPTIONS)[number]
 
 // Short labels for badges/compact display
 export const DECISION_VALUE_SHORT_LABELS: Record<string, string> = {
-  "Specialist-level experience": "Specialist Experience",
-  "Flexible appointments (late afternoons or weekends)": "Flexible Hours",
-  "Clear pricing before treatment": "Clear Pricing",
-  "A calm, reassuring environment": "Calm Environment",
+  "They're highly skilled and experienced": "Specialist Experience",
+  "Flexible hours — evenings or weekends": "Flexible Hours",
+  "Clear pricing before I commit": "Clear Pricing",
+  "A calm, relaxed environment": "Calm Environment",
   "Strong reputation and reviews": "Good Reviews",
-  "Seeing the same dentist and building long-term trust": "Continuity of Care",
+  "Seeing the same dentist every time": "Continuity of Care",
+  "Just find me someone great": "Someone Great",
 }
 
 // =============================================================================
 // ANXIETY LEVEL (Q5 Planning / Q4 Emergency)
 // =============================================================================
 export const ANXIETY_LEVEL_OPTIONS = [
-  { value: "comfortable", label: "I'm comfortable with dental visits" },
-  { value: "slightly_anxious", label: "A little nervous, but I manage" },
-  { value: "quite_anxious", label: "Quite anxious — I'd appreciate a gentle approach" },
-  { value: "very_anxious", label: "Very anxious — I may need sedation or extra support" },
+  { value: "comfortable", label: "I'm comfortable, no issues" },
+  { value: "slightly_anxious", label: "A little nervous, but I get through it" },
+  { value: "quite_anxious", label: "Quite anxious, a gentle approach really helps" },
+  { value: "very_anxious", label: "Very anxious, I might need sedation or extra help" },
 ] as const
 
 export const ANXIETY_LEVEL_LABELS: Record<string, string> = {
-  comfortable: "I'm comfortable with dental visits",
-  slightly_anxious: "A little nervous, but I manage",
-  quite_anxious: "Quite anxious — I'd appreciate a gentle approach",
-  very_anxious: "Very anxious — I may need sedation or extra support",
+  comfortable: "I'm comfortable, no issues",
+  slightly_anxious: "A little nervous, but I get through it",
+  quite_anxious: "Quite anxious, a gentle approach really helps",
+  very_anxious: "Very anxious, I might need sedation or extra help",
 }
 
 export const ANXIETY_LEVEL_SHORT_LABELS: Record<string, string> = {
@@ -109,12 +363,13 @@ export const ANXIETY_LEVEL_SHORT_LABELS: Record<string, string> = {
 // Informational only — does NOT affect scoring (except WORRIED_COMPLEX penalty)
 // =============================================================================
 export const BLOCKER_OPTIONS = [
-  { code: "NOT_WORTH_COST", label: "I'm unsure how much this might cost and whether it's the right investment" },
-  { code: "NEED_MORE_TIME", label: "I'd like to understand everything clearly and take my time before deciding" },
-  { code: "UNSURE_OPTION", label: "I'm not sure which treatment option is right for me" },
-  { code: "WORRIED_COMPLEX", label: "I'm concerned it might be more complicated than I expect" },
+  { code: "NOT_WORTH_COST", label: "I'm not sure how much this will cost" },
+  { code: "NEED_MORE_TIME", label: "I want to take my time before deciding anything" },
+  { code: "UNSURE_OPTION", label: "I don't know which treatment I actually need" },
+  { code: "WORRIED_COMPLEX", label: "I'm worried it might be more complicated than I expect" },
   { code: "BAD_EXPERIENCE", label: "I've had a bad dental experience before" },
-  { code: "NO_CONCERN", label: "Nothing in particular — I just want the right clinic" },
+  { code: "EMBARRASSED", label: "I feel embarrassed about my teeth" },
+  { code: "NO_CONCERN", label: "Nothing — I just want to find the right clinic" },
 ] as const
 
 export type BlockerCode = (typeof BLOCKER_OPTIONS)[number]["code"]
@@ -129,6 +384,7 @@ export const BLOCKER_SHORT_LABELS: Record<string, string> = {
   UNSURE_OPTION: "Unsure Options",
   WORRIED_COMPLEX: "Complexity Concern",
   BAD_EXPERIENCE: "Past Bad Experience",
+  EMBARRASSED: "Embarrassed",
   NO_CONCERN: "No Concern",
 }
 
@@ -170,9 +426,9 @@ export const TIMING_SHORT_LABELS: Record<string, string> = {
 // Question: "How do you usually think about investing in dental treatment?"
 // =============================================================================
 export const COST_APPROACH_OPTIONS = [
-  { value: "best_outcome", label: "I'm looking for the best possible result and long-term outcome" },
-  { value: "understand_value", label: "I want to clearly understand the options and why one might be worth more than another" },
-  { value: "comfort_range", label: "I have a rough comfort range, but I'm flexible if the plan makes sense" },
+  { value: "best_outcome", label: "I want the best result and I'm willing to invest in it" },
+  { value: "understand_value", label: "I want to understand my options and what makes them worth it" },
+  { value: "comfort_range", label: "I have a rough budget in mind but I'm open if it makes sense" },
   { value: "strict_budget", label: "I have a strict budget I need to stay within" },
 ] as const
 
@@ -231,6 +487,29 @@ export const MONTHLY_PAYMENT_OPTIONS = [
 export const BUDGET_HANDLING_OPTIONS = [
   { value: "discuss_with_clinic", label: "I'd prefer to discuss costs directly with the clinic" },
   { value: "share_range", label: "I can share a rough budget range" },
+] as const
+
+// =============================================================================
+// COMFORT PREFERENCES (Conditional — only for anxious patients)
+// =============================================================================
+export const COMFORT_PREFERENCE_OPTIONS = [
+  { value: "pause_break", label: "Being able to pause or signal for a break" },
+  { value: "explains_everything", label: "A dentist who explains everything as they go" },
+  { value: "sedation_available", label: "Sedation options available" },
+  { value: "music_headphones", label: "Music or headphones during treatment" },
+  { value: "dimmed_lighting", label: "Softer or dimmed lighting" },
+  { value: "shorter_first_visit", label: "A shorter first visit to ease in gently" },
+  { value: "nervous_experience", label: "Someone who's worked with nervous patients a lot" },
+] as const
+
+// =============================================================================
+// SOCIAL PROOF MESSAGES (displayed on travel distance step)
+// =============================================================================
+export const SOCIAL_PROOF_MESSAGES = [
+  "Emma from SW6 found her match 9 minutes ago",
+  "James from E1 was matched with a clinic today",
+  "Priya from N4 just completed her match",
+  "Over 40 patients matched this week",
 ] as const
 
 // =============================================================================
@@ -296,6 +575,7 @@ export function parseRawAnswers(rawAnswers: Record<string, any> | null | undefin
     strictBudgetAmount: rawAnswers.strict_budget_amount || null,
     monthlyPaymentRange: rawAnswers.monthly_payment_range || null,
     anxietyLevel: rawAnswers.anxiety_level || null,
+    comfortPreferences: toArray(rawAnswers.comfort_preferences),
     preferredTimes: toArray(rawAnswers.preferred_times),
     firstName: rawAnswers.first_name || "",
     lastName: rawAnswers.last_name || "",
