@@ -244,6 +244,13 @@ export default function IntakePage() {
   const totalSteps = stepOrder.length
   const progressPercent = Math.round(((currentStepIndex + 1) / totalSteps) * 100)
 
+  // Safety: if restored step is not in the current stepOrder, reset to step 1
+  useEffect(() => {
+    if (currentStepIndex === -1) {
+      setStep(1)
+    }
+  }, [currentStepIndex])
+
   // Validation checks
   const canContinueStep1 = formData.postcode !== "" && formData.postcodeValid
   const isEmailValid = EMAIL_REGEX.test(formData.email.trim())

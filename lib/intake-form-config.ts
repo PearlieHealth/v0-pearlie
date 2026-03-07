@@ -35,17 +35,13 @@ export const TREATMENT_OPTIONS = [
   "Dental Implants",
   "General Check-up & Clean",
   "Emergency dental issue (pain, swelling, broken tooth)",
-  // New categorised treatments
+  // General Dentistry sub-options
   "Check-ups",
   "Crowns",
   "Dental Hygienist",
   "Dentures",
   "Extractions",
   "Fillings",
-  "Root Canal",
-  "Facial Aesthetics",
-  "Orthodontist",
-  "Periodontist",
 ] as const
 
 export type Treatment = (typeof TREATMENT_OPTIONS)[number]
@@ -258,6 +254,29 @@ export const TREATMENT_CATEGORIES: TreatmentCategoryConfig[] = [
     ],
   },
 ]
+
+// =============================================================================
+// GENERAL DENTISTRY TREATMENTS — map sub-options to the "General Dentistry" clinic tag
+// =============================================================================
+export const GENERAL_DENTISTRY_TREATMENTS = [
+  "Check-ups",
+  "Crowns",
+  "Dental Hygienist",
+  "Dentures",
+  "Extractions",
+  "Fillings",
+  // Legacy values
+  "Check up and/or hygiene clean",
+]
+
+/**
+ * Returns true if the patient's treatment selection falls under General Dentistry.
+ */
+export function isGeneralDentistryTreatment(treatment: string): boolean {
+  return GENERAL_DENTISTRY_TREATMENTS.some(
+    (t) => t.toLowerCase() === treatment.toLowerCase()
+  )
+}
 
 // =============================================================================
 // LOCATION PREFERENCE / TRAVEL DISTANCE (time-based)

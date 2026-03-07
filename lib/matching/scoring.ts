@@ -127,7 +127,13 @@ const TREATMENT_ALIASES: Record<string, string[]> = {
   "composite bonding": ["bonding", "composite bonding", "composite", "dental bonding"],
   "veneers": ["veneers", "veneer", "porcelain veneers", "porcelain veneer"],
   "dental implants": ["implants", "dental implants", "implant", "dental implant"],
-  "general check-up & clean": ["check-up", "checkup", "check up", "clean", "hygiene", "general dentistry", "routine", "preventative"],
+  // All General Dentistry sub-options match against the "General Dentistry" clinic tag
+  "check-ups": ["check-up", "checkup", "check up", "clean", "hygiene", "general dentistry", "routine", "preventative"],
+  "crowns": ["crown", "crowns", "general dentistry"],
+  "dental hygienist": ["dental hygienist", "hygienist", "hygiene", "clean", "general dentistry"],
+  "dentures": ["dentures", "denture", "general dentistry"],
+  "extractions": ["extraction", "extractions", "general dentistry"],
+  "fillings": ["filling", "fillings", "general dentistry"],
   "emergency dental issue (pain, swelling, broken tooth)": ["emergency", "urgent", "pain", "swelling", "broken tooth", "toothache", "abscess"],
 }
 

@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import type { Clinic, Lead } from "./types"
-import { getTreatmentsFromLead } from "@/lib/intake-form-config"
+import { getTreatmentsFromLead, isGeneralDentistryTreatment } from "@/lib/intake-form-config"
 
 const ALL_FACILITIES = [
   "Wheelchair Accessible", "Parking Available", "WiFi", "TV in Rooms",
@@ -40,17 +40,23 @@ export function ServicesTab({ clinic, lead }: ServicesTabProps) {
   const leadSelectedServices = getTreatmentsFromLead(lead)
 
   // Match patient's selected services against clinic's available treatments
+  const treatmentMatches = (service: string, clinicTreatment: string): boolean => {
+    const sLower = service.toLowerCase()
+    const cLower = clinicTreatment.toLowerCase()
+    // Direct substring match
+    if (cLower.includes(sLower) || sLower.includes(cLower)) return true
+    // General Dentistry sub-options match against "General Dentistry" clinic tag
+    if (isGeneralDentistryTreatment(service) && cLower.includes("general dentistry")) return true
+    return false
+  }
+
   const matchedPatientTreatments = leadSelectedServices.filter((service) =>
-    availableTreatments.some(
-      (at) => at.toLowerCase().includes(service.toLowerCase()) || service.toLowerCase().includes(at.toLowerCase()),
-    ),
+    availableTreatments.some((at) => treatmentMatches(service, at)),
   )
 
   // Treatments not selected by patient (shown under "Show all")
   const otherTreatments = availableTreatments.filter(
-    (t) => !leadSelectedServices.some(
-      (s) => t.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(t.toLowerCase()),
-    ),
+    (t) => !leadSelectedServices.some((s) => treatmentMatches(s, t)),
   )
 
   // Filter priced categories
