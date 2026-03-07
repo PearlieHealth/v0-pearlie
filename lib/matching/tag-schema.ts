@@ -27,12 +27,19 @@ export const FORM_VERSION = "v6_blocker_multiselect_2026-02-14"
 // MUST match DECISION_VALUE_OPTIONS in intake-form-config.ts exactly
 // =============================================================================
 export const Q4_PRIORITY_TAG_MAP: Record<string, string> = {
-  // v5 FINAL options (LOCKED):
+  // v7 options (current):
+  "They're highly skilled and experienced": "TAG_SPECIALIST_LEVEL_EXPERIENCE",
+  "Flexible hours — evenings or weekends": "TAG_FLEXIBLE_APPOINTMENTS",
+  "Clear pricing before I commit": "TAG_CLEAR_PRICING_UPFRONT",
+  "A calm, relaxed environment": "TAG_CALM_REASSURING",
+  "Strong reputation and reviews": "TAG_STRONG_REPUTATION_REVIEWS",
+  "Seeing the same dentist every time": "TAG_CONTINUITY_OF_CARE",
+  "Just find me someone great": "TAG_RIGHT_FIT_FOCUSED",
+  // v5 options (backwards compatibility):
   "Specialist-level experience": "TAG_SPECIALIST_LEVEL_EXPERIENCE",
   "Flexible appointments (late afternoons or weekends)": "TAG_FLEXIBLE_APPOINTMENTS",
   "Clear pricing before treatment": "TAG_CLEAR_PRICING_UPFRONT",
   "A calm, reassuring environment": "TAG_CALM_REASSURING",
-  "Strong reputation and reviews": "TAG_STRONG_REPUTATION_REVIEWS",
   "Seeing the same dentist and building long-term trust": "TAG_CONTINUITY_OF_CARE",
   // Legacy v4 options (backwards compatibility):
   "A calm and reassuring approach": "TAG_CALM_REASSURING",
