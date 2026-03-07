@@ -55,7 +55,7 @@ export const EMERGENCY_TREATMENT = "Emergency dental issue (pain, swelling, brok
 // =============================================================================
 // TREATMENT CATEGORIES (for step 8 category tabs UI)
 // =============================================================================
-export type TreatmentCategory = "general" | "cosmetic" | "specialist" | "emergency"
+export type TreatmentCategory = "general" | "cosmetic" | "emergency"
 
 export interface TreatmentInfo {
   name: string
@@ -233,87 +233,6 @@ export const TREATMENT_CATEGORIES: TreatmentCategoryConfig[] = [
         duration: "3-18 months depending on complexity",
         recovery: "No recovery; mild pressure when switching aligners",
         benefits: ["Nearly invisible", "Removable for eating", "Comfortable to wear"],
-      },
-    ],
-  },
-  {
-    id: "specialist",
-    label: "Specialist",
-    treatments: [
-      {
-        name: "Root Canal",
-        value: "Root Canal",
-        description: "Treatment to save a badly infected or damaged tooth by removing the infected pulp inside. Relieves pain and preserves the natural tooth.",
-        whatToExpect: [
-          "X-ray to assess infection extent",
-          "Local anaesthetic for complete numbness",
-          "Removal of infected pulp from inside the tooth",
-          "Cleaning and shaping of the root canals",
-          "Filling and sealing; crown usually recommended after",
-        ],
-        duration: "1-2 appointments, 60-90 minutes each",
-        recovery: "Mild discomfort for a few days; pain relief with over-the-counter medication",
-        benefits: ["Saves your natural tooth", "Relieves severe pain", "Prevents extraction"],
-      },
-      {
-        name: "Dental Implants",
-        value: "Dental Implants",
-        description: "A permanent replacement for missing teeth. A titanium post is placed in the jawbone to support a natural-looking crown.",
-        whatToExpect: [
-          "Comprehensive assessment with 3D imaging",
-          "Implant post placed into the jawbone under local anaesthetic",
-          "Healing period for bone integration (3-6 months)",
-          "Abutment attached to the implant",
-          "Custom crown fitted for a natural look",
-        ],
-        duration: "3-6 months total; multiple appointments",
-        recovery: "1-2 weeks initial healing; full integration over several months",
-        benefits: ["Permanent solution", "Looks and feels natural", "Preserves jawbone"],
-      },
-      {
-        name: "Facial Aesthetics",
-        value: "Facial Aesthetics",
-        description: "Non-surgical treatments such as anti-wrinkle injections and dermal fillers, delivered by dental professionals with expert knowledge of facial anatomy.",
-        whatToExpect: [
-          "Consultation to discuss goals and options",
-          "Assessment of facial anatomy",
-          "Treatment with fine needles (minimal discomfort)",
-          "Immediate or gradual results depending on treatment",
-          "Follow-up to review results",
-        ],
-        duration: "15-45 minutes per session",
-        recovery: "Minimal downtime; mild redness or swelling for 1-2 days",
-        benefits: ["Refreshed appearance", "Quick treatment", "Expert anatomical knowledge"],
-      },
-      {
-        name: "Orthodontist",
-        value: "Orthodontist",
-        description: "Specialist treatment to correct misaligned teeth and bite issues using braces, aligners, or other appliances.",
-        whatToExpect: [
-          "Detailed assessment with X-rays and scans",
-          "Customised treatment plan",
-          "Fitting of braces or aligners",
-          "Regular adjustment appointments",
-          "Retainers provided after treatment to maintain results",
-        ],
-        duration: "6-24 months depending on complexity",
-        recovery: "Mild discomfort after adjustments; normal activities throughout",
-        benefits: ["Straighter teeth", "Improved bite function", "Specialist expertise"],
-      },
-      {
-        name: "Periodontist",
-        value: "Periodontist",
-        description: "Specialist treatment for gum disease and conditions affecting the tissues supporting your teeth. Essential for long-term dental health.",
-        whatToExpect: [
-          "Comprehensive gum assessment and probing",
-          "Deep cleaning below the gumline if needed",
-          "Treatment plan for any gum disease",
-          "Possible surgical intervention for advanced cases",
-          "Ongoing maintenance plan",
-        ],
-        duration: "Varies by treatment; initial appointment 45-60 minutes",
-        recovery: "Varies by procedure; gums may be tender for a few days",
-        benefits: ["Saves teeth at risk", "Treats gum disease", "Specialist gum care"],
       },
     ],
   },
