@@ -86,17 +86,17 @@ export const DECISION_VALUE_SHORT_LABELS: Record<string, string> = {
 // ANXIETY LEVEL (Q5 Planning / Q4 Emergency)
 // =============================================================================
 export const ANXIETY_LEVEL_OPTIONS = [
-  { value: "comfortable", label: "I'm comfortable — no issues" },
+  { value: "comfortable", label: "I'm comfortable, no issues" },
   { value: "slightly_anxious", label: "A little nervous, but I get through it" },
-  { value: "quite_anxious", label: "Quite anxious — a gentle approach really helps" },
-  { value: "very_anxious", label: "Very anxious — I might need sedation or extra help" },
+  { value: "quite_anxious", label: "Quite anxious, a gentle approach really helps" },
+  { value: "very_anxious", label: "Very anxious, I might need sedation or extra help" },
 ] as const
 
 export const ANXIETY_LEVEL_LABELS: Record<string, string> = {
-  comfortable: "I'm comfortable — no issues",
+  comfortable: "I'm comfortable, no issues",
   slightly_anxious: "A little nervous, but I get through it",
-  quite_anxious: "Quite anxious — a gentle approach really helps",
-  very_anxious: "Very anxious — I might need sedation or extra help",
+  quite_anxious: "Quite anxious, a gentle approach really helps",
+  very_anxious: "Very anxious, I might need sedation or extra help",
 }
 
 export const ANXIETY_LEVEL_SHORT_LABELS: Record<string, string> = {
