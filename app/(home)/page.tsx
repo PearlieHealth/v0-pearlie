@@ -24,6 +24,7 @@ import { HomeHeroSearch } from "@/components/home-hero-search"
 import { StickyMobileHomeCta } from "@/components/sticky-mobile-home-cta"
 import { TrustBadgeStrip } from "@/components/trust-badge-strip"
 import { useLastMatch } from "@/hooks/use-last-match"
+import { trackEvent } from "@/lib/analytics"
 
 
 // Homepage treatment list derived from the canonical config (not hardcoded)
@@ -197,6 +198,28 @@ export default function Home() {
   // Client-side mount flag for WebGL MeshGradient
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
+
+  // Landing page time tracking
+  const landingStartRef = useRef<number>(Date.now())
+  useEffect(() => {
+    trackEvent("landing_page_viewed", { meta: { referrer: document.referrer || null } })
+
+    const handleBeforeUnload = () => {
+      const timeSpentSeconds = Math.round((Date.now() - landingStartRef.current) / 1000)
+      const payload = JSON.stringify({
+        session_id: sessionStorage.getItem("pearlie_session_id") || "",
+        event_name: "landing_page_exit",
+        page: window.location.pathname,
+        meta: { time_spent_seconds: timeSpentSeconds },
+      })
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon("/api/track", new Blob([payload], { type: "application/json" }))
+      }
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload)
+  }, [])
 
   // Rotating hero benefit phrases
   const [benefitIndex, setBenefitIndex] = useState(0)

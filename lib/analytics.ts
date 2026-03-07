@@ -54,6 +54,8 @@ type ValidEventName =
   | "postcode_outside_london"
   | "booking_confirmed_inline"
   | "direct_lead_created"
+  | "landing_page_viewed"
+  | "landing_page_exit"
 
 type TrackEventOptions = {
   leadId?: string | null
