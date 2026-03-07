@@ -45,9 +45,9 @@ export const EMERGENCY_TREATMENT = "Emergency dental issue (pain, swelling, brok
 // LOCATION PREFERENCE / TRAVEL DISTANCE (time-based)
 // =============================================================================
 export const LOCATION_PREFERENCE_OPTIONS = [
-  { value: "near_home_work", label: "Just a short trip", hint: "Up to 10 minutes" },
-  { value: "travel_a_bit", label: "Happy to travel a bit", hint: "Around 20 minutes" },
-  { value: "travel_further", label: "I'll travel for the right clinic", hint: "20+ minutes" },
+  { value: "near_home_work", label: "Just a short trip", hint: "Up to 15 minutes" },
+  { value: "travel_a_bit", label: "Happy to travel a bit", hint: "Up to 30 minutes" },
+  { value: "travel_further", label: "I'll travel for the right clinic", hint: "30+ minutes" },
 ] as const
 
 export const LOCATION_PREFERENCE_LABELS: Record<string, string> = {

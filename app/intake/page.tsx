@@ -211,7 +211,7 @@ export default function IntakePage() {
   // NEW ORDER: 1(postcode) -> 2(email) -> 3(travel) -> 4(priorities) -> 5(anxiety) -> 6(comfort, conditional) -> 7(concerns) -> 8(treatment) -> 9(timing+avail) -> 10(budget) -> 11(contact)
   // Emergency shortcut: if treatment = emergency at step 8, skip 9 & 10 -> go to 11
   const stepOrder = useMemo(() => {
-    const order: number[] = [1, 2, 3, 4, 5]
+    const order: number[] = [1, 3, 2, 4, 5]
     if (isAnxious) {
       order.push(6)
     }
@@ -925,7 +925,7 @@ export default function IntakePage() {
                   <StepHeader
                     icon={<MapPin className="w-10 h-10" />}
                     title="Where are you based?"
-                    subtitle="We'll find clinics near you — matched to how you actually feel."
+                    subtitle="Enter your postcode to get started."
                   />
 
                   <motion.div {...fadeUp(0.3)}>
@@ -943,6 +943,10 @@ export default function IntakePage() {
 
                   <ContinueButton onClick={() => handleStepForward(1, getNextStep(1))} disabled={!canContinueStep1} delay={0.4} />
 
+                  <motion.p {...fadeUp(0.5)} className="text-sm text-[#2d2d2d]/60 text-center leading-relaxed">
+                    We&apos;ll find clinics near you — matched to how you actually feel.
+                  </motion.p>
+
                   {/* FAQ / Trust section below the fold */}
                   <motion.div {...fadeUp(0.6)} className="pt-6 space-y-6">
                     <div className="border-t border-gray-200" />
@@ -951,7 +955,7 @@ export default function IntakePage() {
                     <div className="bg-gray-50 rounded-2xl p-5">
                       <h3 className="text-base font-semibold text-[#2d2d2d] mb-2">About Pearlie</h3>
                       <p className="text-sm text-[#2d2d2d]/70 leading-relaxed">
-                        Pearlie matches patients with dental clinics based on what actually matters to you — not just what&apos;s nearby. We look at how you feel about dentists, what you value, and your practical needs, then find the right fit. Free for patients, always.
+                        Pearlie is a curated network of best dentists. Find one perfect for you and book online instantly. Free for patients, always.
                       </p>
                     </div>
 
@@ -962,11 +966,11 @@ export default function IntakePage() {
                       <h3 className="text-base font-semibold text-[#2d2d2d] mb-3">Common Questions</h3>
                       <div className="space-y-0">
                         {[
-                          { q: "How does the matching work?", a: "We ask a short set of questions about your preferences, anxiety level, and what you're looking for. Our algorithm scores clinics based on how well they fit your answers — not just location." },
-                          { q: "Is it free for patients?", a: "Yes, completely. We're paid by clinics when they successfully connect with a patient. You never pay anything." },
-                          { q: "How quickly will I hear back from a clinic?", a: "Most matched clinics respond within 24–48 hours. If you're in pain or urgent, we flag that and clinics prioritise your enquiry." },
-                          { q: "Will my details be shared without my permission?", a: "No. Your details are only shared with clinics you choose to contact." },
-                          { q: "What if there are no clinics near me yet?", a: "Complete the form anyway — we'll add you to our priority list and notify you as we grow in your area." },
+                          { q: "What is Pearlie?", a: "Pearlie is a curated network of top-rated dental clinics. We match you with the right dentist based on your specific needs, preferences, and how you feel about dental visits — so you can book with confidence. It's completely free for patients." },
+                          { q: "How does the matching work?", a: "We ask you a short set of questions about what matters most to you — things like your comfort level, priorities in a dentist, budget, and location. Our algorithm then scores and ranks clinics based on how well they match your answers, not just who's closest. You'll receive personalised recommendations with clear reasons why each clinic is a good fit for you." },
+                          { q: "Is it free for patients?", a: "Yes, 100% free. Pearlie is funded by the clinics in our network — they pay a small fee when they successfully connect with a new patient. You will never be charged anything for using Pearlie, browsing your matches, or booking an appointment." },
+                          { q: "How quickly will I hear back from a clinic?", a: "Most matched clinics respond within 24–48 hours. If you indicate that you're in pain or need urgent care, we flag your enquiry as a priority so clinics can get back to you even faster. You'll receive updates by email so you never miss a response." },
+                          { q: "Will my details be shared without my permission?", a: "No, never. Your personal details are only shared with clinics that you actively choose to contact. We don't sell your data or share it with third parties. You're always in control of who sees your information." },
                         ].map((faq, idx) => (
                           <div key={idx} className="border-b border-gray-100 last:border-b-0">
                             <button
@@ -985,18 +989,6 @@ export default function IntakePage() {
                       </div>
                     </div>
 
-                    <div className="border-t border-gray-200" />
-
-                    {/* For Dental Clinics */}
-                    <div className="bg-gray-50 rounded-2xl p-5">
-                      <h3 className="text-base font-semibold text-[#2d2d2d] mb-2">For Dental Clinics</h3>
-                      <p className="text-sm text-[#2d2d2d]/70 leading-relaxed">
-                        Want patients who are right for your practice — not just anyone nearby?{" "}
-                        <a href="/for-clinics" className="text-[#0fbcb0] hover:text-[#0da399] underline">
-                          Learn more about joining Pearlie &rarr;
-                        </a>
-                      </p>
-                    </div>
                   </motion.div>
                 </motion.div>
               )}
@@ -1066,7 +1058,7 @@ export default function IntakePage() {
                   <StepHeader
                     icon={<Heart className="w-10 h-10" />}
                     title="What matters most to you in a dentist?"
-                    subtitle="Pick up to 2. Or choose the last option if you're not sure."
+                    subtitle=""
                   />
 
                   <div className="grid grid-cols-1 gap-2.5">
