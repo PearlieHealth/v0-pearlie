@@ -247,12 +247,15 @@ export default function IntakePage() {
   const totalSteps = stepOrder.length
   const progressPercent = Math.round(((currentStepIndex + 1) / totalSteps) * 100)
 
-  // Safety: if restored step is not in the current stepOrder, reset to step 1
+  // Safety: if current step is not in stepOrder, navigate to nearest valid step
   useEffect(() => {
     if (currentStepIndex === -1) {
-      setStep(1)
+      // Find the closest step in stepOrder that comes after the current step
+      const nextValid = stepOrder.find((s) => s > step)
+      // Or fall back to the last step in the order, or step 1
+      setStep(nextValid ?? stepOrder[stepOrder.length - 1] ?? 1)
     }
-  }, [currentStepIndex])
+  }, [currentStepIndex, step, stepOrder])
 
   // Validation checks
   const canContinueStep1 = formData.postcode !== "" && formData.postcodeValid
@@ -1134,7 +1137,16 @@ export default function IntakePage() {
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <OptionCard
                             selected={formData.anxiety_level === option.value}
-                            onClick={() => handleSingleSelect("anxiety_level", option.value, getNextStep(5))}
+                            onClick={() => {
+                              if (formData.anxiety_level === option.value) {
+                                setFormData((prev) => ({ ...prev, anxiety_level: "" }))
+                                return
+                              }
+                              setFormData((prev) => ({ ...prev, anxiety_level: option.value }))
+                              // Route to comfort preferences (step 6) if anxious, otherwise skip to treatment (step 7)
+                              const isAnxiousChoice = option.value === "quite_anxious" || option.value === "very_anxious"
+                              setTimeout(() => handleStepForward(5, isAnxiousChoice ? 6 : 7), 300)
+                            }}
                           >
                             {option.label}
                           </OptionCard>
@@ -1534,7 +1546,21 @@ export default function IntakePage() {
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <OptionCard
                             selected={formData.costApproach === option.value}
-                            onClick={() => handleSingleSelect("costApproach", option.value, getNextStep(10))}
+                            onClick={() => {
+                              if (formData.costApproach === option.value) {
+                                setFormData((prev) => ({ ...prev, costApproach: "" }))
+                                return
+                              }
+                              setFormData((prev) => ({ ...prev, costApproach: option.value }))
+                              // Route to the appropriate follow-up based on selection
+                              if (option.value === "comfort_range") {
+                                setTimeout(() => handleStepForward(10, 10.5), 300)
+                              } else if (option.value === "strict_budget") {
+                                setTimeout(() => handleStepForward(10, 10.6), 300)
+                              } else {
+                                setTimeout(() => handleStepForward(10, 11), 300)
+                              }
+                            }}
                           >
                             {option.label}
                           </OptionCard>
@@ -1583,19 +1609,71 @@ export default function IntakePage() {
                   />
 
                   <div className="grid grid-cols-1 gap-2.5">
-                    {BUDGET_HANDLING_OPTIONS.map((option, index) => (
-                      <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <OptionCard
-                            selected={formData.strictBudgetMode === option.value}
-                            onClick={() => handleSingleSelect("strictBudgetMode", option.value, getNextStep(10.6))}
-                          >
-                            {option.label}
-                          </OptionCard>
-                        </motion.div>
+                    <motion.div {...fadeUp(0.3)}>
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <OptionCard
+                          selected={formData.strictBudgetMode === "discuss_with_clinic"}
+                          onClick={() => {
+                            if (formData.strictBudgetMode === "discuss_with_clinic") {
+                              setFormData((prev) => ({ ...prev, strictBudgetMode: "" }))
+                              return
+                            }
+                            setFormData((prev) => ({ ...prev, strictBudgetMode: "discuss_with_clinic", strictBudgetAmount: "" }))
+                            setTimeout(() => handleStepForward(10.6, 11), 300)
+                          }}
+                        >
+                          I&apos;d prefer to discuss costs directly with the clinic
+                        </OptionCard>
                       </motion.div>
-                    ))}
+                    </motion.div>
+
+                    <motion.div {...fadeUp(0.45)}>
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <OptionCard
+                          selected={formData.strictBudgetMode === "share_range"}
+                          onClick={() => {
+                            if (formData.strictBudgetMode === "share_range") {
+                              setFormData((prev) => ({ ...prev, strictBudgetMode: "", strictBudgetAmount: "" }))
+                              return
+                            }
+                            setFormData((prev) => ({ ...prev, strictBudgetMode: "share_range" }))
+                          }}
+                        >
+                          I can share a rough budget range
+                        </OptionCard>
+                      </motion.div>
+                    </motion.div>
+
+                    {/* Optional budget input — shown when "share_range" is selected */}
+                    {formData.strictBudgetMode === "share_range" && (
+                      <motion.div
+                        {...fadeUp(0.1)}
+                        className="p-4 md:p-5 rounded-2xl border-2 border-[#0fbcb0] bg-[#eaf6f4]"
+                      >
+                        <Label className="text-base font-normal text-[#2d2d2d]">Enter your approximate budget or range (optional)</Label>
+                        <div className="relative mt-3">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2d2d2d]/50 text-base">£</span>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="e.g. 3,000"
+                            value={formData.strictBudgetAmount}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^\d,]/g, "")
+                              setFormData((prev) => ({ ...prev, strictBudgetAmount: value }))
+                            }}
+                            className="pl-8 h-12 text-base rounded-xl bg-white border-[#a8d5cf] text-[#2d2d2d] placeholder:text-[#2d2d2d]/40"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
+
+                  <ContinueButton
+                    onClick={() => handleStepForward(10.6, 11)}
+                    disabled={!formData.strictBudgetMode}
+                    delay={0.6}
+                  />
                 </motion.div>
               )}
 
