@@ -217,7 +217,7 @@ export default function IntakePage() {
   const isAnxious = formData.anxiety_level === "quite_anxious" || formData.anxiety_level === "very_anxious"
 
   // Is treatment a checkup?
-  const isCheckup = formData.treatments.includes("Check up and/or hygiene clean") || formData.treatments.includes("Check-ups")
+  const isCheckup = formData.treatments.includes("Check up and/or hygiene clean") || formData.treatments.includes("Check-ups") || formData.treatments.includes("Dental Hygienist")
 
   // Dynamic step order based on flow
   // ORDER: 1(postcode) -> 2(travel) -> 3(email) -> 4(priorities) -> 5(anxiety) -> 6(comfort, conditional) -> 7(treatment) -> 8(concerns, skip if checkup) -> 9(timing+avail) -> 10(budget) -> 11(contact)
