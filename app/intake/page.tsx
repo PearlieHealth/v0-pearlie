@@ -149,7 +149,7 @@ export default function IntakePage() {
       }))
 
       // Treatment is pre-selected but form still starts at step 1 (postcode)
-      // Treatment will be pre-filled when they reach step 8
+      // Treatment will be pre-filled when they reach step 7
     } catch {}
   }, [])
 
@@ -217,16 +217,16 @@ export default function IntakePage() {
   const isCheckup = formData.treatments.includes("Check up and/or hygiene clean") || formData.treatments.includes("Check-ups")
 
   // Dynamic step order based on flow
-  // ORDER: 1(postcode) -> 3(travel) -> 2(email) -> 4(priorities) -> 5(anxiety) -> 8(treatment) -> 6(comfort, conditional) -> 7(concerns, skip if checkup) -> 9(timing+avail) -> 10(budget) -> 11(contact)
+  // ORDER: 1(postcode) -> 2(travel) -> 3(email) -> 4(priorities) -> 5(anxiety) -> 6(comfort, conditional) -> 7(treatment) -> 8(concerns, skip if checkup) -> 9(timing+avail) -> 10(budget) -> 11(contact)
   // Emergency: skip 9 & 10 -> go to 11
   const stepOrder = useMemo(() => {
-    const order: number[] = [1, 3, 2, 4, 5]
+    const order: number[] = [1, 2, 3, 4, 5]
     if (isAnxious) {
       order.push(6)
     }
-    order.push(8)
+    order.push(7)
     if (!isCheckup && !isEmergency) {
-      order.push(7)
+      order.push(8)
     }
     if (!isEmergency) {
       order.push(9, 10)
@@ -247,10 +247,10 @@ export default function IntakePage() {
   // Validation checks
   const canContinueStep1 = formData.postcode !== "" && formData.postcodeValid
   const isEmailValid = EMAIL_REGEX.test(formData.email.trim())
-  const canContinueStep2 = formData.email !== "" && isEmailValid
+  const canContinueStep3 = formData.email !== "" && isEmailValid
   const canContinueStep4 = formData.decisionValues.length > 0
-  const canContinueStep7 = formData.conversionBlockerCodes.length > 0
-  const canContinueStep8 = formData.treatments.length > 0
+  const canContinueStep8 = formData.conversionBlockerCodes.length > 0
+  const canContinueStep7 = formData.treatments.length > 0
   const canContinueStep9 = formData.readiness !== "" && formData.preferred_times.length > 0
   const canContinueStep11 =
     formData.firstName && formData.consentContact
@@ -455,13 +455,13 @@ export default function IntakePage() {
   const getStepName = (stepNum: number) => {
     const names: Record<number, string> = {
       1: "Postcode",
-      2: "Email Capture",
-      3: "Travel Distance",
+      2: "Travel Distance",
+      3: "Email Capture",
       4: "Clinic Priorities",
       5: "Dental Anxiety",
       6: "Comfort Preferences",
-      7: "Concerns",
-      8: "Treatment Selection",
+      7: "Treatment Selection",
+      8: "Concerns",
       9: "Timing & Availability",
       10: "Budget Mindset",
       10.5: "Monthly Payments",
@@ -1014,10 +1014,38 @@ export default function IntakePage() {
               )}
 
               {/* ============================================ */}
-              {/* STEP 2: EMAIL CAPTURE (NEW)                  */}
+              {/* STEP 2: TRAVEL DISTANCE (time-based)         */}
               {/* ============================================ */}
               {step === 2 && (
                 <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+                  <StepHeader
+                    icon={<MapPin className="w-10 h-10" />}
+                    title="How long are you happy to travel?"
+                  />
+
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {LOCATION_PREFERENCE_OPTIONS.map((option, index) => (
+                      <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <OptionCard
+                            selected={formData.location_preference === option.value}
+                            onClick={() => handleSingleSelect("location_preference", option.value, getNextStep(2))}
+                            hint={option.hint}
+                          >
+                            {option.label}
+                          </OptionCard>
+                        </motion.div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ============================================ */}
+              {/* STEP 3: EMAIL CAPTURE                        */}
+              {/* ============================================ */}
+              {step === 3 && (
+                <motion.div key="step3" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Mail className="w-10 h-10" />}
                     title="Where should we send your results?"
@@ -1038,35 +1066,7 @@ export default function IntakePage() {
                     <p className="text-xs text-[#2d2d2d]/40">No spam, ever.</p>
                   </motion.div>
 
-                  <ContinueButton onClick={() => handleStepForward(2, getNextStep(2))} disabled={!canContinueStep2} delay={0.4} />
-                </motion.div>
-              )}
-
-              {/* ============================================ */}
-              {/* STEP 3: TRAVEL DISTANCE (time-based)         */}
-              {/* ============================================ */}
-              {step === 3 && (
-                <motion.div key="step3" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
-                  <StepHeader
-                    icon={<MapPin className="w-10 h-10" />}
-                    title="How long are you happy to travel?"
-                  />
-
-                  <div className="grid grid-cols-1 gap-2.5">
-                    {LOCATION_PREFERENCE_OPTIONS.map((option, index) => (
-                      <motion.div key={option.value} {...fadeUp(0.15 * index + 0.3)}>
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <OptionCard
-                            selected={formData.location_preference === option.value}
-                            onClick={() => handleSingleSelect("location_preference", option.value, getNextStep(3))}
-                            hint={option.hint}
-                          >
-                            {option.label}
-                          </OptionCard>
-                        </motion.div>
-                      </motion.div>
-                    ))}
-                  </div>
+                  <ContinueButton onClick={() => handleStepForward(3, getNextStep(3))} disabled={!canContinueStep3} delay={0.4} />
                 </motion.div>
               )}
 
@@ -1209,10 +1209,10 @@ export default function IntakePage() {
               )}
 
               {/* ============================================ */}
-              {/* STEP 7: CONCERNS                             */}
+              {/* STEP 8: CONCERNS                             */}
               {/* ============================================ */}
-              {step === 7 && (
-                <motion.div key="step7" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+              {step === 8 && (
+                <motion.div key="step8" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<AlertCircle className="w-10 h-10" />}
                     title="Is there anything on your mind about this?"
@@ -1236,7 +1236,7 @@ export default function IntakePage() {
                               } else {
                                 setFormData((prev) => ({ ...prev, conversionBlockerCodes: [option.code] }))
                               }
-                              setTimeout(() => handleStepForward(7, getNextStep(7)), 300)
+                              setTimeout(() => handleStepForward(8, getNextStep(8)), 300)
                             }}
                           >
                             {option.label}
@@ -1260,10 +1260,10 @@ export default function IntakePage() {
               )}
 
               {/* ============================================ */}
-              {/* STEP 8: TREATMENT SELECTION (category tabs)  */}
+              {/* STEP 7: TREATMENT SELECTION (category tabs)  */}
               {/* ============================================ */}
-              {step === 8 && (
-                <motion.div key="step8" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
+              {step === 7 && (
+                <motion.div key="step7" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition} className="space-y-5">
                   <StepHeader
                     icon={<Smile className="w-10 h-10" />}
                     title="What services do you need?"
@@ -1354,8 +1354,8 @@ export default function IntakePage() {
                   )}
 
                   <ContinueButton
-                    onClick={() => handleStepForward(8, getNextStep(8))}
-                    disabled={!canContinueStep8}
+                    onClick={() => handleStepForward(7, getNextStep(7))}
+                    disabled={!canContinueStep7}
                   />
                 </motion.div>
               )}
