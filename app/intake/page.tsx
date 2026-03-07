@@ -852,6 +852,7 @@ export default function IntakePage() {
             className="flex items-center text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-0"
           >
             <ChevronLeft className="w-5 h-5" />
+            <span className="text-sm">Previous</span>
           </button>
         </div>
       </div>
@@ -862,8 +863,8 @@ export default function IntakePage() {
       {/* Headline banner — tagline + progress on dark teal bg with shadow */}
       <div className="bg-[#0d3d3a] text-center pt-2 pb-4 px-4 shadow-[0_8px_24px_rgba(0,0,0,0.25)] relative z-10">
         <h2 className="text-2xl md:text-3xl font-heading font-medium text-[#faf5ef] leading-tight">
-          Find a dentist who actually{" "}
-          <span className="text-[#0fbcb0] font-bold whitespace-nowrap">gets you.</span>
+          Find the best dentist{" "}
+          <span className="text-[#0fbcb0] font-bold whitespace-nowrap">for you.</span>
         </h2>
         <div className="flex items-center justify-center gap-2 mt-2.5">
           <span className="text-xs font-medium text-[#faf5ef]/50">Step {currentStepIndex + 1} of {totalSteps}</span>
@@ -925,7 +926,7 @@ export default function IntakePage() {
                   <StepHeader
                     icon={<MapPin className="w-10 h-10" />}
                     title="Where are you based?"
-                    subtitle="Enter your postcode to get started."
+                    subtitle=""
                   />
 
                   <motion.div {...fadeUp(0.3)}>
@@ -944,7 +945,7 @@ export default function IntakePage() {
                   <ContinueButton onClick={() => handleStepForward(1, getNextStep(1))} disabled={!canContinueStep1} delay={0.4} />
 
                   <motion.p {...fadeUp(0.5)} className="text-sm text-[#2d2d2d]/60 text-center leading-relaxed">
-                    We&apos;ll find clinics near you — matched to how you actually feel.
+                    We&apos;ll find clinics near you.
                   </motion.p>
 
                   {/* FAQ / Trust section below the fold */}
