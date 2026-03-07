@@ -220,10 +220,11 @@ export default function IntakePage() {
   // ORDER: 1(postcode) -> 3(travel) -> 2(email) -> 4(priorities) -> 5(anxiety) -> 8(treatment) -> 6(comfort, conditional) -> 7(concerns, skip if checkup) -> 9(timing+avail) -> 10(budget) -> 11(contact)
   // Emergency: skip 9 & 10 -> go to 11
   const stepOrder = useMemo(() => {
-    const order: number[] = [1, 3, 2, 4, 5, 8]
+    const order: number[] = [1, 3, 2, 4, 5]
     if (isAnxious) {
       order.push(6)
     }
+    order.push(8)
     if (!isCheckup && !isEmergency) {
       order.push(7)
     }
