@@ -27,7 +27,7 @@ import { pushToDataLayer } from "@/lib/gtm"
 import { identifyForTikTok, trackTikTokEvent } from "@/lib/tiktok-pixel"
 import { generateTikTokEventId } from "@/lib/tiktok-event-id"
 import { slideVariants, slideTransition } from "@/lib/slide-variants"
-import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, Moon, CreditCard, Mail, Zap, Info, ChevronRight, X, MessageCircle } from "lucide-react"
+import { ChevronLeft, Shield, Clock, CheckCircle2, MapPin, Calendar, Smile, Heart, AlertCircle, Sun, CreditCard, Mail, Zap, Info, ChevronRight, X, MessageCircle } from "lucide-react"
 import {
   FORM_VERSION,
   SCHEMA_VERSION,
@@ -139,12 +139,15 @@ export default function IntakePage() {
       )
       if (!matched) return
 
+      // Map legacy treatment names to current category values
+      const treatmentValue = matched === "General Check-up & Clean" ? "Check-ups" : matched
+
       // Check if there's also a pre-filled postcode
       const postcodeParam = params.get("postcode")
 
       setFormData((prev) => ({
         ...prev,
-        treatments: matched === EMERGENCY_TREATMENT ? [EMERGENCY_TREATMENT] : [matched],
+        treatments: treatmentValue === EMERGENCY_TREATMENT ? [EMERGENCY_TREATMENT] : [treatmentValue],
         ...(postcodeParam ? { postcode: postcodeParam.toUpperCase() } : {}),
       }))
 
@@ -261,25 +264,6 @@ export default function IntakePage() {
   const canContinueStep9 = formData.readiness !== "" && formData.preferred_times.length > 0
   const canContinueStep11 =
     formData.firstName && formData.consentContact
-
-  // Treatment toggle with emergency exclusivity
-  const handleTreatmentToggle = (treatment: string) => {
-    setFormData((prev) => {
-      if (treatment === EMERGENCY_TREATMENT) {
-        // Emergency selected: deselect everything else, only emergency
-        if (prev.treatments.includes(EMERGENCY_TREATMENT)) {
-          return { ...prev, treatments: [] }
-        }
-        return { ...prev, treatments: [EMERGENCY_TREATMENT] }
-      }
-      // Non-emergency selected: remove emergency if present, toggle treatment
-      const withoutEmergency = prev.treatments.filter((t) => t !== EMERGENCY_TREATMENT)
-      if (withoutEmergency.includes(treatment)) {
-        return { ...prev, treatments: withoutEmergency.filter((t) => t !== treatment) }
-      }
-      return { ...prev, treatments: [...withoutEmergency, treatment] }
-    })
-  }
 
   const handleDecisionValueToggle = (value: string) => {
     setFormData((prev) => {
@@ -1234,7 +1218,7 @@ export default function IntakePage() {
                             onClick={() => {
                               const isSelected = formData.conversionBlockerCodes.includes(option.code)
                               if (isSelected) {
-                                setFormData((prev) => ({ ...prev, conversionBlockerCodes: [] }))
+                                setFormData((prev) => ({ ...prev, conversionBlockerCodes: prev.conversionBlockerCodes.filter((c) => c !== option.code) }))
                                 return
                               }
                               // NO_CONCERN is exclusive
@@ -1682,7 +1666,7 @@ export default function IntakePage() {
                         <span>Matches will be sent to <span className="font-medium text-[#2d2d2d]">{formData.email}</span></span>
                         <button
                           type="button"
-                          onClick={() => animateToStep(2, -1)}
+                          onClick={() => animateToStep(3, -1)}
                           className="text-[#0fbcb0] hover:text-[#0da399] text-xs underline"
                         >
                           change
